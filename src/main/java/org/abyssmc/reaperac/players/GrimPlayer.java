@@ -174,15 +174,12 @@ public class GrimPlayer implements Listener {
     // Verified.  This is correct.
     private float getFrictionInfluencedSpeed(float f) {
         if (player.isOnGround()) {
-            // Fuck you MD_5
-            float g = (float) (player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
-
             // Required because getting player walk speed doesn't talk into account sprinting
-            if (player.isSprinting()) {
-                g *= 1.30000001192092896;
-            }
+            //if (player.isSprinting()) {
+            //    g *= 1.30000001192092896;
+            //}
 
-            return g;
+            return (float) (player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
         }
         return player.getFlySpeed();
     }
