@@ -1,0 +1,5 @@
+name: ReaperAC
+version: ${project.version}
+main: org.abyssmc.reaperac.ReaperAC
+api-version: 1.16
+depend: [ProtocolLib]
