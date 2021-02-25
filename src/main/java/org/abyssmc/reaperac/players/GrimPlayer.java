@@ -161,8 +161,6 @@ public class GrimPlayer implements Listener {
     public Vector handleRelativeFrictionAndCalculateMovement(float f) {
         f = this.getFrictionInfluencedSpeed(f);
 
-        // This is my own code for figuring out player movement inputs
-        Vector wantedMovement = clientVelocity.clone().subtract(new Vector(actualMovement.getX(), actualMovement.getY(), actualMovement.getZ()));
         /*double movementAngle = Math.atan2(wantedMovement.getX(), wantedMovement.getZ());
         double lookAngle = player.getLocation().getYaw();
         double relativeAngle = (movementAngle - lookAngle + 360 ) % 360;
@@ -184,7 +182,14 @@ public class GrimPlayer implements Listener {
 
         double bestMovementGuess = Integer.MAX_VALUE;
         double bestMovementX = 0;
-        double bestMovementZ = 0;
+        double bestMovementZ = 1;
+
+        Location yIgnoredLocation = actualMovement.clone().subtract(clientVelocity);
+        yIgnoredLocation.setY(0);
+
+        Bukkit.broadcastMessage("Attempting for " + actualMovement.getX() + " " + actualMovement.getY() + " " + actualMovement.getZ());
+        Bukkit.broadcastMessage("Wanted velocity " + yIgnoredLocation.getX() + " " + yIgnoredLocation.getY() + " " + yIgnoredLocation.getZ());
+        Bukkit.broadcastMessage("Current velocity " + clientVelocity.getX() + " " + clientVelocity.getY() + " " + clientVelocity.getZ());
 
         // Fuck optimization before things work... let's see if the theory is good
 
@@ -201,7 +206,10 @@ public class GrimPlayer implements Listener {
                 Vector clonedClientVelocity = clientVelocity.clone();
                 Vector movementInput = getInputVector(new Vector(movementXWithShifting * 0.98, 0, movementZWithShifting * 0.98), f, player.getLocation().getYaw());
                 clonedClientVelocity.add(movementInput);
-                clonedClientVelocity = move(MoverType.SELF, new Vec3D(clonedClientVelocity.getX(), clonedClientVelocity.getY(), clonedClientVelocity.getZ()));
+                clonedClientVelocity = move(MoverType.SELF, new Vec3D(clonedClientVelocity.getX(), 0, clonedClientVelocity.getZ()));
+
+                Bukkit.broadcastMessage(movementX + " " + movementZ + " " + clonedClientVelocity.getX() + " "
+                        + clonedClientVelocity.getY() + " " + clonedClientVelocity.getZ());
 
                 double closeness = actualMovement.clone().subtract(clonedClientVelocity).lengthSquared();
 
@@ -213,12 +221,16 @@ public class GrimPlayer implements Listener {
             }
         }
 
-        Bukkit.broadcastMessage(ChatColor.DARK_AQUA + "Inputs: " + bestMovementX + " " + bestMovementZ);
+        Bukkit.broadcastMessage(ChatColor.DARK_AQUA + "Closeness: " + bestMovementGuess + "Inputs: " + bestMovementX + " " + bestMovementZ);
+        Bukkit.broadcastMessage("2 Current velocity " + clientVelocity.getX() + " " + clientVelocity.getY() + " " + clientVelocity.getZ());
 
         Vector movementInput = getInputVector(new Vector(bestMovementX * 0.98, 0, bestMovementZ * 0.98), f, player.getLocation().getYaw());
         clientVelocity = clientVelocity.add(movementInput);
 
         clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
+
+        Bukkit.broadcastMessage("3 Wanted velocity " + yIgnoredLocation.getX() + " " + yIgnoredLocation.getY() + " " + yIgnoredLocation.getZ());
+        Bukkit.broadcastMessage("3 Current velocity " + clientVelocity.getX() + " " + clientVelocity.getY() + " " + clientVelocity.getZ());
 
         return clientVelocity;
     }
