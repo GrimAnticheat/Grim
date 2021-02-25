@@ -90,8 +90,8 @@ public class GrimPlayer implements Listener {
         // Now it does jumping and fluid movement
 
         // Living Entity line 2180
-        float sidewaysSpeed = 0f;
-        float forwardsSpeed = 1f;
+        //float sidewaysSpeed = 0f;
+        //float forwardsSpeed = 1f;
 
         // random stuff about jumping in liquids
         // TODO: Jumping in liquids
@@ -101,13 +101,14 @@ public class GrimPlayer implements Listener {
         }
 
         // Living Entity line 2202
-        sidewaysSpeed *= 0.98f;
-        forwardsSpeed *= 0.98f;
+        //sidewaysSpeed *= 0.98f;
+        //forwardsSpeed *= 0.98f;
 
-        Vector inputVector = new Vector(sidewaysSpeed, 0, forwardsSpeed);
+        //Vector inputVector = new Vector(sidewaysSpeed, 0, forwardsSpeed);
 
         // Living entity line 2206
-        livingEntityTravel(inputVector);
+        //livingEntityTravel(inputVector);
+        livingEntityTravel();
 
 
         //clientVelocity.multiply(0.98f);
@@ -129,13 +130,15 @@ public class GrimPlayer implements Listener {
     }
 
     // LivingEntity line 1741
-    public void livingEntityTravel(Vector vec3) {
+    public void livingEntityTravel() {
         double d = 0.08;
 
         float blockFriction = getBlockFriction();
         float f6 = player.isOnGround() ? blockFriction * 0.91f : 0.91f;
         // TODO: Figure this shit out!
-        Vector vec37 = handleRelativeFrictionAndCalculateMovement(vec3, blockFriction);
+        Vector vec37 = handleRelativeFrictionAndCalculateMovement(blockFriction);
+
+        // Okay, this seems to just be gravity stuff
         double d9 = clientVelocity.getY();
         if (player.hasPotionEffect(PotionEffectType.LEVITATION)) {
             d9 += (0.05 * (double) (player.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - vec37.getY()) * 0.2;
@@ -154,21 +157,76 @@ public class GrimPlayer implements Listener {
         clientVelocity = new Vector(vec37.getX() * (double) f6, d9 * 0.9800000190734863, vec37.getZ() * (double) f6);
     }
 
-
     // Line 1871 LivingEntity
-    public Vector handleRelativeFrictionAndCalculateMovement(Vector vec3, float f) {
-        this.moveRelative(this.getFrictionInfluencedSpeed(f), vec3);
-        //this.setDeltaMovement(this.handleOnClimbable(this.getDeltaMovement()));
-        /*if ((this.horizontalCollision || this.jumping) && this.onClimbable()) {
-            vec32 = new Vec3(vec32.x, 0.2, vec32.z);
+    public Vector handleRelativeFrictionAndCalculateMovement(float f) {
+        f = this.getFrictionInfluencedSpeed(f);
+
+        // This is my own code for figuring out player movement inputs
+        Vector wantedMovement = clientVelocity.clone().subtract(new Vector(actualMovement.getX(), actualMovement.getY(), actualMovement.getZ()));
+        /*double movementAngle = Math.atan2(wantedMovement.getX(), wantedMovement.getZ());
+        double lookAngle = player.getLocation().getYaw();
+        double relativeAngle = (movementAngle - lookAngle + 360 ) % 360;
+        int angle = (int) (relativeAngle / 4);
+
+        Vector movementOne = getInputVector(new Vector(0.98,0,0.98), f, player.getLocation().getYaw());
+        Vector movementTwo = getInputVector(new Vector(0.98,0,0.98), f, player.getLocation().getYaw());
+
+        switch (angle) {
+            case 0:
+                if (wantedMovement)
+            case 1:
+                //
+            case 2:
+                //
+            case 3:
+                //
         }*/
-        move(MoverType.SELF, getClientVelocityAsVec3D());
+
+        double bestMovementGuess = Integer.MAX_VALUE;
+        double bestMovementX = 0;
+        double bestMovementZ = 0;
+
+        // Fuck optimization before things work... let's see if the theory is good
+
+        for (int movementX = -1; movementX <= 1; movementX++) {
+            for (int movementZ = -1; movementZ <= 1; movementZ++) {
+                double movementXWithShifting = movementX;
+                double movementZWithShifting = movementZ;
+
+                if (player.isSneaking()) {
+                    movementXWithShifting *= 0.3;
+                    movementZWithShifting *= 0.3;
+                }
+
+                Vector clonedClientVelocity = clientVelocity.clone();
+                Vector movementInput = getInputVector(new Vector(movementXWithShifting * 0.98, 0, movementZWithShifting * 0.98), f, player.getLocation().getYaw());
+                clonedClientVelocity.add(movementInput);
+                clonedClientVelocity = move(MoverType.SELF, new Vec3D(clonedClientVelocity.getX(), clonedClientVelocity.getY(), clonedClientVelocity.getZ()));
+
+                double closeness = actualMovement.clone().subtract(clonedClientVelocity).lengthSquared();
+
+                if (closeness < bestMovementGuess) {
+                    bestMovementGuess = closeness;
+                    bestMovementX = movementXWithShifting;
+                    bestMovementZ = movementZWithShifting;
+                }
+            }
+        }
+
+        Bukkit.broadcastMessage(ChatColor.DARK_AQUA + "Inputs: " + bestMovementX + " " + bestMovementZ);
+
+        Vector movementInput = getInputVector(new Vector(bestMovementX * 0.98, 0, bestMovementZ * 0.98), f, player.getLocation().getYaw());
+        clientVelocity = clientVelocity.add(movementInput);
+
+        clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
+
         return clientVelocity;
     }
 
     // Entity line 527
-    public void move(MoverType moverType, Vec3D vec3) {
+    public Vector move(MoverType moverType, Vec3D vec3) {
         Vec3D vec32;
+        Vector clonedClientVelocity = clientVelocity.clone();
 
         // Something about noClip
         // Piston movement exemption
@@ -176,7 +234,7 @@ public class GrimPlayer implements Listener {
         // TODO: Motion multiplier
 
         // We might lose 0.0000001 precision here at worse for no if statement
-        clientVelocity = this.collide(this.maybeBackOffFromEdge(vec3, moverType));
+        clonedClientVelocity = this.collide(this.maybeBackOffFromEdge(vec3, moverType));
         //this.setBoundingBox(this.getBoundingBox().move(vec32));
         //this.setLocationFromBoundingbox();
 
@@ -189,7 +247,9 @@ public class GrimPlayer implements Listener {
 
 
         float f = getBlockSpeedFactor();
-        clientVelocity.multiply(new Vector(f, 1.0, f));
+        clonedClientVelocity.multiply(new Vector(f, 1.0, f));
+
+        return clonedClientVelocity;
     }
 
     // Entity line 686
@@ -273,13 +333,6 @@ public class GrimPlayer implements Listener {
     private boolean isAboveGround() {
         return player.isOnGround() || player.getFallDistance() < maxUpStep && !
                 ((CraftWorld) player.getWorld()).getHandle().getCubes(((CraftPlayer) player).getHandle(), ((CraftPlayer) player).getHandle().getBoundingBox().d(0.0, player.getFallDistance() - maxUpStep, 0.0));
-    }
-
-    // Entity line 1041
-    public void moveRelative(float f, Vector vec3) {
-        // TODO: This is where you try to figure out input
-        Vector movementInput = getInputVector(vec3, f, player.getLocation().getYaw());
-        clientVelocity = clientVelocity.add(movementInput);
     }
 
     // Entity line 617
