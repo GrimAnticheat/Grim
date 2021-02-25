@@ -1,6 +1,7 @@
 package org.abyssmc.reaperac.players;
 
 import net.minecraft.server.v1_16_R3.*;
+import org.abyssmc.reaperac.utils.Mth;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -49,8 +50,8 @@ public class GrimPlayer implements Listener {
             return new Vector();
         }
         Vector vec32 = (d > 1.0 ? vec3.normalize() : vec3).multiply(f);
-        float f3 = (float) Math.sin(f2 * 0.017453292f);
-        float f4 = (float) Math.cos(f2 * 0.017453292f);
+        float f3 = Mth.sin(f2 * 0.017453292f);
+        float f4 = Mth.cos(f2 * 0.017453292f);
         return new Vector(vec32.getX() * (double) f4 - vec32.getZ() * (double) f3,
                 vec32.getY(), vec32.getZ() * (double) f4 + vec32.getX() * (double) f3);
     }
@@ -125,7 +126,7 @@ public class GrimPlayer implements Listener {
 
         if (player.isSprinting()) {
             float f2 = player.getLocation().getYaw() * 0.017453292f;
-            clientVelocity.add(new Vector(-Math.sin(f2) * 0.2f, 0.0, Math.cos(f2) * 0.2f));
+            clientVelocity.add(new Vector(-Mth.sin(f2) * 0.2f, 0.0, Mth.cos(f2) * 0.2f));
         }
     }
 
