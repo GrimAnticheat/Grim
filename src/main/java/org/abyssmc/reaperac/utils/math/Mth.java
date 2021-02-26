@@ -1,4 +1,4 @@
-package org.abyssmc.reaperac.utils;
+package org.abyssmc.reaperac.utils.math;
 
 import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.math.NumberUtils;
 

@@ -1,4 +1,4 @@
-package org.abyssmc.reaperac.enums;
+package org.abyssmc.reaperac.utils.enums;
 
 public enum MoverType {
     SELF,
