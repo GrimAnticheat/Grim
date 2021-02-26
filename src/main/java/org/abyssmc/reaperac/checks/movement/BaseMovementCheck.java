@@ -1,4 +1,7 @@
 package org.abyssmc.reaperac.checks.movement;
 
-public interface BaseMovementCheck {
+import org.abyssmc.reaperac.checks.Check;
+
+public class BaseMovementCheck extends Check {
+
 }

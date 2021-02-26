@@ -10,6 +10,7 @@ import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
 import org.abyssmc.reaperac.checks.movement.BaseMovementCheck;
 import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
+import org.abyssmc.reaperac.checks.packet.Timer;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -94,6 +95,7 @@ public class GenericMovementCheck {
     // TODO: TERRIBLE CODE FIX THIS
     public void check(GrimPlayer player, double x, double y, double z, float xRot, float yRot, boolean onGround) {
         new MovementVelocityCheck(player, x, y, z, xRot, yRot, onGround);
+        new Timer(player);
     }
 
     public void registerCheck(BaseMovementCheck check) {

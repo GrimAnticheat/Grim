@@ -6,8 +6,6 @@ import org.abyssmc.reaperac.ReaperAC;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Fence;
@@ -22,7 +20,7 @@ import org.bukkit.util.Vector;
 
 import java.util.stream.Stream;
 
-public class MovementVelocityCheck implements BaseMovementCheck {
+public class MovementVelocityCheck extends BaseMovementCheck {
     private static final double jumpingEpsilon = 0.01d;
     private static final double maxUpStep = 0.6f;
     GrimPlayer grimPlayer;
@@ -51,8 +49,8 @@ public class MovementVelocityCheck implements BaseMovementCheck {
         Bukkit.getScheduler().runTask(ReaperAC.plugin, () -> {
             livingEntityAIStep();
 
-            Bukkit.broadcastMessage("Predicted: " + ChatColor.BLUE + player.predictedVelocity.getX() + " " + ChatColor.AQUA + player.predictedVelocity.getY() + " " + ChatColor.GREEN + player.predictedVelocity.getZ());
-            Bukkit.broadcastMessage("Actually:  " + ChatColor.BLUE + player.actualMovement.getX() + " " + ChatColor.AQUA + player.actualMovement.getY() + " " + ChatColor.GREEN + player.actualMovement.getZ());
+            //Bukkit.broadcastMessage("Predicted: " + ChatColor.BLUE + player.predictedVelocity.getX() + " " + ChatColor.AQUA + player.predictedVelocity.getY() + " " + ChatColor.GREEN + player.predictedVelocity.getZ());
+            //Bukkit.broadcastMessage("Actually:  " + ChatColor.BLUE + player.actualMovement.getX() + " " + ChatColor.AQUA + player.actualMovement.getY() + " " + ChatColor.GREEN + player.actualMovement.getZ());
 
             player.lastActualMovement = player.actualMovement;
 
@@ -71,6 +69,7 @@ public class MovementVelocityCheck implements BaseMovementCheck {
         //clientVelocity.multiply(0.98f);
 
         // Living Entity line 2153
+        // TODO: Extend this check so 1.8 clients don't trigger it
         if (Math.abs(grimPlayer.clientVelocity.getX()) < 0.003D) {
             grimPlayer.clientVelocity.setX(0D);
         }
@@ -127,7 +126,7 @@ public class MovementVelocityCheck implements BaseMovementCheck {
         // TODO: Use the stuff from the sprinting packet
         if (player.isSprinting()) {
             // TODO: Do we use new or old rotation?  It should be new...
-            float f2 = xRot * 0.017453292f;
+            float f2 = grimPlayer.lastXRot * 0.017453292f;
             grimPlayer.clientVelocity.add(new Vector(-Mth.sin(f2) * 0.2f, 0.0, Mth.cos(f2) * 0.2f));
         }
     }
@@ -237,7 +236,7 @@ public class MovementVelocityCheck implements BaseMovementCheck {
             }
         }
 
-        Bukkit.broadcastMessage("Guessed inputs: " + bestMovementZ + " " + bestMovementX);
+        //Bukkit.broadcastMessage("Guessed inputs: " + bestMovementZ + " " + bestMovementX);
 
         Vector movementInput = getInputVector(new Vector(bestMovementX * 0.98, 0, bestMovementZ * 0.98), f, player.getLocation().getYaw());
         grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(movementInput);

@@ -4,7 +4,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import org.abyssmc.reaperac.events.anticheat.GenericMovementCheck;
 import org.abyssmc.reaperac.events.bukkit.PlayerJoinLeaveListener;
-import org.abyssmc.reaperac.checks.packet.Timer;
+import org.abyssmc.reaperac.events.bukkit.PlayerLagback;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -18,6 +18,11 @@ public final class ReaperAC extends JavaPlugin {
     ProtocolManager manager;
 
     @Override
+    public void onDisable() {
+        // Plugin shutdown logic
+    }
+
+    @Override
     public void onEnable() {
         // Plugin startup logic
         plugin = this;
@@ -27,22 +32,16 @@ public final class ReaperAC extends JavaPlugin {
 
         //PlayerAbilitiesPacket.createListener(this, manager);
         Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
 
         for (Player player : Bukkit.getOnlinePlayers()) {
-            GrimPlayer grimPlayer = new GrimPlayer(player);
             playerGrimHashMap.put(player, new GrimPlayer(player));
         }
 
     }
 
-    @Override
-    public void onDisable() {
-        // Plugin shutdown logic
-    }
-
     // My hope is to have everything async by using packets!
     public void registerPackets() {
-        new Timer(this, manager);
         new GenericMovementCheck(this, manager);
     }
 }

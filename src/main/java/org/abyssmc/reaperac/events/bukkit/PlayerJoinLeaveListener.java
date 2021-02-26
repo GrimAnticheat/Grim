@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class PlayerJoinLeaveListener implements Listener {
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent event) {
+        // TODO: Make this a create player data class (To handle reloads)
         Player player = event.getPlayer();
         GrimPlayer grimPlayer = new GrimPlayer(player);
         grimPlayer.lastX = player.getLocation().getX();
