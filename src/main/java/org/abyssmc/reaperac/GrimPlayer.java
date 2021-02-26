@@ -1,6 +1,7 @@
-package org.abyssmc.reaperac.players;
+package org.abyssmc.reaperac;
 
 import net.minecraft.server.v1_16_R3.*;
+import org.abyssmc.reaperac.enums.MoverType;
 import org.abyssmc.reaperac.utils.Mth;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -409,11 +410,5 @@ public class GrimPlayer implements Listener {
         return new Vec3D(clientVelocity.getX(), clientVelocity.getY(), clientVelocity.getZ());
     }
 
-    public enum MoverType {
-        SELF,
-        PLAYER,
-        PISTON,
-        SHULKER_BOX,
-        SHULKER;
-    }
+
 }

@@ -1,5 +1,6 @@
-package org.abyssmc.reaperac.players;
+package org.abyssmc.reaperac.bukkitevents;
 
+import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -13,13 +14,13 @@ public class PlayerJoinLeaveListener implements Listener {
     public void onPlayerJoinEvent(PlayerJoinEvent event) {
         GrimPlayer grimPlayer = new GrimPlayer(event.getPlayer());
         Bukkit.getPluginManager().registerEvents(grimPlayer, ReaperAC.plugin);
-        GrimPlayerManager.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
+        ReaperAC.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
     }
 
     @EventHandler
     public void onPlayerQuitEvent(PlayerQuitEvent event) {
-        GrimPlayer grimPlayer = GrimPlayerManager.playerGrimHashMap.get(event.getPlayer());
+        GrimPlayer grimPlayer = ReaperAC.playerGrimHashMap.get(event.getPlayer());
         HandlerList.unregisterAll(grimPlayer);
-        GrimPlayerManager.playerGrimHashMap.remove(event.getPlayer());
+        ReaperAC.playerGrimHashMap.remove(event.getPlayer());
     }
 }
