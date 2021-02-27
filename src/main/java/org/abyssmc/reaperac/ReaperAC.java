@@ -2,6 +2,8 @@ package org.abyssmc.reaperac;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import org.abyssmc.reaperac.checks.movement.MovementCheck;
+import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
 import org.abyssmc.reaperac.events.anticheat.GenericMovementCheck;
 import org.abyssmc.reaperac.events.bukkit.PlayerJoinLeaveListener;
 import org.abyssmc.reaperac.events.bukkit.PlayerLagback;
@@ -28,11 +30,9 @@ public final class ReaperAC extends JavaPlugin {
         plugin = this;
         manager = ProtocolLibrary.getProtocolManager();
 
+        registerEvents();
         registerPackets();
-
-        //PlayerAbilitiesPacket.createListener(this, manager);
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveListener(), this);
-        Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
+        registerChecks();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             playerGrimHashMap.put(player, new GrimPlayer(player));
@@ -40,8 +40,17 @@ public final class ReaperAC extends JavaPlugin {
 
     }
 
+    public void registerEvents() {
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
+    }
+
     // My hope is to have everything async by using packets!
     public void registerPackets() {
         new GenericMovementCheck(this, manager);
+    }
+
+    public void registerChecks() {
+        GenericMovementCheck.registerCheck(new MovementVelocityCheck());
     }
 }

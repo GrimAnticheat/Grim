@@ -8,9 +8,7 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
-import org.abyssmc.reaperac.checks.movement.BaseMovementCheck;
-import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
-import org.abyssmc.reaperac.checks.packet.Timer;
+import org.abyssmc.reaperac.checks.movement.MovementCheck;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -24,7 +22,7 @@ public class GenericMovementCheck {
     Plugin plugin;
 
     // Yeah... I know I lose a bit of performance from a list over a set, but it's worth it for consistency
-    List<BaseMovementCheck> movementCheckListeners = new ArrayList<>();
+    static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
     // YES I KNOW THIS CLASS IS TERRIBLE.
     // EARLIER TODAY I WANTED IT TO BE A MANAGER CLASS
@@ -92,13 +90,27 @@ public class GenericMovementCheck {
         });
     }
 
-    // TODO: TERRIBLE CODE FIX THIS
     public void check(GrimPlayer player, double x, double y, double z, float xRot, float yRot, boolean onGround) {
-        new MovementVelocityCheck(player, x, y, z, xRot, yRot, onGround);
-        new Timer(player);
+        player.x = x;
+        player.y = y;
+        player.z = z;
+        player.xRot = xRot;
+        player.yRot = yRot;
+        player.onGround = onGround;
+
+        for (MovementCheck movementCheck : movementCheckListeners) {
+            movementCheck.checkMovement(player);
+        }
+
+        player.lastX = x;
+        player.lastY = y;
+        player.lastZ = z;
+        player.lastXRot = xRot;
+        player.lastYRot = yRot;
+        player.lastOnGround = onGround;
     }
 
-    public void registerCheck(BaseMovementCheck check) {
-        movementCheckListeners.add(check);
+    public static void registerCheck(MovementCheck movementCheck) {
+        movementCheckListeners.add(movementCheck);
     }
 }

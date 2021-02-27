@@ -1,10 +1,10 @@
 package org.abyssmc.reaperac.checks.packet;
 
 import org.abyssmc.reaperac.GrimPlayer;
-import org.abyssmc.reaperac.checks.movement.BaseMovementCheck;
+import org.abyssmc.reaperac.checks.movement.MovementCheck;
 import org.bukkit.Bukkit;
 
-public class Timer extends BaseMovementCheck {
+public class Timer extends MovementCheck {
     private static final long millisPerTick = 50000000L;
 
     public Timer(GrimPlayer player) {

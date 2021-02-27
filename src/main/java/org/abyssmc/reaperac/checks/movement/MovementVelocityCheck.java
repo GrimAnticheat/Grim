@@ -3,9 +3,11 @@ package org.abyssmc.reaperac.checks.movement;
 import net.minecraft.server.v1_16_R3.*;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
+import org.abyssmc.reaperac.events.anticheat.PlayerBaseTick;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Fence;
@@ -20,46 +22,34 @@ import org.bukkit.util.Vector;
 
 import java.util.stream.Stream;
 
-public class MovementVelocityCheck extends BaseMovementCheck {
+public class MovementVelocityCheck extends MovementCheck {
     private static final double jumpingEpsilon = 0.01d;
     private static final double maxUpStep = 0.6f;
-    GrimPlayer grimPlayer;
-    Player player;
+    private static final double fluidJumpThreshold = 0.04d;
 
-    double x;
-    double y;
-    double z;
-    float xRot;
-    float yRot;
-    boolean onGround;
+    private Player player;
+    private GrimPlayer grimPlayer;
 
-    public MovementVelocityCheck(GrimPlayer player, double x, double y, double z, float xRot, float yRot, boolean onGround) {
-        this.grimPlayer = player;
+    @Override
+    public void checkMovement(GrimPlayer player) {
         this.player = player.bukkitPlayer;
-        this.x = x;
-        this.y = y;
-        this.z = z;
-        this.xRot = xRot;
-        this.yRot = yRot;
-        this.onGround = onGround;
+        this.grimPlayer = player;
 
-        player.actualMovement = new Vector(x - player.lastX, y - player.lastY, z - player.lastZ);
+        player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
         // We can't do everything fully async because getting entities - https://pastebin.com/s0XhgCvV
         Bukkit.getScheduler().runTask(ReaperAC.plugin, () -> {
+            // btw I'll move this later to another class - it's just easier to have everything in one class for now
+            // Since everything is highly dependent on order
+            new PlayerBaseTick(player).updateInWaterStateAndDoFluidPushing();
+
+            // baseTick occurs before this
             livingEntityAIStep();
 
-            //Bukkit.broadcastMessage("Predicted: " + ChatColor.BLUE + player.predictedVelocity.getX() + " " + ChatColor.AQUA + player.predictedVelocity.getY() + " " + ChatColor.GREEN + player.predictedVelocity.getZ());
-            //Bukkit.broadcastMessage("Actually:  " + ChatColor.BLUE + player.actualMovement.getX() + " " + ChatColor.AQUA + player.actualMovement.getY() + " " + ChatColor.GREEN + player.actualMovement.getZ());
+            Bukkit.broadcastMessage("Predicted: " + ChatColor.BLUE + player.predictedVelocity.getX() + " " + ChatColor.AQUA + player.predictedVelocity.getY() + " " + ChatColor.GREEN + player.predictedVelocity.getZ());
+            Bukkit.broadcastMessage("Actually:  " + ChatColor.BLUE + player.actualMovement.getX() + " " + ChatColor.AQUA + player.actualMovement.getY() + " " + ChatColor.GREEN + player.actualMovement.getZ());
 
             player.lastActualMovement = player.actualMovement;
-
-            player.lastX = x;
-            player.lastY = y;
-            player.lastZ = z;
-            player.lastXRot = xRot;
-            player.lastYRot = yRot;
-            player.lastOnGround = onGround;
         });
     }
 
@@ -86,11 +76,31 @@ public class MovementVelocityCheck extends BaseMovementCheck {
         // Now it does jumping and fluid movement
 
         // Living Entity line 2180
+        // We moved this down after everything else is calculated
         //float sidewaysSpeed = 0f;
         //float forwardsSpeed = 1f;
 
         // random stuff about jumping in liquids
         // TODO: Jumping in liquids
+        // We don't have an accurate way to know if the player is jumping, so this will do
+        // This is inspired by paper's playerJumpEvent
+        // LivingEntity line 2185
+
+        /*if (grimPlayer.lastOnGround && !grimPlayer.onGround && grimPlayer.y > grimPlayer.lastY) {
+        //if (this.jumping && this.isAffectedByFluids()) {
+            double d7 = this.isInLava() ? this.getFluidHeight(FluidTags.LAVA) : this.getFluidHeight(FluidTags.WATER);
+            boolean bl = this.isInWater() && d7 > 0.0;
+            if (bl && (!this.onGround || d7 > fluidJumpThreshold)) {
+                this.jumpInLiquid(FluidTags.WATER);
+            } else if (this.isInLava() && (!this.onGround || d7 > fluidJumpThreshold)) {
+                this.jumpInLiquid(FluidTags.LAVA);
+            } else if ((this.onGround || bl && d7 <= fluidJumpThreshold) && this.noJumpDelay == 0) {
+                this.jumpFromGround();
+                this.noJumpDelay = 10;
+            }
+        } else {
+            this.noJumpDelay = 0;
+        }*/
 
         if (Math.abs(grimPlayer.actualMovement.getY() - grimPlayer.lastActualMovement.getY() - getJumpPower()) < jumpingEpsilon) {
             jumpFromGround();
@@ -136,7 +146,7 @@ public class MovementVelocityCheck extends BaseMovementCheck {
         double d = 0.08;
 
         float blockFriction = getBlockFriction();
-        float f6 = onGround ? blockFriction * 0.91f : 0.91f;
+        float f6 = grimPlayer.onGround ? blockFriction * 0.91f : 0.91f;
         // TODO: Figure this shit out!
         Vector vec37 = handleRelativeFrictionAndCalculateMovement(blockFriction);
 
@@ -260,6 +270,7 @@ public class MovementVelocityCheck extends BaseMovementCheck {
     }
 
     // Entity line 1046
+    // TODO: I could reverse this so that the vector is used to get the degrees
     private static Vector getInputVector(Vector vec3, float f, float f2) {
         // idk why this is needed, but it was fucking up input for other stuff
         double d = vec3.lengthSquared();
