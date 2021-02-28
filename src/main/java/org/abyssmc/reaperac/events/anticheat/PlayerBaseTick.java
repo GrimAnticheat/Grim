@@ -5,9 +5,10 @@ import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.CheckIfChunksLoaded;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.entity.Boat;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+
+import java.util.Iterator;
 
 public class PlayerBaseTick {
     GrimPlayer player;
@@ -16,15 +17,54 @@ public class PlayerBaseTick {
         this.player = player;
     }
 
+    public void doBaseTick() {
+        updateInWaterStateAndDoFluidPushing();
+        updateFluidOnEyes();
+        // TODO: Swimming check
+        //updateSwimming();
+    }
+
     // Entity line 937
     public void updateInWaterStateAndDoFluidPushing() {
         player.fluidHeight.clear();
         updateInWaterStateAndDoWaterCurrentPushing();
+        double d = player.entityPlayer.world.getDimensionManager().isNether() ? 0.007 : 0.0023333333333333335;
+        this.updateFluidHeightAndDoFluidPushing(TagsFluid.LAVA, d);
+    }
+
+    private void updateFluidOnEyes() {
+        player.wasEyeInWater = player.isEyeInFluid(TagsFluid.WATER);
+        player.fluidOnEyes = null;
+        double d0 = player.entityPlayer.getHeadY() - 0.1111111119389534D;
+        Entity entity = player.entityPlayer.getVehicle();
+        if (entity instanceof EntityBoat) {
+            EntityBoat entityboat = (EntityBoat)entity;
+            if (!entityboat.aI() && entityboat.getBoundingBox().maxY >= d0 && entityboat.getBoundingBox().minY <= d0) {
+                return;
+            }
+        }
+
+        BlockPosition blockposition = new BlockPosition(player.x, d0, player.z);
+        Fluid fluid = ((CraftWorld) player.bukkitPlayer.getWorld()).getHandle().getFluid(blockposition);
+        Iterator iterator = TagsFluid.b().iterator();
+
+        while(iterator.hasNext()) {
+            Tag tag = (Tag)iterator.next();
+            if (fluid.a(tag)) {
+                double d1 = (float)blockposition.getY() + fluid.getHeight(player.entityPlayer.getWorld(), blockposition);
+                if (d1 > d0) {
+                    player.fluidOnEyes = tag;
+                }
+
+                return;
+            }
+        }
+
     }
 
     // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
-        if (player.bukkitPlayer.getVehicle() instanceof Boat) {
+        if (player.bukkitPlayer.getVehicle() instanceof EntityBoat) {
             player.wasTouchingWater = false;
         } else if (this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014)) {
             // Watersplash effect removed (Entity 981).  Shouldn't affect movement
@@ -36,6 +76,7 @@ public class PlayerBaseTick {
         }
     }
 
+    // TODO: Idk if this is right
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
         BoundingBox aABB = player.bukkitPlayer.getBoundingBox().expand(-0.001);
         int n2 = Mth.floor(aABB.getMinX());

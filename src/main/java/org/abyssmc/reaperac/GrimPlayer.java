@@ -1,12 +1,10 @@
 package org.abyssmc.reaperac;
 
 import net.minecraft.server.v1_16_R3.EntityPlayer;
-import net.minecraft.server.v1_16_R3.Fluid;
 import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
 import org.abyssmc.reaperac.events.bukkit.PlayerLagback;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -36,6 +34,8 @@ public class GrimPlayer {
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
     public boolean wasTouchingWater = false;
+    public boolean wasEyeInWater = false;
+    public Tag fluidOnEyes;
 
     // Placeholder, currently not used in any checks
     public double fallDistance = 0f;
@@ -64,5 +64,9 @@ public class GrimPlayer {
         PlayerLagback.playersToLagback.add(bukkitPlayer.getUniqueId());
 
         Bukkit.broadcastMessage("Failed timer check!");
+    }
+
+    public boolean isEyeInFluid(Tag tag) {
+        return this.fluidOnEyes == tag;
     }
 }

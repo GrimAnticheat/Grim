@@ -41,7 +41,7 @@ public class MovementVelocityCheck extends MovementCheck {
         Bukkit.getScheduler().runTask(ReaperAC.plugin, () -> {
             // btw I'll move this later to another class - it's just easier to have everything in one class for now
             // Since everything is highly dependent on order
-            new PlayerBaseTick(player).updateInWaterStateAndDoFluidPushing();
+            new PlayerBaseTick(player).doBaseTick();
 
             // baseTick occurs before this
             livingEntityAIStep();
