@@ -16,6 +16,7 @@ import org.bukkit.block.data.type.Wall;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_16_R3.event.CraftEventFactory;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -30,11 +31,27 @@ public class MovementVelocityCheck extends MovementCheck {
     private Player player;
     private GrimPlayer grimPlayer;
 
+    // Entity line 1046
+    // TODO: I could reverse this so that the vector is used to get the degrees
+    private static Vector getInputVector(Vector vec3, float f, float f2) {
+        // idk why this is needed, but it was fucking up input for other stuff
+        double d = vec3.lengthSquared();
+        if (d < 1.0E-7) {
+            return new Vector();
+        }
+        Vector vec32 = (d > 1.0 ? vec3.normalize() : vec3).multiply(f);
+        float f3 = Mth.sin(f2 * 0.017453292f);
+        float f4 = Mth.cos(f2 * 0.017453292f);
+        return new Vector(vec32.getX() * (double) f4 - vec32.getZ() * (double) f3,
+                vec32.getY(), vec32.getZ() * (double) f4 + vec32.getX() * (double) f3);
+    }
+
     @Override
     public void checkMovement(GrimPlayer player) {
         this.player = player.bukkitPlayer;
         this.grimPlayer = player;
 
+        // TODO: LivingEntity: 1882 (fluid adjusted movement)
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
         // We can't do everything fully async because getting entities - https://pastebin.com/s0XhgCvV
@@ -145,28 +162,140 @@ public class MovementVelocityCheck extends MovementCheck {
     public void livingEntityTravel() {
         double d = 0.08;
 
-        float blockFriction = getBlockFriction();
-        float f6 = grimPlayer.onGround ? blockFriction * 0.91f : 0.91f;
-        // TODO: Figure this shit out!
-        Vector vec37 = handleRelativeFrictionAndCalculateMovement(blockFriction);
+        EntityPlayer entityPlayer = grimPlayer.entityPlayer;
 
-        // Okay, this seems to just be gravity stuff
-        double d9 = grimPlayer.clientVelocity.getY();
-        if (player.hasPotionEffect(PotionEffectType.LEVITATION)) {
-            d9 += (0.05 * (double) (player.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - vec37.getY()) * 0.2;
-            //this.fallDistance = 0.0f;
-        } else if (player.getLocation().isChunkLoaded()) {
-            if (player.hasGravity()) {
-                d9 -= d;
+        Fluid fluid = entityPlayer.world.getFluid(((Entity) player).getChunkCoordinates());
+        double d1;
+        float f;
+        float f2;
+        Vec3D vec3d1;
+        if (entityPlayer.isInWater() && entityPlayer.cT()) {
+            d1 = entityPlayer.locY();
+            // 0.8F seems hardcoded in
+            f = entityPlayer.isSprinting() ? 0.9F : 0.8F;
+            float f1 = 0.02F;
+            f2 = (float) EnchantmentManager.e(entityPlayer);
+            if (f2 > 3.0F) {
+                f2 = 3.0F;
+            }
+
+            if (!grimPlayer.onGround) {
+                f2 *= 0.5F;
+            }
+
+            if (f2 > 0.0F) {
+                f += (0.54600006F - f) * f2 / 3.0F;
+                f1 += (entityPlayer.dN() - f1) * f2 / 3.0F;
+            }
+
+            if (entityPlayer.hasEffect(MobEffects.DOLPHINS_GRACE)) {
+                f = 0.96F;
+            }
+
+            moveRelative(f1, grimPlayer.clientVelocity);
+            entityPlayer.move(EnumMoveType.SELF, this.getMot());
+            vec3d1 = this.getMot();
+            if (this.positionChanged && this.isClimbing()) {
+                vec3d1 = new Vec3D(vec3d1.x, 0.2D, vec3d1.z);
+            }
+
+            this.setMot(vec3d1.d((double) f, 0.800000011920929D, (double) f));
+            Vec3D vec3d2 = this.a(d0, flag, this.getMot());
+            this.setMot(vec3d2);
+            if (this.positionChanged && this.e(vec3d2.x, vec3d2.y + 0.6000000238418579D - this.locY() + d1, vec3d2.z)) {
+                this.setMot(vec3d2.x, 0.30000001192092896D, vec3d2.z);
             }
         } else {
-            d9 = grimPlayer.clientVelocity.getY() > 0.0 ? -0.1 : 0.0;
+            Vec3D vec3d4;
+            if (this.aQ() && this.cT() && !this.a(fluid.getType())) {
+                d1 = this.locY();
+                this.a(0.02F, vec3d);
+                this.move(EnumMoveType.SELF, this.getMot());
+                if (this.b((Tag) TagsFluid.LAVA) <= this.cx()) {
+                    this.setMot(this.getMot().d(0.5D, 0.800000011920929D, 0.5D));
+                    vec3d4 = this.a(d0, flag, this.getMot());
+                    this.setMot(vec3d4);
+                } else {
+                    this.setMot(this.getMot().a(0.5D));
+                }
+
+                if (!this.isNoGravity()) {
+                    this.setMot(this.getMot().add(0.0D, -d0 / 4.0D, 0.0D));
+                }
+
+                vec3d4 = this.getMot();
+                if (this.positionChanged && this.e(vec3d4.x, vec3d4.y + 0.6000000238418579D - this.locY() + d1, vec3d4.z)) {
+                    this.setMot(vec3d4.x, 0.30000001192092896D, vec3d4.z);
+                }
+            } else if (this.isGliding()) {
+                vec3d4 = this.getMot();
+                if (vec3d4.y > -0.5D) {
+                    this.fallDistance = 1.0F;
+                }
+
+                Vec3D vec3d5 = this.getLookDirection();
+                f = this.pitch * 0.017453292F;
+                double d2 = Math.sqrt(vec3d5.x * vec3d5.x + vec3d5.z * vec3d5.z);
+                double d3 = Math.sqrt(c((Vec3D) vec3d4));
+                double d4 = vec3d5.f();
+                float f3 = MathHelper.cos(f);
+                f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
+                vec3d4 = this.getMot().add(0.0D, d0 * (-1.0D + (double) f3 * 0.75D), 0.0D);
+                double d5;
+                if (vec3d4.y < 0.0D && d2 > 0.0D) {
+                    d5 = vec3d4.y * -0.1D * (double) f3;
+                    vec3d4 = vec3d4.add(vec3d5.x * d5 / d2, d5, vec3d5.z * d5 / d2);
+                }
+
+                if (f < 0.0F && d2 > 0.0D) {
+                    d5 = d3 * (double) (-MathHelper.sin(f)) * 0.04D;
+                    vec3d4 = vec3d4.add(-vec3d5.x * d5 / d2, d5 * 3.2D, -vec3d5.z * d5 / d2);
+                }
+
+                if (d2 > 0.0D) {
+                    vec3d4 = vec3d4.add((vec3d5.x / d2 * d3 - vec3d4.x) * 0.1D, 0.0D, (vec3d5.z / d2 * d3 - vec3d4.z) * 0.1D);
+                }
+
+                this.setMot(vec3d4.d(0.9900000095367432D, 0.9800000190734863D, 0.9900000095367432D));
+                this.move(EnumMoveType.SELF, this.getMot());
+                if (this.positionChanged && !this.world.isClientSide) {
+                    d5 = Math.sqrt(c((Vec3D) this.getMot()));
+                    double d6 = d3 - d5;
+                    float f4 = (float) (d6 * 10.0D - 3.0D);
+                    if (f4 > 0.0F) {
+                        this.playSound(this.getSoundFall((int) f4), 1.0F, 1.0F);
+                        this.damageEntity(DamageSource.FLY_INTO_WALL, f4);
+                    }
+                }
+
+                if (this.onGround && !this.world.isClientSide && this.getFlag(7) && !CraftEventFactory.callToggleGlideEvent(this, false).isCancelled()) {
+                    this.setFlag(7, false);
+                }
+            } else {
+                float blockFriction = getBlockFriction();
+                float f6 = grimPlayer.onGround ? blockFriction * 0.91f : 0.91f;
+                // TODO: Figure this shit out!
+                Vector vec37 = handleRelativeFrictionAndCalculateMovement(blockFriction);
+
+                // Okay, this seems to just be gravity stuff
+                double d9 = grimPlayer.clientVelocity.getY();
+                if (player.hasPotionEffect(PotionEffectType.LEVITATION)) {
+                    d9 += (0.05 * (double) (player.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - vec37.getY()) * 0.2;
+                    //this.fallDistance = 0.0f;
+                } else if (player.getLocation().isChunkLoaded()) {
+                    if (player.hasGravity()) {
+                        d9 -= d;
+                    }
+                } else {
+                    d9 = grimPlayer.clientVelocity.getY() > 0.0 ? -0.1 : 0.0;
+                }
+
+                grimPlayer.predictedVelocity = grimPlayer.clientVelocity;
+
+                // TODO: This might not be correct
+                grimPlayer.clientVelocity = new Vector(vec37.getX() * (double) f6, d9 * 0.9800000190734863, vec37.getZ() * (double) f6);
+            }
         }
-
-        grimPlayer.predictedVelocity = grimPlayer.clientVelocity;
-
-        // TODO: This might not be correct
-        grimPlayer.clientVelocity = new Vector(vec37.getX() * (double) f6, d9 * 0.9800000190734863, vec37.getZ() * (double) f6);
     }
 
     private float getPlayerJumpFactor() {
@@ -220,6 +349,7 @@ public class MovementVelocityCheck extends MovementCheck {
         yIgnoredVector.setY(0);
 
         // Fuck optimization before things work... let's see if the theory is good
+        // TODO: Figure out movements by inverse trigonometry
 
         for (int movementX = -1; movementX <= 1; movementX++) {
             for (int movementZ = -1; movementZ <= 1; movementZ++) {
@@ -248,40 +378,27 @@ public class MovementVelocityCheck extends MovementCheck {
 
         //Bukkit.broadcastMessage("Guessed inputs: " + bestMovementZ + " " + bestMovementX);
 
-        Vector movementInput = getInputVector(new Vector(bestMovementX * 0.98, 0, bestMovementZ * 0.98), f, player.getLocation().getYaw());
-        grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(movementInput);
+        bestMovementX *= 0.98;
+        bestMovementZ *= 0.98;
+
+        moveRelative(f, new Vector(bestMovementX, 0, bestMovementZ));
 
         grimPlayer.clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
 
         return grimPlayer.clientVelocity;
     }
 
+    public void moveRelative(float f, Vector vec3) {
+        Vector movementInput = getInputVector(vec3, f, player.getLocation().getYaw());
+        grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(movementInput);
+    }
+
     // Verified.  This is correct.
     private float getFrictionInfluencedSpeed(float f) {
         if (player.isOnGround()) {
-            // Required because getting player walk speed doesn't talk into account sprinting
-            //if (player.isSprinting()) {
-            //    g *= 1.30000001192092896;
-            //}
-
             return (float) (player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
         }
         return player.getFlySpeed();
-    }
-
-    // Entity line 1046
-    // TODO: I could reverse this so that the vector is used to get the degrees
-    private static Vector getInputVector(Vector vec3, float f, float f2) {
-        // idk why this is needed, but it was fucking up input for other stuff
-        double d = vec3.lengthSquared();
-        if (d < 1.0E-7) {
-            return new Vector();
-        }
-        Vector vec32 = (d > 1.0 ? vec3.normalize() : vec3).multiply(f);
-        float f3 = Mth.sin(f2 * 0.017453292f);
-        float f4 = Mth.cos(f2 * 0.017453292f);
-        return new Vector(vec32.getX() * (double) f4 - vec32.getZ() * (double) f3,
-                vec32.getY(), vec32.getZ() * (double) f4 + vec32.getX() * (double) f3);
     }
 
     // Entity line 527
