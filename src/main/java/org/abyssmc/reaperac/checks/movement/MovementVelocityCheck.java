@@ -198,34 +198,30 @@ public class MovementVelocityCheck extends MovementCheck {
                 f = 0.96F;
             }
 
-            moveRelative(f1, grimPlayer.clientVelocity);
-            entityPlayer.move(EnumMoveType.SELF, getClientVelocityAsVec3D());
+            // TODO: Predictive!
+            moveRelative(f1, new Vector(0,0,0.98));
+            grimPlayer.clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
 
-            // TODO: Add horizontal collision to this if statement
-            if (grimPlayer.entityPlayer.isClimbing()) {
+            if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.isClimbing()) {
                 grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.2D, grimPlayer.clientVelocity.getZ());
             }
 
-            grimPlayer.clientVelocity.multiply(grimPlayer.clientVelocity.multiply(new Vector(f, 0.800000011920929D, f)));
+            // Look at this stupid bug I made before lol
+            grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(f, 0.8F, f));
             grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
 
-            // TODO: Add horizontal collision to this if statement
-            // TODO: Re-add this if statement
-            // e
-            if (entityPlayer.e(grimPlayer.clientVelocity.getX(),
+            if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(),
                     grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.clientVelocity.getY() + d1,
                     grimPlayer.clientVelocity.getZ())) {
                 grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(
                         new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ()));
-
-                grimPlayer.predictedVelocity = grimPlayer.clientVelocity;
             }
         } else {
             Vector vec3d4;
             if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
                 d1 = grimPlayer.y;
-                moveRelative(0.02F, grimPlayer.clientVelocity);
-                this.move(MoverType.SELF, getClientVelocityAsVec3D());
+                moveRelative(0.02F, new Vector(0,0,0.98));
+                move(MoverType.SELF, getClientVelocityAsVec3D());
                 // TODO: Not really sure if I need a get or default, or if the default is correct
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= entityPlayer.cx()) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
@@ -307,8 +303,6 @@ public class MovementVelocityCheck extends MovementCheck {
                     d9 = grimPlayer.clientVelocity.getY() > 0.0 ? -0.1 : 0.0;
                 }
 
-                grimPlayer.predictedVelocity = grimPlayer.clientVelocity;
-
                 grimPlayer.clientVelocity = new Vector(vec37.getX() * (double) f6, d9 * 0.9800000190734863, vec37.getZ() * (double) f6);
             }
         }
@@ -366,6 +360,7 @@ public class MovementVelocityCheck extends MovementCheck {
 
         // Fuck optimization before things work... let's see if the theory is good
         // TODO: Figure out movements by inverse trigonometry
+        // TODO: Put this in it's own method too.
 
         for (int movementX = -1; movementX <= 1; movementX++) {
             for (int movementZ = -1; movementZ <= 1; movementZ++) {
@@ -429,8 +424,15 @@ public class MovementVelocityCheck extends MovementCheck {
 
         // We might lose 0.0000001 precision here at worse for no if statement
         clonedClientVelocity = this.collide(this.maybeBackOffFromEdge(vec3, moverType));
-        //this.setBoundingBox(this.getBoundingBox().move(vec32));
-        //this.setLocationFromBoundingbox();
+        grimPlayer.predictedVelocity = grimPlayer.clientVelocity;
+
+        grimPlayer.horizontalCollision = !Mth.equal(vec3.x, clonedClientVelocity.getX()) || !Mth.equal(vec3.z, clonedClientVelocity.getZ());
+        grimPlayer.verticalCollision = vec3.y != clonedClientVelocity.getY();
+
+        // TODO: This is a check for is the player actually on the ground!
+        if (grimPlayer.verticalCollision && vec3.y < 0.0 != grimPlayer.onGround) {
+            Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
+        }
 
         // TODO: Block collision code
         Block onBlock = getOnBlock();

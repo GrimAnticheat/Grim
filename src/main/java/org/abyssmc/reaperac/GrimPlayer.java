@@ -47,6 +47,8 @@ public class GrimPlayer {
     public float lastXRot;
     public float lastYRot;
     public boolean lastOnGround;
+    public boolean horizontalCollision;
+    public boolean verticalCollision;
 
     // Timer check data
     public long offset = 0L;
