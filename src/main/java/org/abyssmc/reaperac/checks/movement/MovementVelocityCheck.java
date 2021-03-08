@@ -217,16 +217,14 @@ public class MovementVelocityCheck extends MovementCheck {
                         new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ()));
             }
         } else {
-            Vector vec3d4;
             if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
                 d1 = grimPlayer.y;
                 moveRelative(0.02F, new Vector(0,0,0.98));
-                move(MoverType.SELF, getClientVelocityAsVec3D());
+                grimPlayer.clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
                 // TODO: Not really sure if I need a get or default, or if the default is correct
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= entityPlayer.cx()) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
-                    vec3d4 = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
-                    grimPlayer.clientVelocity = vec3d4;
+                    grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
                 } else {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(0.5D);
                 }
@@ -235,11 +233,10 @@ public class MovementVelocityCheck extends MovementCheck {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(0.0D, -d / 4.0D, 0.0D));
                 }
 
-                vec3d4 = grimPlayer.clientVelocity;
                 // TODO: it's the horizontal collision again
-                /*if (this.positionChanged && this.e(vec3d4.x, vec3d4.y + 0.6000000238418579D - this.locY() + d1, vec3d4.z)) {
-                    this.setMot(vec3d4.x, 0.30000001192092896D, vec3d4.z);
-                }*/
+                if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.y + d1, grimPlayer.clientVelocity.getZ())) {
+                    grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ());
+                }
                 // TODO: who cares about gliding at this point - I'll just remove it
             /*} else if (this.isGliding()) {
                 vec3d4 = this.getMot();
