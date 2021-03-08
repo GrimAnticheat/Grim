@@ -4,6 +4,7 @@ import net.minecraft.server.v1_16_R3.*;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
 import org.abyssmc.reaperac.events.anticheat.PlayerBaseTick;
+import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.bukkit.Bukkit;
@@ -16,7 +17,6 @@ import org.bukkit.block.data.type.Wall;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_16_R3.event.CraftEventFactory;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -28,7 +28,7 @@ public class MovementVelocityCheck extends MovementCheck {
     private static final double maxUpStep = 0.6f;
     private static final double fluidJumpThreshold = 0.04d;
 
-    private Player player;
+    private Player bukkitPlayer;
     private GrimPlayer grimPlayer;
 
     // Entity line 1046
@@ -47,26 +47,26 @@ public class MovementVelocityCheck extends MovementCheck {
     }
 
     @Override
-    public void checkMovement(GrimPlayer player) {
-        this.player = player.bukkitPlayer;
-        this.grimPlayer = player;
+    public void checkMovement(GrimPlayer grimPlayer) {
+        this.bukkitPlayer = grimPlayer.bukkitPlayer;
+        this.grimPlayer = grimPlayer;
 
         // TODO: LivingEntity: 1882 (fluid adjusted movement)
-        player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+        grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
 
         // We can't do everything fully async because getting entities - https://pastebin.com/s0XhgCvV
         Bukkit.getScheduler().runTask(ReaperAC.plugin, () -> {
             // btw I'll move this later to another class - it's just easier to have everything in one class for now
             // Since everything is highly dependent on order
-            new PlayerBaseTick(player).doBaseTick();
+            new PlayerBaseTick(grimPlayer).doBaseTick();
 
             // baseTick occurs before this
             livingEntityAIStep();
 
-            Bukkit.broadcastMessage("Predicted: " + ChatColor.BLUE + player.predictedVelocity.getX() + " " + ChatColor.AQUA + player.predictedVelocity.getY() + " " + ChatColor.GREEN + player.predictedVelocity.getZ());
-            Bukkit.broadcastMessage("Actually:  " + ChatColor.BLUE + player.actualMovement.getX() + " " + ChatColor.AQUA + player.actualMovement.getY() + " " + ChatColor.GREEN + player.actualMovement.getZ());
+            Bukkit.broadcastMessage("Predicted: " + ChatColor.BLUE + grimPlayer.predictedVelocity.getX() + " " + ChatColor.AQUA + grimPlayer.predictedVelocity.getY() + " " + ChatColor.GREEN + grimPlayer.predictedVelocity.getZ());
+            Bukkit.broadcastMessage("Actually:  " + ChatColor.BLUE + grimPlayer.actualMovement.getX() + " " + ChatColor.AQUA + grimPlayer.actualMovement.getY() + " " + ChatColor.GREEN + grimPlayer.actualMovement.getZ());
 
-            player.lastActualMovement = player.actualMovement;
+            grimPlayer.lastActualMovement = grimPlayer.actualMovement;
         });
     }
 
@@ -144,14 +144,14 @@ public class MovementVelocityCheck extends MovementCheck {
     private void jumpFromGround() {
         float f = getJumpPower();
 
-        if (player.hasPotionEffect(PotionEffectType.JUMP)) {
-            f += 0.1f * (float) (player.getPotionEffect(PotionEffectType.JUMP).getAmplifier() + 1);
+        if (bukkitPlayer.hasPotionEffect(PotionEffectType.JUMP)) {
+            f += 0.1f * (float) (bukkitPlayer.getPotionEffect(PotionEffectType.JUMP).getAmplifier() + 1);
         }
 
         grimPlayer.clientVelocity.setY(f);
 
         // TODO: Use the stuff from the sprinting packet
-        if (player.isSprinting()) {
+        if (bukkitPlayer.isSprinting()) {
             // TODO: Do we use new or old rotation?  It should be new...
             float f2 = grimPlayer.lastXRot * 0.017453292f;
             grimPlayer.clientVelocity.add(new Vector(-Mth.sin(f2) * 0.2f, 0.0, Mth.cos(f2) * 0.2f));
@@ -162,13 +162,19 @@ public class MovementVelocityCheck extends MovementCheck {
     public void livingEntityTravel() {
         double d = 0.08;
 
-        EntityPlayer entityPlayer = grimPlayer.entityPlayer;
+        // TODO: Stop being lazy and rename these variables to be descriptive
+        boolean bl = grimPlayer.clientVelocity.getY() <= 0.0;
+        if (bl && grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
+            d = 0.01;
+            //this.fallDistance = 0.0f;
+        }
 
-        Fluid fluid = entityPlayer.world.getFluid(((Entity) player).getChunkCoordinates());
+        EntityPlayer entityPlayer = grimPlayer.entityPlayer;
+        Fluid fluid = entityPlayer.world.getFluid(entityPlayer.getChunkCoordinates());
+
         double d1;
         float f;
         float f2;
-        Vec3D vec3d1;
         if (entityPlayer.isInWater() && entityPlayer.cT()) {
             d1 = entityPlayer.locY();
             // 0.8F seems hardcoded in
@@ -193,41 +199,53 @@ public class MovementVelocityCheck extends MovementCheck {
             }
 
             moveRelative(f1, grimPlayer.clientVelocity);
-            entityPlayer.move(EnumMoveType.SELF, this.getMot());
-            vec3d1 = this.getMot();
-            if (this.positionChanged && this.isClimbing()) {
-                vec3d1 = new Vec3D(vec3d1.x, 0.2D, vec3d1.z);
+            entityPlayer.move(EnumMoveType.SELF, getClientVelocityAsVec3D());
+
+            // TODO: Add horizontal collision to this if statement
+            if (grimPlayer.entityPlayer.isClimbing()) {
+                grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.2D, grimPlayer.clientVelocity.getZ());
             }
 
-            this.setMot(vec3d1.d((double) f, 0.800000011920929D, (double) f));
-            Vec3D vec3d2 = this.a(d0, flag, this.getMot());
-            this.setMot(vec3d2);
-            if (this.positionChanged && this.e(vec3d2.x, vec3d2.y + 0.6000000238418579D - this.locY() + d1, vec3d2.z)) {
-                this.setMot(vec3d2.x, 0.30000001192092896D, vec3d2.z);
+            grimPlayer.clientVelocity.multiply(grimPlayer.clientVelocity.multiply(new Vector(f, 0.800000011920929D, f)));
+            grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
+
+            // TODO: Add horizontal collision to this if statement
+            // TODO: Re-add this if statement
+            // e
+            if (entityPlayer.e(grimPlayer.clientVelocity.getX(),
+                    grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.clientVelocity.getY() + d1,
+                    grimPlayer.clientVelocity.getZ())) {
+                grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(
+                        new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ()));
+
+                grimPlayer.predictedVelocity = grimPlayer.clientVelocity;
             }
         } else {
-            Vec3D vec3d4;
-            if (this.aQ() && this.cT() && !this.a(fluid.getType())) {
-                d1 = this.locY();
-                this.a(0.02F, vec3d);
-                this.move(EnumMoveType.SELF, this.getMot());
-                if (this.b((Tag) TagsFluid.LAVA) <= this.cx()) {
-                    this.setMot(this.getMot().d(0.5D, 0.800000011920929D, 0.5D));
-                    vec3d4 = this.a(d0, flag, this.getMot());
-                    this.setMot(vec3d4);
+            Vector vec3d4;
+            if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
+                d1 = grimPlayer.y;
+                moveRelative(0.02F, grimPlayer.clientVelocity);
+                this.move(MoverType.SELF, getClientVelocityAsVec3D());
+                // TODO: Not really sure if I need a get or default, or if the default is correct
+                if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= entityPlayer.cx()) {
+                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
+                    vec3d4 = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
+                    grimPlayer.clientVelocity = vec3d4;
                 } else {
-                    this.setMot(this.getMot().a(0.5D));
+                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(0.5D);
                 }
 
-                if (!this.isNoGravity()) {
-                    this.setMot(this.getMot().add(0.0D, -d0 / 4.0D, 0.0D));
+                if (grimPlayer.bukkitPlayer.hasGravity()) {
+                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(0.0D, -d / 4.0D, 0.0D));
                 }
 
-                vec3d4 = this.getMot();
-                if (this.positionChanged && this.e(vec3d4.x, vec3d4.y + 0.6000000238418579D - this.locY() + d1, vec3d4.z)) {
+                vec3d4 = grimPlayer.clientVelocity;
+                // TODO: it's the horizontal collision again
+                /*if (this.positionChanged && this.e(vec3d4.x, vec3d4.y + 0.6000000238418579D - this.locY() + d1, vec3d4.z)) {
                     this.setMot(vec3d4.x, 0.30000001192092896D, vec3d4.z);
-                }
-            } else if (this.isGliding()) {
+                }*/
+                // TODO: who cares about gliding at this point - I'll just remove it
+            /*} else if (this.isGliding()) {
                 vec3d4 = this.getMot();
                 if (vec3d4.y > -0.5D) {
                     this.fallDistance = 1.0F;
@@ -270,20 +288,19 @@ public class MovementVelocityCheck extends MovementCheck {
 
                 if (this.onGround && !this.world.isClientSide && this.getFlag(7) && !CraftEventFactory.callToggleGlideEvent(this, false).isCancelled()) {
                     this.setFlag(7, false);
-                }
+                }*/
             } else {
                 float blockFriction = getBlockFriction();
                 float f6 = grimPlayer.onGround ? blockFriction * 0.91f : 0.91f;
-                // TODO: Figure this shit out!
                 Vector vec37 = handleRelativeFrictionAndCalculateMovement(blockFriction);
 
                 // Okay, this seems to just be gravity stuff
                 double d9 = grimPlayer.clientVelocity.getY();
-                if (player.hasPotionEffect(PotionEffectType.LEVITATION)) {
-                    d9 += (0.05 * (double) (player.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - vec37.getY()) * 0.2;
+                if (bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
+                    d9 += (0.05 * (double) (bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - vec37.getY()) * 0.2;
                     //this.fallDistance = 0.0f;
-                } else if (player.getLocation().isChunkLoaded()) {
-                    if (player.hasGravity()) {
+                } else if (bukkitPlayer.getLocation().isChunkLoaded()) {
+                    if (bukkitPlayer.hasGravity()) {
                         d9 -= d;
                     }
                 } else {
@@ -292,19 +309,18 @@ public class MovementVelocityCheck extends MovementCheck {
 
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity;
 
-                // TODO: This might not be correct
                 grimPlayer.clientVelocity = new Vector(vec37.getX() * (double) f6, d9 * 0.9800000190734863, vec37.getZ() * (double) f6);
             }
         }
     }
 
     private float getPlayerJumpFactor() {
-        float f = ((CraftBlockData) player.getWorld().getBlockAt
-                (player.getLocation().getBlockX(), player.getLocation().getBlockY(), player.getLocation().getBlockZ())
+        float f = ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
+                (bukkitPlayer.getLocation().getBlockX(), bukkitPlayer.getLocation().getBlockY(), bukkitPlayer.getLocation().getBlockZ())
                 .getBlockData()).getState().getBlock().getJumpFactor();
-        float f2 = ((CraftBlockData) player.getWorld().getBlockAt
-                (player.getLocation().getBlockX(), (int) (player.getBoundingBox().getMinY() - 0.5000001),
-                        player.getLocation().getBlockZ()).getBlockData()).getState().getBlock().getJumpFactor();
+        float f2 = ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
+                (bukkitPlayer.getLocation().getBlockX(), (int) (bukkitPlayer.getBoundingBox().getMinY() - 0.5000001),
+                        bukkitPlayer.getLocation().getBlockZ()).getBlockData()).getState().getBlock().getJumpFactor();
 
         return (double) f == 1.0 ? f2 : f;
     }
@@ -312,9 +328,9 @@ public class MovementVelocityCheck extends MovementCheck {
     // TODO: this code is shit
     // Seems to work.
     public float getBlockFriction() {
-        return ((CraftBlockData) player.getWorld().getBlockAt
-                (player.getLocation().getBlockX(), (int) (player.getBoundingBox().getMinY() - 0.5000001),
-                        player.getLocation().getBlockZ())
+        return ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
+                (bukkitPlayer.getLocation().getBlockX(), (int) (bukkitPlayer.getBoundingBox().getMinY() - 0.5000001),
+                        bukkitPlayer.getLocation().getBlockZ())
                 .getBlockData()).getState().getBlock().getFrictionFactor();
     }
 
@@ -356,13 +372,13 @@ public class MovementVelocityCheck extends MovementCheck {
                 double movementXWithShifting = movementX;
                 double movementZWithShifting = movementZ;
 
-                if (player.isSneaking()) {
+                if (bukkitPlayer.isSneaking()) {
                     movementXWithShifting *= 0.3;
                     movementZWithShifting *= 0.3;
                 }
 
                 Vector clonedClientVelocity = grimPlayer.clientVelocity.clone();
-                Vector movementInput = getInputVector(new Vector(movementXWithShifting * 0.98, 0, movementZWithShifting * 0.98), f, player.getLocation().getYaw());
+                Vector movementInput = getInputVector(new Vector(movementXWithShifting * 0.98, 0, movementZWithShifting * 0.98), f, bukkitPlayer.getLocation().getYaw());
                 clonedClientVelocity.add(movementInput);
                 clonedClientVelocity = move(MoverType.SELF, new Vec3D(clonedClientVelocity.getX(), 0, clonedClientVelocity.getZ()));
 
@@ -389,16 +405,16 @@ public class MovementVelocityCheck extends MovementCheck {
     }
 
     public void moveRelative(float f, Vector vec3) {
-        Vector movementInput = getInputVector(vec3, f, player.getLocation().getYaw());
+        Vector movementInput = getInputVector(vec3, f, bukkitPlayer.getLocation().getYaw());
         grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(movementInput);
     }
 
     // Verified.  This is correct.
     private float getFrictionInfluencedSpeed(float f) {
-        if (player.isOnGround()) {
-            return (float) (player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
+        if (bukkitPlayer.isOnGround()) {
+            return (float) (bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
         }
-        return player.getFlySpeed();
+        return bukkitPlayer.getFlySpeed();
     }
 
     // Entity line 527
@@ -447,7 +463,7 @@ public class MovementVelocityCheck extends MovementCheck {
         boolean bl2 = vec3.x != vec32.x;
         boolean bl3 = vec3.y != vec32.y;
         boolean bl4 = vec3.z != vec32.z;
-        boolean bl5 = bl = player.isOnGround() || bl3 && vec3.y < 0.0;
+        boolean bl5 = bl = bukkitPlayer.isOnGround() || bl3 && vec3.y < 0.0;
         if (bl && (bl2 || bl4)) {
             Vec3D vec33;
             Vec3D vec34 = Entity.a(grimPlayer.entityPlayer, new Vec3D(vec3.x, maxUpStep, vec3.z), aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
@@ -466,11 +482,11 @@ public class MovementVelocityCheck extends MovementCheck {
     // MCP mappings PlayerEntity 959
     // Mojang mappings 936
     protected Vec3D maybeBackOffFromEdge(Vec3D vec3, MoverType moverType) {
-        if (!player.isFlying() && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && player.isSneaking() && isAboveGround()) {
+        if (!bukkitPlayer.isFlying() && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && bukkitPlayer.isSneaking() && isAboveGround()) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
-            while (d != 0.0 && ((CraftWorld) player.getWorld()).getHandle().getCubes(((CraftPlayer) player).getHandle(),
-                    ((CraftPlayer) player).getHandle().getBoundingBox().d(d, -maxUpStep, 0.0))) {
+            while (d != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, 0.0))) {
                 if (d < 0.05 && d >= -0.05) {
                     d = 0.0;
                     continue;
@@ -481,8 +497,8 @@ public class MovementVelocityCheck extends MovementCheck {
                 }
                 d += 0.05;
             }
-            while (d2 != 0.0 && ((CraftWorld) player.getWorld()).getHandle().getCubes(((CraftPlayer) player).getHandle(),
-                    ((CraftPlayer) player).getHandle().getBoundingBox().d(0.0, -maxUpStep, d2))) {
+            while (d2 != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, -maxUpStep, d2))) {
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
                     continue;
@@ -493,8 +509,8 @@ public class MovementVelocityCheck extends MovementCheck {
                 }
                 d2 += 0.05;
             }
-            while (d != 0.0 && d2 != 0.0 && ((CraftWorld) player.getWorld()).getHandle().getCubes(((CraftPlayer) player).getHandle(),
-                    ((CraftPlayer) player).getHandle().getBoundingBox().d(d, -maxUpStep, d2))) {
+            while (d != 0.0 && d2 != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, d2))) {
                 d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? (d -= 0.05) : (d += 0.05));
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
@@ -514,8 +530,8 @@ public class MovementVelocityCheck extends MovementCheck {
     // Entity line 617
     // Heavily simplified (wtf was that original code mojang)
     private Block getOnBlock() {
-        Block block1 = player.getWorld().getBlockAt(player.getLocation().getBlockX(), (int) (player.getLocation().getX() - 0.2F), player.getLocation().getBlockZ());
-        Block block2 = player.getWorld().getBlockAt(player.getLocation().getBlockX(), (int) (player.getLocation().getX() - 1.2F), player.getLocation().getBlockZ());
+        Block block1 = bukkitPlayer.getWorld().getBlockAt(bukkitPlayer.getLocation().getBlockX(), (int) (bukkitPlayer.getLocation().getX() - 0.2F), bukkitPlayer.getLocation().getBlockZ());
+        Block block2 = bukkitPlayer.getWorld().getBlockAt(bukkitPlayer.getLocation().getBlockX(), (int) (bukkitPlayer.getLocation().getX() - 1.2F), bukkitPlayer.getLocation().getBlockZ());
 
         if (block2.getType().isAir()) {
             if (block2 instanceof Fence || block2 instanceof Wall || block2 instanceof Gate) {
@@ -529,23 +545,33 @@ public class MovementVelocityCheck extends MovementCheck {
     // Entity line 637
     // Seems fine to me.  Haven't found issues here
     public float getBlockSpeedFactor() {
-        net.minecraft.server.v1_16_R3.Block block = ((CraftBlockData) player.getWorld().getBlockAt
-                (player.getLocation().getBlockX(), player.getLocation().getBlockY(),
-                        player.getLocation().getBlockZ())
+        net.minecraft.server.v1_16_R3.Block block = ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
+                (bukkitPlayer.getLocation().getBlockX(), bukkitPlayer.getLocation().getBlockY(),
+                        bukkitPlayer.getLocation().getBlockZ())
                 .getBlockData()).getState().getBlock();
         float f = block.getSpeedFactor();
         if (block == net.minecraft.server.v1_16_R3.Blocks.WATER || block == net.minecraft.server.v1_16_R3.Blocks.BUBBLE_COLUMN) {
             return f;
         }
-        return (double) f == 1.0 ? ((CraftBlockData) player.getWorld().getBlockAt
-                (player.getLocation().getBlockX(), (int) (player.getBoundingBox().getMinY() - 0.5000001),
-                        player.getLocation().getBlockZ())
+        return (double) f == 1.0 ? ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
+                (bukkitPlayer.getLocation().getBlockX(), (int) (bukkitPlayer.getBoundingBox().getMinY() - 0.5000001),
+                        bukkitPlayer.getLocation().getBlockZ())
                 .getBlockData()).getState().getBlock().getSpeedFactor() : f;
     }
 
     // What the fuck is this?
     private boolean isAboveGround() {
-        return player.isOnGround() || player.getFallDistance() < maxUpStep && !
-                ((CraftWorld) player.getWorld()).getHandle().getCubes(((CraftPlayer) player).getHandle(), ((CraftPlayer) player).getHandle().getBoundingBox().d(0.0, player.getFallDistance() - maxUpStep, 0.0));
+        return bukkitPlayer.isOnGround() || bukkitPlayer.getFallDistance() < maxUpStep && !
+                ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - maxUpStep, 0.0));
+    }
+
+    // LivingEntity line 1882
+    // I have no clue what this does, but it really doesn't matter.  It works.
+    public Vector getFluidFallingAdjustedMovement(double d, boolean bl, Vector vec3) {
+        if (grimPlayer.bukkitPlayer.hasGravity() && !grimPlayer.bukkitPlayer.isSprinting()) {
+            double d2 = bl && Math.abs(vec3.getY() - 0.005) >= 0.003 && Math.abs(vec3.getY() - d / 16.0) < 0.003 ? -0.003 : vec3.getY() - d / 16.0;
+            return new Vector(vec3.getX(), d2, vec3.getZ());
+        }
+        return vec3;
     }
 }

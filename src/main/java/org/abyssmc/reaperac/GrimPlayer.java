@@ -17,7 +17,7 @@ public class GrimPlayer {
     public boolean allowFlying;
     public boolean instantBreak;
     public Vector clientVelocity = new Vector();
-    public Vector predictedVelocity;
+    public Vector predictedVelocity = new Vector(0,0,0);
     public Vector lastActualMovement = new Vector(0, 0, 0);
     public Vector actualMovement = new Vector(0, 0, 0);
     public Player bukkitPlayer;
