@@ -238,38 +238,38 @@ public class MovementVelocityCheck extends MovementCheck {
                     grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ());
                 }
                 // TODO: who cares about gliding at this point - I'll just remove it
-            /*} else if (this.isGliding()) {
-                vec3d4 = this.getMot();
-                if (vec3d4.y > -0.5D) {
-                    this.fallDistance = 1.0F;
+            } else if (bukkitPlayer.isGliding()) {
+                if (grimPlayer.clientVelocity.getY() > -0.5D) {
+                    //this.fallDistance = 1.0F;
                 }
 
-                Vec3D vec3d5 = this.getLookDirection();
-                f = this.pitch * 0.017453292F;
-                double d2 = Math.sqrt(vec3d5.x * vec3d5.x + vec3d5.z * vec3d5.z);
-                double d3 = Math.sqrt(c((Vec3D) vec3d4));
-                double d4 = vec3d5.f();
+                Vector lookVector = getVectorForRotation(grimPlayer.xRot, grimPlayer.yRot);
+                f = grimPlayer.yRot * 0.017453292F;
+                double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
+                double d3 = grimPlayer.clientVelocity.length();
+                double d4 = lookVector.length();
                 float f3 = MathHelper.cos(f);
                 f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
-                vec3d4 = this.getMot().add(0.0D, d0 * (-1.0D + (double) f3 * 0.75D), 0.0D);
+                grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(0.0D, d * (-1.0D + (double) f3 * 0.75D), 0.0D));
                 double d5;
-                if (vec3d4.y < 0.0D && d2 > 0.0D) {
-                    d5 = vec3d4.y * -0.1D * (double) f3;
-                    vec3d4 = vec3d4.add(vec3d5.x * d5 / d2, d5, vec3d5.z * d5 / d2);
+                if (grimPlayer.clientVelocity.getY() < 0.0D && d2 > 0.0D) {
+                    d5 = grimPlayer.clientVelocity.getY() * -0.1D * (double) f3;
+                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(lookVector.getX() * d5 / d2, d5, lookVector.getZ() * d5 / d2));
                 }
 
                 if (f < 0.0F && d2 > 0.0D) {
                     d5 = d3 * (double) (-MathHelper.sin(f)) * 0.04D;
-                    vec3d4 = vec3d4.add(-vec3d5.x * d5 / d2, d5 * 3.2D, -vec3d5.z * d5 / d2);
+                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(-lookVector.getX() * d5 / d2, d5 * 3.2D, -lookVector.getZ() * d5 / d2));
                 }
 
                 if (d2 > 0.0D) {
-                    vec3d4 = vec3d4.add((vec3d5.x / d2 * d3 - vec3d4.x) * 0.1D, 0.0D, (vec3d5.z / d2 * d3 - vec3d4.z) * 0.1D);
+                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector((lookVector.getX() / d2 * d3 - grimPlayer.clientVelocity.getX()) * 0.1D, 0.0D, (lookVector.getZ() / d2 * d3 - grimPlayer.clientVelocity.getZ()) * 0.1D));
                 }
 
-                this.setMot(vec3d4.d(0.9900000095367432D, 0.9800000190734863D, 0.9900000095367432D));
-                this.move(EnumMoveType.SELF, this.getMot());
-                if (this.positionChanged && !this.world.isClientSide) {
+                grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.9900000095367432D, 0.9800000190734863D, 0.9900000095367432D));
+                this.move(MoverType.SELF, getClientVelocityAsVec3D());
+                // IDK if there is a possible cheat for anti elytra damage
+                /*if (grimPlayer. && !this.world.isClientSide) {
                     d5 = Math.sqrt(c((Vec3D) this.getMot()));
                     double d6 = d3 - d5;
                     float f4 = (float) (d6 * 10.0D - 3.0D);
@@ -277,9 +277,10 @@ public class MovementVelocityCheck extends MovementCheck {
                         this.playSound(this.getSoundFall((int) f4), 1.0F, 1.0F);
                         this.damageEntity(DamageSource.FLY_INTO_WALL, f4);
                     }
-                }
+                }*/
 
-                if (this.onGround && !this.world.isClientSide && this.getFlag(7) && !CraftEventFactory.callToggleGlideEvent(this, false).isCancelled()) {
+                // Anti stop glide hack or something?  I have no clue.
+                /*if (grimPlayer.onGround && !this.world.isClientSide && this.getFlag(7) && !CraftEventFactory.callToggleGlideEvent(this, false).isCancelled()) {
                     this.setFlag(7, false);
                 }*/
             } else {
@@ -572,5 +573,16 @@ public class MovementVelocityCheck extends MovementCheck {
             return new Vector(vec3.getX(), d2, vec3.getZ());
         }
         return vec3;
+    }
+
+    // Entity line 1243 - (MCP mappings)
+    protected final Vector getVectorForRotation(float pitch, float yaw) {
+        float f = pitch * ((float)Math.PI / 180F);
+        float f1 = -yaw * ((float)Math.PI / 180F);
+        float f2 = MathHelper.cos(f1);
+        float f3 = MathHelper.sin(f1);
+        float f4 = MathHelper.cos(f);
+        float f5 = MathHelper.sin(f);
+        return new Vector(f3 * f4, -f5, (double)(f2 * f4));
     }
 }
