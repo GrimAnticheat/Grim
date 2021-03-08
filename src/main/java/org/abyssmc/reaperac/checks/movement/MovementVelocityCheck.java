@@ -63,8 +63,12 @@ public class MovementVelocityCheck extends MovementCheck {
             // baseTick occurs before this
             livingEntityAIStep();
 
-            Bukkit.broadcastMessage("Predicted: " + ChatColor.BLUE + grimPlayer.predictedVelocity.getX() + " " + ChatColor.AQUA + grimPlayer.predictedVelocity.getY() + " " + ChatColor.GREEN + grimPlayer.predictedVelocity.getZ());
-            Bukkit.broadcastMessage("Actually:  " + ChatColor.BLUE + grimPlayer.actualMovement.getX() + " " + ChatColor.AQUA + grimPlayer.actualMovement.getY() + " " + ChatColor.GREEN + grimPlayer.actualMovement.getZ());
+            if (grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement) > new Vector(0.03, 0.03, 0.03).lengthSquared()) {
+                Bukkit.broadcastMessage(ChatColor.RED + "FAILED MOVEMENT CHECK");
+            }
+
+            Bukkit.broadcastMessage("P: " + ChatColor.BLUE + grimPlayer.predictedVelocity.getX() + " " + ChatColor.AQUA + grimPlayer.predictedVelocity.getY() + " " + ChatColor.GREEN + grimPlayer.predictedVelocity.getZ());
+            Bukkit.broadcastMessage("A: " + ChatColor.BLUE + grimPlayer.actualMovement.getX() + " " + ChatColor.AQUA + grimPlayer.actualMovement.getY() + " " + ChatColor.GREEN + grimPlayer.actualMovement.getZ());
 
             grimPlayer.lastActualMovement = grimPlayer.actualMovement;
         });
@@ -199,7 +203,7 @@ public class MovementVelocityCheck extends MovementCheck {
             }
 
             // TODO: Predictive!
-            moveRelative(f1, new Vector(0,0,0.98));
+            moveRelative(f1, new Vector(0,0,0));
             grimPlayer.clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
 
             if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.isClimbing()) {
@@ -404,7 +408,7 @@ public class MovementVelocityCheck extends MovementCheck {
 
     // Verified.  This is correct.
     private float getFrictionInfluencedSpeed(float f) {
-        if (bukkitPlayer.isOnGround()) {
+        if (grimPlayer.onGround) {
             return (float) (bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
         }
         return bukkitPlayer.getFlySpeed();
@@ -463,7 +467,7 @@ public class MovementVelocityCheck extends MovementCheck {
         boolean bl2 = vec3.x != vec32.x;
         boolean bl3 = vec3.y != vec32.y;
         boolean bl4 = vec3.z != vec32.z;
-        boolean bl5 = bl = bukkitPlayer.isOnGround() || bl3 && vec3.y < 0.0;
+        boolean bl5 = bl = grimPlayer.onGround || bl3 && vec3.y < 0.0;
         if (bl && (bl2 || bl4)) {
             Vec3D vec33;
             Vec3D vec34 = Entity.a(grimPlayer.entityPlayer, new Vec3D(vec3.x, maxUpStep, vec3.z), aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
@@ -561,7 +565,7 @@ public class MovementVelocityCheck extends MovementCheck {
 
     // What the fuck is this?
     private boolean isAboveGround() {
-        return bukkitPlayer.isOnGround() || bukkitPlayer.getFallDistance() < maxUpStep && !
+        return grimPlayer.onGround || bukkitPlayer.getFallDistance() < maxUpStep && !
                 ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - maxUpStep, 0.0));
     }
 
