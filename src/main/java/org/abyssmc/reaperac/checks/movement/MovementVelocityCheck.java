@@ -71,7 +71,7 @@ public class MovementVelocityCheck extends MovementCheck {
 
             // TODO: This is a check for is the player actually on the ground!
             // TODO: This check is wrong with less 1.9+ precision on movement
-            if (grimPlayer.verticalCollision && grimPlayer.predictedVelocity.getY() < 0.0 != grimPlayer.onGround) {
+            if (grimPlayer.isActuallyOnGround != grimPlayer.onGround) {
                 Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
             }
 
@@ -449,6 +449,7 @@ public class MovementVelocityCheck extends MovementCheck {
 
         grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
         grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();
+        grimPlayer.isActuallyOnGround = grimPlayer.verticalCollision && grimPlayer.predictedVelocity.getY() < 0.0;
 
         if (vec3.getX() != clonedClientVelocity.getX()) {
             grimPlayer.clientVelocity.setX(0);

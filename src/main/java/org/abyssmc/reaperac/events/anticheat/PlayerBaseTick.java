@@ -107,7 +107,7 @@ public class PlayerBaseTick {
                     fluid.c(playerWorld, mutableBlockPos);
                     Vec3D vec32 = fluid.c(playerWorld, mutableBlockPos);
                     if (d2 < 0.4) {
-                        vec32.a(d2);
+                        vec32 = vec32.a(d2);
                     }
                     vec3 = vec3.e(vec32);
                     ++n7;
