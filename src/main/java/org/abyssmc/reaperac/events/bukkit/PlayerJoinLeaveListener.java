@@ -19,6 +19,11 @@ public class PlayerJoinLeaveListener implements Listener {
         grimPlayer.lastZ = player.getLocation().getZ();
         grimPlayer.lastXRot = player.getLocation().getYaw();
         grimPlayer.lastYRot = player.getLocation().getPitch();
+        grimPlayer.x = player.getLocation().getX();
+        grimPlayer.y = player.getLocation().getY();
+        grimPlayer.z = player.getLocation().getZ();
+        grimPlayer.xRot = player.getLocation().getYaw();
+        grimPlayer.yRot = player.getLocation().getPitch();
 
         ReaperAC.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
     }

@@ -11,6 +11,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.type.Bed;
 import org.bukkit.block.data.type.Fence;
 import org.bukkit.block.data.type.Gate;
 import org.bukkit.block.data.type.Wall;
@@ -58,17 +59,31 @@ public class MovementVelocityCheck extends MovementCheck {
         Bukkit.getScheduler().runTask(ReaperAC.plugin, () -> {
             // btw I'll move this later to another class - it's just easier to have everything in one class for now
             // Since everything is highly dependent on order
+
+            // TODO: Remove this hack
             new PlayerBaseTick(grimPlayer).doBaseTick();
 
             // baseTick occurs before this
             livingEntityAIStep();
 
-            if (grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement) > new Vector(0.03, 0.03, 0.03).lengthSquared()) {
-                Bukkit.broadcastMessage(ChatColor.RED + "FAILED MOVEMENT CHECK");
-            }
-
             Bukkit.broadcastMessage("P: " + ChatColor.BLUE + grimPlayer.predictedVelocity.getX() + " " + ChatColor.AQUA + grimPlayer.predictedVelocity.getY() + " " + ChatColor.GREEN + grimPlayer.predictedVelocity.getZ());
             Bukkit.broadcastMessage("A: " + ChatColor.BLUE + grimPlayer.actualMovement.getX() + " " + ChatColor.AQUA + grimPlayer.actualMovement.getY() + " " + ChatColor.GREEN + grimPlayer.actualMovement.getZ());
+
+            // TODO: This is a check for is the player actually on the ground!
+            // TODO: This check is wrong with less 1.9+ precision on movement
+            if (grimPlayer.verticalCollision && grimPlayer.predictedVelocity.getY() < 0.0 != grimPlayer.onGround) {
+                Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
+            }
+
+            if (grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement) > new Vector(0.03, 0.03, 0.03).lengthSquared()) {
+                Bukkit.broadcastMessage(ChatColor.RED + "FAILED MOVEMENT CHECK");
+            } else {
+                // For better accuracy trust the client's last "close enough" movement (especially important for 1.9)
+                // ...this caused some bad bugs.
+
+                // I think this is wrong because the player might have a new position?
+                grimPlayer.predictedVelocity = move(MoverType.SELF, grimPlayer.actualMovement);
+            }
 
             grimPlayer.lastActualMovement = grimPlayer.actualMovement;
         });
@@ -179,7 +194,7 @@ public class MovementVelocityCheck extends MovementCheck {
         double d1;
         float f;
         float f2;
-        if (entityPlayer.isInWater() && entityPlayer.cT()) {
+        if (entityPlayer.isInWater() && !grimPlayer.isFlying) {
             d1 = entityPlayer.locY();
             // 0.8F seems hardcoded in
             f = entityPlayer.isSprinting() ? 0.9F : 0.8F;
@@ -204,13 +219,12 @@ public class MovementVelocityCheck extends MovementCheck {
 
             // TODO: Predictive!
             moveRelative(f1, new Vector(0,0,0));
-            grimPlayer.clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
+            grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
             if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.isClimbing()) {
-                grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.2D, grimPlayer.clientVelocity.getZ());
+                grimPlayer.clientVelocity.setY( 0.2D);
             }
 
-            // Look at this stupid bug I made before lol
             grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(f, 0.8F, f));
             grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
 
@@ -224,7 +238,7 @@ public class MovementVelocityCheck extends MovementCheck {
             if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
                 d1 = grimPlayer.y;
                 moveRelative(0.02F, new Vector(0,0,0.98));
-                grimPlayer.clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
+                grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
                 // TODO: Not really sure if I need a get or default, or if the default is correct
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= entityPlayer.cx()) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
@@ -271,7 +285,7 @@ public class MovementVelocityCheck extends MovementCheck {
                 }
 
                 grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.9900000095367432D, 0.9800000190734863D, 0.9900000095367432D));
-                this.move(MoverType.SELF, getClientVelocityAsVec3D());
+                grimPlayer.clientVelocity = this.move(MoverType.SELF, grimPlayer.clientVelocity);
                 // IDK if there is a possible cheat for anti elytra damage
                 /*if (grimPlayer. && !this.world.isClientSide) {
                     d5 = Math.sqrt(c((Vec3D) this.getMot()));
@@ -377,7 +391,7 @@ public class MovementVelocityCheck extends MovementCheck {
                 Vector clonedClientVelocity = grimPlayer.clientVelocity.clone();
                 Vector movementInput = getInputVector(new Vector(movementXWithShifting * 0.98, 0, movementZWithShifting * 0.98), f, bukkitPlayer.getLocation().getYaw());
                 clonedClientVelocity.add(movementInput);
-                clonedClientVelocity = move(MoverType.SELF, new Vec3D(clonedClientVelocity.getX(), 0, clonedClientVelocity.getZ()));
+                clonedClientVelocity = move(MoverType.SELF, clonedClientVelocity.setY(0));
 
                 double closeness = grimPlayer.actualMovement.clone().subtract(clonedClientVelocity).lengthSquared();
 
@@ -396,7 +410,7 @@ public class MovementVelocityCheck extends MovementCheck {
 
         moveRelative(f, new Vector(bestMovementX, 0, bestMovementZ));
 
-        grimPlayer.clientVelocity = move(MoverType.SELF, getClientVelocityAsVec3D());
+        grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
         return grimPlayer.clientVelocity;
     }
@@ -415,7 +429,11 @@ public class MovementVelocityCheck extends MovementCheck {
     }
 
     // Entity line 527
-    public Vector move(MoverType moverType, Vec3D vec3) {
+    // TODO: Entity piston and entity shulker (want to) call this method too.
+    // I want to transform this into the actual check
+    // hmmm. what if I call this method with the player's actual velocity?
+    // Sounds good :D
+    public Vector move(MoverType moverType, Vector vec3) {
         Vec3D vec32;
         Vector clonedClientVelocity = grimPlayer.clientVelocity.clone();
 
@@ -426,18 +444,41 @@ public class MovementVelocityCheck extends MovementCheck {
 
         // We might lose 0.0000001 precision here at worse for no if statement
         clonedClientVelocity = this.collide(this.maybeBackOffFromEdge(vec3, moverType));
+        // TODO: This is probably wrong`
         grimPlayer.predictedVelocity = grimPlayer.clientVelocity;
 
-        grimPlayer.horizontalCollision = !Mth.equal(vec3.x, clonedClientVelocity.getX()) || !Mth.equal(vec3.z, clonedClientVelocity.getZ());
-        grimPlayer.verticalCollision = vec3.y != clonedClientVelocity.getY();
+        grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
+        grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();
 
-        // TODO: This is a check for is the player actually on the ground!
-        if (grimPlayer.verticalCollision && vec3.y < 0.0 != grimPlayer.onGround) {
-            Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
+        if (vec3.getX() != clonedClientVelocity.getX()) {
+            grimPlayer.clientVelocity.setX(0);
+        }
+
+        if (vec3.getZ() != clonedClientVelocity.getZ()) {
+            grimPlayer.clientVelocity.setZ(0);
+        }
+
+        Block onBlock = getOnBlock();
+        if (vec3.getY() != clonedClientVelocity.getY()) {
+            if (onBlock.getType() == org.bukkit.Material.SLIME_BLOCK) {
+                // TODO: Maybe lag compensate this (idk packet order)
+                if (bukkitPlayer.isSneaking()) {
+                    grimPlayer.clientVelocity.setY(0);
+                } else {
+                    if (grimPlayer.clientVelocity.getY() < 0.0) {
+                        grimPlayer.clientVelocity.setY(-grimPlayer.clientVelocity.getY());
+                    }
+                }
+            } else if (onBlock.getBlockData() instanceof Bed) {
+                if (grimPlayer.clientVelocity.getY() < 0.0) {
+                    grimPlayer.clientVelocity.setY(-grimPlayer.clientVelocity.getY() * 0.6600000262260437);
+                }
+            } else {
+                grimPlayer.clientVelocity.setY(0);
+            }
         }
 
         // TODO: Block collision code
-        Block onBlock = getOnBlock();
         // something about resetting fall state - not sure if server has functioning fall distance tracker
         // I'm being hopeful, of course the server's fall distance tracker is broken
         // TODO: Fall damage stuff
@@ -455,7 +496,9 @@ public class MovementVelocityCheck extends MovementCheck {
     }
 
     // Entity line 686
-    private Vector collide(Vec3D vec3) {
+    private Vector collide(Vector vector) {
+        Vec3D vec3 = new Vec3D(vector.getX(), vector.getY(), vector.getZ());
+
         boolean bl;
         AxisAlignedBB aABB = grimPlayer.entityPlayer.getBoundingBox();
         VoxelShapeCollision collisionContext = VoxelShapeCollision.a(grimPlayer.entityPlayer);
@@ -485,7 +528,7 @@ public class MovementVelocityCheck extends MovementCheck {
 
     // MCP mappings PlayerEntity 959
     // Mojang mappings 936
-    protected Vec3D maybeBackOffFromEdge(Vec3D vec3, MoverType moverType) {
+    protected Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType) {
         if (!bukkitPlayer.isFlying() && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && bukkitPlayer.isSneaking() && isAboveGround()) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
@@ -526,7 +569,7 @@ public class MovementVelocityCheck extends MovementCheck {
                 }
                 d2 += 0.05;
             }
-            vec3 = new Vec3D(d, vec3.getY(), d2);
+            vec3 = new Vector(d, vec3.getY(), d2);
         }
         return vec3;
     }

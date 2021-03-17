@@ -31,6 +31,9 @@ public class GrimPlayer {
     public float yRot;
     public boolean onGround;
 
+    // We determine this
+    public boolean isActuallyOnGround;
+
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
     public boolean wasTouchingWater = false;

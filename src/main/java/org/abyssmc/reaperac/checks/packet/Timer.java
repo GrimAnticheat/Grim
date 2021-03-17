@@ -7,7 +7,8 @@ import org.bukkit.Bukkit;
 public class Timer extends MovementCheck {
     private static final long millisPerTick = 50000000L;
 
-    public Timer(GrimPlayer player) {
+    @Override
+    public void checkMovement(GrimPlayer player) {
         long currentTime = System.nanoTime();
 
         player.offset += millisPerTick - (currentTime - player.lastMovementPacket);
