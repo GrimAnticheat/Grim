@@ -66,8 +66,19 @@ public class MovementVelocityCheck extends MovementCheck {
             // baseTick occurs before this
             livingEntityAIStep();
 
-            Bukkit.broadcastMessage("P: " + ChatColor.BLUE + grimPlayer.predictedVelocity.getX() + " " + ChatColor.AQUA + grimPlayer.predictedVelocity.getY() + " " + ChatColor.GREEN + grimPlayer.predictedVelocity.getZ());
-            Bukkit.broadcastMessage("A: " + ChatColor.BLUE + grimPlayer.actualMovement.getX() + " " + ChatColor.AQUA + grimPlayer.actualMovement.getY() + " " + ChatColor.GREEN + grimPlayer.actualMovement.getZ());
+            ChatColor color;
+            double diff = grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement);
+
+            if (diff < 0.03) {
+                color = ChatColor.GREEN;
+            } else if (diff < 0.1) {
+                color = ChatColor.YELLOW;
+            } else {
+                color = ChatColor.RED;
+            }
+
+            Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
+            Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 
             // TODO: This is a check for is the player actually on the ground!
             // TODO: This check is wrong with less 1.9+ precision on movement
@@ -153,7 +164,7 @@ public class MovementVelocityCheck extends MovementCheck {
     }
 
     private Vector jumpFromGround() {
-        Vector clonedClientVelocity = grimPlayer.clientVelocity;
+        Vector clonedClientVelocity = grimPlayer.clientVelocity.clone();
         float f = getJumpPower();
 
         if (bukkitPlayer.hasPotionEffect(PotionEffectType.JUMP)) {
@@ -368,6 +379,7 @@ public class MovementVelocityCheck extends MovementCheck {
                 .getBlockData()).getState().getBlock().getFrictionFactor();
     }
 
+    // TODO: Do the best guess first for optimization
     public void guessBestMovement(float f) {
         double bestMovementGuess = Integer.MAX_VALUE;
 
@@ -384,9 +396,9 @@ public class MovementVelocityCheck extends MovementCheck {
                         movementZWithShifting *= 0.3;
                     }
 
-                    /*if (isJumping) {
+                    if (isJumping) {
                         clonedClientVelocity = jumpFromGround();
-                    }*/
+                    }
 
                     Vector movementInput = getInputVector(new Vector(movementXWithShifting * 0.98, 0, movementZWithShifting * 0.98), f, bukkitPlayer.getLocation().getYaw());
                     clonedClientVelocity.add(movementInput);
@@ -589,8 +601,13 @@ public class MovementVelocityCheck extends MovementCheck {
     public Vector handleRelativeFrictionAndCalculateMovement(float f) {
         f = this.getFrictionInfluencedSpeed(f);
 
+        if (grimPlayer.bestJumping) {
+            grimPlayer.clientVelocity = jumpFromGround();
+        }
+
         grimPlayer.clientVelocity.add(moveRelative(f, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
         grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
+
 
         return grimPlayer.clientVelocity;
 
