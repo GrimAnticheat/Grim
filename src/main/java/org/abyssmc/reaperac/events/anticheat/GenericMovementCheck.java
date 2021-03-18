@@ -16,13 +16,12 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GenericMovementCheck {
+    // Yeah... I know I lose a bit of performance from a list over a set, but it's worth it for consistency
+    static List<MovementCheck> movementCheckListeners = new ArrayList<>();
     List<PacketType> flyingPackets = Arrays.asList(PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK,
             PacketType.Play.Client.LOOK, PacketType.Play.Client.FLYING);
     ProtocolManager manager;
     Plugin plugin;
-
-    // Yeah... I know I lose a bit of performance from a list over a set, but it's worth it for consistency
-    static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
     // YES I KNOW THIS CLASS IS TERRIBLE.
     // EARLIER TODAY I WANTED IT TO BE A MANAGER CLASS

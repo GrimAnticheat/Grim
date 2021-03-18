@@ -5,6 +5,7 @@ import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
 import org.abyssmc.reaperac.events.bukkit.PlayerLagback;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -34,6 +35,11 @@ public class GrimPlayer {
     // We determine this
     public boolean isActuallyOnGround;
 
+    // We guess this
+    public double bestX;
+    public double bestZ;
+    public boolean bestJumping;
+
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
     public boolean wasTouchingWater = false;
@@ -61,6 +67,11 @@ public class GrimPlayer {
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
         this.entityPlayer = ((CraftPlayer) player).getHandle();
+
+        Location loginLocation = player.getLocation();
+        lastX = loginLocation.getX();
+        lastY = loginLocation.getY();
+        lastZ = loginLocation.getZ();
     }
 
     // TODO: STOP MAKING THIS A GOD CLASS AND PUT THIS IN IT'S OWN CLASS

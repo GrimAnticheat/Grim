@@ -3,7 +3,6 @@ package org.abyssmc.reaperac;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
-import org.abyssmc.reaperac.checks.packet.Timer;
 import org.abyssmc.reaperac.events.anticheat.GenericMovementCheck;
 import org.abyssmc.reaperac.events.bukkit.PlayerJoinLeaveListener;
 import org.abyssmc.reaperac.events.bukkit.PlayerLagback;

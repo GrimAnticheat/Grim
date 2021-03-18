@@ -38,7 +38,7 @@ public class PlayerBaseTick {
         double d0 = player.entityPlayer.getHeadY() - 0.1111111119389534D;
         Entity entity = player.entityPlayer.getVehicle();
         if (entity instanceof EntityBoat) {
-            EntityBoat entityboat = (EntityBoat)entity;
+            EntityBoat entityboat = (EntityBoat) entity;
             if (!entityboat.aI() && entityboat.getBoundingBox().maxY >= d0 && entityboat.getBoundingBox().minY <= d0) {
                 return;
             }
@@ -48,10 +48,10 @@ public class PlayerBaseTick {
         Fluid fluid = ((CraftWorld) player.bukkitPlayer.getWorld()).getHandle().getFluid(blockposition);
         Iterator iterator = TagsFluid.b().iterator();
 
-        while(iterator.hasNext()) {
-            Tag tag = (Tag)iterator.next();
+        while (iterator.hasNext()) {
+            Tag tag = (Tag) iterator.next();
             if (fluid.a(tag)) {
-                double d1 = (float)blockposition.getY() + fluid.getHeight(player.entityPlayer.getWorld(), blockposition);
+                double d1 = (float) blockposition.getY() + fluid.getHeight(player.entityPlayer.getWorld(), blockposition);
                 if (d1 > d0) {
                     player.fluidOnEyes = tag;
                 }
