@@ -9,6 +9,7 @@ import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
@@ -19,12 +20,15 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.stream.Stream;
 
-public class MovementVelocityCheck extends MovementCheck {
+public class MovementVelocityCheck implements Listener {
     private static final double jumpingEpsilon = 0.01d;
     private static final double maxUpStep = 0.6f;
     private static final double fluidJumpThreshold = 0.04d;
@@ -47,57 +51,58 @@ public class MovementVelocityCheck extends MovementCheck {
                 vec32.getY(), vec32.getZ() * (double) f4 + vec32.getX() * (double) f3);
     }
 
-    @Override
-    public void checkMovement(GrimPlayer grimPlayer) {
-        this.bukkitPlayer = grimPlayer.bukkitPlayer;
-        this.grimPlayer = grimPlayer;
+    @EventHandler
+    public void onPlayerMoveEvent(PlayerMoveEvent event) {
+        this.bukkitPlayer = event.getPlayer();
+        this.grimPlayer = ReaperAC.playerGrimHashMap.get(bukkitPlayer);
+
+        Location from = event.getFrom();
+        Location to = event.getTo();
 
         // TODO: LivingEntity: 1882 (fluid adjusted movement)
-        grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
+        grimPlayer.actualMovement = new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
 
         // We can't do everything fully async because getting entities - https://pastebin.com/s0XhgCvV
-        Bukkit.getScheduler().runTask(ReaperAC.plugin, () -> {
-            // btw I'll move this later to another class - it's just easier to have everything in one class for now
-            // Since everything is highly dependent on order
+        // btw I'll move this later to another class - it's just easier to have everything in one class for now
+        // Since everything is highly dependent on order
 
-            // TODO: Remove this hack
-            new PlayerBaseTick(grimPlayer).doBaseTick();
+        // TODO: Remove this hack
+        new PlayerBaseTick(grimPlayer).doBaseTick();
 
-            // baseTick occurs before this
-            livingEntityAIStep();
+        // baseTick occurs before this
+        livingEntityAIStep();
 
-            ChatColor color;
-            double diff = grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement);
+        ChatColor color;
+        double diff = grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement);
 
-            if (diff < 0.03) {
-                color = ChatColor.GREEN;
-            } else if (diff < 0.1) {
-                color = ChatColor.YELLOW;
-            } else {
-                color = ChatColor.RED;
-            }
+        if (diff < 0.01) {
+            color = ChatColor.GREEN;
+        } else if (diff < 0.1) {
+            color = ChatColor.YELLOW;
+        } else {
+            color = ChatColor.RED;
+        }
 
-            Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
-            Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
+        Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
+        Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 
-            // TODO: This is a check for is the player actually on the ground!
-            // TODO: This check is wrong with less 1.9+ precision on movement
-            if (grimPlayer.isActuallyOnGround != grimPlayer.onGround) {
-                //Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
-            }
+        // TODO: This is a check for is the player actually on the ground!
+        // TODO: This check is wrong with less 1.9+ precision on movement
+        if (grimPlayer.isActuallyOnGround != grimPlayer.onGround) {
+            //Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
+        }
 
-            if (grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement) > new Vector(0.03, 0.03, 0.03).lengthSquared()) {
-                //Bukkit.broadcastMessage(ChatColor.RED + "FAILED MOVEMENT CHECK");
-            } else {
-                // For better accuracy trust the client's last "close enough" movement (especially important for 1.9)
-                // ...this caused some bad bugs.
+        if (grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement) > new Vector(0.03, 0.03, 0.03).lengthSquared()) {
+            //Bukkit.broadcastMessage(ChatColor.RED + "FAILED MOVEMENT CHECK");
+        } else {
+            // For better accuracy trust the client's last "close enough" movement (especially important for 1.9)
+            // ...this caused some bad bugs.
 
-                // I think this is wrong because the player might have a new position?
-                grimPlayer.predictedVelocity = move(MoverType.SELF, grimPlayer.actualMovement);
-            }
+            // I think this is wrong because the player might have a new position?
+            grimPlayer.predictedVelocity = move(MoverType.SELF, grimPlayer.actualMovement);
+        }
 
-            grimPlayer.lastActualMovement = grimPlayer.actualMovement;
-        });
+        grimPlayer.lastActualMovement = grimPlayer.actualMovement;
     }
 
     public void livingEntityAIStep() {

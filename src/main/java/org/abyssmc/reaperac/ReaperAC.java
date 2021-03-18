@@ -42,6 +42,7 @@ public final class ReaperAC extends JavaPlugin {
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveListener(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
+        Bukkit.getPluginManager().registerEvents(new MovementVelocityCheck(), this);
     }
 
     // My hope is to have everything async by using packets!
@@ -50,7 +51,7 @@ public final class ReaperAC extends JavaPlugin {
     }
 
     public void registerChecks() {
-        GenericMovementCheck.registerCheck(new MovementVelocityCheck());
+        //GenericMovementCheck.registerCheck(new MovementVelocityCheck());
         //GenericMovementCheck.registerCheck(new Timer());
     }
 }
