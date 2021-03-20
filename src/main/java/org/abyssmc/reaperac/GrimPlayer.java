@@ -59,6 +59,8 @@ public class GrimPlayer {
     public boolean horizontalCollision;
     public boolean verticalCollision;
 
+    public Location lastTickPosition;
+
     // Timer check data
     public long offset = 0L;
     public long lastMovementPacket = System.currentTimeMillis() - 50000000L;

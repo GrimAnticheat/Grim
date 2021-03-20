@@ -9,6 +9,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
 import org.abyssmc.reaperac.checks.movement.MovementCheck;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
@@ -18,8 +19,6 @@ import java.util.List;
 public class GenericMovementCheck {
     // Yeah... I know I lose a bit of performance from a list over a set, but it's worth it for consistency
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
-    List<PacketType> flyingPackets = Arrays.asList(PacketType.Play.Client.POSITION, PacketType.Play.Client.POSITION_LOOK,
-            PacketType.Play.Client.LOOK, PacketType.Play.Client.FLYING);
     ProtocolManager manager;
     Plugin plugin;
 
@@ -101,12 +100,15 @@ public class GenericMovementCheck {
             movementCheck.checkMovement(player);
         }
 
-        player.lastX = x;
-        player.lastY = y;
-        player.lastZ = z;
-        player.lastXRot = xRot;
-        player.lastYRot = yRot;
-        player.lastOnGround = onGround;
+        // TODO: This is a terrible hack
+        Bukkit.getScheduler().runTask(ReaperAC.plugin, () -> {
+            player.lastX = x;
+            player.lastY = y;
+            player.lastZ = z;
+            player.lastXRot = xRot;
+            player.lastYRot = yRot;
+            player.lastOnGround = onGround;
+        });
     }
 
     public static void registerCheck(MovementCheck movementCheck) {
