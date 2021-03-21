@@ -9,7 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class BasePrediction {
-    public static void guessBestMovement(float f, GrimPlayer grimPlayer) {
+    public static Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
         Player bukkitPlayer = grimPlayer.bukkitPlayer;
         double bestMovementGuess = Integer.MAX_VALUE;
 
@@ -42,9 +42,12 @@ public class BasePrediction {
                         grimPlayer.bestZ = movementZWithShifting * 0.98;
 
                         grimPlayer.bestJumping = isJumping;
+                        grimPlayer.bestMovement = clonedClientVelocity;
                     }
                 }
             }
         }
+
+        return grimPlayer.bestMovement;
     }
 }

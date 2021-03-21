@@ -18,10 +18,10 @@ public class GrimPlayer {
     public boolean allowFlying;
     public boolean instantBreak;
     public Vector clientVelocity = new Vector();
-    public Vector predictedVelocity = new Vector(0, 0, 0);
-    public Vector lastActualMovement = new Vector(0, 0, 0);
-    public Vector actualMovement = new Vector(0, 0, 0);
-    public Vector actualMovementCalculatedCollision = new Vector(0, 0, 0);
+    public Vector predictedVelocity = new Vector();
+    public Vector lastActualMovement = new Vector();
+    public Vector actualMovement = new Vector();
+    public Vector actualMovementCalculatedCollision = new Vector();
     public Player bukkitPlayer;
     public EntityPlayer entityPlayer;
 
@@ -62,6 +62,9 @@ public class GrimPlayer {
     public boolean verticalCollision;
 
     public Location lastTickPosition;
+
+    // Movement prediction stuff
+    public Vector bestMovement = new Vector();
 
     // Timer check data
     public long offset = 0L;

@@ -10,17 +10,13 @@ import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.MovementVectorsCalc;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
+import org.abyssmc.reaperac.utils.nmsImplementations.BlockProperties;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
-import org.bukkit.block.data.type.Fence;
-import org.bukkit.block.data.type.Gate;
-import org.bukkit.block.data.type.Wall;
-import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -327,10 +323,10 @@ public class MovementVelocityCheck implements Listener {
                     this.setFlag(7, false);
                 }*/
             } else {
-                float blockFriction = getBlockFriction();
+                float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                BasePrediction.guessBestMovement(getFrictionInfluencedSpeed(blockFriction), grimPlayer);
+                BasePrediction.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
                 //grimPlayer.bestX = 0;
                 //grimPlayer.bestZ = 0.98;
 
@@ -343,7 +339,7 @@ public class MovementVelocityCheck implements Listener {
                 }
 
                 // 1871 LivingEntity
-                f = this.getFrictionInfluencedSpeed(blockFriction);
+                f = BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer);
                 // TODO: Handle on climbable method
 
                 grimPlayer.clientVelocity.add(moveRelative(f, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
@@ -419,7 +415,7 @@ public class MovementVelocityCheck implements Listener {
             clonedClientVelocity.setZ(0);
         }
 
-        Block onBlock = getOnBlock();
+        Block onBlock = BlockProperties.getOnBlock(grimPlayer);
         if (vec3.getY() != clonedClientVelocity.getY()) {
             if (onBlock.getType() == org.bukkit.Material.SLIME_BLOCK) {
                 // TODO: Maybe lag compensate this (idk packet order)
@@ -445,8 +441,7 @@ public class MovementVelocityCheck implements Listener {
         // TODO: Fall damage stuff
         // I need block collision code to accurately do y distance
 
-
-        float f = getBlockSpeedFactor();
+        float f = BlockProperties.getBlockSpeedFactor(grimPlayer.bukkitPlayer);
         clonedClientVelocity.multiply(new Vector(f, 1.0, f));
 
         return clonedClientVelocity;
@@ -460,61 +455,6 @@ public class MovementVelocityCheck implements Listener {
             return new Vector(vec3.getX(), d2, vec3.getZ());
         }
         return vec3;
-    }
-
-    // TODO: this code is shit
-    // Seems to work.
-    public float getBlockFriction() {
-        return ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
-                (bukkitPlayer.getLocation().getBlockX(), (int) (bukkitPlayer.getBoundingBox().getMinY() - 0.5000001),
-                        bukkitPlayer.getLocation().getBlockZ())
-                .getBlockData()).getState().getBlock().getFrictionFactor();
-    }
-
-    // Verified.  This is correct.
-    private float getFrictionInfluencedSpeed(float f) {
-        if (grimPlayer.lastOnGround) {
-            return (float) (bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
-        }
-
-        if (bukkitPlayer.isSprinting()) {
-            return 0.026f;
-        } else {
-            return 0.02f;
-        }
-    }
-
-    // Entity line 617
-    // Heavily simplified (wtf was that original code mojang)
-    private Block getOnBlock() {
-        Location last = grimPlayer.lastTickPosition;
-        Block block1 = last.getWorld().getBlockAt(last.getBlockX(), (int) (last.getY() - 0.2F), last.getBlockZ());
-        Block block2 = last.getWorld().getBlockAt(last.getBlockX(), (int) (last.getY() - 1.2F), last.getBlockZ());
-
-        if (block2.getType().isAir()) {
-            if (block2 instanceof Fence || block2 instanceof Wall || block2 instanceof Gate) {
-                return block2;
-            }
-        }
-
-        return block1;
-    }
-
-    // Entity line 637
-    // Seems fine to me.  Haven't found issues here
-    public float getBlockSpeedFactor() {
-        net.minecraft.server.v1_16_R3.Block block = ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
-                (bukkitPlayer.getLocation().getBlockX(), bukkitPlayer.getLocation().getBlockY(),
-                        bukkitPlayer.getLocation().getBlockZ())
-                .getBlockData()).getState().getBlock();
-        float f = block.getSpeedFactor();
-        if (block == net.minecraft.server.v1_16_R3.Blocks.WATER || block == net.minecraft.server.v1_16_R3.Blocks.BUBBLE_COLUMN) {
-            return f;
-        }
-        return (double) f == 1.0 ? ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
-                (bukkitPlayer.getLocation().getBlockX(), (int) (bukkitPlayer.getBoundingBox().getMinY() - 0.5000001),
-                        bukkitPlayer.getLocation().getBlockZ())
-                .getBlockData()).getState().getBlock().getSpeedFactor() : f;
     }
 
     public Vec3D getLookAngle() {
