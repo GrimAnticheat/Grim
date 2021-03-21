@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 public class MovementVelocityCheck implements Listener {
     private static final double jumpingEpsilon = 0.01d;
+    private static final double climbingEpsilon = 0.01d;
     private static final double maxUpStep = 0.6f;
     private static final double fluidJumpThreshold = 0.04d;
 
@@ -639,6 +640,11 @@ public class MovementVelocityCheck implements Listener {
         grimPlayer.clientVelocity.add(moveRelative(f, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
         grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity, false);
 
+        // Vanilla checks if the player is horizontal collision or is jumping
+        // We just should accept what the client says, we don't know what they pressed
+        if (Math.abs(grimPlayer.actualMovement.getY() - 0.2) < climbingEpsilon && grimPlayer.entityPlayer.isClimbing()) {
+            grimPlayer.clientVelocity.setY(0.2);
+        }
 
         return grimPlayer.clientVelocity;
     }
