@@ -22,8 +22,7 @@ public class JumpPower {
 
         // TODO: Use the stuff from the sprinting packet
         if (bukkitPlayer.isSprinting()) {
-            // TODO: Do we use new or old rotation?  It should be new...
-            float f2 = grimPlayer.lastXRot * 0.017453292f;
+            float f2 = grimPlayer.xRot * 0.017453292f;
             clonedClientVelocity.add(new Vector(-Mth.sin(f2) * 0.2f, 0.0, Mth.cos(f2) * 0.2f));
         }
 
