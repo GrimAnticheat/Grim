@@ -18,9 +18,10 @@ public class GrimPlayer {
     public boolean allowFlying;
     public boolean instantBreak;
     public Vector clientVelocity = new Vector();
-    public Vector predictedVelocity = new Vector(0,0,0);
+    public Vector predictedVelocity = new Vector(0, 0, 0);
     public Vector lastActualMovement = new Vector(0, 0, 0);
     public Vector actualMovement = new Vector(0, 0, 0);
+    public Vector actualMovementCalculatedCollision = new Vector(0, 0, 0);
     public Player bukkitPlayer;
     public EntityPlayer entityPlayer;
 
@@ -39,6 +40,7 @@ public class GrimPlayer {
     public double bestX;
     public double bestZ;
     public boolean bestJumping;
+    public boolean isClimbing;
 
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
