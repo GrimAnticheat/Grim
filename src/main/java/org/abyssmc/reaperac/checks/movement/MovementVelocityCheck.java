@@ -226,17 +226,7 @@ public class MovementVelocityCheck implements Listener {
                 f = 0.96F;
             }
 
-            /*
-            if (Math.abs(grimPlayer.actualMovement.getY() - grimPlayer.lastActualMovement.getY() - getJumpPower()) < jumpingEpsilon) {
-                jumpFromGround();
-            }*/
-
             NormalPrediction.guessBestMovement(f1, grimPlayer);
-
-            if (grimPlayer.bestJumping) {
-                grimPlayer.clientVelocity = JumpPower.jumpFromGround(grimPlayer);
-            }
-
             grimPlayer.clientVelocity.add(moveRelative(f1, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
             grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
@@ -258,7 +248,7 @@ public class MovementVelocityCheck implements Listener {
             if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
                 d1 = grimPlayer.y;
 
-                NormalPrediction.guessBestMovement(0.02F, grimPlayer);
+                grimPlayer.clientVelocity = NormalPrediction.guessBestMovement(0.02F, grimPlayer);
                 grimPlayer.clientVelocity.add(moveRelative(0.02F, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
@@ -267,11 +257,11 @@ public class MovementVelocityCheck implements Listener {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
                     grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
                 } else {
-                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(0.5D);
+                    grimPlayer.clientVelocity.multiply(0.5D);
                 }
 
                 if (grimPlayer.bukkitPlayer.hasGravity()) {
-                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(0.0D, -d / 4.0D, 0.0D));
+                    grimPlayer.clientVelocity.add(new Vector(0.0D, -d / 4.0D, 0.0D));
                 }
 
                 if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.y + d1, grimPlayer.clientVelocity.getZ())) {
