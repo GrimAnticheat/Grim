@@ -8,7 +8,7 @@ import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-public class BasePrediction {
+public class NormalPrediction {
     public static Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
         Player bukkitPlayer = grimPlayer.bukkitPlayer;
         double bestMovementGuess = Integer.MAX_VALUE;

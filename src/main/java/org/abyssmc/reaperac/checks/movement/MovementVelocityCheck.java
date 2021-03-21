@@ -3,14 +3,14 @@ package org.abyssmc.reaperac.checks.movement;
 import net.minecraft.server.v1_16_R3.*;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
-import org.abyssmc.reaperac.checks.movement.predictions.BasePrediction;
+import org.abyssmc.reaperac.checks.movement.predictions.NormalPrediction;
 import org.abyssmc.reaperac.events.anticheat.PlayerBaseTick;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.MovementVectorsCalc;
 import org.abyssmc.reaperac.utils.math.Mth;
-import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
 import org.abyssmc.reaperac.utils.nmsImplementations.BlockProperties;
+import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -231,14 +231,14 @@ public class MovementVelocityCheck implements Listener {
                 jumpFromGround();
             }*/
 
-            BasePrediction.guessBestMovement(f1, grimPlayer);
+            NormalPrediction.guessBestMovement(f1, grimPlayer);
 
             if (grimPlayer.bestJumping) {
                 grimPlayer.clientVelocity = JumpPower.jumpFromGround(grimPlayer);
             }
 
             grimPlayer.clientVelocity.add(moveRelative(f1, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
-
+            grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
             if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.isClimbing()) {
@@ -258,8 +258,9 @@ public class MovementVelocityCheck implements Listener {
             if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
                 d1 = grimPlayer.y;
 
-                BasePrediction.guessBestMovement(0.02F, grimPlayer);
+                NormalPrediction.guessBestMovement(0.02F, grimPlayer);
                 grimPlayer.clientVelocity.add(moveRelative(0.02F, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
+                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= entityPlayer.cx()) {
@@ -306,6 +307,7 @@ public class MovementVelocityCheck implements Listener {
                 }
 
                 grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.9900000095367432D, 0.9800000190734863D, 0.9900000095367432D));
+                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
                 // IDK if there is a possible cheat for anti elytra damage
                 /*if (grimPlayer. && !this.world.isClientSide) {
@@ -326,30 +328,9 @@ public class MovementVelocityCheck implements Listener {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                BasePrediction.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
-                //grimPlayer.bestX = 0;
-                //grimPlayer.bestZ = 0.98;
-
-                //Bukkit.broadcastMessage("Best movement: " + grimPlayer.bestX + " " + grimPlayer.bestZ);
-                //grimPlayer.clientVelocity.add(moveRelative(getFrictionInfluencedSpeed(blockFriction), new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
-                //grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
-
-                if (grimPlayer.bestJumping) {
-                    grimPlayer.clientVelocity = JumpPower.jumpFromGround(grimPlayer);
-                }
-
-                // 1871 LivingEntity
-                f = BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer);
-                // TODO: Handle on climbable method
-
-                grimPlayer.clientVelocity.add(moveRelative(f, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
+                grimPlayer.clientVelocity = NormalPrediction.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
-
-                // Vanilla checks if the player is horizontal collision or is jumping
-                // We just should accept what the client says, we don't know what they pressed
-                if (grimPlayer.isClimbing) {
-                    grimPlayer.clientVelocity.setY(0.2);
-                }
 
                 // Okay, this seems to just be gravity stuff
                 double d9 = grimPlayer.clientVelocity.getY();
@@ -387,7 +368,8 @@ public class MovementVelocityCheck implements Listener {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
-        clonedClientVelocity = Collisions.collide(Collisions.maybeBackOffFromEdge(vec3, moverType, grimPlayer), grimPlayer);
+        // Removed since the predictions take care of this
+        //clonedClientVelocity = Collisions.collide(Collisions.maybeBackOffFromEdge(vec3, moverType, grimPlayer), grimPlayer);
 
         // If the Y axis is inaccurate (Most likely due to stepping upward/block collision)
         // I should really separate the X and Y axis checks entirely
@@ -402,7 +384,6 @@ public class MovementVelocityCheck implements Listener {
         }*/
 
         // I'm a bit skeptical that this can always be here, but it works for now
-        grimPlayer.predictedVelocity = clonedClientVelocity.clone();
 
         grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
         grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();
