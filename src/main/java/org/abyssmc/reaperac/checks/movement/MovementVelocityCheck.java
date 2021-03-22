@@ -3,8 +3,7 @@ package org.abyssmc.reaperac.checks.movement;
 import net.minecraft.server.v1_16_R3.*;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
-import org.abyssmc.reaperac.checks.movement.predictions.NormalPrediction;
-import org.abyssmc.reaperac.checks.movement.predictions.WithLadderPrediction;
+import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineTwo;
 import org.abyssmc.reaperac.events.anticheat.PlayerBaseTick;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
@@ -23,9 +22,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MovementVelocityCheck implements Listener {
     private Player bukkitPlayer;
@@ -227,7 +223,7 @@ public class MovementVelocityCheck implements Listener {
                 f = 0.96F;
             }
 
-            NormalPrediction.guessBestMovement(f1, grimPlayer);
+            grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(f1, grimPlayer);
             grimPlayer.clientVelocity.add(moveRelative(f1, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
             grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
@@ -241,11 +237,12 @@ public class MovementVelocityCheck implements Listener {
                 grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(
                         new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ()));
             }
+
         } else {
             if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
                 d1 = grimPlayer.y;
 
-                grimPlayer.clientVelocity = NormalPrediction.guessBestMovement(0.02F, grimPlayer);
+                grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(0.02F, grimPlayer);
                 grimPlayer.clientVelocity.add(moveRelative(0.02F, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
@@ -264,6 +261,7 @@ public class MovementVelocityCheck implements Listener {
                 if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.y + d1, grimPlayer.clientVelocity.getZ())) {
                     grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ());
                 }
+
                 // TODO: Do inputs even matter while gliding?  What is there to predict?
             } else if (bukkitPlayer.isGliding()) {
                 Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.xRot, grimPlayer.yRot);
@@ -297,40 +295,36 @@ public class MovementVelocityCheck implements Listener {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                grimPlayer.clientVelocity = WithLadderPrediction.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+                grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
                 // This is a GIANT hack (while in dev)
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
-                List<Vector> possibleMovements = new ArrayList<>();
-                possibleMovements.add(grimPlayer.clientVelocity);
-
-                // TODO: Which tick is accurate?
                 if (grimPlayer.lastClimbing) {
-                    possibleMovements.add(grimPlayer.clientVelocity.clone().setY(0.2));
+                    grimPlayer.clientVelocityOnLadder = endOfTickRegularMovement(grimPlayer.clientVelocity.clone().setY(0.2), d, f6);
                 }
 
-                grimPlayer.possibleMovementsWithAndWithoutLadders.clear();
-
-                for (Vector vector : possibleMovements) {
-                    vector = move(MoverType.SELF, vector);
-
-                    // Okay, this seems to just be gravity stuff
-                    double d9 = vector.getY();
-                    if (bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
-                        d9 += (0.05 * (double) (bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - grimPlayer.clientVelocity.getY()) * 0.2;
-                        //this.fallDistance = 0.0f;
-                    } else if (bukkitPlayer.getLocation().isChunkLoaded()) {
-                        if (bukkitPlayer.hasGravity()) {
-                            d9 -= d;
-                        }
-                    } else {
-                        d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
-                    }
-
-                    grimPlayer.possibleMovementsWithAndWithoutLadders.add(new Vector(vector.getX() * (double) f6, d9 * 0.9800000190734863, vector.getZ() * (double) f6));
-                }
+                grimPlayer.clientVelocity = endOfTickRegularMovement(grimPlayer.clientVelocity, d, f6);
             }
         }
+    }
+
+    public Vector endOfTickRegularMovement(Vector vector, double d, float f6) {
+        vector = move(MoverType.SELF, vector);
+
+        // Okay, this seems to just be gravity stuff
+        double d9 = vector.getY();
+        if (bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
+            d9 += (0.05 * (double) (bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - grimPlayer.clientVelocity.getY()) * 0.2;
+            //this.fallDistance = 0.0f;
+        } else if (bukkitPlayer.getLocation().isChunkLoaded()) {
+            if (bukkitPlayer.hasGravity()) {
+                d9 -= d;
+            }
+        } else {
+            d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
+        }
+
+        return new Vector(vector.getX() * (double) f6, d9 * 0.9800000190734863, vector.getZ() * (double) f6);
     }
 
     public Vector moveRelative(float f, Vector vec3) {

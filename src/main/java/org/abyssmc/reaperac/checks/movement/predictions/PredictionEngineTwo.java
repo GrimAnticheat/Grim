@@ -11,7 +11,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WithLadderPrediction {
+public class PredictionEngineTwo {
     public static Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
         List<Vector> possibleInputs = getPossiblePlayerInputs(f, grimPlayer.bukkitPlayer.getLocation().getYaw(), grimPlayer);
 

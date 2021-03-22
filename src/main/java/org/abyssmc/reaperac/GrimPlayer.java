@@ -17,6 +17,7 @@ public class GrimPlayer {
     // This is generous, but I don't see an issue with having a generous epsilon here
     public boolean isFlying;
     public Vector clientVelocity = new Vector();
+    public Vector clientVelocityOnLadder = new Vector();
     public Vector predictedVelocity = new Vector();
     public Vector lastActualMovement = new Vector();
     public Vector actualMovement = new Vector();
@@ -78,7 +79,6 @@ public class GrimPlayer {
 
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
-    public List<Vector> possibleMovementsWithAndWithoutLadders = new ArrayList<>();
 
     // Timer check data
     public long offset = 0L;
@@ -92,8 +92,6 @@ public class GrimPlayer {
         movementPacketMilliseconds = System.currentTimeMillis();
         lastMovementPacketMilliseconds = System.currentTimeMillis() - 100;
 
-        possibleMovementsWithAndWithoutLadders.add(new Vector());
-
         Location loginLocation = player.getLocation();
         lastX = loginLocation.getX();
         lastY = loginLocation.getY();
@@ -102,8 +100,9 @@ public class GrimPlayer {
 
     public List<Vector> getPossibleVelocities() {
         List<Vector> possibleMovements = new ArrayList<>();
+        possibleMovements.add(clientVelocity);
+        possibleMovements.add(clientVelocityOnLadder);
         possibleMovements.addAll(possibleKnockback);
-        possibleMovements.addAll(possibleMovementsWithAndWithoutLadders);
 
         return possibleMovements;
     }
