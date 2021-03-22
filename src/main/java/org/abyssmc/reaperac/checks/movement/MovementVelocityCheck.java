@@ -264,7 +264,7 @@ public class MovementVelocityCheck implements Listener {
 
                 // TODO: Do inputs even matter while gliding?  What is there to predict?
             } else if (bukkitPlayer.isGliding()) {
-                Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.xRot, grimPlayer.yRot);
+                Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
                 f = grimPlayer.yRot * 0.017453292F;
                 double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
                 double d3 = grimPlayer.clientVelocity.length();
