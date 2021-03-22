@@ -16,8 +16,6 @@ import java.util.List;
 public class GrimPlayer {
     // This is generous, but I don't see an issue with having a generous epsilon here
     public boolean isFlying;
-    public boolean allowFlying;
-    public boolean instantBreak;
     public Vector clientVelocity = new Vector();
     public Vector predictedVelocity = new Vector();
     public Vector lastActualMovement = new Vector();
@@ -34,6 +32,10 @@ public class GrimPlayer {
     public float yRot;
     public boolean onGround;
     public boolean isSneaking;
+    public long movementEventMilliseconds;
+    public long lastMovementEventMilliseconds;
+    public long movementPacketMilliseconds;
+    public long lastMovementPacketMilliseconds;
 
     // We determine this
     public boolean isActuallyOnGround;
@@ -42,11 +44,11 @@ public class GrimPlayer {
     public double bestX;
     public double bestZ;
     public boolean bestJumping;
-    public boolean isClimbing;
 
     // This should replace the previous block
     public Vector bestInputResult; // Use this for after trig is applied
     public Vector bestInputs; // Use this for debug, or preferably a party trick
+    public Vector bestPreviousVelocity; // Use this for removing knockback from the list after using them
 
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
@@ -67,6 +69,7 @@ public class GrimPlayer {
     public boolean lastSneaking;
     public boolean horizontalCollision;
     public boolean verticalCollision;
+    public boolean lastClimbing;
 
     public Location lastTickPosition;
 
@@ -85,6 +88,9 @@ public class GrimPlayer {
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
         this.entityPlayer = ((CraftPlayer) player).getHandle();
+
+        movementPacketMilliseconds = System.currentTimeMillis();
+        lastMovementPacketMilliseconds = System.currentTimeMillis() - 100;
 
         possibleMovementsWithAndWithoutLadders.add(new Vector());
 

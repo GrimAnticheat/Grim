@@ -5,7 +5,6 @@ import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -30,7 +29,7 @@ public class WithLadderPrediction {
 
                         // LivingEntity line 1873 - handling on ladder movement
                         // handleOnClimbable is on line 1890 in LivingEntity
-                        if (grimPlayer.entityPlayer.isClimbing()) {
+                        if (grimPlayer.lastClimbing) {
                             movementAddition.setX(Mth.clamp(movementAddition.getX(), -0.15000000596046448, 0.15000000596046448));
                             movementAddition.setZ(Mth.clamp(movementAddition.getZ(), -0.15000000596046448, 0.15000000596046448));
                             movementAddition.setY(Math.max(movementAddition.getY(), -0.15000000596046448));
@@ -53,21 +52,29 @@ public class WithLadderPrediction {
                         if (closeness < bestMovementGuess) {
                             bestMovementGuess = closeness;
                             grimPlayer.bestInputResult = movementAddition;
+                            grimPlayer.bestPreviousVelocity = lastOutputs;
 
                             // debug
                             int element = possibleInputs.indexOf(vector);
                             int x = element % 3 - 1;
                             int z = element / 3 - 1;
                             grimPlayer.bestInputs = new Vector(x, 0, z);
+
+                            if (closeness < 0.001) {
+                                Vector withCollisions = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.bestInputResult, MoverType.SELF, grimPlayer), grimPlayer);
+                                if (grimPlayer.actualMovement.clone().subtract(withCollisions).lengthSquared() < 0.001) {
+                                    grimPlayer.possibleKnockback.remove(grimPlayer.bestPreviousVelocity);
+                                    return withCollisions;
+                                }
+                            }
                         }
                     }
                 }
             }
         }
 
-        Bukkit.broadcastMessage("Predicted input " + grimPlayer.bestInputs.getX() + " " + grimPlayer.bestInputs.getZ());
-        Bukkit.broadcastMessage("Before " + grimPlayer.bestInputResult);
-
+        // TODO: Make this less of a hack
+        grimPlayer.possibleKnockback.remove(grimPlayer.bestPreviousVelocity);
         return Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.bestInputResult, MoverType.SELF, grimPlayer), grimPlayer);
     }
 

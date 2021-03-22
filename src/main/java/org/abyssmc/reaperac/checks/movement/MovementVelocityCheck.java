@@ -28,10 +28,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MovementVelocityCheck implements Listener {
-    private static final double jumpingEpsilon = 0.01d;
-    private static final double climbingEpsilon = 0.01d;
-    private static final double fluidJumpThreshold = 0.04d;
-
     private Player bukkitPlayer;
     private GrimPlayer grimPlayer;
 
@@ -39,6 +35,7 @@ public class MovementVelocityCheck implements Listener {
     public void onPlayerMoveEvent(PlayerMoveEvent event) {
         this.bukkitPlayer = event.getPlayer();
         this.grimPlayer = ReaperAC.playerGrimHashMap.get(bukkitPlayer);
+        grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
 
         Location from = event.getFrom();
         Location to = event.getTo();
@@ -81,6 +78,7 @@ public class MovementVelocityCheck implements Listener {
             color = ChatColor.RED;
         }
 
+        Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds));
         Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
         Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 
@@ -306,8 +304,9 @@ public class MovementVelocityCheck implements Listener {
                 List<Vector> possibleMovements = new ArrayList<>();
                 possibleMovements.add(grimPlayer.clientVelocity);
 
-                if (grimPlayer.entityPlayer.isClimbing()) {
-                    possibleMovements.add(grimPlayer.clientVelocity.setY(0.2));
+                // TODO: Which tick is accurate?
+                if (grimPlayer.lastClimbing) {
+                    possibleMovements.add(grimPlayer.clientVelocity.clone().setY(0.2));
                 }
 
                 grimPlayer.possibleMovementsWithAndWithoutLadders.clear();
@@ -346,28 +345,10 @@ public class MovementVelocityCheck implements Listener {
     // hmmm. what if I call this method with the player's actual velocity?
     // Sounds good :D
     public Vector move(MoverType moverType, Vector vec3) {
-        Vec3D vec32;
-        Vector clonedClientVelocity = grimPlayer.clientVelocity.clone();
-
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
-        // Removed since the predictions take care of this
-        //clonedClientVelocity = Collisions.collide(Collisions.maybeBackOffFromEdge(vec3, moverType, grimPlayer), grimPlayer);
-
-        // If the Y axis is inaccurate (Most likely due to stepping upward/block collision)
-        // I should really separate the X and Y axis checks entirely
-        // But right now I'm liking having the code resemble Minecraft's client near 100%
-        // It makes it really easy to debug.
-        /*if (Math.abs(clonedClientVelocity.getY() - clonedClientVelocity.getY()) > yAxisEpsilon) {
-            Vector clientControlsXAxis = collide(this.maybeBackOffFromEdge(grimPlayer.actualMovement.setY(grimPlayer.clientVelocity.getY()), moverType));
-
-            if (clientControlsXAxis.distanceSquared(grimPlayer.clientVelocity) < clonedClientVelocity.distanceSquared(grimPlayer.clientVelocity)) {
-                clonedClientVelocity.setY(clientControlsXAxis.getY());
-            }
-        }*/
-
-        // I'm a bit skeptical that this can always be here, but it works for now
+        Vector clonedClientVelocity = Collisions.collide(Collisions.maybeBackOffFromEdge(vec3, moverType, grimPlayer), grimPlayer);
 
         grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
         grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();
@@ -399,12 +380,6 @@ public class MovementVelocityCheck implements Listener {
                 clonedClientVelocity.setY(0);
             }
         }
-
-        // TODO: Block collision code
-        // something about resetting fall state - not sure if server has functioning fall distance tracker
-        // I'm being hopeful, of course the server's fall distance tracker is broken
-        // TODO: Fall damage stuff
-        // I need block collision code to accurately do y distance
 
         float f = BlockProperties.getBlockSpeedFactor(grimPlayer.bukkitPlayer);
         clonedClientVelocity.multiply(new Vector(f, 1.0, f));

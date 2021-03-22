@@ -6,6 +6,7 @@ import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
 import org.abyssmc.reaperac.events.anticheat.GenericMovementCheck;
 import org.abyssmc.reaperac.events.bukkit.PlayerJoinLeaveListener;
 import org.abyssmc.reaperac.events.bukkit.PlayerLagback;
+import org.abyssmc.reaperac.events.bukkit.PlayerVelocityPackets;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -45,9 +46,9 @@ public final class ReaperAC extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new MovementVelocityCheck(), this);
     }
 
-    // My hope is to have everything async by using packets!
     public void registerPackets() {
         new GenericMovementCheck(this, manager);
+        new PlayerVelocityPackets(this, manager);
     }
 
     public void registerChecks() {

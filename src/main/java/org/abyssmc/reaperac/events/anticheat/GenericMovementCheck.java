@@ -95,6 +95,7 @@ public class GenericMovementCheck {
         player.yRot = yRot;
         player.onGround = onGround;
         player.isSneaking = player.bukkitPlayer.isSneaking();
+        player.movementPacketMilliseconds = System.currentTimeMillis();
 
         for (MovementCheck movementCheck : movementCheckListeners) {
             movementCheck.checkMovement(player);
@@ -109,6 +110,9 @@ public class GenericMovementCheck {
             player.lastYRot = yRot;
             player.lastOnGround = onGround;
             player.lastSneaking = player.isSneaking;
+            player.lastClimbing = player.entityPlayer.isClimbing();
+            player.lastMovementPacketMilliseconds = player.movementPacketMilliseconds;
+            player.lastMovementEventMilliseconds = player.movementEventMilliseconds;
         });
     }
 
