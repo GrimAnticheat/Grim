@@ -19,7 +19,7 @@ public class Timer extends MovementCheck {
         // 150 ms speed ahead = lagback
         // TODO: This causes a positive feedback loop with teleports!
         if (player.offset > (millisPerTick * 3)) {
-            player.lagback();
+            // TODO: Punish
         }
 
         Bukkit.broadcastMessage("Offset: " + (int) (player.offset / 1000000));

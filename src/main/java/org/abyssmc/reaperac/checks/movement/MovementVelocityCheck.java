@@ -4,6 +4,7 @@ import net.minecraft.server.v1_16_R3.*;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
 import org.abyssmc.reaperac.checks.movement.predictions.NormalPrediction;
+import org.abyssmc.reaperac.checks.movement.predictions.WithLadderPrediction;
 import org.abyssmc.reaperac.events.anticheat.PlayerBaseTick;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
@@ -11,7 +12,6 @@ import org.abyssmc.reaperac.utils.math.MovementVectorsCalc;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.BlockProperties;
 import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
-import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -23,6 +23,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MovementVelocityCheck implements Listener {
     private static final double jumpingEpsilon = 0.01d;
@@ -231,10 +234,6 @@ public class MovementVelocityCheck implements Listener {
             grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
-            if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.isClimbing()) {
-                grimPlayer.clientVelocity.setY(0.2D);
-            }
-
             grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(f, 0.8F, f));
             grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
 
@@ -269,10 +268,6 @@ public class MovementVelocityCheck implements Listener {
                 }
                 // TODO: Do inputs even matter while gliding?  What is there to predict?
             } else if (bukkitPlayer.isGliding()) {
-                /*if (grimPlayer.clientVelocity.getY() > -0.5D) {
-                    //this.fallDistance = 1.0F;
-                }*/
-
                 Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.xRot, grimPlayer.yRot);
                 f = grimPlayer.yRot * 0.017453292F;
                 double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
@@ -300,42 +295,41 @@ public class MovementVelocityCheck implements Listener {
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
                 // IDK if there is a possible cheat for anti elytra damage
-                /*if (grimPlayer. && !this.world.isClientSide) {
-                    d5 = Math.sqrt(c((Vec3D) this.getMot()));
-                    double d6 = d3 - d5;
-                    float f4 = (float) (d6 * 10.0D - 3.0D);
-                    if (f4 > 0.0F) {
-                        this.playSound(this.getSoundFall((int) f4), 1.0F, 1.0F);
-                        this.damageEntity(DamageSource.FLY_INTO_WALL, f4);
-                    }
-                }*/
-
-                // Anti stop glide hack or something?  I have no clue.
-                /*if (grimPlayer.onGround && !this.world.isClientSide && this.getFlag(7) && !CraftEventFactory.callToggleGlideEvent(this, false).isCancelled()) {
-                    this.setFlag(7, false);
-                }*/
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                grimPlayer.clientVelocity = NormalPrediction.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+                grimPlayer.clientVelocity = WithLadderPrediction.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+                // This is a GIANT hack (while in dev)
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
-                grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
-                // Okay, this seems to just be gravity stuff
-                double d9 = grimPlayer.clientVelocity.getY();
-                if (bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
-                    d9 += (0.05 * (double) (bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - grimPlayer.clientVelocity.getY()) * 0.2;
-                    //this.fallDistance = 0.0f;
-                } else if (bukkitPlayer.getLocation().isChunkLoaded()) {
-                    if (bukkitPlayer.hasGravity()) {
-                        d9 -= d;
-                    }
-                } else {
-                    d9 = grimPlayer.clientVelocity.getY() > 0.0 ? -0.1 : 0.0;
+                List<Vector> possibleMovements = new ArrayList<>();
+                possibleMovements.add(grimPlayer.clientVelocity);
+
+                if (grimPlayer.entityPlayer.isClimbing()) {
+                    possibleMovements.add(grimPlayer.clientVelocity.setY(0.2));
                 }
 
-                grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX() * (double) f6, d9 * 0.9800000190734863, grimPlayer.clientVelocity.getZ() * (double) f6);
+                grimPlayer.possibleMovementsWithAndWithoutLadders.clear();
+
+                for (Vector vector : possibleMovements) {
+                    vector = move(MoverType.SELF, vector);
+
+                    // Okay, this seems to just be gravity stuff
+                    double d9 = vector.getY();
+                    if (bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
+                        d9 += (0.05 * (double) (bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - grimPlayer.clientVelocity.getY()) * 0.2;
+                        //this.fallDistance = 0.0f;
+                    } else if (bukkitPlayer.getLocation().isChunkLoaded()) {
+                        if (bukkitPlayer.hasGravity()) {
+                            d9 -= d;
+                        }
+                    } else {
+                        d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
+                    }
+
+                    grimPlayer.possibleMovementsWithAndWithoutLadders.add(new Vector(vector.getX() * (double) f6, d9 * 0.9800000190734863, vector.getZ() * (double) f6));
+                }
             }
         }
     }

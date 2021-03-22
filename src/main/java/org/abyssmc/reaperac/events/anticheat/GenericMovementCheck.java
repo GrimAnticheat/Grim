@@ -13,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class GenericMovementCheck {
@@ -95,6 +94,7 @@ public class GenericMovementCheck {
         player.xRot = xRot;
         player.yRot = yRot;
         player.onGround = onGround;
+        player.isSneaking = player.bukkitPlayer.isSneaking();
 
         for (MovementCheck movementCheck : movementCheckListeners) {
             movementCheck.checkMovement(player);
@@ -108,6 +108,7 @@ public class GenericMovementCheck {
             player.lastXRot = xRot;
             player.lastYRot = yRot;
             player.lastOnGround = onGround;
+            player.lastSneaking = player.isSneaking;
         });
     }
 

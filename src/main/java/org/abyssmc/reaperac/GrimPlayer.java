@@ -3,14 +3,15 @@ package org.abyssmc.reaperac;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
-import org.abyssmc.reaperac.events.bukkit.PlayerLagback;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class GrimPlayer {
     // This is generous, but I don't see an issue with having a generous epsilon here
@@ -32,6 +33,7 @@ public class GrimPlayer {
     public float xRot;
     public float yRot;
     public boolean onGround;
+    public boolean isSneaking;
 
     // We determine this
     public boolean isActuallyOnGround;
@@ -41,6 +43,10 @@ public class GrimPlayer {
     public double bestZ;
     public boolean bestJumping;
     public boolean isClimbing;
+
+    // This should replace the previous block
+    public Vector bestInputResult; // Use this for after trig is applied
+    public Vector bestInputs; // Use this for debug, or preferably a party trick
 
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
@@ -58,6 +64,7 @@ public class GrimPlayer {
     public float lastXRot;
     public float lastYRot;
     public boolean lastOnGround;
+    public boolean lastSneaking;
     public boolean horizontalCollision;
     public boolean verticalCollision;
 
@@ -65,6 +72,10 @@ public class GrimPlayer {
 
     // Movement prediction stuff
     public Vector bestMovement = new Vector();
+
+    // Possible inputs into the player's movement thing
+    public List<Vector> possibleKnockback = new ArrayList<>();
+    public List<Vector> possibleMovementsWithAndWithoutLadders = new ArrayList<>();
 
     // Timer check data
     public long offset = 0L;
@@ -75,19 +86,22 @@ public class GrimPlayer {
         this.bukkitPlayer = player;
         this.entityPlayer = ((CraftPlayer) player).getHandle();
 
+        possibleMovementsWithAndWithoutLadders.add(new Vector());
+
         Location loginLocation = player.getLocation();
         lastX = loginLocation.getX();
         lastY = loginLocation.getY();
         lastZ = loginLocation.getZ();
     }
 
-    // TODO: STOP MAKING THIS A GOD CLASS AND PUT THIS IN IT'S OWN CLASS
-    public void lagback() {
-        // TODO: MAKE THIS BE THREAD SAFE!
-        PlayerLagback.playersToLagback.add(bukkitPlayer.getUniqueId());
+    public List<Vector> getPossibleVelocities() {
+        List<Vector> possibleMovements = new ArrayList<>();
+        possibleMovements.addAll(possibleKnockback);
+        possibleMovements.addAll(possibleMovementsWithAndWithoutLadders);
 
-        Bukkit.broadcastMessage("Failed timer check!");
+        return possibleMovements;
     }
+
 
     public boolean isEyeInFluid(Tag tag) {
         return this.fluidOnEyes == tag;
