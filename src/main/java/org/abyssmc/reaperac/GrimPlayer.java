@@ -18,6 +18,8 @@ public class GrimPlayer {
     public boolean isFlying;
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
+    public Vector clientVelocitySwimHop = new Vector();
+
     public Vector predictedVelocity = new Vector();
     public Vector lastActualMovement = new Vector();
     public Vector actualMovement = new Vector();
@@ -101,7 +103,15 @@ public class GrimPlayer {
     public List<Vector> getPossibleVelocities() {
         List<Vector> possibleMovements = new ArrayList<>();
         possibleMovements.add(clientVelocity);
-        possibleMovements.add(clientVelocityOnLadder);
+
+        if (clientVelocityOnLadder != null) {
+            possibleMovements.add(clientVelocityOnLadder);
+        }
+
+        if (clientVelocitySwimHop != null) {
+            possibleMovements.add(clientVelocitySwimHop);
+        }
+
         possibleMovements.addAll(possibleKnockback);
 
         return possibleMovements;
@@ -109,17 +119,62 @@ public class GrimPlayer {
 
     public void baseTickAddVector(Vector vector) {
         clientVelocity.add(vector);
-        clientVelocityOnLadder.add(vector);
+
+        if (clientVelocityOnLadder != null)
+            clientVelocityOnLadder.add(vector);
+
+        if (clientVelocitySwimHop != null)
+            clientVelocitySwimHop.add(vector);
     }
 
     public void baseTickSetX(double x) {
         clientVelocity.setX(x);
-        clientVelocityOnLadder.setX(x);
+
+        if (clientVelocityOnLadder != null)
+            clientVelocityOnLadder.setX(x);
+
+        if (clientVelocitySwimHop != null)
+            clientVelocitySwimHop.setX(x);
+    }
+
+    public void baseTickSetY(double y) {
+        clientVelocity.setY(y);
+
+        if (clientVelocityOnLadder != null)
+            clientVelocityOnLadder.setY(y);
+
+        if (clientVelocitySwimHop != null)
+            clientVelocitySwimHop.setY(y);
+    }
+
+    public void baseTickAddValues(double x, double y, double z) {
+        clientVelocity.add(new Vector(x, y, z));
+
+        if (clientVelocityOnLadder != null)
+            clientVelocityOnLadder.add(new Vector(x, y, z));
+
+        if (clientVelocitySwimHop != null)
+            clientVelocitySwimHop.add(new Vector(x, y, y));
     }
 
     public void baseTickSetZ(double z) {
         clientVelocity.setZ(z);
-        clientVelocityOnLadder.setZ(z);
+
+        if (clientVelocityOnLadder != null)
+            clientVelocityOnLadder.setZ(z);
+
+        if (clientVelocitySwimHop != null)
+            clientVelocitySwimHop.setZ(z);
+    }
+
+    public void baseTickMultiplyY(double y) {
+        clientVelocity.multiply(new Vector(0, y, 0));
+
+        if (clientVelocityOnLadder != null)
+            clientVelocityOnLadder.multiply(new Vector(0, y, 0));
+
+        if (clientVelocitySwimHop != null)
+            clientVelocitySwimHop.multiply(new Vector(0, y, 0));
     }
 
 

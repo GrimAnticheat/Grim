@@ -19,7 +19,7 @@ public class Collisions {
 
         AxisAlignedBB aABB = grimPlayer.entityPlayer.getBoundingBox();
         VoxelShapeCollision collisionContext = VoxelShapeCollision.a(grimPlayer.entityPlayer);
-        VoxelShape voxelShape = grimPlayer.entityPlayer.getWorld().getWorldBorder().c();
+        VoxelShape voxelShape = grimPlayer.entityPlayer.getWorld().getWorldBorder().c(); // Technically this should be lag compensated...
         Stream<VoxelShape> stream = VoxelShapes.c(voxelShape, VoxelShapes.a(aABB.shrink(1.0E-7)), OperatorBoolean.AND) ? Stream.empty() : Stream.of(voxelShape);
         Stream<VoxelShape> stream2 = grimPlayer.entityPlayer.getWorld().c(grimPlayer.entityPlayer, aABB.b(vec3), entity -> true);
         StreamAccumulator<VoxelShape> rewindableStream = new StreamAccumulator<>(Stream.concat(stream2, stream));

@@ -23,29 +23,10 @@ public class JumpPower {
         // TODO: Use the stuff from the sprinting packet
         if (bukkitPlayer.isSprinting()) {
             float f2 = grimPlayer.xRot * 0.017453292f;
-            clonedClientVelocity.add(new Vector(-Mth.sin(f2) * 0.2f, 0.0, Mth.cos(f2) * 0.2f));
+            clonedClientVelocity.add(new Vector(-Mth.sin(f2) * 0.22f, 0.0, Mth.cos(f2) * 0.196f));
         }
 
         return clonedClientVelocity;
-    }
-
-    public static Vector baseJumpFromGround(GrimPlayer grimPlayer) {
-        Player bukkitPlayer = grimPlayer.bukkitPlayer;
-
-        float f = getJumpPower(bukkitPlayer);
-
-        if (bukkitPlayer.hasPotionEffect(PotionEffectType.JUMP)) {
-            f += 0.1f * (float) (bukkitPlayer.getPotionEffect(PotionEffectType.JUMP).getAmplifier() + 1);
-        }
-
-        Vector additionalMovement = new Vector(0, f, 0);
-
-        if (bukkitPlayer.isSprinting()) {
-            float f2 = grimPlayer.xRot * 0.017453292f;
-            additionalMovement.add(new Vector(-Mth.sin(f2) * 0.2f, 0.0, Mth.cos(f2) * 0.2f));
-        }
-
-        return additionalMovement;
     }
 
     public static float getJumpPower(Player bukkitPlayer) {

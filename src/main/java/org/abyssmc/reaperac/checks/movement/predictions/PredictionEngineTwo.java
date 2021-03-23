@@ -1,10 +1,12 @@
 package org.abyssmc.reaperac.checks.movement.predictions;
 
 import org.abyssmc.reaperac.GrimPlayer;
+import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -18,6 +20,7 @@ public class PredictionEngineTwo {
         double bestMovementGuess = Double.MAX_VALUE;
 
         Vector jumpingAdditionalMovement = JumpPower.jumpFromGround(grimPlayer);
+        Bukkit.broadcastMessage("Additional jumping movement " + jumpingAdditionalMovement);
 
         // TODO: This bug is caused by an input with velocity being added to the jumping, which sets this input to 0
         // TODO: Optimize the isJumping method to try and guess whether the player is jumping
@@ -30,9 +33,9 @@ public class PredictionEngineTwo {
                         // LivingEntity line 1873 - handling on ladder movement
                         // handleOnClimbable is on line 1890 in LivingEntity
                         if (grimPlayer.lastClimbing) {
-                            movementAddition.setX(Mth.clamp(movementAddition.getX(), -0.15000000596046448, 0.15000000596046448));
-                            movementAddition.setZ(Mth.clamp(movementAddition.getZ(), -0.15000000596046448, 0.15000000596046448));
-                            movementAddition.setY(Math.max(movementAddition.getY(), -0.15000000596046448));
+                            movementAddition.setX(Mth.clamp(movementAddition.getX(), -0.15, 0.15));
+                            movementAddition.setZ(Mth.clamp(movementAddition.getZ(), -0.15, 0.15));
+                            movementAddition.setY(Math.max(movementAddition.getY(), -0.15));
 
                             if (movementAddition.getY() < 0.0 && !grimPlayer.bukkitPlayer.getWorld().getBlockAt(grimPlayer.bukkitPlayer.getLocation()).getType().equals(Material.SCAFFOLDING) && grimPlayer.bukkitPlayer.isSneaking()) {
                                 movementAddition.setY(0.0);
@@ -44,7 +47,26 @@ public class PredictionEngineTwo {
                         }
 
                         if (isJumping) {
-                            movementAddition.add(jumpingAdditionalMovement);
+                            // LivingEntity line 2185
+                            // TODO: Add an anti-jump spam check (no jumping faster than once every 10 ticks)
+                            // Not sure whether jumping too fast is a cheat... but eventually it will
+                            if (!grimPlayer.entityPlayer.abilities.isFlying) {
+                                double d7 = grimPlayer.fluidHeight.getDouble(FluidTag.LAVA) > 0 ? grimPlayer.fluidHeight.getDouble(FluidTag.LAVA) : grimPlayer.fluidHeight.getDouble(FluidTag.WATER);
+                                boolean bl = grimPlayer.fluidHeight.getDouble(FluidTag.LAVA) > 0 && d7 > 0.0;
+                                final double d8 = 0.4;
+                                if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+                                    movementAddition.add(new Vector(0, 0.04, 0));
+                                } else if (grimPlayer.fluidHeight.getDouble(FluidTag.LAVA) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+                                    movementAddition.add(new Vector(0, 0.04, 0));
+                                } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+                                    movementAddition.add(jumpingAdditionalMovement);
+                                    //this.noJumpDelay = 10;
+                                }
+                            } else {
+                                // LocalPlayer line 747
+                                // PlayerBaseTick handles shifting, since we know when the player shifts but not jumps
+                                movementAddition.add(new Vector(0, grimPlayer.entityPlayer.abilities.flySpeed * 3.0f, 0));
+                            }
                         }
 
                         double closeness = grimPlayer.actualMovement.clone().subtract(movementAddition).lengthSquared();
@@ -64,6 +86,8 @@ public class PredictionEngineTwo {
                                 Vector withCollisions = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.bestInputResult, MoverType.SELF, grimPlayer), grimPlayer);
                                 if (grimPlayer.actualMovement.clone().subtract(withCollisions).lengthSquared() < 0.001) {
                                     grimPlayer.possibleKnockback.remove(grimPlayer.bestPreviousVelocity);
+
+                                    Bukkit.broadcastMessage("Best inputs " + grimPlayer.bestInputs);
                                     return withCollisions;
                                 }
                             }
@@ -75,6 +99,7 @@ public class PredictionEngineTwo {
 
         // TODO: Make this less of a hack
         grimPlayer.possibleKnockback.remove(grimPlayer.bestPreviousVelocity);
+        Bukkit.broadcastMessage("Best inputs " + grimPlayer.bestInputs);
         return Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.bestInputResult, MoverType.SELF, grimPlayer), grimPlayer);
     }
 

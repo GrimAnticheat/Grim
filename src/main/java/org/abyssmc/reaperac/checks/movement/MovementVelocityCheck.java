@@ -38,8 +38,6 @@ public class MovementVelocityCheck implements Listener {
 
         grimPlayer.lastTickPosition = from;
 
-        // TODO: LivingEntity: 1882 (fluid adjusted movement)
-
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         grimPlayer.actualMovement = new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
 
@@ -96,7 +94,6 @@ public class MovementVelocityCheck implements Listener {
     public void livingEntityAIStep() {
         // not sure if this is correct
         // Living Entity line 2153 (fuck, must have switched mappings)
-        //clientVelocity.multiply(0.98f);
 
         // Living Entity line 2153
         // TODO: Extend this check so 1.8 clients don't trigger it
@@ -151,40 +148,48 @@ public class MovementVelocityCheck implements Listener {
         // Living entity line 2206
         //livingEntityTravel(inputVector);
 
-        //playerEntityTravel();
-        livingEntityTravel();
+        playerEntityTravel();
+        //livingEntityTravel();
 
 
         //clientVelocity.multiply(0.98f);
     }
 
-    /*public void playerEntityTravel() {
-        if (bukkitPlayer.isSwimming() && !bukkitPlayer.isInsideVehicle()) {
-            double d3 = this.getLookAngle().y;
-            double d4 = d3 < -0.2D ? 0.085D : 0.06D;
-            if (d3 <= 0.0D || this.isJumping || !this.world.getBlockState(new BlockPos(this.getPosX(), this.getPosY() + 1.0D - 0.1D, this.getPosZ())).getFluidState().isEmpty()) {
-                Vector3d vector3d1 = this.getMotion();
-                this.setMotion(vector3d1.add(0.0D, (d3 - vector3d1.y) * d4, 0.0D));
-            }
+    // Player line 1208
+    public void playerEntityTravel() {
+        grimPlayer.clientVelocitySwimHop = null;
+        double d;
+
+        if (grimPlayer.bukkitPlayer.isSwimming() && grimPlayer.bukkitPlayer.getVehicle() == null) {
+            double d5;
+            d = this.getLookAngle().y;
+            d5 = d < -0.2 ? 0.085 : 0.06;
+
+            // This isn't needed because the end result is the same
+            // The player presses jump and jumps in the water
+            // Or the player doesn't press jump and jumps anyway
+            // TODO: Would jumping force players to ascend in the water?
+
+            //if (d <= 0.0 || !((CraftWorld) grimPlayer.bukkitPlayer.getWorld()).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
+            //    Vec3 vec32 = this.getDeltaMovement();
+            //    this.setDeltaMovement(vec32.add(0.0, (d - vec32.y) * d5, 0.0));
+            //}
+
+            grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY((d - grimPlayer.clientVelocity.getY()) * d5);
         }
 
-        if (this.abilities.isFlying && !this.isPassenger()) {
-            double d5 = this.getMotion().y;
-            float f = this.jumpMovementFactor;
-            this.jumpMovementFactor = this.abilities.getFlySpeed() * (float)(this.isSprinting() ? 2 : 1);
-            super.travel(travelVector);
-            Vector3d vector3d = this.getMotion();
-            this.setMotion(vector3d.x, d5 * 0.6D, vector3d.z);
-            this.jumpMovementFactor = f;
-            this.fallDistance = 0.0F;
-            this.setFlag(7, false);
+        if (grimPlayer.entityPlayer.abilities.isFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
+            double oldY = grimPlayer.clientVelocity.getY();
+            livingEntityTravel();
+            grimPlayer.baseTickSetY(oldY * 0.6);
         } else {
-            super.travel(travelVector);
+            livingEntityTravel();
         }
-    }*/
+    }
 
     // LivingEntity line 1741
     public void livingEntityTravel() {
+        grimPlayer.clientVelocityOnLadder = null;
         double d = 0.08;
 
         // TODO: Stop being lazy and rename these variables to be descriptive

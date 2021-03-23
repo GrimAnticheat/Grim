@@ -29,10 +29,16 @@ public class BlockProperties {
             return (float) (bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
         }
 
-        if (bukkitPlayer.isSprinting()) {
-            return 0.026f;
+        // TODO: This is wrong
+        if (grimPlayer.entityPlayer.abilities.isFlying) {
+            return bukkitPlayer.getFlySpeed() * 10 * (grimPlayer.bukkitPlayer.isSprinting() ? 0.1f : 0.05f);
+
         } else {
-            return 0.02f;
+            if (bukkitPlayer.isSprinting()) {
+                return 0.026f;
+            } else {
+                return 0.02f;
+            }
         }
     }
 
