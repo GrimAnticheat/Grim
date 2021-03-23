@@ -23,7 +23,7 @@ public class JumpPower {
         // TODO: Use the stuff from the sprinting packet
         if (bukkitPlayer.isSprinting()) {
             float f2 = grimPlayer.xRot * 0.017453292f;
-            clonedClientVelocity.add(new Vector(-Mth.sin(f2) * 0.22f, 0.0, Mth.cos(f2) * 0.196f));
+            clonedClientVelocity.add(new Vector(-Mth.sin(f2) * 0.2f, 0.0, Mth.cos(f2) * 0.2f));
         }
 
         return clonedClientVelocity;
