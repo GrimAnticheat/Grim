@@ -267,7 +267,7 @@ public class MovementVelocityCheck implements Listener {
                 Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
                 f = grimPlayer.yRot * 0.017453292F;
                 double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
-                double d3 = grimPlayer.clientVelocity.length();
+                double d3 = grimPlayer.clientVelocity.clone().setY(0).length();
                 double d4 = lookVector.length();
                 float f3 = MathHelper.cos(f);
                 f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
@@ -287,7 +287,7 @@ public class MovementVelocityCheck implements Listener {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector((lookVector.getX() / d2 * d3 - grimPlayer.clientVelocity.getX()) * 0.1D, 0.0D, (lookVector.getZ() / d2 * d3 - grimPlayer.clientVelocity.getZ()) * 0.1D));
                 }
 
-                grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.9900000095367432D, 0.9800000190734863D, 0.9900000095367432D));
+                grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
                 // IDK if there is a possible cheat for anti elytra damage
