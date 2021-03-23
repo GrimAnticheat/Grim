@@ -95,6 +95,9 @@ public class PredictionEngineTwo {
                 movementXWithShifting = x * 0.98;
                 movementZWithShifting = z * 0.98;
 
+                // TODO: Multiply movement by 0.2 if the player is eating an item
+                // event.getItem().getType().isEdible()
+
                 if (grimPlayer.lastSneaking) {
                     movementXWithShifting *= 0.3;
                     movementZWithShifting *= 0.3;

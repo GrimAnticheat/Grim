@@ -18,6 +18,12 @@ public class PlayerBaseTick {
     }
 
     public void doBaseTick() {
+        // LocalPlayer:aiStep line 647
+        this.moveTowardsClosestSpace(player.lastX - (double) player.entityPlayer.getWidth() * 0.35, player.lastZ + (double) player.entityPlayer.getWidth() * 0.35);
+        this.moveTowardsClosestSpace(player.lastX - (double) player.entityPlayer.getWidth() * 0.35, player.lastZ - (double) player.entityPlayer.getWidth() * 0.35);
+        this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ - (double) player.entityPlayer.getWidth() * 0.35);
+        this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ + (double) player.entityPlayer.getWidth() * 0.35);
+
         updateInWaterStateAndDoFluidPushing();
         updateFluidOnEyes();
         // TODO: Swimming check
@@ -76,6 +82,42 @@ public class PlayerBaseTick {
         }
     }
 
+    private void moveTowardsClosestSpace(double xPosition, double zPosition) {
+        BlockPosition blockPos = new BlockPosition(xPosition, player.lastY, zPosition);
+
+        if (!this.suffocatesAt(blockPos)) {
+            return;
+        }
+        double relativeXMovement = xPosition - blockPos.getX();
+        double relativeZMovement = zPosition - blockPos.getZ();
+        EnumDirection direction = null;
+        double lowestValue = Double.MAX_VALUE;
+        for (EnumDirection direction2 : new EnumDirection[]{EnumDirection.WEST, EnumDirection.EAST, EnumDirection.NORTH, EnumDirection.SOUTH}) {
+            double d6;
+            double d7 = direction2.n().a(relativeXMovement, 0.0, relativeZMovement);
+            d6 = direction2.e() == EnumDirection.EnumAxisDirection.POSITIVE ? 1.0 - d7 : d7;
+            // d7 and d6 flip the movement direction based on desired movement direction
+            if (d6 >= lowestValue || this.suffocatesAt(blockPos.shift(direction2))) continue;
+            lowestValue = d6;
+            direction = direction2;
+        }
+        if (direction != null) {
+            if (direction.n() == EnumDirection.EnumAxis.X) {
+                player.baseTickSetX(0.1 * (double) direction.getAdjacentX());
+            } else {
+                player.baseTickSetZ(0.1 * (double) direction.getAdjacentZ());
+            }
+        }
+    }
+
+    private boolean suffocatesAt(BlockPosition blockPos2) {
+        AxisAlignedBB aABB = player.entityPlayer.getBoundingBox();
+        AxisAlignedBB aABB2 = new AxisAlignedBB(blockPos2.getX(), aABB.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, aABB.maxY, blockPos2.getZ() + 1.0).grow(-1.0E-7, -1.0E-7, -1.0E-7);
+        // It looks like the method it usually calls is gone from the server?
+        // So we have to just do the allMatch ourselves.
+        return !((CraftWorld) player.bukkitPlayer.getWorld()).getHandle().b(player.entityPlayer, aABB2, (blockState, blockPos) -> blockState.o(player.entityPlayer.getWorld(), blockPos)).allMatch(VoxelShape::isEmpty);
+    }
+
     // TODO: Idk if this is right
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
         BoundingBox aABB = player.bukkitPlayer.getBoundingBox().expand(-0.001);
@@ -114,7 +156,7 @@ public class PlayerBaseTick {
                 }
             }
         }
-        // Originally length... thanks for a pointless square root
+        // Originally length but now no longer uses a square root
         if (vec3.g() > 0.0) {
             if (n7 > 0) {
                 vec3 = vec3.a(1.0 / (double) n7);
@@ -126,7 +168,7 @@ public class PlayerBaseTick {
             if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.g() < 0.00002025) {
                 vec3 = vec3.d().a(0.0045000000000000005);
             }
-            player.clientVelocity = vec33.add(new Vector(vec3.x, vec3.y, vec3.z));
+            player.baseTickAddVector(new Vector(vec3.x, vec3.y, vec3.z));
         }
         player.fluidHeight.put(tag, d2);
         return bl2;

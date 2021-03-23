@@ -107,6 +107,21 @@ public class GrimPlayer {
         return possibleMovements;
     }
 
+    public void baseTickAddVector(Vector vector) {
+        clientVelocity.add(vector);
+        clientVelocityOnLadder.add(vector);
+    }
+
+    public void baseTickSetX(double x) {
+        clientVelocity.setX(x);
+        clientVelocityOnLadder.setX(x);
+    }
+
+    public void baseTickSetZ(double z) {
+        clientVelocity.setZ(z);
+        clientVelocityOnLadder.setZ(z);
+    }
+
 
     public boolean isEyeInFluid(Tag tag) {
         return this.fluidOnEyes == tag;
