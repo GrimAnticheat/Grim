@@ -53,6 +53,9 @@ public class MovementVelocityCheck implements Listener {
         // Very useful for reducing x axis effect on y axis precision
         // Since the Y axis is extremely easy to predict
         // It once is different if the player is trying to clip through stuff
+        //
+        // This would error when the player has mob collision
+        // I should probably separate mob and block collision
         grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.actualMovement, MoverType.SELF, grimPlayer), grimPlayer);
 
         // This is not affected by any movement
@@ -93,17 +96,19 @@ public class MovementVelocityCheck implements Listener {
 
     public void livingEntityAIStep() {
         // Living Entity line 2153
-        // TODO: Extend this check so 1.8 clients don't trigger it
-        if (Math.abs(grimPlayer.clientVelocity.getX()) < 0.003D) {
-            grimPlayer.clientVelocity.setX(0D);
-        }
+        // TODO: 1.8 clients have a different minimum movement than 1.9.  I believe it is 0.005
+        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+            if (Math.abs(vector.getX()) < 0.003D) {
+                vector.setX(0D);
+            }
 
-        if (Math.abs(grimPlayer.clientVelocity.getY()) < 0.003D) {
-            grimPlayer.clientVelocity.setY(0D);
-        }
+            if (Math.abs(vector.getY()) < 0.003D) {
+                vector.setY(0D);
+            }
 
-        if (Math.abs(grimPlayer.clientVelocity.getZ()) < 0.003D) {
-            grimPlayer.clientVelocity.setZ(0D);
+            if (Math.abs(vector.getZ()) < 0.003D) {
+                vector.setZ(0D);
+            }
         }
 
         playerEntityTravel();
@@ -183,7 +188,6 @@ public class MovementVelocityCheck implements Listener {
             }
 
             grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(f1, grimPlayer);
-            grimPlayer.clientVelocity.add(moveRelative(f1, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
             grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
@@ -202,7 +206,6 @@ public class MovementVelocityCheck implements Listener {
                 d1 = grimPlayer.y;
 
                 grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(0.02F, grimPlayer);
-                grimPlayer.clientVelocity.add(moveRelative(0.02F, new Vector(grimPlayer.bestX, 0, grimPlayer.bestZ)));
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
@@ -286,17 +289,9 @@ public class MovementVelocityCheck implements Listener {
         return new Vector(vector.getX() * (double) f6, d9 * 0.9800000190734863, vector.getZ() * (double) f6);
     }
 
-    public Vector moveRelative(float f, Vector vec3) {
-        return MovementVectorsCalc.getInputVector(vec3, f, bukkitPlayer.getLocation().getYaw());
-    }
-
-    // TODO: Do the best guess first for optimization
 
     // Entity line 527
     // TODO: Entity piston and entity shulker (want to) call this method too.
-    // I want to transform this into the actual check
-    // hmmm. what if I call this method with the player's actual velocity?
-    // Sounds good :D
     public Vector move(MoverType moverType, Vector vec3) {
         // Something about noClip
         // Piston movement exemption

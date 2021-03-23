@@ -117,6 +117,21 @@ public class GrimPlayer {
         return possibleMovements;
     }
 
+    public List<Vector> getPossibleVelocitiesMinusKnockback() {
+        List<Vector> possibleMovements = new ArrayList<>();
+        possibleMovements.add(clientVelocity);
+
+        if (clientVelocityOnLadder != null) {
+            possibleMovements.add(clientVelocityOnLadder);
+        }
+
+        if (clientVelocitySwimHop != null) {
+            possibleMovements.add(clientVelocitySwimHop);
+        }
+
+        return possibleMovements;
+    }
+
     public void baseTickAddVector(Vector vector) {
         clientVelocity.add(vector);
 
