@@ -92,9 +92,6 @@ public class MovementVelocityCheck implements Listener {
     }
 
     public void livingEntityAIStep() {
-        // not sure if this is correct
-        // Living Entity line 2153 (fuck, must have switched mappings)
-
         // Living Entity line 2153
         // TODO: Extend this check so 1.8 clients don't trigger it
         if (Math.abs(grimPlayer.clientVelocity.getX()) < 0.003D) {
@@ -109,50 +106,7 @@ public class MovementVelocityCheck implements Listener {
             grimPlayer.clientVelocity.setZ(0D);
         }
 
-        // Now it gets input
-        // Now it does jumping and fluid movement
-
-        // Living Entity line 2180
-        // We moved this down after everything else is calculated
-        //float sidewaysSpeed = 0f;
-        //float forwardsSpeed = 1f;
-
-        // random stuff about jumping in liquids
-        // TODO: Jumping in liquids
-        // We don't have an accurate way to know if the player is jumping, so this will do
-        // This is inspired by paper's playerJumpEvent
-        // LivingEntity line 2185
-
-        /*if (grimPlayer.lastOnGround && !grimPlayer.onGround && grimPlayer.y > grimPlayer.lastY) {
-        //if (this.jumping && this.isAffectedByFluids()) {
-            double d7 = this.isInLava() ? this.getFluidHeight(FluidTags.LAVA) : this.getFluidHeight(FluidTags.WATER);
-            boolean bl = this.isInWater() && d7 > 0.0;
-            if (bl && (!this.onGround || d7 > fluidJumpThreshold)) {
-                this.jumpInLiquid(FluidTags.WATER);
-            } else if (this.isInLava() && (!this.onGround || d7 > fluidJumpThreshold)) {
-                this.jumpInLiquid(FluidTags.LAVA);
-            } else if ((this.onGround || bl && d7 <= fluidJumpThreshold) && this.noJumpDelay == 0) {
-                this.jumpFromGround();
-                this.noJumpDelay = 10;
-            }
-        } else {
-            this.noJumpDelay = 0;
-        }*/
-
-        // Living Entity line 2202
-        //sidewaysSpeed *= 0.98f;
-        //forwardsSpeed *= 0.98f;
-
-        //Vector inputVector = new Vector(sidewaysSpeed, 0, forwardsSpeed);
-
-        // Living entity line 2206
-        //livingEntityTravel(inputVector);
-
         playerEntityTravel();
-        //livingEntityTravel();
-
-
-        //clientVelocity.multiply(0.98f);
     }
 
     // Player line 1208
