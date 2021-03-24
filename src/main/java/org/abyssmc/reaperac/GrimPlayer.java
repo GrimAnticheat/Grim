@@ -44,8 +44,9 @@ public class GrimPlayer {
     public boolean isActuallyOnGround;
 
     // We guess this
-    public double bestX;
-    public double bestZ;
+    public Vector theoreticalInput;
+    public Vector possibleInput;
+    public Vector bestOutput;
     public boolean bestJumping;
 
     // This should replace the previous block

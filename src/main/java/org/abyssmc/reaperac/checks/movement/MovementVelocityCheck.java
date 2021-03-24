@@ -84,9 +84,9 @@ public class MovementVelocityCheck implements Listener {
         // TODO: This is a check for is the player actually on the ground!
         // TODO: This check is wrong with less 1.9+ precision on movement
         // mainly just debug for now rather than an actual check
-        if (grimPlayer.isActuallyOnGround != grimPlayer.lastOnGround) {
+        /*if (grimPlayer.isActuallyOnGround != grimPlayer.lastOnGround) {
             Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
-        }
+        }*/
 
         if (grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement) > new Vector(0.03, 0.03, 0.03).lengthSquared()) {
             //Bukkit.broadcastMessage(ChatColor.RED + "FAILED MOVEMENT CHECK");
