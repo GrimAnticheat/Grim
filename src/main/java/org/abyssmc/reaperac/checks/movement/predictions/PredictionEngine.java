@@ -114,11 +114,10 @@ public class PredictionEngine {
                 // TODO: Multiply movement by 0.2 if the player is eating an item
                 // event.getItem().getType().isEdible()
 
-                if (grimPlayer.lastSneaking) {
+                if (grimPlayer.lastSneaking && !grimPlayer.entityPlayer.abilities.isFlying) {
                     movementXWithShifting *= 0.3;
                     movementZWithShifting *= 0.3;
                 }
-
 
                 Vector vec3 = new Vector(movementXWithShifting, 0, movementZWithShifting);
 
