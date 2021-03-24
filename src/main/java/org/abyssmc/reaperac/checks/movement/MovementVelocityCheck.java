@@ -146,9 +146,12 @@ public class MovementVelocityCheck implements Listener {
         }
     }
 
+    public Vec3D getLookAngle() {
+        return MovementVectorsCalc.calculateViewVector(grimPlayer.xRot, grimPlayer.yRot);
+    }
+
     // LivingEntity line 1741
     public void livingEntityTravel() {
-        grimPlayer.clientVelocityOnLadder = null;
         double d = 0.08;
 
         // TODO: Stop being lazy and rename these variables to be descriptive
@@ -191,15 +194,12 @@ public class MovementVelocityCheck implements Listener {
             grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
-            grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(f, 0.8F, f));
-            grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
-
-            if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(),
-                    grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.clientVelocity.getY() + d1,
-                    grimPlayer.clientVelocity.getZ())) {
-                grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(
-                        new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ()));
+            grimPlayer.clientVelocityOnLadder = null;
+            if (grimPlayer.lastClimbing) {
+                grimPlayer.clientVelocityOnLadder = endOfTickWaterMovement(grimPlayer.clientVelocity.clone().setY(0.2), bl, d, f, d1);
             }
+
+            grimPlayer.clientVelocity = endOfTickWaterMovement(grimPlayer.clientVelocity, bl, d, f, d1);
 
         } else {
             if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
@@ -258,9 +258,9 @@ public class MovementVelocityCheck implements Listener {
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
                 grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
-                // This is a GIANT hack (while in dev)
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
+                grimPlayer.clientVelocityOnLadder = null;
                 if (grimPlayer.lastClimbing) {
                     grimPlayer.clientVelocityOnLadder = endOfTickRegularMovement(grimPlayer.clientVelocity.clone().setY(0.2), d, f6);
                 }
@@ -269,26 +269,6 @@ public class MovementVelocityCheck implements Listener {
             }
         }
     }
-
-    public Vector endOfTickRegularMovement(Vector vector, double d, float f6) {
-        vector = move(MoverType.SELF, vector);
-
-        // Okay, this seems to just be gravity stuff
-        double d9 = vector.getY();
-        if (bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
-            d9 += (0.05 * (double) (bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - grimPlayer.clientVelocity.getY()) * 0.2;
-            //this.fallDistance = 0.0f;
-        } else if (bukkitPlayer.getLocation().isChunkLoaded()) {
-            if (bukkitPlayer.hasGravity()) {
-                d9 -= d;
-            }
-        } else {
-            d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
-        }
-
-        return new Vector(vector.getX() * (double) f6, d9 * 0.9800000190734863, vector.getZ() * (double) f6);
-    }
-
 
     // Entity line 527
     // TODO: Entity piston and entity shulker (want to) call this method too.
@@ -335,6 +315,17 @@ public class MovementVelocityCheck implements Listener {
         return clonedClientVelocity;
     }
 
+    public Vector endOfTickWaterMovement(Vector vector, boolean bl, double d, float f, double d1) {
+        vector = vector.multiply(new Vector(f, 0.8F, f));
+        vector = getFluidFallingAdjustedMovement(d, bl, vector);
+
+        if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.e(vector.getX(), vector.getY() + 0.6D - vector.getY() + d1, vector.getZ())) {
+            vector.multiply(new Vector(grimPlayer.clientVelocity.getX(), 0.3D, grimPlayer.clientVelocity.getZ()));
+        }
+
+        return vector;
+    }
+
     // LivingEntity line 1882
     // I have no clue what this does, but it really doesn't matter.  It works.
     public Vector getFluidFallingAdjustedMovement(double d, boolean bl, Vector vec3) {
@@ -345,7 +336,22 @@ public class MovementVelocityCheck implements Listener {
         return vec3;
     }
 
-    public Vec3D getLookAngle() {
-        return MovementVectorsCalc.calculateViewVector(grimPlayer.xRot, grimPlayer.yRot);
+    public Vector endOfTickRegularMovement(Vector vector, double d, float f6) {
+        vector = move(MoverType.SELF, vector);
+
+        // Okay, this seems to just be gravity stuff
+        double d9 = vector.getY();
+        if (bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
+            d9 += (0.05 * (double) (bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - grimPlayer.clientVelocity.getY()) * 0.2;
+            //this.fallDistance = 0.0f;
+        } else if (bukkitPlayer.getLocation().isChunkLoaded()) {
+            if (bukkitPlayer.hasGravity()) {
+                d9 -= d;
+            }
+        } else {
+            d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
+        }
+
+        return new Vector(vector.getX() * (double) f6, d9 * 0.9800000190734863, vector.getZ() * (double) f6);
     }
 }
