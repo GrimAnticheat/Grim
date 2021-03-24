@@ -7,14 +7,13 @@ import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PredictionEngineTwo {
-    public static Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
+public class PredictionEngine {
+    public Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
         List<Vector> possibleInputs = getPossiblePlayerInputs(f, grimPlayer.bukkitPlayer.getLocation().getYaw(), grimPlayer);
 
         double bestMovementGuess = Double.MAX_VALUE;
@@ -32,15 +31,7 @@ public class PredictionEngineTwo {
 
                         // LivingEntity line 1873 - handling on ladder movement
                         // handleOnClimbable is on line 1890 in LivingEntity
-                        if (grimPlayer.lastClimbing) {
-                            movementAddition.setX(Mth.clamp(movementAddition.getX(), -0.15, 0.15));
-                            movementAddition.setZ(Mth.clamp(movementAddition.getZ(), -0.15, 0.15));
-                            movementAddition.setY(Math.max(movementAddition.getY(), -0.15));
-
-                            if (movementAddition.getY() < 0.0 && !grimPlayer.bukkitPlayer.getWorld().getBlockAt(grimPlayer.bukkitPlayer.getLocation()).getType().equals(Material.SCAFFOLDING) && grimPlayer.bukkitPlayer.isSneaking()) {
-                                movementAddition.setY(0.0);
-                            }
-                        }
+                        movementAddition = this.handleOnClimbable(movementAddition, grimPlayer);
 
                         if (collide) {
                             movementAddition = Collisions.collide(Collisions.maybeBackOffFromEdge(movementAddition, MoverType.SELF, grimPlayer), grimPlayer);
@@ -146,5 +137,9 @@ public class PredictionEngineTwo {
         }
 
         return possibleMovements;
+    }
+
+    public Vector handleOnClimbable(Vector vector, GrimPlayer grimPlayer) {
+        return vector;
     }
 }

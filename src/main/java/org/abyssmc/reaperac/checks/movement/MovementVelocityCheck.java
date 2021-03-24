@@ -3,7 +3,8 @@ package org.abyssmc.reaperac.checks.movement;
 import net.minecraft.server.v1_16_R3.*;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
-import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineTwo;
+import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineFluid;
+import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineNormal;
 import org.abyssmc.reaperac.events.anticheat.PlayerBaseTick;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
@@ -190,7 +191,7 @@ public class MovementVelocityCheck implements Listener {
                 f = 0.96F;
             }
 
-            grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(f1, grimPlayer);
+            grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(f1, grimPlayer);
             grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
@@ -205,7 +206,7 @@ public class MovementVelocityCheck implements Listener {
             if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
                 d1 = grimPlayer.y;
 
-                grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(0.02F, grimPlayer);
+                grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer);
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
@@ -257,7 +258,7 @@ public class MovementVelocityCheck implements Listener {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                grimPlayer.clientVelocity = PredictionEngineTwo.guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+                grimPlayer.clientVelocity = new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
                 grimPlayer.clientVelocityOnLadder = null;
