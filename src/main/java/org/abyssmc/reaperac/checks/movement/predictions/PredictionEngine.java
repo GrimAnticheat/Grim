@@ -2,6 +2,7 @@ package org.abyssmc.reaperac.checks.movement.predictions;
 
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.utils.math.Mth;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 public class PredictionEngine {
@@ -18,10 +19,13 @@ public class PredictionEngine {
                 grimPlayer.bestOutput = possibleLastTickOutput;
                 grimPlayer.theoreticalInput = theoreticalInput;
                 grimPlayer.possibleInput = possibleInput;
+
+                Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput);
             }
         }
 
-        return grimPlayer.bestOutput.clone().add(getMovementResultFromInput(grimPlayer.possibleInput, f, grimPlayer.xRot));
+        return grimPlayer.actualMovement;
+        //return grimPlayer.bestOutput.clone().add(getMovementResultFromInput(grimPlayer.possibleInput, f, grimPlayer.xRot));
     }
 
     // These math equations are based off of the vanilla equations, made impossible to divide by 0
