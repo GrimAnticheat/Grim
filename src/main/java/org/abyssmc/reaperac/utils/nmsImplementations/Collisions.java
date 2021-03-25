@@ -25,20 +25,20 @@ public class Collisions {
         Stream<VoxelShape> stream2 = grimPlayer.entityPlayer.getWorld().c(grimPlayer.entityPlayer, aABB.b(vec3), entity -> true);
         StreamAccumulator<VoxelShape> rewindableStream = new StreamAccumulator<>(Stream.concat(stream2, stream));
 
-        Vec3D vec32 = vec3.g() == 0.0 ? vec3 : Entity.a(grimPlayer.entityPlayer, vec3, aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
+        Vec3D vec32 = vec3.g() == 0.0 ? vec3 : collideBoundingBoxHeuristically(grimPlayer.entityPlayer, vec3, aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
         boolean bl2 = vec3.x != vec32.x;
         boolean bl3 = vec3.y != vec32.y;
         boolean bl4 = vec3.z != vec32.z;
         boolean bl = grimPlayer.lastOnGround || bl3 && vec3.y < 0.0;
         if (bl && (bl2 || bl4)) {
             Vec3D vec33;
-            Vec3D vec34 = Entity.a(grimPlayer.entityPlayer, new Vec3D(vec3.x, maxUpStep, vec3.z), aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
-            Vec3D vec35 = Entity.a(grimPlayer.entityPlayer, new Vec3D(0.0, maxUpStep, 0.0), aABB.b(vec3.x, 0.0, vec3.z), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
-            if (vec35.y < maxUpStep && Entity.c(vec33 = Entity.a(grimPlayer.entityPlayer, new Vec3D(vec3.x, 0.0, vec3.z), AxisAlignedBB.a(vec35), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream).e(vec35)) > Entity.c(vec34)) {
+            Vec3D vec34 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(vec3.x, maxUpStep, vec3.z), aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
+            Vec3D vec35 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(0.0, maxUpStep, 0.0), aABB.b(vec3.x, 0.0, vec3.z), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
+            if (vec35.y < maxUpStep && Entity.c(vec33 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(vec3.x, 0.0, vec3.z), AxisAlignedBB.a(vec35), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream).e(vec35)) > Entity.c(vec34)) {
                 vec34 = vec33;
             }
             if (Entity.c(vec34) > Entity.c(vec32)) {
-                Vec3D allowedMovement = Entity.a(grimPlayer.entityPlayer, new Vec3D(0.0, -vec34.y + vec3.y, 0.0), aABB.c(vec34), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
+                Vec3D allowedMovement = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(0.0, -vec34.y + vec3.y, 0.0), aABB.c(vec34), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
                 vec34 = vec34.e(allowedMovement);
                 return new Vector(vec34.x, vec34.y, vec34.z);
             }
@@ -104,19 +104,19 @@ public class Collisions {
                 ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
     }
 
-    public static Vec3D a(@Nullable Entity entity, Vec3D vec3d, AxisAlignedBB axisalignedbb, World world, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {
+    public static Vec3D collideBoundingBoxHeuristically(@Nullable Entity entity, Vec3D vec3d, AxisAlignedBB axisalignedbb, World world, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {
         boolean flag = vec3d.x == 0.0D;
         boolean flag1 = vec3d.y == 0.0D;
         boolean flag2 = vec3d.z == 0.0D;
         if (flag && flag1 || flag && flag2 || flag1 && flag2) {
-            return a(vec3d, axisalignedbb, world, voxelshapecollision, streamaccumulator);
+            return collideBoundingBox(vec3d, axisalignedbb, world, voxelshapecollision, streamaccumulator);
         } else {
             StreamAccumulator<VoxelShape> streamaccumulator1 = new StreamAccumulator(Stream.concat(streamaccumulator.a(), world.b(entity, axisalignedbb.b(vec3d))));
-            return a(vec3d, axisalignedbb, streamaccumulator1);
+            return collideBoundingBoxLegacy(vec3d, axisalignedbb, streamaccumulator1);
         }
     }
 
-    public static Vec3D a(Vec3D vec3d, AxisAlignedBB axisalignedbb, IWorldReader iworldreader, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {
+    public static Vec3D collideBoundingBox(Vec3D vec3d, AxisAlignedBB axisalignedbb, IWorldReader iworldreader, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {
         double d0 = vec3d.x;
         double d1 = vec3d.y;
         double d2 = vec3d.z;
@@ -149,7 +149,7 @@ public class Collisions {
         return new Vec3D(d0, d1, d2);
     }
 
-    public static Vec3D a(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<VoxelShape> streamaccumulator) {
+    public static Vec3D collideBoundingBoxLegacy(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<VoxelShape> streamaccumulator) {
         double d0 = vec3d.x;
         double d1 = vec3d.y;
         double d2 = vec3d.z;
@@ -251,9 +251,7 @@ public class Collisions {
                 }
 
                 double[] var25 = new double[]{var2};
-                var6.forEach((var3) -> {
-                    var25[0] = var3.a(var10, var0, var25[0]);
-                });
+                var6.forEach((var3) -> var25[0] = var3.a(var10, var0, var25[0]));
                 return var25[0];
             }
         } else {
