@@ -57,7 +57,8 @@ public class MovementVelocityCheck implements Listener {
         //
         // This would error when the player has mob collision
         // I should probably separate mob and block collision
-        grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.actualMovement, MoverType.SELF, grimPlayer), grimPlayer);
+        //grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.actualMovement, MoverType.SELF, grimPlayer), grimPlayer);
+        Collisions.collide(new Vector(0, 0, 1), grimPlayer);
 
         // This is not affected by any movement
         new PlayerBaseTick(grimPlayer).doBaseTick();
@@ -118,6 +119,7 @@ public class MovementVelocityCheck implements Listener {
     // Player line 1208
     public void playerEntityTravel() {
         grimPlayer.clientVelocitySwimHop = null;
+        grimPlayer.clientVelocityJumping = null;
         double d;
 
         if (grimPlayer.bukkitPlayer.isSwimming() && grimPlayer.bukkitPlayer.getVehicle() == null) {
@@ -168,7 +170,7 @@ public class MovementVelocityCheck implements Listener {
         double d1;
         float f;
         float f2;
-        if (entityPlayer.isInWater() && !grimPlayer.isFlying) {
+        if (entityPlayer.isInWater() && !grimPlayer.entityPlayer.abilities.isFlying) {
             d1 = entityPlayer.locY();
             // 0.8F seems hardcoded in
             f = entityPlayer.isSprinting() ? 0.9F : 0.8F;
@@ -192,7 +194,6 @@ public class MovementVelocityCheck implements Listener {
             }
 
             grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(f1, grimPlayer);
-            grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
             grimPlayer.clientVelocityOnLadder = null;
@@ -203,14 +204,13 @@ public class MovementVelocityCheck implements Listener {
             grimPlayer.clientVelocity = endOfTickWaterMovement(grimPlayer.clientVelocity, bl, d, f, d1);
 
         } else {
-            if (entityPlayer.aQ() && entityPlayer.cT() && !entityPlayer.a(fluid.getType())) {
+            if (entityPlayer.aQ() && !grimPlayer.entityPlayer.abilities.isFlying) { // aQ -> isInLava()
                 d1 = grimPlayer.y;
 
                 grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer);
-                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
-                if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= entityPlayer.cx()) {
+                if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
                     grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
                 } else {
@@ -225,7 +225,6 @@ public class MovementVelocityCheck implements Listener {
                     grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ());
                 }
 
-                // TODO: Do inputs even matter while gliding?  What is there to predict?
             } else if (bukkitPlayer.isGliding()) {
                 Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
                 f = grimPlayer.yRot * 0.017453292F;
@@ -253,13 +252,12 @@ public class MovementVelocityCheck implements Listener {
                 grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
-                // IDK if there is a possible cheat for anti elytra damage
+
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
                 grimPlayer.clientVelocity = new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
-                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
                 grimPlayer.clientVelocityOnLadder = null;
                 if (grimPlayer.lastClimbing) {

@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
+import java.util.Iterator;
 import java.util.stream.Stream;
 
 public class Collisions {
@@ -46,64 +47,6 @@ public class Collisions {
         return new Vector(vec32.x, vec32.y, vec32.z);
     }
 
-    // MCP mappings PlayerEntity 959
-    // Mojang mappings 911
-    public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
-        Player bukkitPlayer = grimPlayer.bukkitPlayer;
-
-        if (!bukkitPlayer.isFlying() && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && bukkitPlayer.isSneaking() && isAboveGround(grimPlayer)) {
-            double d = vec3.getX();
-            double d2 = vec3.getZ();
-            while (d != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
-                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, 0.0))) {
-                if (d < 0.05 && d >= -0.05) {
-                    d = 0.0;
-                    continue;
-                }
-                if (d > 0.0) {
-                    d -= 0.05;
-                    continue;
-                }
-                d += 0.05;
-            }
-            while (d2 != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
-                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, -maxUpStep, d2))) {
-                if (d2 < 0.05 && d2 >= -0.05) {
-                    d2 = 0.0;
-                    continue;
-                }
-                if (d2 > 0.0) {
-                    d2 -= 0.05;
-                    continue;
-                }
-                d2 += 0.05;
-            }
-            while (d != 0.0 && d2 != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
-                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, d2))) {
-                d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? (d -= 0.05) : (d += 0.05));
-                if (d2 < 0.05 && d2 >= -0.05) {
-                    d2 = 0.0;
-                    continue;
-                }
-                if (d2 > 0.0) {
-                    d2 -= 0.05;
-                    continue;
-                }
-                d2 += 0.05;
-            }
-            vec3 = new Vector(d, vec3.getY(), d2);
-        }
-        return vec3;
-    }
-
-    // What the fuck is this?
-    private static boolean isAboveGround(GrimPlayer grimPlayer) {
-        Player bukkitPlayer = grimPlayer.bukkitPlayer;
-
-        return grimPlayer.lastOnGround || bukkitPlayer.getFallDistance() < Collisions.maxUpStep && !
-                ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
-    }
-
     public static Vec3D collideBoundingBoxHeuristically(@Nullable Entity entity, Vec3D vec3d, AxisAlignedBB axisalignedbb, World world, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {
         boolean flag = vec3d.x == 0.0D;
         boolean flag1 = vec3d.y == 0.0D;
@@ -121,62 +64,31 @@ public class Collisions {
         double d1 = vec3d.y;
         double d2 = vec3d.z;
         if (d1 != 0.0D) {
-            d1 = VoxelShapes.a(EnumDirection.EnumAxis.Y, axisalignedbb, iworldreader, d1, voxelshapecollision, streamaccumulator.a());
+            d1 = a(EnumDirection.EnumAxis.Y, axisalignedbb, iworldreader, d1, voxelshapecollision, streamaccumulator.a());
             if (d1 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(0.0D, d1, 0.0D);
             }
         }
 
         boolean flag = Math.abs(d0) < Math.abs(d2);
+
+        // TODO: VoxelShapes.a needs to be lag compensated
         if (flag && d2 != 0.0D) {
-            d2 = VoxelShapes.a(EnumDirection.EnumAxis.Z, axisalignedbb, iworldreader, d2, voxelshapecollision, streamaccumulator.a());
+            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, iworldreader, d2, voxelshapecollision, streamaccumulator.a());
             if (d2 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(0.0D, 0.0D, d2);
             }
         }
 
         if (d0 != 0.0D) {
-            d0 = VoxelShapes.a(EnumDirection.EnumAxis.X, axisalignedbb, iworldreader, d0, voxelshapecollision, streamaccumulator.a());
+            d0 = a(EnumDirection.EnumAxis.X, axisalignedbb, iworldreader, d0, voxelshapecollision, streamaccumulator.a());
             if (!flag && d0 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(d0, 0.0D, 0.0D);
             }
         }
 
         if (!flag && d2 != 0.0D) {
-            d2 = VoxelShapes.a(EnumDirection.EnumAxis.Z, axisalignedbb, iworldreader, d2, voxelshapecollision, streamaccumulator.a());
-        }
-
-        return new Vec3D(d0, d1, d2);
-    }
-
-    public static Vec3D collideBoundingBoxLegacy(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<VoxelShape> streamaccumulator) {
-        double d0 = vec3d.x;
-        double d1 = vec3d.y;
-        double d2 = vec3d.z;
-        if (d1 != 0.0D) {
-            d1 = VoxelShapes.a(EnumDirection.EnumAxis.Y, axisalignedbb, streamaccumulator.a(), d1);
-            if (d1 != 0.0D) {
-                axisalignedbb = axisalignedbb.d(0.0D, d1, 0.0D);
-            }
-        }
-
-        boolean flag = Math.abs(d0) < Math.abs(d2);
-        if (flag && d2 != 0.0D) {
-            d2 = VoxelShapes.a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
-            if (d2 != 0.0D) {
-                axisalignedbb = axisalignedbb.d(0.0D, 0.0D, d2);
-            }
-        }
-
-        if (d0 != 0.0D) {
-            d0 = VoxelShapes.a(EnumDirection.EnumAxis.X, axisalignedbb, streamaccumulator.a(), d0);
-            if (!flag && d0 != 0.0D) {
-                axisalignedbb = axisalignedbb.d(d0, 0.0D, 0.0D);
-            }
-        }
-
-        if (!flag && d2 != 0.0D) {
-            d2 = VoxelShapes.a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
+            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, iworldreader, d2, voxelshapecollision, streamaccumulator.a());
         }
 
         return new Vec3D(d0, d1, d2);
@@ -250,9 +162,9 @@ public class Collisions {
                     var24 += var23;
                 }
 
-                double[] var25 = new double[]{var2};
-                var6.forEach((var3) -> var25[0] = var3.a(var10, var0, var25[0]));
-                return var25[0];
+                double[] var24array = new double[]{var2};
+                var6.forEach((var3) -> var24array[0] = var3.a(var10, var0, var24array[0]));
+                return var24array[0];
             }
         } else {
             return var2;
@@ -261,5 +173,105 @@ public class Collisions {
 
     private static int a(double var0, double var2, double var4) {
         return var0 > 0.0D ? MathHelper.floor(var4 + var0) + 1 : MathHelper.floor(var2 + var0) - 1;
+    }
+
+    public static Vec3D collideBoundingBoxLegacy(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<VoxelShape> streamaccumulator) {
+        double d0 = vec3d.x;
+        double d1 = vec3d.y;
+        double d2 = vec3d.z;
+        if (d1 != 0.0D) {
+            d1 = a(EnumDirection.EnumAxis.Y, axisalignedbb, streamaccumulator.a(), d1);
+            if (d1 != 0.0D) {
+                axisalignedbb = axisalignedbb.d(0.0D, d1, 0.0D);
+            }
+        }
+
+        boolean flag = Math.abs(d0) < Math.abs(d2);
+        if (flag && d2 != 0.0D) {
+            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
+            if (d2 != 0.0D) {
+                axisalignedbb = axisalignedbb.d(0.0D, 0.0D, d2);
+            }
+        }
+
+        if (d0 != 0.0D) {
+            d0 = a(EnumDirection.EnumAxis.X, axisalignedbb, streamaccumulator.a(), d0);
+            if (!flag && d0 != 0.0D) {
+                axisalignedbb = axisalignedbb.d(d0, 0.0D, 0.0D);
+            }
+        }
+
+        if (!flag && d2 != 0.0D) {
+            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
+        }
+
+        return new Vec3D(d0, d1, d2);
+    }
+
+    public static double a(EnumDirection.EnumAxis var0, AxisAlignedBB var1, Stream<VoxelShape> var2, double var3) {
+        for (Iterator var5 = var2.iterator(); var5.hasNext(); var3 = ((VoxelShape) var5.next()).a(var0, var1, var3)) {
+            if (Math.abs(var3) < 1.0E-7D) {
+                return 0.0D;
+            }
+        }
+
+        return var3;
+    }
+
+    // MCP mappings PlayerEntity 959
+    // Mojang mappings 911
+    public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
+        Player bukkitPlayer = grimPlayer.bukkitPlayer;
+
+        if (!bukkitPlayer.isFlying() && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && bukkitPlayer.isSneaking() && isAboveGround(grimPlayer)) {
+            double d = vec3.getX();
+            double d2 = vec3.getZ();
+            while (d != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, 0.0))) {
+                if (d < 0.05 && d >= -0.05) {
+                    d = 0.0;
+                    continue;
+                }
+                if (d > 0.0) {
+                    d -= 0.05;
+                    continue;
+                }
+                d += 0.05;
+            }
+            while (d2 != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, -maxUpStep, d2))) {
+                if (d2 < 0.05 && d2 >= -0.05) {
+                    d2 = 0.0;
+                    continue;
+                }
+                if (d2 > 0.0) {
+                    d2 -= 0.05;
+                    continue;
+                }
+                d2 += 0.05;
+            }
+            while (d != 0.0 && d2 != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, d2))) {
+                d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? (d -= 0.05) : (d += 0.05));
+                if (d2 < 0.05 && d2 >= -0.05) {
+                    d2 = 0.0;
+                    continue;
+                }
+                if (d2 > 0.0) {
+                    d2 -= 0.05;
+                    continue;
+                }
+                d2 += 0.05;
+            }
+            vec3 = new Vector(d, vec3.getY(), d2);
+        }
+        return vec3;
+    }
+
+    private static boolean isAboveGround(GrimPlayer grimPlayer) {
+        Player bukkitPlayer = grimPlayer.bukkitPlayer;
+
+        return grimPlayer.lastOnGround || bukkitPlayer.getFallDistance() < Collisions.maxUpStep && !
+                ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
     }
 }

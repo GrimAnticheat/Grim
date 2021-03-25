@@ -1,31 +1,40 @@
 package org.abyssmc.reaperac.checks.movement.predictions;
 
 import org.abyssmc.reaperac.GrimPlayer;
+import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.math.Mth;
+import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
-public class PredictionEngine {
+public abstract class PredictionEngine {
     public Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
         double bestInput = Double.MAX_VALUE;
+        addJumpIfNeeded(grimPlayer);
 
         for (Vector possibleLastTickOutput : grimPlayer.getPossibleVelocities()) {
+            // This method clamps climbing velocity (as in vanilla), if needed.
+            possibleLastTickOutput = handleOnClimbable(possibleLastTickOutput, grimPlayer);
+
             Vector theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().subtract(possibleLastTickOutput), f, grimPlayer.xRot);
             Vector possibleInput = getBestPossiblePlayerInput(grimPlayer.isSneaking, theoreticalInput);
+            Vector possibleInputVelocityResult = possibleLastTickOutput.clone().add(getMovementResultFromInput(possibleInput, f, grimPlayer.xRot));
 
-            double resultAccuracy = theoreticalInput.distance(possibleInput);
+            double resultAccuracy = possibleInputVelocityResult.distance(grimPlayer.actualMovement);
+
+            Bukkit.broadcastMessage("Accuracy for " + possibleInputVelocityResult + " " + resultAccuracy);
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
                 grimPlayer.bestOutput = possibleLastTickOutput;
                 grimPlayer.theoreticalInput = theoreticalInput;
                 grimPlayer.possibleInput = possibleInput;
+                grimPlayer.predictedVelocity = possibleInputVelocityResult;
 
                 Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput);
             }
         }
 
-        return grimPlayer.actualMovement;
-        //return grimPlayer.bestOutput.clone().add(getMovementResultFromInput(grimPlayer.possibleInput, f, grimPlayer.xRot));
+        return grimPlayer.predictedVelocity.clone();
     }
 
     // These math equations are based off of the vanilla equations, made impossible to divide by 0
@@ -68,6 +77,22 @@ public class PredictionEngine {
         double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
 
         return new Vector(xResult * f, 0, zResult * f);
+    }
+
+    public void addJumpIfNeeded(GrimPlayer grimPlayer) {
+        // TODO: Make sure the player is actually on the ground
+        // TODO: Add check to stop players from jumping more than once every 10 ticks
+        double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
+        boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
+        double d8 = 0.4D;
+        if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+        } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+        } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+            grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
+            //this.noJumpDelay = 10;
+        }
     }
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer grimPlayer) {

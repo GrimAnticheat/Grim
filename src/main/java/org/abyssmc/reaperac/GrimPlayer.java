@@ -14,11 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GrimPlayer {
-    // This is generous, but I don't see an issue with having a generous epsilon here
-    public boolean isFlying;
+    // TODO: Stop the player from setting abilities such as flying (Can they do this?)
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
+    public Vector clientVelocityJumping = new Vector();
 
     public Vector predictedVelocity = new Vector();
     public Vector lastActualMovement = new Vector();
@@ -47,7 +47,6 @@ public class GrimPlayer {
     public Vector theoreticalInput;
     public Vector possibleInput;
     public Vector bestOutput;
-    public boolean bestJumping;
 
     // This should replace the previous block
     public Vector bestInputResult; // Use this for after trig is applied
@@ -102,17 +101,7 @@ public class GrimPlayer {
     }
 
     public List<Vector> getPossibleVelocities() {
-        List<Vector> possibleMovements = new ArrayList<>();
-        possibleMovements.add(clientVelocity);
-
-        if (clientVelocityOnLadder != null) {
-            possibleMovements.add(clientVelocityOnLadder);
-        }
-
-        if (clientVelocitySwimHop != null) {
-            possibleMovements.add(clientVelocitySwimHop);
-        }
-
+        List<Vector> possibleMovements = getPossibleVelocitiesMinusKnockback();
         possibleMovements.addAll(possibleKnockback);
 
         return possibleMovements;
@@ -121,6 +110,11 @@ public class GrimPlayer {
     public List<Vector> getPossibleVelocitiesMinusKnockback() {
         List<Vector> possibleMovements = new ArrayList<>();
         possibleMovements.add(clientVelocity);
+
+        if (clientVelocityJumping != null) {
+            possibleMovements.add(clientVelocityJumping);
+        }
+
 
         if (clientVelocityOnLadder != null) {
             possibleMovements.add(clientVelocityOnLadder);
