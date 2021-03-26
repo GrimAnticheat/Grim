@@ -6,6 +6,8 @@ import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.util.Vector;
 
+import java.util.List;
+
 public abstract class PredictionEngine {
     // We use the fact that the client already does collision to do predictions fast
     // Combined with our controller support for eventual geyser support
@@ -17,7 +19,7 @@ public abstract class PredictionEngine {
         double bestInput = Double.MAX_VALUE;
         addJumpIfNeeded(grimPlayer);
 
-        for (Vector possibleLastTickOutput : grimPlayer.getPossibleVelocities()) {
+        for (Vector possibleLastTickOutput : fetchPossibleInputs(grimPlayer)) {
             // This method clamps climbing velocity (as in vanilla), if needed.
             possibleLastTickOutput = handleOnClimbable(possibleLastTickOutput, grimPlayer);
 
@@ -48,14 +50,23 @@ public abstract class PredictionEngine {
         double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
         boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
         double d8 = 0.4D;
-        if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+
+        if (grimPlayer.entityPlayer.abilities.isFlying) {
             grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-        } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
-            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-        } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-            grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
-            //this.noJumpDelay = 10;
+        } else {
+            if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+            } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+            } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+                grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
+                //this.noJumpDelay = 10;
+            }
         }
+    }
+
+    public List<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
+        return grimPlayer.getPossibleVelocities();
     }
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer grimPlayer) {
@@ -96,7 +107,7 @@ public abstract class PredictionEngine {
         float bestPossibleX;
         float bestPossibleZ;
 
-        if (grimPlayer.isSneaking && !grimPlayer.bukkitPlayer.isSwimming()) {
+        if (grimPlayer.isSneaking && !grimPlayer.bukkitPlayer.isSwimming() && !grimPlayer.entityPlayer.abilities.isFlying) {
             bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
             bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
         } else {

@@ -1,6 +1,9 @@
 package org.abyssmc.reaperac.checks.movement;
 
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.server.v1_16_R3.EnchantmentManager;
+import net.minecraft.server.v1_16_R3.EntityPlayer;
+import net.minecraft.server.v1_16_R3.MathHelper;
+import net.minecraft.server.v1_16_R3.MobEffects;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
 import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineFluid;
@@ -17,7 +20,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -120,21 +122,6 @@ public class MovementVelocityCheck implements Listener {
     public void playerEntityTravel() {
         grimPlayer.clientVelocitySwimHop = null;
         grimPlayer.clientVelocityJumping = null;
-        double d;
-
-        if (grimPlayer.bukkitPlayer.isSwimming() && grimPlayer.bukkitPlayer.getVehicle() == null) {
-            double d5;
-            d = getLookAngle().y;
-            d5 = d < -0.2 ? 0.085 : 0.06;
-
-            // if (d3 <= 0.0D || this.isJumping || !this.world.getBlockState(new BlockPos(this.getPosX(), this.getPosY() + 1.0D - 0.1D, this.getPosZ())).getFluidState().isEmpty()) {
-            // If the player is looking upward
-            // I removed the isJumping check and everything works fine
-            // This is most likely due to the player not swimming if they are not jumping in the other two scenarios
-            if (d <= 0.0 || !((CraftWorld) grimPlayer.bukkitPlayer.getWorld()).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
-                grimPlayer.baseTickAddVector(new Vector(0, (d - grimPlayer.clientVelocity.getY()) * d5, 0));
-            }
-        }
 
         if (grimPlayer.entityPlayer.abilities.isFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
             double oldY = grimPlayer.clientVelocity.getY();
@@ -143,10 +130,6 @@ public class MovementVelocityCheck implements Listener {
         } else {
             livingEntityTravel();
         }
-    }
-
-    public Vec3D getLookAngle() {
-        return MovementVectorsCalc.calculateViewVector(grimPlayer.yRot, grimPlayer.xRot);
     }
 
     // LivingEntity line 1741

@@ -2,9 +2,14 @@ package org.abyssmc.reaperac.utils.math;
 
 import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.Vec3D;
+import org.abyssmc.reaperac.GrimPlayer;
 import org.bukkit.util.Vector;
 
 public class MovementVectorsCalc {
+    public static Vec3D getLookAngle(GrimPlayer grimPlayer) {
+        return MovementVectorsCalc.calculateViewVector(grimPlayer.yRot, grimPlayer.xRot);
+    }
+
     public static Vec3D calculateViewVector(float f, float f2) {
         float f3 = f * 0.017453292f;
         float f4 = -f2 * 0.017453292f;
