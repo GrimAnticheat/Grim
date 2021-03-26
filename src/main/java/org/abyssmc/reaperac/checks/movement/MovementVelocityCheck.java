@@ -134,8 +134,6 @@ public class MovementVelocityCheck implements Listener {
             if (d <= 0.0 || !((CraftWorld) grimPlayer.bukkitPlayer.getWorld()).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
                 grimPlayer.baseTickAddVector(new Vector(0, (d - grimPlayer.clientVelocity.getY()) * d5, 0));
             }
-
-            grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY((d - grimPlayer.clientVelocity.getY()) * d5);
         }
 
         if (grimPlayer.entityPlayer.abilities.isFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
