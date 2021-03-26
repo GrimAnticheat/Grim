@@ -17,6 +17,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
+import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -124,18 +125,16 @@ public class MovementVelocityCheck implements Listener {
 
         if (grimPlayer.bukkitPlayer.isSwimming() && grimPlayer.bukkitPlayer.getVehicle() == null) {
             double d5;
-            d = this.getLookAngle().y;
+            d = getLookAngle().y;
             d5 = d < -0.2 ? 0.085 : 0.06;
 
-            // This isn't needed because the end result is the same
-            // The player presses jump and jumps in the water
-            // Or the player doesn't press jump and jumps anyway
-            // TODO: Would jumping force players to ascend in the water?
-
-            //if (d <= 0.0 || !((CraftWorld) grimPlayer.bukkitPlayer.getWorld()).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
-            //    Vec3 vec32 = this.getDeltaMovement();
-            //    this.setDeltaMovement(vec32.add(0.0, (d - vec32.y) * d5, 0.0));
-            //}
+            // if (d3 <= 0.0D || this.isJumping || !this.world.getBlockState(new BlockPos(this.getPosX(), this.getPosY() + 1.0D - 0.1D, this.getPosZ())).getFluidState().isEmpty()) {
+            // If the player is looking upward
+            // I removed the isJumping check and everything works fine
+            // This is most likely due to the player not swimming if they are not jumping in the other two scenarios
+            if (d <= 0.0 || !((CraftWorld) grimPlayer.bukkitPlayer.getWorld()).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
+                grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), (d - grimPlayer.clientVelocity.getY()) * d5, grimPlayer.clientVelocity.getZ());
+            }
 
             grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY((d - grimPlayer.clientVelocity.getY()) * d5);
         }
@@ -150,7 +149,7 @@ public class MovementVelocityCheck implements Listener {
     }
 
     public Vec3D getLookAngle() {
-        return MovementVectorsCalc.calculateViewVector(grimPlayer.xRot, grimPlayer.yRot);
+        return MovementVectorsCalc.calculateViewVector(grimPlayer.yRot, grimPlayer.xRot);
     }
 
     // LivingEntity line 1741

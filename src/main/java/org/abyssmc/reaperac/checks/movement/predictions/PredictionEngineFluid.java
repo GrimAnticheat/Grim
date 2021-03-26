@@ -1,5 +1,11 @@
 package org.abyssmc.reaperac.checks.movement.predictions;
 
-public class PredictionEngineFluid extends PredictionEngine {
+import org.abyssmc.reaperac.GrimPlayer;
 
+public class PredictionEngineFluid extends PredictionEngine {
+    @Override
+    public void addJumpIfNeeded(GrimPlayer grimPlayer) {
+        super.addJumpIfNeeded(grimPlayer);
+
+    }
 }
