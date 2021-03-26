@@ -8,7 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 public abstract class PredictionEngine {
-    public Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
+    public Vector guessBestMovement(float f, GrimPlayer grimPlayer, boolean collision) {
         double bestInput = Double.MAX_VALUE;
         addJumpIfNeeded(grimPlayer);
 
@@ -20,7 +20,7 @@ public abstract class PredictionEngine {
             Vector possibleInput = getBestPossiblePlayerInput(grimPlayer.isSneaking, theoreticalInput);
             Vector possibleInputVelocityResult = possibleLastTickOutput.clone().add(getMovementResultFromInput(possibleInput, f, grimPlayer.xRot));
 
-            double resultAccuracy = possibleInputVelocityResult.distance(grimPlayer.actualMovement);
+            double resultAccuracy = possibleInputVelocityResult.distanceSquared(grimPlayer.actualMovement);
 
             Bukkit.broadcastMessage("Accuracy for " + possibleInputVelocityResult + " " + resultAccuracy);
             if (resultAccuracy < bestInput) {
@@ -30,7 +30,7 @@ public abstract class PredictionEngine {
                 grimPlayer.possibleInput = possibleInput;
                 grimPlayer.predictedVelocity = possibleInputVelocityResult;
 
-                Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput);
+                Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
             }
         }
 
@@ -49,20 +49,19 @@ public abstract class PredictionEngine {
     }
 
     public static Vector getBestPossiblePlayerInput(boolean isSneaking, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
+        double bestPossibleX;
+        double bestPossibleZ;
 
         if (isSneaking) {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
+            bestPossibleX = Math.min(Math.max(-0.294, theoreticalInput.getX()), 0.294);
+            bestPossibleZ = Math.min(Math.max(-0.294, theoreticalInput.getZ()), 0.294);
         } else {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
+            bestPossibleX = Math.min(Math.max(-0.98, theoreticalInput.getX()), 0.98);
+            bestPossibleZ = Math.min(Math.max(-0.98, theoreticalInput.getZ()), 0.98);
         }
 
         Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
 
-        inputVector.multiply(0.98);
         if (inputVector.lengthSquared() > 1) inputVector.normalize();
 
         return inputVector;

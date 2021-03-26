@@ -165,7 +165,6 @@ public class MovementVelocityCheck implements Listener {
         }
 
         EntityPlayer entityPlayer = grimPlayer.entityPlayer;
-        Fluid fluid = entityPlayer.world.getFluid(entityPlayer.getChunkCoordinates());
 
         double d1;
         float f;
@@ -193,7 +192,7 @@ public class MovementVelocityCheck implements Listener {
                 f = 0.96F;
             }
 
-            grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(f1, grimPlayer);
+            grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(f1, grimPlayer, false);
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
             grimPlayer.clientVelocityOnLadder = null;
@@ -207,7 +206,7 @@ public class MovementVelocityCheck implements Listener {
             if (entityPlayer.aQ() && !grimPlayer.entityPlayer.abilities.isFlying) { // aQ -> isInLava()
                 d1 = grimPlayer.y;
 
-                grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer);
+                grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer, false);
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
 
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
@@ -257,7 +256,7 @@ public class MovementVelocityCheck implements Listener {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                grimPlayer.clientVelocity = new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+                grimPlayer.clientVelocity = new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer, false);
 
                 grimPlayer.clientVelocityOnLadder = null;
                 if (grimPlayer.lastClimbing) {
