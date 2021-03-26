@@ -1,7 +1,9 @@
 package org.abyssmc.reaperac.checks.movement.predictions;
 
 import org.abyssmc.reaperac.GrimPlayer;
+import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
+import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.util.Vector;
@@ -15,7 +17,7 @@ public abstract class PredictionEngine {
     // On legit players, running collision after guessing movement will never be an issue
     // On players with noclip and other cheats, it will flag the anticheat
     // We now only run 1 collision
-    public Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
+    public void guessBestMovement(float f, GrimPlayer grimPlayer) {
         double bestInput = Double.MAX_VALUE;
         addJumpIfNeeded(grimPlayer);
 
@@ -41,7 +43,9 @@ public abstract class PredictionEngine {
             }
         }
 
-        return grimPlayer.predictedVelocity;
+        grimPlayer.clientVelocity = grimPlayer.predictedVelocity.clone();
+        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
+        grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
     }
 
     public void addJumpIfNeeded(GrimPlayer grimPlayer) {

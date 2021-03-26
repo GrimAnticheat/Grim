@@ -171,9 +171,7 @@ public class MovementVelocityCheck implements Listener {
                 f = 0.96F;
             }
 
-            grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(f1, grimPlayer);
-            grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
-            grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
+            new PredictionEngineFluid().guessBestMovement(f1, grimPlayer);
 
             grimPlayer.clientVelocityOnLadder = null;
             if (grimPlayer.lastClimbing) {
@@ -186,9 +184,7 @@ public class MovementVelocityCheck implements Listener {
             if (entityPlayer.aQ() && !grimPlayer.entityPlayer.abilities.isFlying) { // aQ -> isInLava()
                 d1 = grimPlayer.y;
 
-                grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer);
-                grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
-                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
+                new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer);
 
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
@@ -231,29 +227,38 @@ public class MovementVelocityCheck implements Listener {
 
                 grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
-                grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
+                grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                grimPlayer.clientVelocity = new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
-                grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
-                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
+                new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
 
                 grimPlayer.clientVelocityOnLadder = null;
                 if (grimPlayer.lastClimbing) {
-                    grimPlayer.clientVelocityOnLadder = endOfTickRegularMovement(grimPlayer.clientVelocity.clone().setY(0.2), d, f6);
+                    grimPlayer.clientVelocityOnLadder = endOfTickRegularMovement(grimPlayer, grimPlayer.clientVelocity.clone().setY(0.2), d, f6);
                 }
 
-                grimPlayer.clientVelocity = endOfTickRegularMovement(grimPlayer.clientVelocity, d, f6);
+                grimPlayer.clientVelocity = endOfTickRegularMovement(grimPlayer, grimPlayer.clientVelocity, d, f6);
             }
         }
     }
 
+    public Vector endOfTickWaterMovement(Vector vector, boolean bl, double d, float f, double d1) {
+        vector = vector.multiply(new Vector(f, 0.8F, f));
+        vector = getFluidFallingAdjustedMovement(d, bl, vector);
+
+        if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.e(vector.getX(), vector.getY() + 0.6D - vector.getY() + d1, vector.getZ())) {
+            vector.setY(0.3F);
+        }
+
+        return vector;
+    }
+
     // Entity line 527
     // TODO: Entity piston and entity shulker (want to) call this method too.
-    public Vector move(MoverType moverType, Vector vec3) {
+    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector vec3) {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
@@ -274,7 +279,7 @@ public class MovementVelocityCheck implements Listener {
         if (vec3.getY() != clonedClientVelocity.getY()) {
             if (onBlock.getType() == org.bukkit.Material.SLIME_BLOCK) {
                 // TODO: Maybe lag compensate this (idk packet order)
-                if (bukkitPlayer.isSneaking()) {
+                if (grimPlayer.bukkitPlayer.isSneaking()) {
                     clonedClientVelocity.setY(0);
                 } else {
                     if (clonedClientVelocity.getY() < 0.0) {
@@ -296,17 +301,6 @@ public class MovementVelocityCheck implements Listener {
         return clonedClientVelocity;
     }
 
-    public Vector endOfTickWaterMovement(Vector vector, boolean bl, double d, float f, double d1) {
-        vector = vector.multiply(new Vector(f, 0.8F, f));
-        vector = getFluidFallingAdjustedMovement(d, bl, vector);
-
-        if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.e(vector.getX(), vector.getY() + 0.6D - vector.getY() + d1, vector.getZ())) {
-            vector.multiply(new Vector(grimPlayer.clientVelocity.getX(), 0.3D, grimPlayer.clientVelocity.getZ()));
-        }
-
-        return vector;
-    }
-
     // LivingEntity line 1882
     // I have no clue what this does, but it really doesn't matter.  It works.
     public Vector getFluidFallingAdjustedMovement(double d, boolean bl, Vector vec3) {
@@ -317,8 +311,8 @@ public class MovementVelocityCheck implements Listener {
         return vec3;
     }
 
-    public Vector endOfTickRegularMovement(Vector vector, double d, float f6) {
-        vector = move(MoverType.SELF, vector);
+    public Vector endOfTickRegularMovement(GrimPlayer grimPlayer, Vector vector, double d, float f6) {
+        vector = move(grimPlayer, MoverType.SELF, vector);
 
         // Okay, this seems to just be gravity stuff
         double d9 = vector.getY();
