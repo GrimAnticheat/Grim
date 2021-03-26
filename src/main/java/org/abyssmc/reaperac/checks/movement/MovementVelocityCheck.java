@@ -58,8 +58,7 @@ public class MovementVelocityCheck implements Listener {
         //
         // This would error when the player has mob collision
         // I should probably separate mob and block collision
-        //grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.actualMovement, MoverType.SELF, grimPlayer), grimPlayer);
-        Collisions.collide(new Vector(0, 0, 1), grimPlayer);
+        grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.actualMovement, MoverType.SELF, grimPlayer), grimPlayer);
 
         // This is not affected by any movement
         new PlayerBaseTick(grimPlayer).doBaseTick();
@@ -133,7 +132,7 @@ public class MovementVelocityCheck implements Listener {
             // I removed the isJumping check and everything works fine
             // This is most likely due to the player not swimming if they are not jumping in the other two scenarios
             if (d <= 0.0 || !((CraftWorld) grimPlayer.bukkitPlayer.getWorld()).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
-                grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + (d - grimPlayer.clientVelocity.getY()) * d5, grimPlayer.clientVelocity.getZ());
+                grimPlayer.baseTickAddVector(new Vector(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + (d - grimPlayer.clientVelocity.getY()) * d5, grimPlayer.clientVelocity.getZ()));
             }
 
             grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY((d - grimPlayer.clientVelocity.getY()) * d5);

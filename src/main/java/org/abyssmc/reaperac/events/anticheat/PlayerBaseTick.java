@@ -26,11 +26,11 @@ public class PlayerBaseTick {
 
         // LocalPlayer:aiStep line 728
         if (player.entityPlayer.isInWater() && player.bukkitPlayer.isSneaking()) {
-            player.baseTickAddValues(0, -0.04, 0);
+            player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
         if (player.entityPlayer.abilities.isFlying && player.isSneaking) {
-            player.baseTickAddValues(0, player.entityPlayer.abilities.flySpeed * -3, 0);
+            player.baseTickAddVector(new Vector(0, player.entityPlayer.abilities.flySpeed * -3, 0));
         }
 
         updateInWaterStateAndDoFluidPushing();

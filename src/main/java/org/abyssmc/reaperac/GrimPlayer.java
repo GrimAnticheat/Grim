@@ -19,6 +19,7 @@ public class GrimPlayer {
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
     public Vector clientVelocityJumping = new Vector();
+    public List<Vector> clientVelocitySwimmingUpwards = new ArrayList<>();
 
     public Vector predictedVelocity = new Vector();
     public Vector lastActualMovement = new Vector();
@@ -155,16 +156,6 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setY(y);
-    }
-
-    public void baseTickAddValues(double x, double y, double z) {
-        clientVelocity.add(new Vector(x, y, z));
-
-        if (clientVelocityOnLadder != null)
-            clientVelocityOnLadder.add(new Vector(x, y, z));
-
-        if (clientVelocitySwimHop != null)
-            clientVelocitySwimHop.add(new Vector(x, y, y));
     }
 
     public void baseTickSetZ(double z) {
