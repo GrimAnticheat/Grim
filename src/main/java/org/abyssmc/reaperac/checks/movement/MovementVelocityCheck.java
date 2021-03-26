@@ -132,7 +132,7 @@ public class MovementVelocityCheck implements Listener {
             // I removed the isJumping check and everything works fine
             // This is most likely due to the player not swimming if they are not jumping in the other two scenarios
             if (d <= 0.0 || !((CraftWorld) grimPlayer.bukkitPlayer.getWorld()).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
-                grimPlayer.baseTickAddVector(new Vector(0, grimPlayer.clientVelocity.getY() + (d - grimPlayer.clientVelocity.getY()) * d5, 0));
+                grimPlayer.baseTickAddVector(new Vector(0, (d - grimPlayer.clientVelocity.getY()) * d5, 0));
             }
 
             grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY((d - grimPlayer.clientVelocity.getY()) * d5);
