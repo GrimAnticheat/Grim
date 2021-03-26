@@ -192,8 +192,9 @@ public class MovementVelocityCheck implements Listener {
                 f = 0.96F;
             }
 
-            grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(f1, grimPlayer, false);
+            grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(f1, grimPlayer);
             grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
+            grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
             grimPlayer.clientVelocityOnLadder = null;
             if (grimPlayer.lastClimbing) {
@@ -206,8 +207,9 @@ public class MovementVelocityCheck implements Listener {
             if (entityPlayer.aQ() && !grimPlayer.entityPlayer.abilities.isFlying) { // aQ -> isInLava()
                 d1 = grimPlayer.y;
 
-                grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer, false);
+                grimPlayer.clientVelocity = new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer);
                 grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
+                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
@@ -256,7 +258,9 @@ public class MovementVelocityCheck implements Listener {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                grimPlayer.clientVelocity = new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer, false);
+                grimPlayer.clientVelocity = new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+                grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.clientVelocity);
+                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
                 grimPlayer.clientVelocityOnLadder = null;
                 if (grimPlayer.lastClimbing) {

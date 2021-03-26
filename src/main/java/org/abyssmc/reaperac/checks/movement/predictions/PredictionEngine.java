@@ -4,11 +4,16 @@ import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 public abstract class PredictionEngine {
-    public Vector guessBestMovement(float f, GrimPlayer grimPlayer, boolean collision) {
+    // We use the fact that the client already does collision to do predictions fast
+    // Combined with our controller support for eventual geyser support
+    // We can use non-whole inputs, such as (0.9217, 0.1599)
+    // On legit players, running collision after guessing movement will never be an issue
+    // On players with noclip and other cheats, it will flag the anticheat
+    // We now only run 1 collision
+    public Vector guessBestMovement(float f, GrimPlayer grimPlayer) {
         double bestInput = Double.MAX_VALUE;
         addJumpIfNeeded(grimPlayer);
 
@@ -22,7 +27,7 @@ public abstract class PredictionEngine {
 
             double resultAccuracy = possibleInputVelocityResult.distanceSquared(grimPlayer.actualMovement);
 
-            Bukkit.broadcastMessage("Accuracy for " + possibleInputVelocityResult + " " + resultAccuracy);
+            //Bukkit.broadcastMessage("Accuracy for " + possibleInputVelocityResult + " " + resultAccuracy);
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
                 grimPlayer.bestOutput = possibleLastTickOutput;
@@ -30,11 +35,31 @@ public abstract class PredictionEngine {
                 grimPlayer.possibleInput = possibleInput;
                 grimPlayer.predictedVelocity = possibleInputVelocityResult;
 
-                Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
+                //Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
             }
         }
 
-        return grimPlayer.predictedVelocity.clone();
+        return grimPlayer.predictedVelocity;
+    }
+
+    public static Vector getBestPossiblePlayerInput(boolean isSneaking, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
+
+        if (isSneaking) {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
+        } else {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
+        }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98);
+
+        if (inputVector.lengthSquared() > 1) inputVector.normalize();
+
+        return inputVector;
     }
 
     // These math equations are based off of the vanilla equations, made impossible to divide by 0
@@ -48,7 +73,7 @@ public abstract class PredictionEngine {
         return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
-    public static Vector getBestPossiblePlayerInput(boolean isSneaking, Vector theoreticalInput) {
+    /*public static Vector getBestPossiblePlayerInput(boolean isSneaking, Vector theoreticalInput) {
         double bestPossibleX;
         double bestPossibleZ;
 
@@ -65,9 +90,10 @@ public abstract class PredictionEngine {
         if (inputVector.lengthSquared() > 1) inputVector.normalize();
 
         return inputVector;
-    }
+    }*/
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
+    // We need it because of collision support when a player is using speed
     public static Vector getMovementResultFromInput(Vector inputVector, float f, float f2) {
         float f3 = Mth.sin(f2 * 0.017453292f);
         float f4 = Mth.cos(f2 * 0.017453292f);
