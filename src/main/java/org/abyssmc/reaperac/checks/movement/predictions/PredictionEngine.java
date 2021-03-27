@@ -31,7 +31,6 @@ public abstract class PredictionEngine {
 
             double resultAccuracy = possibleInputVelocityResult.distanceSquared(grimPlayer.actualMovement);
 
-            //Bukkit.broadcastMessage("Accuracy for " + possibleInputVelocityResult + " " + resultAccuracy);
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
                 grimPlayer.bestOutput = possibleLastTickOutput;
@@ -43,9 +42,9 @@ public abstract class PredictionEngine {
             }
         }
 
+        grimPlayer.predictedVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.predictedVelocity);
         grimPlayer.clientVelocity = grimPlayer.predictedVelocity.clone();
-        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
-        grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
+        endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 
     public void addJumpIfNeeded(GrimPlayer grimPlayer) {
@@ -77,6 +76,17 @@ public abstract class PredictionEngine {
         return vector;
     }
 
+    // These math equations are based off of the vanilla equations, made impossible to divide by 0
+    public static Vector getBestTheoreticalPlayerInput(Vector wantedMovement, float f, float f2) {
+        float f3 = Mth.sin(f2 * 0.017453292f);
+        float f4 = Mth.cos(f2 * 0.017453292f);
+
+        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
+        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
+
+        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
+    }
+
     /*public static Vector getBestPossiblePlayerInput(boolean isSneaking, Vector theoreticalInput) {
         double bestPossibleX;
         double bestPossibleZ;
@@ -95,17 +105,6 @@ public abstract class PredictionEngine {
 
         return inputVector;
     }*/
-
-    // These math equations are based off of the vanilla equations, made impossible to divide by 0
-    public static Vector getBestTheoreticalPlayerInput(Vector wantedMovement, float f, float f2) {
-        float f3 = Mth.sin(f2 * 0.017453292f);
-        float f4 = Mth.cos(f2 * 0.017453292f);
-
-        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
-        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
-
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
-    }
 
     public static Vector getBestPossiblePlayerInput(GrimPlayer grimPlayer, Vector theoreticalInput) {
         float bestPossibleX;
@@ -137,5 +136,9 @@ public abstract class PredictionEngine {
         double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
 
         return new Vector(xResult * f, 0, zResult * f);
+    }
+
+    public void endOfTick(GrimPlayer grimPlayer, double d, float f6) {
+
     }
 }

@@ -28,6 +28,9 @@ public class GrimPlayer {
     public Player bukkitPlayer;
     public EntityPlayer entityPlayer;
 
+    public double gravity;
+    public float friction;
+
     // Set from packet
     public double x;
     public double y;

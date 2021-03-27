@@ -232,15 +232,10 @@ public class MovementVelocityCheck implements Listener {
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
+                grimPlayer.gravity = d;
+                grimPlayer.friction = f6;
 
                 new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
-
-                grimPlayer.clientVelocityOnLadder = null;
-                if (grimPlayer.lastClimbing) {
-                    grimPlayer.clientVelocityOnLadder = endOfTickRegularMovement(grimPlayer, grimPlayer.clientVelocity.clone().setY(0.2), d, f6);
-                }
-
-                grimPlayer.clientVelocity = endOfTickRegularMovement(grimPlayer, grimPlayer.clientVelocity, d, f6);
             }
         }
     }
@@ -309,24 +304,5 @@ public class MovementVelocityCheck implements Listener {
             return new Vector(vec3.getX(), d2, vec3.getZ());
         }
         return vec3;
-    }
-
-    public Vector endOfTickRegularMovement(GrimPlayer grimPlayer, Vector vector, double d, float f6) {
-        vector = move(grimPlayer, MoverType.SELF, vector);
-
-        // Okay, this seems to just be gravity stuff
-        double d9 = vector.getY();
-        if (bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
-            d9 += (0.05 * (double) (bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - grimPlayer.clientVelocity.getY()) * 0.2;
-            //this.fallDistance = 0.0f;
-        } else if (bukkitPlayer.getLocation().isChunkLoaded()) {
-            if (bukkitPlayer.hasGravity()) {
-                d9 -= d;
-            }
-        } else {
-            d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
-        }
-
-        return new Vector(vector.getX() * (double) f6, d9 * 0.9800000190734863, vector.getZ() * (double) f6);
     }
 }
