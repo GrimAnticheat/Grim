@@ -4,6 +4,7 @@ import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -31,33 +32,28 @@ public class PredictionEngineNormal extends PredictionEngine {
             grimPlayer.clientVelocityOnLadder = grimPlayer.clientVelocity.clone().setY(0.2);
         }
 
-        //Vector vector = grimPlayer.clientVelocity;
+        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+            Vector temp = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
 
-        //for (Vector vector : Collections.singletonList(grimPlayer.clientVelocity)) {
-        //Bukkit.broadcastMessage("Vector (old) " + grimPlayer.clientVelocity);
-
-        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
-
-        // Okay, this seems to just be gravity stuff
-        double d9 = grimPlayer.clientVelocity.getY();
-        if (grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
-            d9 += (0.05 * (double) (grimPlayer.bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - grimPlayer.clientVelocity.getY()) * 0.2;
-            //this.fallDistance = 0.0f;
-        } else if (grimPlayer.bukkitPlayer.getLocation().isChunkLoaded()) {
-            if (grimPlayer.bukkitPlayer.hasGravity()) {
-                d9 -= d;
+            // Okay, this seems to just be gravity stuff
+            double d9 = temp.getY();
+            if (grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
+                d9 += (0.05 * (double) (grimPlayer.bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - temp.getY()) * 0.2;
+            } else if (grimPlayer.bukkitPlayer.getLocation().isChunkLoaded()) {
+                if (grimPlayer.bukkitPlayer.hasGravity()) {
+                    d9 -= d;
+                }
+            } else {
+                d9 = temp.getY() > 0.0 ? -0.1 : 0.0;
             }
-        } else {
-            d9 = grimPlayer.clientVelocity.getY() > 0.0 ? -0.1 : 0.0;
+
+            vector.setX(temp.getX() * f6);
+            vector.setY(d9 * 0.9800000190734863);
+            vector.setZ(temp.getZ() * f6);
         }
 
-        grimPlayer.clientVelocity.setX(grimPlayer.clientVelocity.getX() * f6);
-        grimPlayer.clientVelocity.setY(d9 * 0.9800000190734863);
-        grimPlayer.clientVelocity.setZ(grimPlayer.clientVelocity.getZ() * f6);
-        //}
-
-        //for (Vector vector : Collections.singletonList(grimPlayer.clientVelocity)) {
-        //Bukkit.broadcastMessage("Vector (new) " + grimPlayer.clientVelocity);
-        //}
+        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+            Bukkit.broadcastMessage("Vector (new) " + vector);
+        }
     }
 }

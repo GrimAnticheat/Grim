@@ -6,8 +6,9 @@ import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.MobEffects;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.ReaperAC;
-import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineFluid;
+import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineLava;
 import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineNormal;
+import org.abyssmc.reaperac.checks.movement.predictions.PredictionEngineWater;
 import org.abyssmc.reaperac.events.anticheat.PlayerBaseTick;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
@@ -149,7 +150,6 @@ public class MovementVelocityCheck implements Listener {
         float f;
         float f2;
         if (entityPlayer.isInWater() && !grimPlayer.entityPlayer.abilities.isFlying) {
-            d1 = entityPlayer.locY();
             // 0.8F seems hardcoded in
             f = entityPlayer.isSprinting() ? 0.9F : 0.8F;
             float f1 = 0.02F;
@@ -171,20 +171,20 @@ public class MovementVelocityCheck implements Listener {
                 f = 0.96F;
             }
 
-            new PredictionEngineFluid().guessBestMovement(f1, grimPlayer);
+            new PredictionEngineWater().guessBestMovement(f1, grimPlayer, bl, d, f, d1);
 
-            grimPlayer.clientVelocityOnLadder = null;
+            /*grimPlayer.clientVelocityOnLadder = null;
             if (grimPlayer.lastClimbing) {
                 grimPlayer.clientVelocityOnLadder = endOfTickWaterMovement(grimPlayer.clientVelocity.clone().setY(0.2), bl, d, f, d1);
             }
 
-            grimPlayer.clientVelocity = endOfTickWaterMovement(grimPlayer.clientVelocity, bl, d, f, d1);
+            grimPlayer.clientVelocity = endOfTickWaterMovement(grimPlayer.clientVelocity, bl, d, f, d1);*/
 
         } else {
             if (entityPlayer.aQ() && !grimPlayer.entityPlayer.abilities.isFlying) { // aQ -> isInLava()
                 d1 = grimPlayer.y;
 
-                new PredictionEngineFluid().guessBestMovement(0.02F, grimPlayer);
+                new PredictionEngineLava().guessBestMovement(0.02F, grimPlayer);
 
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
@@ -238,17 +238,6 @@ public class MovementVelocityCheck implements Listener {
                 new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
             }
         }
-    }
-
-    public Vector endOfTickWaterMovement(Vector vector, boolean bl, double d, float f, double d1) {
-        vector = vector.multiply(new Vector(f, 0.8F, f));
-        vector = getFluidFallingAdjustedMovement(d, bl, vector);
-
-        if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.e(vector.getX(), vector.getY() + 0.6D - vector.getY() + d1, vector.getZ())) {
-            vector.setY(0.3F);
-        }
-
-        return vector;
     }
 
     // Entity line 527
