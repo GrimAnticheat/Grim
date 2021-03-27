@@ -33,7 +33,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         }
 
         for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-            Vector temp = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
+            Vector temp = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, vector);
 
             // Okay, this seems to just be gravity stuff
             double d9 = temp.getY();
