@@ -16,6 +16,7 @@ import org.abyssmc.reaperac.utils.math.MovementVectorsCalc;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.BlockProperties;
 import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
+import org.abyssmc.reaperac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -135,24 +136,25 @@ public class MovementVelocityCheck implements Listener {
 
     // LivingEntity line 1741
     public void livingEntityTravel() {
-        double d = 0.08;
+        double playerGravity = 0.08;
 
         // TODO: Stop being lazy and rename these variables to be descriptive
-        boolean bl = grimPlayer.clientVelocity.getY() <= 0.0;
-        if (bl && grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
-            d = 0.01;
+        boolean isFalling = grimPlayer.clientVelocity.getY() <= 0.0;
+        if (isFalling && grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
+            playerGravity = 0.01;
             //this.fallDistance = 0.0f;
         }
 
         EntityPlayer entityPlayer = grimPlayer.entityPlayer;
 
-        double d1;
-        float f;
+        double lastY;
+        float swimFriction;
         float f2;
         if (entityPlayer.isInWater() && !grimPlayer.entityPlayer.abilities.isFlying) {
             // 0.8F seems hardcoded in
-            f = entityPlayer.isSprinting() ? 0.9F : 0.8F;
-            float f1 = 0.02F;
+            lastY = grimPlayer.lastY;
+            swimFriction = entityPlayer.isSprinting() ? 0.9F : 0.8F;
+            float swimSpeed = 0.02F;
             f2 = (float) EnchantmentManager.e(entityPlayer);
             if (f2 > 3.0F) {
                 f2 = 3.0F;
@@ -163,15 +165,15 @@ public class MovementVelocityCheck implements Listener {
             }
 
             if (f2 > 0.0F) {
-                f += (0.54600006F - f) * f2 / 3.0F;
-                f1 += (entityPlayer.dN() - f1) * f2 / 3.0F;
+                swimFriction += (0.54600006F - swimFriction) * f2 / 3.0F;
+                swimSpeed += (entityPlayer.dN() - swimSpeed) * f2 / 3.0F;
             }
 
             if (entityPlayer.hasEffect(MobEffects.DOLPHINS_GRACE)) {
-                f = 0.96F;
+                swimFriction = 0.96F;
             }
 
-            new PredictionEngineWater().guessBestMovement(f1, grimPlayer, bl, d, f, d1);
+            new PredictionEngineWater().guessBestMovement(swimSpeed, grimPlayer, isFalling, playerGravity, swimFriction, lastY);
 
             /*grimPlayer.clientVelocityOnLadder = null;
             if (grimPlayer.lastClimbing) {
@@ -182,42 +184,42 @@ public class MovementVelocityCheck implements Listener {
 
         } else {
             if (entityPlayer.aQ() && !grimPlayer.entityPlayer.abilities.isFlying) { // aQ -> isInLava()
-                d1 = grimPlayer.y;
+                lastY = grimPlayer.lastY;
 
                 new PredictionEngineLava().guessBestMovement(0.02F, grimPlayer);
 
                 if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
-                    grimPlayer.clientVelocity = getFluidFallingAdjustedMovement(d, bl, grimPlayer.clientVelocity);
+                    grimPlayer.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, grimPlayer.clientVelocity);
                 } else {
                     grimPlayer.clientVelocity.multiply(0.5D);
                 }
 
                 if (grimPlayer.bukkitPlayer.hasGravity()) {
-                    grimPlayer.clientVelocity.add(new Vector(0.0D, -d / 4.0D, 0.0D));
+                    grimPlayer.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
                 }
 
-                if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.y + d1, grimPlayer.clientVelocity.getZ())) {
+                if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.y + lastY, grimPlayer.clientVelocity.getZ())) {
                     grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ());
                 }
 
             } else if (bukkitPlayer.isGliding()) {
                 Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
-                f = grimPlayer.yRot * 0.017453292F;
+                swimFriction = grimPlayer.yRot * 0.017453292F;
                 double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
                 double d3 = grimPlayer.clientVelocity.clone().setY(0).length();
                 double d4 = lookVector.length();
-                float f3 = MathHelper.cos(f);
+                float f3 = MathHelper.cos(swimFriction);
                 f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
-                grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(0.0D, d * (-1.0D + (double) f3 * 0.75D), 0.0D));
+                grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(0.0D, playerGravity * (-1.0D + (double) f3 * 0.75D), 0.0D));
                 double d5;
                 if (grimPlayer.clientVelocity.getY() < 0.0D && d2 > 0.0D) {
                     d5 = grimPlayer.clientVelocity.getY() * -0.1D * (double) f3;
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(lookVector.getX() * d5 / d2, d5, lookVector.getZ() * d5 / d2));
                 }
 
-                if (f < 0.0F && d2 > 0.0D) {
-                    d5 = d3 * (double) (-MathHelper.sin(f)) * 0.04D;
+                if (swimFriction < 0.0F && d2 > 0.0D) {
+                    d5 = d3 * (double) (-MathHelper.sin(swimFriction)) * 0.04D;
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.add(new Vector(-lookVector.getX() * d5 / d2, d5 * 3.2D, -lookVector.getZ() * d5 / d2));
                 }
 
@@ -232,7 +234,7 @@ public class MovementVelocityCheck implements Listener {
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
-                grimPlayer.gravity = d;
+                grimPlayer.gravity = playerGravity;
                 grimPlayer.friction = f6;
 
                 new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
@@ -283,15 +285,5 @@ public class MovementVelocityCheck implements Listener {
         clonedClientVelocity.multiply(new Vector(f, 1.0, f));
 
         return clonedClientVelocity;
-    }
-
-    // LivingEntity line 1882
-    // I have no clue what this does, but it really doesn't matter.  It works.
-    public Vector getFluidFallingAdjustedMovement(double d, boolean bl, Vector vec3) {
-        if (grimPlayer.bukkitPlayer.hasGravity() && !grimPlayer.bukkitPlayer.isSprinting()) {
-            double d2 = bl && Math.abs(vec3.getY() - 0.005) >= 0.003 && Math.abs(vec3.getY() - d / 16.0) < 0.003 ? -0.003 : vec3.getY() - d / 16.0;
-            return new Vector(vec3.getX(), d2, vec3.getZ());
-        }
-        return vec3;
     }
 }

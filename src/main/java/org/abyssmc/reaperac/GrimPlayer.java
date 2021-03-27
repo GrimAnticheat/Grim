@@ -115,7 +115,7 @@ public class GrimPlayer {
         List<Vector> possibleMovements = new ArrayList<>();
         possibleMovements.add(clientVelocity);
 
-        if (clientVelocityJumping != null) {
+        /*if (clientVelocityJumping != null) {
             possibleMovements.add(clientVelocityJumping);
         }
 
@@ -126,7 +126,7 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null) {
             possibleMovements.add(clientVelocitySwimHop);
-        }
+        }*/
 
         return possibleMovements;
     }

@@ -6,6 +6,7 @@ import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -38,7 +39,7 @@ public abstract class PredictionEngine {
                 grimPlayer.possibleInput = possibleInput;
                 grimPlayer.predictedVelocity = possibleInputVelocityResult;
 
-                //Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
+                Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
             }
         }
 
@@ -138,7 +139,7 @@ public abstract class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    public void endOfTick(GrimPlayer grimPlayer, double d, float f6) {
+    public void endOfTick(GrimPlayer grimPlayer, double d, float friction) {
 
     }
 }

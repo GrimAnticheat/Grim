@@ -3,13 +3,29 @@ package org.abyssmc.reaperac.checks.movement.predictions;
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.utils.math.MovementVectorsCalc;
+import org.abyssmc.reaperac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PredictionEngineFluid extends PredictionEngine {
+public class PredictionEngineWater extends PredictionEngine {
+    boolean isFalling;
+    double playerGravity;
+    float swimmingSpeed;
+    float swimmingFriction;
+    double lastY;
+
+    public void guessBestMovement(float swimmingSpeed, GrimPlayer grimPlayer, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
+        this.isFalling = isFalling;
+        this.playerGravity = playerGravity;
+        this.swimmingSpeed = swimmingFriction;
+        this.swimmingFriction = swimmingFriction;
+        this.lastY = lastY;
+        super.guessBestMovement(swimmingSpeed, grimPlayer);
+    }
+
     @Override
     public void addJumpIfNeeded(GrimPlayer grimPlayer) {
         grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.04, 0));
@@ -40,5 +56,18 @@ public class PredictionEngineFluid extends PredictionEngine {
         }
 
         return velocities;
+    }
+
+    @Override
+    public void endOfTick(GrimPlayer grimPlayer, double playerGravity, float friction) {
+        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+            vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
+            // TODO: Why is it in the check class?
+            vector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, vector);
+
+            if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.e(vector.getX(), vector.getY() + 0.6D - vector.getY() + lastY, vector.getZ())) {
+                vector.setY(0.3F);
+            }
+        }
     }
 }

@@ -26,7 +26,7 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public void endOfTick(GrimPlayer grimPlayer, double d, float f6) {
+    public void endOfTick(GrimPlayer grimPlayer, double d, float friction) {
         grimPlayer.clientVelocityOnLadder = null;
         if (grimPlayer.lastClimbing) {
             grimPlayer.clientVelocityOnLadder = grimPlayer.clientVelocity.clone().setY(0.2);
@@ -47,9 +47,9 @@ public class PredictionEngineNormal extends PredictionEngine {
                 d9 = temp.getY() > 0.0 ? -0.1 : 0.0;
             }
 
-            vector.setX(temp.getX() * f6);
+            vector.setX(temp.getX() * friction);
             vector.setY(d9 * 0.9800000190734863);
-            vector.setZ(temp.getZ() * f6);
+            vector.setZ(temp.getZ() * friction);
         }
 
         for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
