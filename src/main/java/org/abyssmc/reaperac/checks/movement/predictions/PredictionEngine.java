@@ -28,8 +28,7 @@ public abstract class PredictionEngine {
 
             // This method clamps climbing velocity (as in vanilla), if needed.
             possibleLastTickOutput = handleOnClimbable(possibleLastTickOutput, grimPlayer);
-
-            Vector theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().subtract(possibleLastTickOutput), f, grimPlayer.xRot);
+            Vector theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().subtract(possibleLastTickOutput).divide(grimPlayer.stuckSpeedMultiplier), f, grimPlayer.xRot);
             Vector possibleInput = getBestPossiblePlayerInput(grimPlayer, theoreticalInput);
             Vector possibleInputVelocityResult = possibleLastTickOutput.clone().add(getMovementResultFromInput(possibleInput, f, grimPlayer.xRot));
 
@@ -40,7 +39,7 @@ public abstract class PredictionEngine {
                 grimPlayer.bestOutput = possibleLastTickOutput;
                 grimPlayer.theoreticalInput = theoreticalInput;
                 grimPlayer.possibleInput = possibleInput;
-                grimPlayer.predictedVelocity = possibleInputVelocityResult;
+                grimPlayer.predictedVelocity = possibleInputVelocityResult.multiply(grimPlayer.stuckSpeedMultiplier);
 
                 //Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
             }
@@ -53,24 +52,24 @@ public abstract class PredictionEngine {
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 
-    public static Vector getBestPossiblePlayerInput(GrimPlayer grimPlayer, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
+    public void addJumpIfNeeded(GrimPlayer grimPlayer) {
+        // TODO: Make sure the player is actually on the ground
+        // TODO: Add check to stop players from jumping more than once every 10 ticks
 
-        if (grimPlayer.isSneaking && !grimPlayer.bukkitPlayer.isSwimming() && !grimPlayer.bukkitPlayer.isFlying()) {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
-        } else {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
+        handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
+
+        double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
+        boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
+        double d8 = 0.4D;
+
+        if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+        } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+        } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+            grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
+            //this.noJumpDelay = 10;
         }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98);
-
-        if (inputVector.lengthSquared() > 1) inputVector.normalize();
-
-        return inputVector;
     }
 
     public List<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
@@ -111,24 +110,24 @@ public abstract class PredictionEngine {
         return inputVector;
     }*/
 
-    public void addJumpIfNeeded(GrimPlayer grimPlayer) {
-        // TODO: Make sure the player is actually on the ground
-        // TODO: Add check to stop players from jumping more than once every 10 ticks
+    public static Vector getBestPossiblePlayerInput(GrimPlayer grimPlayer, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
 
-        handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
-
-        double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
-        boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
-        double d8 = 0.4D;
-
-        if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
-            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-        } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
-            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-        } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-            grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
-            //this.noJumpDelay = 10;
+        if (grimPlayer.isSneaking && !grimPlayer.bukkitPlayer.isSwimming() && !grimPlayer.bukkitPlayer.isFlying()) {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
+        } else {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
         }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98);
+
+        if (inputVector.lengthSquared() > 1) inputVector.normalize();
+
+        return inputVector;
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1

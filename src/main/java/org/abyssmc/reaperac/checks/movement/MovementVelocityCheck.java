@@ -39,7 +39,21 @@ public class MovementVelocityCheck implements Listener {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
+        Vector stuckSpeedMultiplier = Collisions.getStuckMultiplier(grimPlayer);
+
+        if (stuckSpeedMultiplier.getX() < 0.99) {
+            vec3 = vec3.multiply(stuckSpeedMultiplier);
+            grimPlayer.baseTickSetX(0);
+            grimPlayer.baseTickSetY(0);
+            grimPlayer.baseTickSetZ(0);
+        }
+
         Vector clonedClientVelocity = Collisions.collide(Collisions.maybeBackOffFromEdge(vec3, moverType, grimPlayer), grimPlayer);
+
+        if (stuckSpeedMultiplier.getX() < 0.99) {
+            vec3 = vec3.multiply(stuckSpeedMultiplier);
+            clonedClientVelocity = new Vector();
+        }
 
         grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
         grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();

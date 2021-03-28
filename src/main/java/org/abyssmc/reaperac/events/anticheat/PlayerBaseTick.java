@@ -4,6 +4,7 @@ import net.minecraft.server.v1_16_R3.*;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.CheckIfChunksLoaded;
+import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
@@ -46,6 +47,8 @@ public class PlayerBaseTick {
 
         // TODO: Swimming check
         //updateSwimming();
+        // Put stuck speed here so it is on the right tick
+        player.stuckSpeedMultiplier = Collisions.getStuckMultiplier(player);
     }
 
     // Entity line 937

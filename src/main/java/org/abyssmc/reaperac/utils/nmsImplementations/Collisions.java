@@ -3,6 +3,7 @@ package org.abyssmc.reaperac.utils.nmsImplementations;
 import net.minecraft.server.v1_16_R3.*;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.utils.enums.MoverType;
+import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
@@ -94,8 +95,51 @@ public class Collisions {
         return new Vec3D(d0, d1, d2);
     }
 
+    public static Vec3D collideBoundingBoxLegacy(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<VoxelShape> streamaccumulator) {
+        double d0 = vec3d.x;
+        double d1 = vec3d.y;
+        double d2 = vec3d.z;
+        if (d1 != 0.0D) {
+            d1 = a(EnumDirection.EnumAxis.Y, axisalignedbb, streamaccumulator.a(), d1);
+            if (d1 != 0.0D) {
+                axisalignedbb = axisalignedbb.d(0.0D, d1, 0.0D);
+            }
+        }
+
+        boolean flag = Math.abs(d0) < Math.abs(d2);
+        if (flag && d2 != 0.0D) {
+            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
+            if (d2 != 0.0D) {
+                axisalignedbb = axisalignedbb.d(0.0D, 0.0D, d2);
+            }
+        }
+
+        if (d0 != 0.0D) {
+            d0 = a(EnumDirection.EnumAxis.X, axisalignedbb, streamaccumulator.a(), d0);
+            if (!flag && d0 != 0.0D) {
+                axisalignedbb = axisalignedbb.d(d0, 0.0D, 0.0D);
+            }
+        }
+
+        if (!flag && d2 != 0.0D) {
+            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
+        }
+
+        return new Vec3D(d0, d1, d2);
+    }
+
     public static double a(EnumDirection.EnumAxis var0, AxisAlignedBB var1, IWorldReader var2, double var3, VoxelShapeCollision var5, Stream<VoxelShape> var6) {
         return a(var1, var2, var3, var5, EnumAxisCycle.a(var0, EnumDirection.EnumAxis.Z), var6);
+    }
+
+    public static double a(EnumDirection.EnumAxis var0, AxisAlignedBB var1, Stream<VoxelShape> var2, double var3) {
+        for (Iterator var5 = var2.iterator(); var5.hasNext(); var3 = ((VoxelShape) var5.next()).a(var0, var1, var3)) {
+            if (Math.abs(var3) < 1.0E-7D) {
+                return 0.0D;
+            }
+        }
+
+        return var3;
     }
 
     private static double a(AxisAlignedBB var0, IWorldReader var1, double var2, VoxelShapeCollision var4, EnumAxisCycle var5, Stream<VoxelShape> var6) {
@@ -175,49 +219,6 @@ public class Collisions {
         return var0 > 0.0D ? MathHelper.floor(var4 + var0) + 1 : MathHelper.floor(var2 + var0) - 1;
     }
 
-    public static Vec3D collideBoundingBoxLegacy(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<VoxelShape> streamaccumulator) {
-        double d0 = vec3d.x;
-        double d1 = vec3d.y;
-        double d2 = vec3d.z;
-        if (d1 != 0.0D) {
-            d1 = a(EnumDirection.EnumAxis.Y, axisalignedbb, streamaccumulator.a(), d1);
-            if (d1 != 0.0D) {
-                axisalignedbb = axisalignedbb.d(0.0D, d1, 0.0D);
-            }
-        }
-
-        boolean flag = Math.abs(d0) < Math.abs(d2);
-        if (flag && d2 != 0.0D) {
-            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
-            if (d2 != 0.0D) {
-                axisalignedbb = axisalignedbb.d(0.0D, 0.0D, d2);
-            }
-        }
-
-        if (d0 != 0.0D) {
-            d0 = a(EnumDirection.EnumAxis.X, axisalignedbb, streamaccumulator.a(), d0);
-            if (!flag && d0 != 0.0D) {
-                axisalignedbb = axisalignedbb.d(d0, 0.0D, 0.0D);
-            }
-        }
-
-        if (!flag && d2 != 0.0D) {
-            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
-        }
-
-        return new Vec3D(d0, d1, d2);
-    }
-
-    public static double a(EnumDirection.EnumAxis var0, AxisAlignedBB var1, Stream<VoxelShape> var2, double var3) {
-        for (Iterator var5 = var2.iterator(); var5.hasNext(); var3 = ((VoxelShape) var5.next()).a(var0, var1, var3)) {
-            if (Math.abs(var3) < 1.0E-7D) {
-                return 0.0D;
-            }
-        }
-
-        return var3;
-    }
-
     // MCP mappings PlayerEntity 959
     // Mojang mappings 911
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
@@ -273,5 +274,36 @@ public class Collisions {
 
         return grimPlayer.lastOnGround || bukkitPlayer.getFallDistance() < Collisions.maxUpStep && !
                 ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
+    }
+
+
+    public static Vector getStuckMultiplier(GrimPlayer grimPlayer) {
+        org.bukkit.World world = grimPlayer.bukkitPlayer.getWorld();
+
+        AxisAlignedBB aABB = grimPlayer.entityPlayer.getBoundingBox();
+        Location blockPos = new Location(world, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
+        Location blockPos2 = new Location(world, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
+
+        Vector multiplier = new Vector(1, 1, 1);
+
+        if (CheckIfChunksLoaded.hasChunksAt(grimPlayer.bukkitPlayer.getWorld(), blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ())) {
+            for (int i = blockPos.getBlockX(); i <= blockPos2.getX(); ++i) {
+                for (int j = blockPos.getBlockY(); j <= blockPos2.getY(); ++j) {
+                    for (int k = blockPos.getBlockZ(); k <= blockPos2.getZ(); ++k) {
+                        org.bukkit.block.Block block = world.getBlockAt(i, j, k);
+
+                        if (block.getType() == org.bukkit.Material.COBWEB) {
+                            multiplier = new Vector(0.25, 0.05000000074505806, 0.25);
+                        }
+
+                        if (block.getType() == org.bukkit.Material.SWEET_BERRY_BUSH) {
+                            multiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
+                        }
+                    }
+                }
+            }
+        }
+
+        return multiplier;
     }
 }

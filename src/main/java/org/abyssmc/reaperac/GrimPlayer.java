@@ -19,12 +19,12 @@ public class GrimPlayer {
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
     public Vector clientVelocityJumping = new Vector();
-    public List<Vector> clientVelocitySwimmingUpwards = new ArrayList<>();
 
     public Vector predictedVelocity = new Vector();
     public Vector lastActualMovement = new Vector();
     public Vector actualMovement = new Vector();
     public Vector actualMovementCalculatedCollision = new Vector();
+    public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
     public Player bukkitPlayer;
     public EntityPlayer entityPlayer;
 
