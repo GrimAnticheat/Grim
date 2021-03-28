@@ -6,6 +6,7 @@ import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
+import org.abyssmc.reaperac.utils.nmsImplementations.Collisions;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
 import org.bukkit.util.Vector;
 
@@ -45,8 +46,10 @@ public abstract class PredictionEngine {
             }
         }
 
-        grimPlayer.predictedVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.predictedVelocity);
-        grimPlayer.clientVelocity = grimPlayer.predictedVelocity.clone();
+        // We need a temp variable because passing collided velocity into movement messes with landing on blocks
+        Vector temp = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.predictedVelocity, MoverType.SELF, grimPlayer), grimPlayer);
+        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.predictedVelocity);
+        grimPlayer.predictedVelocity = temp;
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 

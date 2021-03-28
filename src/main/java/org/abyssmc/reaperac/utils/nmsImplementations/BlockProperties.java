@@ -44,10 +44,9 @@ public class BlockProperties {
 
     // Entity line 617
     // Heavily simplified (wtf was that original code mojang)
-    public static Block getOnBlock(GrimPlayer grimPlayer) {
-        Location last = grimPlayer.lastTickPosition;
-        Block block1 = last.getWorld().getBlockAt(last.getBlockX(), (int) (last.getY() - 0.2F), last.getBlockZ());
-        Block block2 = last.getWorld().getBlockAt(last.getBlockX(), (int) (last.getY() - 1.2F), last.getBlockZ());
+    public static Block getOnBlock(Location getBlockLocation) {
+        Block block1 = getBlockLocation.getWorld().getBlockAt(getBlockLocation.getBlockX(), (int) (getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
+        Block block2 = getBlockLocation.getWorld().getBlockAt(getBlockLocation.getBlockX(), (int) (getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
 
         if (block2.getType().isAir()) {
             if (block2 instanceof Fence || block2 instanceof Wall || block2 instanceof Gate) {
