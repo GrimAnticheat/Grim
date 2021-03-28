@@ -4,7 +4,6 @@ import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -50,10 +49,6 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setX(temp.getX() * friction);
             vector.setY(d9 * 0.9800000190734863);
             vector.setZ(temp.getZ() * friction);
-        }
-
-        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-            Bukkit.broadcastMessage("Vector (new) " + vector);
         }
     }
 }

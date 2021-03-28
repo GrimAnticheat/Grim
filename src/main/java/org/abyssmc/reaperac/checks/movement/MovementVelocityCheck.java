@@ -150,7 +150,8 @@ public class MovementVelocityCheck implements Listener {
         double lastY;
         float swimFriction;
         float f2;
-        if (entityPlayer.isInWater() && !grimPlayer.entityPlayer.abilities.isFlying) {
+
+        if (grimPlayer.wasTouchingWater && !grimPlayer.entityPlayer.abilities.isFlying) {
             // 0.8F seems hardcoded in
             lastY = grimPlayer.lastY;
             swimFriction = entityPlayer.isSprinting() ? 0.9F : 0.8F;
@@ -183,7 +184,7 @@ public class MovementVelocityCheck implements Listener {
             grimPlayer.clientVelocity = endOfTickWaterMovement(grimPlayer.clientVelocity, bl, d, f, d1);*/
 
         } else {
-            if (entityPlayer.aQ() && !grimPlayer.entityPlayer.abilities.isFlying) { // aQ -> isInLava()
+            if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && !grimPlayer.entityPlayer.abilities.isFlying) {
                 lastY = grimPlayer.lastY;
 
                 new PredictionEngineLava().guessBestMovement(0.02F, grimPlayer);

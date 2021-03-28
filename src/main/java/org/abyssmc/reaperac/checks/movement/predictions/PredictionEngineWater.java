@@ -62,12 +62,10 @@ public class PredictionEngineWater extends PredictionEngine {
     public void endOfTick(GrimPlayer grimPlayer, double playerGravity, float friction) {
         for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
             vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
-            // TODO: Why is it in the check class?
-            vector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, vector);
-
-            if (grimPlayer.horizontalCollision && grimPlayer.entityPlayer.e(vector.getX(), vector.getY() + 0.6D - vector.getY() + lastY, vector.getZ())) {
-                vector.setY(0.3F);
-            }
+            Vector fluidVector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, vector);
+            vector.setX(fluidVector.getX());
+            vector.setY(fluidVector.getY());
+            vector.setZ(fluidVector.getZ());
         }
     }
 }

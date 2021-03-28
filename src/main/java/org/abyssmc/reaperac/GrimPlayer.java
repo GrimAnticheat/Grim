@@ -115,10 +115,9 @@ public class GrimPlayer {
         List<Vector> possibleMovements = new ArrayList<>();
         possibleMovements.add(clientVelocity);
 
-        /*if (clientVelocityJumping != null) {
+        if (clientVelocityJumping != null) {
             possibleMovements.add(clientVelocityJumping);
         }
-
 
         if (clientVelocityOnLadder != null) {
             possibleMovements.add(clientVelocityOnLadder);
@@ -126,7 +125,7 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null) {
             possibleMovements.add(clientVelocitySwimHop);
-        }*/
+        }
 
         return possibleMovements;
     }
@@ -172,13 +171,13 @@ public class GrimPlayer {
     }
 
     public void baseTickMultiplyY(double y) {
-        clientVelocity.multiply(new Vector(0, y, 0));
+        clientVelocity.multiply(new Vector(1, y, 1));
 
         if (clientVelocityOnLadder != null)
-            clientVelocityOnLadder.multiply(new Vector(0, y, 0));
+            clientVelocityOnLadder.multiply(new Vector(1, y, 1));
 
         if (clientVelocitySwimHop != null)
-            clientVelocitySwimHop.multiply(new Vector(0, y, 0));
+            clientVelocitySwimHop.multiply(new Vector(1, y, 1));
     }
 
 

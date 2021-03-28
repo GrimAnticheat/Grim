@@ -1,12 +1,12 @@
 package org.abyssmc.reaperac.checks.movement.predictions;
 
+import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.abyssmc.reaperac.checks.movement.MovementVelocityCheck;
 import org.abyssmc.reaperac.utils.enums.FluidTag;
 import org.abyssmc.reaperac.utils.enums.MoverType;
 import org.abyssmc.reaperac.utils.math.Mth;
 import org.abyssmc.reaperac.utils.nmsImplementations.JumpPower;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -23,6 +23,8 @@ public abstract class PredictionEngine {
         addJumpIfNeeded(grimPlayer);
 
         for (Vector possibleLastTickOutput : fetchPossibleInputs(grimPlayer)) {
+            //Bukkit.broadcastMessage("Possible out " + possibleLastTickOutput);
+
             // This method clamps climbing velocity (as in vanilla), if needed.
             possibleLastTickOutput = handleOnClimbable(possibleLastTickOutput, grimPlayer);
 
@@ -39,7 +41,7 @@ public abstract class PredictionEngine {
                 grimPlayer.possibleInput = possibleInput;
                 grimPlayer.predictedVelocity = possibleInputVelocityResult;
 
-                Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
+                //Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
             }
         }
 
@@ -51,6 +53,9 @@ public abstract class PredictionEngine {
     public void addJumpIfNeeded(GrimPlayer grimPlayer) {
         // TODO: Make sure the player is actually on the ground
         // TODO: Add check to stop players from jumping more than once every 10 ticks
+
+        handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
+
         double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
         boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
         double d8 = 0.4D;
@@ -141,5 +146,29 @@ public abstract class PredictionEngine {
 
     public void endOfTick(GrimPlayer grimPlayer, double d, float friction) {
 
+    }
+
+    private void handleSwimJump(GrimPlayer grimPlayer, Vector vector) {
+        if (grimPlayer.possibleKnockback.contains(vector)) return;
+
+        AxisAlignedBB isByLiquid = grimPlayer.entityPlayer.getBoundingBox().grow(0.1, 0, 0.1);
+
+        boolean bl = grimPlayer.entityPlayer.world.getCubes(grimPlayer.entityPlayer, grimPlayer.entityPlayer.getBoundingBox().shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
+        boolean bl2 = !grimPlayer.entityPlayer.world.getCubes(grimPlayer.entityPlayer, isByLiquid);
+        boolean bl3 = grimPlayer.entityPlayer.world.containsLiquid(isByLiquid);
+
+        // Vanilla system ->
+        // Requirement 1 - The player must be in water or lava
+        // Requirement 2 - The player must have X movement, Y movement + 0.6, Z movement no collision
+        // Requirement 3 - The player must have horizontal collision
+
+        // Our system ->
+        // Requirement 1 - The player must be within 0.1 blocks of water or lava (which is why this is base and not PredictionEngineWater/Lava)
+        // Requirement 2 - The player must have their bounding box plus X movement, Y movement + 0.6, Z movement minus 0.1 blocks have no collision
+        // Requirement 3 - The player must have something to collide with within 0.1 blocks
+
+        if (bl && bl2 && bl3) {
+            grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY(0.3);
+        }
     }
 }
