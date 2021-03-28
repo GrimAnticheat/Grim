@@ -23,9 +23,17 @@ public class PlayerBaseTick {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
-        if (player.entityPlayer.abilities.isFlying && player.isSneaking) {
+        // Let shifting and holding space not be a false positive by allowing sneaking to override this
+        // TODO: Do we have to apply this to other velocities
+        if (player.bukkitPlayer.isFlying()) {
+            player.clientVelocityJumping = player.clientVelocity.clone().add(new Vector(0, player.entityPlayer.abilities.flySpeed * 3, 0));
+        }
+
+        // TODO: Does this affect knockback?
+        if (player.bukkitPlayer.isFlying() && player.isSneaking) {
             player.baseTickAddVector(new Vector(0, player.entityPlayer.abilities.flySpeed * -3, 0));
         }
+
 
         updateInWaterStateAndDoFluidPushing();
         updateFluidOnEyes();
@@ -120,14 +128,6 @@ public class PlayerBaseTick {
         }
     }
 
-    private boolean suffocatesAt(BlockPosition blockPos2) {
-        AxisAlignedBB aABB = player.entityPlayer.getBoundingBox();
-        AxisAlignedBB aABB2 = new AxisAlignedBB(blockPos2.getX(), aABB.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, aABB.maxY, blockPos2.getZ() + 1.0).grow(-1.0E-7, -1.0E-7, -1.0E-7);
-        // It looks like the method it usually calls is gone from the server?
-        // So we have to just do the allMatch ourselves.
-        return !((CraftWorld) player.bukkitPlayer.getWorld()).getHandle().b(player.entityPlayer, aABB2, (blockState, blockPos) -> blockState.o(player.entityPlayer.getWorld(), blockPos)).allMatch(VoxelShape::isEmpty);
-    }
-
     // TODO: Idk if this is right
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
         BoundingBox aABB = player.bukkitPlayer.getBoundingBox().expand(-0.001);
@@ -181,5 +181,13 @@ public class PlayerBaseTick {
         }
         player.fluidHeight.put(tag, d2);
         return bl2;
+    }
+
+    private boolean suffocatesAt(BlockPosition blockPos2) {
+        AxisAlignedBB aABB = player.entityPlayer.getBoundingBox();
+        AxisAlignedBB aABB2 = new AxisAlignedBB(blockPos2.getX(), aABB.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, aABB.maxY, blockPos2.getZ() + 1.0).grow(-1.0E-7, -1.0E-7, -1.0E-7);
+        // It looks like the method it usually calls is gone from the server?
+        // So we have to just do the allMatch ourselves.
+        return !((CraftWorld) player.bukkitPlayer.getWorld()).getHandle().b(player.entityPlayer, aABB2, (blockState, blockPos) -> blockState.o(player.entityPlayer.getWorld(), blockPos)).allMatch(VoxelShape::isEmpty);
     }
 }

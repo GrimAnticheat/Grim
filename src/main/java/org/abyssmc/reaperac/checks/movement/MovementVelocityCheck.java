@@ -112,15 +112,25 @@ public class MovementVelocityCheck implements Listener {
     // Player line 1208
     public void playerEntityTravel() {
         grimPlayer.clientVelocitySwimHop = null;
-        grimPlayer.clientVelocityJumping = null;
 
-        if (grimPlayer.entityPlayer.abilities.isFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
+        if (grimPlayer.bukkitPlayer.isFlying() && grimPlayer.bukkitPlayer.getVehicle() == null) {
             double oldY = grimPlayer.clientVelocity.getY();
+            double oldYJumping = grimPlayer.clientVelocityJumping.getY();
             livingEntityTravel();
-            grimPlayer.baseTickSetY(oldY * 0.6);
+
+            if (Math.abs(oldY - grimPlayer.actualMovement.getY()) < (oldYJumping - grimPlayer.actualMovement.getY())) {
+                grimPlayer.baseTickSetY(oldY * 0.6);
+
+            } else {
+                grimPlayer.baseTickSetY(oldYJumping * 0.6);
+
+            }
+
         } else {
             livingEntityTravel();
         }
+
+        grimPlayer.clientVelocityJumping = null;
     }
 
     // LivingEntity line 1741
