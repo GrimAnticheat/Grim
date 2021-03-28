@@ -14,7 +14,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setZ(Mth.clamp(vector.getZ(), -0.15, 0.15));
             vector.setY(Math.max(vector.getY(), -0.15));
 
-            if (vector.getY() < 0.0 && !grimPlayer.bukkitPlayer.getWorld().getBlockAt(grimPlayer.bukkitPlayer.getLocation()).getType().equals(Material.SCAFFOLDING) && grimPlayer.bukkitPlayer.isSneaking()) {
+            if (vector.getY() < 0.0 && !grimPlayer.bukkitPlayer.getWorld().getBlockAt(grimPlayer.bukkitPlayer.getLocation()).getType().equals(Material.SCAFFOLDING) && grimPlayer.bukkitPlayer.isSneaking() && !grimPlayer.bukkitPlayer.isFlying()) {
                 vector.setY(0.0);
             }
         }

@@ -53,28 +53,24 @@ public abstract class PredictionEngine {
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 
-    public void addJumpIfNeeded(GrimPlayer grimPlayer) {
-        // TODO: Make sure the player is actually on the ground
-        // TODO: Add check to stop players from jumping more than once every 10 ticks
+    public static Vector getBestPossiblePlayerInput(GrimPlayer grimPlayer, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
 
-        handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
-
-        double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
-        boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
-        double d8 = 0.4D;
-
-        if (grimPlayer.entityPlayer.abilities.isFlying) {
-            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+        if (grimPlayer.isSneaking && !grimPlayer.bukkitPlayer.isSwimming() && !grimPlayer.bukkitPlayer.isFlying()) {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
         } else {
-            if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
-                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-            } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
-                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-            } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-                grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
-                //this.noJumpDelay = 10;
-            }
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
         }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98);
+
+        if (inputVector.lengthSquared() > 1) inputVector.normalize();
+
+        return inputVector;
     }
 
     public List<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
@@ -115,24 +111,28 @@ public abstract class PredictionEngine {
         return inputVector;
     }*/
 
-    public static Vector getBestPossiblePlayerInput(GrimPlayer grimPlayer, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
+    public void addJumpIfNeeded(GrimPlayer grimPlayer) {
+        // TODO: Make sure the player is actually on the ground
+        // TODO: Add check to stop players from jumping more than once every 10 ticks
 
-        if (grimPlayer.isSneaking && !grimPlayer.bukkitPlayer.isSwimming() && !grimPlayer.entityPlayer.abilities.isFlying) {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
+        handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
+
+        double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
+        boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
+        double d8 = 0.4D;
+
+        if (grimPlayer.entityPlayer.abilities.isFlying) {
+            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.375, 0));
         } else {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
+            if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+            } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+            } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+                grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
+                //this.noJumpDelay = 10;
+            }
         }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98);
-
-        if (inputVector.lengthSquared() > 1) inputVector.normalize();
-
-        return inputVector;
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1

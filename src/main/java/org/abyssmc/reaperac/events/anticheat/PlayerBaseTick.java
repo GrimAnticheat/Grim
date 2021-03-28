@@ -19,7 +19,7 @@ public class PlayerBaseTick {
 
     public void doBaseTick() {
         // LocalPlayer:aiStep line 728
-        if (player.entityPlayer.isInWater() && player.bukkitPlayer.isSneaking()) {
+        if (player.entityPlayer.isInWater() && player.bukkitPlayer.isSneaking() && !player.bukkitPlayer.isFlying()) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
