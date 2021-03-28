@@ -57,12 +57,13 @@ public class MovementVelocityCheck implements Listener {
         // 0.5 blocks is a huge buffer but it nerfs the cheats "enough"
         // Use the player's new location for better accuracy
         if (grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement) < 0.5) {
-            getBlockLocation = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.x, grimPlayer.y, grimPlayer.z);
+            getBlockLocation = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.x, grimPlayer.y - 0.2F, grimPlayer.z);
         } else {
-            getBlockLocation = grimPlayer.bukkitPlayer.getLocation().add(grimPlayer.clientVelocity);
+            getBlockLocation = grimPlayer.bukkitPlayer.getLocation().add(grimPlayer.clientVelocity).subtract(0, 0.2, 0);
         }
 
         Block onBlock = BlockProperties.getOnBlock(getBlockLocation);
+
         if (vec3.getY() != clonedClientVelocity.getY()) {
             if (onBlock.getType() == org.bukkit.Material.SLIME_BLOCK) {
                 // TODO: Maybe lag compensate this (idk packet order)
@@ -70,12 +71,12 @@ public class MovementVelocityCheck implements Listener {
                     clonedClientVelocity.setY(0);
                 } else {
                     if (clonedClientVelocity.getY() < 0.0) {
-                        clonedClientVelocity.setY(-clonedClientVelocity.getY());
+                        clonedClientVelocity.setY(-vec3.getY());
                     }
                 }
             } else if (onBlock.getBlockData() instanceof Bed) {
                 if (clonedClientVelocity.getY() < 0.0) {
-                    clonedClientVelocity.setY(-grimPlayer.clientVelocity.getY() * 0.6600000262260437);
+                    clonedClientVelocity.setY(-vec3.getY() * 0.6600000262260437);
                 }
             } else {
                 clonedClientVelocity.setY(0);
