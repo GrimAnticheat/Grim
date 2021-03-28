@@ -39,7 +39,7 @@ public class MovementVelocityCheck implements Listener {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
-        Vector stuckSpeedMultiplier = Collisions.getStuckMultiplier(grimPlayer);
+        Vector stuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
 
         if (stuckSpeedMultiplier.getX() < 0.99) {
             vec3 = vec3.multiply(stuckSpeedMultiplier);

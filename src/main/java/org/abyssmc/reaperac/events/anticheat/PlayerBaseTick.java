@@ -35,7 +35,6 @@ public class PlayerBaseTick {
             player.baseTickAddVector(new Vector(0, player.entityPlayer.abilities.flySpeed * -3, 0));
         }
 
-
         updateInWaterStateAndDoFluidPushing();
         updateFluidOnEyes();
 
@@ -47,8 +46,13 @@ public class PlayerBaseTick {
 
         // TODO: Swimming check
         //updateSwimming();
+
         // Put stuck speed here so it is on the right tick
         player.stuckSpeedMultiplier = Collisions.getStuckMultiplier(player);
+        // Flying players are not affected by cobwebs/sweet berry bushes
+        if (player.bukkitPlayer.isFlying()) {
+            player.stuckSpeedMultiplier = new Vector(1, 1, 1);
+        }
     }
 
     // Entity line 937
