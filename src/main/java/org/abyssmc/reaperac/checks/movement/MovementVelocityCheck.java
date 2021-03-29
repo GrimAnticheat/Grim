@@ -218,7 +218,7 @@ public class MovementVelocityCheck implements Listener {
             } else if (bukkitPlayer.isGliding()) {
                 Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
                 Vector clientVelocity = grimPlayer.clientVelocity.clone();
-                Vector elytraVelocity = grimPlayer.clientVelocity.clone();
+                Vector elytraVelocity = null;
 
                 double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
 
@@ -226,24 +226,14 @@ public class MovementVelocityCheck implements Listener {
                     clientVelocity = getElytraMovement(clientVelocity);
                 }
 
-                // Under 11 means the firework might have ended (there's a bit of randomness)
-                if (grimPlayer.fireworkElytraDuration <= 11) {
-                    grimPlayer.currentlyUsingFirework = false;
+                if (grimPlayer.clientVelocityFireworkBoost != null) {
+                    elytraVelocity = getElytraMovement(grimPlayer.clientVelocityFireworkBoost);
                 }
 
-                if (grimPlayer.fireworkElytraDuration > 0) {
-                    elytraVelocity = grimPlayer.clientVelocity.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocity.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocity.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocity.getZ()) * 0.5)).multiply(new Vector(0.99F, 0.98F, 0.99F)));
 
-                    elytraVelocity = getElytraMovement(elytraVelocity);
-                }
-
-                Bukkit.broadcastMessage("Distance to elytra " + elytraVelocity.distanceSquared(grimPlayer.actualMovement));
-                Bukkit.broadcastMessage("Distance to client " + clientVelocity.distanceSquared(grimPlayer.actualMovement));
-
-                if (grimPlayer.currentlyUsingFirework || grimPlayer.fireworkElytraDuration > 0 && elytraVelocity.distanceSquared(grimPlayer.actualMovement) < clientVelocity.distanceSquared(grimPlayer.actualMovement)) {
+                if (elytraVelocity != null && (grimPlayer.currentlyUsingFirework || grimPlayer.fireworkElytraDuration > 0 && elytraVelocity.distanceSquared(grimPlayer.actualMovement) < clientVelocity.distanceSquared(grimPlayer.actualMovement))) {
                     grimPlayer.clientVelocity = elytraVelocity;
                     grimPlayer.currentlyUsingFirework = true;
-                    Bukkit.broadcastMessage("Used a firework");
                     grimPlayer.fireworkElytraDuration--;
                 } else {
                     grimPlayer.clientVelocity = clientVelocity;
@@ -253,6 +243,17 @@ public class MovementVelocityCheck implements Listener {
                 grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
+
+
+                // Under 11 means the firework might have ended (there's a bit of randomness)
+                if (grimPlayer.fireworkElytraDuration <= 11) {
+                    grimPlayer.currentlyUsingFirework = false;
+                }
+
+                grimPlayer.clientVelocityFireworkBoost = null;
+                if (grimPlayer.fireworkElytraDuration > 0) {
+                    grimPlayer.clientVelocityFireworkBoost = grimPlayer.clientVelocity.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocity.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocity.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocity.getZ()) * 0.5)).multiply(new Vector(0.99F, 0.98F, 0.99F)));
+                }
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);

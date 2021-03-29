@@ -19,6 +19,7 @@ public class GrimPlayer {
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
     public Vector clientVelocityJumping = new Vector();
+    public Vector clientVelocityFireworkBoost = new Vector();
 
     public Vector predictedVelocity = new Vector();
     public Vector lastActualMovement = new Vector();
