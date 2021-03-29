@@ -1,5 +1,5 @@
-name: ReaperAC
+name: GrimAC
 version: ${project.version}
-main: org.abyssmc.reaperac.ReaperAC
+main: ac.grim.grimac.GrimAC
 api-version: 1.16
 depend: [ProtocolLib]
