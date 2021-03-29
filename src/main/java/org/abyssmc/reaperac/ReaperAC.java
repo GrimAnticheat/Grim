@@ -7,6 +7,7 @@ import org.abyssmc.reaperac.events.anticheat.GenericMovementCheck;
 import org.abyssmc.reaperac.events.bukkit.PlayerJoinLeaveListener;
 import org.abyssmc.reaperac.events.bukkit.PlayerLagback;
 import org.abyssmc.reaperac.events.bukkit.PlayerVelocityPackets;
+import org.abyssmc.reaperac.events.bukkit.UseFireworkEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -44,6 +45,7 @@ public final class ReaperAC extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveListener(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
         Bukkit.getPluginManager().registerEvents(new MovementVelocityCheck(), this);
+        Bukkit.getPluginManager().registerEvents(new UseFireworkEvent(), this);
     }
 
     public void registerPackets() {

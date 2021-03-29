@@ -1,6 +1,5 @@
 package org.abyssmc.reaperac.utils.math;
 
-import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.Vec3D;
 import org.abyssmc.reaperac.GrimPlayer;
 import org.bukkit.util.Vector;
@@ -24,10 +23,10 @@ public class MovementVectorsCalc {
     public static Vector getVectorForRotation(float pitch, float yaw) {
         float f = pitch * ((float) Math.PI / 180F);
         float f1 = -yaw * ((float) Math.PI / 180F);
-        float f2 = MathHelper.cos(f1);
-        float f3 = MathHelper.sin(f1);
-        float f4 = MathHelper.cos(f);
-        float f5 = MathHelper.sin(f);
+        float f2 = Mth.cos(f1);
+        float f3 = Mth.sin(f1);
+        float f4 = Mth.cos(f);
+        float f5 = Mth.sin(f);
         return new Vector(f3 * f4, -f5, (double) (f2 * f4));
     }
 }

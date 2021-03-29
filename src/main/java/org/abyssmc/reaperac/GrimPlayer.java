@@ -30,6 +30,8 @@ public class GrimPlayer {
 
     public double gravity;
     public float friction;
+    public boolean currentlyUsingFirework = false;
+    public int fireworkElytraDuration;
 
     // Set from packet
     public double x;
@@ -51,11 +53,6 @@ public class GrimPlayer {
     public Vector theoreticalInput;
     public Vector possibleInput;
     public Vector bestOutput;
-
-    // This should replace the previous block
-    public Vector bestInputResult; // Use this for after trig is applied
-    public Vector bestInputs; // Use this for debug, or preferably a party trick
-    public Vector bestPreviousVelocity; // Use this for removing knockback from the list after using them
 
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
@@ -80,16 +77,12 @@ public class GrimPlayer {
 
     public Location lastTickPosition;
 
-    // Movement prediction stuff
-    public Vector bestMovement = new Vector();
-
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
 
     // Timer check data
     public long offset = 0L;
     public long lastMovementPacket = System.currentTimeMillis() - 50000000L;
-    public boolean lastPacketIsReminder = false;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
