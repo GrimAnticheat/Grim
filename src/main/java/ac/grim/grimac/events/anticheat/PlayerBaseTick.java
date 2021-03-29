@@ -163,17 +163,20 @@ public class PlayerBaseTick {
                         continue;
                     bl2 = true;
                     d2 = Math.max(d3 - aABB.getMinY(), d2);
-                    fluid.c(playerWorld, mutableBlockPos);
-                    Vec3D vec32 = fluid.c(playerWorld, mutableBlockPos);
-                    if (d2 < 0.4) {
-                        vec32 = vec32.a(d2);
+
+                    if (!player.bukkitPlayer.isFlying()) {
+                        fluid.c(playerWorld, mutableBlockPos);
+                        Vec3D vec32 = fluid.c(playerWorld, mutableBlockPos);
+                        if (d2 < 0.4) {
+                            vec32 = vec32.a(d2);
+                        }
+                        vec3 = vec3.e(vec32);
+                        ++n7;
                     }
-                    vec3 = vec3.e(vec32);
-                    ++n7;
+
                 }
             }
         }
-        // Originally length but now no longer uses a square root
         if (vec3.f() > 0.0) {
             if (n7 > 0) {
                 vec3 = vec3.a(1.0 / (double) n7);
