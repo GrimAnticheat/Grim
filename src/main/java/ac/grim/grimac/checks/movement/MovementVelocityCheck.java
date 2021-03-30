@@ -33,72 +33,14 @@ public class MovementVelocityCheck implements Listener {
     private Player bukkitPlayer;
     private GrimPlayer grimPlayer;
 
+    public MovementVelocityCheck(GrimPlayer grimPlayer) {
+        this.grimPlayer = grimPlayer;
+        this.bukkitPlayer = grimPlayer.bukkitPlayer;
+    }
+
     @EventHandler
     public void onPlayerMoveEvent(PlayerMoveEvent event) {
-        this.bukkitPlayer = event.getPlayer();
-        this.grimPlayer = GrimAC.playerGrimHashMap.get(bukkitPlayer);
-        grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
 
-        Location from = event.getFrom();
-        Location to = event.getTo();
-
-        grimPlayer.lastTickPosition = from;
-
-        // This isn't the final velocity of the player in the tick, only the one applied to the player
-        grimPlayer.actualMovement = new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
-
-        // To get the velocity of the player in the beginning of the next tick
-        // We need to run the code that is ran after the movement is applied to the player
-        // We do it at the start of the next movement check where the movement is applied
-        // This allows the check to be more accurate than if we were a tick off on the player position
-        //
-        // Currently disabled because I'd rather know if something is wrong than try and hide it
-        //grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.lastActualMovement, false);
-
-        // With 0 ping I haven't found ANY margin of error
-        // Very useful for reducing x axis effect on y axis precision
-        // Since the Y axis is extremely easy to predict
-        // It once is different if the player is trying to clip through stuff
-        //
-        // This would error when the player has mob collision
-        // I should probably separate mob and block collision
-        grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.actualMovement.clone(), MoverType.SELF, grimPlayer), grimPlayer);
-
-        // This is not affected by any movement
-        new PlayerBaseTick(grimPlayer).doBaseTick();
-
-        // baseTick occurs before this
-        livingEntityAIStep();
-
-        ChatColor color;
-        double diff = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
-
-        if (diff < 0.05) {
-            color = ChatColor.GREEN;
-        } else if (diff < 0.15) {
-            color = ChatColor.YELLOW;
-        } else {
-            color = ChatColor.RED;
-        }
-
-
-        Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds));
-        Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
-        Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
-
-
-        // TODO: This is a check for is the player actually on the ground!
-        // TODO: This check is wrong with less 1.9+ precision on movement
-        // mainly just debug for now rather than an actual check
-        /*if (grimPlayer.isActuallyOnGround != grimPlayer.lastOnGround) {
-            Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
-        }*/
-
-        if (grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement) > new Vector(0.03, 0.03, 0.03).lengthSquared()) {
-            //Bukkit.broadcastMessage(ChatColor.RED + "FAILED MOVEMENT CHECK");
-        }
-
-        grimPlayer.lastActualMovement = grimPlayer.actualMovement;
     }
 
     public void livingEntityAIStep() {

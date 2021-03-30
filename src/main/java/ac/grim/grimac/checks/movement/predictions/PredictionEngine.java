@@ -151,7 +151,7 @@ public abstract class PredictionEngine {
 
         AxisAlignedBB isByLiquid = grimPlayer.entityPlayer.getBoundingBox().grow(0.1, 0, 0.1);
 
-        boolean bl = grimPlayer.entityPlayer.world.getCubes(grimPlayer.entityPlayer, grimPlayer.entityPlayer.getBoundingBox().shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
+        /*boolean bl = grimPlayer.entityPlayer.world.getCubes(grimPlayer.entityPlayer, grimPlayer.entityPlayer.getBoundingBox().shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
         boolean bl2 = !grimPlayer.entityPlayer.world.getCubes(grimPlayer.entityPlayer, isByLiquid);
         boolean bl3 = grimPlayer.entityPlayer.world.containsLiquid(isByLiquid);
 
@@ -167,6 +167,6 @@ public abstract class PredictionEngine {
 
         if (bl && bl2 && bl3) {
             grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY(0.3);
-        }
+        }*/
     }
 }

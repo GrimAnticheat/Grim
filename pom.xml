@@ -36,6 +36,12 @@
                         <configuration>
                             <minimizeJar>true</minimizeJar>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <relocations>
+                                <relocation>
+                                    <pattern>io.github.retrooper.packetevents</pattern>
+                                    <shadedPattern>ac.grim.grimac.shaded.io.github.retrooper.packetevents</shadedPattern>
+                                </relocation>
+                            </relocations>
                         </configuration>
                     </execution>
                 </executions>
@@ -86,10 +92,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.comphenix.protocol</groupId>
-            <artifactId>ProtocolLib</artifactId>
-            <version>4.6.0</version>
-            <scope>provided</scope>
+            <groupId>com.github.retrooper</groupId>
+            <artifactId>packetevents</artifactId>
+            <version>v1.8-pre-9</version>
         </dependency>
     </dependencies>
 </project>

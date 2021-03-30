@@ -17,8 +17,11 @@ public class Collisions {
     public static final double maxUpStep = 0.6f;
 
     // Entity line 686
+    // This MUST return a new vector!!!
+    // If it does not the predicted velocity will be overridden
     public static Vector collide(Vector vector, GrimPlayer grimPlayer) {
-        Vec3D vec3 = new Vec3D(vector.getX(), vector.getY(), vector.getZ());
+        return new Vector(vector.getX(), vector.getY(), vector.getZ());
+        /*Vec3D vec3 = new Vec3D(vector.getX(), vector.getY(), vector.getZ());
 
         AxisAlignedBB aABB = grimPlayer.entityPlayer.getBoundingBox();
         VoxelShapeCollision collisionContext = VoxelShapeCollision.a(grimPlayer.entityPlayer);
@@ -45,7 +48,7 @@ public class Collisions {
                 return new Vector(vec34.x, vec34.y, vec34.z);
             }
         }
-        return new Vector(vec32.x, vec32.y, vec32.z);
+        return new Vector(vec32.x, vec32.y, vec32.z);*/
     }
 
     public static Vec3D collideBoundingBoxHeuristically(@Nullable Entity entity, Vec3D vec3d, AxisAlignedBB axisalignedbb, World world, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {

@@ -76,8 +76,6 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean lastClimbing;
 
-    public Location lastTickPosition;
-
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
 

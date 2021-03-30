@@ -1,30 +1,48 @@
 package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
-import ac.grim.grimac.GrimPlayer;
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
+import io.github.retrooper.packetevents.event.PacketListenerDynamic;
+import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
+import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.event.Listener;
-import org.bukkit.plugin.Plugin;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-public class PlayerVelocityPackets implements Listener {
-    ProtocolManager manager;
-    Plugin plugin;
-
-    public PlayerVelocityPackets(Plugin plugin, ProtocolManager manager) {
-        this.plugin = plugin;
-        this.manager = manager;
-        registerPackets();
+public class PlayerVelocityPackets extends PacketListenerDynamic {
+    public PlayerVelocityPackets() {
+        super(PacketEventPriority.MONITOR);
     }
 
-    public void registerPackets() {
+    @Override
+    public void onPacketPlaySend(PacketPlaySendEvent event) {
+        byte packetID = event.getPacketId();
+        if (packetID == PacketType.Play.Server.ENTITY_VELOCITY) {
+            WrappedPacketOutEntityVelocity velocity = new WrappedPacketOutEntityVelocity(event.getNMSPacket());
+            Entity entity = velocity.getEntity();
+            if (entity != null) {
+                if (entity.equals(event.getPlayer())) {
+                    double velX = velocity.getVelocityX();
+                    double velY = velocity.getVelocityY();
+                    double velZ = velocity.getVelocityZ();
+
+                    Vector playerVelocity = new Vector(velX, velY, velZ);
+                    Bukkit.broadcastMessage("Adding " + playerVelocity);
+                    GrimAC.playerGrimHashMap.get(event.getPlayer()).possibleKnockback.add(playerVelocity);
+
+                    for (Vector vector : GrimAC.playerGrimHashMap.get(event.getPlayer()).possibleKnockback) {
+                        Bukkit.broadcastMessage(ChatColor.AQUA + "Current vectors " + vector);
+                    }
+
+                    event.getPlayer().sendMessage("You have taken velocity!");
+                }
+            }
+        }
+    }
+
+    /*public void registerPackets() {
         manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.MONITOR, PacketType.Play.Server.ENTITY_VELOCITY) {
             @Override
             public void onPacketSending(PacketEvent event) {
@@ -49,5 +67,5 @@ public class PlayerVelocityPackets implements Listener {
                 }
             }
         });
-    }
+    }*/
 }
