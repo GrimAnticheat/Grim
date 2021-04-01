@@ -7,8 +7,6 @@ import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
-import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import net.minecraft.server.v1_16_R3.Block;
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import net.minecraft.server.v1_16_R3.PacketPlayOutBlockChange;
@@ -25,12 +23,19 @@ public class PacketWorldReader extends PacketListenerDynamic {
     private static final int GLOBAL_PALETTE_BITS_PER_ENTRY = 14;
     public static Method blockCacheField;
 
-    public PacketWorldReader() throws NoSuchFieldException {
+    //private static final String NMS_VERSION_SUFFIX = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName()
+    //        .replace(".", ",").split(",")[3] + ".";
+
+    public PacketWorldReader() throws ClassNotFoundException, NoSuchMethodException {
         super(PacketEventPriority.MONITOR);
 
         // Yes, we are using reflection to get a reflected class. I'm not maintaining my own reflection.
-        blockCacheField = Reflection.getMethod(NMSUtils.iBlockDataClass, "getBlock", 0);
+        //blockCacheField = Reflection.getMethod(NMSUtils.iBlockDataClass, "getBlock", 0);
+
+        //Block.getByCombinedId();
+        //blockCacheField.setAccessible(true);
     }
+
 
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {

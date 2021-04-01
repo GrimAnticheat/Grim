@@ -8,7 +8,6 @@ import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import net.minecraft.server.v1_16_R3.Block;
-import net.minecraft.server.v1_16_R3.IBlockData;
 import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
@@ -33,17 +32,16 @@ public class GenericMovementCheck extends PacketListenerDynamic {
             int playerY = (int) position.getY();
             int playerZ = (int) position.getZ();
 
-            final List<IBlockData> materials = new LinkedList<>();
+            final List<Block> materials = new LinkedList<>();
 
             Long startTime = System.nanoTime();
 
-            IBlockData data;
 
             try {
                 for (int x = 0; x < 16; x++) {
                     for (int y = 0; y < 16; y++) {
                         for (int z = 0; z < 16; z++) {
-                            materials.add(Block.getByCombinedId(ChunkCache.getBlockAt(playerX + x, y, playerZ + z)));
+                            materials.add(Block.getByCombinedId(ChunkCache.getBlockAt(playerX + x, y, playerZ + z)).getBlock());
                         }
                     }
                 }
@@ -52,6 +50,7 @@ public class GenericMovementCheck extends PacketListenerDynamic {
             }
 
             Bukkit.broadcastMessage(System.nanoTime() - startTime + " " + materials.size());
+            Bukkit.broadcastMessage("0 3 0 is " + materials.get(64));
 
 
             //Bukkit.broadcastMessage("Final block type " + output);
