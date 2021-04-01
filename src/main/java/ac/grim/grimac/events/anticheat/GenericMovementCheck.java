@@ -1,30 +1,64 @@
 package ac.grim.grimac.events.anticheat;
 
 import ac.grim.grimac.checks.movement.MovementCheck;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
+import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
+import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
+import net.minecraft.server.v1_16_R3.Block;
+import net.minecraft.server.v1_16_R3.IBlockData;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class GenericMovementCheck extends PacketListenerDynamic {
     // Yeah... I know I lose a bit of performance from a list over a set, but it's worth it for consistency
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
-    // YES I KNOW THIS CLASS IS TERRIBLE.
-    // EARLIER TODAY I WANTED IT TO BE A MANAGER CLASS
-    // LATER TODAY A CLASS THAT THINGS EXTEND
-    // AND NOW IT'S BOTH SO THE CODE IS TERRIBLE!
     public GenericMovementCheck() {
         super(PacketEventPriority.MONITOR);
     }
 
-    public static void registerCheck(MovementCheck movementCheck) {
-        movementCheckListeners.add(movementCheck);
-    }
+    @Override
+    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
+        byte packetID = event.getPacketId();
+        if (packetID == PacketType.Play.Client.POSITION) {
+            WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
 
-    /*public void registerPackets() {
-        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION) {
+            int playerX = (int) position.getX();
+            int playerY = (int) position.getY();
+            int playerZ = (int) position.getZ();
+
+            final List<IBlockData> materials = new LinkedList<>();
+
+            Long startTime = System.nanoTime();
+
+            IBlockData data;
+
+            try {
+                for (int x = 0; x < 16; x++) {
+                    for (int y = 0; y < 16; y++) {
+                        for (int z = 0; z < 16; z++) {
+                            materials.add(Block.getByCombinedId(ChunkCache.getBlockAt(playerX + x, y, playerZ + z)));
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            Bukkit.broadcastMessage(System.nanoTime() - startTime + " " + materials.size());
+
+
+            //Bukkit.broadcastMessage("Final block type " + output);
+        }
+    }
+}
+        /*manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
@@ -80,6 +114,10 @@ public class GenericMovementCheck extends PacketListenerDynamic {
     }
 
     public void check(GrimPlayer grimPlayer, double x, double y, double z, float xRot, float yRot, boolean onGround) {
+
+    }
+
+    /*public void check(GrimPlayer grimPlayer, double x, double y, double z, float xRot, float yRot, boolean onGround) {
         grimPlayer.x = x;
         grimPlayer.y = y;
         grimPlayer.z = z;
@@ -168,5 +206,5 @@ public class GenericMovementCheck extends PacketListenerDynamic {
         grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
         grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
         grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
-    }*/
-}
+    }
+}*/

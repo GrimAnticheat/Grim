@@ -19,6 +19,14 @@ public class TestEvent implements Listener {
 
         int block = ChunkCache.getBlockAt(playerX, playerY, playerZ);
 
+        for (int x = 0; x < 16; x++) {
+            for (int y = 0; y < 16; y++) {
+                for (int z = 0; z < 16; z++) {
+                    Block.getByCombinedId(ChunkCache.getBlockAt(playerX >> 4 << 4 + x, y, playerX >> 4 << 4 + z));
+                }
+            }
+        }
+
         IBlockData nmsBlock = Block.getByCombinedId(block);
         Bukkit.broadcastMessage("The player is standing on " + nmsBlock.getBlock().i());
 

@@ -2,7 +2,10 @@ package ac.grim.grimac;
 
 import ac.grim.grimac.events.anticheat.GenericMovementCheck;
 import ac.grim.grimac.events.anticheat.PacketWorldReader;
-import ac.grim.grimac.events.bukkit.*;
+import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
+import ac.grim.grimac.events.bukkit.PlayerLagback;
+import ac.grim.grimac.events.bukkit.PlayerVelocityPackets;
+import ac.grim.grimac.events.bukkit.UseFireworkEvent;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
 import org.bukkit.Bukkit;
@@ -50,7 +53,7 @@ public final class GrimAC extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
         //Bukkit.getPluginManager().registerEvents(new MovementVelocityCheck(), this);
         Bukkit.getPluginManager().registerEvents(new UseFireworkEvent(), this);
-        Bukkit.getPluginManager().registerEvents(new TestEvent(), this);
+        //Bukkit.getPluginManager().registerEvents(new TestEvent(), this);
     }
 
     public void registerPackets() {
