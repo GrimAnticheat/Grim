@@ -7,18 +7,29 @@ import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.utils.nms.NMSUtils;
+import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import net.minecraft.server.v1_16_R3.Block;
+import net.minecraft.server.v1_16_R3.BlockPosition;
+import net.minecraft.server.v1_16_R3.PacketPlayOutBlockChange;
 import net.minecraft.server.v1_16_R3.PacketPlayOutMapChunk;
-import org.bukkit.Bukkit;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 public class PacketWorldReader extends PacketListenerDynamic {
-    private static final ChunkCache cache = new ChunkCache();
+    private static final int MIN_PALETTE_BITS_PER_ENTRY = 4;
+    private static final int MAX_PALETTE_BITS_PER_ENTRY = 8;
+    private static final int GLOBAL_PALETTE_BITS_PER_ENTRY = 14;
+    public static Method blockCacheField;
 
-    public PacketWorldReader() {
+    public PacketWorldReader() throws NoSuchFieldException {
         super(PacketEventPriority.MONITOR);
+
+        // Yes, we are using reflection to get a reflected class. I'm not maintaining my own reflection.
+        blockCacheField = Reflection.getMethod(NMSUtils.iBlockDataClass, "getBlock", 0);
     }
 
     @Override
@@ -30,35 +41,57 @@ public class PacketWorldReader extends PacketListenerDynamic {
             try {
                 Field x = chunk.getClass().getDeclaredField("a");
                 Field z = chunk.getClass().getDeclaredField("b");
-                //Field availableSections = chunk.getClass().getDeclaredField("c");
+                Field availableSections = chunk.getClass().getDeclaredField("c");
+                //Field heightMaps = chunk.getClass().getDeclaredField("d");
+                //Field biomes = chunk.getClass().getDeclaredField("e");
                 Field buffer = chunk.getClass().getDeclaredField("f");
-                /*Field heightMaps = chunk.getClass().getField("d");
-                Field biomes = chunk.getClass().getField("e");
-
-                Field blockEntitiesTags = chunk.getClass().getField("g");
-                Field fullChunk = chunk.getClass().getField("e");*/
+                Field blockEntitiesTags = chunk.getClass().getDeclaredField("g");
+                //Field fullChunk = chunk.getClass().getDeclaredField("h");
 
                 x.setAccessible(true);
                 z.setAccessible(true);
-                buffer.setAccessible(true);
-                //availableSections.setAccessible(true);
-                /*heightMaps.setAccessible(true);
-                biomes.setAccessible(true);
+                availableSections.setAccessible(true);
                 buffer.setAccessible(true);
                 blockEntitiesTags.setAccessible(true);
-                fullChunk.setAccessible(true);*/
 
+                Chunk actualChunk;
                 byte[] chunkData = (byte[]) buffer.get(chunk);
+                int availableSectionsInt = availableSections.getInt(chunk);
+                int chunkX = x.getInt(chunk);
+                int chunkZ = z.getInt(chunk);
 
-                Chunk actualChunk = Chunk.read(new StreamNetInput(new ByteArrayInputStream(chunkData)));
+                if (availableSectionsInt == 0) {
+                    actualChunk = new Chunk();
+                } else {
+                    //Bukkit.broadcastMessage("Chunk is at " + x.get(chunk) + " " + z.get(chunk));
+                    //Bukkit.broadcastMessage("Available sections is " + availableSections.get(chunk));
+                    //Bukkit.broadcastMessage("Buffer size is " + ((byte[]) buffer.get(chunk)).length);
 
-                Bukkit.broadcastMessage("Block at (0,1,0) is " + actualChunk.get(0, 1, 0));
-                Bukkit.broadcastMessage("Block at (0,2,0) is " + actualChunk.get(0, 2, 0));
-                Bukkit.broadcastMessage("Block at (0,3,0) is " + actualChunk.get(0, 3, 0));
-                Bukkit.broadcastMessage("Block at (0,4,0) is " + actualChunk.get(0, 4, 0));
+                    actualChunk = Chunk.read(new StreamNetInput(new ByteArrayInputStream(chunkData)));
+                }
+
+                ChunkCache.addToCache(actualChunk, chunkX, chunkZ);
+
 
             } catch (NoSuchFieldException | IllegalAccessException | IOException e) {
                 e.printStackTrace();
+            }
+        }
+
+        if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
+            PacketPlayOutBlockChange blockChange = (PacketPlayOutBlockChange) event.getNMSPacket().getRawNMSPacket();
+            try {
+                Field position = blockChange.getClass().getDeclaredField("a");
+                position.setAccessible(true);
+
+                BlockPosition blockPosition = (BlockPosition) position.get(blockChange);
+                int chunkX = blockPosition.getX() >> 4;
+                int chunkZ = blockPosition.getZ() >> 4;
+                int blockID = Block.getCombinedId(blockChange.block);
+
+                ChunkCache.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockID);
+            } catch (NoSuchFieldException | IllegalAccessException exception) {
+                exception.printStackTrace();
             }
         }
     }

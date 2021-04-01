@@ -2,10 +2,7 @@ package ac.grim.grimac;
 
 import ac.grim.grimac.events.anticheat.GenericMovementCheck;
 import ac.grim.grimac.events.anticheat.PacketWorldReader;
-import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
-import ac.grim.grimac.events.bukkit.PlayerLagback;
-import ac.grim.grimac.events.bukkit.PlayerVelocityPackets;
-import ac.grim.grimac.events.bukkit.UseFireworkEvent;
+import ac.grim.grimac.events.bukkit.*;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
 import org.bukkit.Bukkit;
@@ -53,12 +50,22 @@ public final class GrimAC extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
         //Bukkit.getPluginManager().registerEvents(new MovementVelocityCheck(), this);
         Bukkit.getPluginManager().registerEvents(new UseFireworkEvent(), this);
+        Bukkit.getPluginManager().registerEvents(new TestEvent(), this);
     }
 
     public void registerPackets() {
         PacketEvents.get().registerListener(new GenericMovementCheck());
         PacketEvents.get().registerListener(new PlayerVelocityPackets());
-        PacketEvents.get().registerListener(new PacketWorldReader());
+
+        try {
+            PacketEvents.get().registerListener(new PacketWorldReader());
+        } catch (NoSuchFieldException exception) {
+            getLogger().severe("The async world reader has broke! Panic and report this error!");
+            getLogger().severe("// TODO: Fall back to just reading the world directly");
+            exception.printStackTrace();
+        }
+
+
         PacketEvents.get().init();
     }
 
