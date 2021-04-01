@@ -7,17 +7,18 @@ import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHa
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class ChunkCache {
-    private static final Long2ObjectMap<Chunk> chunks = new Long2ObjectOpenHashMap<>();
+    public static final int JAVA_AIR_ID = 0;
     private static int errorsShown = 0;
+    private static final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
 
-    public static void addToCache(Chunk chunk, int chunkX, int chunkZ) {
+    public static void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
 
         chunks.put(chunkPosition, chunk);
     }
 
     public static void updateBlock(int x, int y, int z, int block) {
-        Chunk column = getChunk(x >> 4, z >> 4);
+        Column column = getChunk(x >> 4, z >> 4);
         if (column == null) {
             if (++errorsShown < 20) {
                 GrimAC.plugin.getLogger().warning("Unable to set block! Please report stacktrace!");
@@ -27,18 +28,26 @@ public class ChunkCache {
             return;
         }
 
-        column.set(x & 0xF, y, z & 0xF, block);
+        Chunk chunk = column.getChunks()[y >> 4];
+        if (chunk != null) {
+            chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
+        }
     }
 
-    public static Chunk getChunk(int chunkX, int chunkZ) {
+    public static Column getChunk(int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
 
     public static int getBlockAt(int x, int y, int z) {
-        Chunk column = getChunk(x >> 4, z >> 4);
+        Column column = getChunk(x >> 4, z >> 4);
 
-        return column.get(x & 0xF, y, z & 0xF);
+        Chunk chunk = column.getChunks()[y >> 4];
+        if (chunk != null) {
+            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+        }
+
+        return JAVA_AIR_ID;
     }
 
     public static void removeChunk(int chunkX, int chunkZ) {
