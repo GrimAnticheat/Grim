@@ -338,7 +338,7 @@ public class Collisions {
     }
 
     public Stream<VoxelShape> getBlockCollisions(@Nullable Entity p_226666_1_, AxisAlignedBB p_226666_2_) {
-        return StreamSupport.stream(new CachedVoxelShapeSpliterator(this, p_226666_1_, p_226666_2_), false);
+        return StreamSupport.stream(new CachedVoxelShapeSpliterator(p_226666_1_, p_226666_2_), false);
     }
 
     public Stream<VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB p_230318_2_, Predicate<Entity> p_230318_3_) {
@@ -368,14 +368,15 @@ public class Collisions {
         int k = MathHelper.floor((p_175674_2_.minZ - 2.0D) / 16.0D);
         int l = MathHelper.floor((p_175674_2_.maxZ + 2.0D) / 16.0D);
 
-        for (int i1 = i; i1 <= j; ++i1) {
+        // TODO: This entire method lmao
+        /*for (int i1 = i; i1 <= j; ++i1) {
             for (int j1 = k; j1 <= l; ++j1) {
                 Chunk chunk = abstractchunkprovider.getChunk(i1, j1, false);
                 if (chunk != null) {
                     chunk.getEntities(p_175674_1_, p_175674_2_, list, p_175674_3_);
                 }
             }
-        }
+        }*/
 
         return list;
     }

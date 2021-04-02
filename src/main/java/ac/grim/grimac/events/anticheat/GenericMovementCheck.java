@@ -20,6 +20,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class GenericMovementCheck extends PacketListenerDynamic {
     // Yeah... I know I lose a bit of performance from a list over a set, but it's worth it for consistency
@@ -124,57 +125,65 @@ public class GenericMovementCheck extends PacketListenerDynamic {
     }*/
 
     public void check(GrimPlayer grimPlayer, double x, double y, double z, float xRot, float yRot, boolean onGround) {
-        grimPlayer.x = x;
-        grimPlayer.y = y;
-        grimPlayer.z = z;
-        grimPlayer.xRot = xRot;
-        grimPlayer.yRot = yRot;
-        grimPlayer.onGround = onGround;
-        grimPlayer.isSneaking = grimPlayer.bukkitPlayer.isSneaking();
-        grimPlayer.movementPacketMilliseconds = System.currentTimeMillis();
+        CompletableFuture.runAsync(() -> {
+            grimPlayer.x = x;
+            grimPlayer.y = y;
+            grimPlayer.z = z;
+            grimPlayer.xRot = xRot;
+            grimPlayer.yRot = yRot;
+            grimPlayer.onGround = onGround;
+            grimPlayer.isSneaking = grimPlayer.bukkitPlayer.isSneaking();
+            grimPlayer.movementPacketMilliseconds = System.currentTimeMillis();
 
-        for (MovementCheck movementCheck : movementCheckListeners) {
-            movementCheck.checkMovement(grimPlayer);
-        }
+            for (MovementCheck movementCheck : movementCheckListeners) {
+                movementCheck.checkMovement(grimPlayer);
+            }
 
-        grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
+            grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
 
-        Location from = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
-        Location to = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.x, grimPlayer.y, grimPlayer.z);
+            Location from = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
+            Location to = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.x, grimPlayer.y, grimPlayer.z);
 
-        // This isn't the final velocity of the player in the tick, only the one applied to the player
-        grimPlayer.actualMovement = new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
+            // This isn't the final velocity of the player in the tick, only the one applied to the player
+            grimPlayer.actualMovement = new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
 
-        // To get the velocity of the player in the beginning of the next tick
-        // We need to run the code that is ran after the movement is applied to the player
-        // We do it at the start of the next movement check where the movement is applied
-        // This allows the check to be more accurate than if we were a tick off on the player position
-        //
-        // Currently disabled because I'd rather know if something is wrong than try and hide it
-        //grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.lastActualMovement, false);
+            // To get the velocity of the player in the beginning of the next tick
+            // We need to run the code that is ran after the movement is applied to the player
+            // We do it at the start of the next movement check where the movement is applied
+            // This allows the check to be more accurate than if we were a tick off on the player position
+            //
+            // Currently disabled because I'd rather know if something is wrong than try and hide it
+            //grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.lastActualMovement, false);
 
-        // With 0 ping I haven't found ANY margin of error
-        // Very useful for reducing x axis effect on y axis precision
-        // Since the Y axis is extremely easy to predict
-        // It once is different if the player is trying to clip through stuff
-        //
-        // This would error when the player has mob collision
-        // I should probably separate mob and block collision
-        // TODO: This is just here right now to debug collisions
-        grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(new Vector(1, -1, 1), MoverType.SELF, grimPlayer), grimPlayer);
+            // With 0 ping I haven't found ANY margin of error
+            // Very useful for reducing x axis effect on y axis precision
+            // Since the Y axis is extremely easy to predict
+            // It once is different if the player is trying to clip through stuff
+            //
+            // This would error when the player has mob collision
+            // I should probably separate mob and block collision
+            // TODO: This is just here right now to debug collisions
+            final List<Vector> collisions = new LinkedList<>();
 
-        Bukkit.broadcastMessage("Collision " + grimPlayer.actualMovementCalculatedCollision);
+            Long startTime = System.nanoTime();
 
-        grimPlayer.lastX = x;
-        grimPlayer.lastY = y;
-        grimPlayer.lastZ = z;
-        grimPlayer.lastXRot = xRot;
-        grimPlayer.lastYRot = yRot;
-        grimPlayer.lastOnGround = onGround;
-        grimPlayer.lastSneaking = grimPlayer.isSneaking;
-        grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
-        grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
-        grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
+            for (int i = 0; i < Integer.MAX_VALUE; i++) {
+                collisions.add(Collisions.collide(Collisions.maybeBackOffFromEdge(new Vector(1, -1, 1), MoverType.SELF, grimPlayer), grimPlayer));
+            }
+
+            Bukkit.broadcastMessage("Time taken " + (System.nanoTime() - startTime) + " " + collisions.size());
+
+            grimPlayer.lastX = x;
+            grimPlayer.lastY = y;
+            grimPlayer.lastZ = z;
+            grimPlayer.lastXRot = xRot;
+            grimPlayer.lastYRot = yRot;
+            grimPlayer.lastOnGround = onGround;
+            grimPlayer.lastSneaking = grimPlayer.isSneaking;
+            grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
+            grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
+            grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
+        });
 
         // This is not affected by any movement
         /*new PlayerBaseTick(grimPlayer).doBaseTick();
