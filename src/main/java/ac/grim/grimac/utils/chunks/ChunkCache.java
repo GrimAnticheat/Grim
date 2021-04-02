@@ -2,6 +2,8 @@ package ac.grim.grimac.utils.chunks;
 
 import ac.grim.grimac.GrimAC;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import net.minecraft.server.v1_16_R3.Block;
+import net.minecraft.server.v1_16_R3.IBlockData;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
@@ -37,6 +39,17 @@ public class ChunkCache {
     public static Column getChunk(int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
+    }
+
+    public static IBlockData getBlockDataAt(int x, int y, int z) {
+        Column column = getChunk(x >> 4, z >> 4);
+
+        Chunk chunk = column.getChunks()[y >> 4];
+        if (chunk != null) {
+            return Block.getByCombinedId(chunk.get(x & 0xF, y & 0xF, z & 0xF));
+        }
+
+        return Block.getByCombinedId(JAVA_AIR_ID);
     }
 
     public static int getBlockAt(int x, int y, int z) {

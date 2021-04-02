@@ -1,7 +1,11 @@
 package ac.grim.grimac.events.anticheat;
 
+import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.MovementCheck;
 import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.utils.enums.MoverType;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
@@ -10,6 +14,8 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPac
 import net.minecraft.server.v1_16_R3.Block;
 import net.minecraft.server.v1_16_R3.IBlockData;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -48,13 +54,16 @@ public class GenericMovementCheck extends PacketListenerDynamic {
                 e.printStackTrace();
             }
 
-            Bukkit.broadcastMessage("Listening to chunks " + (System.nanoTime() - startTime) + " " + materials.size());
+            //Bukkit.broadcastMessage("Listening to chunks " + (System.nanoTime() - startTime) + " " + materials.size());
+
+            Bukkit.getScheduler().runTask(GrimAC.plugin, () -> {
+                check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround());
+            });
 
 
             //Bukkit.broadcastMessage("Final block type " + output);
         }
     }
-}
         /*manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
@@ -112,9 +121,9 @@ public class GenericMovementCheck extends PacketListenerDynamic {
 
     public void check(GrimPlayer grimPlayer, double x, double y, double z, float xRot, float yRot, boolean onGround) {
 
-    }
+    }*/
 
-    /*public void check(GrimPlayer grimPlayer, double x, double y, double z, float xRot, float yRot, boolean onGround) {
+    public void check(GrimPlayer grimPlayer, double x, double y, double z, float xRot, float yRot, boolean onGround) {
         grimPlayer.x = x;
         grimPlayer.y = y;
         grimPlayer.z = z;
@@ -151,10 +160,24 @@ public class GenericMovementCheck extends PacketListenerDynamic {
         //
         // This would error when the player has mob collision
         // I should probably separate mob and block collision
-        grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.actualMovement.clone(), MoverType.SELF, grimPlayer), grimPlayer);
+        // TODO: This is just here right now to debug collisions
+        grimPlayer.actualMovementCalculatedCollision = Collisions.collide(Collisions.maybeBackOffFromEdge(new Vector(1, -1, 1), MoverType.SELF, grimPlayer), grimPlayer);
+
+        Bukkit.broadcastMessage("Collision " + grimPlayer.actualMovementCalculatedCollision);
+
+        grimPlayer.lastX = x;
+        grimPlayer.lastY = y;
+        grimPlayer.lastZ = z;
+        grimPlayer.lastXRot = xRot;
+        grimPlayer.lastYRot = yRot;
+        grimPlayer.lastOnGround = onGround;
+        grimPlayer.lastSneaking = grimPlayer.isSneaking;
+        grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
+        grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
+        grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
 
         // This is not affected by any movement
-        new PlayerBaseTick(grimPlayer).doBaseTick();
+        /*new PlayerBaseTick(grimPlayer).doBaseTick();
 
         // baseTick occurs before this
         new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
@@ -193,15 +216,8 @@ public class GenericMovementCheck extends PacketListenerDynamic {
         grimPlayer.lastActualMovement = grimPlayer.actualMovement;
 
         // TODO: This is a terrible hack
-        grimPlayer.lastX = x;
-        grimPlayer.lastY = y;
-        grimPlayer.lastZ = z;
-        grimPlayer.lastXRot = xRot;
-        grimPlayer.lastYRot = yRot;
-        grimPlayer.lastOnGround = onGround;
-        grimPlayer.lastSneaking = grimPlayer.isSneaking;
-        grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
-        grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
-        grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
+
     }
 }*/
+    }
+}

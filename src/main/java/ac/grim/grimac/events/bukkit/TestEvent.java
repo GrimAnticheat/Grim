@@ -2,7 +2,6 @@ package ac.grim.grimac.events.bukkit;
 
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import net.minecraft.server.v1_16_R3.IBlockData;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.CraftChunk;
 import org.bukkit.event.EventHandler;
@@ -32,7 +31,7 @@ public class TestEvent implements Listener {
             }
         }
 
-        Bukkit.broadcastMessage("Reading chunks " + (System.nanoTime() - startTime) + " " + materials.size());
+        //Bukkit.broadcastMessage("Reading chunks " + (System.nanoTime() - startTime) + " " + materials.size());
 
     }
 }
