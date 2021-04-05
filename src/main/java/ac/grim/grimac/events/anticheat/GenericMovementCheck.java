@@ -3,19 +3,18 @@ package ac.grim.grimac.events.anticheat;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.MovementCheck;
-import ac.grim.grimac.utils.enums.MoverType;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import ac.grim.grimac.checks.movement.MovementVelocityCheck;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -37,75 +36,35 @@ public class GenericMovementCheck extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Client.POSITION) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
 
-            //Bukkit.broadcastMessage("Listening to chunks " + (System.nanoTime() - startTime) + " " + materials.size());
-
-            Bukkit.broadcastMessage("Thread pool " + executor.toString());
+            Bukkit.broadcastMessage("Position " + executor.toString());
             executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround()));
+        }
 
+        if (packetID == PacketType.Play.Client.POSITION_LOOK) {
+            WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
 
-            //Bukkit.broadcastMessage("Final block type " + output);
+            Bukkit.broadcastMessage("Position look " + executor.toString());
+            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround()));
+        }
+
+        if (packetID == PacketType.Play.Client.LOOK) {
+            WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
+
+            Bukkit.broadcastMessage("Look " + executor.toString());
+            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround()));
+        }
+
+        if (packetID == PacketType.Play.Client.FLYING) {
+            WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
+
+            Bukkit.broadcastMessage("Flying " + executor.toString());
+            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround()));
         }
     }
-        /*manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION) {
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-                double x = packet.getDoubles().read(0);
-                double y = packet.getDoubles().read(1);
-                double z = packet.getDoubles().read(2);
-                boolean onGround = packet.getBooleans().read(0);
-
-                check(player, x, y, z, player.lastXRot, player.lastYRot, onGround);
-            }
-        });
-
-        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Client.POSITION_LOOK) {
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-                double x = packet.getDoubles().read(0);
-                double y = packet.getDoubles().read(1);
-                double z = packet.getDoubles().read(2);
-                float xRot = packet.getFloat().read(0);
-                float yRot = packet.getFloat().read(1);
-                boolean onGround = packet.getBooleans().read(0);
-
-                check(player, x, y, z, xRot, yRot, onGround);
-            }
-        });
-
-        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Client.LOOK) {
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-                float xRot = packet.getFloat().read(0);
-                float yRot = packet.getFloat().read(1);
-                boolean onGround = packet.getBooleans().read(0);
-
-                check(player, player.lastX, player.lastY, player.lastZ, xRot, yRot, onGround);
-            }
-        });
-
-        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Client.FLYING) {
-            @Override
-            public void onPacketReceiving(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-                boolean onGround = packet.getBooleans().read(0);
-
-                check(player, player.lastX, player.lastY, player.lastZ, player.lastXRot, player.lastYRot, onGround);
-            }
-        });
-    }
 
     public void check(GrimPlayer grimPlayer, double x, double y, double z, float xRot, float yRot, boolean onGround) {
+        long startTime = System.nanoTime();
 
-    }*/
-
-    public void check(GrimPlayer grimPlayer, double x, double y, double z, float xRot, float yRot, boolean onGround) {
         grimPlayer.x = x;
         grimPlayer.y = y;
         grimPlayer.z = z;
@@ -127,45 +86,8 @@ public class GenericMovementCheck extends PacketListenerDynamic {
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         grimPlayer.actualMovement = new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
 
-        // To get the velocity of the player in the beginning of the next tick
-        // We need to run the code that is ran after the movement is applied to the player
-        // We do it at the start of the next movement check where the movement is applied
-        // This allows the check to be more accurate than if we were a tick off on the player position
-        //
-        // Currently disabled because I'd rather know if something is wrong than try and hide it
-        //grimPlayer.clientVelocity = move(MoverType.SELF, grimPlayer.lastActualMovement, false);
-
-        // With 0 ping I haven't found ANY margin of error
-        // Very useful for reducing x axis effect on y axis precision
-        // Since the Y axis is extremely easy to predict
-        // It once is different if the player is trying to clip through stuff
-        //
-        // This would error when the player has mob collision
-        // I should probably separate mob and block collision
-        // TODO: This is just here right now to debug collisions
-        final List<Vector> collisions = new LinkedList<>();
-
-        Long startTime = System.nanoTime();
-
-        for (int i = 0; i < 1000; i++) {
-            collisions.add(Collisions.collide(Collisions.maybeBackOffFromEdge(new Vector(1, -1, 1), MoverType.SELF, grimPlayer), grimPlayer));
-        }
-
-        Bukkit.broadcastMessage("Time taken " + (System.nanoTime() - startTime) + " " + collisions.size());
-
-        grimPlayer.lastX = x;
-        grimPlayer.lastY = y;
-        grimPlayer.lastZ = z;
-        grimPlayer.lastXRot = xRot;
-        grimPlayer.lastYRot = yRot;
-        grimPlayer.lastOnGround = onGround;
-        grimPlayer.lastSneaking = grimPlayer.isSneaking;
-        grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
-        grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
-        grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
-
         // This is not affected by any movement
-        /*new PlayerBaseTick(grimPlayer).doBaseTick();
+        new PlayerBaseTick(grimPlayer).doBaseTick();
 
         // baseTick occurs before this
         new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
@@ -181,31 +103,19 @@ public class GenericMovementCheck extends PacketListenerDynamic {
             color = ChatColor.RED;
         }
 
-
-        grimPlayer.predictedVelocity.setY(0);
-        grimPlayer.clientVelocity.setY(0);
-
-        Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds));
+        Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds + "Time taken " + (System.nanoTime() - startTime)));
         Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
         Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 
-
-        // TODO: This is a check for is the player actually on the ground!
-        // TODO: This check is wrong with less 1.9+ precision on movement
-        // mainly just debug for now rather than an actual check
-        /*if (grimPlayer.isActuallyOnGround != grimPlayer.lastOnGround) {
-            Bukkit.broadcastMessage("Failed on ground, client believes: " + grimPlayer.onGround);
-        }*/
-
-        /*if (grimPlayer.predictedVelocity.distanceSquared(grimPlayer.actualMovement) > new Vector(0.03, 0.03, 0.03).lengthSquared()) {
-            //Bukkit.broadcastMessage(ChatColor.RED + "FAILED MOVEMENT CHECK");
-        }
-
-        grimPlayer.lastActualMovement = grimPlayer.actualMovement;
-
-        // TODO: This is a terrible hack
-
-    }
-}*/
+        grimPlayer.lastX = x;
+        grimPlayer.lastY = y;
+        grimPlayer.lastZ = z;
+        grimPlayer.lastXRot = xRot;
+        grimPlayer.lastYRot = yRot;
+        grimPlayer.lastOnGround = onGround;
+        grimPlayer.lastSneaking = grimPlayer.isSneaking;
+        grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
+        grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
+        grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
     }
 }
