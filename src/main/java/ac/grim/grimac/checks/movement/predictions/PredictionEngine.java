@@ -5,9 +5,9 @@ import ac.grim.grimac.checks.movement.MovementVelocityCheck;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -39,16 +39,14 @@ public abstract class PredictionEngine {
                 grimPlayer.bestOutput = possibleLastTickOutput;
                 grimPlayer.theoreticalInput = theoreticalInput;
                 grimPlayer.possibleInput = possibleInput;
-                grimPlayer.predictedVelocity = possibleInputVelocityResult.multiply(grimPlayer.stuckSpeedMultiplier);
+                grimPlayer.clientVelocity = possibleInputVelocityResult.multiply(grimPlayer.stuckSpeedMultiplier);
 
-                //Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
+                Bukkit.broadcastMessage("Theoretical input " + grimPlayer.theoreticalInput + " size " + grimPlayer.theoreticalInput.lengthSquared());
             }
         }
 
-        // We need a temp variable because passing collided velocity into movement messes with landing on blocks
-        Vector temp = Collisions.collide(Collisions.maybeBackOffFromEdge(grimPlayer.predictedVelocity, MoverType.SELF, grimPlayer), grimPlayer);
-        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.predictedVelocity);
-        grimPlayer.predictedVelocity = temp;
+        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
+        grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 

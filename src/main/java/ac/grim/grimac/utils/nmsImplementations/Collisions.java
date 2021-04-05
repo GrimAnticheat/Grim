@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.enums.MoverType;
 import com.google.common.collect.Lists;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -237,13 +236,14 @@ public class Collisions {
 
     // MCP mappings PlayerEntity 959
     // Mojang mappings 911
+    // TODO: Getting bounding box is not lag compensated
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
         Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
         if (!bukkitPlayer.isFlying() && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && bukkitPlayer.isSneaking() && isAboveGround(grimPlayer)) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
-            while (d != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+            while (d != 0.0 && noCollision(((CraftPlayer) bukkitPlayer).getHandle(),
                     ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, 0.0))) {
                 if (d < 0.05 && d >= -0.05) {
                     d = 0.0;
@@ -255,7 +255,7 @@ public class Collisions {
                 }
                 d += 0.05;
             }
-            while (d2 != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+            while (d2 != 0.0 && noCollision(((CraftPlayer) bukkitPlayer).getHandle(),
                     ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, -maxUpStep, d2))) {
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
@@ -267,7 +267,7 @@ public class Collisions {
                 }
                 d2 += 0.05;
             }
-            while (d != 0.0 && d2 != 0.0 && ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(),
+            while (d != 0.0 && d2 != 0.0 && noCollision(((CraftPlayer) bukkitPlayer).getHandle(),
                     ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, d2))) {
                 d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? (d -= 0.05) : (d += 0.05));
                 if (d2 < 0.05 && d2 >= -0.05) {
@@ -285,14 +285,15 @@ public class Collisions {
         return vec3;
     }
 
+    // TODO: Getting bounding box is wrong with lag, maybe not async safe
     private static boolean isAboveGround(GrimPlayer grimPlayer) {
         Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
         return grimPlayer.lastOnGround || bukkitPlayer.getFallDistance() < Collisions.maxUpStep && !
-                ((CraftWorld) bukkitPlayer.getWorld()).getHandle().getCubes(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
+                noCollision(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
     }
 
-
+    // TODO: This isn't async safe
     public static Vector getStuckMultiplier(GrimPlayer grimPlayer) {
         org.bukkit.World world = grimPlayer.bukkitPlayer.getWorld();
 
@@ -302,6 +303,7 @@ public class Collisions {
 
         Vector multiplier = new Vector(1, 1, 1);
 
+        // TODO: hasChunksAt is NOT async safe, use paperlib or chunk cache?
         if (CheckIfChunksLoaded.hasChunksAt(grimPlayer.bukkitPlayer.getWorld(), blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ())) {
             for (int i = blockPos.getBlockX(); i <= blockPos2.getX(); ++i) {
                 for (int j = blockPos.getBlockY(); j <= blockPos2.getY(); ++j) {
@@ -323,30 +325,30 @@ public class Collisions {
         return multiplier;
     }
 
-    public boolean noCollision(Entity p_226665_1_, AxisAlignedBB p_226665_2_) {
-        return this.noCollision(p_226665_1_, p_226665_2_, (p_234863_0_) -> {
+    public static boolean noCollision(Entity p_226665_1_, AxisAlignedBB p_226665_2_) {
+        return noCollision(p_226665_1_, p_226665_2_, (p_234863_0_) -> {
             return true;
         });
     }
 
-    public boolean noCollision(@Nullable Entity p_234865_1_, AxisAlignedBB p_234865_2_, Predicate<Entity> p_234865_3_) {
-        return this.getCollisions(p_234865_1_, p_234865_2_, p_234865_3_).allMatch(VoxelShape::isEmpty);
+    public static boolean noCollision(@Nullable Entity p_234865_1_, AxisAlignedBB p_234865_2_, Predicate<Entity> p_234865_3_) {
+        return getCollisions(p_234865_1_, p_234865_2_, p_234865_3_).allMatch(VoxelShape::isEmpty);
     }
 
-    public Stream<VoxelShape> getCollisions(@Nullable Entity p_234867_1_, AxisAlignedBB p_234867_2_, Predicate<Entity> p_234867_3_) {
-        return Stream.concat(this.getBlockCollisions(p_234867_1_, p_234867_2_), this.getEntityCollisions(p_234867_1_, p_234867_2_, p_234867_3_));
+    public static Stream<VoxelShape> getCollisions(@Nullable Entity p_234867_1_, AxisAlignedBB p_234867_2_, Predicate<Entity> p_234867_3_) {
+        return Stream.concat(getBlockCollisions(p_234867_1_, p_234867_2_), getEntityCollisions(p_234867_1_, p_234867_2_, p_234867_3_));
     }
 
-    public Stream<VoxelShape> getBlockCollisions(@Nullable Entity p_226666_1_, AxisAlignedBB p_226666_2_) {
+    public static Stream<VoxelShape> getBlockCollisions(@Nullable Entity p_226666_1_, AxisAlignedBB p_226666_2_) {
         return StreamSupport.stream(new CachedVoxelShapeSpliterator(p_226666_1_, p_226666_2_), false);
     }
 
-    public Stream<VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB p_230318_2_, Predicate<Entity> p_230318_3_) {
+    public static Stream<VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB p_230318_2_, Predicate<Entity> p_230318_3_) {
         if (p_230318_2_.a() < 1.0E-7D) { // a() -> getSize()
             return Stream.empty();
         } else {
             AxisAlignedBB axisalignedbb = p_230318_2_.g(1.0E-7D); // g() -> inflate()
-            return this.getEntities(p_230318_1_, axisalignedbb, p_230318_3_.and((p_234892_2_) -> {
+            return getEntities(p_230318_1_, axisalignedbb, p_230318_3_.and((p_234892_2_) -> {
                 if (p_234892_2_.getBoundingBox().c(axisalignedbb)) { // c() -> intersects()
                     // The player entity is not going to be null
                     /*if (p_230318_1_ == null) {
@@ -361,7 +363,7 @@ public class Collisions {
         }
     }
 
-    public List<Entity> getEntities(@Nullable Entity p_175674_1_, AxisAlignedBB p_175674_2_, @Nullable Predicate<? super Entity> p_175674_3_) {
+    public static List<Entity> getEntities(@Nullable Entity p_175674_1_, AxisAlignedBB p_175674_2_, @Nullable Predicate<? super Entity> p_175674_3_) {
         List<Entity> list = Lists.newArrayList();
         int i = MathHelper.floor((p_175674_2_.minX - 2.0D) / 16.0D);
         int j = MathHelper.floor((p_175674_2_.maxX + 2.0D) / 16.0D);

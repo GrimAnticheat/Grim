@@ -24,7 +24,7 @@ public class GenericMovementCheck extends PacketListenerDynamic {
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
     // I maxed out all threads with looping collisions and 4 seems to be the point before it hurts the main thread
-    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
     public GenericMovementCheck() {
         super(PacketEventPriority.MONITOR);
@@ -33,32 +33,39 @@ public class GenericMovementCheck extends PacketListenerDynamic {
     @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         byte packetID = event.getPacketId();
+
+        Bukkit.broadcastMessage("Packet id " + packetID);
+
         if (packetID == PacketType.Play.Client.POSITION) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
+            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             Bukkit.broadcastMessage("Position " + executor.toString());
-            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround()));
+            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), grimPlayer.xRot, grimPlayer.yRot, position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
+            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             Bukkit.broadcastMessage("Position look " + executor.toString());
-            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround()));
+            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.LOOK) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
+            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             Bukkit.broadcastMessage("Look " + executor.toString());
-            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround()));
+            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), grimPlayer.x, grimPlayer.y, grimPlayer.z, position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.FLYING) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
+            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             Bukkit.broadcastMessage("Flying " + executor.toString());
-            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getPitch(), position.getYaw(), position.isOnGround()));
+            executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.xRot, grimPlayer.yRot, position.isOnGround()));
         }
     }
 

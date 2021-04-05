@@ -143,7 +143,7 @@ public class CachedVoxelShapeSpliterator extends Spliterators.AbstractSpliterato
         boolean hasCollision = true;
 
         try {
-            Field canCollide = block.getClass().getDeclaredField("at");
+            Field canCollide = ((BlockBase) block).getClass().getDeclaredField("at");
             canCollide.setAccessible(true);
 
             hasCollision = canCollide.getBoolean(block);
