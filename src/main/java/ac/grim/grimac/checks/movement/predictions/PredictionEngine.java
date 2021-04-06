@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -100,27 +99,21 @@ public abstract class PredictionEngine {
                 Vector wantedMovement = grimPlayer.actualMovement.clone().setY(0);
                 List<Vector> possibleInputs = new ArrayList<>();
 
-                for (int x = 0; x <= 0; x++) {
-                    for (int z = 1; z <= 1; z++) {
-                        // If the input is going in the wrong direction, we shouldn't try it.
-                        // Forwards input can go right with collisions
-                        // Look at the directions marked with a ! to see the possible ones
-                        //
-                        // The player is looking slightly right than directly straight
-                        // =================================================
-                        //                    \ ^(!) / (!)
-                        //                 <--- *(!) ---> (!)   Wanted Direction ------>
-                        //                     / \/ \ (!)
-                        //
-                        // As you see we are able to eliminate 4 inputs and collisions by this line!
-                        // It is 195 instead of 180 to try and reduce eliminating inputs that could be possible
-                        // Shouldn't really matter but let's be on the safe side of optimization.
-                        Vector input = new Vector(x, 0, z);
-
-                        if (input.angle(wantedMovement) > 195) continue;
-                        possibleInputs.add(input);
+                for (int x = -1; x <= 1; x++) {
+                    for (int z = -1; z <= 1; z++) {
+                        // Optimization and don't break the sorting algorithm
+                        if (x == 0 && z == 0) continue;
+                        possibleInputs.add(new Vector(x, 0, z));
                     }
                 }
+
+                possibleInputs.sort((a, b) -> {
+                    if (getMovementResultFromInput(a, f, grimPlayer.xRot).angle(wantedMovement) > getMovementResultFromInput(b, f, grimPlayer.xRot).angle(wantedMovement)) {
+                        return 1;
+                    } else {
+                        return -1;
+                    }
+                });
 
                 // This should NOT be possible but a REALLY bad prediction before this could make it possible
                 if (grimPlayer.possibleInput.getX() != 0 || grimPlayer.possibleInput.getZ() != 0) {
@@ -133,11 +126,11 @@ public abstract class PredictionEngine {
                     Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(possibleLastTickOutput.clone().add(getMovementResultFromInput(possibleInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), MoverType.SELF, grimPlayer), grimPlayer);
                     double resultAccuracy = possibleInputVelocityResult.setY(0).distance(wantedMovement);
 
-                    Bukkit.broadcastMessage("Last closeness " + bestInput + "Possible input " + possibleInput + " Prior" + possibleLastTickOutput + " Input result " + possibleInputVelocityResult + "Possible input " + possibleInput + " accuracy " + resultAccuracy);
+                    //Bukkit.broadcastMessage("Last closeness " + bestInput + "Possible input " + possibleInput + " Prior" + possibleLastTickOutput + " Input result " + possibleInputVelocityResult + "Possible input " + possibleInput + " accuracy " + resultAccuracy);
 
                     // Don't touch theoretical input, that was calculated earlier and is correct
                     if (resultAccuracy < bestInput) {
-                        Bukkit.broadcastMessage(ChatColor.RED + "Using collision");
+                        //Bukkit.broadcastMessage(ChatColor.RED + "Using collision");
                         bestInput = resultAccuracy;
                         grimPlayer.bestOutput = possibleLastTickOutput;
                         grimPlayer.possibleInput = possibleInput;
