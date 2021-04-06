@@ -64,6 +64,8 @@ public abstract class PredictionEngine {
         addJumpIfNeeded(grimPlayer);
 
         for (Vector possibleLastTickOutput : fetchPossibleInputs(grimPlayer)) {
+            possibleLastTickOutput = handleOnClimbable(possibleLastTickOutput, grimPlayer);
+
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
                     possibleCombinations.add(new VectorPair(possibleLastTickOutput, getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z))));
