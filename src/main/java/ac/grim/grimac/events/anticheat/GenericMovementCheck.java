@@ -24,7 +24,7 @@ public class GenericMovementCheck extends PacketListenerDynamic {
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
     // I maxed out all threads with looping collisions and 4 seems to be the point before it hurts the main thread
-    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+    ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
 
     public GenericMovementCheck() {
         super(PacketEventPriority.MONITOR);
