@@ -6,15 +6,19 @@ import ac.grim.grimac.checks.movement.MovementCheck;
 import ac.grim.grimac.checks.movement.MovementVelocityCheck;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
+import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
+import io.github.retrooper.packetevents.packetwrappers.play.in.keepalive.WrappedPacketInKeepAlive;
+import io.github.retrooper.packetevents.packetwrappers.play.out.keepalive.WrappedPacketOutKeepAlive;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -22,6 +26,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 public class GenericMovementCheck extends PacketListenerDynamic {
     // Yeah... I know I lose a bit of performance from a list over a set, but it's worth it for consistency
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
+    // This is terrible!
+    static HashMap<Long, Long> keepaliveSendTime = new HashMap<>();
 
     // I maxed out all threads with looping collisions and 4 seems to be the point before it hurts the main thread
     ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
@@ -34,13 +40,13 @@ public class GenericMovementCheck extends PacketListenerDynamic {
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         byte packetID = event.getPacketId();
 
-        Bukkit.broadcastMessage("Packet id " + packetID);
+        //Bukkit.broadcastMessage("Packet id " + packetID);
 
         if (packetID == PacketType.Play.Client.POSITION) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            Bukkit.broadcastMessage("Position " + executor.toString());
+            //Bukkit.broadcastMessage("Position " + executor.toString());
             executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), grimPlayer.xRot, grimPlayer.yRot, position.isOnGround()));
         }
 
@@ -48,7 +54,7 @@ public class GenericMovementCheck extends PacketListenerDynamic {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            Bukkit.broadcastMessage("Position look " + executor.toString());
+            //Bukkit.broadcastMessage("Position look " + executor.toString());
             executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
@@ -56,7 +62,7 @@ public class GenericMovementCheck extends PacketListenerDynamic {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            Bukkit.broadcastMessage("Look " + executor.toString());
+            //Bukkit.broadcastMessage("Look " + executor.toString());
             executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), grimPlayer.x, grimPlayer.y, grimPlayer.z, position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
@@ -64,8 +70,22 @@ public class GenericMovementCheck extends PacketListenerDynamic {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            Bukkit.broadcastMessage("Flying " + executor.toString());
+            //Bukkit.broadcastMessage("Flying " + executor.toString());
             executor.submit(() -> check(GrimAC.playerGrimHashMap.get(event.getPlayer()), grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.xRot, grimPlayer.yRot, position.isOnGround()));
+        }
+
+        if (packetID == PacketType.Play.Client.KEEP_ALIVE) {
+            WrappedPacketInKeepAlive alive = new WrappedPacketInKeepAlive(event.getNMSPacket());
+            Bukkit.broadcastMessage("Ping " + (keepaliveSendTime.get(alive.getId()) - System.nanoTime()));
+            keepaliveSendTime.remove(alive.getId());
+        }
+    }
+
+    @Override
+    public void onPacketPlaySend(PacketPlaySendEvent event) {
+        if (event.getPacketId() == PacketType.Play.Server.KEEP_ALIVE) {
+            WrappedPacketOutKeepAlive alive = new WrappedPacketOutKeepAlive(event.getNMSPacket());
+            keepaliveSendTime.put(alive.getId(), System.nanoTime());
         }
     }
 
@@ -110,7 +130,7 @@ public class GenericMovementCheck extends PacketListenerDynamic {
             color = ChatColor.RED;
         }
 
-        Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds + "Time taken " + (System.nanoTime() - startTime)));
+        //Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds + "Time taken " + (System.nanoTime() - startTime)));
         Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
         Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 

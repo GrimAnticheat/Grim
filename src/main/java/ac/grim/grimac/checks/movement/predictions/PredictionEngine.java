@@ -5,10 +5,10 @@ import ac.grim.grimac.checks.movement.MovementVelocityCheck;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
+import ac.grim.grimac.utils.math.VectorPair;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -58,85 +58,43 @@ public abstract class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    // We use the fact that the client already does collision to do predictions fast
-    // Combined with our controller support for eventual geyser support
-    // We can use non-whole inputs, such as (0.9217, 0.1599)
-    // On legit players, running collision after guessing movement will never be an issue
-    // On players with noclip and other cheats, it will flag the anticheat
-    // We now only run 1 collision
     public void guessBestMovement(float f, GrimPlayer grimPlayer) {
+        List<VectorPair> possibleCombinations = new ArrayList<>();
         double bestInput = Double.MAX_VALUE;
         addJumpIfNeeded(grimPlayer);
 
-        // TODO: Readd support for jumping
         for (Vector possibleLastTickOutput : fetchPossibleInputs(grimPlayer)) {
-            //Bukkit.broadcastMessage("Possible out " + possibleLastTickOutput);
-
-            // This method clamps climbing velocity (as in vanilla), if needed.
-            possibleLastTickOutput = handleOnClimbable(possibleLastTickOutput, grimPlayer);
-            Vector theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().subtract(possibleLastTickOutput).divide(grimPlayer.stuckSpeedMultiplier), f, grimPlayer.xRot);
-            Vector possibleInput = getBestPossiblePlayerInput(grimPlayer, theoreticalInput);
-            Vector possibleInputVelocityResult = possibleLastTickOutput.clone().add(getMovementResultFromInput(possibleInput, f, grimPlayer.xRot));
-
-            double resultAccuracy = possibleInputVelocityResult.setY(0).distance(grimPlayer.actualMovement.clone().setY(0));
-
-            if (resultAccuracy < bestInput) {
-                bestInput = resultAccuracy;
-                grimPlayer.bestOutput = possibleLastTickOutput;
-                grimPlayer.theoreticalInput = theoreticalInput;
-                grimPlayer.possibleInput = possibleInput;
-                grimPlayer.predictedVelocity = possibleInputVelocityResult.multiply(grimPlayer.stuckSpeedMultiplier);
-
-                Bukkit.broadcastMessage("Useful input " + grimPlayer.possibleInput + " accuracy " + resultAccuracy + " result " + possibleInputVelocityResult + " wanted " + grimPlayer.actualMovement);
+            for (int x = -1; x <= 1; x++) {
+                for (int z = -1; z <= 1; z++) {
+                    possibleCombinations.add(new VectorPair(possibleLastTickOutput, getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z))));
+                }
             }
         }
 
-        // The player probably collided against something, sacrifice some optimization for accuracy
-        // TODO: Readd support for jumping
-        if (bestInput > 0.01) {
-            for (Vector possibleLastTickOutput : fetchPossibleInputs(grimPlayer)) {
-                // We run this calculation twice, perhaps don't do this?
-                Vector wantedMovement = grimPlayer.actualMovement.clone().setY(0);
-                List<Vector> possibleInputs = new ArrayList<>();
+        // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
+        possibleCombinations.sort((a, b) -> {
+            if (a.lastTickOutput.clone().add(getMovementResultFromInput(a.playerInput, f, grimPlayer.xRot)).distanceSquared(grimPlayer.actualMovement) >
+                    b.lastTickOutput.clone().add(getMovementResultFromInput(b.playerInput, f, grimPlayer.xRot)).distanceSquared(grimPlayer.actualMovement)) {
+                return 1;
+            } else {
+                return -1;
+            }
+        });
 
-                for (int x = -1; x <= 1; x++) {
-                    for (int z = -1; z <= 1; z++) {
-                        // Optimization and don't break the sorting algorithm
-                        if (x == 0 && z == 0) continue;
-                        possibleInputs.add(new Vector(x, 0, z));
-                    }
-                }
+        for (VectorPair possibleCollisionInputs : possibleCombinations) {
+            Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(possibleCollisionInputs.lastTickOutput.clone().add(getMovementResultFromInput(possibleCollisionInputs.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), MoverType.SELF, grimPlayer), grimPlayer);
+            double resultAccuracy = possibleInputVelocityResult.distance(grimPlayer.actualMovement);
 
-                possibleInputs.sort((a, b) -> {
-                    if (getMovementResultFromInput(a, f, grimPlayer.xRot).angle(wantedMovement) > getMovementResultFromInput(b, f, grimPlayer.xRot).angle(wantedMovement)) {
-                        return 1;
-                    } else {
-                        return -1;
-                    }
-                });
+            if (resultAccuracy < bestInput) {
+                bestInput = resultAccuracy;
+                grimPlayer.possibleInput = possibleCollisionInputs.playerInput;
+                grimPlayer.predictedVelocity = possibleInputVelocityResult;
 
-                // This should NOT be possible but a REALLY bad prediction before this could make it possible
-                if (grimPlayer.possibleInput.getX() != 0 || grimPlayer.possibleInput.getZ() != 0) {
-                    possibleInputs.add(new Vector(0, 0, 0));
-                }
+                // Theoretical input exists for debugging purposes, no current use yet in checks.
+                grimPlayer.theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().subtract(possibleCollisionInputs.lastTickOutput).divide(grimPlayer.stuckSpeedMultiplier), f, grimPlayer.xRot);
 
-                for (Vector possibleCollisionInputs : possibleInputs) {
-                    Vector possibleInput = getBestPossiblePlayerInput(grimPlayer, possibleCollisionInputs);
-
-                    Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(possibleLastTickOutput.clone().add(getMovementResultFromInput(possibleInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), MoverType.SELF, grimPlayer), grimPlayer);
-                    double resultAccuracy = possibleInputVelocityResult.setY(0).distance(wantedMovement);
-
-                    //Bukkit.broadcastMessage("Last closeness " + bestInput + "Possible input " + possibleInput + " Prior" + possibleLastTickOutput + " Input result " + possibleInputVelocityResult + "Possible input " + possibleInput + " accuracy " + resultAccuracy);
-
-                    // Don't touch theoretical input, that was calculated earlier and is correct
-                    if (resultAccuracy < bestInput) {
-                        //Bukkit.broadcastMessage(ChatColor.RED + "Using collision");
-                        bestInput = resultAccuracy;
-                        grimPlayer.bestOutput = possibleLastTickOutput;
-                        grimPlayer.possibleInput = possibleInput;
-                        grimPlayer.predictedVelocity = possibleInputVelocityResult;
-                    }
-                }
+                // Close enough.
+                if (resultAccuracy < 0.001) break;
             }
         }
 

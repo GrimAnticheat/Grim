@@ -2,7 +2,6 @@ package ac.grim.grimac.checks.packet;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.MovementCheck;
-import org.bukkit.Bukkit;
 
 public class Timer extends MovementCheck {
     private static final long millisPerTick = 50000000L;
@@ -22,7 +21,7 @@ public class Timer extends MovementCheck {
             // TODO: Punish
         }
 
-        Bukkit.broadcastMessage("Offset: " + (int) (player.offset / 1000000));
+        //Bukkit.broadcastMessage("Offset: " + (int) (player.offset / 1000000));
 
         player.lastMovementPacket = currentTime;
     }

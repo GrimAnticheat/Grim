@@ -22,9 +22,7 @@ public class GrimPlayer {
     public Vector clientVelocityFireworkBoost = new Vector();
 
     public Vector predictedVelocity = new Vector();
-    public Vector lastActualMovement = new Vector();
     public Vector actualMovement = new Vector();
-    public Vector actualMovementCalculatedCollision = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
     public Player bukkitPlayer;
     public EntityPlayer entityPlayer;
@@ -53,7 +51,6 @@ public class GrimPlayer {
     // We guess this
     public Vector theoreticalInput;
     public Vector possibleInput;
-    public Vector bestOutput;
 
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);

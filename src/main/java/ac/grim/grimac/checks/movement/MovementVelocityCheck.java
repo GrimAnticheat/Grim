@@ -1,11 +1,9 @@
 package ac.grim.grimac.checks.movement;
 
-import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineLava;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
-import ac.grim.grimac.events.anticheat.PlayerBaseTick;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
@@ -17,8 +15,6 @@ import net.minecraft.server.v1_16_R3.EnchantmentManager;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.MobEffects;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
@@ -30,8 +26,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 public class MovementVelocityCheck implements Listener {
-    private Player bukkitPlayer;
-    private GrimPlayer grimPlayer;
+    private final Player bukkitPlayer;
+    private final GrimPlayer grimPlayer;
 
     public MovementVelocityCheck(GrimPlayer grimPlayer) {
         this.grimPlayer = grimPlayer;
@@ -179,7 +175,7 @@ public class MovementVelocityCheck implements Listener {
                     grimPlayer.fireworkElytraDuration--;
                 } else {
                     grimPlayer.clientVelocity = clientVelocity;
-                    Bukkit.broadcastMessage("No");
+                    //Bukkit.broadcastMessage("No");
                 }
 
                 grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
