@@ -12,8 +12,11 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GrimPlayer {
+    public AtomicInteger tasksNotFinished = new AtomicInteger(0);
+
     // TODO: Stop the player from setting abilities such as flying (Can they do this?)
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();

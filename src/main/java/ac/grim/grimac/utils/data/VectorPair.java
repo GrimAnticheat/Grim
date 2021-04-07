@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.math;
+package ac.grim.grimac.utils.data;
 
 import org.bukkit.util.Vector;
 
