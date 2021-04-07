@@ -2,13 +2,13 @@ package ac.grim.grimac.checks.movement.predictions;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.MovementVelocityCheck;
+import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.math.VectorPair;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -125,25 +125,6 @@ public abstract class PredictionEngine {
         }
     }
 
-    /*public static Vector getBestPossiblePlayerInput(boolean isSneaking, Vector theoreticalInput) {
-        double bestPossibleX;
-        double bestPossibleZ;
-
-        if (isSneaking) {
-            bestPossibleX = Math.min(Math.max(-0.294, theoreticalInput.getX()), 0.294);
-            bestPossibleZ = Math.min(Math.max(-0.294, theoreticalInput.getZ()), 0.294);
-        } else {
-            bestPossibleX = Math.min(Math.max(-0.98, theoreticalInput.getX()), 0.98);
-            bestPossibleZ = Math.min(Math.max(-0.98, theoreticalInput.getZ()), 0.98);
-        }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-
-        if (inputVector.lengthSquared() > 1) inputVector.normalize();
-
-        return inputVector;
-    }*/
-
     public List<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
         return grimPlayer.getPossibleVelocities();
     }
@@ -157,13 +138,10 @@ public abstract class PredictionEngine {
     }
 
     private void handleSwimJump(GrimPlayer grimPlayer, Vector vector) {
-        if (grimPlayer.possibleKnockback.contains(vector)) return;
 
-        AxisAlignedBB isByLiquid = grimPlayer.entityPlayer.getBoundingBox().grow(0.1, 0, 0.1);
-
-        /*boolean bl = grimPlayer.entityPlayer.world.getCubes(grimPlayer.entityPlayer, grimPlayer.entityPlayer.getBoundingBox().shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
-        boolean bl2 = !grimPlayer.entityPlayer.world.getCubes(grimPlayer.entityPlayer, isByLiquid);
-        boolean bl3 = grimPlayer.entityPlayer.world.containsLiquid(isByLiquid);
+        boolean bl = Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.entityPlayer.getBoundingBox().shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
+        boolean bl2 = !Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.entityPlayer.getBoundingBox().grow(0.1, 0.1, 0.1));
+        boolean bl3 = CachedContainsLiquid.containsLiquid(grimPlayer.entityPlayer.getBoundingBox().grow(0.1, 0.1, 0.1));
 
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava
@@ -177,6 +155,6 @@ public abstract class PredictionEngine {
 
         if (bl && bl2 && bl3) {
             grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY(0.3);
-        }*/
+        }
     }
 }

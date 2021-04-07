@@ -10,6 +10,8 @@ import org.bukkit.block.data.type.Wall;
 import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
 import org.bukkit.entity.Player;
 
+import java.lang.reflect.Field;
+
 public class BlockProperties {
     // TODO: this code is shit
     // Seems to work.
@@ -19,6 +21,26 @@ public class BlockProperties {
                 (int) (bukkitPlayer.getBoundingBox().getMinY() - 0.5000001),
                 bukkitPlayer.getLocation().getBlockZ())
                 .getBlockData()).getState().getBlock().getFrictionFactor();
+    }
+
+    public static boolean getCanCollideWith(Object object) {
+        Class clazz = object.getClass();
+
+        while (clazz != null) {
+            try {
+                Field canCollide = clazz.getDeclaredField("at");
+                canCollide.setAccessible(true);
+                boolean can = canCollide.getBoolean(object);
+
+                return can;
+            } catch (NoSuchFieldException | IllegalAccessException noSuchFieldException) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+
+        // We should always be able to get a field
+        new Exception().printStackTrace();
+        return false;
     }
 
     // Verified.  This is correct.

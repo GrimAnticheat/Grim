@@ -1,10 +1,9 @@
 package ac.grim.grimac.utils.chunks;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import net.minecraft.server.v1_16_R3.*;
 
 import javax.annotation.Nullable;
-import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Spliterators;
 import java.util.function.BiPredicate;
@@ -43,6 +42,22 @@ public class CachedVoxelShapeSpliterator extends Spliterators.AbstractSpliterato
         int var8 = MathHelper.floor(var2.minZ - 1.0E-7D) - 1;
         int var9 = MathHelper.floor(var2.maxZ + 1.0E-7D) + 1;
         this.d = new CursorPosition(var4, var6, var8, var5, var7, var9);
+    }
+
+    public static boolean a(WorldBorder var0, AxisAlignedBB var1) {
+        double var2 = MathHelper.floor(var0.e());
+        double var4 = MathHelper.floor(var0.f());
+        double var6 = MathHelper.f(var0.g());
+        double var8 = MathHelper.f(var0.h());
+        return var1.minX > var2 && var1.minX < var6 && var1.minZ > var4 && var1.minZ < var8 && var1.maxX > var2 && var1.maxX < var6 && var1.maxZ > var4 && var1.maxZ < var8;
+    }
+
+    private static boolean b(VoxelShape var0, AxisAlignedBB var1) {
+        return VoxelShapes.c(var0, VoxelShapes.a(var1.shrink(1.0E-7D)), OperatorBoolean.AND);
+    }
+
+    private static boolean a(VoxelShape var0, AxisAlignedBB var1) {
+        return VoxelShapes.c(var0, VoxelShapes.a(var1.g(1.0E-7D)), OperatorBoolean.AND);
     }
 
     public boolean tryAdvance(Consumer<? super VoxelShape> var0) {
@@ -84,6 +99,7 @@ public class CachedVoxelShapeSpliterator extends Spliterators.AbstractSpliterato
                 }
 
                 VoxelShape var7 = b(var6, e);
+
                 //VoxelShape var7 = var6.getBlock().c(var6.g(), )
                 if (var7 == VoxelShapes.b()) {
                     if (!this.b.a(var1, var2, var3, (double) var1 + 1.0D, (double) var2 + 1.0D, (double) var3 + 1.0D)) {
@@ -107,53 +123,21 @@ public class CachedVoxelShapeSpliterator extends Spliterators.AbstractSpliterato
         }
     }
 
-    public static boolean a(WorldBorder var0, AxisAlignedBB var1) {
-        double var2 = MathHelper.floor(var0.e());
-        double var4 = MathHelper.floor(var0.f());
-        double var6 = MathHelper.f(var0.g());
-        double var8 = MathHelper.f(var0.h());
-        return var1.minX > var2 && var1.minX < var6 && var1.minZ > var4 && var1.minZ < var8 && var1.maxX > var2 && var1.maxX < var6 && var1.maxZ > var4 && var1.maxZ < var8;
-    }
-
-    private static boolean b(VoxelShape var0, AxisAlignedBB var1) {
-        return VoxelShapes.c(var0, VoxelShapes.a(var1.shrink(1.0E-7D)), OperatorBoolean.AND);
-    }
-
-    private static boolean a(VoxelShape var0, AxisAlignedBB var1) {
-        return VoxelShapes.c(var0, VoxelShapes.a(var1.g(1.0E-7D)), OperatorBoolean.AND);
-    }
-
     public VoxelShape b(IBlockData blockData, BlockPosition blockposition) {
         return c(blockData, blockposition);
     }
 
     @Deprecated
     public VoxelShape c(IBlockData iblockdata, BlockPosition blockposition) {
-        // I don't see a good way to get the shulker box data
-        // It would require reading off the chunk's block entities
-        //
-        // I'll have to implement them some other way.
         Block block = iblockdata.getBlock();
 
-        // TODO: Figure out shulker boxes
+        // Shulker boxes reads entity data from the world, which we can't do async
+        // What if we use shulkers to determine a player's ping :)
+        // TODO: Do something about shulkers because false positives!
         if (block instanceof BlockShulkerBox) {
             return VoxelShapes.b();
         }
 
-        boolean hasCollision = true;
-
-        try {
-            Field canCollide = ((BlockBase) block).getClass().getDeclaredField("at");
-            canCollide.setAccessible(true);
-
-            hasCollision = canCollide.getBoolean(block);
-        } catch (NoSuchFieldException | IllegalAccessException exception) {
-            GrimAC.plugin.getLogger().severe("Unable to see if block can be collided with");
-            exception.printStackTrace();
-        }
-
-        // Block position is used for offsets
-        // The only time BlockAccess is used is for shulker boxes - that's why we check for those differently
-        return hasCollision ? iblockdata.getShape(null, blockposition) : VoxelShapes.a();
+        return BlockProperties.getCanCollideWith(block) ? iblockdata.getShape(null, blockposition) : VoxelShapes.a();
     }
 }
