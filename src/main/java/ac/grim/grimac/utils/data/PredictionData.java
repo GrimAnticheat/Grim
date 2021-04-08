@@ -27,6 +27,8 @@ public class PredictionData {
     public Vehicle playerVehicle;
     public double fallDistance;
 
+    public int number;
+
     public PredictionData(GrimPlayer grimPlayer, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
         this.grimPlayer = grimPlayer;
         this.playerX = playerX;
@@ -35,6 +37,8 @@ public class PredictionData {
         this.xRot = xRot;
         this.yRot = yRot;
         this.onGround = onGround;
+
+        this.number = grimPlayer.taskNumber.getAndIncrement();
 
         // Plugins changing these values breaks both sync and async checks, so we might as well be async
         // Other packets can't arrive before this one does because we are blocking other player packets from arriving
@@ -51,7 +55,6 @@ public class PredictionData {
         this.isSneaking = grimPlayer.bukkitPlayer.isSneaking();
         this.isFlying = grimPlayer.bukkitPlayer.isFlying();
         this.isSwimming = grimPlayer.bukkitPlayer.isSwimming();
-        this.boundingBox = grimPlayer.entityPlayer.getBoundingBox();
         this.playerWorld = grimPlayer.bukkitPlayer.getWorld();
     }
 }

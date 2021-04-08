@@ -24,6 +24,8 @@ public class GrimPlayer {
     public Player bukkitPlayer;
     public EntityPlayer entityPlayer;
 
+    public AtomicInteger taskNumber = new AtomicInteger(0);
+
     // TODO: Stop the player from setting abilities such as flying (Can they do this?)
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();

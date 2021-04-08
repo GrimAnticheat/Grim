@@ -5,7 +5,6 @@ import ac.grim.grimac.events.anticheat.PlayerBaseTick;
 import ac.grim.grimac.utils.data.PredictionData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -37,7 +36,7 @@ public class MovementCheckRunner implements Listener {
     // List instead of Set for consistency in debug output
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
-    // In testing 4 threads seemed to have the best throughput, although this is hardware dependent
+    // I actually don't know how many threads is good, more testing is needed!
     static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
 
     static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
@@ -74,11 +73,8 @@ public class MovementCheckRunner implements Listener {
 
         grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
 
-        Location from = new Location(grimPlayer.playerWorld, grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
-        Location to = new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z);
-
         // This isn't the final velocity of the player in the tick, only the one applied to the player
-        grimPlayer.actualMovement = new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
+        grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
 
         // This is not affected by any movement
         new PlayerBaseTick(grimPlayer).doBaseTick();
@@ -112,7 +108,7 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
         grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
 
-        if (grimPlayer.tasksNotFinished.getAndDecrement() > 0) {
+        if (grimPlayer.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;
 
             // We KNOW that there is data in the queue
