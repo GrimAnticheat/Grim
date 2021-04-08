@@ -37,7 +37,7 @@ public class PredictionEngineWater extends PredictionEngine {
         List<Vector> velocities = grimPlayer.getPossibleVelocities();
         List<Vector> swimmingVelocities = new ArrayList<>();
 
-        if (grimPlayer.bukkitPlayer.isSwimming() && grimPlayer.bukkitPlayer.getVehicle() == null) {
+        if (grimPlayer.isSwimming && grimPlayer.bukkitPlayer.getVehicle() == null) {
             for (Vector vector : velocities) {
                 double d5;
                 double d = MovementVectorsCalc.getLookAngle(grimPlayer).y;
@@ -47,7 +47,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 // If the player is looking upward
                 // I removed the isJumping check and everything works fine
                 // This is most likely due to the player not swimming if they are not jumping in the other two scenarios
-                if (d <= 0.0 || !((CraftWorld) grimPlayer.bukkitPlayer.getWorld()).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
+                if (d <= 0.0 || !((CraftWorld) grimPlayer.playerWorld).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
                     swimmingVelocities.add(new Vector(vector.getX(), vector.getY() + ((d - vector.getY()) * d5), vector.getZ()));
                 }
             }

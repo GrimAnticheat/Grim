@@ -30,7 +30,7 @@ public abstract class PredictionEngine {
         float bestPossibleX;
         float bestPossibleZ;
 
-        if (grimPlayer.isSneaking && !grimPlayer.bukkitPlayer.isSwimming() && !grimPlayer.bukkitPlayer.isFlying()) {
+        if (grimPlayer.isSneaking && !grimPlayer.isSwimming && !grimPlayer.isFlying) {
             bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
             bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
         } else {
@@ -139,9 +139,9 @@ public abstract class PredictionEngine {
 
     private void handleSwimJump(GrimPlayer grimPlayer, Vector vector) {
 
-        boolean bl = Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.entityPlayer.getBoundingBox().shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
-        boolean bl2 = !Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.entityPlayer.getBoundingBox().grow(0.1, 0.1, 0.1));
-        boolean bl3 = CachedContainsLiquid.containsLiquid(grimPlayer.entityPlayer.getBoundingBox().grow(0.1, 0.1, 0.1));
+        boolean bl = Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
+        boolean bl2 = !Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.grow(0.1, 0.1, 0.1));
+        boolean bl3 = CachedContainsLiquid.containsLiquid(grimPlayer.boundingBox.grow(0.1, 0.1, 0.1));
 
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava

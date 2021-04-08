@@ -7,8 +7,6 @@ import ac.grim.grimac.utils.enums.MoverType;
 import com.google.common.collect.Lists;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import javax.annotation.Nullable;
@@ -28,7 +26,7 @@ public class Collisions {
         // TODO: Just use the vector again.
         Vec3D vec3 = new Vec3D(vector.getX(), vector.getY(), vector.getZ());
 
-        AxisAlignedBB aABB = grimPlayer.entityPlayer.getBoundingBox();
+        AxisAlignedBB aABB = grimPlayer.boundingBox;
         VoxelShapeCollision collisionContext = VoxelShapeCollision.a(grimPlayer.entityPlayer);
         VoxelShape voxelShape = grimPlayer.entityPlayer.getWorld().getWorldBorder().c(); // Technically this should be lag compensated...
         Stream<VoxelShape> worldBorderCollision = VoxelShapes.c(voxelShape, VoxelShapes.a(aABB.shrink(1.0E-7)), OperatorBoolean.AND) ? Stream.empty() : Stream.of(voxelShape);
@@ -238,13 +236,12 @@ public class Collisions {
     // Mojang mappings 911
     // TODO: Getting bounding box is not lag compensated
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
-        Player bukkitPlayer = grimPlayer.bukkitPlayer;
+        //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
-        if (!bukkitPlayer.isFlying() && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && bukkitPlayer.isSneaking() && isAboveGround(grimPlayer)) {
+        if (!grimPlayer.isFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.isSneaking && isAboveGround(grimPlayer)) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
-            while (d != 0.0 && noCollision(((CraftPlayer) bukkitPlayer).getHandle(),
-                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, 0.0))) {
+            while (d != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(d, -maxUpStep, 0.0))) {
                 if (d < 0.05 && d >= -0.05) {
                     d = 0.0;
                     continue;
@@ -255,8 +252,7 @@ public class Collisions {
                 }
                 d += 0.05;
             }
-            while (d2 != 0.0 && noCollision(((CraftPlayer) bukkitPlayer).getHandle(),
-                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, -maxUpStep, d2))) {
+            while (d2 != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, -maxUpStep, d2))) {
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
                     continue;
@@ -267,8 +263,7 @@ public class Collisions {
                 }
                 d2 += 0.05;
             }
-            while (d != 0.0 && d2 != 0.0 && noCollision(((CraftPlayer) bukkitPlayer).getHandle(),
-                    ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(d, -maxUpStep, d2))) {
+            while (d != 0.0 && d2 != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(d, -maxUpStep, d2))) {
                 d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? (d -= 0.05) : (d += 0.05));
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
@@ -287,28 +282,26 @@ public class Collisions {
 
     // TODO: Getting bounding box is wrong with lag, maybe not async safe
     private static boolean isAboveGround(GrimPlayer grimPlayer) {
-        Player bukkitPlayer = grimPlayer.bukkitPlayer;
+        //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
-        return grimPlayer.lastOnGround || bukkitPlayer.getFallDistance() < Collisions.maxUpStep && !
-                noCollision(((CraftPlayer) bukkitPlayer).getHandle(), ((CraftPlayer) bukkitPlayer).getHandle().getBoundingBox().d(0.0, bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
+        return grimPlayer.lastOnGround || grimPlayer.bukkitPlayer.getFallDistance() < Collisions.maxUpStep && !
+                noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, grimPlayer.bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
     }
 
     // TODO: This isn't async safe
     public static Vector getStuckMultiplier(GrimPlayer grimPlayer) {
-        org.bukkit.World world = grimPlayer.bukkitPlayer.getWorld();
-
-        AxisAlignedBB aABB = grimPlayer.entityPlayer.getBoundingBox();
-        Location blockPos = new Location(world, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
-        Location blockPos2 = new Location(world, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
+        AxisAlignedBB aABB = grimPlayer.boundingBox;
+        Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
+        Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
 
         Vector multiplier = new Vector(1, 1, 1);
 
         // TODO: hasChunksAt is NOT async safe, use paperlib or chunk cache?
-        if (CheckIfChunksLoaded.hasChunksAt(grimPlayer.bukkitPlayer.getWorld(), blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ())) {
+        if (CheckIfChunksLoaded.hasChunksAt(grimPlayer.playerWorld, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ())) {
             for (int i = blockPos.getBlockX(); i <= blockPos2.getX(); ++i) {
                 for (int j = blockPos.getBlockY(); j <= blockPos2.getY(); ++j) {
                     for (int k = blockPos.getBlockZ(); k <= blockPos2.getZ(); ++k) {
-                        org.bukkit.block.Block block = world.getBlockAt(i, j, k);
+                        org.bukkit.block.Block block = grimPlayer.playerWorld.getBlockAt(i, j, k);
 
                         if (block.getType() == org.bukkit.Material.COBWEB) {
                             multiplier = new Vector(0.25, 0.05000000074505806, 0.25);
@@ -343,6 +336,7 @@ public class Collisions {
         return StreamSupport.stream(new CachedVoxelShapeSpliterator(p_226666_1_, p_226666_2_), false);
     }
 
+    // TODO: We need to use the grim player's bounding box
     public static Stream<VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB p_230318_2_, Predicate<Entity> p_230318_3_) {
         if (p_230318_2_.a() < 1.0E-7D) { // a() -> getSize()
             return Stream.empty();

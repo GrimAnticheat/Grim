@@ -1,6 +1,7 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.checks.movement.MovementCheckRunner;
+import ac.grim.grimac.events.anticheat.PacketEntityAction;
 import ac.grim.grimac.events.anticheat.PacketPingListener;
 import ac.grim.grimac.events.anticheat.PacketPositionListener;
 import ac.grim.grimac.events.anticheat.PacketWorldReader;
@@ -59,6 +60,7 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PacketPositionListener());
         PacketEvents.get().registerListener(new PlayerVelocityPackets());
         PacketEvents.get().registerListener(new PacketPingListener());
+        PacketEvents.get().registerListener(new PacketEntityAction());
 
         try {
             PacketEvents.get().registerListener(new PacketWorldReader());

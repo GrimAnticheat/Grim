@@ -69,6 +69,7 @@ public class CachedVoxelShapeSpliterator extends Spliterators.AbstractSpliterato
         this.h = false;
         // TODO: This truly isn't async safe (probably doesn't matter)
         WorldBorder var1 = this.a.world.getWorldBorder();
+        // TODO: This isn't async safe
         AxisAlignedBB var2 = this.a.getBoundingBox();
         if (!a(var1, var2)) {
             VoxelShape var3 = var1.c();

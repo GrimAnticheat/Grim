@@ -46,12 +46,11 @@ public class MovementCheckRunner implements Listener {
         if (data.grimPlayer.tasksNotFinished.getAndIncrement() == 0) {
             executor.submit(() -> check(data));
         } else {
-            queuedPredictions.get(data.grimPlayer.bukkitPlayer.getUniqueId()).add(data);
+            queuedPredictions.get(data.grimPlayer.playerUUID).add(data);
         }
     }
 
     public static void check(PredictionData data) {
-        long startTime = System.nanoTime();
         GrimPlayer grimPlayer = data.grimPlayer;
 
         grimPlayer.x = data.playerX;
@@ -60,8 +59,14 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.xRot = data.xRot;
         grimPlayer.yRot = data.yRot;
         grimPlayer.onGround = data.onGround;
-        //data.grimPlayer.isSneaking = grimPlayer.bukkitPlayer.isSneaking();
+        grimPlayer.isSprinting = data.isSprinting;
+        grimPlayer.isSneaking = data.isSneaking;
+        grimPlayer.isFlying = data.isFlying;
+        grimPlayer.isSwimming = data.isSwimming;
+        grimPlayer.boundingBox = data.boundingBox;
+        grimPlayer.playerWorld = data.playerWorld;
         grimPlayer.movementPacketMilliseconds = System.currentTimeMillis();
+
 
         /*for (MovementCheck movementCheck : movementCheckListeners) {
             movementCheck.checkMovement(grimPlayer);
@@ -69,8 +74,8 @@ public class MovementCheckRunner implements Listener {
 
         grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
 
-        Location from = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
-        Location to = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.x, grimPlayer.y, grimPlayer.z);
+        Location from = new Location(grimPlayer.playerWorld, grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
+        Location to = new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z);
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         grimPlayer.actualMovement = new Vector(to.getX() - from.getX(), to.getY() - from.getY(), to.getZ() - from.getZ());
@@ -118,7 +123,7 @@ public class MovementCheckRunner implements Listener {
             // In reality this should never occur, and if it does it should only happen once.
             // In theory it's good to design an asynchronous system that can never break
             do {
-                nextData = queuedPredictions.get(data.grimPlayer.bukkitPlayer.getUniqueId()).poll();
+                nextData = queuedPredictions.get(data.grimPlayer.playerUUID).poll();
             } while (nextData == null);
 
             PredictionData finalNextData = nextData;

@@ -28,8 +28,9 @@ public class PacketPositionListener extends PacketListenerDynamic {
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
+            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
+            MovementCheckRunner.addQueuedPrediction(new PredictionData(grimPlayer, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.LOOK) {
