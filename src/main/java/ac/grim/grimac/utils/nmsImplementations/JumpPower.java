@@ -33,8 +33,8 @@ public class JumpPower {
     }
 
     private static float getPlayerJumpFactor(GrimPlayer player) {
-        float f = ChunkCache.getBlockDataAt((int) player.lastX, (int) player.lastY, (int) player.lastZ).getBlock().getJumpFactor();
-        float f2 = ChunkCache.getBlockDataAt((int) player.lastX, (int) (player.lastY - 0.5000001), (int) player.lastZ).getBlock().getJumpFactor();
+        float f = ChunkCache.getBlockDataAt(player.lastX, player.lastY, player.lastZ).getBlock().getJumpFactor();
+        float f2 = ChunkCache.getBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getBlock().getJumpFactor();
 
         return (double) f == 1.0 ? f2 : f;
     }

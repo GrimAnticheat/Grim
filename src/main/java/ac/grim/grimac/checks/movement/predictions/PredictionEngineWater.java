@@ -1,10 +1,9 @@
 package ac.grim.grimac.checks.movement.predictions;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -47,7 +46,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 // If the player is looking upward
                 // I removed the isJumping check and everything works fine
                 // This is most likely due to the player not swimming if they are not jumping in the other two scenarios
-                if (d <= 0.0 || !((CraftWorld) grimPlayer.playerWorld).getHandle().getFluid(new BlockPosition(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ)).isEmpty()) {
+                if (d <= 0.0 || !ChunkCache.getBlockDataAt(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ).getFluid().isEmpty()) {
                     swimmingVelocities.add(new Vector(vector.getX(), vector.getY() + ((d - vector.getY()) * d5), vector.getZ()));
                 }
             }

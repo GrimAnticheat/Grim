@@ -13,7 +13,7 @@ import java.lang.reflect.Field;
 
 public class BlockProperties {
     public static float getBlockFriction(GrimPlayer player) {
-        return ChunkCache.getBlockDataAt((int) player.lastX, (int) (player.lastY - 0.5000001), (int) player.lastZ).getBlock().getFrictionFactor();
+        return ChunkCache.getBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getBlock().getFrictionFactor();
     }
 
     // TODO: Compile all these values into an array to improve performance
@@ -73,7 +73,7 @@ public class BlockProperties {
 
     // Entity line 637
     public static float getBlockSpeedFactor(GrimPlayer player) {
-        net.minecraft.server.v1_16_R3.Block block = ChunkCache.getBlockDataAt((int) player.lastX, (int) player.lastY, (int) player.lastZ).getBlock();
+        net.minecraft.server.v1_16_R3.Block block = ChunkCache.getBlockDataAt(player.lastX, player.lastY, player.lastZ).getBlock();
 
         float f = block.getSpeedFactor();
 
@@ -81,6 +81,6 @@ public class BlockProperties {
             return f;
         }
 
-        return f == 1.0 ? ChunkCache.getBlockDataAt((int) player.lastX, (int) (player.boundingBox.minY - 0.5000001), (int) player.lastZ).getBlock().getSpeedFactor() : f;
+        return f == 1.0 ? ChunkCache.getBlockDataAt(player.lastX, player.boundingBox.minY - 0.5000001, player.lastZ).getBlock().getSpeedFactor() : f;
     }
 }

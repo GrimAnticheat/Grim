@@ -1,9 +1,11 @@
 package ac.grim.grimac.events.anticheat;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.util.Vector;
@@ -75,7 +77,7 @@ public class PlayerBaseTick {
         }
 
         BlockPosition blockposition = new BlockPosition(player.x, d0, player.z);
-        Fluid fluid = ((CraftWorld) player.playerWorld).getHandle().getFluid(blockposition);
+        Fluid fluid = ChunkCache.getBlockDataAt(player.x, player.y, player.z).getFluid();
         Iterator iterator = TagsFluid.b().iterator();
 
         while (iterator.hasNext()) {
@@ -157,15 +159,14 @@ public class PlayerBaseTick {
                 for (int k = n6; k < n; ++k) {
                     double d3;
                     mutableBlockPos.d(i, j, k);
-                    Fluid fluid = playerWorld.getFluid(mutableBlockPos);
-                    if (!fluid.a(tag) || !((d3 = (float) j + fluid.getHeight(playerWorld, mutableBlockPos)) >= aABB.minX))
+                    Fluid fluid = ChunkCache.getBlockDataAt(i, j, k).getFluid();
+                    if (!fluid.a(tag) || !((d3 = (float) j + fluid.getHeight(playerWorld, mutableBlockPos)) >= aABB.minY))
                         continue;
                     bl2 = true;
                     d2 = Math.max(d3 - aABB.minX, d2);
 
                     if (!player.isFlying) {
-                        fluid.c(playerWorld, mutableBlockPos);
-                        Vec3D vec32 = fluid.c(playerWorld, mutableBlockPos);
+                        Vec3D vec32 = FluidTypeFlowing.getFlow(mutableBlockPos, fluid);
                         if (d2 < 0.4) {
                             vec32 = vec32.a(d2);
                         }

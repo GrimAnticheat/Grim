@@ -41,6 +41,10 @@ public class ChunkCache {
         return chunks.getOrDefault(chunkPosition, null);
     }
 
+    public static IBlockData getBlockDataAt(double x, double y, double z) {
+        return getBlockDataAt((int) x, (int) y, (int) z);
+    }
+
     public static IBlockData getBlockDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
