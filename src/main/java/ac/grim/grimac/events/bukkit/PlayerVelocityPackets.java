@@ -6,8 +6,6 @@ import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
@@ -29,11 +27,11 @@ public class PlayerVelocityPackets extends PacketListenerDynamic {
                     double velZ = velocity.getVelocityZ();
 
                     Vector playerVelocity = new Vector(velX, velY, velZ);
-                    Bukkit.broadcastMessage("Adding " + playerVelocity);
+                    //Bukkit.broadcastMessage("Adding " + playerVelocity);
                     GrimAC.playerGrimHashMap.get(event.getPlayer()).possibleKnockback.add(playerVelocity);
 
                     for (Vector vector : GrimAC.playerGrimHashMap.get(event.getPlayer()).possibleKnockback) {
-                        Bukkit.broadcastMessage(ChatColor.AQUA + "Current vectors " + vector);
+                        //Bukkit.broadcastMessage(ChatColor.AQUA + "Current vectors " + vector);
                     }
 
                     event.getPlayer().sendMessage("You have taken velocity!");

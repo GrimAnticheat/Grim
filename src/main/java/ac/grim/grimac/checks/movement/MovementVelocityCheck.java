@@ -1,11 +1,9 @@
 package ac.grim.grimac.checks.movement;
 
-import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineLava;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
-import ac.grim.grimac.events.anticheat.PlayerBaseTick;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
@@ -17,30 +15,86 @@ import net.minecraft.server.v1_16_R3.EnchantmentManager;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.MobEffects;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-public class MovementVelocityCheck implements Listener {
-    private Player bukkitPlayer;
-    private GrimPlayer grimPlayer;
+public class MovementVelocityCheck {
+    private final Player bukkitPlayer;
+    private final GrimPlayer grimPlayer;
 
     public MovementVelocityCheck(GrimPlayer grimPlayer) {
         this.grimPlayer = grimPlayer;
         this.bukkitPlayer = grimPlayer.bukkitPlayer;
     }
 
-    @EventHandler
-    public void onPlayerMoveEvent(PlayerMoveEvent event) {
+    // Entity line 527
+    // TODO: Entity piston and entity shulker (want to) call this method too.
+    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector vec3) {
+        // Something about noClip
+        // Piston movement exemption
+        // What is a motion multiplier?
+        Vector stuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
 
+        if (stuckSpeedMultiplier.getX() < 0.99) {
+            vec3 = vec3.multiply(stuckSpeedMultiplier);
+            grimPlayer.baseTickSetX(0);
+            grimPlayer.baseTickSetY(0);
+            grimPlayer.baseTickSetZ(0);
+        }
+
+        Vector clonedClientVelocity = Collisions.collide(Collisions.maybeBackOffFromEdge(vec3, moverType, grimPlayer), grimPlayer);
+
+        if (stuckSpeedMultiplier.getX() < 0.99) {
+            vec3 = vec3.multiply(stuckSpeedMultiplier);
+            clonedClientVelocity = new Vector();
+        }
+
+        grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
+        grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();
+
+        grimPlayer.predictedVelocity = clonedClientVelocity.clone();
+
+        if (vec3.getX() != clonedClientVelocity.getX()) {
+            clonedClientVelocity.setX(0);
+        }
+
+        if (vec3.getZ() != clonedClientVelocity.getZ()) {
+            clonedClientVelocity.setZ(0);
+        }
+
+        Location getBlockLocation;
+
+        getBlockLocation = new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y - 0.2F, grimPlayer.z);
+
+        Block onBlock = BlockProperties.getOnBlock(getBlockLocation);
+
+        if (vec3.getY() != clonedClientVelocity.getY()) {
+            if (onBlock.getType() == org.bukkit.Material.SLIME_BLOCK) {
+                // TODO: Maybe lag compensate this (idk packet order)
+                if (grimPlayer.isSneaking) {
+                    clonedClientVelocity.setY(0);
+                } else {
+                    if (clonedClientVelocity.getY() < 0.0) {
+                        clonedClientVelocity.setY(-vec3.getY());
+                    }
+                }
+            } else if (onBlock.getBlockData() instanceof Bed) {
+                if (clonedClientVelocity.getY() < 0.0) {
+                    clonedClientVelocity.setY(-vec3.getY() * 0.6600000262260437);
+                }
+            } else {
+                clonedClientVelocity.setY(0);
+            }
+        }
+
+        float f = BlockProperties.getBlockSpeedFactor(grimPlayer);
+        clonedClientVelocity.multiply(new Vector(f, 1.0, f));
+
+        return clonedClientVelocity;
     }
 
     public void livingEntityAIStep() {
@@ -67,7 +121,7 @@ public class MovementVelocityCheck implements Listener {
     public void playerEntityTravel() {
         grimPlayer.clientVelocitySwimHop = null;
 
-        if (grimPlayer.bukkitPlayer.isFlying() && grimPlayer.bukkitPlayer.getVehicle() == null) {
+        if (grimPlayer.isFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
             double oldY = grimPlayer.clientVelocity.getY();
             double oldYJumping = grimPlayer.clientVelocityJumping.getY();
             livingEntityTravel();
@@ -149,9 +203,8 @@ public class MovementVelocityCheck implements Listener {
                     grimPlayer.clientVelocity.multiply(0.5D);
                 }
 
-                if (grimPlayer.bukkitPlayer.hasGravity()) {
-                    grimPlayer.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
-                }
+                // Removed reference to gravity
+                grimPlayer.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
                 if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.y + lastY, grimPlayer.clientVelocity.getZ())) {
                     grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ());
@@ -179,7 +232,7 @@ public class MovementVelocityCheck implements Listener {
                     grimPlayer.fireworkElytraDuration--;
                 } else {
                     grimPlayer.clientVelocity = clientVelocity;
-                    Bukkit.broadcastMessage("No");
+                    //Bukkit.broadcastMessage("No");
                 }
 
                 grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
@@ -198,7 +251,7 @@ public class MovementVelocityCheck implements Listener {
                 }
 
             } else {
-                float blockFriction = BlockProperties.getBlockFriction(grimPlayer.bukkitPlayer);
+                float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
                 grimPlayer.gravity = playerGravity;
                 grimPlayer.friction = f6;
@@ -232,75 +285,5 @@ public class MovementVelocityCheck implements Listener {
         vector.add(new Vector((lookVector.getX() / d2 * d3 - vector.getX()) * 0.1D, 0.0D, (lookVector.getZ() / d2 * d3 - vector.getZ()) * 0.1D));
 
         return vector;
-    }
-
-    // Entity line 527
-    // TODO: Entity piston and entity shulker (want to) call this method too.
-    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector vec3) {
-        // Something about noClip
-        // Piston movement exemption
-        // What is a motion multiplier?
-        Vector stuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
-
-        if (stuckSpeedMultiplier.getX() < 0.99) {
-            vec3 = vec3.multiply(stuckSpeedMultiplier);
-            grimPlayer.baseTickSetX(0);
-            grimPlayer.baseTickSetY(0);
-            grimPlayer.baseTickSetZ(0);
-        }
-
-        Vector clonedClientVelocity = Collisions.collide(Collisions.maybeBackOffFromEdge(vec3, moverType, grimPlayer), grimPlayer);
-
-        if (stuckSpeedMultiplier.getX() < 0.99) {
-            vec3 = vec3.multiply(stuckSpeedMultiplier);
-            clonedClientVelocity = new Vector();
-        }
-
-        grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
-        grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();
-
-        if (vec3.getX() != clonedClientVelocity.getX()) {
-            clonedClientVelocity.setX(0);
-        }
-
-        if (vec3.getZ() != clonedClientVelocity.getZ()) {
-            clonedClientVelocity.setZ(0);
-        }
-
-        Location getBlockLocation;
-        // Stop "blinking" to slime blocks
-        // 0.5 blocks is a huge buffer but it nerfs the cheats "enough"
-        // Use the player's new location for better accuracy
-        if (grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement) < 0.5) {
-            getBlockLocation = new Location(grimPlayer.bukkitPlayer.getWorld(), grimPlayer.x, grimPlayer.y - 0.2F, grimPlayer.z);
-        } else {
-            getBlockLocation = grimPlayer.bukkitPlayer.getLocation().add(grimPlayer.clientVelocity).subtract(0, 0.2, 0);
-        }
-
-        Block onBlock = BlockProperties.getOnBlock(getBlockLocation);
-
-        if (vec3.getY() != clonedClientVelocity.getY()) {
-            if (onBlock.getType() == org.bukkit.Material.SLIME_BLOCK) {
-                // TODO: Maybe lag compensate this (idk packet order)
-                if (grimPlayer.bukkitPlayer.isSneaking()) {
-                    clonedClientVelocity.setY(0);
-                } else {
-                    if (clonedClientVelocity.getY() < 0.0) {
-                        clonedClientVelocity.setY(-vec3.getY());
-                    }
-                }
-            } else if (onBlock.getBlockData() instanceof Bed) {
-                if (clonedClientVelocity.getY() < 0.0) {
-                    clonedClientVelocity.setY(-vec3.getY() * 0.6600000262260437);
-                }
-            } else {
-                clonedClientVelocity.setY(0);
-            }
-        }
-
-        float f = BlockProperties.getBlockSpeedFactor(grimPlayer.bukkitPlayer);
-        clonedClientVelocity.multiply(new Vector(f, 1.0, f));
-
-        return clonedClientVelocity;
     }
 }

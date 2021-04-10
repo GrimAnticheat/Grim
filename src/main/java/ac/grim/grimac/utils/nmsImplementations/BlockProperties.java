@@ -1,40 +1,55 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Fence;
 import org.bukkit.block.data.type.Gate;
 import org.bukkit.block.data.type.Wall;
-import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
-import org.bukkit.entity.Player;
+
+import java.lang.reflect.Field;
 
 public class BlockProperties {
-    // TODO: this code is shit
-    // Seems to work.
-    public static float getBlockFriction(Player bukkitPlayer) {
-        return ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt(
-                bukkitPlayer.getLocation().getBlockX(),
-                (int) (bukkitPlayer.getBoundingBox().getMinY() - 0.5000001),
-                bukkitPlayer.getLocation().getBlockZ())
-                .getBlockData()).getState().getBlock().getFrictionFactor();
+    public static float getBlockFriction(GrimPlayer player) {
+        return ChunkCache.getBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getBlock().getFrictionFactor();
     }
 
-    // Verified.  This is correct.
+    // TODO: Compile all these values into an array to improve performance
+    public static boolean getCanCollideWith(Object object) {
+        Class clazz = object.getClass();
+
+        while (clazz != null) {
+            try {
+                Field canCollide = clazz.getDeclaredField("at");
+                canCollide.setAccessible(true);
+                boolean can = canCollide.getBoolean(object);
+
+                return can;
+            } catch (NoSuchFieldException | IllegalAccessException noSuchFieldException) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+
+        // We should always be able to get a field
+        new Exception().printStackTrace();
+        return false;
+    }
+
     public static float getFrictionInfluencedSpeed(float f, GrimPlayer grimPlayer) {
-        Player bukkitPlayer = grimPlayer.bukkitPlayer;
+        //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
         if (grimPlayer.lastOnGround) {
-            return (float) (bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
+            return (float) (grimPlayer.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
         }
 
         // TODO: This is wrong
         if (grimPlayer.entityPlayer.abilities.isFlying) {
-            return bukkitPlayer.getFlySpeed() * 10 * (grimPlayer.bukkitPlayer.isSprinting() ? 0.1f : 0.05f);
+            return grimPlayer.bukkitPlayer.getFlySpeed() * 10 * (grimPlayer.isSprinting ? 0.1f : 0.05f);
 
         } else {
-            if (bukkitPlayer.isSprinting()) {
+            if (grimPlayer.isSprinting) {
                 return 0.026f;
             } else {
                 return 0.02f;
@@ -43,7 +58,6 @@ public class BlockProperties {
     }
 
     // Entity line 617
-    // Heavily simplified (wtf was that original code mojang)
     public static Block getOnBlock(Location getBlockLocation) {
         Block block1 = getBlockLocation.getWorld().getBlockAt(getBlockLocation.getBlockX(), (int) (getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
         Block block2 = getBlockLocation.getWorld().getBlockAt(getBlockLocation.getBlockX(), (int) (getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
@@ -58,13 +72,8 @@ public class BlockProperties {
     }
 
     // Entity line 637
-    // Seems fine to me.  Haven't found issues here
-    public static float getBlockSpeedFactor(Player bukkitPlayer) {
-        net.minecraft.server.v1_16_R3.Block block = ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
-                (bukkitPlayer.getLocation().getBlockX(),
-                        bukkitPlayer.getLocation().getBlockY(),
-                        bukkitPlayer.getLocation().getBlockZ())
-                .getBlockData()).getState().getBlock();
+    public static float getBlockSpeedFactor(GrimPlayer player) {
+        net.minecraft.server.v1_16_R3.Block block = ChunkCache.getBlockDataAt(player.lastX, player.lastY, player.lastZ).getBlock();
 
         float f = block.getSpeedFactor();
 
@@ -72,9 +81,6 @@ public class BlockProperties {
             return f;
         }
 
-        return (double) f == 1.0 ? ((CraftBlockData) bukkitPlayer.getWorld().getBlockAt
-                (bukkitPlayer.getLocation().getBlockX(), (int) (bukkitPlayer.getBoundingBox().getMinY() - 0.5000001),
-                        bukkitPlayer.getLocation().getBlockZ())
-                .getBlockData()).getState().getBlock().getSpeedFactor() : f;
+        return f == 1.0 ? ChunkCache.getBlockDataAt(player.lastX, player.boundingBox.minY - 0.5000001, player.lastZ).getBlock().getSpeedFactor() : f;
     }
 }

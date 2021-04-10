@@ -1,9 +1,11 @@
 package ac.grim.grimac;
 
+import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
@@ -12,8 +14,18 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GrimPlayer {
+    public final UUID playerUUID;
+    // This is the most essential value and controls the threading
+    public AtomicInteger tasksNotFinished = new AtomicInteger(0);
+    public Player bukkitPlayer;
+    public EntityPlayer entityPlayer;
+
+    public AtomicInteger taskNumber = new AtomicInteger(0);
+
     // TODO: Stop the player from setting abilities such as flying (Can they do this?)
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
@@ -22,12 +34,9 @@ public class GrimPlayer {
     public Vector clientVelocityFireworkBoost = new Vector();
 
     public Vector predictedVelocity = new Vector();
-    public Vector lastActualMovement = new Vector();
     public Vector actualMovement = new Vector();
-    public Vector actualMovementCalculatedCollision = new Vector();
+    public Vector bestPreviousMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
-    public Player bukkitPlayer;
-    public EntityPlayer entityPlayer;
 
     public double gravity;
     public float friction;
@@ -41,11 +50,17 @@ public class GrimPlayer {
     public float xRot;
     public float yRot;
     public boolean onGround;
-    public boolean isSneaking;
     public long movementEventMilliseconds;
     public long lastMovementEventMilliseconds;
     public long movementPacketMilliseconds;
     public long lastMovementPacketMilliseconds;
+    // Set from the time that the movement packet was received, to be thread safe
+    public boolean isSneaking;
+    public boolean isSprinting;
+    public boolean isFlying;
+    public boolean isSwimming;
+    public AxisAlignedBB boundingBox;
+    public World playerWorld;
 
     // We determine this
     public boolean isActuallyOnGround;
@@ -53,7 +68,6 @@ public class GrimPlayer {
     // We guess this
     public Vector theoreticalInput;
     public Vector possibleInput;
-    public Vector bestOutput;
 
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
@@ -86,6 +100,7 @@ public class GrimPlayer {
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
         this.entityPlayer = ((CraftPlayer) player).getHandle();
+        this.playerUUID = player.getUniqueId();
 
         movementPacketMilliseconds = System.currentTimeMillis();
         lastMovementPacketMilliseconds = System.currentTimeMillis() - 100;

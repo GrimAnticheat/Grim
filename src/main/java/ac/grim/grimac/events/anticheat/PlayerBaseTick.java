@@ -1,12 +1,13 @@
 package ac.grim.grimac.events.anticheat;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 
 import java.util.Iterator;
@@ -20,18 +21,18 @@ public class PlayerBaseTick {
 
     public void doBaseTick() {
         // LocalPlayer:aiStep line 728
-        if (player.entityPlayer.isInWater() && player.bukkitPlayer.isSneaking() && !player.bukkitPlayer.isFlying()) {
+        if (player.entityPlayer.isInWater() && player.isSneaking && !player.isFlying) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
         // Let shifting and holding space not be a false positive by allowing sneaking to override this
         // TODO: Do we have to apply this to other velocities
-        if (player.bukkitPlayer.isFlying()) {
+        if (player.isFlying) {
             player.clientVelocityJumping = player.clientVelocity.clone().add(new Vector(0, player.entityPlayer.abilities.flySpeed * 3, 0));
         }
 
         // TODO: Does this affect knockback?
-        if (player.bukkitPlayer.isFlying() && player.isSneaking) {
+        if (player.isFlying && player.isSneaking) {
             player.baseTickAddVector(new Vector(0, player.entityPlayer.abilities.flySpeed * -3, 0));
         }
 
@@ -50,7 +51,7 @@ public class PlayerBaseTick {
         // Put stuck speed here so it is on the right tick
         player.stuckSpeedMultiplier = Collisions.getStuckMultiplier(player);
         // Flying players are not affected by cobwebs/sweet berry bushes
-        if (player.bukkitPlayer.isFlying()) {
+        if (player.isFlying) {
             player.stuckSpeedMultiplier = new Vector(1, 1, 1);
         }
     }
@@ -76,7 +77,7 @@ public class PlayerBaseTick {
         }
 
         BlockPosition blockposition = new BlockPosition(player.x, d0, player.z);
-        Fluid fluid = ((CraftWorld) player.bukkitPlayer.getWorld()).getHandle().getFluid(blockposition);
+        Fluid fluid = ChunkCache.getBlockDataAt(player.x, player.y, player.z).getFluid();
         Iterator iterator = TagsFluid.b().iterator();
 
         while (iterator.hasNext()) {
@@ -137,14 +138,14 @@ public class PlayerBaseTick {
 
     // TODO: Idk if this is right
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
-        BoundingBox aABB = player.bukkitPlayer.getBoundingBox().expand(-0.001);
-        int n2 = Mth.floor(aABB.getMinX());
-        int n3 = Mth.ceil(aABB.getMaxX());
-        int n4 = Mth.floor(aABB.getMinY());
-        int n5 = Mth.ceil(aABB.getMaxY());
-        int n6 = Mth.floor(aABB.getMinZ());
-        int n = Mth.ceil(aABB.getMaxZ());
-        if (!CheckIfChunksLoaded.hasChunksAt(player.bukkitPlayer.getWorld(), n2, n4, n6, n3, n5, n)) {
+        AxisAlignedBB aABB = player.boundingBox.shrink(0.001);
+        int n2 = Mth.floor(aABB.minX);
+        int n3 = Mth.ceil(aABB.maxX);
+        int n4 = Mth.floor(aABB.minY);
+        int n5 = Mth.ceil(aABB.maxY);
+        int n6 = Mth.floor(aABB.minZ);
+        int n = Mth.ceil(aABB.maxZ);
+        if (!CheckIfChunksLoaded.hasChunksAt(player.playerWorld, n2, n4, n6, n3, n5, n)) {
             return false;
         }
         double d2 = 0.0;
@@ -152,21 +153,20 @@ public class PlayerBaseTick {
         Vec3D vec3 = Vec3D.ORIGIN;
         int n7 = 0;
         BlockPosition.MutableBlockPosition mutableBlockPos = new BlockPosition.MutableBlockPosition();
-        WorldServer playerWorld = ((CraftWorld) player.bukkitPlayer.getWorld()).getHandle();
+        WorldServer playerWorld = ((CraftWorld) player.playerWorld).getHandle();
         for (int i = n2; i < n3; ++i) {
             for (int j = n4; j < n5; ++j) {
                 for (int k = n6; k < n; ++k) {
                     double d3;
                     mutableBlockPos.d(i, j, k);
-                    Fluid fluid = playerWorld.getFluid(mutableBlockPos);
-                    if (!fluid.a(tag) || !((d3 = (float) j + fluid.getHeight(playerWorld, mutableBlockPos)) >= aABB.getMinY()))
+                    Fluid fluid = ChunkCache.getBlockDataAt(i, j, k).getFluid();
+                    if (!fluid.a(tag) || !((d3 = (float) j + fluid.getHeight(playerWorld, mutableBlockPos)) >= aABB.minY))
                         continue;
                     bl2 = true;
-                    d2 = Math.max(d3 - aABB.getMinY(), d2);
+                    d2 = Math.max(d3 - aABB.minX, d2);
 
-                    if (!player.bukkitPlayer.isFlying()) {
-                        fluid.c(playerWorld, mutableBlockPos);
-                        Vec3D vec32 = fluid.c(playerWorld, mutableBlockPos);
+                    if (!player.isFlying) {
+                        Vec3D vec32 = FluidTypeFlowing.getFlow(mutableBlockPos, fluid);
                         if (d2 < 0.4) {
                             vec32 = vec32.a(d2);
                         }
@@ -194,10 +194,9 @@ public class PlayerBaseTick {
     }
 
     private boolean suffocatesAt(BlockPosition blockPos2) {
-        AxisAlignedBB aABB = player.entityPlayer.getBoundingBox();
-        AxisAlignedBB aABB2 = new AxisAlignedBB(blockPos2.getX(), aABB.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, aABB.maxY, blockPos2.getZ() + 1.0).grow(-1.0E-7, -1.0E-7, -1.0E-7);
+        AxisAlignedBB axisAlignedBB = new AxisAlignedBB(blockPos2.getX(), player.boundingBox.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, player.boundingBox.maxY, blockPos2.getZ() + 1.0).grow(-1.0E-7, -1.0E-7, -1.0E-7);
         // It looks like the method it usually calls is gone from the server?
         // So we have to just do the allMatch ourselves.
-        return !((CraftWorld) player.bukkitPlayer.getWorld()).getHandle().b(player.entityPlayer, aABB2, (blockState, blockPos) -> blockState.o(player.entityPlayer.getWorld(), blockPos)).allMatch(VoxelShape::isEmpty);
+        return !((CraftWorld) player.playerWorld).getHandle().b(player.entityPlayer, axisAlignedBB, (blockState, blockPos) -> blockState.o(player.entityPlayer.getWorld(), blockPos)).allMatch(VoxelShape::isEmpty);
     }
 }
