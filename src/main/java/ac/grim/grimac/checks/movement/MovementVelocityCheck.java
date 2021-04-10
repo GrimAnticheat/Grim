@@ -19,13 +19,10 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-public class MovementVelocityCheck implements Listener {
+public class MovementVelocityCheck {
     private final Player bukkitPlayer;
     private final GrimPlayer grimPlayer;
 
@@ -96,11 +93,6 @@ public class MovementVelocityCheck implements Listener {
         clonedClientVelocity.multiply(new Vector(f, 1.0, f));
 
         return clonedClientVelocity;
-    }
-
-    @EventHandler
-    public void onPlayerMoveEvent(PlayerMoveEvent event) {
-
     }
 
     public void livingEntityAIStep() {
