@@ -38,16 +38,15 @@ public class PredictionEngineWater extends PredictionEngine {
 
         if (grimPlayer.isSwimming && grimPlayer.bukkitPlayer.getVehicle() == null) {
             for (Vector vector : velocities) {
-                double d5;
                 double d = MovementVectorsCalc.getLookAngle(grimPlayer).y;
-                d5 = d < -0.2 ? 0.085 : 0.06;
+                double d5 = d < -0.2 ? 0.085 : 0.06;
 
-                // if (d3 <= 0.0D || this.isJumping || !this.world.getBlockState(new BlockPos(this.getPosX(), this.getPosY() + 1.0D - 0.1D, this.getPosZ())).getFluidState().isEmpty()) {
-                // If the player is looking upward
-                // I removed the isJumping check and everything works fine
-                // This is most likely due to the player not swimming if they are not jumping in the other two scenarios
-                if (d <= 0.0 || !ChunkCache.getBlockDataAt(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ).getFluid().isEmpty()) {
-                    swimmingVelocities.add(new Vector(vector.getX(), vector.getY() + ((d - vector.getY()) * d5), vector.getZ()));
+                // The player can always press jump and activate this
+                swimmingVelocities.add(new Vector(vector.getX(), vector.getY() + ((d - vector.getY()) * d5), vector.getZ()));
+
+                // This scenario will occur if the player does not press jump and the other conditions are met
+                if (d > 0.0 && ChunkCache.getBlockDataAt(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ).getFluid().isEmpty()) {
+                    swimmingVelocities.add(vector);
                 }
             }
 
