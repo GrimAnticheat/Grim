@@ -152,6 +152,8 @@ public class MovementVelocityCheck {
             //this.fallDistance = 0.0f;
         }
 
+        grimPlayer.gravity = playerGravity;
+
         EntityPlayer entityPlayer = grimPlayer.entityPlayer;
 
         double lastY;
@@ -243,7 +245,6 @@ public class MovementVelocityCheck {
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
-                grimPlayer.gravity = playerGravity;
                 grimPlayer.friction = f6;
 
                 new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
