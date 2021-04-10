@@ -134,6 +134,10 @@ public class GrimPlayer {
             possibleMovements.add(clientVelocitySwimHop);
         }
 
+        if (clientVelocityFireworkBoost != null) {
+            possibleMovements.add(clientVelocityFireworkBoost);
+        }
+
         return possibleMovements;
     }
 
