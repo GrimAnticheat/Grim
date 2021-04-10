@@ -35,6 +35,7 @@ public class GrimPlayer {
 
     public Vector predictedVelocity = new Vector();
     public Vector actualMovement = new Vector();
+    public Vector bestPreviousMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
 
     public double gravity;

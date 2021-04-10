@@ -56,6 +56,8 @@ public class MovementVelocityCheck {
         grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
         grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();
 
+        grimPlayer.predictedVelocity = clonedClientVelocity.clone();
+
         if (vec3.getX() != clonedClientVelocity.getX()) {
             clonedClientVelocity.setX(0);
         }

@@ -84,13 +84,15 @@ public abstract class PredictionEngine {
         });
 
         for (VectorPair possibleCollisionInputs : possibleCombinations) {
-            Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(possibleCollisionInputs.lastTickOutput.clone().add(getMovementResultFromInput(possibleCollisionInputs.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), MoverType.SELF, grimPlayer), grimPlayer);
+            Vector movementWithoutCollision = possibleCollisionInputs.lastTickOutput.clone().add(getMovementResultFromInput(possibleCollisionInputs.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier);
+            Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(movementWithoutCollision, MoverType.SELF, grimPlayer), grimPlayer);
             double resultAccuracy = possibleInputVelocityResult.distance(grimPlayer.actualMovement);
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
+                grimPlayer.bestPreviousMovement = possibleCollisionInputs.lastTickOutput;
                 grimPlayer.possibleInput = possibleCollisionInputs.playerInput;
-                grimPlayer.predictedVelocity = possibleInputVelocityResult;
+                grimPlayer.predictedVelocity = movementWithoutCollision;
 
                 // Theoretical input exists for debugging purposes, no current use yet in checks.
                 grimPlayer.theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().subtract(possibleCollisionInputs.lastTickOutput).divide(grimPlayer.stuckSpeedMultiplier), f, grimPlayer.xRot);
@@ -99,9 +101,8 @@ public abstract class PredictionEngine {
                 if (resultAccuracy < 0.001) break;
             }
         }
-
+        // Bouncy blocks cannot have collision run before the bounce
         grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.predictedVelocity);
-        grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 
