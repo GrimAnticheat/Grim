@@ -11,7 +11,6 @@ import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHa
 public class ChunkCache {
     public static final int JAVA_AIR_ID = 0;
     private static final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
-    private static final int errorsShown = 0;
 
     public static void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
