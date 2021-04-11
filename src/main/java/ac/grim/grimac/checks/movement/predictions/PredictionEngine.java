@@ -75,12 +75,14 @@ public abstract class PredictionEngine {
 
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleCombinations.sort((a, b) -> {
-            if (a.lastTickOutput.clone().add(getMovementResultFromInput(a.playerInput, f, grimPlayer.xRot)).distanceSquared(grimPlayer.actualMovement) >
-                    b.lastTickOutput.clone().add(getMovementResultFromInput(b.playerInput, f, grimPlayer.xRot)).distanceSquared(grimPlayer.actualMovement)) {
+            double distance1 = a.lastTickOutput.clone().add(getMovementResultFromInput(a.playerInput, f, grimPlayer.xRot)).distanceSquared(grimPlayer.actualMovement);
+            double distance2 = b.lastTickOutput.clone().add(getMovementResultFromInput(b.playerInput, f, grimPlayer.xRot)).distanceSquared(grimPlayer.actualMovement);
+            if (distance1 > distance2) {
                 return 1;
-            } else {
-                return -1;
+            } else if (distance1 == distance2) {
+                return 0;
             }
+            return -1;
         });
 
         for (VectorPair possibleCollisionInputs : possibleCombinations) {
