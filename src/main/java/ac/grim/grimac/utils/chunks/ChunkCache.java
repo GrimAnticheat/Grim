@@ -10,8 +10,8 @@ import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHa
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class ChunkCache {
     public static final int JAVA_AIR_ID = 0;
-    private static int errorsShown = 0;
     private static final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
+    private static final int errorsShown = 0;
 
     public static void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
@@ -21,18 +21,14 @@ public class ChunkCache {
 
     public static void updateBlock(int x, int y, int z, int block) {
         Column column = getChunk(x >> 4, z >> 4);
-        if (column == null) {
-            if (++errorsShown < 20) {
-                GrimAC.plugin.getLogger().warning("Unable to set block! Please report stacktrace!");
-                new Exception().printStackTrace();
+
+        try {
+            Chunk chunk = column.getChunks()[y >> 4];
+            if (chunk != null) {
+                chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
             }
-
-            return;
-        }
-
-        Chunk chunk = column.getChunks()[y >> 4];
-        if (chunk != null) {
-            chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
+        } catch (Exception e) {
+            GrimAC.plugin.getLogger().warning("Unable to get set block data for chunk x " + (x >> 4) + " z " + (z >> 4));
         }
     }
 
@@ -48,10 +44,15 @@ public class ChunkCache {
     public static IBlockData getBlockDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
-        Chunk chunk = column.getChunks()[y >> 4];
-        if (chunk != null) {
-            return Block.getByCombinedId(chunk.get(x & 0xF, y & 0xF, z & 0xF));
+        try {
+            Chunk chunk = column.getChunks()[y >> 4];
+            if (chunk != null) {
+                return Block.getByCombinedId(chunk.get(x & 0xF, y & 0xF, z & 0xF));
+            }
+        } catch (Exception e) {
+            GrimAC.plugin.getLogger().warning("Unable to get block data from chunk x " + (x >> 4) + " z " + (z >> 4));
         }
+
 
         return Block.getByCombinedId(JAVA_AIR_ID);
     }
@@ -59,9 +60,13 @@ public class ChunkCache {
     public static int getBlockAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
-        Chunk chunk = column.getChunks()[y >> 4];
-        if (chunk != null) {
-            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+        try {
+            Chunk chunk = column.getChunks()[y >> 4];
+            if (chunk != null) {
+                return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+            }
+        } catch (Exception e) {
+            GrimAC.plugin.getLogger().warning("Unable to get block int from chunk x " + (x >> 4) + " z " + (z >> 4));
         }
 
         return JAVA_AIR_ID;
