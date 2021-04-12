@@ -161,6 +161,44 @@ public class MovementVelocityCheck {
         float swimFriction;
         float f2;
 
+        // TODO: Fireworks
+        int maxFireworks = grimPlayer.fireworks.size();
+        Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
+
+        if (maxFireworks > 0) {
+            grimPlayer.clientVelocityFireworkBoost = grimPlayer.clientVelocity.clone();
+        }
+
+        while (maxFireworks-- > 0) {
+            Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
+
+            if (anotherBoost.distanceSquared(grimPlayer.actualMovement) < grimPlayer.clientVelocityFireworkBoost.distanceSquared(grimPlayer.actualMovement)) {
+                grimPlayer.clientVelocityFireworkBoost = anotherBoost;
+            } else {
+                break;
+            }
+        }
+
+        int usedFireworks = grimPlayer.fireworks.size() - maxFireworks;
+
+        for (FireworkData data : grimPlayer.fireworks.values()) {
+            if (data.hasApplied) {
+                usedFireworks--;
+            }
+        }
+
+        while (usedFireworks-- > 0) {
+            for (FireworkData data : grimPlayer.fireworks.values()) {
+                if (!data.hasApplied) {
+                    data.setApplied();
+                    usedFireworks--;
+                }
+            }
+        }
+
+        // Do this last to give an extra 50 ms of buffer on top of player ping
+        grimPlayer.fireworks.entrySet().removeIf(entry -> entry.getValue().getLagCompensatedDestruction() < System.nanoTime());
+
         if (grimPlayer.wasTouchingWater && !grimPlayer.entityPlayer.abilities.isFlying) {
             // 0.8F seems hardcoded in
             lastY = grimPlayer.lastY;
@@ -214,7 +252,6 @@ public class MovementVelocityCheck {
                 }
 
             } else if (bukkitPlayer.isGliding()) {
-                Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
                 Vector clientVelocity = grimPlayer.clientVelocity.clone();
 
                 double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
@@ -239,44 +276,6 @@ public class MovementVelocityCheck {
                 grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
 
                 grimPlayer.clientVelocityFireworkBoost = null;
-
-
-                // TODO: Fireworks
-                int maxFireworks = grimPlayer.fireworks.size();
-
-                if (maxFireworks > 0) {
-                    grimPlayer.clientVelocityFireworkBoost = grimPlayer.clientVelocity.clone();
-                }
-
-                while (maxFireworks-- > 0) {
-                    Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
-
-                    if (anotherBoost.distanceSquared(grimPlayer.actualMovement) < grimPlayer.clientVelocityFireworkBoost.distanceSquared(grimPlayer.actualMovement)) {
-                        grimPlayer.clientVelocityFireworkBoost = anotherBoost;
-                    } else {
-                        break;
-                    }
-                }
-
-                int usedFireworks = grimPlayer.fireworks.size() - maxFireworks;
-
-                for (FireworkData data : grimPlayer.fireworks.values()) {
-                    if (data.hasApplied) {
-                        usedFireworks--;
-                    }
-                }
-
-                while (usedFireworks-- > 0) {
-                    for (FireworkData data : grimPlayer.fireworks.values()) {
-                        if (!data.hasApplied) {
-                            data.setApplied();
-                            usedFireworks--;
-                        }
-                    }
-                }
-
-                // Do this last to give an extra 50 ms of buffer on top of player ping
-                grimPlayer.fireworks.entrySet().removeIf(entry -> entry.getValue().getLagCompensatedDestruction() < System.nanoTime());
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
