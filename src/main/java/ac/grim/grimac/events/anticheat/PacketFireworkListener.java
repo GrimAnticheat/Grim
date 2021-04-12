@@ -1,5 +1,8 @@
 package ac.grim.grimac.events.anticheat;
 
+import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.utils.data.FireworkData;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
@@ -55,15 +58,17 @@ public class PacketFireworkListener extends PacketListenerDynamic {
 
                     if (attachedEntityID.isPresent()) {
                         Bukkit.broadcastMessage("What is this? " + attachedEntityID.getAsInt());
-                    } else {
-                        Bukkit.broadcastMessage("Firework not attached to player");
+
+                        for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
+                            if (grimPlayer.entityID == attachedEntityID.getAsInt()) {
+                                grimPlayer.fireworks.put(entityID.getInt(metadata), new FireworkData());
+                            }
+                        }
                     }
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 e.printStackTrace();
             }
-
-
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
@@ -73,7 +78,12 @@ public class PacketFireworkListener extends PacketListenerDynamic {
                 entities.setAccessible(true);
 
                 for (int entity : (int[]) entities.get(destroy)) {
-                    Bukkit.broadcastMessage("Destroying " + entity);
+                    for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
+                        if (grimPlayer.fireworks.containsKey(entity)) {
+                            FireworkData fireworkData = grimPlayer.fireworks.get(entity);
+                            fireworkData.setDestroyed();
+                        }
+                    }
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 e.printStackTrace();

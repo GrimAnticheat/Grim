@@ -1,5 +1,6 @@
 package ac.grim.grimac;
 
+import ac.grim.grimac.utils.data.FireworkData;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
@@ -13,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,6 +25,7 @@ public class GrimPlayer {
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Player bukkitPlayer;
     public EntityPlayer entityPlayer;
+    public int entityID;
 
     public AtomicInteger taskNumber = new AtomicInteger(0);
 
@@ -40,8 +43,6 @@ public class GrimPlayer {
 
     public double gravity;
     public float friction;
-    public boolean currentlyUsingFirework = false;
-    public int fireworkElytraDuration;
 
     // Set from packet
     public double x;
@@ -75,6 +76,9 @@ public class GrimPlayer {
     public boolean wasEyeInWater = false;
     public Tag fluidOnEyes;
 
+    // Handled by entity spawn event, removed when firework dies
+    public HashMap<Integer, FireworkData> fireworks = new HashMap<>();
+
     // Placeholder, currently not used in any checks
     public double fallDistance = 0f;
 
@@ -101,6 +105,7 @@ public class GrimPlayer {
         this.bukkitPlayer = player;
         this.entityPlayer = ((CraftPlayer) player).getHandle();
         this.playerUUID = player.getUniqueId();
+        this.entityID = player.getEntityId();
 
         movementPacketMilliseconds = System.currentTimeMillis();
         lastMovementPacketMilliseconds = System.currentTimeMillis() - 100;
