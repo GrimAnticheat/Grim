@@ -219,13 +219,10 @@ public class MovementVelocityCheck {
 
             } else if (bukkitPlayer.isGliding()) {
                 Vector clientVelocity = grimPlayer.clientVelocity.clone();
-                Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
-
-                double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
 
                 double bestMovement = Double.MAX_VALUE;
                 for (Vector possibleVelocity : grimPlayer.getPossibleVelocities()) {
-                    possibleVelocity = getElytraMovement(possibleVelocity);
+                    possibleVelocity = getElytraMovement(possibleVelocity.clone());
                     double closeness = possibleVelocity.distanceSquared(grimPlayer.actualMovement);
 
                     if (closeness < bestMovement) {
