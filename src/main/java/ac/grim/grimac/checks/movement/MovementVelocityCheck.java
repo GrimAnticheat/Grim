@@ -225,14 +225,12 @@ public class MovementVelocityCheck {
 
                 double bestMovement = Double.MAX_VALUE;
                 for (Vector possibleVelocity : grimPlayer.getPossibleVelocities()) {
-                    if (d2 > 0.0D) {
-                        possibleVelocity = getElytraMovement(possibleVelocity);
-                        double closeness = possibleVelocity.distanceSquared(grimPlayer.actualMovement);
+                    possibleVelocity = getElytraMovement(possibleVelocity);
+                    double closeness = possibleVelocity.distanceSquared(grimPlayer.actualMovement);
 
-                        if (closeness < bestMovement) {
-                            bestMovement = closeness;
-                            clientVelocity = possibleVelocity;
-                        }
+                    if (closeness < bestMovement) {
+                        bestMovement = closeness;
+                        clientVelocity = possibleVelocity;
                     }
                 }
 
@@ -315,7 +313,9 @@ public class MovementVelocityCheck {
             vector.add(new Vector(-lookVector.getX() * d5 / d2, d5 * 3.2D, -lookVector.getZ() * d5 / d2));
         }
 
-        vector.add(new Vector((lookVector.getX() / d2 * d3 - vector.getX()) * 0.1D, 0.0D, (lookVector.getZ() / d2 * d3 - vector.getZ()) * 0.1D));
+        if (d2 > 0) {
+            vector.add(new Vector((lookVector.getX() / d2 * d3 - vector.getX()) * 0.1D, 0.0D, (lookVector.getZ() / d2 * d3 - vector.getZ()) * 0.1D));
+        }
 
         return vector;
     }
