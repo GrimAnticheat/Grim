@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.GrimPlayer;
+
 public class FireworkData {
     public boolean hasApplied = false;
     long creationTime;
@@ -7,10 +9,13 @@ public class FireworkData {
     long destroyTime = System.nanoTime() + 1000000000000L;
     long lifeTime;
     // Set 1000 seconds of ping before we know the actual latency of the player
-    long playerPing = 1000000000000L;
+    long playerPing;
 
-    public FireworkData() {
+    // TODO: Don't calculate the player's ping for simplicity and to stop hacks that change individual latency settings
+
+    public FireworkData(GrimPlayer grimPlayer) {
         this.creationTime = System.nanoTime();
+        this.playerPing = (long) (grimPlayer.getPing() * 1.0E6);
     }
 
     public void setDestroyed() {

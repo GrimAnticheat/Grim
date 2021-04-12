@@ -61,7 +61,7 @@ public class PacketFireworkListener extends PacketListenerDynamic {
 
                         for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
                             if (grimPlayer.entityID == attachedEntityID.getAsInt()) {
-                                grimPlayer.fireworks.put(entityID.getInt(metadata), new FireworkData());
+                                grimPlayer.fireworks.put(entityID.getInt(metadata), new FireworkData(grimPlayer));
                             }
                         }
                     }

@@ -146,6 +146,10 @@ public class GrimPlayer {
         return possibleMovements;
     }
 
+    public int getPing() {
+        return ((CraftPlayer) bukkitPlayer).getHandle().ping;
+    }
+
     public void baseTickAddVector(Vector vector) {
         clientVelocity.add(vector);
 

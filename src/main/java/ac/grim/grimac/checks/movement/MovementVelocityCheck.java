@@ -16,6 +16,7 @@ import net.minecraft.server.v1_16_R3.EnchantmentManager;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.MobEffects;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
@@ -140,6 +141,7 @@ public class MovementVelocityCheck {
         }
 
         grimPlayer.clientVelocityJumping = null;
+        grimPlayer.clientVelocityFireworkBoost = null;
     }
 
     // LivingEntity line 1741
@@ -162,9 +164,6 @@ public class MovementVelocityCheck {
         float f2;
 
         handleFireworks();
-
-        // Do this last to give an extra 50 ms of buffer on top of player ping
-        grimPlayer.fireworks.entrySet().removeIf(entry -> entry.getValue().getLagCompensatedDestruction() < System.nanoTime());
 
         if (grimPlayer.wasTouchingWater && !grimPlayer.entityPlayer.abilities.isFlying) {
             // 0.8F seems hardcoded in
@@ -243,8 +242,6 @@ public class MovementVelocityCheck {
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
                 grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
 
-                grimPlayer.clientVelocityFireworkBoost = null;
-
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
                 float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
@@ -261,19 +258,22 @@ public class MovementVelocityCheck {
 
         if (maxFireworks > 0) {
             grimPlayer.clientVelocityFireworkBoost = grimPlayer.clientVelocity.clone();
-        }
 
-        while (maxFireworks-- > 0) {
-            Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
+            while (maxFireworks-- > 0) {
+                Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
 
-            if (anotherBoost.distanceSquared(grimPlayer.actualMovement) < grimPlayer.clientVelocityFireworkBoost.distanceSquared(grimPlayer.actualMovement)) {
-                grimPlayer.clientVelocityFireworkBoost = anotherBoost;
-            } else {
-                break;
+                if (anotherBoost.distanceSquared(grimPlayer.actualMovement) < grimPlayer.clientVelocityFireworkBoost.distanceSquared(grimPlayer.actualMovement)) {
+                    grimPlayer.clientVelocityFireworkBoost = anotherBoost;
+                } else {
+                    maxFireworks++;
+                    break;
+                }
             }
         }
 
         int usedFireworks = grimPlayer.fireworks.size() - maxFireworks;
+        Bukkit.broadcastMessage("After " + maxFireworks + " allowed fireworks " + grimPlayer.fireworks.size() + " idk " + usedFireworks);
+        Bukkit.broadcastMessage("Or stop " + grimPlayer.clientVelocityFireworkBoost);
 
         for (FireworkData data : grimPlayer.fireworks.values()) {
             if (data.hasApplied) {
@@ -290,6 +290,8 @@ public class MovementVelocityCheck {
             }
         }
 
+        // Do this last to give an extra 50 ms of buffer on top of player ping
+        grimPlayer.fireworks.entrySet().removeIf(entry -> entry.getValue().getLagCompensatedDestruction() < System.nanoTime());
     }
 
     public Vector getElytraMovement(Vector vector) {
