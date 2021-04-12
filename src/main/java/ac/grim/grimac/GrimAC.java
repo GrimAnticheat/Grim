@@ -13,10 +13,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 public final class GrimAC extends JavaPlugin {
-    public static ConcurrentHashMap<Player, GrimPlayer> playerGrimHashMap = new ConcurrentHashMap<>();
+    public static HashMap<Player, GrimPlayer> playerGrimHashMap = new HashMap<>();
     public static Plugin plugin;
 
     @Override
