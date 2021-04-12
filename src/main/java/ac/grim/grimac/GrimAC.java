@@ -1,10 +1,7 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.checks.movement.MovementCheckRunner;
-import ac.grim.grimac.events.anticheat.PacketEntityAction;
-import ac.grim.grimac.events.anticheat.PacketPingListener;
-import ac.grim.grimac.events.anticheat.PacketPositionListener;
-import ac.grim.grimac.events.anticheat.PacketWorldReader;
+import ac.grim.grimac.events.anticheat.*;
 import ac.grim.grimac.events.bukkit.*;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
@@ -61,6 +58,7 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PlayerVelocityPackets());
         PacketEvents.get().registerListener(new PacketPingListener());
         PacketEvents.get().registerListener(new PacketEntityAction());
+        PacketEvents.get().registerListener(new PacketFireworkListener());
 
         try {
             PacketEvents.get().registerListener(new PacketWorldReader());

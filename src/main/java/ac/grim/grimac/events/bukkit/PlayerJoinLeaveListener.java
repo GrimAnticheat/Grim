@@ -2,6 +2,7 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,6 +28,9 @@ public class PlayerJoinLeaveListener implements Listener {
         grimPlayer.yRot = player.getLocation().getPitch();
 
         GrimAC.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
+
+
+        Bukkit.broadcastMessage("Entity ID " + event.getPlayer().getEntityId());
     }
 
     @EventHandler

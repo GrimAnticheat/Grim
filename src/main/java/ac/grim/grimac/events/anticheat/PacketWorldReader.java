@@ -42,6 +42,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
+
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
             PacketPlayOutMapChunk chunk = (PacketPlayOutMapChunk) event.getNMSPacket().getRawNMSPacket();
 
