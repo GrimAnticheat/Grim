@@ -2,7 +2,6 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -12,7 +11,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class PlayerJoinLeaveListener implements Listener {
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent event) {
-        // TODO: Make this a create player data class (To handle reloads)
         Player player = event.getPlayer();
         GrimPlayer grimPlayer = new GrimPlayer(player);
         grimPlayer.lastX = player.getLocation().getX();
@@ -30,9 +28,6 @@ public class PlayerJoinLeaveListener implements Listener {
         grimPlayer.yRot = player.getLocation().getPitch();
 
         GrimAC.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
-
-
-        Bukkit.broadcastMessage("Entity ID " + event.getPlayer().getEntityId());
     }
 
     @EventHandler

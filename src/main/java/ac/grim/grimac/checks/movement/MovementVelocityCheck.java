@@ -71,7 +71,6 @@ public class MovementVelocityCheck {
 
         if (vec3.getY() != clonedClientVelocity.getY()) {
             if (onBlock.getType() == org.bukkit.Material.SLIME_BLOCK) {
-                // TODO: Maybe lag compensate this (idk packet order)
                 if (grimPlayer.isSneaking) {
                     clonedClientVelocity.setY(0);
                 } else {
@@ -142,7 +141,6 @@ public class MovementVelocityCheck {
     public void livingEntityTravel() {
         double playerGravity = 0.08;
 
-        // TODO: Stop being lazy and rename these variables to be descriptive
         boolean isFalling = grimPlayer.clientVelocity.getY() <= 0.0;
         if (isFalling && grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
             playerGravity = 0.01;
@@ -234,8 +232,7 @@ public class MovementVelocityCheck {
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
-                float f6 = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
-                grimPlayer.friction = f6;
+                grimPlayer.friction = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
                 new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
             }

@@ -44,9 +44,6 @@ public class PlayerBaseTick {
         this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ - (double) player.entityPlayer.getWidth() * 0.35);
         this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ + (double) player.entityPlayer.getWidth() * 0.35);
 
-        // TODO: Swimming check
-        //updateSwimming();
-
         // Put stuck speed here so it is on the right tick
         Collisions.handleInsideBlocks(player);
 
@@ -136,7 +133,6 @@ public class PlayerBaseTick {
         }
     }
 
-    // TODO: Idk if this is right
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
         AxisAlignedBB aABB = player.boundingBox.shrink(0.001);
         int n2 = Mth.floor(aABB.minX);

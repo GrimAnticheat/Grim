@@ -16,7 +16,7 @@ public class BlockProperties {
         return ChunkCache.getBlockDataAt(Math.floor(player.lastX), player.lastY - 0.5000001, Math.floor(player.lastZ)).getBlock().getFrictionFactor();
     }
 
-    // TODO: Compile all these values into an array to improve performance
+    // TODO: Compile all these values into an array on startup to improve performance
     public static boolean getCanCollideWith(Object object) {
         Class clazz = object.getClass();
 
@@ -44,7 +44,6 @@ public class BlockProperties {
             return (float) (grimPlayer.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
         }
 
-        // TODO: This is wrong
         if (grimPlayer.entityPlayer.abilities.isFlying) {
             return grimPlayer.bukkitPlayer.getFlySpeed() * 10 * (grimPlayer.isSprinting ? 0.1f : 0.05f);
 

@@ -23,7 +23,6 @@ public class Collisions {
     // This MUST return a new vector!!!
     // If it does not the predicted velocity will be overridden
     public static Vector collide(Vector vector, GrimPlayer grimPlayer) {
-        // TODO: Just use the vector again.
         Vec3D vec3 = new Vec3D(vector.getX(), vector.getY(), vector.getZ());
 
         AxisAlignedBB aABB = grimPlayer.boundingBox;
