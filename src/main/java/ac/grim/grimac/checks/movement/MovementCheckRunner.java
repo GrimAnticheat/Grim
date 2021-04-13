@@ -52,50 +52,59 @@ public class MovementCheckRunner implements Listener {
     public static void check(PredictionData data) {
         GrimPlayer grimPlayer = data.grimPlayer;
 
-        grimPlayer.x = data.playerX;
-        grimPlayer.y = data.playerY;
-        grimPlayer.z = data.playerZ;
-        grimPlayer.xRot = data.xRot;
-        grimPlayer.yRot = data.yRot;
-        grimPlayer.onGround = data.onGround;
-        grimPlayer.isSprinting = data.isSprinting;
-        grimPlayer.isSneaking = data.isSneaking;
-        grimPlayer.isFlying = data.isFlying;
-        grimPlayer.isSwimming = data.isSwimming;
-        grimPlayer.boundingBox = data.boundingBox;
-        grimPlayer.playerWorld = data.playerWorld;
-        grimPlayer.movementPacketMilliseconds = System.currentTimeMillis();
+        // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
+        try {
+            grimPlayer.x = data.playerX;
+            grimPlayer.y = data.playerY;
+            grimPlayer.z = data.playerZ;
+            grimPlayer.xRot = data.xRot;
+            grimPlayer.yRot = data.yRot;
+            grimPlayer.onGround = data.onGround;
+            grimPlayer.isSprinting = data.isSprinting;
+            grimPlayer.isSneaking = data.isSneaking;
+            grimPlayer.isFlying = data.isFlying;
+            grimPlayer.isSwimming = data.isSwimming;
+            grimPlayer.boundingBox = data.boundingBox;
+            grimPlayer.playerWorld = data.playerWorld;
+            grimPlayer.movementPacketMilliseconds = System.currentTimeMillis();
 
 
-        /*for (MovementCheck movementCheck : movementCheckListeners) {
-            movementCheck.checkMovement(grimPlayer);
-        }*/
+            /*for (MovementCheck movementCheck : movementCheckListeners) {
+                movementCheck.checkMovement(grimPlayer);
+            }*/
 
-        grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
+            grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
 
-        // This isn't the final velocity of the player in the tick, only the one applied to the player
-        grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
+            // This isn't the final velocity of the player in the tick, only the one applied to the player
+            grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
 
-        // This is not affected by any movement
-        new PlayerBaseTick(grimPlayer).doBaseTick();
+            // This is not affected by any movement
+            new PlayerBaseTick(grimPlayer).doBaseTick();
 
-        // baseTick occurs before this
-        new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
+            // baseTick occurs before this
+            new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
 
-        ChatColor color;
-        double diff = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
+            ChatColor color;
+            double diff = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
 
-        if (diff < 0.05) {
-            color = ChatColor.GREEN;
-        } else if (diff < 0.15) {
-            color = ChatColor.YELLOW;
-        } else {
-            color = ChatColor.RED;
+            if (diff < 0.05) {
+                color = ChatColor.GREEN;
+            } else if (diff < 0.15) {
+                color = ChatColor.YELLOW;
+            } else {
+                color = ChatColor.RED;
+            }
+
+            //Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds + "Time taken " + (System.nanoTime() - startTime)));
+            Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
+            Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+            // Fail open
+            grimPlayer.clientVelocity = grimPlayer.actualMovement.clone();
         }
-
-        //Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds + "Time taken " + (System.nanoTime() - startTime)));
-        Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
-        Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 
         grimPlayer.lastLastXRot = grimPlayer.lastXRot;
         grimPlayer.lastLastYRot = grimPlayer.lastYRot;
@@ -109,6 +118,7 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
         grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
         grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
+
 
         if (grimPlayer.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;

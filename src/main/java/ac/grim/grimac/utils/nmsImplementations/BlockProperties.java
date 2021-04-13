@@ -13,7 +13,7 @@ import java.lang.reflect.Field;
 
 public class BlockProperties {
     public static float getBlockFriction(GrimPlayer player) {
-        return ChunkCache.getBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getBlock().getFrictionFactor();
+        return ChunkCache.getBlockDataAt(Math.floor(player.lastX), player.lastY - 0.5000001, Math.floor(player.lastZ)).getBlock().getFrictionFactor();
     }
 
     // TODO: Compile all these values into an array to improve performance
