@@ -19,7 +19,8 @@ public class FireworkData {
     }
 
     public void setDestroyed() {
-        this.destroyTime = System.nanoTime();
+        // Give 80 ms of extra life because of latency
+        this.destroyTime = (long) (System.nanoTime() + (80 * 1E6));
         lifeTime = destroyTime - creationTime;
     }
 

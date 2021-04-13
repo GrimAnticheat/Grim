@@ -20,6 +20,8 @@ public class PlayerJoinLeaveListener implements Listener {
         grimPlayer.lastZ = player.getLocation().getZ();
         grimPlayer.lastXRot = player.getLocation().getYaw();
         grimPlayer.lastYRot = player.getLocation().getPitch();
+        grimPlayer.lastLastXRot = player.getLocation().getYaw();
+        grimPlayer.lastLastYRot = player.getLocation().getPitch();
         grimPlayer.lastSneaking = player.isSneaking();
         grimPlayer.x = player.getLocation().getX();
         grimPlayer.y = player.getLocation().getY();

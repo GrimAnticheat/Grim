@@ -97,6 +97,8 @@ public class MovementCheckRunner implements Listener {
         Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
         Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 
+        grimPlayer.lastLastXRot = grimPlayer.lastXRot;
+        grimPlayer.lastLastYRot = grimPlayer.lastYRot;
         grimPlayer.lastX = grimPlayer.x;
         grimPlayer.lastY = grimPlayer.y;
         grimPlayer.lastZ = grimPlayer.z;

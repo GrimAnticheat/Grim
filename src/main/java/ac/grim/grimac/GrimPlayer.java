@@ -94,6 +94,10 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean lastClimbing;
 
+    // This is stupid
+    public float lastLastXRot;
+    public float lastLastYRot;
+
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
 

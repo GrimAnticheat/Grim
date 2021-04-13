@@ -16,6 +16,8 @@ import net.minecraft.server.v1_16_R3.EnchantmentManager;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.MobEffects;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
@@ -218,10 +220,11 @@ public class MovementVelocityCheck {
 
             } else if (bukkitPlayer.isGliding()) {
                 Vector clientVelocity = grimPlayer.clientVelocity.clone();
+                Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
 
                 double bestMovement = Double.MAX_VALUE;
                 for (Vector possibleVelocity : grimPlayer.getPossibleVelocities()) {
-                    possibleVelocity = getElytraMovement(possibleVelocity.clone(), MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot));
+                    possibleVelocity = getElytraMovement(possibleVelocity.clone(), lookVector).clone().multiply(new Vector(0.99, 0.98, 0.99));
                     double closeness = possibleVelocity.distanceSquared(grimPlayer.actualMovement);
 
                     if (closeness < bestMovement) {
@@ -232,9 +235,9 @@ public class MovementVelocityCheck {
 
                 grimPlayer.clientVelocity = clientVelocity;
 
-                grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
-                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
+                //grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
                 grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
+                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
@@ -249,20 +252,26 @@ public class MovementVelocityCheck {
     public void handleFireworks() {
         int maxFireworks = grimPlayer.fireworks.size();
         Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
+        Vector lastLook = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
 
         if (maxFireworks > 0) {
             grimPlayer.clientVelocityFireworkBoost = grimPlayer.clientVelocity.clone();
+            Vector temp = grimPlayer.clientVelocityFireworkBoost.clone();
 
             while (maxFireworks-- > 0) {
-                Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
+                Vector anotherBoost = temp.clone().add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - temp.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - temp.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - temp.getZ()) * 0.5)));
 
-                if (getElytraMovement(anotherBoost.clone(), lookVector).distanceSquared(grimPlayer.actualMovement) < getElytraMovement(grimPlayer.clientVelocityFireworkBoost.clone(), lookVector).distanceSquared(grimPlayer.actualMovement)) {
-                    grimPlayer.clientVelocityFireworkBoost = anotherBoost;
-                } else {
-                    maxFireworks++;
-                    break;
+                Bukkit.broadcastMessage("Another boost! " + anotherBoost);
+                Bukkit.broadcastMessage("With elytra movement " + getElytraMovement(anotherBoost.clone(), lookVector).multiply(new Vector(0.99, 0.98, 0.99)));
+
+
+                if (getElytraMovement(anotherBoost.clone(), lookVector).multiply(new Vector(0.99, 0.98, 0.99)).distanceSquared(grimPlayer.actualMovement) < getElytraMovement(temp.clone(), lookVector).multiply(new Vector(0.99, 0.98, 0.99)).distanceSquared(grimPlayer.actualMovement)) {
+                    temp = anotherBoost;
+                    Bukkit.broadcastMessage(ChatColor.RED + "Using a boost!");
                 }
             }
+
+            grimPlayer.clientVelocityFireworkBoost = temp;
         }
 
         int usedFireworks = grimPlayer.fireworks.size() - maxFireworks;
