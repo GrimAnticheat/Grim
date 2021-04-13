@@ -28,7 +28,8 @@ public class PredictionEngineWater extends PredictionEngine {
     @Override
     public void addJumpIfNeeded(GrimPlayer grimPlayer) {
         grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.04, 0));
-        super.addJumpIfNeeded(grimPlayer);
+        handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
+        //super.addJumpIfNeeded(grimPlayer);
     }
 
     @Override

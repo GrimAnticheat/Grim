@@ -128,7 +128,6 @@ public class MovementVelocityCheck {
 
             } else {
                 grimPlayer.baseTickSetY(oldYJumping * 0.6);
-
             }
 
         } else {

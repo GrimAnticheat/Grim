@@ -118,13 +118,15 @@ public abstract class PredictionEngine {
         boolean bl = grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0) > 0 && d7 > 0.0;
         double d8 = 0.4D;
 
-        if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
-            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-        } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
-            grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-        } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-            grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
-            //this.noJumpDelay = 10;
+        if (!grimPlayer.isFlying) {
+            if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+            } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
+            } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+                grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
+                //this.noJumpDelay = 10;
+            }
         }
     }
 
@@ -140,7 +142,7 @@ public abstract class PredictionEngine {
 
     }
 
-    private void handleSwimJump(GrimPlayer grimPlayer, Vector vector) {
+    public void handleSwimJump(GrimPlayer grimPlayer, Vector vector) {
 
         boolean bl = Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
         boolean bl2 = !Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.grow(0.1, 0.1, 0.1));

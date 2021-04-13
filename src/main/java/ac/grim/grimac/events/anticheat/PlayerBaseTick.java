@@ -31,7 +31,6 @@ public class PlayerBaseTick {
             player.clientVelocityJumping = player.clientVelocity.clone().add(new Vector(0, player.entityPlayer.abilities.flySpeed * 3, 0));
         }
 
-        // TODO: Does this affect knockback?
         if (player.isFlying && player.isSneaking) {
             player.baseTickAddVector(new Vector(0, player.entityPlayer.abilities.flySpeed * -3, 0));
         }
