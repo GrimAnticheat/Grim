@@ -16,8 +16,6 @@ import net.minecraft.server.v1_16_R3.EnchantmentManager;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.MobEffects;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
@@ -261,13 +259,9 @@ public class MovementVelocityCheck {
             while (maxFireworks-- > 0) {
                 Vector anotherBoost = temp.clone().add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - temp.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - temp.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - temp.getZ()) * 0.5)));
 
-                Bukkit.broadcastMessage("Another boost! " + anotherBoost);
-                Bukkit.broadcastMessage("With elytra movement " + getElytraMovement(anotherBoost.clone(), lookVector).multiply(new Vector(0.99, 0.98, 0.99)));
-
 
                 if (getElytraMovement(anotherBoost.clone(), lookVector).multiply(new Vector(0.99, 0.98, 0.99)).distanceSquared(grimPlayer.actualMovement) < getElytraMovement(temp.clone(), lookVector).multiply(new Vector(0.99, 0.98, 0.99)).distanceSquared(grimPlayer.actualMovement)) {
                     temp = anotherBoost;
-                    Bukkit.broadcastMessage(ChatColor.RED + "Using a boost!");
                 }
             }
 
