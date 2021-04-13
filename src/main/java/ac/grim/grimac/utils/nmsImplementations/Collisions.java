@@ -297,7 +297,7 @@ public class Collisions {
         Vector multiplier = new Vector(1, 1, 1);
 
         // TODO: hasChunksAt is NOT async safe, use paperlib or chunk cache?
-        if (CheckIfChunksLoaded.hasChunksAt(grimPlayer.playerWorld, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ())) {
+        if (CheckIfChunksLoaded.hasChunksAt(blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ())) {
             for (int i = blockPos.getBlockX(); i <= blockPos2.getX(); ++i) {
                 for (int j = blockPos.getBlockY(); j <= blockPos2.getY(); ++j) {
                     for (int k = blockPos.getBlockZ(); k <= blockPos2.getZ(); ++k) {

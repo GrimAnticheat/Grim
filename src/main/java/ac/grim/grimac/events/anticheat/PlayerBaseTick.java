@@ -145,7 +145,7 @@ public class PlayerBaseTick {
         int n5 = Mth.ceil(aABB.maxY);
         int n6 = Mth.floor(aABB.minZ);
         int n = Mth.ceil(aABB.maxZ);
-        if (!CheckIfChunksLoaded.hasChunksAt(player.playerWorld, n2, n4, n6, n3, n5, n)) {
+        if (!CheckIfChunksLoaded.hasChunksAt(n2, n4, n6, n3, n5, n)) {
             return false;
         }
         double d2 = 0.0;

@@ -5,17 +5,13 @@ import ac.grim.grimac.checks.movement.predictions.PredictionEngineLava;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.data.FireworkData;
-import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
-import net.minecraft.server.v1_16_R3.EnchantmentManager;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
-import net.minecraft.server.v1_16_R3.MathHelper;
-import net.minecraft.server.v1_16_R3.MobEffects;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
@@ -197,12 +193,12 @@ public class MovementVelocityCheck {
             grimPlayer.clientVelocity = endOfTickWaterMovement(grimPlayer.clientVelocity, bl, d, f, d1);*/
 
         } else {
-            if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && !grimPlayer.entityPlayer.abilities.isFlying) {
+            if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && !grimPlayer.entityPlayer.abilities.isFlying) {
                 lastY = grimPlayer.lastY;
 
                 new PredictionEngineLava().guessBestMovement(0.02F, grimPlayer);
 
-                if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
+                if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) <= 0.4D) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
                     grimPlayer.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, grimPlayer.clientVelocity);
                 } else {
