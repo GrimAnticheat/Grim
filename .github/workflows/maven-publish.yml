@@ -20,6 +20,15 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 1.8
+    
+    # Run Spigot BuildTools for NMS if required
+    - name: Setup BuildTools
+      run: mkdir BuildTools
+    - name: Download BuildTools
+      run: wget -O BuildTools/BuildTools.jar https://hub.spigotmc.org/jenkins/job/BuildTools/lastSuccessfulBuild/artifact/target/BuildTools.jar
+    - name: 1.16.5
+      run: cd BuildTools && java -jar BuildTools.jar --rev 1.16.5
+        
     - name: Build with Maven
       run: mvn -B package --file pom.xml
     - run: mkdir staging && cp target/grim.ac*.jar staging
