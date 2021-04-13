@@ -48,7 +48,8 @@ public class PlayerBaseTick {
         //updateSwimming();
 
         // Put stuck speed here so it is on the right tick
-        player.stuckSpeedMultiplier = Collisions.getStuckMultiplier(player);
+        Collisions.handleInsideBlocks(player);
+
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {
             player.stuckSpeedMultiplier = new Vector(1, 1, 1);

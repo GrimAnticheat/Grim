@@ -288,34 +288,28 @@ public class Collisions {
                 noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, grimPlayer.bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
     }
 
-    // TODO: This isn't async safe
-    public static Vector getStuckMultiplier(GrimPlayer grimPlayer) {
+    public static void handleInsideBlocks(GrimPlayer grimPlayer) {
         AxisAlignedBB aABB = grimPlayer.boundingBox;
         Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
         Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
 
-        Vector multiplier = new Vector(1, 1, 1);
-
-        // TODO: hasChunksAt is NOT async safe, use paperlib or chunk cache?
         if (CheckIfChunksLoaded.hasChunksAt(blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ())) {
             for (int i = blockPos.getBlockX(); i <= blockPos2.getX(); ++i) {
                 for (int j = blockPos.getBlockY(); j <= blockPos2.getY(); ++j) {
                     for (int k = blockPos.getBlockZ(); k <= blockPos2.getZ(); ++k) {
-                        org.bukkit.block.Block block = grimPlayer.playerWorld.getBlockAt(i, j, k);
+                        Block block = ChunkCache.getBlockDataAt(i, j, k).getBlock();
 
-                        if (block.getType() == org.bukkit.Material.COBWEB) {
-                            multiplier = new Vector(0.25, 0.05000000074505806, 0.25);
+                        if (block instanceof BlockWeb) {
+                            grimPlayer.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
                         }
 
-                        if (block.getType() == org.bukkit.Material.SWEET_BERRY_BUSH) {
-                            multiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
+                        if (block instanceof BlockSweetBerryBush) {
+                            grimPlayer.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
                         }
                     }
                 }
             }
         }
-
-        return multiplier;
     }
 
     public static boolean noCollision(Entity p_226665_1_, AxisAlignedBB p_226665_2_) {
