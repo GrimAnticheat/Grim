@@ -37,7 +37,6 @@ public class MovementVelocityCheck {
         Vector stuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
 
         if (stuckSpeedMultiplier.getX() < 0.99) {
-            vec3 = vec3.multiply(stuckSpeedMultiplier);
             grimPlayer.baseTickSetX(0);
             grimPlayer.baseTickSetY(0);
             grimPlayer.baseTickSetZ(0);
@@ -84,6 +83,10 @@ public class MovementVelocityCheck {
 
         float f = BlockProperties.getBlockSpeedFactor(grimPlayer);
         clonedClientVelocity.multiply(new Vector(f, 1.0, f));
+
+        if (stuckSpeedMultiplier.getX() < 0.99) {
+            return new Vector();
+        }
 
         return clonedClientVelocity;
     }
@@ -219,10 +222,8 @@ public class MovementVelocityCheck {
                     }
                 }
 
-                grimPlayer.clientVelocity = clientVelocity;
-
                 //grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
-                grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
+                grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, clientVelocity);
                 grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
             } else {

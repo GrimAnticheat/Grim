@@ -44,6 +44,9 @@ public class PlayerBaseTick {
         this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ - (double) player.entityPlayer.getWidth() * 0.35);
         this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ + (double) player.entityPlayer.getWidth() * 0.35);
 
+        // Reset stuck speed so it can update
+        player.stuckSpeedMultiplier = new Vector(1, 1, 1);
+
         // Put stuck speed here so it is on the right tick
         Collisions.handleInsideBlocks(player);
 
