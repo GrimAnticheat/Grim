@@ -222,7 +222,7 @@ public class MovementVelocityCheck {
 
                 double bestMovement = Double.MAX_VALUE;
                 for (Vector possibleVelocity : grimPlayer.getPossibleVelocities()) {
-                    possibleVelocity = getElytraMovement(possibleVelocity.clone());
+                    possibleVelocity = getElytraMovement(possibleVelocity.clone(), MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot));
                     double closeness = possibleVelocity.distanceSquared(grimPlayer.actualMovement);
 
                     if (closeness < bestMovement) {
@@ -249,15 +249,20 @@ public class MovementVelocityCheck {
 
     public void handleFireworks() {
         int maxFireworks = grimPlayer.fireworks.size();
-        Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
+        Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.lastYRot, grimPlayer.lastXRot);
+        Vector updatedLookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
 
         if (maxFireworks > 0) {
             grimPlayer.clientVelocityFireworkBoost = grimPlayer.clientVelocity.clone();
 
             while (maxFireworks-- > 0) {
-                Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
+                Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(updatedLookVector.getX() * 0.1 + (updatedLookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, updatedLookVector.getY() * 0.1 + (updatedLookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (updatedLookVector.getZ() * 0.1 + (updatedLookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
 
-                if (getElytraMovement(anotherBoost.clone()).distanceSquared(grimPlayer.actualMovement) < getElytraMovement(grimPlayer.clientVelocityFireworkBoost.clone()).distanceSquared(grimPlayer.actualMovement)) {
+                Bukkit.broadcastMessage("With boost " + getElytraMovement(anotherBoost.clone(), lookVector));
+                Bukkit.broadcastMessage("Without boost " + getElytraMovement(grimPlayer.clientVelocityFireworkBoost.clone(), lookVector));
+
+                if (getElytraMovement(anotherBoost.clone(), lookVector).distanceSquared(grimPlayer.actualMovement) < getElytraMovement(grimPlayer.clientVelocityFireworkBoost.clone(), lookVector).distanceSquared(grimPlayer.actualMovement)) {
+                    Bukkit.broadcastMessage("Using a firework!");
                     grimPlayer.clientVelocityFireworkBoost = anotherBoost;
                 } else {
                     maxFireworks++;
@@ -267,8 +272,6 @@ public class MovementVelocityCheck {
         }
 
         int usedFireworks = grimPlayer.fireworks.size() - maxFireworks;
-        Bukkit.broadcastMessage("After " + maxFireworks + " allowed fireworks " + grimPlayer.fireworks.size() + " idk " + usedFireworks);
-        Bukkit.broadcastMessage("Or stop " + grimPlayer.clientVelocityFireworkBoost);
 
         for (FireworkData data : grimPlayer.fireworks.values()) {
             if (data.hasApplied) {
@@ -289,9 +292,7 @@ public class MovementVelocityCheck {
         grimPlayer.fireworks.entrySet().removeIf(entry -> entry.getValue().getLagCompensatedDestruction() < System.nanoTime());
     }
 
-    public Vector getElytraMovement(Vector vector) {
-        Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
-
+    public Vector getElytraMovement(Vector vector, Vector lookVector) {
         float yRotRadians = grimPlayer.yRot * 0.017453292F;
         double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double d3 = vector.clone().setY(0).length();
