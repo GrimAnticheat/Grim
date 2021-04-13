@@ -16,7 +16,6 @@ import net.minecraft.server.v1_16_R3.EnchantmentManager;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.MathHelper;
 import net.minecraft.server.v1_16_R3.MobEffects;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
@@ -249,20 +248,15 @@ public class MovementVelocityCheck {
 
     public void handleFireworks() {
         int maxFireworks = grimPlayer.fireworks.size();
-        Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.lastYRot, grimPlayer.lastXRot);
-        Vector updatedLookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
+        Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
 
         if (maxFireworks > 0) {
             grimPlayer.clientVelocityFireworkBoost = grimPlayer.clientVelocity.clone();
 
             while (maxFireworks-- > 0) {
-                Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(updatedLookVector.getX() * 0.1 + (updatedLookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, updatedLookVector.getY() * 0.1 + (updatedLookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (updatedLookVector.getZ() * 0.1 + (updatedLookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
-
-                Bukkit.broadcastMessage("With boost " + getElytraMovement(anotherBoost.clone(), lookVector));
-                Bukkit.broadcastMessage("Without boost " + getElytraMovement(grimPlayer.clientVelocityFireworkBoost.clone(), lookVector));
+                Vector anotherBoost = grimPlayer.clientVelocityFireworkBoost.clone().add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoost.getZ()) * 0.5)));
 
                 if (getElytraMovement(anotherBoost.clone(), lookVector).distanceSquared(grimPlayer.actualMovement) < getElytraMovement(grimPlayer.clientVelocityFireworkBoost.clone(), lookVector).distanceSquared(grimPlayer.actualMovement)) {
-                    Bukkit.broadcastMessage("Using a firework!");
                     grimPlayer.clientVelocityFireworkBoost = anotherBoost;
                 } else {
                     maxFireworks++;
