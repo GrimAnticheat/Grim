@@ -76,7 +76,7 @@ public class BlockProperties {
     public static float getBlockSpeedFactor(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.isFlying) return 1.0f;
 
-        net.minecraft.server.v1_16_R3.Block block = ChunkCache.getBlockDataAt(player.lastX, player.lastY, player.lastZ).getBlock();
+        net.minecraft.server.v1_16_R3.Block block = ChunkCache.getBlockDataAt(player.x, player.y, player.z).getBlock();
 
         if (block.a(TagsBlock.SOUL_SPEED_BLOCKS)) {
             if (player.bukkitPlayer.getInventory().getBoots() != null && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
@@ -89,6 +89,6 @@ public class BlockProperties {
             return f;
         }
 
-        return f == 1.0 ? ChunkCache.getBlockDataAt(player.lastX, player.boundingBox.minY - 0.5000001, player.lastZ).getBlock().getSpeedFactor() : f;
+        return f == 1.0 ? ChunkCache.getBlockDataAt(player.x, player.y - 0.5000001, player.z).getBlock().getSpeedFactor() : f;
     }
 }
