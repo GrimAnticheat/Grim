@@ -85,6 +85,8 @@ public class MovementVelocityCheck {
             return new Vector();
         }
 
+        clonedClientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
+
         return clonedClientVelocity;
     }
 

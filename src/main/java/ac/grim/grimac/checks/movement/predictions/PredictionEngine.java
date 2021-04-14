@@ -75,8 +75,8 @@ public abstract class PredictionEngine {
 
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleCombinations.sort((a, b) -> {
-            double distance1 = a.lastTickOutput.clone().add(getMovementResultFromInput(a.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier).multiply(grimPlayer.blockSpeedMultiplier).distanceSquared(grimPlayer.actualMovement);
-            double distance2 = b.lastTickOutput.clone().add(getMovementResultFromInput(b.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier).multiply(grimPlayer.blockSpeedMultiplier).distanceSquared(grimPlayer.actualMovement);
+            double distance1 = a.lastTickOutput.clone().add(getMovementResultFromInput(a.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier).distanceSquared(grimPlayer.actualMovement);
+            double distance2 = b.lastTickOutput.clone().add(getMovementResultFromInput(b.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier).distanceSquared(grimPlayer.actualMovement);
             if (distance1 > distance2) {
                 return 1;
             } else if (distance1 == distance2) {
@@ -86,18 +86,18 @@ public abstract class PredictionEngine {
         });
 
         for (VectorPair possibleCollisionInputs : possibleCombinations) {
-            Vector pureBaseMovement = possibleCollisionInputs.lastTickOutput.clone().add(getMovementResultFromInput(possibleCollisionInputs.playerInput, f, grimPlayer.xRot));
-            Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(pureBaseMovement.multiply(grimPlayer.stuckSpeedMultiplier).multiply(grimPlayer.blockSpeedMultiplier), MoverType.SELF, grimPlayer), grimPlayer);
+            Vector movementBeforeCollision = possibleCollisionInputs.lastTickOutput.clone().add(getMovementResultFromInput(possibleCollisionInputs.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier);
+            Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(movementBeforeCollision, MoverType.SELF, grimPlayer), grimPlayer);
             double resultAccuracy = possibleInputVelocityResult.distance(grimPlayer.actualMovement);
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
                 grimPlayer.bestPreviousMovement = possibleCollisionInputs.lastTickOutput;
                 grimPlayer.possibleInput = possibleCollisionInputs.playerInput;
-                grimPlayer.predictedVelocity = pureBaseMovement;
+                grimPlayer.predictedVelocity = movementBeforeCollision;
 
                 // Theoretical input exists for debugging purposes, no current use yet in checks.
-                grimPlayer.theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().divide(grimPlayer.stuckSpeedMultiplier).divide(grimPlayer.blockSpeedMultiplier).subtract(possibleCollisionInputs.lastTickOutput), f, grimPlayer.xRot);
+                grimPlayer.theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().divide(grimPlayer.stuckSpeedMultiplier).subtract(possibleCollisionInputs.lastTickOutput), f, grimPlayer.xRot);
 
                 // Close enough.
                 if (resultAccuracy < 0.001) break;
