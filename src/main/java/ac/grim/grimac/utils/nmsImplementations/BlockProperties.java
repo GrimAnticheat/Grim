@@ -2,12 +2,14 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
+import net.minecraft.server.v1_16_R3.TagsBlock;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Fence;
 import org.bukkit.block.data.type.Gate;
 import org.bukkit.block.data.type.Wall;
+import org.bukkit.enchantments.Enchantment;
 
 import java.lang.reflect.Field;
 
@@ -72,7 +74,14 @@ public class BlockProperties {
 
     // Entity line 637
     public static float getBlockSpeedFactor(GrimPlayer player) {
+        if (player.bukkitPlayer.isGliding() || player.isFlying) return 1.0f;
+
         net.minecraft.server.v1_16_R3.Block block = ChunkCache.getBlockDataAt(player.lastX, player.lastY, player.lastZ).getBlock();
+
+        if (block.a(TagsBlock.SOUL_SPEED_BLOCKS)) {
+            if (player.bukkitPlayer.getInventory().getBoots() != null && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+                return 1.0f;
+        }
 
         float f = block.getSpeedFactor();
 

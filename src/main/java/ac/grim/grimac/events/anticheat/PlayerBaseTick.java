@@ -3,6 +3,7 @@ package ac.grim.grimac.events.anticheat;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
+import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
@@ -54,6 +55,9 @@ public class PlayerBaseTick {
         if (player.isFlying) {
             player.stuckSpeedMultiplier = new Vector(1, 1, 1);
         }
+
+        float f = BlockProperties.getBlockSpeedFactor(player);
+        player.blockSpeedMultiplier = new Vector(f, 1.0, f);
     }
 
     // Entity line 937
