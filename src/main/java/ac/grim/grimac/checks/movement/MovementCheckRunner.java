@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
@@ -63,9 +64,12 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.isSneaking = data.isSneaking;
             grimPlayer.isFlying = data.isFlying;
             grimPlayer.isSwimming = data.isSwimming;
-            grimPlayer.boundingBox = data.boundingBox;
             grimPlayer.playerWorld = data.playerWorld;
             grimPlayer.movementPacketMilliseconds = System.currentTimeMillis();
+
+            // TODO: Make gliding async safe
+            // TODO: Actually get client version
+            grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), 16);
 
 
             /*for (MovementCheck movementCheck : movementCheckListeners) {

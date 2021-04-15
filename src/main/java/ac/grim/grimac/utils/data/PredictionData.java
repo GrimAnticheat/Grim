@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimPlayer;
-import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import org.bukkit.World;
 import org.bukkit.entity.Vehicle;
 
@@ -17,7 +16,6 @@ public class PredictionData {
     public boolean isSneaking;
     public boolean isFlying;
     public boolean isSwimming;
-    public AxisAlignedBB boundingBox;
     public World playerWorld;
 
     public float movementSpeed;
@@ -39,17 +37,6 @@ public class PredictionData {
         this.onGround = onGround;
 
         this.number = grimPlayer.taskNumber.getAndIncrement();
-
-        // Plugins changing these values breaks both sync and async checks, so we might as well be async
-        // Other packets can't arrive before this one does because we are blocking other player packets from arriving
-        // Meaning that isSprinting and isSneaking are thread safe, and are primitives so the values stay
-
-        // playerWorld returns a final variable, so it is thread safe
-
-        // boundingBox is before the movement because we are blocking the movement packet, so it is thread safe
-        // we have to clone it manually because it will change immediately after we stop blocking
-        AxisAlignedBB box = grimPlayer.entityPlayer.getBoundingBox();
-        this.boundingBox = new AxisAlignedBB(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
 
         this.isSprinting = grimPlayer.isPacketSprinting;
         this.isSneaking = grimPlayer.isPacketSneaking;
