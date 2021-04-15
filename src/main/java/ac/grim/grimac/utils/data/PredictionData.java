@@ -51,8 +51,9 @@ public class PredictionData {
         AxisAlignedBB box = grimPlayer.entityPlayer.getBoundingBox();
         this.boundingBox = new AxisAlignedBB(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
 
-        this.isSprinting = grimPlayer.bukkitPlayer.isSprinting();
-        this.isSneaking = grimPlayer.bukkitPlayer.isSneaking();
+        this.isSprinting = grimPlayer.isPacketSprinting;
+        this.isSneaking = grimPlayer.isPacketSneaking;
+
         this.isFlying = grimPlayer.bukkitPlayer.isFlying();
         this.isSwimming = grimPlayer.bukkitPlayer.isSwimming();
         this.playerWorld = grimPlayer.bukkitPlayer.getWorld();

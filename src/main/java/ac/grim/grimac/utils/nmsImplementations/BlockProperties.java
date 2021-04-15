@@ -42,8 +42,10 @@ public class BlockProperties {
     public static float getFrictionInfluencedSpeed(float f, GrimPlayer grimPlayer) {
         //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
+        // Use base value because otherwise it isn't async safe.
+        // Well, more async safe, still isn't 100% safe.
         if (grimPlayer.lastOnGround) {
-            return (float) (grimPlayer.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (0.21600002f / (f * f * f)));
+            return (float) (grimPlayer.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getBaseValue() * (0.21600002f / (f * f * f)) * (grimPlayer.isSprinting ? 1.3 : 1));
         }
 
         if (grimPlayer.entityPlayer.abilities.isFlying) {

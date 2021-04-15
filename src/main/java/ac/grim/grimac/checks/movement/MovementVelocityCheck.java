@@ -157,7 +157,7 @@ public class MovementVelocityCheck {
         if (grimPlayer.wasTouchingWater && !grimPlayer.entityPlayer.abilities.isFlying) {
             // 0.8F seems hardcoded in
             lastY = grimPlayer.lastY;
-            swimFriction = entityPlayer.isSprinting() ? 0.9F : 0.8F;
+            swimFriction = grimPlayer.isSprinting ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
             f2 = (float) EnchantmentManager.e(entityPlayer);
             if (f2 > 3.0F) {
