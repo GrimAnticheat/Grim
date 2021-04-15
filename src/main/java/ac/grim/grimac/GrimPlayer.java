@@ -176,6 +176,9 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.add(vector);
+
+        if (clientVelocityFireworkBoost != null)
+            clientVelocityFireworkBoost.setX(x);
     }
 
     public void baseTickSetX(double x) {
@@ -190,6 +193,9 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setX(x);
+
+        if (clientVelocityFireworkBoost != null)
+            clientVelocityFireworkBoost.setX(x);
     }
 
     public void baseTickSetY(double y) {
@@ -204,6 +210,9 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setY(y);
+
+        if (clientVelocityFireworkBoost != null)
+            clientVelocityFireworkBoost.setX(x);
     }
 
     public void baseTickSetZ(double z) {
@@ -218,6 +227,9 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setZ(z);
+
+        if (clientVelocityFireworkBoost != null)
+            clientVelocityFireworkBoost.setX(x);
     }
 
     public void baseTickMultiplyY(double y) {
@@ -232,6 +244,9 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.multiply(new Vector(1, y, 1));
+
+        if (clientVelocityFireworkBoost != null)
+            clientVelocityFireworkBoost.multiply(new Vector(1, y, 1));
     }
 
 

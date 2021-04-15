@@ -212,7 +212,7 @@ public class MovementVelocityCheck {
 
                 double bestMovement = Double.MAX_VALUE;
                 for (Vector possibleVelocity : grimPlayer.getPossibleVelocities()) {
-                    possibleVelocity = getElytraMovement(possibleVelocity.clone(), lookVector).clone().multiply(new Vector(0.99, 0.98, 0.99));
+                    possibleVelocity = getElytraMovement(possibleVelocity.clone(), lookVector).clone().multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
                     double closeness = possibleVelocity.distanceSquared(grimPlayer.actualMovement);
 
                     if (closeness < bestMovement) {
@@ -223,7 +223,6 @@ public class MovementVelocityCheck {
 
                 //grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
                 grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, clientVelocity);
-                grimPlayer.predictedVelocity = grimPlayer.clientVelocity.clone();
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
@@ -234,6 +233,7 @@ public class MovementVelocityCheck {
         }
     }
 
+    // Use transaction packets to handle lag compensation instead of whatever the fuck this is
     public void handleFireworks() {
         int maxFireworks = grimPlayer.fireworks.size();
         Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
@@ -247,7 +247,7 @@ public class MovementVelocityCheck {
                 Vector anotherBoost = temp.clone().add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - temp.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - temp.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - temp.getZ()) * 0.5)));
 
 
-                if (getElytraMovement(anotherBoost.clone(), lookVector).multiply(new Vector(0.99, 0.98, 0.99)).distanceSquared(grimPlayer.actualMovement) < getElytraMovement(temp.clone(), lookVector).multiply(new Vector(0.99, 0.98, 0.99)).distanceSquared(grimPlayer.actualMovement)) {
+                if (getElytraMovement(anotherBoost.clone(), lookVector).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99)).distanceSquared(grimPlayer.actualMovement) < getElytraMovement(temp.clone(), lookVector).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99)).distanceSquared(grimPlayer.actualMovement)) {
                     temp = anotherBoost;
                 }
             }
