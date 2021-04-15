@@ -166,7 +166,7 @@ public class PlayerBaseTick {
                     if (!fluid.a(tag) || !((d3 = (float) j + fluid.getHeight(playerWorld, mutableBlockPos)) >= aABB.minY))
                         continue;
                     bl2 = true;
-                    d2 = Math.max(d3 - aABB.minX, d2);
+                    d2 = Math.max(d3 - aABB.minY, d2);
 
                     if (!player.isFlying) {
                         Vec3D vec32 = FluidTypeFlowing.getFlow(mutableBlockPos, fluid);
