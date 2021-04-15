@@ -1,4 +1,4 @@
-package ac.grim.grimac.events.anticheat;
+package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.chunks.Column;

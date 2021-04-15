@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.events.anticheat.PlayerBaseTick;
 import ac.grim.grimac.utils.data.PredictionData;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;

@@ -1,11 +1,11 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.checks.movement.MovementCheckRunner;
-import ac.grim.grimac.events.anticheat.*;
 import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.bukkit.PlayerVelocityPackets;
 import ac.grim.grimac.events.bukkit.TestEvent;
+import ac.grim.grimac.events.packets.*;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;

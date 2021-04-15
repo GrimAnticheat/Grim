@@ -1,4 +1,4 @@
-package ac.grim.grimac.events.anticheat;
+package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;

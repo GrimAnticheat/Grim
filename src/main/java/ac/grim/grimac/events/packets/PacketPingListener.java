@@ -1,4 +1,4 @@
-package ac.grim.grimac.events.anticheat;
+package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
