@@ -5,6 +5,7 @@ import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GrimPlayer {
@@ -52,10 +54,7 @@ public class GrimPlayer {
     public float xRot;
     public float yRot;
     public boolean onGround;
-    public long movementEventMilliseconds;
-    public long lastMovementEventMilliseconds;
-    public long movementPacketMilliseconds;
-    public long lastMovementPacketMilliseconds;
+
     // Set from the time that the movement packet was received, to be thread safe
     public boolean isSneaking;
     public boolean isSprinting;
@@ -95,16 +94,21 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean lastClimbing;
 
-    // This is stupid
-    public float lastLastXRot;
-    public float lastLastYRot;
-
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
 
     // Timer check data
     public long offset = 0L;
     public long lastMovementPacket = System.currentTimeMillis() - 50000000L;
+
+    // Delays
+    public long movementEventMilliseconds;
+    public long lastMovementEventMilliseconds;
+    public long movementPacketMilliseconds;
+    public long lastMovementPacketMilliseconds;
+
+    // Determining player ping
+    ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -149,6 +153,11 @@ public class GrimPlayer {
         }
 
         return possibleMovements;
+    }
+
+    public void addTransactionResponse(short transactionID) {
+        long millisecondResponse = System.currentTimeMillis() - transactionsSent.remove(transactionID);
+        Bukkit.broadcastMessage("Time to response " + millisecondResponse);
     }
 
     public int getPing() {
