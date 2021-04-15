@@ -1,6 +1,7 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.utils.data.FireworkData;
+import io.github.retrooper.packetevents.PacketEvents;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
@@ -27,6 +28,7 @@ public class GrimPlayer {
     public Player bukkitPlayer;
     public EntityPlayer entityPlayer;
     public int entityID;
+    public short clientVersion;
 
     public AtomicInteger taskNumber = new AtomicInteger(0);
 
@@ -117,6 +119,7 @@ public class GrimPlayer {
         this.entityPlayer = ((CraftPlayer) player).getHandle();
         this.playerUUID = player.getUniqueId();
         this.entityID = player.getEntityId();
+        this.clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(player).getProtocolVersion();
 
         movementPacketMilliseconds = System.currentTimeMillis();
         lastMovementPacketMilliseconds = System.currentTimeMillis() - 100;
