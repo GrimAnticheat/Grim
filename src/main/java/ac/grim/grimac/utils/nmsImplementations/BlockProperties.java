@@ -62,10 +62,11 @@ public class BlockProperties {
 
     // Entity line 617
     public static Block getOnBlock(Location getBlockLocation) {
-        Block block1 = getBlockLocation.getWorld().getBlockAt(getBlockLocation.getBlockX(), (int) (getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
-        Block block2 = getBlockLocation.getWorld().getBlockAt(getBlockLocation.getBlockX(), (int) (getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
+        Block block1 = getBlockLocation.getWorld().getBlockAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
 
-        if (block2.getType().isAir()) {
+        if (block1.getType().isAir()) {
+            Block block2 = getBlockLocation.getWorld().getBlockAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
+
             if (block2 instanceof Fence || block2 instanceof Wall || block2 instanceof Gate) {
                 return block2;
             }

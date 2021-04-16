@@ -104,7 +104,7 @@ public abstract class PredictionEngine {
             }
         }
         // Bouncy blocks cannot have collision run before the bounce
-        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.predictedVelocity);
+        MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.predictedVelocity);
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 

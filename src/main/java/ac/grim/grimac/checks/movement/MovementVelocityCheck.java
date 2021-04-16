@@ -31,7 +31,7 @@ public class MovementVelocityCheck {
 
     // Entity line 527
     // TODO: Entity piston and entity shulker (want to) call this method too.
-    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector vec3) {
+    public static void move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel) {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
@@ -43,47 +43,49 @@ public class MovementVelocityCheck {
             grimPlayer.baseTickSetZ(0);
         }
 
-        Vector clonedClientVelocity = Collisions.collide(Collisions.maybeBackOffFromEdge(vec3, moverType, grimPlayer), grimPlayer);
+        inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
+        Vector collide = Collisions.collide(inputVel, grimPlayer);
 
-        grimPlayer.horizontalCollision = !Mth.equal(vec3.getX(), clonedClientVelocity.getX()) || !Mth.equal(vec3.getZ(), clonedClientVelocity.getZ());
-        grimPlayer.verticalCollision = vec3.getY() != clonedClientVelocity.getY();
+        // This is where vanilla moves the bounding box and sets it
+        grimPlayer.predictedVelocity = collide.clone();
 
-        grimPlayer.predictedVelocity = clonedClientVelocity.clone();
+        grimPlayer.horizontalCollision = !Mth.equal(inputVel.getX(), collide.getX()) || !Mth.equal(inputVel.getZ(), collide.getZ());
+        grimPlayer.verticalCollision = inputVel.getY() != collide.getY();
+        grimPlayer.isActuallyOnGround = grimPlayer.verticalCollision && inputVel.getY() < 0.0D;
 
-        if (vec3.getX() != clonedClientVelocity.getX()) {
-            clonedClientVelocity.setX(0);
+        Block onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
+
+        // Don't ask why vanilla does this, I don't know.
+        Vector beforeCollisionMovement = grimPlayer.clientVelocity.clone();
+        if (inputVel.getX() != collide.getX()) {
+            grimPlayer.clientVelocity = new Vector(0.0D, beforeCollisionMovement.getY(), beforeCollisionMovement.getZ());
         }
 
-        if (vec3.getZ() != clonedClientVelocity.getZ()) {
-            clonedClientVelocity.setZ(0);
+        if (inputVel.getZ() != collide.getZ()) {
+            grimPlayer.clientVelocity = new Vector(beforeCollisionMovement.getX(), beforeCollisionMovement.getY(), 0.0D);
         }
 
-        Location getBlockLocation;
-
-        getBlockLocation = new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y - 0.2F, grimPlayer.z);
-
-        Block onBlock = BlockProperties.getOnBlock(getBlockLocation);
-
-        if (vec3.getY() != clonedClientVelocity.getY()) {
-            if (onBlock.getType() == org.bukkit.Material.SLIME_BLOCK) {
+        if (inputVel.getY() != collide.getY()) {
+            if (onBlock instanceof BlockSlime) {
                 if (grimPlayer.isSneaking) {
-                    clonedClientVelocity.setY(0);
+                    grimPlayer.clientVelocity.setY(0);
                 } else {
-                    if (clonedClientVelocity.getY() < 0.0) {
-                        clonedClientVelocity.setY(-vec3.getY());
+                    if (collide.getY() < 0.0) {
+                        grimPlayer.clientVelocity.setY(-inputVel.getY());
                     }
                 }
             } else if (onBlock.getBlockData() instanceof Bed) {
-                if (clonedClientVelocity.getY() < 0.0) {
-                    clonedClientVelocity.setY(-vec3.getY() * 0.6600000262260437);
+                if (collide.getY() < 0.0) {
+                    grimPlayer.clientVelocity.setY(-inputVel.getY() * 0.6600000262260437);
                 }
             } else {
-                clonedClientVelocity.setY(0);
+                grimPlayer.clientVelocity.setY(0);
             }
         }
 
         if (stuckSpeedMultiplier.getX() < 0.99) {
-            return new Vector();
+            grimPlayer.clientVelocity = new Vector();
+            return;
         }
 
         // The client's on ground while in slime is... strange
@@ -92,22 +94,18 @@ public class MovementVelocityCheck {
         // Cobweb/sweetberry will result in this not doing anything anyways, so it can return above.
         if (onBlock.getType() == Material.SLIME_BLOCK) {
             if (grimPlayer.onGround && !grimPlayer.isSneaking) {
-                double absVelocityY = Math.abs(clonedClientVelocity.getY());
+                double absVelocityY = Math.abs(collide.getY());
                 if (absVelocityY < 0.1) {
                     double d1 = 0.4D + absVelocityY * 0.2D;
-                    clonedClientVelocity.multiply(new Vector(d1, 1, d1));
+                    collide.multiply(new Vector(d1, 1, d1));
                 }
             }
         }
 
-        grimPlayer.clientVelocity = clonedClientVelocity;
         // Put stuck speed here so it is on the right tick
         Collisions.handleInsideBlocks(grimPlayer);
-        clonedClientVelocity = grimPlayer.clientVelocity;
-
-        clonedClientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
-
-        return clonedClientVelocity;
+        inputVel.multiply(grimPlayer.blockSpeedMultiplier);
+        grimPlayer.clientVelocity = inputVel;
     }
 
     public void livingEntityAIStep() {
@@ -239,7 +237,7 @@ public class MovementVelocityCheck {
                 }
 
                 //grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
-                grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, clientVelocity);
+                move(grimPlayer, MoverType.SELF, clientVelocity);
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
