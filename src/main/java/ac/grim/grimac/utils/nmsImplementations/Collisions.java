@@ -333,8 +333,39 @@ public class Collisions {
                             }
                         }
                     }
+
+                    if (block instanceof BlockHoney) {
+                        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                            if (isSlidingDown(vector, grimPlayer, i, j, j)) {
+                                if (vector.getY() < -0.13D) {
+                                    double d0 = -0.05 / vector.getY();
+                                    vector.setX(vector.getX() * d0);
+                                    vector.setY(-0.05D);
+                                    vector.setZ(vector.getZ() * d0);
+                                } else {
+                                    vector.setY(-0.05D);
+                                }
+                            }
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    private static boolean isSlidingDown(Vector vector, GrimPlayer grimPlayer, int locationX, int locationY, int locationZ) {
+        if (grimPlayer.onGround) {
+            return false;
+        } else if (grimPlayer.y > locationY + 0.9375D - 1.0E-7D) {
+            return false;
+        } else if (vector.getY() >= -0.08D) {
+            return false;
+        } else {
+            double d0 = Math.abs((double) locationX + 0.5D - grimPlayer.lastX);
+            double d1 = Math.abs((double) locationZ + 0.5D - grimPlayer.lastZ);
+            // Calculate player width using bounding box, which will change while swimming or gliding
+            double d2 = 0.4375D + ((grimPlayer.boundingBox.maxX - grimPlayer.boundingBox.minX) / 2.0F);
+            return d0 + 1.0E-7D > d2 || d1 + 1.0E-7D > d2;
         }
     }
 
