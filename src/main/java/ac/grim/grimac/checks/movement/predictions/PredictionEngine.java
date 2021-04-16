@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.TagsFluid;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -90,7 +91,11 @@ public abstract class PredictionEngine {
             Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(movementBeforeCollision, MoverType.SELF, grimPlayer), grimPlayer);
             double resultAccuracy = possibleInputVelocityResult.distance(grimPlayer.actualMovement);
 
+            Bukkit.broadcastMessage("Checking " + possibleCollisionInputs.lastTickOutput + " and " + possibleCollisionInputs.playerInput);
+
             if (resultAccuracy < bestInput) {
+                Bukkit.broadcastMessage("Using this one!");
+
                 bestInput = resultAccuracy;
                 grimPlayer.bestPreviousMovement = possibleCollisionInputs.lastTickOutput;
                 grimPlayer.possibleInput = possibleCollisionInputs.playerInput;

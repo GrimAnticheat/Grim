@@ -35,6 +35,10 @@ public class MovementVelocityCheck {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
+
+        // The vanilla method inputs clientVelocity as the vector, so just set it like it would be set.
+        grimPlayer.clientVelocity = inputVel;
+
         Vector stuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
 
         if (stuckSpeedMultiplier.getX() < 0.99) {
@@ -104,8 +108,7 @@ public class MovementVelocityCheck {
 
         // Put stuck speed here so it is on the right tick
         Collisions.handleInsideBlocks(grimPlayer);
-        inputVel.multiply(grimPlayer.blockSpeedMultiplier);
-        grimPlayer.clientVelocity = inputVel;
+        grimPlayer.clientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
     }
 
     public void livingEntityAIStep() {
