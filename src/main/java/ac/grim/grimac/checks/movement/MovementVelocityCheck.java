@@ -14,6 +14,7 @@ import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
 import org.bukkit.entity.Player;
@@ -87,6 +88,21 @@ public class MovementVelocityCheck {
         }
 
         grimPlayer.getPossibleVelocitiesMinusKnockback().forEach(vector -> Bukkit.broadcastMessage("Before " + vector));
+
+        // The client's on ground while in slime is... strange
+        // It jumps between on ground and not on ground every god damn tick
+        // What the fuck.  No matter what, let the client decide this one!
+        // Cobweb/sweetberry will result in this not doing anything anyways, so it can return above.
+        if (onBlock.getType() == Material.SLIME_BLOCK) {
+            if (grimPlayer.onGround && !grimPlayer.isSneaking) {
+                double absVelocityY = Math.abs(clonedClientVelocity.getY());
+                if (absVelocityY < 0.1) {
+                    double d1 = 0.4D + absVelocityY * 0.2D;
+                    Bukkit.broadcastMessage("Y velocity used is " + absVelocityY);
+                    clonedClientVelocity.multiply(new Vector(d1, 1, d1));
+                }
+            }
+        }
 
         grimPlayer.clientVelocity = clonedClientVelocity;
         // Put stuck speed here so it is on the right tick
