@@ -31,13 +31,10 @@ public class MovementVelocityCheck {
 
     // Entity line 527
     // TODO: Entity piston and entity shulker (want to) call this method too.
-    public static void move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel) {
+    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel) {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
-
-        // The vanilla method inputs clientVelocity as the vector, so just set it like it would be set.
-        grimPlayer.clientVelocity = inputVel;
 
         Vector stuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
 
@@ -60,42 +57,41 @@ public class MovementVelocityCheck {
         Block onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
 
         // Don't ask why vanilla does this, I don't know.
-        Vector beforeCollisionMovement = grimPlayer.clientVelocity.clone();
+        Vector beforeCollisionMovement = inputVel.clone();
         if (inputVel.getX() != collide.getX()) {
-            grimPlayer.clientVelocity = new Vector(0.0D, beforeCollisionMovement.getY(), beforeCollisionMovement.getZ());
+            inputVel = new Vector(0.0D, beforeCollisionMovement.getY(), beforeCollisionMovement.getZ());
         }
 
         if (inputVel.getZ() != collide.getZ()) {
-            grimPlayer.clientVelocity = new Vector(beforeCollisionMovement.getX(), beforeCollisionMovement.getY(), 0.0D);
+            inputVel = new Vector(beforeCollisionMovement.getX(), beforeCollisionMovement.getY(), 0.0D);
         }
 
         if (inputVel.getY() != collide.getY()) {
             if (onBlock instanceof BlockSlime) {
                 if (grimPlayer.isSneaking) {
-                    grimPlayer.clientVelocity.setY(0);
+                    inputVel.setY(0);
                 } else {
                     if (collide.getY() < 0.0) {
-                        grimPlayer.clientVelocity.setY(-inputVel.getY());
+                        inputVel.setY(-inputVel.getY());
                     }
                 }
             } else if (onBlock.getBlockData() instanceof Bed) {
                 if (collide.getY() < 0.0) {
-                    grimPlayer.clientVelocity.setY(-inputVel.getY() * 0.6600000262260437);
+                    inputVel.setY(-inputVel.getY() * 0.6600000262260437);
                 }
             } else {
-                grimPlayer.clientVelocity.setY(0);
+                inputVel.setY(0);
             }
         }
 
+        // All future code wouldn't have any effect anyways, so just return now
         if (stuckSpeedMultiplier.getX() < 0.99) {
-            grimPlayer.clientVelocity = new Vector();
-            return;
+            return new Vector();
         }
 
         // The client's on ground while in slime is... strange
         // It jumps between on ground and not on ground every god damn tick
         // What the fuck.  No matter what, let the client decide this one!
-        // Cobweb/sweetberry will result in this not doing anything anyways, so it can return above.
         if (onBlock.getType() == Material.SLIME_BLOCK) {
             if (grimPlayer.onGround && !grimPlayer.isSneaking) {
                 double absVelocityY = Math.abs(collide.getY());
@@ -107,8 +103,11 @@ public class MovementVelocityCheck {
         }
 
         // Put stuck speed here so it is on the right tick
+        // TODO: This should use the inputVel, not the clientVel
         Collisions.handleInsideBlocks(grimPlayer);
-        grimPlayer.clientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
+        inputVel.multiply(grimPlayer.blockSpeedMultiplier);
+
+        return inputVel;
     }
 
     public void livingEntityAIStep() {
@@ -240,7 +239,7 @@ public class MovementVelocityCheck {
                 }
 
                 //grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
-                move(grimPlayer, MoverType.SELF, clientVelocity);
+                grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, clientVelocity);
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);

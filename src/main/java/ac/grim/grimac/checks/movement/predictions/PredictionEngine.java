@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.TagsFluid;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -86,30 +85,30 @@ public abstract class PredictionEngine {
             return -1;
         });
 
-        for (VectorPair possibleCollisionInputs : possibleCombinations) {
-            Vector movementBeforeCollision = possibleCollisionInputs.lastTickOutput.clone().add(getMovementResultFromInput(possibleCollisionInputs.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier);
-            Vector possibleInputVelocityResult = Collisions.collide(Collisions.maybeBackOffFromEdge(movementBeforeCollision, MoverType.SELF, grimPlayer), grimPlayer);
-            double resultAccuracy = possibleInputVelocityResult.distance(grimPlayer.actualMovement);
+        Vector outputVel;
+        Vector bestClientVelOutput = null;
+        Vector bestClientPredictionOutput = null;
 
-            Bukkit.broadcastMessage("Checking " + possibleCollisionInputs.lastTickOutput + " and " + possibleCollisionInputs.playerInput);
+        for (VectorPair possibleCollisionInputs : possibleCombinations) {
+            Vector clientVelAfterInput = possibleCollisionInputs.lastTickOutput.clone().add(getMovementResultFromInput(possibleCollisionInputs.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier);
+            outputVel = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, clientVelAfterInput);
+
+            double resultAccuracy = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
 
             if (resultAccuracy < bestInput) {
-                Bukkit.broadcastMessage("Using this one!");
-
                 bestInput = resultAccuracy;
+                bestClientVelOutput = outputVel.clone();
+                bestClientPredictionOutput = grimPlayer.predictedVelocity.clone();
                 grimPlayer.bestPreviousMovement = possibleCollisionInputs.lastTickOutput;
                 grimPlayer.possibleInput = possibleCollisionInputs.playerInput;
-                grimPlayer.predictedVelocity = movementBeforeCollision;
-
-                // Theoretical input exists for debugging purposes, no current use yet in checks.
-                grimPlayer.theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().divide(grimPlayer.stuckSpeedMultiplier).subtract(possibleCollisionInputs.lastTickOutput), f, grimPlayer.xRot);
 
                 // Close enough.
                 if (resultAccuracy < 0.001) break;
             }
         }
-        // Bouncy blocks cannot have collision run before the bounce
-        MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.predictedVelocity);
+
+        grimPlayer.clientVelocity = bestClientVelOutput;
+        grimPlayer.predictedVelocity = bestClientPredictionOutput;
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 
