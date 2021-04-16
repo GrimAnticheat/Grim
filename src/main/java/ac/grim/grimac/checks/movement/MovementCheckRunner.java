@@ -90,9 +90,9 @@ public class MovementCheckRunner implements Listener {
             ChatColor color;
             double diff = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
 
-            if (diff < 0.05) {
+            if (diff < 0.01) {
                 color = ChatColor.GREEN;
-            } else if (diff < 0.15) {
+            } else if (diff < 0.1) {
                 color = ChatColor.YELLOW;
             } else {
                 color = ChatColor.RED;
@@ -101,7 +101,7 @@ public class MovementCheckRunner implements Listener {
             //Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds + "Time taken " + (System.nanoTime() - startTime)));
             Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
             Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
-            Bukkit.broadcastMessage("O: " + color + (grimPlayer.predictedVelocity.getX() - +grimPlayer.actualMovement.getX()) + " " + (grimPlayer.predictedVelocity.getY() - grimPlayer.actualMovement.getY()) + " " + (grimPlayer.predictedVelocity.getZ() - grimPlayer.actualMovement.getZ()));
+            //Bukkit.broadcastMessage("O: " + color + (grimPlayer.predictedVelocity.getX() - +grimPlayer.actualMovement.getX()) + " " + (grimPlayer.predictedVelocity.getY() - grimPlayer.actualMovement.getY()) + " " + (grimPlayer.predictedVelocity.getZ() - grimPlayer.actualMovement.getZ()));
 
         } catch (Exception e) {
             e.printStackTrace();

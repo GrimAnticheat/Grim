@@ -179,12 +179,9 @@ public class MovementVelocityCheck {
 
             new PredictionEngineWater().guessBestMovement(swimSpeed, grimPlayer, isFalling, playerGravity, swimFriction, lastY);
 
-            /*grimPlayer.clientVelocityOnLadder = null;
             if (grimPlayer.lastClimbing) {
-                grimPlayer.clientVelocityOnLadder = endOfTickWaterMovement(grimPlayer.clientVelocity.clone().setY(0.2), bl, d, f, d1);
+                grimPlayer.clientVelocityOnLadder = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, grimPlayer.clientVelocity.clone().setY(0.16));
             }
-
-            grimPlayer.clientVelocity = endOfTickWaterMovement(grimPlayer.clientVelocity, bl, d, f, d1);*/
 
         } else {
             if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && !grimPlayer.entityPlayer.abilities.isFlying) {
