@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.Bed;
@@ -84,6 +85,15 @@ public class MovementVelocityCheck {
         if (stuckSpeedMultiplier.getX() < 0.99) {
             return new Vector();
         }
+
+        grimPlayer.getPossibleVelocitiesMinusKnockback().forEach(vector -> Bukkit.broadcastMessage("Before " + vector));
+
+        grimPlayer.clientVelocity = clonedClientVelocity;
+        // Put stuck speed here so it is on the right tick
+        Collisions.handleInsideBlocks(grimPlayer);
+        clonedClientVelocity = grimPlayer.clientVelocity;
+
+        grimPlayer.getPossibleVelocitiesMinusKnockback().forEach(vector -> Bukkit.broadcastMessage("After " + vector));
 
         clonedClientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
 

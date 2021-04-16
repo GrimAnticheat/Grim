@@ -5,7 +5,6 @@ import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
@@ -47,9 +46,6 @@ public class PlayerBaseTick {
 
         // Reset stuck speed so it can update
         player.stuckSpeedMultiplier = new Vector(1, 1, 1);
-
-        // Put stuck speed here so it is on the right tick
-        Collisions.handleInsideBlocks(player);
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.isFlying) {

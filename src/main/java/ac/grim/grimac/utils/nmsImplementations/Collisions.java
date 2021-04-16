@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.chunks.CachedVoxelShapeSpliterator;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.enums.MoverType;
 import com.google.common.collect.Lists;
+import net.minecraft.server.v1_16_R3.BlockProperties;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
@@ -18,6 +19,7 @@ import java.util.stream.StreamSupport;
 
 public class Collisions {
     public static final double maxUpStep = 0.6f;
+    public static final BlockStateBoolean DRAG_DOWN = BlockProperties.e;
 
     // Entity line 686
     // This MUST return a new vector!!!
@@ -288,22 +290,47 @@ public class Collisions {
     }
 
     public static void handleInsideBlocks(GrimPlayer grimPlayer) {
-        AxisAlignedBB aABB = grimPlayer.boundingBox;
+        // Use the bounding box for after the player's movement is applied
+        AxisAlignedBB aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
         Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
         Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
 
-        if (CheckIfChunksLoaded.hasChunksAt(blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ())) {
-            for (int i = blockPos.getBlockX(); i <= blockPos2.getX(); ++i) {
-                for (int j = blockPos.getBlockY(); j <= blockPos2.getY(); ++j) {
-                    for (int k = blockPos.getBlockZ(); k <= blockPos2.getZ(); ++k) {
-                        Block block = ChunkCache.getBlockDataAt(i, j, k).getBlock();
+        if (!CheckIfChunksLoaded.hasChunksAt(blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
+            return;
 
-                        if (block instanceof BlockWeb) {
-                            grimPlayer.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
-                        }
+        for (int i = blockPos.getBlockX(); i <= blockPos2.getX(); ++i) {
+            for (int j = blockPos.getBlockY(); j <= blockPos2.getY(); ++j) {
+                for (int k = blockPos.getBlockZ(); k <= blockPos2.getZ(); ++k) {
+                    Block block = ChunkCache.getBlockDataAt(i, j, k).getBlock();
 
-                        if (block instanceof BlockSweetBerryBush) {
-                            grimPlayer.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
+                    if (block instanceof BlockWeb) {
+                        grimPlayer.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
+                    }
+
+                    if (block instanceof BlockSweetBerryBush) {
+                        grimPlayer.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
+                    }
+
+                    if (block instanceof BlockBubbleColumn) {
+                        IBlockData blockData = ChunkCache.getBlockDataAt(i, j, k);
+                        IBlockData blockAbove = ChunkCache.getBlockDataAt(i, j + 1, k).getBlock().getBlockData();
+
+                        if (blockAbove.isAir()) {
+                            for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                                if (blockData.get(DRAG_DOWN)) {
+                                    vector.setY(Math.max(-0.9D, vector.getY() - 0.03D));
+                                } else {
+                                    vector.setY(Math.min(1.8D, vector.getY() + 0.1D));
+                                }
+                            }
+                        } else {
+                            for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                                if (blockData.get(DRAG_DOWN)) {
+                                    vector.setY(Math.max(-0.3D, vector.getY() - 0.03D));
+                                } else {
+                                    vector.setY(Math.min(0.7D, vector.getY() + 0.06D));
+                                }
+                            }
                         }
                     }
                 }
@@ -317,11 +344,13 @@ public class Collisions {
         });
     }
 
-    public static boolean noCollision(@Nullable Entity p_234865_1_, AxisAlignedBB p_234865_2_, Predicate<Entity> p_234865_3_) {
+    public static boolean noCollision(@Nullable Entity p_234865_1_, AxisAlignedBB
+            p_234865_2_, Predicate<Entity> p_234865_3_) {
         return getCollisions(p_234865_1_, p_234865_2_, p_234865_3_).allMatch(VoxelShape::isEmpty);
     }
 
-    public static Stream<VoxelShape> getCollisions(@Nullable Entity p_234867_1_, AxisAlignedBB p_234867_2_, Predicate<Entity> p_234867_3_) {
+    public static Stream<VoxelShape> getCollisions(@Nullable Entity p_234867_1_, AxisAlignedBB
+            p_234867_2_, Predicate<Entity> p_234867_3_) {
         return Stream.concat(getBlockCollisions(p_234867_1_, p_234867_2_), getEntityCollisions(p_234867_1_, p_234867_2_, p_234867_3_));
     }
 
@@ -330,7 +359,8 @@ public class Collisions {
     }
 
     // TODO: We need to use the grim player's bounding box
-    public static Stream<VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB p_230318_2_, Predicate<Entity> p_230318_3_) {
+    public static Stream<VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB
+            p_230318_2_, Predicate<Entity> p_230318_3_) {
         if (p_230318_2_.a() < 1.0E-7D) { // a() -> getSize()
             return Stream.empty();
         } else {
@@ -350,7 +380,8 @@ public class Collisions {
         }
     }
 
-    public static List<Entity> getEntities(@Nullable Entity p_175674_1_, AxisAlignedBB p_175674_2_, @Nullable Predicate<? super Entity> p_175674_3_) {
+    public static List<Entity> getEntities(@Nullable Entity p_175674_1_, AxisAlignedBB
+            p_175674_2_, @Nullable Predicate<? super Entity> p_175674_3_) {
         List<Entity> list = Lists.newArrayList();
         int i = MathHelper.floor((p_175674_2_.minX - 2.0D) / 16.0D);
         int j = MathHelper.floor((p_175674_2_.maxX + 2.0D) / 16.0D);
