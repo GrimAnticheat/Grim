@@ -56,7 +56,7 @@ public class MovementVelocityCheck {
 
         Block onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
 
-        // Don't ask why vanilla does this, I don't know.
+        // Vanilla moves the player on the X axis first and then the Z axis
         Vector beforeCollisionMovement = inputVel.clone();
         if (inputVel.getX() != collide.getX()) {
             inputVel = new Vector(0.0D, beforeCollisionMovement.getY(), beforeCollisionMovement.getZ());
@@ -94,16 +94,14 @@ public class MovementVelocityCheck {
         // What the fuck.  No matter what, let the client decide this one!
         if (onBlock.getType() == Material.SLIME_BLOCK) {
             if (grimPlayer.onGround && !grimPlayer.isSneaking) {
-                double absVelocityY = Math.abs(collide.getY());
+                double absVelocityY = Math.abs(inputVel.getY());
                 if (absVelocityY < 0.1) {
                     double d1 = 0.4D + absVelocityY * 0.2D;
-                    collide.multiply(new Vector(d1, 1, d1));
+                    inputVel.multiply(new Vector(d1, 1, d1));
                 }
             }
         }
 
-        // Put stuck speed here so it is on the right tick
-        // TODO: This should use the inputVel, not the clientVel
         Collisions.handleInsideBlocks(grimPlayer);
         inputVel.multiply(grimPlayer.blockSpeedMultiplier);
 
