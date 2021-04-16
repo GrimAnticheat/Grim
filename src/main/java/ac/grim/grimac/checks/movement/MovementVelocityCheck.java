@@ -13,9 +13,6 @@ import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.data.type.Bed;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -71,11 +68,11 @@ public class MovementVelocityCheck {
                 if (grimPlayer.isSneaking) {
                     inputVel.setY(0);
                 } else {
-                    if (collide.getY() < 0.0) {
+                    if (inputVel.getY() < 0.0) {
                         inputVel.setY(-inputVel.getY());
                     }
                 }
-            } else if (onBlock.getBlockData() instanceof Bed) {
+            } else if (onBlock instanceof BlockBed) {
                 if (collide.getY() < 0.0) {
                     inputVel.setY(-inputVel.getY() * 0.6600000262260437);
                 }
@@ -92,7 +89,7 @@ public class MovementVelocityCheck {
         // The client's on ground while in slime is... strange
         // It jumps between on ground and not on ground every god damn tick
         // What the fuck.  No matter what, let the client decide this one!
-        if (onBlock.getType() == Material.SLIME_BLOCK) {
+        if (onBlock instanceof BlockSlime) {
             if (grimPlayer.onGround && !grimPlayer.isSneaking) {
                 double absVelocityY = Math.abs(inputVel.getY());
                 if (absVelocityY < 0.1) {
