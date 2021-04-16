@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -87,8 +86,6 @@ public class MovementVelocityCheck {
             return new Vector();
         }
 
-        grimPlayer.getPossibleVelocitiesMinusKnockback().forEach(vector -> Bukkit.broadcastMessage("Before " + vector));
-
         // The client's on ground while in slime is... strange
         // It jumps between on ground and not on ground every god damn tick
         // What the fuck.  No matter what, let the client decide this one!
@@ -98,7 +95,6 @@ public class MovementVelocityCheck {
                 double absVelocityY = Math.abs(clonedClientVelocity.getY());
                 if (absVelocityY < 0.1) {
                     double d1 = 0.4D + absVelocityY * 0.2D;
-                    Bukkit.broadcastMessage("Y velocity used is " + absVelocityY);
                     clonedClientVelocity.multiply(new Vector(d1, 1, d1));
                 }
             }
@@ -108,8 +104,6 @@ public class MovementVelocityCheck {
         // Put stuck speed here so it is on the right tick
         Collisions.handleInsideBlocks(grimPlayer);
         clonedClientVelocity = grimPlayer.clientVelocity;
-
-        grimPlayer.getPossibleVelocitiesMinusKnockback().forEach(vector -> Bukkit.broadcastMessage("After " + vector));
 
         clonedClientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
 
