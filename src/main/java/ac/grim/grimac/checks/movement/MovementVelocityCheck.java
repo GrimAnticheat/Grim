@@ -43,6 +43,7 @@ public class MovementVelocityCheck {
             grimPlayer.baseTickSetX(0);
             grimPlayer.baseTickSetY(0);
             grimPlayer.baseTickSetZ(0);
+            clientVel = new Vector();
         }
 
         // This is when client velocity is no longer referenced by inputVel
@@ -58,14 +59,12 @@ public class MovementVelocityCheck {
 
         Block onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
 
-        // Vanilla moves the player on the X axis first and then the Z axis
-        Vector beforeCollisionMovement = inputVel.clone();
         if (inputVel.getX() != collide.getX()) {
-            clientVel = new Vector(0.0D, beforeCollisionMovement.getY(), beforeCollisionMovement.getZ());
+            clientVel.setX(0);
         }
 
         if (inputVel.getZ() != collide.getZ()) {
-            clientVel = new Vector(beforeCollisionMovement.getX(), beforeCollisionMovement.getY(), 0.0D);
+            clientVel.setZ(0);
         }
 
         if (inputVel.getY() != collide.getY()) {
@@ -86,13 +85,7 @@ public class MovementVelocityCheck {
             }
         }
 
-        if (grimPlayer.stuckSpeedMultiplier.getX() < 0.99) {
-            clientVel = new Vector();
-        }
-
-        // The client's on ground while in slime is... strange
-        // It jumps between on ground and not on ground every god damn tick
-        // What the fuck.  No matter what, let the client decide this one!
+        // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
         if (onBlock instanceof BlockSlime) {
             if (grimPlayer.onGround && !grimPlayer.wasSneaking) {
                 double absVelocityY = Math.abs(clientVel.getY());

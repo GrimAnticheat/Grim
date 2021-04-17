@@ -44,5 +44,6 @@ public class PredictionData {
         this.isFlying = grimPlayer.bukkitPlayer.isFlying();
         this.isSwimming = grimPlayer.bukkitPlayer.isSwimming();
         this.playerWorld = grimPlayer.bukkitPlayer.getWorld();
+        this.fallDistance = grimPlayer.bukkitPlayer.getFallDistance();
     }
 }

@@ -284,8 +284,8 @@ public class Collisions {
     private static boolean isAboveGround(GrimPlayer grimPlayer) {
         //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
-        return grimPlayer.lastOnGround || grimPlayer.bukkitPlayer.getFallDistance() < Collisions.maxUpStep && !
-                noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, grimPlayer.bukkitPlayer.getFallDistance() - Collisions.maxUpStep, 0.0));
+        return grimPlayer.lastOnGround || grimPlayer.fallDistance < Collisions.maxUpStep && !
+                noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, grimPlayer.fallDistance - Collisions.maxUpStep, 0.0));
     }
 
     public static void handleInsideBlocks(GrimPlayer grimPlayer) {

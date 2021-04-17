@@ -63,6 +63,7 @@ public class GrimPlayer {
     public boolean isSprinting;
     public boolean isFlying;
     public boolean isSwimming;
+    public double fallDistance;
     public AxisAlignedBB boundingBox;
     public World playerWorld;
 
@@ -81,9 +82,6 @@ public class GrimPlayer {
 
     // Handled by entity spawn event, removed when firework dies
     public HashMap<Integer, FireworkData> fireworks = new HashMap<>();
-
-    // Placeholder, currently not used in any checks
-    public double fallDistance = 0f;
 
     // Set after checks
     public double lastX;

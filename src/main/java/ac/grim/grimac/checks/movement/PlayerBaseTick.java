@@ -116,16 +116,12 @@ public class PlayerBaseTick {
 
     // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
+        // Watersplash effect removed (Entity 981).  Shouldn't affect movement
+        //player.fallDistance = 0.0f;
+        //this.clearFire();
         if (player.bukkitPlayer.getVehicle() instanceof EntityBoat) {
             player.wasTouchingWater = false;
-        } else if (this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014)) {
-            // Watersplash effect removed (Entity 981).  Shouldn't affect movement
-            player.fallDistance = 0.0f;
-            player.wasTouchingWater = true;
-            //this.clearFire();
-        } else {
-            player.wasTouchingWater = false;
-        }
+        } else player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
