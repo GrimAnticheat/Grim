@@ -200,7 +200,7 @@ public class MovementVelocityCheck {
 
             new PredictionEngineWater().guessBestMovement(swimSpeed, grimPlayer, isFalling, playerGravity, swimFriction, lastY);
 
-            if (grimPlayer.lastClimbing) {
+            if (grimPlayer.isClimbing) {
                 grimPlayer.clientVelocityOnLadder = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, grimPlayer.clientVelocity.clone().setY(0.16));
             }
 

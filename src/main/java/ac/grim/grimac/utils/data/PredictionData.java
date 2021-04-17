@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.attribute.Attribute;
@@ -50,7 +51,7 @@ public class PredictionData {
 
         this.isFlying = grimPlayer.bukkitPlayer.isFlying();
         this.isSwimming = grimPlayer.bukkitPlayer.isSwimming();
-        this.isClimbing = grimPlayer.entityPlayer.isClimbing();
+        this.isClimbing = Collisions.onClimbable(grimPlayer);
         this.isFallFlying = grimPlayer.bukkitPlayer.isGliding();
         this.playerWorld = grimPlayer.bukkitPlayer.getWorld();
         this.fallDistance = grimPlayer.bukkitPlayer.getFallDistance();

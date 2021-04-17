@@ -430,4 +430,24 @@ public class Collisions {
 
         return list;
     }
+
+    public static boolean onClimbable(GrimPlayer grimPlayer) {
+        // spectator check
+
+        IBlockData blockData = ChunkCache.getBlockDataAt(grimPlayer.x, grimPlayer.y, grimPlayer.z);
+        if (blockData.a(TagsBlock.CLIMBABLE)) {
+            return true;
+        }
+
+        return blockData.getBlock() instanceof BlockTrapdoor && trapdoorUsableAsLadder(grimPlayer.x, grimPlayer.y, grimPlayer.z, blockData);
+    }
+
+    private static boolean trapdoorUsableAsLadder(double x, double y, double z, IBlockData blockData) {
+        if (blockData.get(BlockTrapdoor.OPEN)) {
+            IBlockData blockBelow = ChunkCache.getBlockDataAt(x, y - 1, z);
+            return blockBelow.a(Blocks.LADDER) && blockBelow.get(BlockLadder.FACING) == blockData.get(BlockLadder.FACING);
+        }
+
+        return false;
+    }
 }

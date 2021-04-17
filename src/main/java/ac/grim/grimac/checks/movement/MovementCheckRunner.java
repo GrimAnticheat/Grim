@@ -109,7 +109,6 @@ public class MovementCheckRunner implements Listener {
                 color = ChatColor.RED;
             }
 
-            //Bukkit.broadcastMessage("Time since last event " + (grimPlayer.movementEventMilliseconds - grimPlayer.lastMovementEventMilliseconds + "Time taken " + (System.nanoTime() - startTime)));
             Bukkit.broadcastMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
             Bukkit.broadcastMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
             //Bukkit.broadcastMessage("O: " + color + (grimPlayer.predictedVelocity.getX() - +grimPlayer.actualMovement.getX()) + " " + (grimPlayer.predictedVelocity.getY() - grimPlayer.actualMovement.getY()) + " " + (grimPlayer.predictedVelocity.getZ() - grimPlayer.actualMovement.getZ()));
@@ -128,7 +127,7 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastYRot = grimPlayer.yRot;
         grimPlayer.lastOnGround = grimPlayer.onGround;
         grimPlayer.lastSneaking = grimPlayer.wasSneaking;
-        grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
+        grimPlayer.lastClimbing = grimPlayer.isClimbing;
         grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
         grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
 
