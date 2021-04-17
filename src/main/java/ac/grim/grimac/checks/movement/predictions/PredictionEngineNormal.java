@@ -28,7 +28,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
     @Override
     public Vector handleOnClimbable(Vector vector, GrimPlayer grimPlayer) {
-        if (grimPlayer.lastClimbing) {
+        if (grimPlayer.isClimbing) {
             vector.setX(Mth.clamp(vector.getX(), -0.15, 0.15));
             vector.setZ(Mth.clamp(vector.getZ(), -0.15, 0.15));
             vector.setY(Math.max(vector.getY(), -0.15));
