@@ -44,14 +44,6 @@ public class PlayerBaseTick {
         this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ - (double) player.entityPlayer.getWidth() * 0.35);
         this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ + (double) player.entityPlayer.getWidth() * 0.35);
 
-        // Reset stuck speed so it can update
-        player.stuckSpeedMultiplier = new Vector(1, 1, 1);
-
-        // Flying players are not affected by cobwebs/sweet berry bushes
-        if (player.isFlying) {
-            player.stuckSpeedMultiplier = new Vector(1, 1, 1);
-        }
-
         float f = BlockProperties.getBlockSpeedFactor(player);
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
     }

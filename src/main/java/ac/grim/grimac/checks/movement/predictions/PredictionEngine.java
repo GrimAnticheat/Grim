@@ -3,7 +3,6 @@ package ac.grim.grimac.checks.movement.predictions;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.MovementVelocityCheck;
 import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
-import ac.grim.grimac.utils.data.VectorPair;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
@@ -59,7 +58,7 @@ public abstract class PredictionEngine {
     }
 
     public void guessBestMovement(float f, GrimPlayer grimPlayer) {
-        List<VectorPair> possibleCombinations = new ArrayList<>();
+        List<Vector> possibleVelocities = new ArrayList<>();
         double bestInput = Double.MAX_VALUE;
         addJumpIfNeeded(grimPlayer);
 
@@ -68,48 +67,45 @@ public abstract class PredictionEngine {
 
             for (int x = -1; x <= 1; x++) {
                 for (int z = -1; z <= 1; z++) {
-                    possibleCombinations.add(new VectorPair(possibleLastTickOutput, getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z))));
+                    possibleVelocities.add(possibleLastTickOutput.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier));
                 }
             }
         }
 
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
-        possibleCombinations.sort((a, b) -> {
-            double distance1 = a.lastTickOutput.clone().add(getMovementResultFromInput(a.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier).distanceSquared(grimPlayer.actualMovement);
-            double distance2 = b.lastTickOutput.clone().add(getMovementResultFromInput(b.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier).distanceSquared(grimPlayer.actualMovement);
-            if (distance1 > distance2) {
-                return 1;
-            } else if (distance1 == distance2) {
-                return 0;
-            }
-            return -1;
-        });
+        possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a, b, grimPlayer));
 
-        Vector outputVel;
         Vector bestClientVelOutput = null;
         Vector bestClientPredictionOutput = null;
 
-        for (VectorPair possibleCollisionInputs : possibleCombinations) {
-            Vector clientVelAfterInput = possibleCollisionInputs.lastTickOutput.clone().add(getMovementResultFromInput(possibleCollisionInputs.playerInput, f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier);
-            outputVel = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, clientVelAfterInput);
-
+        for (Vector clientVelAfterInput : possibleVelocities) {
+            Vector outputVel = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, clientVelAfterInput);
             double resultAccuracy = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
                 bestClientVelOutput = outputVel.clone();
                 bestClientPredictionOutput = grimPlayer.predictedVelocity.clone();
-                grimPlayer.bestPreviousMovement = possibleCollisionInputs.lastTickOutput;
-                grimPlayer.possibleInput = possibleCollisionInputs.playerInput;
 
-                // Close enough.
-                if (resultAccuracy < 0.001) break;
+                // Optimization - Close enough, other inputs won't get closer
+                if (resultAccuracy < 0.01) break;
             }
         }
 
         grimPlayer.clientVelocity = bestClientVelOutput;
         grimPlayer.predictedVelocity = bestClientPredictionOutput;
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
+    }
+
+    public int compareDistanceToActualMovement(Vector a, Vector b, GrimPlayer grimPlayer) {
+        double distance1 = a.distanceSquared(grimPlayer.actualMovement);
+        double distance2 = b.distanceSquared(grimPlayer.actualMovement);
+        if (distance1 > distance2) {
+            return 1;
+        } else if (distance1 == distance2) {
+            return 0;
+        }
+        return -1;
     }
 
     public void addJumpIfNeeded(GrimPlayer grimPlayer) {

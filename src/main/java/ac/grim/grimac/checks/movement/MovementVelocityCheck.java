@@ -33,9 +33,7 @@ public class MovementVelocityCheck {
         // Piston movement exemption
         // What is a motion multiplier?
 
-        Vector stuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
-
-        if (stuckSpeedMultiplier.getX() < 0.99) {
+        if (grimPlayer.stuckSpeedMultiplier.getX() < 0.99) {
             grimPlayer.baseTickSetX(0);
             grimPlayer.baseTickSetY(0);
             grimPlayer.baseTickSetZ(0);
@@ -81,9 +79,8 @@ public class MovementVelocityCheck {
             }
         }
 
-        // All future code wouldn't have any effect anyways, so just return now
-        if (stuckSpeedMultiplier.getX() < 0.99) {
-            return new Vector();
+        if (grimPlayer.stuckSpeedMultiplier.getX() < 0.99) {
+            inputVel = new Vector();
         }
 
         // The client's on ground while in slime is... strange
@@ -99,8 +96,17 @@ public class MovementVelocityCheck {
             }
         }
 
-        Collisions.handleInsideBlocks(grimPlayer);
         inputVel.multiply(grimPlayer.blockSpeedMultiplier);
+
+        // Reset stuck speed so it can update
+        grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
+
+        Collisions.handleInsideBlocks(grimPlayer);
+
+        // Flying players are not affected by cobwebs/sweet berry bushes
+        if (grimPlayer.isFlying) {
+            grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
+        }
 
         return inputVel;
     }
