@@ -235,11 +235,10 @@ public class Collisions {
 
     // MCP mappings PlayerEntity 959
     // Mojang mappings 911
-    // TODO: Getting bounding box is not lag compensated
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
         //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
-        if (!grimPlayer.isFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.wasSneaking && isAboveGround(grimPlayer)) {
+        if (!grimPlayer.isFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.isSneaking && isAboveGround(grimPlayer)) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
             while (d != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(d, -maxUpStep, 0.0))) {
@@ -291,7 +290,7 @@ public class Collisions {
 
     public static void handleInsideBlocks(GrimPlayer grimPlayer) {
         // Use the bounding box for after the player's movement is applied
-        AxisAlignedBB aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+        AxisAlignedBB aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
         Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
         Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
 

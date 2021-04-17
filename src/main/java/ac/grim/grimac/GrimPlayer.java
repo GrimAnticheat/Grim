@@ -32,7 +32,6 @@ public class GrimPlayer {
 
     public AtomicInteger taskNumber = new AtomicInteger(0);
 
-    // TODO: Stop the player from setting abilities such as flying (Can they do this?)
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
@@ -41,7 +40,6 @@ public class GrimPlayer {
 
     public Vector predictedVelocity = new Vector();
     public Vector actualMovement = new Vector();
-    public Vector bestPreviousMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
     public Vector blockSpeedMultiplier = new Vector(1, 1, 1);
 

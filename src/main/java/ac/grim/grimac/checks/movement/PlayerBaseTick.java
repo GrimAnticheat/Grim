@@ -21,7 +21,7 @@ public class PlayerBaseTick {
 
     public void doBaseTick() {
         // LocalPlayer:aiStep line 728
-        if (player.entityPlayer.isInWater() && player.wasSneaking && !player.isFlying) {
+        if (player.entityPlayer.isInWater() && player.isSneaking && !player.isFlying) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
@@ -31,7 +31,7 @@ public class PlayerBaseTick {
             player.clientVelocityJumping = player.clientVelocity.clone().add(new Vector(0, player.entityPlayer.abilities.flySpeed * 3, 0));
         }
 
-        if (player.isFlying && player.wasSneaking) {
+        if (player.isFlying && player.isSneaking) {
             player.baseTickAddVector(new Vector(0, player.entityPlayer.abilities.flySpeed * -3, 0));
         }
 

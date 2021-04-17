@@ -63,7 +63,7 @@ public class MovementVelocityCheck {
 
         if (inputVel.getY() != collide.getY()) {
             if (onBlock instanceof BlockSlime) {
-                if (grimPlayer.wasSneaking) {
+                if (grimPlayer.isSneaking) {
                     inputVel.setY(0);
                 } else {
                     if (inputVel.getY() < 0.0) {
