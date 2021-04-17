@@ -37,7 +37,7 @@ public class ChunkCache {
     }
 
     public static IBlockData getBlockDataAt(double x, double y, double z) {
-        return getBlockDataAt((int) x, (int) y, (int) z);
+        return getBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
     public static IBlockData getBlockDataAt(int x, int y, int z) {
