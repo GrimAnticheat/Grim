@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
 import net.minecraft.server.v1_16_R3.BlockScaffolding;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 public class PredictionEngineNormal extends PredictionEngine {
@@ -32,8 +31,8 @@ public class PredictionEngineNormal extends PredictionEngine {
 
         for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
             double d9 = vector.getY();
-            if (grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.LEVITATION)) {
-                d9 += (0.05 * (double) (grimPlayer.bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION).getAmplifier() + 1) - vector.getY()) * 0.2;
+            if (grimPlayer.levitationAmplifier > 0) {
+                d9 += (0.05 * (double) (grimPlayer.levitationAmplifier + 1) - vector.getY()) * 0.2;
             } else if (ChunkCache.getChunk((int) grimPlayer.x >> 4, (int) grimPlayer.z >> 4) != null) {
                 // Commenting out hasGravity check because playesr always have gravity
                 d9 -= d;

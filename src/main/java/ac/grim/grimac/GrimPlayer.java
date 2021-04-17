@@ -11,6 +11,7 @@ import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -63,9 +64,17 @@ public class GrimPlayer {
     public boolean isSprinting;
     public boolean isFlying;
     public boolean isSwimming;
+    public boolean isClimbing;
+    public boolean isFallFlying;
     public double fallDistance;
     public AxisAlignedBB boundingBox;
     public World playerWorld;
+
+    public double movementSpeed;
+    public float jumpAmplifier;
+    public float levitationAmplifier;
+    public float flySpeed;
+    public Entity playerVehicle;
 
     // We determine this
     public boolean isActuallyOnGround;

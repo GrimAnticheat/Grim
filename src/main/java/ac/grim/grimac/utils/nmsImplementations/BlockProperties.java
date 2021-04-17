@@ -7,7 +7,6 @@ import net.minecraft.server.v1_16_R3.BlockFenceGate;
 import net.minecraft.server.v1_16_R3.IBlockData;
 import net.minecraft.server.v1_16_R3.TagsBlock;
 import org.bukkit.Location;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.enchantments.Enchantment;
 
 import java.lang.reflect.Field;
@@ -44,11 +43,11 @@ public class BlockProperties {
         // Use base value because otherwise it isn't async safe.
         // Well, more async safe, still isn't 100% safe.
         if (grimPlayer.lastOnGround) {
-            return (float) (grimPlayer.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getBaseValue() * (0.21600002f / (f * f * f)) * (grimPlayer.isSprinting ? 1.3 : 1));
+            return (float) (grimPlayer.movementSpeed * (0.21600002f / (f * f * f)));
         }
 
         if (grimPlayer.entityPlayer.abilities.isFlying) {
-            return grimPlayer.bukkitPlayer.getFlySpeed() * 10 * (grimPlayer.isSprinting ? 0.1f : 0.05f);
+            return grimPlayer.flySpeed * 20 * (grimPlayer.isSprinting ? 0.1f : 0.05f);
 
         } else {
             if (grimPlayer.isSprinting) {

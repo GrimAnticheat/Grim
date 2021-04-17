@@ -65,8 +65,17 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.isSneaking = data.isSneaking;
             grimPlayer.isFlying = data.isFlying;
             grimPlayer.isSwimming = data.isSwimming;
+            grimPlayer.isClimbing = data.isClimbing;
+            grimPlayer.isFallFlying = data.isFallFlying;
             grimPlayer.playerWorld = data.playerWorld;
             grimPlayer.fallDistance = data.fallDistance;
+
+            grimPlayer.movementSpeed = data.movementSpeed;
+            grimPlayer.jumpAmplifier = data.jumpAmplifier;
+            grimPlayer.levitationAmplifier = data.levitationAmplifier;
+            grimPlayer.flySpeed = data.flySpeed;
+            grimPlayer.playerVehicle = data.playerVehicle;
+
             grimPlayer.movementPacketMilliseconds = System.currentTimeMillis();
 
             // TODO: Make gliding async safe

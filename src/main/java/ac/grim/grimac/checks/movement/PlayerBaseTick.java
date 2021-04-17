@@ -28,11 +28,11 @@ public class PlayerBaseTick {
         // Let shifting and holding space not be a false positive by allowing sneaking to override this
         // TODO: Do we have to apply this to other velocities
         if (player.isFlying) {
-            player.clientVelocityJumping = player.clientVelocity.clone().add(new Vector(0, player.entityPlayer.abilities.flySpeed * 3, 0));
+            player.clientVelocityJumping = player.clientVelocity.clone().add(new Vector(0, player.flySpeed * 3, 0));
         }
 
         if (player.isFlying && player.isSneaking) {
-            player.baseTickAddVector(new Vector(0, player.entityPlayer.abilities.flySpeed * -3, 0));
+            player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
         }
 
         updateInWaterStateAndDoFluidPushing();
