@@ -33,12 +33,19 @@ public class MovementVelocityCheck {
         // Piston movement exemption
         // What is a motion multiplier?
 
+
+        // In NMS, inputVel is the same as getClientVelocity()
+        // But we don't want to touch client velocity with predictions
+        // Piston movement will touch this directly, even when acting on inputVel
+        Vector clientVel = inputVel.clone();
+
         if (grimPlayer.stuckSpeedMultiplier.getX() < 0.99) {
             grimPlayer.baseTickSetX(0);
             grimPlayer.baseTickSetY(0);
             grimPlayer.baseTickSetZ(0);
         }
 
+        // This is when client velocity is no longer referenced by inputVel
         inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
         Vector collide = Collisions.collide(inputVel, grimPlayer);
 
@@ -54,33 +61,33 @@ public class MovementVelocityCheck {
         // Vanilla moves the player on the X axis first and then the Z axis
         Vector beforeCollisionMovement = inputVel.clone();
         if (inputVel.getX() != collide.getX()) {
-            inputVel = new Vector(0.0D, beforeCollisionMovement.getY(), beforeCollisionMovement.getZ());
+            clientVel = new Vector(0.0D, beforeCollisionMovement.getY(), beforeCollisionMovement.getZ());
         }
 
         if (inputVel.getZ() != collide.getZ()) {
-            inputVel = new Vector(beforeCollisionMovement.getX(), beforeCollisionMovement.getY(), 0.0D);
+            clientVel = new Vector(beforeCollisionMovement.getX(), beforeCollisionMovement.getY(), 0.0D);
         }
 
         if (inputVel.getY() != collide.getY()) {
             if (onBlock instanceof BlockSlime) {
                 if (grimPlayer.isSneaking) {
-                    inputVel.setY(0);
+                    clientVel.setY(0);
                 } else {
-                    if (inputVel.getY() < 0.0) {
-                        inputVel.setY(-inputVel.getY());
+                    if (clientVel.getY() < 0.0) {
+                        clientVel.setY(-clientVel.getY());
                     }
                 }
             } else if (onBlock instanceof BlockBed) {
                 if (collide.getY() < 0.0) {
-                    inputVel.setY(-inputVel.getY() * 0.6600000262260437);
+                    clientVel.setY(-clientVel.getY() * 0.6600000262260437);
                 }
             } else {
-                inputVel.setY(0);
+                clientVel.setY(0);
             }
         }
 
         if (grimPlayer.stuckSpeedMultiplier.getX() < 0.99) {
-            inputVel = new Vector();
+            clientVel = new Vector();
         }
 
         // The client's on ground while in slime is... strange
@@ -88,15 +95,15 @@ public class MovementVelocityCheck {
         // What the fuck.  No matter what, let the client decide this one!
         if (onBlock instanceof BlockSlime) {
             if (grimPlayer.onGround && !grimPlayer.wasSneaking) {
-                double absVelocityY = Math.abs(inputVel.getY());
+                double absVelocityY = Math.abs(clientVel.getY());
                 if (absVelocityY < 0.1) {
                     double d1 = 0.4D + absVelocityY * 0.2D;
-                    inputVel.multiply(new Vector(d1, 1, d1));
+                    clientVel.multiply(new Vector(d1, 1, d1));
                 }
             }
         }
 
-        inputVel.multiply(grimPlayer.blockSpeedMultiplier);
+        clientVel.multiply(grimPlayer.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
         grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
@@ -108,7 +115,7 @@ public class MovementVelocityCheck {
             grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
         }
 
-        return inputVel;
+        return clientVel;
     }
 
     public void livingEntityAIStep() {
