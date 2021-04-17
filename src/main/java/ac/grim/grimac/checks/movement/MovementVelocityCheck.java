@@ -63,7 +63,7 @@ public class MovementVelocityCheck {
 
         if (inputVel.getY() != collide.getY()) {
             if (onBlock instanceof BlockSlime) {
-                if (grimPlayer.isSneaking) {
+                if (grimPlayer.wasSneaking) {
                     inputVel.setY(0);
                 } else {
                     if (inputVel.getY() < 0.0) {
@@ -87,7 +87,7 @@ public class MovementVelocityCheck {
         // It jumps between on ground and not on ground every god damn tick
         // What the fuck.  No matter what, let the client decide this one!
         if (onBlock instanceof BlockSlime) {
-            if (grimPlayer.onGround && !grimPlayer.isSneaking) {
+            if (grimPlayer.onGround && !grimPlayer.wasSneaking) {
                 double absVelocityY = Math.abs(inputVel.getY());
                 if (absVelocityY < 0.1) {
                     double d1 = 0.4D + absVelocityY * 0.2D;

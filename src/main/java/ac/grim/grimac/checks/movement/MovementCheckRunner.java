@@ -61,6 +61,7 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.yRot = data.yRot;
             grimPlayer.onGround = data.onGround;
             grimPlayer.isSprinting = data.isSprinting;
+            grimPlayer.wasSneaking = grimPlayer.isSneaking;
             grimPlayer.isSneaking = data.isSneaking;
             grimPlayer.isFlying = data.isFlying;
             grimPlayer.isSwimming = data.isSwimming;
@@ -69,7 +70,7 @@ public class MovementCheckRunner implements Listener {
 
             // TODO: Make gliding async safe
             // TODO: Actually get client version
-            grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+            grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
 
 
             /*for (MovementCheck movementCheck : movementCheckListeners) {
@@ -116,7 +117,7 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastXRot = grimPlayer.xRot;
         grimPlayer.lastYRot = grimPlayer.yRot;
         grimPlayer.lastOnGround = grimPlayer.onGround;
-        grimPlayer.lastSneaking = grimPlayer.isSneaking;
+        grimPlayer.lastSneaking = grimPlayer.wasSneaking;
         grimPlayer.lastClimbing = grimPlayer.entityPlayer.isClimbing();
         grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
         grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;

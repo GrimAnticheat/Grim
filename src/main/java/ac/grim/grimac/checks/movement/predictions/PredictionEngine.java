@@ -29,7 +29,7 @@ public abstract class PredictionEngine {
         float bestPossibleX;
         float bestPossibleZ;
 
-        if (grimPlayer.isSneaking && !grimPlayer.isSwimming && !grimPlayer.isFlying) {
+        if (grimPlayer.wasSneaking && !grimPlayer.isSwimming && !grimPlayer.isFlying) {
             bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
             bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
         } else {
