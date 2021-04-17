@@ -77,7 +77,7 @@ public class MovementVelocityCheck {
                     }
                 }
             } else if (onBlock instanceof BlockBed) {
-                if (collide.getY() < 0.0) {
+                if (clientVel.getY() < 0.0) {
                     clientVel.setY(-clientVel.getY() * 0.6600000262260437);
                 }
             } else {
