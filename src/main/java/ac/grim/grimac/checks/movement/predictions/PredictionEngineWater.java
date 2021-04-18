@@ -39,7 +39,7 @@ public class PredictionEngineWater extends PredictionEngine {
 
     @Override
     public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
-        Set<Vector> baseVelocities = grimPlayer.getPossibleVelocities();
+        Set<Vector> baseVelocities = super.fetchPossibleInputs(grimPlayer);
         Set<Vector> swimmingVelocities = new HashSet<>();
 
         if (grimPlayer.isSwimming && grimPlayer.bukkitPlayer.getVehicle() == null) {
