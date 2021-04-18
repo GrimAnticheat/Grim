@@ -127,7 +127,7 @@ public abstract class PredictionEngine {
                 } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
                     existingVelocities.add(vector.clone().add(new Vector(0, 0.4, 0)));
                 } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-                    existingVelocities.add(JumpPower.jumpFromGround(grimPlayer));
+                    existingVelocities.add(JumpPower.jumpFromGround(grimPlayer, vector.clone()));
                     //this.noJumpDelay = 10;
                 }
             }
@@ -137,7 +137,7 @@ public abstract class PredictionEngine {
     public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
         Set<Vector> velocities = grimPlayer.getPossibleVelocities();
 
-        addJump(grimPlayer, grimPlayer.getPossibleVelocities());
+        addJump(grimPlayer, velocities);
 
         return velocities;
     }
