@@ -133,8 +133,6 @@ public class MovementVelocityCheck {
 
     // Player line 1208
     public void playerEntityTravel() {
-        grimPlayer.clientVelocitySwimHop = null;
-
         if (grimPlayer.isFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
             double oldY = grimPlayer.clientVelocity.getY();
             //double oldYJumping = grimPlayer.clientVelocityJumping.getY();

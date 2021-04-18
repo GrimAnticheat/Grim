@@ -147,11 +147,12 @@ public abstract class PredictionEngine {
     }
 
     public void endOfTick(GrimPlayer grimPlayer, double d, float friction) {
-
+        if (canSwimHop(grimPlayer, grimPlayer.clientVelocity)) {
+            grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY(0.3);
+        }
     }
 
-    public Vector handleSwimJump(GrimPlayer grimPlayer, Vector vector) {
-
+    public boolean canSwimHop(GrimPlayer grimPlayer, Vector vector) {
         boolean bl = Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
         boolean bl2 = !Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.grow(0.1, 0.1, 0.1));
         boolean bl3 = CachedContainsLiquid.containsLiquid(grimPlayer.boundingBox.grow(0.1, 0.1, 0.1));
@@ -166,10 +167,6 @@ public abstract class PredictionEngine {
         // Requirement 2 - The player must have their bounding box plus X movement, Y movement + 0.6, Z movement minus 0.1 blocks have no collision
         // Requirement 3 - The player must have something to collide with within 0.1 blocks
 
-        if (bl && bl2 && bl3) {
-            return vector.clone().setY(0.3);
-        }
-
-        return vector;
+        return bl && bl2 && bl3;
     }
 }

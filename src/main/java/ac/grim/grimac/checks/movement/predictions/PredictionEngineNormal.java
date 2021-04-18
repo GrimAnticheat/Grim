@@ -52,6 +52,7 @@ public class PredictionEngineNormal extends PredictionEngine {
     @Override
     public void endOfTick(GrimPlayer grimPlayer, double d, float friction) {
         grimPlayer.clientVelocityOnLadder = null;
+
         if (grimPlayer.isClimbing) {
             grimPlayer.clientVelocityOnLadder = grimPlayer.clientVelocity.clone().setY(0.2);
         }
@@ -59,6 +60,8 @@ public class PredictionEngineNormal extends PredictionEngine {
         for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
             vectorEndOfTick(grimPlayer, vector);
         }
+
+        super.endOfTick(grimPlayer, d, friction);
     }
 
     public void vectorEndOfTick(GrimPlayer grimPlayer, Vector vector) {

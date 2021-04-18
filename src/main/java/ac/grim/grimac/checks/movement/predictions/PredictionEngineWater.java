@@ -33,7 +33,6 @@ public class PredictionEngineWater extends PredictionEngine {
 
         // TODO: swimJump should create another branch
 
-        //handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
         //super.addJumpIfNeeded(grimPlayer);
     }
 
@@ -71,5 +70,7 @@ public class PredictionEngineWater extends PredictionEngine {
             vector.setY(fluidVector.getY());
             vector.setZ(fluidVector.getZ());
         }
+
+        super.endOfTick(grimPlayer, playerGravity, friction);
     }
 }
