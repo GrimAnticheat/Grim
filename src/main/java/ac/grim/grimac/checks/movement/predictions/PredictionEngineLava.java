@@ -13,10 +13,14 @@ public class PredictionEngineLava extends PredictionEngine {
 
 
     @Override
-    public void addJump(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
+    public void addJumpsToPossibilities(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
 
         for (Vector vector : new HashSet<>(existingVelocities)) {
+            // I don't believe you can ascend and jump regularly
             existingVelocities.add(vector.add(new Vector(0, 0.04, 0)));
+            Vector withJump = vector.clone();
+            super.doJump(grimPlayer, withJump);
+            existingVelocities.add(withJump);
         }
 
         //handleSwimJump(grimPlayer, grimPlayer.clientVelocity);

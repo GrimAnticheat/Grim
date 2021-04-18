@@ -107,7 +107,7 @@ public abstract class PredictionEngine {
         return -1;
     }
 
-    public void addJump(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
+    public void addJumpsToPossibilities(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
         // TODO: Make sure the player is actually on the ground
         // TODO: Add check to stop players from jumping more than once every 10 ticks
 
@@ -117,27 +117,33 @@ public abstract class PredictionEngine {
 
         // Clone to stop ConcurrentModificationException
         for (Vector vector : new HashSet<>(existingVelocities)) {
-            double d7 = grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0);
-            boolean bl = grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0) > 0 && d7 > 0.0;
-            double d8 = 0.4D;
+            Vector clonedVector = vector.clone();
+            doJump(grimPlayer, clonedVector);
+            existingVelocities.add(clonedVector);
+        }
+    }
 
-            if (!grimPlayer.isFlying) {
-                if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
-                    existingVelocities.add(vector.clone().add(new Vector(0, 0.4, 0)));
-                } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
-                    existingVelocities.add(vector.clone().add(new Vector(0, 0.4, 0)));
-                } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-                    existingVelocities.add(JumpPower.jumpFromGround(grimPlayer, vector.clone()));
-                    //this.noJumpDelay = 10;
-                }
+    public void doJump(GrimPlayer grimPlayer, Vector vector) {
+        double d7 = grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0);
+        boolean bl = grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0) > 0 && d7 > 0.0;
+        double d8 = 0.4D;
+
+        if (!grimPlayer.isFlying) {
+            if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+                vector.add(new Vector(0, 0.4, 0));
+            } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+                vector.add(new Vector(0, 0.4, 0));
+            } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+                JumpPower.jumpFromGround(grimPlayer, vector);
             }
         }
+
     }
 
     public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
         Set<Vector> velocities = grimPlayer.getPossibleVelocities();
 
-        addJump(grimPlayer, velocities);
+        addJumpsToPossibilities(grimPlayer, velocities);
 
         return velocities;
     }

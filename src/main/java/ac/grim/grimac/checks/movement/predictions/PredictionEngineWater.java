@@ -26,7 +26,7 @@ public class PredictionEngineWater extends PredictionEngine {
     }
 
     @Override
-    public void addJump(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
+    public void addJumpsToPossibilities(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
         for (Vector vector : new HashSet<>(existingVelocities)) {
             existingVelocities.add(vector.clone().add(new Vector(0, 0.04, 0)));
         }
