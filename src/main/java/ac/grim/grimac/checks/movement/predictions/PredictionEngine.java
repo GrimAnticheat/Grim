@@ -11,7 +11,9 @@ import net.minecraft.server.v1_16_R3.TagsFluid;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class PredictionEngine {
     // These math equations are based off of the vanilla equations, made impossible to divide by 0
@@ -60,7 +62,6 @@ public abstract class PredictionEngine {
     public void guessBestMovement(float f, GrimPlayer grimPlayer) {
         List<Vector> possibleVelocities = new ArrayList<>();
         double bestInput = Double.MAX_VALUE;
-        addJumpIfNeeded(grimPlayer);
 
         for (Vector possibleLastTickOutput : fetchPossibleInputs(grimPlayer)) {
             for (int x = -1; x <= 1; x++) {
@@ -106,30 +107,39 @@ public abstract class PredictionEngine {
         return -1;
     }
 
-    public void addJumpIfNeeded(GrimPlayer grimPlayer) {
+    public void addJump(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
         // TODO: Make sure the player is actually on the ground
         // TODO: Add check to stop players from jumping more than once every 10 ticks
 
-        handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
+        //for (Vector vector : existingVelocities) {
+        //    existingVelocities.add(handleSwimJump(grimPlayer, vector));
+        //}
 
-        double d7 = grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0);
-        boolean bl = grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0) > 0 && d7 > 0.0;
-        double d8 = 0.4D;
+        // Clone to stop ConcurrentModificationException
+        for (Vector vector : new HashSet<>(existingVelocities)) {
+            double d7 = grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0);
+            boolean bl = grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0) > 0 && d7 > 0.0;
+            double d8 = 0.4D;
 
-        if (!grimPlayer.isFlying) {
-            if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
-                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-            } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
-                grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.4, 0));
-            } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-                grimPlayer.clientVelocityJumping = JumpPower.jumpFromGround(grimPlayer);
-                //this.noJumpDelay = 10;
+            if (!grimPlayer.isFlying) {
+                if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+                    existingVelocities.add(vector.clone().add(new Vector(0, 0.4, 0)));
+                } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+                    existingVelocities.add(vector.clone().add(new Vector(0, 0.4, 0)));
+                } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+                    existingVelocities.add(JumpPower.jumpFromGround(grimPlayer));
+                    //this.noJumpDelay = 10;
+                }
             }
         }
     }
 
-    public List<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
-        return grimPlayer.getPossibleVelocities();
+    public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
+        Set<Vector> velocities = grimPlayer.getPossibleVelocities();
+
+        addJump(grimPlayer, grimPlayer.getPossibleVelocities());
+
+        return velocities;
     }
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer grimPlayer) {
@@ -140,7 +150,7 @@ public abstract class PredictionEngine {
 
     }
 
-    public void handleSwimJump(GrimPlayer grimPlayer, Vector vector) {
+    public Vector handleSwimJump(GrimPlayer grimPlayer, Vector vector) {
 
         boolean bl = Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
         boolean bl2 = !Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.grow(0.1, 0.1, 0.1));
@@ -157,7 +167,9 @@ public abstract class PredictionEngine {
         // Requirement 3 - The player must have something to collide with within 0.1 blocks
 
         if (bl && bl2 && bl3) {
-            grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY(0.3);
+            return vector.clone().setY(0.3);
         }
+
+        return vector;
     }
 }

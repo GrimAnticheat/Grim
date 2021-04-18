@@ -137,21 +137,20 @@ public class MovementVelocityCheck {
 
         if (grimPlayer.isFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
             double oldY = grimPlayer.clientVelocity.getY();
-            double oldYJumping = grimPlayer.clientVelocityJumping.getY();
+            //double oldYJumping = grimPlayer.clientVelocityJumping.getY();
             livingEntityTravel();
 
-            if (Math.abs(oldY - grimPlayer.actualMovement.getY()) < (oldYJumping - grimPlayer.actualMovement.getY())) {
+            if (Math.abs(oldY - grimPlayer.actualMovement.getY()) < (/*oldYJumping*/oldY - grimPlayer.actualMovement.getY())) {
                 grimPlayer.baseTickSetY(oldY * 0.6);
 
             } else {
-                grimPlayer.baseTickSetY(oldYJumping * 0.6);
+                grimPlayer.baseTickSetY(oldY/*oldYJumping*/ * 0.6);
             }
 
         } else {
             livingEntityTravel();
         }
 
-        grimPlayer.clientVelocityJumping = null;
         grimPlayer.clientVelocityFireworkBoost = null;
     }
 

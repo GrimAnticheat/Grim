@@ -15,10 +15,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -36,7 +33,6 @@ public class GrimPlayer {
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
-    public Vector clientVelocityJumping = new Vector();
     public Vector clientVelocityFireworkBoost = new Vector();
 
     public Vector predictedVelocity = new Vector();
@@ -136,20 +132,16 @@ public class GrimPlayer {
         lastZ = loginLocation.getZ();
     }
 
-    public List<Vector> getPossibleVelocities() {
-        List<Vector> possibleMovements = getPossibleVelocitiesMinusKnockback();
+    public Set<Vector> getPossibleVelocities() {
+        Set<Vector> possibleMovements = getPossibleVelocitiesMinusKnockback();
         possibleMovements.addAll(possibleKnockback);
 
         return possibleMovements;
     }
 
-    public List<Vector> getPossibleVelocitiesMinusKnockback() {
-        List<Vector> possibleMovements = new ArrayList<>();
+    public Set<Vector> getPossibleVelocitiesMinusKnockback() {
+        Set<Vector> possibleMovements = new HashSet<>();
         possibleMovements.add(clientVelocity);
-
-        if (clientVelocityJumping != null) {
-            possibleMovements.add(clientVelocityJumping);
-        }
 
         if (clientVelocityOnLadder != null) {
             possibleMovements.add(clientVelocityOnLadder);
@@ -178,10 +170,6 @@ public class GrimPlayer {
     public void baseTickAddVector(Vector vector) {
         clientVelocity.add(vector);
 
-        if (clientVelocityJumping != null) {
-            clientVelocityJumping.add(vector);
-        }
-
         if (clientVelocityOnLadder != null)
             clientVelocityOnLadder.add(vector);
 
@@ -194,10 +182,6 @@ public class GrimPlayer {
 
     public void baseTickSetX(double x) {
         clientVelocity.setX(x);
-
-        if (clientVelocityJumping != null) {
-            clientVelocityJumping.setX(x);
-        }
 
         if (clientVelocityOnLadder != null)
             clientVelocityOnLadder.setX(x);
@@ -212,10 +196,6 @@ public class GrimPlayer {
     public void baseTickSetY(double y) {
         clientVelocity.setY(y);
 
-        if (clientVelocityJumping != null) {
-            clientVelocityJumping.setY(y);
-        }
-
         if (clientVelocityOnLadder != null)
             clientVelocityOnLadder.setY(y);
 
@@ -229,10 +209,6 @@ public class GrimPlayer {
     public void baseTickSetZ(double z) {
         clientVelocity.setZ(z);
 
-        if (clientVelocityJumping != null) {
-            clientVelocityJumping.setZ(z);
-        }
-
         if (clientVelocityOnLadder != null)
             clientVelocityOnLadder.setZ(z);
 
@@ -245,10 +221,6 @@ public class GrimPlayer {
 
     public void baseTickMultiplyY(double y) {
         clientVelocity.multiply(new Vector(1, y, 1));
-
-        if (clientVelocityJumping != null) {
-            clientVelocityJumping.multiply(new Vector(1, y, 1));
-        }
 
         if (clientVelocityOnLadder != null)
             clientVelocityOnLadder.multiply(new Vector(1, y, 1));

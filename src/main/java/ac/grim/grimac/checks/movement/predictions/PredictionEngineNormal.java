@@ -6,13 +6,21 @@ import ac.grim.grimac.utils.math.Mth;
 import net.minecraft.server.v1_16_R3.BlockScaffolding;
 import org.bukkit.util.Vector;
 
-import java.util.List;
+import java.util.Set;
 
 public class PredictionEngineNormal extends PredictionEngine {
 
+     /*       if (player.isFlying) {
+        player.clientVelocityJumping = player.clientVelocity.clone().add(new Vector(0, player.flySpeed * 3, 0));
+
+        if (player.isFlying && player.isSneaking) {
+            player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
+        }
+    }*/
+
     @Override
-    public List<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
-        List<Vector> regularInputs = super.fetchPossibleInputs(grimPlayer);
+    public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
+        Set<Vector> regularInputs = super.fetchPossibleInputs(grimPlayer);
 
         // This is WRONG! Vanilla has this system at the end
         // However, due to 1.9 reduced movement precision, we aren't informed that the player could have this velocity

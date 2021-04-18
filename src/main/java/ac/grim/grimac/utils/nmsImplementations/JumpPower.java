@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.nmsImplementations;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 public class JumpPower {
@@ -13,8 +12,8 @@ public class JumpPower {
         Vector clonedClientVelocity = grimPlayer.clientVelocity.clone();
         float f = getJumpPower(grimPlayer);
 
-        if (grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.JUMP)) {
-            f += 0.1f * (float) (grimPlayer.bukkitPlayer.getPotionEffect(PotionEffectType.JUMP).getAmplifier() + 1);
+        if (grimPlayer.jumpAmplifier != 0) {
+            f += 0.1f * (grimPlayer.jumpAmplifier + 1);
         }
 
         clonedClientVelocity.setY(f);
