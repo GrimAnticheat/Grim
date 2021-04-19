@@ -6,8 +6,8 @@ import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class PredictionEngineWater extends PredictionEngine {
     boolean isFalling;
@@ -26,19 +26,22 @@ public class PredictionEngineWater extends PredictionEngine {
     }
 
     @Override
-    public void addJumpIfNeeded(GrimPlayer grimPlayer) {
-        grimPlayer.clientVelocityJumping = grimPlayer.clientVelocity.clone().add(new Vector(0, 0.04, 0));
-        handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
-        //super.addJumpIfNeeded(grimPlayer);
+    public void addJumpsToPossibilities(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
+        for (Vector vector : new HashSet<>(existingVelocities)) {
+            existingVelocities.add(vector.clone().add(new Vector(0, 0.04, 0)));
+            Vector withJump = vector.clone();
+            super.doJump(grimPlayer, withJump);
+            existingVelocities.add(withJump);
+        }
     }
 
     @Override
-    public List<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
-        List<Vector> velocities = grimPlayer.getPossibleVelocities();
-        List<Vector> swimmingVelocities = new ArrayList<>();
+    public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
+        Set<Vector> baseVelocities = super.fetchPossibleInputs(grimPlayer);
+        Set<Vector> swimmingVelocities = new HashSet<>();
 
         if (grimPlayer.isSwimming && grimPlayer.bukkitPlayer.getVehicle() == null) {
-            for (Vector vector : velocities) {
+            for (Vector vector : baseVelocities) {
                 double d = MovementVectorsCalc.getLookAngle(grimPlayer).y;
                 double d5 = d < -0.2 ? 0.085 : 0.06;
 
@@ -54,7 +57,7 @@ public class PredictionEngineWater extends PredictionEngine {
             return swimmingVelocities;
         }
 
-        return velocities;
+        return baseVelocities;
     }
 
     @Override
@@ -66,5 +69,7 @@ public class PredictionEngineWater extends PredictionEngine {
             vector.setY(fluidVector.getY());
             vector.setZ(fluidVector.getZ());
         }
+
+        super.endOfTick(grimPlayer, playerGravity, friction);
     }
 }
