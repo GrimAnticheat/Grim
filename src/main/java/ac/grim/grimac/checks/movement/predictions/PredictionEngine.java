@@ -16,16 +16,6 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class PredictionEngine {
-    // These math equations are based off of the vanilla equations, made impossible to divide by 0
-    public static Vector getBestTheoreticalPlayerInput(Vector wantedMovement, float f, float f2) {
-        float f3 = Mth.sin(f2 * 0.017453292f);
-        float f4 = Mth.cos(f2 * 0.017453292f);
-
-        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
-        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
-
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
-    }
 
     public static Vector getBestPossiblePlayerInput(GrimPlayer grimPlayer, Vector theoreticalInput) {
         float bestPossibleX;
@@ -60,6 +50,8 @@ public abstract class PredictionEngine {
     }
 
     public void guessBestMovement(float f, GrimPlayer grimPlayer) {
+        grimPlayer.speed = f;
+
         List<Vector> possibleVelocities = new ArrayList<>();
         double bestInput = Double.MAX_VALUE;
 
@@ -73,15 +65,6 @@ public abstract class PredictionEngine {
 
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a, b, grimPlayer));
-
-        double lowest = 1;
-        Vector low = null;
-        for (Vector vector : possibleVelocities) {
-            if (vector.lengthSquared() < lowest) {
-                lowest = vector.lengthSquared();
-                low = vector;
-            }
-        }
 
         // Other checks will catch ground spoofing
         grimPlayer.couldSkipTick = false;
@@ -102,9 +85,6 @@ public abstract class PredictionEngine {
                 bestInput = resultAccuracy;
                 bestClientVelOutput = outputVel.clone();
                 bestClientPredictionOutput = grimPlayer.predictedVelocity.clone();
-
-                // This is wrong, but it is here only for debug
-                grimPlayer.theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().subtract(grimPlayer.clientVelocity).divide(grimPlayer.stuckSpeedMultiplier), f, grimPlayer.xRot);
 
                 // Optimization - Close enough, other inputs won't get closer
                 if (resultAccuracy < 0.01) break;

@@ -20,6 +20,10 @@ public class PlayerBaseTick {
     }
 
     public void doBaseTick() {
+        // Keep track of basetick stuff
+        player.baseTickSet = new Vector();
+        player.baseTickAddition = new Vector(0, 0, 0);
+
         // LocalPlayer:aiStep line 728
         if (player.entityPlayer.isInWater() && player.isSneaking && !player.isFlying) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));

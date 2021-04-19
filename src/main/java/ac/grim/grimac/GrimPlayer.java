@@ -39,9 +39,11 @@ public class GrimPlayer {
     public Vector actualMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
     public Vector blockSpeedMultiplier = new Vector(1, 1, 1);
+    public Vector lastStuckSpeedMultiplier = new Vector(1, 1, 1);
 
     public double gravity;
     public float friction;
+    public float speed;
 
     // Set from packet
     public double x;
@@ -114,6 +116,11 @@ public class GrimPlayer {
     public long movementPacketMilliseconds;
     public long lastMovementPacketMilliseconds;
 
+    // Keep track of basetick stuff
+    public Vector baseTickSet;
+    public Vector baseTickAddition;
+    public short lastTransactionReceived;
+    public short movementTransaction;
     // Determining player ping
     ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
 
@@ -161,6 +168,7 @@ public class GrimPlayer {
 
     public void addTransactionResponse(short transactionID) {
         long millisecondResponse = System.currentTimeMillis() - transactionsSent.remove(transactionID);
+        lastTransactionReceived = transactionID;
         //Bukkit.broadcastMessage("Time to response " + millisecondResponse);
     }
 
@@ -169,6 +177,7 @@ public class GrimPlayer {
     }
 
     public void baseTickAddVector(Vector vector) {
+        baseTickAddition.add(vector);
         clientVelocity.add(vector);
 
         if (clientVelocityOnLadder != null)
@@ -182,6 +191,7 @@ public class GrimPlayer {
     }
 
     public void baseTickSetX(double x) {
+        baseTickSet.setX(x);
         clientVelocity.setX(x);
 
         if (clientVelocityOnLadder != null)
@@ -195,6 +205,7 @@ public class GrimPlayer {
     }
 
     public void baseTickSetY(double y) {
+        baseTickSet.setY(y);
         clientVelocity.setY(y);
 
         if (clientVelocityOnLadder != null)
@@ -208,6 +219,7 @@ public class GrimPlayer {
     }
 
     public void baseTickSetZ(double z) {
+        baseTickSet.setZ(z);
         clientVelocity.setZ(z);
 
         if (clientVelocityOnLadder != null)
@@ -219,20 +231,6 @@ public class GrimPlayer {
         if (clientVelocityFireworkBoost != null)
             clientVelocityFireworkBoost.setX(x);
     }
-
-    public void baseTickMultiplyY(double y) {
-        clientVelocity.multiply(new Vector(1, y, 1));
-
-        if (clientVelocityOnLadder != null)
-            clientVelocityOnLadder.multiply(new Vector(1, y, 1));
-
-        if (clientVelocitySwimHop != null)
-            clientVelocitySwimHop.multiply(new Vector(1, y, 1));
-
-        if (clientVelocityFireworkBoost != null)
-            clientVelocityFireworkBoost.multiply(new Vector(1, y, 1));
-    }
-
 
     public boolean isEyeInFluid(Tag tag) {
         return this.fluidOnEyes == tag;

@@ -99,6 +99,7 @@ public class MovementVelocityCheck {
         clientVel.multiply(grimPlayer.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
+        grimPlayer.lastStuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
         grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
 
         Collisions.handleInsideBlocks(grimPlayer);

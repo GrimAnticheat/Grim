@@ -2,8 +2,11 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -98,6 +101,8 @@ public class MovementCheckRunner implements Listener {
             // baseTick occurs before this
             new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
 
+            handleSkippedTicks(grimPlayer);
+
             ChatColor color;
             double diff = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
 
@@ -114,6 +119,8 @@ public class MovementCheckRunner implements Listener {
 
             GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
             GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
+
+
             //Bukkit.broadcastMessage("O: " + color + (grimPlayer.predictedVelocity.getX() - +grimPlayer.actualMovement.getX()) + " " + (grimPlayer.predictedVelocity.getY() - grimPlayer.actualMovement.getY()) + " " + (grimPlayer.predictedVelocity.getZ() - grimPlayer.actualMovement.getZ()));
 
         } catch (Exception e) {
@@ -152,6 +159,123 @@ public class MovementCheckRunner implements Listener {
             PredictionData finalNextData = nextData;
             executor.submit(() -> check(finalNextData));
         }
+    }
+
+    // Transaction is from server -> client -> server
+    //  Despite the addition of server -> client latency, there is a guarantee:
+    //  The needed movement packets should not surpass the ID of latest transaction packet sent
+    //
+    // For speed checks under 0.03:
+    // - We keep track of the transaction ID we just got
+    // - We add the number of ticks required to get that movement.
+    // This is calculated by looping water/lava tick additions and multipliers found in the player base tick for each tick.
+    // We then the wanted movement vector normalized to 1 as the inputs.  If we haven't gotten to the actual movement, keep on ticking.
+    //
+    // When the player has stopped moving, despite not knowing how long the player has stopped moving, we still have guarantees:
+    // - Any amount of movement still increments the transaction ID by one.
+    // To stop lag compensation from being too lenient, don’t let movement id fall behind the last transaction ID received
+    // - If a delta movement of 0, 0, 0 has been sent, increment movement id by 20
+    //
+    // What this accomplishes is a perfect lag compensation system:
+    // - We will never give more lenience than we have to
+    // - We still allow bursts of packets
+    //
+    // This assumes the following:
+    // - Collision will never allow for faster movement, which they shouldn't
+    // - Base tick additions and multipliers don't change between client ticks between the two movements.
+    //
+    // The latter assumption isn't true but with 0.03 movement it isn't enough to break the checks.
+    //
+    // Here is an example:
+    // Let's say the player moved 0.03 blocks in lava
+    // Our prediction is that they moved 0.005 blocks in lava
+    // A naive programmer may simply divide 0.03 / 0.005 but that doesn't work
+    //
+    //
+    // tl;dr: I made a perfectly lag compensated speed check
+    public static void handleSkippedTicks(GrimPlayer grimPlayer) {
+        Vector wantedMovement = grimPlayer.actualMovement.clone();
+        Vector totalMovement = grimPlayer.predictedVelocity.clone();
+        int x = 0;
+
+        //Bukkit.broadcastMessage("Wanted movement " + wantedMovement);
+        //Bukkit.broadcastMessage("Total movement " + totalMovement);
+
+        // TODO: Double check that the player's velocity would have dipped below 0.03
+        if (grimPlayer.couldSkipTick && wantedMovement.lengthSquared() > totalMovement.lengthSquared() * 1.25) {
+            for (x = 0; x < 20; x++) {
+                if (wantedMovement.lengthSquared() < totalMovement.lengthSquared()) {
+                    break;
+                }
+
+                // baseTick occurs before this
+                new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
+
+                // Simulate the base tick efficiently by keeping track of the last movement
+                //grimPlayer.clientVelocity.add(grimPlayer.baseTickAddition);
+                // Allow speed to be multiplied by 0 in case player is in cobwebs/sweet berry bushes
+                //grimPlayer.clientVelocity.multiply(grimPlayer.baseTickSet);
+
+                // TODO: isSneaking should take a lag compensated value in case sneaking -> not sneaking -> sneaking
+                Vector bestMovement = getBestContinuousInput(grimPlayer.isSneaking, getBestTheoreticalPlayerInput(wantedMovement.clone().divide(grimPlayer.stuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot));
+
+                // possibleVelocities.add(handleOnClimbable(possibleLastTickOutput.clone().add(
+                // getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer));
+                Vector theoreticalInput = PredictionEngine.getMovementResultFromInput(bestMovement.multiply(grimPlayer.lastStuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot);
+
+                // handleOnClimbable removed as it's clamping will essentially be worthless
+                //Vector inputResult = PredictionEngine.getMovementResultFromInput(theoreticalInput, grimPlayer.speed, grimPlayer.xRot);
+
+                //Bukkit.broadcastMessage("Result is " + theoreticalInput);
+                //Bukkit.broadcastMessage("Input is " + bestMovement);
+
+                // 1.001 is just a buffer, it is there since floats aren't precise and since length is compared without an epsilon
+                totalMovement.add(theoreticalInput.multiply(1.001));
+            }
+        }
+
+        Bukkit.broadcastMessage("Shortcut " + (int) (grimPlayer.actualMovement.length() / grimPlayer.predictedVelocity.length()));
+        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + grimPlayer.movementTransaction + " recent " + grimPlayer.lastTransactionReceived);
+        grimPlayer.movementTransaction += x;
+
+        if (grimPlayer.movementTransaction > grimPlayer.lastTransactionReceived) {
+            Bukkit.broadcastMessage("Player has speed!");
+        }
+
+        grimPlayer.movementTransaction = grimPlayer.lastTransactionReceived;
+
+        //Bukkit.broadcastMessage("Wanted movement " + wantedMovement);
+        //Bukkit.broadcastMessage("Total movement " + totalMovement);
+    }
+
+    public static Vector getBestContinuousInput(boolean isSneaking, Vector theoreticalInput) {
+        double bestPossibleX;
+        double bestPossibleZ;
+
+        if (isSneaking) {
+            bestPossibleX = Math.min(Math.max(-0.294, theoreticalInput.getX()), 0.294);
+            bestPossibleZ = Math.min(Math.max(-0.294, theoreticalInput.getZ()), 0.294);
+        } else {
+            bestPossibleX = Math.min(Math.max(-0.98, theoreticalInput.getX()), 0.98);
+            bestPossibleZ = Math.min(Math.max(-0.98, theoreticalInput.getZ()), 0.98);
+        }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+
+        if (inputVector.lengthSquared() > 1) inputVector.normalize();
+
+        return inputVector;
+    }
+
+    // These math equations are based off of the vanilla equations, made impossible to divide by 0
+    public static Vector getBestTheoreticalPlayerInput(Vector wantedMovement, float f, float f2) {
+        float f3 = Mth.sin(f2 * 0.017453292f);
+        float f4 = Mth.cos(f2 * 0.017453292f);
+
+        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
+        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
+
+        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
     @EventHandler
