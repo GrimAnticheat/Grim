@@ -97,8 +97,14 @@ public abstract class PredictionEngine {
     }
 
     public int compareDistanceToActualMovement(Vector a, Vector b, GrimPlayer grimPlayer) {
-        double distance1 = a.distanceSquared(grimPlayer.actualMovement);
-        double distance2 = b.distanceSquared(grimPlayer.actualMovement);
+        double x = grimPlayer.actualMovement.getX();
+        double y = grimPlayer.actualMovement.getY();
+        double z = grimPlayer.actualMovement.getZ();
+
+        // Weight y distance heavily to avoid jumping when we shouldn't be jumping, as it affects later ticks.
+        double distance1 = Math.pow(a.getX() - x, 2) + Math.pow(a.getY() - y, 2) * 5 + Math.pow(a.getZ() - z, 2);
+        double distance2 = Math.pow(b.getX() - x, 2) + Math.pow(b.getY() - y, 2) * 5 + Math.pow(b.getZ() - z, 2);
+
         if (distance1 > distance2) {
             return 1;
         } else if (distance1 == distance2) {
