@@ -29,11 +29,10 @@ public class PredictionEngineWater extends PredictionEngine {
     public void addJumpsToPossibilities(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
         for (Vector vector : new HashSet<>(existingVelocities)) {
             existingVelocities.add(vector.clone().add(new Vector(0, 0.04, 0)));
+            Vector withJump = vector.clone();
+            super.doJump(grimPlayer, withJump);
+            existingVelocities.add(withJump);
         }
-
-        // TODO: swimJump should create another branch
-
-        //super.addJumpIfNeeded(grimPlayer);
     }
 
     @Override

@@ -25,6 +25,10 @@ public class PlayerBaseTick {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
+        if (player.isFlying && player.isSneaking) {
+            player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
+        }
+
         updateInWaterStateAndDoFluidPushing();
         updateFluidOnEyes();
 

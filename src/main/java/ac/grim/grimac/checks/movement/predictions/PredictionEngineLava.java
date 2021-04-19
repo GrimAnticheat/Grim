@@ -17,7 +17,7 @@ public class PredictionEngineLava extends PredictionEngine {
 
         for (Vector vector : new HashSet<>(existingVelocities)) {
             // I don't believe you can ascend and jump regularly
-            existingVelocities.add(vector.add(new Vector(0, 0.04, 0)));
+            existingVelocities.add(vector.clone().add(new Vector(0, 0.04, 0)));
             Vector withJump = vector.clone();
             super.doJump(grimPlayer, withJump);
             existingVelocities.add(withJump);

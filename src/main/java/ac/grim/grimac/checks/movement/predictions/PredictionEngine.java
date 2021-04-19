@@ -74,6 +74,23 @@ public abstract class PredictionEngine {
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a, b, grimPlayer));
 
+        double lowest = 1;
+        Vector low = null;
+        for (Vector vector : possibleVelocities) {
+            if (vector.lengthSquared() < lowest) {
+                lowest = vector.lengthSquared();
+                low = vector;
+            }
+        }
+
+        // Other checks will catch ground spoofing
+        grimPlayer.couldSkipTick = false;
+        if (grimPlayer.onGround) {
+            possibleVelocities.forEach((a) -> grimPlayer.couldSkipTick = grimPlayer.couldSkipTick || a.getX() * a.getX() + a.getZ() * a.getZ() < 9.0E-4D);
+        } else {
+            possibleVelocities.forEach((a) -> grimPlayer.couldSkipTick = grimPlayer.couldSkipTick || a.getX() * a.getX() + a.getY() * a.getY() + a.getZ() + a.getZ() < 9.0E-4D);
+        }
+
         Vector bestClientVelOutput = null;
         Vector bestClientPredictionOutput = null;
 
@@ -85,6 +102,9 @@ public abstract class PredictionEngine {
                 bestInput = resultAccuracy;
                 bestClientVelOutput = outputVel.clone();
                 bestClientPredictionOutput = grimPlayer.predictedVelocity.clone();
+
+                // This is wrong, but it is here only for debug
+                grimPlayer.theoreticalInput = getBestTheoreticalPlayerInput(grimPlayer.actualMovement.clone().subtract(grimPlayer.clientVelocity).divide(grimPlayer.stuckSpeedMultiplier), f, grimPlayer.xRot);
 
                 // Optimization - Close enough, other inputs won't get closer
                 if (resultAccuracy < 0.01) break;
@@ -136,8 +156,9 @@ public abstract class PredictionEngine {
             } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
                 JumpPower.jumpFromGround(grimPlayer, vector);
             }
+        } else {
+            vector.add(new Vector(0, grimPlayer.flySpeed * 3, 0));
         }
-
     }
 
     public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
@@ -153,6 +174,7 @@ public abstract class PredictionEngine {
     }
 
     public void endOfTick(GrimPlayer grimPlayer, double d, float friction) {
+        grimPlayer.clientVelocitySwimHop = null;
         if (canSwimHop(grimPlayer, grimPlayer.clientVelocity)) {
             grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY(0.3);
         }
