@@ -1,14 +1,12 @@
 package ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes;
 
-import ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapes.a;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.math.DoubleMath;
 import com.google.common.math.IntMath;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import net.minecraft.server.v1_16_R3.SystemUtils;
-import net.minecraft.server.v1_16_R3.VoxelShapeArray;
-import net.minecraft.server.v1_16_R3.VoxelShapeBitSet;
+import net.minecraft.server.v1_16_R3.*;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -16,8 +14,9 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 public final class VoxelShapes {
+    public static final double COLLISION_EPSILON = 1.0E-7;
 
-    public static final com.tuinity.tuinity.voxel.AABBVoxelShape optimisedFullCube = new com.tuinity.tuinity.voxel.AABBVoxelShape(new AxisAlignedBB(0, 0, 0, 1.0, 1.0, 1.0)); // Tuinity - optimise voxelshape
+    public static final AABBVoxelShape optimisedFullCube = new AABBVoxelShape(new AxisAlignedBB(0, 0, 0, 1.0, 1.0, 1.0)); // Tuinity - optimise voxelshape
     private static final VoxelShape b = SystemUtils.a(() -> {
         VoxelShapeBitSet voxelshapebitset = new VoxelShapeBitSet(1, 1, 1);
 
@@ -52,8 +51,8 @@ public final class VoxelShapes {
 
     // Tuinity start - optimise voxelshapes
     public static boolean addBoxesToIfIntersects(VoxelShape shape, AxisAlignedBB aabb, java.util.List<AxisAlignedBB> list) {
-        if (shape instanceof com.tuinity.tuinity.voxel.AABBVoxelShape) {
-            com.tuinity.tuinity.voxel.AABBVoxelShape shapeCasted = (com.tuinity.tuinity.voxel.AABBVoxelShape) shape;
+        if (shape instanceof AABBVoxelShape) {
+            AABBVoxelShape shapeCasted = (AABBVoxelShape) shape;
             if (!shapeCasted.aabb.isEmpty() && shapeCasted.aabb.voxelShapeIntersect(aabb)) {
                 list.add(shapeCasted.aabb);
                 return true;
@@ -99,8 +98,8 @@ public final class VoxelShapes {
     }
 
     public static void addBoxesTo(VoxelShape shape, java.util.List<AxisAlignedBB> list) {
-        if (shape instanceof com.tuinity.tuinity.voxel.AABBVoxelShape) {
-            com.tuinity.tuinity.voxel.AABBVoxelShape shapeCasted = (com.tuinity.tuinity.voxel.AABBVoxelShape) shape;
+        if (shape instanceof AABBVoxelShape) {
+            AABBVoxelShape shapeCasted = (AABBVoxelShape) shape;
             if (!shapeCasted.isEmpty()) {
                 list.add(shapeCasted.aabb);
             }
@@ -171,7 +170,7 @@ public final class VoxelShapes {
                 return new VoxelShapeCube(voxelshapebitset);
             }
         } else {
-            return new com.tuinity.tuinity.voxel.AABBVoxelShape(axisalignedbb); // Tuinity - optimise VoxelShapes for single AABB shapes
+            return new AABBVoxelShape(axisalignedbb); // Tuinity - optimise VoxelShapes for single AABB shapes
         }
     }
 
@@ -229,7 +228,7 @@ public final class VoxelShapes {
                 VoxelShapeMerger voxelshapemerger2 = a((voxelshapemerger.a().size() - 1) * (voxelshapemerger1.a().size() - 1), voxelshape.a(EnumDirection.EnumAxis.Z), voxelshape1.a(EnumDirection.EnumAxis.Z), flag, flag1);
                 VoxelShapeBitSet voxelshapebitset = VoxelShapeBitSet.a(voxelshape.a, voxelshape1.a, voxelshapemerger, voxelshapemerger1, voxelshapemerger2, operatorboolean);
 
-                return (VoxelShape) (voxelshapemerger instanceof VoxelShapeCubeMerger && voxelshapemerger1 instanceof VoxelShapeCubeMerger && voxelshapemerger2 instanceof VoxelShapeCubeMerger ? new VoxelShapeCube(voxelshapebitset) : new VoxelShapeArray(voxelshapebitset, voxelshapemerger.a(), voxelshapemerger1.a(), voxelshapemerger2.a()));
+                return voxelshapemerger instanceof VoxelShapeCubeMerger && voxelshapemerger1 instanceof VoxelShapeCubeMerger && voxelshapemerger2 instanceof VoxelShapeCubeMerger ? new VoxelShapeCube(voxelshapebitset) : new VoxelShapeArray(voxelshapebitset, voxelshapemerger.a(), voxelshapemerger1.a(), voxelshapemerger2.a());
             }
         }
     }
@@ -241,12 +240,12 @@ public final class VoxelShapes {
     public static boolean c(VoxelShape voxelshape, VoxelShape voxelshape1, OperatorBoolean operatorboolean) {
         // Tuinity start - optimise voxelshape
         if (operatorboolean == OperatorBoolean.AND) {
-            if (voxelshape instanceof com.tuinity.tuinity.voxel.AABBVoxelShape && voxelshape1 instanceof com.tuinity.tuinity.voxel.AABBVoxelShape) {
-                return ((com.tuinity.tuinity.voxel.AABBVoxelShape) voxelshape).aabb.voxelShapeIntersect(((com.tuinity.tuinity.voxel.AABBVoxelShape) voxelshape1).aabb);
-            } else if (voxelshape instanceof com.tuinity.tuinity.voxel.AABBVoxelShape && voxelshape1 instanceof VoxelShapeArray) {
-                return ((VoxelShapeArray) voxelshape1).intersects(((com.tuinity.tuinity.voxel.AABBVoxelShape) voxelshape).aabb);
-            } else if (voxelshape1 instanceof com.tuinity.tuinity.voxel.AABBVoxelShape && voxelshape instanceof VoxelShapeArray) {
-                return ((VoxelShapeArray) voxelshape).intersects(((com.tuinity.tuinity.voxel.AABBVoxelShape) voxelshape1).aabb);
+            if (voxelshape instanceof AABBVoxelShape && voxelshape1 instanceof AABBVoxelShape) {
+                return ((AABBVoxelShape) voxelshape).aabb.voxelShapeIntersect(((AABBVoxelShape) voxelshape1).aabb);
+            } else if (voxelshape instanceof AABBVoxelShape && voxelshape1 instanceof VoxelShapeArray) {
+                return voxelshape1.intersects(((AABBVoxelShape) voxelshape).aabb);
+            } else if (voxelshape1 instanceof AABBVoxelShape && voxelshape instanceof VoxelShapeArray) {
+                return voxelshape.intersects(((AABBVoxelShape) voxelshape1).aabb);
             }
         }
         return abstract_c(voxelshape, voxelshape1, operatorboolean);
@@ -361,11 +360,11 @@ public final class VoxelShapes {
 
                             if (k2 < 3) {
                                 blockposition_mutableblockposition.a(enumaxiscycle1, i2, j2, l1);
-                                IBlockData iblockdata = iworldreader.getTypeIfLoaded(blockposition_mutableblockposition); // Paper
+                                IBlockData iblockdata = ChunkCache.getBlockDataAt(i2, j2, l1);
                                 if (iblockdata == null) return 0.0D; // Paper
 
                                 if (!iblockdata.isAir() && (k2 != 1 || iblockdata.d()) && (k2 != 2 || iblockdata.a(Blocks.MOVING_PISTON))) { // Paper
-                                    d0 = iblockdata.b((IBlockAccess) iworldreader, blockposition_mutableblockposition, voxelshapecollision).a(enumdirection_enumaxis2, axisalignedbb.d((double) (-blockposition_mutableblockposition.getX()), (double) (-blockposition_mutableblockposition.getY()), (double) (-blockposition_mutableblockposition.getZ())), d0);
+                                    d0 = iblockdata.b(iworldreader, blockposition_mutableblockposition, voxelshapecollision).a(enumdirection_enumaxis2, axisalignedbb.d(-blockposition_mutableblockposition.getX(), -blockposition_mutableblockposition.getY(), -blockposition_mutableblockposition.getZ()), d0);
                                     if (Math.abs(d0) < 1.0E-7D) {
                                         return 0.0D;
                                     }
@@ -411,7 +410,7 @@ public final class VoxelShapes {
                 i = 0;
             }
 
-            return (VoxelShape) (!flag ? a() : new VoxelShapeSlice(voxelshape, enumdirection_enumaxis, i));
+            return !flag ? a() : new VoxelShapeSlice(voxelshape, enumdirection_enumaxis, i);
         }
     }
 
@@ -450,35 +449,35 @@ public final class VoxelShapes {
         if (v1Empty && v2Empty) {
             return false;
         }
-        if ((voxelshape instanceof com.tuinity.tuinity.voxel.AABBVoxelShape || v1Empty) && (voxelshape1 instanceof com.tuinity.tuinity.voxel.AABBVoxelShape || v2Empty)) {
+        if ((voxelshape instanceof AABBVoxelShape || v1Empty) && (voxelshape1 instanceof AABBVoxelShape || v2Empty)) {
             if (!v1Empty && !v2Empty && (voxelshape != voxelshape1)) {
-                AxisAlignedBB boundingBox1 = ((com.tuinity.tuinity.voxel.AABBVoxelShape) voxelshape).aabb;
-                AxisAlignedBB boundingBox2 = ((com.tuinity.tuinity.voxel.AABBVoxelShape) voxelshape1).aabb;
+                AxisAlignedBB boundingBox1 = ((AABBVoxelShape) voxelshape).aabb;
+                AxisAlignedBB boundingBox2 = ((AABBVoxelShape) voxelshape1).aabb;
                 // can call it here in some cases
 
                 // check overall bounding box
                 double minY = Math.min(boundingBox1.minY, boundingBox2.minY);
                 double maxY = Math.max(boundingBox1.maxY, boundingBox2.maxY);
-                if (minY > net.minecraft.server.MCUtil.COLLISION_EPSILON || maxY < (1 - net.minecraft.server.MCUtil.COLLISION_EPSILON)) {
+                if (minY > COLLISION_EPSILON || maxY < (1 - COLLISION_EPSILON)) {
                     return false;
                 }
                 double minX = Math.min(boundingBox1.minX, boundingBox2.minX);
                 double maxX = Math.max(boundingBox1.maxX, boundingBox2.maxX);
-                if (minX > net.minecraft.server.MCUtil.COLLISION_EPSILON || maxX < (1 - net.minecraft.server.MCUtil.COLLISION_EPSILON)) {
+                if (minX > COLLISION_EPSILON || maxX < (1 - COLLISION_EPSILON)) {
                     return false;
                 }
                 double minZ = Math.min(boundingBox1.minZ, boundingBox2.minZ);
                 double maxZ = Math.max(boundingBox1.maxZ, boundingBox2.maxZ);
-                if (minZ > net.minecraft.server.MCUtil.COLLISION_EPSILON || maxZ < (1 - net.minecraft.server.MCUtil.COLLISION_EPSILON)) {
+                if (minZ > COLLISION_EPSILON || maxZ < (1 - COLLISION_EPSILON)) {
                     return false;
                 }
                 // fall through to full merge check
             } else {
-                AxisAlignedBB boundingBox = v1Empty ? ((com.tuinity.tuinity.voxel.AABBVoxelShape) voxelshape1).aabb : ((com.tuinity.tuinity.voxel.AABBVoxelShape) voxelshape).aabb;
+                AxisAlignedBB boundingBox = v1Empty ? ((AABBVoxelShape) voxelshape1).aabb : ((AABBVoxelShape) voxelshape).aabb;
                 // check if the bounding box encloses the full cube
-                return (boundingBox.minY <= net.minecraft.server.MCUtil.COLLISION_EPSILON && boundingBox.maxY >= (1 - net.minecraft.server.MCUtil.COLLISION_EPSILON)) &&
-                        (boundingBox.minX <= net.minecraft.server.MCUtil.COLLISION_EPSILON && boundingBox.maxX >= (1 - net.minecraft.server.MCUtil.COLLISION_EPSILON)) &&
-                        (boundingBox.minZ <= net.minecraft.server.MCUtil.COLLISION_EPSILON && boundingBox.maxZ >= (1 - net.minecraft.server.MCUtil.COLLISION_EPSILON));
+                return (boundingBox.minY <= COLLISION_EPSILON && boundingBox.maxY >= (1 - COLLISION_EPSILON)) &&
+                        (boundingBox.minX <= COLLISION_EPSILON && boundingBox.maxX >= (1 - COLLISION_EPSILON)) &&
+                        (boundingBox.minZ <= COLLISION_EPSILON && boundingBox.maxZ >= (1 - COLLISION_EPSILON));
             }
         }
         return b_rare(voxelshape, voxelshape1);
@@ -535,3 +534,4 @@ public final class VoxelShapes {
 
         void consume(double d0, double d1, double d2, double d3, double d4, double d5);
     }
+}

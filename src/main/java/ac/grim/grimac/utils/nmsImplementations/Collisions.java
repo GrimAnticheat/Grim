@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.CachedVoxelShapeSpliterator;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.enums.MoverType;
-import ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapes;
 import com.google.common.collect.Lists;
 import net.minecraft.server.v1_16_R3.BlockProperties;
 import net.minecraft.server.v1_16_R3.*;
@@ -30,12 +29,12 @@ public class Collisions {
 
         AxisAlignedBB aABB = grimPlayer.boundingBox;
         VoxelShapeCollision collisionContext = VoxelShapeCollision.a(grimPlayer.entityPlayer);
-        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape voxelShape = grimPlayer.entityPlayer.getWorld().getWorldBorder().c(); // Technically this should be lag compensated...
-        Stream<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> worldBorderCollision = ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapes.c(voxelShape, ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapes.a(aABB.shrink(1.0E-7)), OperatorBoolean.AND) ? Stream.empty() : Stream.of(voxelShape);
+        VoxelShape voxelShape = grimPlayer.entityPlayer.getWorld().getWorldBorder().c(); // Technically this should be lag compensated...
+        Stream<VoxelShape> worldBorderCollision = VoxelShapes.c(voxelShape, VoxelShapes.a(aABB.shrink(1.0E-7)), OperatorBoolean.AND) ? Stream.empty() : Stream.of(voxelShape);
         // TODO: Re-enable entity collisions
         //Stream<VoxelShape> colllisionsWithOtherEntities = grimPlayer.entityPlayer.getWorld().c(grimPlayer.entityPlayer, aABB.b(vec3), entity -> true);
         //StreamAccumulator<VoxelShape> rewindableStream = new StreamAccumulator<>(Stream.concat(colllisionsWithOtherEntities, worldBorderCollision));
-        StreamAccumulator<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> rewindableStream = new StreamAccumulator<>(worldBorderCollision);
+        StreamAccumulator<VoxelShape> rewindableStream = new StreamAccumulator<>(worldBorderCollision);
 
 
         Vec3D vec32 = vec3.g() == 0.0 ? vec3 : collideBoundingBoxHeuristically(grimPlayer.entityPlayer, vec3, aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
@@ -59,7 +58,7 @@ public class Collisions {
         return new Vector(vec32.x, vec32.y, vec32.z);
     }
 
-    public static Vec3D collideBoundingBoxHeuristically(@Nullable Entity entity, Vec3D vec3d, AxisAlignedBB axisalignedbb, World world, VoxelShapeCollision voxelshapecollision, StreamAccumulator<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> streamaccumulator) {
+    public static Vec3D collideBoundingBoxHeuristically(@Nullable Entity entity, Vec3D vec3d, AxisAlignedBB axisalignedbb, World world, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {
         boolean flag = vec3d.x == 0.0D;
         boolean flag1 = vec3d.y == 0.0D;
         boolean flag2 = vec3d.z == 0.0D;
@@ -67,12 +66,12 @@ public class Collisions {
             return collideBoundingBox(vec3d, axisalignedbb, world, voxelshapecollision, streamaccumulator);
         } else {
             // TODO: world.b needs to use the chunk cache
-            StreamAccumulator<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> streamaccumulator1 = new StreamAccumulator(Stream.concat(streamaccumulator.a(), world.b(entity, axisalignedbb.b(vec3d))));
+            StreamAccumulator<VoxelShape> streamaccumulator1 = new StreamAccumulator(Stream.concat(streamaccumulator.a(), world.b(entity, axisalignedbb.b(vec3d))));
             return collideBoundingBoxLegacy(vec3d, axisalignedbb, streamaccumulator1);
         }
     }
 
-    public static Vec3D collideBoundingBox(Vec3D vec3d, AxisAlignedBB axisalignedbb, IWorldReader iworldreader, VoxelShapeCollision voxelshapecollision, StreamAccumulator<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> streamaccumulator) {
+    public static Vec3D collideBoundingBox(Vec3D vec3d, AxisAlignedBB axisalignedbb, IWorldReader iworldreader, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {
         double d0 = vec3d.x;
         double d1 = vec3d.y;
         double d2 = vec3d.z;
@@ -107,7 +106,7 @@ public class Collisions {
         return new Vec3D(d0, d1, d2);
     }
 
-    public static Vec3D collideBoundingBoxLegacy(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> streamaccumulator) {
+    public static Vec3D collideBoundingBoxLegacy(Vec3D vec3d, AxisAlignedBB axisalignedbb, StreamAccumulator<VoxelShape> streamaccumulator) {
         double d0 = vec3d.x;
         double d1 = vec3d.y;
         double d2 = vec3d.z;
@@ -140,12 +139,12 @@ public class Collisions {
         return new Vec3D(d0, d1, d2);
     }
 
-    public static double a(EnumDirection.EnumAxis var0, AxisAlignedBB var1, IWorldReader var2, double var3, VoxelShapeCollision var5, Stream<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> var6) {
+    public static double a(EnumDirection.EnumAxis var0, AxisAlignedBB var1, IWorldReader var2, double var3, VoxelShapeCollision var5, Stream<VoxelShape> var6) {
         return a(var1, var2, var3, var5, EnumAxisCycle.a(var0, EnumDirection.EnumAxis.Z), var6);
     }
 
-    public static double a(EnumDirection.EnumAxis var0, AxisAlignedBB var1, Stream<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> var2, double var3) {
-        for (Iterator var5 = var2.iterator(); var5.hasNext(); var3 = ((ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape) var5.next()).a(var0, var1, var3)) {
+    public static double a(EnumDirection.EnumAxis var0, AxisAlignedBB var1, Stream<VoxelShape> var2, double var3) {
+        for (Iterator var5 = var2.iterator(); var5.hasNext(); var3 = ((VoxelShape) var5.next()).a(var0, var1, var3)) {
             if (Math.abs(var3) < 1.0E-7D) {
                 return 0.0D;
             }
@@ -154,7 +153,7 @@ public class Collisions {
         return var3;
     }
 
-    private static double a(AxisAlignedBB var0, IWorldReader var1, double var2, VoxelShapeCollision var4, EnumAxisCycle var5, Stream<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> var6) {
+    private static double a(AxisAlignedBB var0, IWorldReader var1, double var2, VoxelShapeCollision var4, EnumAxisCycle var5, Stream<VoxelShape> var6) {
         if (!(var0.b() < 1.0E-6D) && !(var0.c() < 1.0E-6D) && !(var0.d() < 1.0E-6D)) {
             if (Math.abs(var2) < 1.0E-7D) {
                 return 0.0D;
@@ -377,20 +376,20 @@ public class Collisions {
 
     public static boolean noCollision(@Nullable Entity p_234865_1_, AxisAlignedBB
             p_234865_2_, Predicate<Entity> p_234865_3_) {
-        return getCollisions(p_234865_1_, p_234865_2_, p_234865_3_).allMatch(ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape::isEmpty);
+        return getCollisions(p_234865_1_, p_234865_2_, p_234865_3_).allMatch(VoxelShape::isEmpty);
     }
 
-    public static Stream<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> getCollisions(@Nullable Entity p_234867_1_, AxisAlignedBB
+    public static Stream<VoxelShape> getCollisions(@Nullable Entity p_234867_1_, AxisAlignedBB
             p_234867_2_, Predicate<Entity> p_234867_3_) {
         return Stream.concat(getBlockCollisions(p_234867_1_, p_234867_2_), getEntityCollisions(p_234867_1_, p_234867_2_, p_234867_3_));
     }
 
-    public static Stream<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> getBlockCollisions(@Nullable Entity p_226666_1_, AxisAlignedBB p_226666_2_) {
+    public static Stream<VoxelShape> getBlockCollisions(@Nullable Entity p_226666_1_, AxisAlignedBB p_226666_2_) {
         return StreamSupport.stream(new CachedVoxelShapeSpliterator(p_226666_1_, p_226666_2_), false);
     }
 
     // TODO: We need to use the grim player's bounding box
-    public static Stream<ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB
+    public static Stream<VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB
             p_230318_2_, Predicate<Entity> p_230318_3_) {
         if (p_230318_2_.a() < 1.0E-7D) { // a() -> getSize()
             return Stream.empty();
@@ -450,42 +449,6 @@ public class Collisions {
         }
 
         return false;
-    }
-
-    // Optimization - Take code from Tuinity (GPL)
-    public static ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape a(AxisAlignedBB axisalignedbb) {
-        int i = a(axisalignedbb.minX, axisalignedbb.maxX);
-        int j = a(axisalignedbb.minY, axisalignedbb.maxY);
-        int k = a(axisalignedbb.minZ, axisalignedbb.maxZ);
-
-        if (i >= 0 && j >= 0 && k >= 0) {
-            if (i == 0 && j == 0 && k == 0) {
-                return axisalignedbb.e(0.5D, 0.5D, 0.5D) ? b() : a();
-            } else {
-                int l = 1 << i;
-                int i1 = 1 << j;
-                int j1 = 1 << k;
-                int k1 = (int) Math.round(axisalignedbb.minX * (double) l);
-                int l1 = (int) Math.round(axisalignedbb.maxX * (double) l);
-                int i2 = (int) Math.round(axisalignedbb.minY * (double) i1);
-                int j2 = (int) Math.round(axisalignedbb.maxY * (double) i1);
-                int k2 = (int) Math.round(axisalignedbb.minZ * (double) j1);
-                int l2 = (int) Math.round(axisalignedbb.maxZ * (double) j1);
-                VoxelShapeBitSet voxelshapebitset = new VoxelShapeBitSet(l, i1, j1, k1, i2, k2, l1, j2, l2);
-
-                for (long i3 = k1; i3 < (long) l1; ++i3) {
-                    for (long j3 = i2; j3 < (long) j2; ++j3) {
-                        for (long k3 = k2; k3 < (long) l2; ++k3) {
-                            voxelshapebitset.a((int) i3, (int) j3, (int) k3, false, true);
-                        }
-                    }
-                }
-
-                return new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeCube(voxelshapebitset);
-            }
-        } else {
-            return new com.tuinity.tuinity.voxel.AABBVoxelShape(axisalignedbb); // Tuinity - optimise VoxelShapes for single AABB shapes
-        }
     }
 
     private static int a(double d0, double d1) {

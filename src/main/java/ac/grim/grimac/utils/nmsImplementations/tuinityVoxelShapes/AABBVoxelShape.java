@@ -1,8 +1,8 @@
 package ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes;
 
-import net.minecraft.server.v1_16_R3.AxisAlignedBB;
-import net.minecraft.server.v1_16_R3.VoxelShape;
-import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.doubles.DoubleList;
+import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
+import it.unimi.dsi.fastutil.doubles.DoubleList;
+import net.minecraft.server.v1_16_R3.EnumDirection;
 
 import java.util.ArrayList;
 import java.util.List;
