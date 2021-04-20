@@ -6,17 +6,11 @@ import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.bukkit.PlayerVelocityPackets;
 import ac.grim.grimac.events.bukkit.TestEvent;
 import ac.grim.grimac.events.packets.*;
-import ac.grim.grimac.utils.chunks.ChunkCache;
-import ac.grim.grimac.utils.chunks.Column;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
-import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.World;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -105,7 +99,7 @@ public final class GrimAC extends JavaPlugin {
         }
 
         // TODO: Remove this hack
-        World world = Bukkit.getWorlds().get(0);
+        /*World world = Bukkit.getWorlds().get(0);
         WorldServer craftWorld = ((CraftWorld) world).getHandle();
 
         for (Chunk chunk : world.getLoadedChunks()) {
@@ -128,7 +122,7 @@ public final class GrimAC extends JavaPlugin {
             }
 
             ChunkCache.addToCache(section, chunk.getX(), chunk.getZ());
-        }
+        }*/
     }
 
     // We are doing this on another thread to try and stop any desync

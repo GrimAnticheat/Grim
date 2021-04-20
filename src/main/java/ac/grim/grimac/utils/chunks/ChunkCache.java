@@ -10,6 +10,8 @@ import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHa
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class ChunkCache {
     public static final int JAVA_AIR_ID = 0;
+    private static final int MIN_WORLD_HEIGHT = 0;
+    private static final int MAX_WORLD_HEIGHT = 255;
     private static final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
 
     public static void addToCache(Column chunk, int chunkX, int chunkZ) {
@@ -42,6 +44,8 @@ public class ChunkCache {
 
     public static IBlockData getBlockDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
+
+        if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return Block.getByCombinedId(JAVA_AIR_ID);
 
         try {
             Chunk chunk = column.getChunks()[y >> 4];

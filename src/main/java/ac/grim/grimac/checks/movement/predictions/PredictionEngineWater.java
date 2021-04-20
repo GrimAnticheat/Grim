@@ -40,7 +40,7 @@ public class PredictionEngineWater extends PredictionEngine {
         Set<Vector> baseVelocities = super.fetchPossibleInputs(grimPlayer);
         Set<Vector> swimmingVelocities = new HashSet<>();
 
-        if (grimPlayer.isSwimming && grimPlayer.bukkitPlayer.getVehicle() == null) {
+        if (grimPlayer.isSwimming && grimPlayer.playerVehicle == null) {
             for (Vector vector : baseVelocities) {
                 double d = MovementVectorsCalc.getLookAngle(grimPlayer).y;
                 double d5 = d < -0.2 ? 0.085 : 0.06;
