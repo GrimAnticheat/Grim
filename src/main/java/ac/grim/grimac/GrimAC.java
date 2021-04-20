@@ -6,24 +6,29 @@ import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.bukkit.PlayerVelocityPackets;
 import ac.grim.grimac.events.bukkit.TestEvent;
 import ac.grim.grimac.events.packets.*;
+import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.utils.chunks.Column;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
+import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.World;
+import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class GrimAC extends JavaPlugin {
     public static ConcurrentHashMap<Player, GrimPlayer> playerGrimHashMap = new ConcurrentHashMap<>();
     public static Plugin plugin;
-    public static AtomicInteger currentTick = new AtomicInteger(-6000);
+    public static AtomicInteger currentTick = new AtomicInteger(0);
+    ScheduledExecutorService transactionSender;
 
     @Override
     public void onLoad() {
@@ -35,6 +40,7 @@ public final class GrimAC extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        transactionSender.shutdownNow();
         PacketEvents.get().terminate();
     }
 
@@ -88,8 +94,37 @@ public final class GrimAC extends JavaPlugin {
     }
 
     public void handleReload() {
+        if (Bukkit.getOnlinePlayers().size() == 0) return;
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             playerGrimHashMap.put(player, new GrimPlayer(player));
+            MovementCheckRunner.queuedPredictions.put(player.getUniqueId(), new ConcurrentLinkedQueue<>());
+        }
+
+        // TODO: Remove this hack
+        World world = Bukkit.getWorlds().get(0);
+        WorldServer craftWorld = ((CraftWorld) world).getHandle();
+
+        for (Chunk chunk : world.getLoadedChunks()) {
+            com.github.steveice10.mc.protocol.data.game.chunk.Chunk[] chunks = new com.github.steveice10.mc.protocol.data.game.chunk.Chunk[16];
+            Column section = new Column(chunk.getX(), chunk.getZ(), chunks);
+
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    for (int y = 0; y < 256; y++) {
+                        int columnNum = Math.floorDiv(y, 16);
+                        IBlockData blockID = craftWorld.getType(new BlockPosition(chunk.getX() << 4 + x, y, chunk.getZ() << 4 + z));
+                        if (blockID.getBlock() instanceof BlockAir) continue;
+
+                        if (chunks[columnNum] == null)
+                            chunks[columnNum] = new com.github.steveice10.mc.protocol.data.game.chunk.Chunk();
+
+                        chunks[columnNum].set(x, y % 16, z, Block.getCombinedId(blockID));
+                    }
+                }
+            }
+
+            ChunkCache.addToCache(section, chunk.getX(), chunk.getZ());
         }
     }
 
@@ -99,9 +134,9 @@ public final class GrimAC extends JavaPlugin {
     // Probably "close enough" if we average the 5 most recent transactions
     // Even at 10 tps, we still will send 20 times a second
     public void scheduleTransactionPacketSend() {
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        executor.scheduleAtFixedRate(() -> {
-            short packetID = (short) currentTick.getAndIncrement();
+        transactionSender = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
+        transactionSender.scheduleAtFixedRate(() -> {
+            short packetID = (short) (-1 * (currentTick.getAndIncrement() % 32768));
 
             for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
                 try {
@@ -112,10 +147,6 @@ public final class GrimAC extends JavaPlugin {
                     GrimAC.plugin.getLogger().warning("Error sending transaction packet, did the player log out?");
                 }
             }
-
-            // Create a fixed size of handling five minutes worth of transactions
-            // Use negative transactions to stop this from touching the server
-            currentTick.compareAndSet(-1, -6000);
         }, 50, 50, TimeUnit.MILLISECONDS);
     }
 }

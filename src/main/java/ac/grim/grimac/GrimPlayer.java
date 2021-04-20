@@ -6,6 +6,7 @@ import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
@@ -119,7 +120,7 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickSet;
     public Vector baseTickAddition;
-    public short lastTransactionReceived = Short.MIN_VALUE;
+    public short lastTransactionReceived = 0;
     public short movementTransaction = Short.MIN_VALUE;
     // Determining player ping
     ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
@@ -167,9 +168,14 @@ public class GrimPlayer {
     }
 
     public void addTransactionResponse(short transactionID) {
-        long millisecondResponse = System.currentTimeMillis() - transactionsSent.remove(transactionID);
-        lastTransactionReceived = transactionID;
-        //Bukkit.broadcastMessage("Time to response " + millisecondResponse);
+        long millisecondResponse = -10000;
+
+        if (transactionsSent.containsKey(transactionID)) {
+            millisecondResponse = System.currentTimeMillis() - transactionsSent.remove(transactionID);
+        }
+
+        lastTransactionReceived++;
+        Bukkit.broadcastMessage("Time to response " + millisecondResponse);
     }
 
     public int getPing() {

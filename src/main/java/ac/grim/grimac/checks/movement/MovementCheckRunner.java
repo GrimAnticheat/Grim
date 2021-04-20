@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
@@ -39,10 +40,9 @@ public class MovementCheckRunner implements Listener {
     // List instead of Set for consistency in debug output
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
+    public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
     // I actually don't know how many threads is good, more testing is needed!
-    static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
-
-    static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
+    static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
 
     public static void addQueuedPrediction(PredictionData data) {
         if (data.grimPlayer.tasksNotFinished.getAndIncrement() == 0) {
