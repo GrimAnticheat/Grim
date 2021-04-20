@@ -7,7 +7,6 @@ import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
@@ -170,7 +169,7 @@ public class GrimPlayer {
             bukkitPlayer.kickPlayer("Invalid packet!");
         }
 
-        Bukkit.broadcastMessage("Time to response " + millisecondResponse);
+        //Bukkit.broadcastMessage("Time to response " + millisecondResponse);
     }
 
     public int getPing() {

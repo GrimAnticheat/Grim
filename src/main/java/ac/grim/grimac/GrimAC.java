@@ -3,7 +3,6 @@ package ac.grim.grimac;
 import ac.grim.grimac.checks.movement.MovementCheckRunner;
 import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
-import ac.grim.grimac.events.bukkit.PlayerVelocityPackets;
 import ac.grim.grimac.events.bukkit.TestEvent;
 import ac.grim.grimac.events.packets.*;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -66,7 +65,7 @@ public final class GrimAC extends JavaPlugin {
 
     public void registerPackets() {
         PacketEvents.get().registerListener(new PacketPositionListener());
-        PacketEvents.get().registerListener(new PlayerVelocityPackets());
+        PacketEvents.get().registerListener(new PacketPlayerVelocity());
         PacketEvents.get().registerListener(new PacketPingListener());
         PacketEvents.get().registerListener(new PacketEntityAction());
         PacketEvents.get().registerListener(new PacketFireworkListener());

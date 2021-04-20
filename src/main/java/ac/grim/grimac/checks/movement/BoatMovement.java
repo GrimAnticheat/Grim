@@ -1,11 +1,6 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.utils.chunks.ChunkCache;
-import ac.grim.grimac.utils.enums.BoatEntityStatus;
-import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
-import org.bukkit.util.Vector;
 
 public class BoatMovement {
     public static void doBoatMovement(GrimPlayer grimPlayer) {
@@ -13,7 +8,7 @@ public class BoatMovement {
         new PlayerBaseTick(grimPlayer).doBaseTick();
     }
 
-    private void floatBoat(GrimPlayer grimPlayer) {
+    /*private void floatBoat(GrimPlayer grimPlayer) {
         double d0 = -0.04F;
         double d1 = grimPlayer.playerVehicle.hasGravity() ? (double) -0.04F : 0.0D;
         double d2 = 0.0D;
@@ -165,5 +160,5 @@ public class BoatMovement {
         }
 
         return f / (float) k1;
-    }
+    }*/
 }

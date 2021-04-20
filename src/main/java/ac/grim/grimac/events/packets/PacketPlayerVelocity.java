@@ -1,4 +1,4 @@
-package ac.grim.grimac.events.bukkit;
+package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
@@ -9,8 +9,8 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.W
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-public class PlayerVelocityPackets extends PacketListenerDynamic {
-    public PlayerVelocityPackets() {
+public class PacketPlayerVelocity extends PacketListenerDynamic {
+    public PacketPlayerVelocity() {
         super(PacketEventPriority.MONITOR);
     }
 
