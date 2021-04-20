@@ -28,6 +28,7 @@ public final class GrimAC extends JavaPlugin {
     public static ConcurrentHashMap<Player, GrimPlayer> playerGrimHashMap = new ConcurrentHashMap<>();
     public static Plugin plugin;
     public static AtomicInteger currentTick = new AtomicInteger(0);
+    public static Long lastReload = 0L;
     ScheduledExecutorService transactionSender;
 
     @Override
@@ -95,6 +96,8 @@ public final class GrimAC extends JavaPlugin {
 
     public void handleReload() {
         if (Bukkit.getOnlinePlayers().size() == 0) return;
+
+        lastReload = System.currentTimeMillis();
 
         for (Player player : Bukkit.getOnlinePlayers()) {
             playerGrimHashMap.put(player, new GrimPlayer(player));

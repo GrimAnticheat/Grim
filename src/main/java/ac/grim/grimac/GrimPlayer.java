@@ -172,9 +172,12 @@ public class GrimPlayer {
 
         if (transactionsSent.containsKey(transactionID)) {
             millisecondResponse = System.currentTimeMillis() - transactionsSent.remove(transactionID);
+            lastTransactionReceived++;
+        } else if (System.currentTimeMillis() - GrimAC.lastReload > 30 * 1000) {
+            // The server only sends positive transactions, no negative transactions
+            bukkitPlayer.kickPlayer("Invalid packet!");
         }
 
-        lastTransactionReceived++;
         Bukkit.broadcastMessage("Time to response " + millisecondResponse);
     }
 

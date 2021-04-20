@@ -39,7 +39,11 @@
                             <relocations>
                                 <relocation>
                                     <pattern>io.github.retrooper.packetevents</pattern>
-                                    <shadedPattern>ac.grim.grimac.shaded.io.github.retrooper.packetevents</shadedPattern>
+                                    <shadedPattern>ac.grim.grimac.shaded.packetevents</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>io.papermc.lib</pattern>
+                                    <shadedPattern>ac.grim.grimac.shaded.paperlib</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -96,6 +100,12 @@
             <groupId>com.github.Steveice10</groupId>
             <artifactId>MCProtocolLib</artifactId>
             <version>1.16.4-1</version>
+        </dependency>
+        <dependency>
+            <groupId>io.papermc</groupId>
+            <artifactId>paperlib</artifactId>
+            <version>1.0.6</version>
+            <scope>compile</scope>
         </dependency>
     </dependencies>
 </project>
