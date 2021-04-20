@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Optional;
 
-public class AxisAlignedBB {
+public class AxisAlignedBB extends net.minecraft.server.v1_16_R3.AxisAlignedBB {
     public static final double COLLISION_EPSILON = 1.0E-7;
 
     public final double minX;
@@ -17,6 +17,7 @@ public class AxisAlignedBB {
     public final double maxZ;
 
     public AxisAlignedBB(double d0, double d1, double d2, double d3, double d4, double d5, boolean dummy) {
+        super(d0, d1, d2, d3, d4, d5);
         this.minX = d0;
         this.minY = d1;
         this.minZ = d2;
@@ -26,6 +27,8 @@ public class AxisAlignedBB {
     }
 
     public AxisAlignedBB(double d0, double d1, double d2, double d3, double d4, double d5) {
+        super(d0, d1, d2, d3, d4, d5);
+
         this.minX = Math.min(d0, d3);
         this.minY = Math.min(d1, d4);
         this.minZ = Math.min(d2, d5);
@@ -151,7 +154,7 @@ public class AxisAlignedBB {
     }
 
     @Nullable
-    public static MovingObjectPositionBlock a(Iterable<AxisAlignedBB> iterable, Vec3D vec3d, Vec3D vec3d1, BlockPosition blockposition) {
+    public static MovingObjectPositionBlock returnMovingObjectPositionBlock(Iterable<AxisAlignedBB> iterable, Vec3D vec3d, Vec3D vec3d1, BlockPosition blockposition) {
         double[] adouble = new double[]{1.0D};
         EnumDirection enumdirection = null;
         double d0 = vec3d1.x - vec3d.x;
@@ -384,7 +387,7 @@ public class AxisAlignedBB {
         return this.grow(d0, d0, d0);
     }
 
-    public AxisAlignedBB a(AxisAlignedBB axisalignedbb) {
+    public AxisAlignedBB returnMovingObjectPositionBlock(AxisAlignedBB axisalignedbb) {
         double d0 = Math.max(this.minX, axisalignedbb.minX);
         double d1 = Math.max(this.minY, axisalignedbb.minY);
         double d2 = Math.max(this.minZ, axisalignedbb.minZ);

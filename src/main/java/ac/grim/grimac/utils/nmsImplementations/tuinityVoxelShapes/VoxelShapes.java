@@ -364,20 +364,6 @@ public final class VoxelShapes {
                                 if (iblockdata == null) return 0.0D; // Paper
 
                                 if (!iblockdata.isAir() && (k2 != 1 || iblockdata.d()) && (k2 != 2 || iblockdata.a(Blocks.MOVING_PISTON))) { // Paper
-                                    net.minecraft.server.v1_16_R3.VoxelShape vanillaShape = iblockdata.b(iworldreader, blockposition_mutableblockposition, voxelshapecollision);
-
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-                                    // TODO:
-
                                     d0 = iblockdata.b(iworldreader, blockposition_mutableblockposition, voxelshapecollision).a(enumdirection_enumaxis2, axisalignedbb.d(-blockposition_mutableblockposition.getX(), -blockposition_mutableblockposition.getY(), -blockposition_mutableblockposition.getZ()), d0);
 
                                     if (Math.abs(d0) < 1.0E-7D) {
