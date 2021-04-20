@@ -119,8 +119,8 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickSet;
     public Vector baseTickAddition;
-    public short lastTransactionReceived;
-    public short movementTransaction;
+    public short lastTransactionReceived = Short.MIN_VALUE;
+    public short movementTransaction = Short.MIN_VALUE;
     // Determining player ping
     ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
 

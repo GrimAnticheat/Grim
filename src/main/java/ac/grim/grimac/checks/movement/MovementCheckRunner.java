@@ -234,20 +234,18 @@ public class MovementCheckRunner implements Listener {
             }
         }
 
-        Bukkit.broadcastMessage("Shortcut " + (int) (grimPlayer.actualMovement.length() / grimPlayer.predictedVelocity.length()));
         Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + grimPlayer.movementTransaction + " recent " + grimPlayer.lastTransactionReceived);
-        grimPlayer.movementTransaction += x;
+        grimPlayer.movementTransaction += x + 1;
 
-        if (grimPlayer.actualMovement.clone().subtract(grimPlayer.predictedVelocity).lengthSquared() > 0.03) {
-            // The client waited too long to send their input
-            Bukkit.broadcastMessage("Cheater.");
-        }
+        // 0.03 required for this to occur
+        //if (grimPlayer.actualMovement.clone().subtract(grimPlayer.predictedVelocity).lengthSquared() > 0.03) {
+        // The client waited too long to send their input
 
-        if (grimPlayer.movementTransaction > grimPlayer.lastTransactionReceived) {
+        if (grimPlayer.movementTransaction > GrimAC.currentTick.get()) {
             Bukkit.broadcastMessage("Player has speed!");
         }
 
-        grimPlayer.movementTransaction = grimPlayer.lastTransactionReceived;
+        grimPlayer.movementTransaction = (short) Math.max(grimPlayer.movementTransaction, grimPlayer.lastTransactionReceived);
 
         //Bukkit.broadcastMessage("Wanted movement " + wantedMovement);
         //Bukkit.broadcastMessage("Total movement " + totalMovement);
