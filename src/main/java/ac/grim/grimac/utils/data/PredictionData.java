@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import net.minecraft.server.v1_16_R3.EntityBoat;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.attribute.Attribute;
@@ -30,11 +31,19 @@ public class PredictionData {
     public float jumpAmplifier;
     public float levitationAmplifier;
     public float flySpeed;
-    public Entity playerVehicle;
+
     public double fallDistance;
 
+    // Debug, does nothing.
     public int number;
 
+    public boolean inVehicle;
+    public boolean boatUnderwater;
+    public Entity playerVehicle;
+    public float vehicleHorizontal;
+    public float vehicleForward;
+
+    // For regular movement
     public PredictionData(GrimPlayer grimPlayer, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
         this.grimPlayer = grimPlayer;
         this.playerX = playerX;
@@ -43,6 +52,7 @@ public class PredictionData {
         this.xRot = xRot;
         this.yRot = yRot;
         this.onGround = onGround;
+        this.inVehicle = false;
 
         this.number = grimPlayer.taskNumber.getAndIncrement();
 
@@ -65,5 +75,31 @@ public class PredictionData {
 
         this.flySpeed = grimPlayer.entityPlayer.abilities.flySpeed;
         this.playerVehicle = grimPlayer.bukkitPlayer.getVehicle();
+    }
+
+    // For boat movement
+    public PredictionData(GrimPlayer grimPlayer, double boatX, double boatY, double boatZ, float xRot, float yRot) {
+        this.grimPlayer = grimPlayer;
+        this.playerX = boatX;
+        this.playerY = boatY;
+        this.playerZ = boatZ;
+        this.xRot = xRot;
+        this.yRot = yRot;
+        this.vehicleForward = grimPlayer.packetVehicleForward;
+        this.vehicleHorizontal = grimPlayer.packetVehicleHorizontal;
+
+        this.boatUnderwater = false;
+        if (grimPlayer.entityPlayer.getVehicle() instanceof EntityBoat) {
+            EntityBoat boat = (EntityBoat) grimPlayer.entityPlayer.getVehicle();
+            this.boatUnderwater = boat.aI();
+        }
+
+        this.isFlying = false;
+        this.isSwimming = false;
+        this.isClimbing = false;
+        this.isFallFlying = false;
+        this.playerWorld = grimPlayer.bukkitPlayer.getWorld();
+        this.fallDistance = grimPlayer.bukkitPlayer.getFallDistance();
+        this.movementSpeed = grimPlayer.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
     }
 }

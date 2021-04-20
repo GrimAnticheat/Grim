@@ -25,11 +25,11 @@ public class PlayerBaseTick {
         player.baseTickAddition = new Vector(0, 0, 0);
 
         // LocalPlayer:aiStep line 728
-        if (player.entityPlayer.isInWater() && player.isSneaking && !player.isFlying) {
+        if (player.entityPlayer.isInWater() && player.isSneaking && !player.isFlying && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
-        if (player.isFlying && player.isSneaking) {
+        if (player.isFlying && player.isSneaking && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
         }
 
@@ -37,10 +37,10 @@ public class PlayerBaseTick {
         updateFluidOnEyes();
 
         // LocalPlayer:aiStep line 647
-        this.moveTowardsClosestSpace(player.lastX - (double) player.entityPlayer.getWidth() * 0.35, player.lastZ + (double) player.entityPlayer.getWidth() * 0.35);
-        this.moveTowardsClosestSpace(player.lastX - (double) player.entityPlayer.getWidth() * 0.35, player.lastZ - (double) player.entityPlayer.getWidth() * 0.35);
-        this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ - (double) player.entityPlayer.getWidth() * 0.35);
-        this.moveTowardsClosestSpace(player.lastX + (double) player.entityPlayer.getWidth() * 0.35, player.lastZ + (double) player.entityPlayer.getWidth() * 0.35);
+        this.moveTowardsClosestSpace(player.lastX - player.boundingBox.b() * 0.35, player.lastZ + player.boundingBox.d() * 0.35);
+        this.moveTowardsClosestSpace(player.lastX - player.boundingBox.b() * 0.35, player.lastZ - player.boundingBox.d() * 0.35);
+        this.moveTowardsClosestSpace(player.lastX + player.boundingBox.b() * 0.35, player.lastZ - player.boundingBox.d() * 0.35);
+        this.moveTowardsClosestSpace(player.lastX + player.boundingBox.b() * 0.35, player.lastZ + player.boundingBox.d() * 0.35);
 
         float f = BlockProperties.getBlockSpeedFactor(player);
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
@@ -58,12 +58,10 @@ public class PlayerBaseTick {
         player.wasEyeInWater = player.isEyeInFluid(TagsFluid.WATER);
         player.fluidOnEyes = null;
         double d0 = player.entityPlayer.getHeadY() - 0.1111111119389534D;
-        Entity entity = player.entityPlayer.getVehicle();
-        if (entity instanceof EntityBoat) {
-            EntityBoat entityboat = (EntityBoat) entity;
-            if (!entityboat.aI() && entityboat.getBoundingBox().maxY >= d0 && entityboat.getBoundingBox().minY <= d0) {
-                return;
-            }
+
+        // Probably not async safe
+        if (!player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+            return;
         }
 
         BlockPosition blockposition = new BlockPosition(player.x, d0, player.z);

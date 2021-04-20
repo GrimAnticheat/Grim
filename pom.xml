@@ -107,5 +107,10 @@
             <version>1.0.6</version>
             <scope>compile</scope>
         </dependency>
+        <dependency>
+            <groupId>it.unimi.dsi</groupId>
+            <artifactId>fastutil</artifactId>
+            <version>8.5.4</version>
+        </dependency>
     </dependencies>
 </project>

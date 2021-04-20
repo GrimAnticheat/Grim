@@ -30,4 +30,17 @@ public class GetBoundingBox {
 
         return new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
     }
+
+    public static AxisAlignedBB getBoatBoundingBox(double centerX, double minY, double centerZ) {
+        double boatWidth = 1.375;
+        double boatHeight = 0.5625;
+
+        double minX = centerX - (boatWidth / 2);
+        double maxX = centerX + (boatWidth / 2);
+        double maxY = minY + boatHeight;
+        double minZ = centerZ - (boatWidth / 2);
+        double maxZ = centerZ + (boatWidth / 2);
+
+        return new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
+    }
 }

@@ -1,5 +1,6 @@
 package ac.grim.grimac;
 
+import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.FireworkData;
 import io.github.retrooper.packetevents.PacketEvents;
 import net.minecraft.server.v1_16_R3.AxisAlignedBB;
@@ -73,14 +74,17 @@ public class GrimPlayer {
     public float jumpAmplifier;
     public float levitationAmplifier;
     public float flySpeed;
+
+    public boolean inVehicle;
     public Entity playerVehicle;
+    public float packetVehicleHorizontal;
+    public float packetVehicleForward;
+    public float vehicleHorizontal;
+    public float vehicleForward;
+    public BoatData boatData;
 
     // We determine this
     public boolean isActuallyOnGround;
-
-    // We guess this
-    public Vector theoreticalInput;
-    public Vector possibleInput;
 
     // Set from base tick
     public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
@@ -107,21 +111,12 @@ public class GrimPlayer {
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
 
-    // Timer check data
-    public long offset = 0L;
-    public long lastMovementPacket = System.currentTimeMillis() - 50000000L;
-
-    // Delays
-    public long movementEventMilliseconds;
-    public long lastMovementEventMilliseconds;
-    public long movementPacketMilliseconds;
-    public long lastMovementPacketMilliseconds;
-
     // Keep track of basetick stuff
     public Vector baseTickSet;
     public Vector baseTickAddition;
     public short lastTransactionReceived = 0;
     public short movementTransaction = Short.MIN_VALUE;
+
     // Determining player ping
     ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
 
@@ -131,9 +126,6 @@ public class GrimPlayer {
         this.playerUUID = player.getUniqueId();
         this.entityID = player.getEntityId();
         this.clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(player).getProtocolVersion();
-
-        movementPacketMilliseconds = System.currentTimeMillis();
-        lastMovementPacketMilliseconds = System.currentTimeMillis() - 100;
 
         Location loginLocation = player.getLocation();
         lastX = loginLocation.getX();

@@ -79,29 +79,30 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.flySpeed = data.flySpeed;
             grimPlayer.playerVehicle = data.playerVehicle;
 
-            grimPlayer.movementPacketMilliseconds = System.currentTimeMillis();
-
-            // TODO: Make gliding async safe
-            // TODO: Actually get client version
-            grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
-
-
-            /*for (MovementCheck movementCheck : movementCheckListeners) {
-                movementCheck.checkMovement(grimPlayer);
-            }*/
-
-            grimPlayer.movementEventMilliseconds = System.currentTimeMillis();
-
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
 
-            // This is not affected by any movement
-            new PlayerBaseTick(grimPlayer).doBaseTick();
+            if (!grimPlayer.inVehicle) {
+                grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
 
-            // baseTick occurs before this
-            new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
+                // This is not affected by any movement
+                new PlayerBaseTick(grimPlayer).doBaseTick();
 
-            handleSkippedTicks(grimPlayer);
+                // baseTick occurs before this
+                new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
+
+                handleSkippedTicks(grimPlayer);
+            } else {
+                grimPlayer.vehicleForward = data.vehicleForward;
+                grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
+                grimPlayer.boatUnderwater = data.boatUnderwater;
+
+                // TODO: We will have to handle teleports
+                grimPlayer.boundingBox = GetBoundingBox.getBoatBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
+
+                BoatMovement.doBoatMovement(grimPlayer);
+            }
+
 
             ChatColor color;
             double diff = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
@@ -138,9 +139,6 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastOnGround = grimPlayer.onGround;
         grimPlayer.lastSneaking = grimPlayer.wasSneaking;
         grimPlayer.lastClimbing = grimPlayer.isClimbing;
-        grimPlayer.lastMovementPacketMilliseconds = grimPlayer.movementPacketMilliseconds;
-        grimPlayer.lastMovementEventMilliseconds = grimPlayer.movementEventMilliseconds;
-
 
         if (grimPlayer.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;
