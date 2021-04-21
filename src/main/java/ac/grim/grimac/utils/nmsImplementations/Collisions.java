@@ -238,7 +238,7 @@ public class Collisions {
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
         //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
-        if (!grimPlayer.isFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.isSneaking && isAboveGround(grimPlayer)) {
+        if (!grimPlayer.specialFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.isSneaking && isAboveGround(grimPlayer)) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
             while (d != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(d, -maxUpStep, 0.0))) {

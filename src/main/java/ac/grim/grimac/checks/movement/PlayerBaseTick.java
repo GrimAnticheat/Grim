@@ -148,7 +148,7 @@ public class PlayerBaseTick {
                     bl2 = true;
                     d2 = Math.max(d3 - aABB.minY, d2);
 
-                    if (!player.isFlying) {
+                    if (!player.specialFlying) {
                         Vec3D vec32 = FluidTypeFlowing.getFlow(mutableBlockPos, fluid);
                         if (d2 < 0.4) {
                             vec32 = vec32.a(d2);

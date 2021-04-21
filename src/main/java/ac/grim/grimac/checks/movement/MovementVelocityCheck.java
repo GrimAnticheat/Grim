@@ -107,7 +107,7 @@ public class MovementVelocityCheck {
         Collisions.handleInsideBlocks(grimPlayer);
 
         // Flying players are not affected by cobwebs/sweet berry bushes
-        if (grimPlayer.isFlying) {
+        if (grimPlayer.specialFlying) {
             grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
         }
 
@@ -136,7 +136,7 @@ public class MovementVelocityCheck {
 
     // Player line 1208
     public void playerEntityTravel() {
-        if (grimPlayer.isFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
+        if (grimPlayer.specialFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
             double oldY = grimPlayer.clientVelocity.getY();
             double oldYJumping = oldY + grimPlayer.flySpeed * 3;
             livingEntityTravel();

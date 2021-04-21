@@ -46,7 +46,7 @@ public class BlockProperties {
             return (float) (grimPlayer.movementSpeed * (0.21600002f / (f * f * f)));
         }
 
-        if (grimPlayer.entityPlayer.abilities.isFlying) {
+        if (grimPlayer.specialFlying) {
             return grimPlayer.flySpeed * 20 * (grimPlayer.isSprinting ? 0.1f : 0.05f);
 
         } else {
@@ -75,7 +75,7 @@ public class BlockProperties {
 
     // Entity line 637
     public static float getBlockSpeedFactor(GrimPlayer player) {
-        if (player.bukkitPlayer.isGliding() || player.isFlying) return 1.0f;
+        if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
         net.minecraft.server.v1_16_R3.Block block = ChunkCache.getBlockDataAt(player.x, player.y, player.z).getBlock();
 

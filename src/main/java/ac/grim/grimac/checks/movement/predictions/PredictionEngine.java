@@ -22,7 +22,7 @@ public abstract class PredictionEngine {
         float bestPossibleX;
         float bestPossibleZ;
 
-        if (grimPlayer.wasSneaking && !grimPlayer.isSwimming && !grimPlayer.isFlying) {
+        if (grimPlayer.wasSneaking && !grimPlayer.isSwimming && !grimPlayer.specialFlying) {
             bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
             bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
         } else {
@@ -140,7 +140,7 @@ public abstract class PredictionEngine {
         boolean bl = grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0) > 0 && d7 > 0.0;
         double d8 = 0.4D;
 
-        if (!grimPlayer.isFlying) {
+        if (!grimPlayer.specialFlying) {
             if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
                 vector.add(new Vector(0, 0.4, 0));
             } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
