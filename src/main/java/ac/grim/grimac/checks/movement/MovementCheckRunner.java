@@ -114,11 +114,11 @@ public class MovementCheckRunner implements Listener {
                 color = ChatColor.RED;
             }
 
-            //grimPlayer.bukkitPlayer.sendMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
-            //grimPlayer.bukkitPlayer.sendMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
+            grimPlayer.bukkitPlayer.sendMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
+            grimPlayer.bukkitPlayer.sendMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 
-            //GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
-            //GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
+            GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
+            GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
 
 
             //Bukkit.broadcastMessage("O: " + color + (grimPlayer.predictedVelocity.getX() - +grimPlayer.actualMovement.getX()) + " " + (grimPlayer.predictedVelocity.getY() - grimPlayer.actualMovement.getY()) + " " + (grimPlayer.predictedVelocity.getZ() - grimPlayer.actualMovement.getZ()));
@@ -231,7 +231,7 @@ public class MovementCheckRunner implements Listener {
             }
         }
 
-        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + grimPlayer.movementTransaction + " recent " + grimPlayer.lastTransactionReceived);
+        //Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + grimPlayer.movementTransaction + " recent " + grimPlayer.lastTransactionReceived);
         grimPlayer.movementTransaction += x + 1;
 
         // 0.03 required for this to occur

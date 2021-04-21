@@ -48,7 +48,9 @@ public class MovementVelocityCheck {
 
         // This is when client velocity is no longer referenced by inputVel
         inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
+
         Vector collide = Collisions.collide(inputVel, grimPlayer);
+
 
         // This is where vanilla moves the bounding box and sets it
         grimPlayer.predictedVelocity = collide.clone();

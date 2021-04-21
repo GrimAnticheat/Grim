@@ -80,7 +80,7 @@ public class GrimPlayer {
     public float packetVehicleForward;
     public float vehicleHorizontal;
     public float vehicleForward;
-    public BoatData boatData;
+    public BoatData boatData = new BoatData();
 
     // We determine this
     public boolean isActuallyOnGround;

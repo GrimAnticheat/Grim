@@ -76,7 +76,7 @@ public class Collisions {
         double d1 = vec3d.y;
         double d2 = vec3d.z;
         if (d1 != 0.0D) {
-            d1 = a(EnumDirection.EnumAxis.Y, axisalignedbb, iworldreader, d1, voxelshapecollision, streamaccumulator.a());
+            d1 = VoxelShapes.a(EnumDirection.EnumAxis.Y, axisalignedbb, iworldreader, d1, voxelshapecollision, streamaccumulator.a());
             if (d1 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(0.0D, d1, 0.0D);
             }
@@ -86,21 +86,21 @@ public class Collisions {
 
         // TODO: VoxelShapes.a needs to be lag compensated
         if (flag && d2 != 0.0D) {
-            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, iworldreader, d2, voxelshapecollision, streamaccumulator.a());
+            d2 = VoxelShapes.a(EnumDirection.EnumAxis.Z, axisalignedbb, iworldreader, d2, voxelshapecollision, streamaccumulator.a());
             if (d2 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(0.0D, 0.0D, d2);
             }
         }
 
         if (d0 != 0.0D) {
-            d0 = a(EnumDirection.EnumAxis.X, axisalignedbb, iworldreader, d0, voxelshapecollision, streamaccumulator.a());
+            d0 = VoxelShapes.a(EnumDirection.EnumAxis.X, axisalignedbb, iworldreader, d0, voxelshapecollision, streamaccumulator.a());
             if (!flag && d0 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(d0, 0.0D, 0.0D);
             }
         }
 
         if (!flag && d2 != 0.0D) {
-            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, iworldreader, d2, voxelshapecollision, streamaccumulator.a());
+            d2 = VoxelShapes.a(EnumDirection.EnumAxis.Z, axisalignedbb, iworldreader, d2, voxelshapecollision, streamaccumulator.a());
         }
 
         return new Vec3D(d0, d1, d2);
@@ -111,7 +111,7 @@ public class Collisions {
         double d1 = vec3d.y;
         double d2 = vec3d.z;
         if (d1 != 0.0D) {
-            d1 = a(EnumDirection.EnumAxis.Y, axisalignedbb, streamaccumulator.a(), d1);
+            d1 = VoxelShapes.a(EnumDirection.EnumAxis.Y, axisalignedbb, streamaccumulator.a(), d1);
             if (d1 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(0.0D, d1, 0.0D);
             }
@@ -119,21 +119,21 @@ public class Collisions {
 
         boolean flag = Math.abs(d0) < Math.abs(d2);
         if (flag && d2 != 0.0D) {
-            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
+            d2 = VoxelShapes.a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
             if (d2 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(0.0D, 0.0D, d2);
             }
         }
 
         if (d0 != 0.0D) {
-            d0 = a(EnumDirection.EnumAxis.X, axisalignedbb, streamaccumulator.a(), d0);
+            d0 = VoxelShapes.a(EnumDirection.EnumAxis.X, axisalignedbb, streamaccumulator.a(), d0);
             if (!flag && d0 != 0.0D) {
                 axisalignedbb = axisalignedbb.d(d0, 0.0D, 0.0D);
             }
         }
 
         if (!flag && d2 != 0.0D) {
-            d2 = a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
+            d2 = VoxelShapes.a(EnumDirection.EnumAxis.Z, axisalignedbb, streamaccumulator.a(), d2);
         }
 
         return new Vec3D(d0, d1, d2);

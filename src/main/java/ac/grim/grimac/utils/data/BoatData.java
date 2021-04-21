@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.data;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 
 public class BoatData {
-    public boolean boatUnderwater;
+    public boolean boatUnderwater = false;
     public double lastYd;
     // Stuff affects these coords directly?
     public double midTickX;
