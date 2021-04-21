@@ -67,6 +67,10 @@ public class PredictionData {
         this.fallDistance = grimPlayer.bukkitPlayer.getFallDistance();
         this.movementSpeed = grimPlayer.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
 
+        // When a player punches a mob, bukkit thinks the player isn't sprinting (?)
+        // But they are, so we need to multiply by sprinting speed boost until I just get the player's attributes from packets
+        if (isSprinting && !grimPlayer.bukkitPlayer.isSprinting()) this.movementSpeed *= 1.3;
+
         PotionEffect jumpEffect = grimPlayer.bukkitPlayer.getPotionEffect(PotionEffectType.JUMP);
         this.jumpAmplifier = jumpEffect == null ? 0 : jumpEffect.getAmplifier();
 
