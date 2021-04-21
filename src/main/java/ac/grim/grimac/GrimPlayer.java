@@ -62,6 +62,7 @@ public class GrimPlayer {
     public boolean wasSneaking;
     public boolean isSprinting;
     public boolean isFlying;
+    public boolean specialFlying;
     public boolean isSwimming;
     public boolean isClimbing;
     public boolean isFallFlying;

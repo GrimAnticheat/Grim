@@ -10,14 +10,6 @@ import java.util.Set;
 
 public class PredictionEngineNormal extends PredictionEngine {
 
-     /*       if (player.isFlying) {
-        player.clientVelocityJumping = player.clientVelocity.clone().add(new Vector(0, player.flySpeed * 3, 0));
-
-        if (player.isFlying && player.isSneaking) {
-            player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
-        }
-    }*/
-
     @Override
     public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
         Set<Vector> regularInputs = super.fetchPossibleInputs(grimPlayer);

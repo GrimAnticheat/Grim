@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.TagsFluid;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -55,9 +56,12 @@ public abstract class PredictionEngine {
         List<Vector> possibleVelocities = new ArrayList<>();
         double bestInput = Double.MAX_VALUE;
 
+        // Stop omni-sprint
+        // Optimization - Also cuts down needed possible inputs by 2/3
+        int zMin = grimPlayer.isSprinting ? 1 : -1;
         for (Vector possibleLastTickOutput : fetchPossibleInputs(grimPlayer)) {
             for (int x = -1; x <= 1; x++) {
-                for (int z = -1; z <= 1; z++) {
+                for (int z = zMin; z <= 1; z++) {
                     possibleVelocities.add(handleOnClimbable(possibleLastTickOutput.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer));
                 }
             }
@@ -66,7 +70,9 @@ public abstract class PredictionEngine {
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a, b, grimPlayer));
 
-        // Other checks will catch ground spoofing
+
+        // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
+        // Currently not used, but should be very helpful for handling movement below 0.03
         grimPlayer.couldSkipTick = false;
         if (grimPlayer.onGround) {
             possibleVelocities.forEach((a) -> grimPlayer.couldSkipTick = grimPlayer.couldSkipTick || a.getX() * a.getX() + a.getZ() * a.getZ() < 9.0E-4D);
@@ -150,7 +156,16 @@ public abstract class PredictionEngine {
     public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
         Set<Vector> velocities = grimPlayer.getPossibleVelocities();
 
+        for (Vector vel : velocities) {
+            Bukkit.broadcastMessage("Possible 1 " + vel);
+        }
+
         addJumpsToPossibilities(grimPlayer, velocities);
+
+
+        for (Vector vel : velocities) {
+            Bukkit.broadcastMessage("Possible 2 " + vel);
+        }
 
         return velocities;
     }

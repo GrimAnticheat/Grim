@@ -25,11 +25,11 @@ public class PlayerBaseTick {
         player.baseTickAddition = new Vector(0, 0, 0);
 
         // LocalPlayer:aiStep line 728
-        if (player.entityPlayer.isInWater() && player.isSneaking && !player.isFlying && !player.inVehicle) {
+        if (player.entityPlayer.isInWater() && player.isSneaking && !player.specialFlying && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
-        if (player.isFlying && player.isSneaking && !player.inVehicle) {
+        if (player.specialFlying && player.isSneaking && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
         }
 

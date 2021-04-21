@@ -66,6 +66,7 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.isSprinting = data.isSprinting;
             grimPlayer.wasSneaking = grimPlayer.isSneaking;
             grimPlayer.isSneaking = data.isSneaking;
+            grimPlayer.specialFlying = grimPlayer.onGround && !data.isFlying && grimPlayer.isFlying || data.isFlying;
             grimPlayer.isFlying = data.isFlying;
             grimPlayer.isSwimming = data.isSwimming;
             grimPlayer.isClimbing = data.isClimbing;
@@ -91,7 +92,7 @@ public class MovementCheckRunner implements Listener {
                 // baseTick occurs before this
                 new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
 
-                handleSkippedTicks(grimPlayer);
+                //handleSkippedTicks(grimPlayer);
             } else {
                 grimPlayer.vehicleForward = data.vehicleForward;
                 grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
