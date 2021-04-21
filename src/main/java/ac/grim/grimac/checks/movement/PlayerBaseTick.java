@@ -115,7 +115,7 @@ public class PlayerBaseTick {
         // Watersplash effect removed (Entity 981).  Shouldn't affect movement
         //player.fallDistance = 0.0f;
         //this.clearFire();
-        if (player.bukkitPlayer.getVehicle() instanceof EntityBoat) {
+        if (player.playerVehicle instanceof EntityBoat) {
             player.wasTouchingWater = false;
         } else player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);
     }

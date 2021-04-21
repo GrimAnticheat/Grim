@@ -175,7 +175,7 @@ public class MovementVelocityCheck {
 
         handleFireworks();
 
-        if (grimPlayer.wasTouchingWater && !grimPlayer.entityPlayer.abilities.isFlying) {
+        if (grimPlayer.wasTouchingWater && !grimPlayer.specialFlying) {
             // 0.8F seems hardcoded in
             lastY = grimPlayer.lastY;
             swimFriction = grimPlayer.isSprinting ? 0.9F : 0.8F;
@@ -205,7 +205,7 @@ public class MovementVelocityCheck {
             }
 
         } else {
-            if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && !grimPlayer.entityPlayer.abilities.isFlying) {
+            if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && !grimPlayer.specialFlying) {
                 lastY = grimPlayer.lastY;
 
                 new PredictionEngineLava().guessBestMovement(0.02F, grimPlayer);
