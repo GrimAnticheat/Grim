@@ -60,92 +60,22 @@ public class CachedBlockShape {
                     VoxelShapeDiscrete discrete = (VoxelShapeDiscrete) a.get(vanillaShape);
 
 
+                    // Always instance of VoxelShapeBitSet, at least on 1.16
                     if (discrete instanceof VoxelShapeBitSet) {
-                        Field disA = discrete.getClass().getSuperclass().getDeclaredField("a");
-                        Field disB = discrete.getClass().getSuperclass().getDeclaredField("b");
-                        Field disC = discrete.getClass().getSuperclass().getDeclaredField("c");
-
-                        disA.setAccessible(true);
-                        disB.setAccessible(true);
-                        disC.setAccessible(true);
-
-                        int intA = disA.getInt(discrete);
-                        int intB = disB.getInt(discrete);
-                        int intC = disC.getInt(discrete);
-
-                        Field disE = discrete.getClass().getDeclaredField("e");
-                        Field disF = discrete.getClass().getDeclaredField("f");
-                        Field disG = discrete.getClass().getDeclaredField("g");
-                        Field disH = discrete.getClass().getDeclaredField("h");
-                        Field disI = discrete.getClass().getDeclaredField("i");
-                        Field disJ = discrete.getClass().getDeclaredField("j");
-
-                        disE.setAccessible(true);
-                        disF.setAccessible(true);
-                        disG.setAccessible(true);
-                        disH.setAccessible(true);
-                        disI.setAccessible(true);
-                        disJ.setAccessible(true);
-
-                        int intE = disE.getInt(discrete);
-                        int intF = disF.getInt(discrete);
-                        int intG = disG.getInt(discrete);
-                        int intH = disH.getInt(discrete);
-                        int intI = disI.getInt(discrete);
-                        int intJ = disJ.getInt(discrete);
-
-                        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet bits = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet(intA, intB, intC, intE, intF, intG, intH, intI, intJ);
+                        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet bits = getBitSet((VoxelShapeBitSet) discrete);
 
                         ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeArray voxelShapeArray = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeArray(bits, bList, cList, dList, true);
                         blockShapes[i] = voxelShapeArray;
+                    } else {
+                        new Exception().printStackTrace();
                     }
-
-                    // This code isn't ever used???
-                    if (discrete instanceof VoxelShapeDiscreteSlice) {
-                        Field d2 = discrete.getClass().getDeclaredField("d");
-                        Field e2 = discrete.getClass().getDeclaredField("e");
-                        Field f2 = discrete.getClass().getDeclaredField("f");
-                        Field g2 = discrete.getClass().getDeclaredField("g");
-                        Field h2 = discrete.getClass().getDeclaredField("h");
-                        Field i2 = discrete.getClass().getDeclaredField("i");
-                        Field j2 = discrete.getClass().getDeclaredField("j");
-
-                        VoxelShapeDiscrete d3 = (VoxelShapeDiscrete) d2.get(discrete);
-
-                        Field a4 = d3.getClass().getDeclaredField("a");
-                        Field b4 = d3.getClass().getDeclaredField("b");
-                        Field c4 = d3.getClass().getDeclaredField("c");
-
-                        int a5 = a4.getInt(d3);
-                        int b5 = b4.getInt(d3);
-                        int c5 = c4.getInt(d3);
-                        //ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeDiscrete dis = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeDiscrete(a5, b5, c5);
-
-                        int e3 = e2.getInt(discrete);
-                        int f3 = f2.getInt(discrete);
-                        int g3 = g2.getInt(discrete);
-                        int h3 = h2.getInt(discrete);
-                        int i3 = i2.getInt(discrete);
-                        int j3 = j2.getInt(discrete);
-
-                        //ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeDiscreteSlice slice = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeDiscreteSlice(d3, e3, f3, g3, h3, i3, j3);
-                    }
-
-                    /*Field disA = discrete.getClass().getDeclaredField("a");
-                    Field disB = discrete.getClass().getDeclaredField("b");
-                    Field disC = discrete.getClass().getDeclaredField("c");
-                    disA.setAccessible(true);
-                    disB.setAccessible(true);
-                    disC.setAccessible(true);
-
-                    int intA = disA.getInt(discrete);
-                    int intB = disB.getInt(discrete);
-                    int intC = disC.getInt(discrete);*/
-
-                    //new VoxelShapeArray();
 
                 } else if (vanillaShape instanceof VoxelShapeCube) {
+                    Field bitSet = vanillaShape.getClass().getSuperclass().getDeclaredField("a");
+                    bitSet.setAccessible(true);
+                    VoxelShapeBitSet nmsBit = (VoxelShapeBitSet) bitSet.get(vanillaShape);
 
+                    ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet bits = getBitSet(nmsBit);
                 } else if (vanillaShape instanceof VoxelShapeSlice) {
 
                 }
@@ -153,6 +83,43 @@ public class CachedBlockShape {
                 blockShapes[i] = b;
             }
         }
+    }
+
+    private ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet getBitSet(VoxelShapeBitSet discrete) throws NoSuchFieldException, IllegalAccessException {
+        Field disA = discrete.getClass().getSuperclass().getDeclaredField("a");
+        Field disB = discrete.getClass().getSuperclass().getDeclaredField("b");
+        Field disC = discrete.getClass().getSuperclass().getDeclaredField("c");
+
+        disA.setAccessible(true);
+        disB.setAccessible(true);
+        disC.setAccessible(true);
+
+        int intA = disA.getInt(discrete);
+        int intB = disB.getInt(discrete);
+        int intC = disC.getInt(discrete);
+
+        Field disE = discrete.getClass().getDeclaredField("e");
+        Field disF = discrete.getClass().getDeclaredField("f");
+        Field disG = discrete.getClass().getDeclaredField("g");
+        Field disH = discrete.getClass().getDeclaredField("h");
+        Field disI = discrete.getClass().getDeclaredField("i");
+        Field disJ = discrete.getClass().getDeclaredField("j");
+
+        disE.setAccessible(true);
+        disF.setAccessible(true);
+        disG.setAccessible(true);
+        disH.setAccessible(true);
+        disI.setAccessible(true);
+        disJ.setAccessible(true);
+
+        int intE = disE.getInt(discrete);
+        int intF = disF.getInt(discrete);
+        int intG = disG.getInt(discrete);
+        int intH = disH.getInt(discrete);
+        int intI = disI.getInt(discrete);
+        int intJ = disJ.getInt(discrete);
+
+        return new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet(intA, intB, intC, intE, intF, intG, intH, intI, intJ);
     }
 
     public static double[] getSublist(DoubleList list) {
