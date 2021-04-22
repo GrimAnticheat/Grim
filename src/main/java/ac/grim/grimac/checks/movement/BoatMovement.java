@@ -45,7 +45,8 @@ public class BoatMovement {
             } else if (grimPlayer.boatData.status == BoatEntityStatus.IN_AIR) {
                 invFriction = 0.9F;
             } else if (grimPlayer.boatData.status == BoatEntityStatus.ON_LAND) {
-                invFriction = grimPlayer.boatData.landFriction /= 2.0F;
+                invFriction = grimPlayer.boatData.landFriction;
+                grimPlayer.boatData.landFriction /= 2.0F;
             }
 
             Vector vector3d = grimPlayer.clientVelocity;
