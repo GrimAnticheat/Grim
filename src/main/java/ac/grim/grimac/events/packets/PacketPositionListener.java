@@ -11,7 +11,6 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
-import org.bukkit.Bukkit;
 
 public class PacketPositionListener extends PacketListenerDynamic {
     public PacketPositionListener() {
@@ -54,10 +53,10 @@ public class PacketPositionListener extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Client.STEER_VEHICLE) {
             WrappedPacketInSteerVehicle steer = new WrappedPacketInSteerVehicle(event.getNMSPacket());
             GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            grimPlayer.vehicleForward = steer.getForwardValue();
-            grimPlayer.vehicleHorizontal = steer.getSideValue();
+            grimPlayer.packetVehicleForward = steer.getForwardValue();
+            grimPlayer.packetVehicleHorizontal = steer.getSideValue();
 
-            Bukkit.broadcastMessage("Steer vehicle " + steer.getSideValue() + " and " + steer.getForwardValue());
+            //Bukkit.broadcastMessage("Steer vehicle " + steer.getSideValue() + " and " + steer.getForwardValue());
         }
 
         if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
@@ -65,7 +64,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
             GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(grimPlayer, move.getX(), move.getY(), move.getZ(), move.getYaw(), move.getPitch()));
-            Bukkit.broadcastMessage("Move " + move.getX() + " " + move.getY() + " " + move.getZ());
+            //Bukkit.broadcastMessage("Move " + move.getX() + " " + move.getY() + " " + move.getZ());
         }
     }
 }

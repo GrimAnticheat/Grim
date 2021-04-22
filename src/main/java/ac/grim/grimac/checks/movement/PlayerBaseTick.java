@@ -37,10 +37,13 @@ public class PlayerBaseTick {
         updateFluidOnEyes();
 
         // LocalPlayer:aiStep line 647
-        this.moveTowardsClosestSpace(player.lastX - player.boundingBox.b() * 0.35, player.lastZ + player.boundingBox.d() * 0.35);
-        this.moveTowardsClosestSpace(player.lastX - player.boundingBox.b() * 0.35, player.lastZ - player.boundingBox.d() * 0.35);
-        this.moveTowardsClosestSpace(player.lastX + player.boundingBox.b() * 0.35, player.lastZ - player.boundingBox.d() * 0.35);
-        this.moveTowardsClosestSpace(player.lastX + player.boundingBox.b() * 0.35, player.lastZ + player.boundingBox.d() * 0.35);
+        // Players in boats don't care about being in blocks
+        if (!player.inVehicle) {
+            this.moveTowardsClosestSpace(player.lastX - player.boundingBox.b() * 0.35, player.lastZ + player.boundingBox.d() * 0.35);
+            this.moveTowardsClosestSpace(player.lastX - player.boundingBox.b() * 0.35, player.lastZ - player.boundingBox.d() * 0.35);
+            this.moveTowardsClosestSpace(player.lastX + player.boundingBox.b() * 0.35, player.lastZ - player.boundingBox.d() * 0.35);
+            this.moveTowardsClosestSpace(player.lastX + player.boundingBox.b() * 0.35, player.lastZ + player.boundingBox.d() * 0.35);
+        }
 
         float f = BlockProperties.getBlockSpeedFactor(player);
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
@@ -115,9 +118,10 @@ public class PlayerBaseTick {
         // Watersplash effect removed (Entity 981).  Shouldn't affect movement
         //player.fallDistance = 0.0f;
         //this.clearFire();
-        if (player.playerVehicle instanceof EntityBoat) {
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);
+        /*if (player.playerVehicle instanceof EntityBoat) {
             player.wasTouchingWater = false;
-        } else player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);
+        } else player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);*/
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
@@ -164,6 +168,11 @@ public class PlayerBaseTick {
         if (vec3.f() > 0.0) {
             if (n7 > 0) {
                 vec3 = vec3.a(1.0 / (double) n7);
+            }
+
+            if (player.inVehicle) {
+                // This is a boat, normalize it for some reason.
+                vec3 = vec3.d();
             }
 
             Vector vec33 = player.clientVelocity.clone();

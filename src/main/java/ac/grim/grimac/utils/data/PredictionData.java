@@ -89,6 +89,7 @@ public class PredictionData {
         this.playerZ = boatZ;
         this.xRot = xRot;
         this.yRot = yRot;
+        this.playerVehicle = grimPlayer.bukkitPlayer.getVehicle();
         this.vehicleForward = grimPlayer.packetVehicleForward;
         this.vehicleHorizontal = grimPlayer.packetVehicleHorizontal;
 

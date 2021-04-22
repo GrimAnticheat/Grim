@@ -44,9 +44,9 @@ public class Collisions {
         boolean bl = grimPlayer.lastOnGround || bl3 && vec3.y < 0.0;
         if (bl && (bl2 || bl4)) {
             Vec3D vec33;
-            Vec3D vec34 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(vec3.x, maxUpStep, vec3.z), aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
-            Vec3D vec35 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(0.0, maxUpStep, 0.0), aABB.b(vec3.x, 0.0, vec3.z), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
-            if (vec35.y < maxUpStep && Entity.c(vec33 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(vec3.x, 0.0, vec3.z), AxisAlignedBB.a(vec35), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream).e(vec35)) > Entity.c(vec34)) {
+            Vec3D vec34 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(vec3.x, grimPlayer.getMaxUpStep(), vec3.z), aABB, grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
+            Vec3D vec35 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(0.0, grimPlayer.getMaxUpStep(), 0.0), aABB.b(vec3.x, 0.0, vec3.z), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream);
+            if (vec35.y < grimPlayer.getMaxUpStep() && Entity.c(vec33 = collideBoundingBoxHeuristically(grimPlayer.entityPlayer, new Vec3D(vec3.x, 0.0, vec3.z), AxisAlignedBB.a(vec35), grimPlayer.entityPlayer.getWorld(), collisionContext, rewindableStream).e(vec35)) > Entity.c(vec34)) {
                 vec34 = vec33;
             }
             if (Entity.c(vec34) > Entity.c(vec32)) {

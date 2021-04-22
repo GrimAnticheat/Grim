@@ -239,6 +239,10 @@ public class GrimPlayer {
             clientVelocityFireworkBoost.setX(x);
     }
 
+    public float getMaxUpStep() {
+        return inVehicle ? 0f : 0.6f;
+    }
+
     public boolean isEyeInFluid(Tag tag) {
         return this.fluidOnEyes == tag;
     }

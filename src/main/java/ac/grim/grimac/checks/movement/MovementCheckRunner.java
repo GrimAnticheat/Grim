@@ -60,8 +60,6 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.x = data.playerX;
             grimPlayer.y = data.playerY;
             grimPlayer.z = data.playerZ;
-            grimPlayer.xRot = data.xRot;
-            grimPlayer.yRot = data.yRot;
             grimPlayer.onGround = data.onGround;
             grimPlayer.isSprinting = data.isSprinting;
             grimPlayer.wasSneaking = grimPlayer.isSneaking;
@@ -85,6 +83,8 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
 
             if (!grimPlayer.inVehicle) {
+                grimPlayer.xRot = data.xRot;
+                grimPlayer.yRot = data.yRot;
                 grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
 
                 // This is not affected by any movement
@@ -95,13 +95,17 @@ public class MovementCheckRunner implements Listener {
 
                 //handleSkippedTicks(grimPlayer);
             } else {
-                grimPlayer.vehicleForward = data.vehicleForward;
-                grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
+                grimPlayer.boatData.lastYRot = grimPlayer.boatData.yRot;
+                // What the fuck Mojang. Why are you using yRot???
+                grimPlayer.boatData.yRot = data.xRot;
 
                 // TODO: We will have to handle teleports
                 grimPlayer.boundingBox = GetBoundingBox.getBoatBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
 
                 BoatMovement.doBoatMovement(grimPlayer);
+
+                grimPlayer.vehicleForward = data.vehicleForward;
+                grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
             }
 
 
