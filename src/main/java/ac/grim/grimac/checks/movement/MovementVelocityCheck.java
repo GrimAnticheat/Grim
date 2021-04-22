@@ -47,10 +47,11 @@ public class MovementVelocityCheck {
         }
 
         // This is when client velocity is no longer referenced by inputVel
-        inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
+        if (!grimPlayer.inVehicle) {
+            inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
+        }
 
         Vector collide = Collisions.collide(inputVel, grimPlayer);
-
 
         // This is where vanilla moves the bounding box and sets it
         grimPlayer.predictedVelocity = collide.clone();
@@ -75,12 +76,12 @@ public class MovementVelocityCheck {
                     clientVel.setY(0);
                 } else {
                     if (clientVel.getY() < 0.0) {
-                        clientVel.setY(-clientVel.getY());
+                        clientVel.setY(-clientVel.getY() * (grimPlayer.inVehicle ? 0.8 : 1.0));
                     }
                 }
             } else if (onBlock instanceof BlockBed) {
                 if (clientVel.getY() < 0.0) {
-                    clientVel.setY(-clientVel.getY() * 0.6600000262260437);
+                    clientVel.setY(-clientVel.getY() * 0.6600000262260437 * (grimPlayer.inVehicle ? 0.8 : 1.0));
                 }
             } else {
                 clientVel.setY(0);
