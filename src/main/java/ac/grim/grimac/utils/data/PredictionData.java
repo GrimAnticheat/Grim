@@ -93,6 +93,7 @@ public class PredictionData {
         this.vehicleHorizontal = grimPlayer.packetVehicleHorizontal;
 
         this.boatUnderwater = false;
+        this.inVehicle = true;
         if (grimPlayer.entityPlayer.getVehicle() instanceof EntityBoat) {
             EntityBoat boat = (EntityBoat) grimPlayer.entityPlayer.getVehicle();
             this.boatUnderwater = boat.aI();

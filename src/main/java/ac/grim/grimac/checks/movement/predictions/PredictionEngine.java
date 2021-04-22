@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.TagsFluid;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -156,16 +155,7 @@ public abstract class PredictionEngine {
     public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
         Set<Vector> velocities = grimPlayer.getPossibleVelocities();
 
-        for (Vector vel : velocities) {
-            Bukkit.broadcastMessage("Possible 1 " + vel);
-        }
-
         addJumpsToPossibilities(grimPlayer, velocities);
-
-
-        for (Vector vel : velocities) {
-            Bukkit.broadcastMessage("Possible 2 " + vel);
-        }
 
         return velocities;
     }

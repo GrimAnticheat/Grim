@@ -78,6 +78,7 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.jumpAmplifier = data.jumpAmplifier;
             grimPlayer.levitationAmplifier = data.levitationAmplifier;
             grimPlayer.flySpeed = data.flySpeed;
+            grimPlayer.inVehicle = data.inVehicle;
             grimPlayer.playerVehicle = data.playerVehicle;
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player

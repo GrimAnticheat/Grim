@@ -5,7 +5,7 @@ import net.minecraft.server.v1_16_R3.EnumDirection;
 import net.minecraft.server.v1_16_R3.MathHelper;
 
 public final class VoxelShapeCube extends VoxelShape {
-    protected VoxelShapeCube(VoxelShapeDiscrete var0) {
+    public VoxelShapeCube(VoxelShapeDiscrete var0) {
         super(var0);
     }
 

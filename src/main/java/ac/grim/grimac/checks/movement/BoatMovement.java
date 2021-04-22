@@ -128,8 +128,8 @@ public class BoatMovement {
     }
 
     public float getGroundFriction(GrimPlayer grimPlayer) {
-        AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
-        AxisAlignedBB axisalignedbb1 = new AxisAlignedBB(axisalignedbb.minX, axisalignedbb.minY - 0.001D, axisalignedbb.minZ, axisalignedbb.maxX, axisalignedbb.minY, axisalignedbb.maxZ);
+        AxisAlignedBB axisalignedbb = (AxisAlignedBB) grimPlayer.boundingBox;
+        AxisAlignedBB axisalignedbb1 = new AxisAlignedBB(axisalignedbb.minX, axisalignedbb.minY - 0.001D, axisalignedbb.minZ, axisalignedbb.maxX, axisalignedbb.minY, axisalignedbb.maxZ, true);
         int i = (int) (Math.floor(axisalignedbb1.minX) - 1);
         int j = (int) (Math.ceil(axisalignedbb1.maxX) + 1);
         int k = (int) (Math.floor(axisalignedbb1.minY) - 1);
@@ -149,7 +149,7 @@ public class BoatMovement {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
                             mutableBlockPos.d(l1, k2, i2);
                             IBlockData blockstate = ChunkCache.getBlockDataAt(l1, k2, i2);
-                            if (!(blockstate.getBlock() instanceof BlockWaterLily) && VoxelShapes.joinIsNotEmpty(blockstate.getCollisionShape(this.level, mutableBlockPos).move((double) l1, (double) k2, (double) i2), voxelshape, IBooleanFunction.AND)) {
+                            if (!(blockstate.getBlock() instanceof BlockWaterLily) && VoxelShapes.joinIsNotEmpty(blockstate.getCollisionShape(null, mutableBlockPos).a(l1, k2, i2), voxelshape, ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.OperatorBoolean.AND)) {
                                 f += blockstate.getBlock().getFriction();
                                 ++k1;
                             }

@@ -6,7 +6,7 @@ import javax.annotation.Nullable;
 import java.util.Iterator;
 import java.util.Optional;
 
-public class AxisAlignedBB extends net.minecraft.server.v1_16_R3.AxisAlignedBB {
+public class AxisAlignedBB {
     public static final double COLLISION_EPSILON = 1.0E-7;
 
     public final double minX;
@@ -17,7 +17,6 @@ public class AxisAlignedBB extends net.minecraft.server.v1_16_R3.AxisAlignedBB {
     public final double maxZ;
 
     public AxisAlignedBB(double d0, double d1, double d2, double d3, double d4, double d5, boolean dummy) {
-        super(d0, d1, d2, d3, d4, d5);
         this.minX = d0;
         this.minY = d1;
         this.minZ = d2;
@@ -27,8 +26,6 @@ public class AxisAlignedBB extends net.minecraft.server.v1_16_R3.AxisAlignedBB {
     }
 
     public AxisAlignedBB(double d0, double d1, double d2, double d3, double d4, double d5) {
-        super(d0, d1, d2, d3, d4, d5);
-
         this.minX = Math.min(d0, d3);
         this.minY = Math.min(d1, d4);
         this.minZ = Math.min(d2, d5);

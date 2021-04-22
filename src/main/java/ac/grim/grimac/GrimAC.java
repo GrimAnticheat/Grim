@@ -5,6 +5,7 @@ import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.bukkit.TestEvent;
 import ac.grim.grimac.events.packets.*;
+import ac.grim.grimac.utils.chunks.CachedBlockShape;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
@@ -36,11 +37,20 @@ public final class GrimAC extends JavaPlugin {
     public void onDisable() {
         transactionSender.shutdownNow();
         PacketEvents.get().terminate();
+
+
     }
 
     @Override
     public void onEnable() {
         plugin = this;
+
+        try {
+            new CachedBlockShape();
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+            return;
+        }
 
         registerEvents();
         registerPackets();
