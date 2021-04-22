@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.chunks;
 
+import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShape;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
 import net.minecraft.server.v1_16_R3.*;
@@ -67,7 +68,7 @@ public class CachedBlockShape {
                         ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeArray voxelShapeArray = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeArray(bits, bList, cList, dList, true);
                         blockShapes[i] = voxelShapeArray;
                     } else {
-                        new Exception().printStackTrace();
+                        GrimAC.plugin.getLogger().warning("Unable to compile collisions for " + block.getClass().getName());
                     }
 
                 } else if (vanillaShape instanceof VoxelShapeCube) {
@@ -76,9 +77,16 @@ public class CachedBlockShape {
                     VoxelShapeBitSet nmsBit = (VoxelShapeBitSet) bitSet.get(vanillaShape);
 
                     ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet bits = getBitSet(nmsBit);
-                } else if (vanillaShape instanceof VoxelShapeSlice) {
 
+                    ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeCube cube = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeCube(bits);
+
+                    blockShapes[i] = cube;
+                } else {
+                    GrimAC.plugin.getLogger().warning("Unable to compile collisions for " + block.getClass().getName());
                 }
+                /*else if (vanillaShape instanceof VoxelShapeSlice) {
+                    getSlice((VoxelShapeSlice) vanillaShape);
+                }*/
             } else {
                 blockShapes[i] = b;
             }

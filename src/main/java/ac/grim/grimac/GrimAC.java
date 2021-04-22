@@ -3,7 +3,6 @@ package ac.grim.grimac;
 import ac.grim.grimac.checks.movement.MovementCheckRunner;
 import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
-import ac.grim.grimac.events.bukkit.TestEvent;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.utils.chunks.CachedBlockShape;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -69,7 +68,6 @@ public final class GrimAC extends JavaPlugin {
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveListener(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
-        Bukkit.getPluginManager().registerEvents(new TestEvent(), this);
         Bukkit.getPluginManager().registerEvents(new MovementCheckRunner(), this);
     }
 

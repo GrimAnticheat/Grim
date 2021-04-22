@@ -143,6 +143,7 @@ public class PlayerBaseTick {
                     double d3;
                     mutableBlockPos.d(i, j, k);
                     Fluid fluid = ChunkCache.getBlockDataAt(i, j, k).getFluid();
+                    // TODO: This is not async safe!
                     if (!fluid.a(tag) || !((d3 = (float) j + fluid.getHeight(playerWorld, mutableBlockPos)) >= aABB.minY))
                         continue;
                     bl2 = true;
@@ -180,6 +181,7 @@ public class PlayerBaseTick {
         AxisAlignedBB axisAlignedBB = new AxisAlignedBB(blockPos2.getX(), player.boundingBox.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, player.boundingBox.maxY, blockPos2.getZ() + 1.0).grow(-1.0E-7, -1.0E-7, -1.0E-7);
         // It looks like the method it usually calls is gone from the server?
         // So we have to just do the allMatch ourselves.
+        // TODO: This is not async safe!
         return !((CraftWorld) player.playerWorld).getHandle().b(player.entityPlayer, axisAlignedBB, (blockState, blockPos) -> blockState.o(player.entityPlayer.getWorld(), blockPos)).allMatch(VoxelShape::isEmpty);
     }
 }

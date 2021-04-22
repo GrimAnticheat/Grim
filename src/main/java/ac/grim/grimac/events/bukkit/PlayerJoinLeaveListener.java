@@ -4,13 +4,9 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
@@ -32,15 +28,6 @@ public class PlayerJoinLeaveListener implements Listener {
         grimPlayer.yRot = player.getLocation().getPitch();
 
         GrimAC.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
-    }
-
-    @EventHandler
-    public void onPlayerPlaceBlockEvent(BlockPlaceEvent event) {
-        Location blockPlaceLocation = event.getBlock().getLocation();
-        VoxelShape blockPlaced = c(((CraftWorld) blockPlaceLocation.getWorld()).getHandle().getType(new BlockPosition(blockPlaceLocation.getBlockX(), blockPlaceLocation.getBlockY(), blockPlaceLocation.getBlockZ())),
-                new BlockPosition(blockPlaceLocation.getBlockX(), blockPlaceLocation.getBlockY(), blockPlaceLocation.getBlockZ()));
-
-        Bukkit.broadcastMessage(blockPlaced.toString());
     }
 
     public VoxelShape c(IBlockData iblockdata, BlockPosition blockposition) {
