@@ -11,7 +11,7 @@ public final class VoxelShapeDiscreteSlice extends VoxelShapeDiscrete {
     private final int i;
     private final int j;
 
-    protected VoxelShapeDiscreteSlice(VoxelShapeDiscrete var0, int var1, int var2, int var3, int var4, int var5, int var6) {
+    public VoxelShapeDiscreteSlice(VoxelShapeDiscrete var0, int var1, int var2, int var3, int var4, int var5, int var6) {
         super(var4 - var1, var5 - var2, var6 - var3);
         this.d = var0;
         this.e = var1;

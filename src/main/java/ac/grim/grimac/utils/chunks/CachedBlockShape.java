@@ -51,13 +51,14 @@ public class CachedBlockShape {
                     d.setAccessible(true);
 
                     DoubleList bList = (DoubleList) b.get(vanillaShape);
-                    DoubleList cList = (DoubleList) b.get(vanillaShape);
-                    DoubleList dList = (DoubleList) b.get(vanillaShape);
+                    DoubleList cList = (DoubleList) c.get(vanillaShape);
+                    DoubleList dList = (DoubleList) d.get(vanillaShape);
 
 
                     Field a = vanillaShape.getClass().getSuperclass().getDeclaredField("a");
                     a.setAccessible(true);
                     VoxelShapeDiscrete discrete = (VoxelShapeDiscrete) a.get(vanillaShape);
+
 
                     if (discrete instanceof VoxelShapeBitSet) {
                         Field disA = discrete.getClass().getSuperclass().getDeclaredField("a");
@@ -93,17 +94,41 @@ public class CachedBlockShape {
                         int intI = disI.getInt(discrete);
                         int intJ = disJ.getInt(discrete);
 
-
-                        // DoubleArrayList.wrap(Arrays.copyOf(adouble, voxelshapediscrete.b() + 1)), DoubleArrayList.wrap(Arrays.copyOf(adouble1, voxelshapediscrete.c() + 1)), DoubleArrayList.wrap(Arrays.copyOf(adouble2, voxelshapediscrete.d() + 1)));
-
                         ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet bits = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeBitSet(intA, intB, intC, intE, intF, intG, intH, intI, intJ);
 
-                        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeArray voxelShapeArray = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeArray(bits, new double[2], new double[2], new double[2]);
-                        voxelShapeArray.b = bList;
-                        voxelShapeArray.c = cList;
-                        voxelShapeArray.d = dList;
-
+                        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeArray voxelShapeArray = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeArray(bits, bList, cList, dList, true);
                         blockShapes[i] = voxelShapeArray;
+                    }
+
+                    // This code isn't ever used???
+                    if (discrete instanceof VoxelShapeDiscreteSlice) {
+                        Field d2 = discrete.getClass().getDeclaredField("d");
+                        Field e2 = discrete.getClass().getDeclaredField("e");
+                        Field f2 = discrete.getClass().getDeclaredField("f");
+                        Field g2 = discrete.getClass().getDeclaredField("g");
+                        Field h2 = discrete.getClass().getDeclaredField("h");
+                        Field i2 = discrete.getClass().getDeclaredField("i");
+                        Field j2 = discrete.getClass().getDeclaredField("j");
+
+                        VoxelShapeDiscrete d3 = (VoxelShapeDiscrete) d2.get(discrete);
+
+                        Field a4 = d3.getClass().getDeclaredField("a");
+                        Field b4 = d3.getClass().getDeclaredField("b");
+                        Field c4 = d3.getClass().getDeclaredField("c");
+
+                        int a5 = a4.getInt(d3);
+                        int b5 = b4.getInt(d3);
+                        int c5 = c4.getInt(d3);
+                        //ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeDiscrete dis = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeDiscrete(a5, b5, c5);
+
+                        int e3 = e2.getInt(discrete);
+                        int f3 = f2.getInt(discrete);
+                        int g3 = g2.getInt(discrete);
+                        int h3 = h2.getInt(discrete);
+                        int i3 = i2.getInt(discrete);
+                        int j3 = j2.getInt(discrete);
+
+                        //ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeDiscreteSlice slice = new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.VoxelShapeDiscreteSlice(d3, e3, f3, g3, h3, i3, j3);
                     }
 
                     /*Field disA = discrete.getClass().getDeclaredField("a");

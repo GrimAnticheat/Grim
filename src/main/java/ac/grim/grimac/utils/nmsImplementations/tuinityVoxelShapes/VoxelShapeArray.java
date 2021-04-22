@@ -15,10 +15,22 @@ public final class VoxelShapeArray extends VoxelShape {
     final double offsetX;
     final double offsetY;
     final double offsetZ;
-    public DoubleList b;
-    public DoubleList c;
-    public DoubleList d;
+    final public DoubleList b;
+    final public DoubleList c;
+    final public DoubleList d;
     // Tuinity end - optimise multi-aabb shapes
+
+    public VoxelShapeArray(VoxelShapeDiscrete voxelShapeDiscrete, DoubleList doublelist, DoubleList doublelist1, DoubleList doublelist2, boolean dummy) {
+        super(voxelShapeDiscrete);
+        b = doublelist;
+        c = doublelist1;
+        d = doublelist2;
+        offsetX = 0;
+        offsetY = 0;
+        offsetZ = 0;
+
+        this.boundingBoxesRepresentation = this.getBoundingBoxesRepresentation().toArray(EMPTY);
+    }
 
     public VoxelShapeArray(VoxelShapeDiscrete voxelshapediscrete, double[] adouble, double[] adouble1, double[] adouble2) {
         this(voxelshapediscrete, DoubleArrayList.wrap(Arrays.copyOf(adouble, voxelshapediscrete.b() + 1)), DoubleArrayList.wrap(Arrays.copyOf(adouble1, voxelshapediscrete.c() + 1)), DoubleArrayList.wrap(Arrays.copyOf(adouble2, voxelshapediscrete.d() + 1)));

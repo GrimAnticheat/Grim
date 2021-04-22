@@ -10,7 +10,7 @@ public abstract class VoxelShapeDiscrete {
     protected final int b;
     protected final int c;
 
-    protected VoxelShapeDiscrete(int var0, int var1, int var2) {
+    public VoxelShapeDiscrete(int var0, int var1, int var2) {
         this.a = var0;
         this.b = var1;
         this.c = var2;
