@@ -26,35 +26,36 @@ public class MovementVelocityCheck {
         this.bukkitPlayer = grimPlayer.bukkitPlayer;
     }
 
+    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel) {
+        return move(grimPlayer, moverType, inputVel, inputVel);
+    }
+
     // Entity line 527
     // TODO: Entity piston and entity shulker (want to) call this method too.
-    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel) {
+    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel, Vector collide) {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
-
-
-        // In NMS, inputVel is the same as getClientVelocity()
-        // But we don't want to touch client velocity with predictions
-        // Piston movement will touch this directly, even when acting on inputVel
-        Vector clientVel = inputVel.clone();
 
         if (grimPlayer.stuckSpeedMultiplier.getX() < 0.99) {
             grimPlayer.baseTickSetX(0);
             grimPlayer.baseTickSetY(0);
             grimPlayer.baseTickSetZ(0);
-            clientVel = new Vector();
+            grimPlayer.clientVelocity = new Vector();
         }
 
-        // This is when client velocity is no longer referenced by inputVel
-        if (!grimPlayer.inVehicle) {
-            inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
-        }
+        // Optimization - we run collisions before this occasionally so don't repeat them
+        if (inputVel == collide) {
+            // This is when client velocity is no longer referenced by inputVel
+            if (!grimPlayer.inVehicle) {
+                inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
+            }
 
-        Vector collide = Collisions.collide(inputVel, grimPlayer);
+            collide = Collisions.collide(inputVel, grimPlayer);
+        }
 
         // This is where vanilla moves the bounding box and sets it
-        grimPlayer.predictedVelocity = collide.clone();
+        grimPlayer.predictedVelocity = collide;
 
         grimPlayer.horizontalCollision = !Mth.equal(inputVel.getX(), collide.getX()) || !Mth.equal(inputVel.getZ(), collide.getZ());
         grimPlayer.verticalCollision = inputVel.getY() != collide.getY();
@@ -63,43 +64,43 @@ public class MovementVelocityCheck {
         Block onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
 
         if (inputVel.getX() != collide.getX()) {
-            clientVel.setX(0);
+            grimPlayer.clientVelocity.setX(0);
         }
 
         if (inputVel.getZ() != collide.getZ()) {
-            clientVel.setZ(0);
+            grimPlayer.clientVelocity.setZ(0);
         }
 
         if (inputVel.getY() != collide.getY()) {
             if (onBlock instanceof BlockSlime) {
                 if (grimPlayer.isSneaking) {
-                    clientVel.setY(0);
+                    grimPlayer.clientVelocity.setY(0);
                 } else {
-                    if (clientVel.getY() < 0.0) {
-                        clientVel.setY(-clientVel.getY() * (grimPlayer.inVehicle ? 0.8 : 1.0));
+                    if (grimPlayer.clientVelocity.getY() < 0.0) {
+                        grimPlayer.clientVelocity.setY(-grimPlayer.clientVelocity.getY() * (grimPlayer.inVehicle ? 0.8 : 1.0));
                     }
                 }
             } else if (onBlock instanceof BlockBed) {
-                if (clientVel.getY() < 0.0) {
-                    clientVel.setY(-clientVel.getY() * 0.6600000262260437 * (grimPlayer.inVehicle ? 0.8 : 1.0));
+                if (grimPlayer.clientVelocity.getY() < 0.0) {
+                    grimPlayer.clientVelocity.setY(-grimPlayer.clientVelocity.getY() * 0.6600000262260437 * (grimPlayer.inVehicle ? 0.8 : 1.0));
                 }
             } else {
-                clientVel.setY(0);
+                grimPlayer.clientVelocity.setY(0);
             }
         }
 
         // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
         if (onBlock instanceof BlockSlime) {
             if (grimPlayer.onGround && !grimPlayer.wasSneaking) {
-                double absVelocityY = Math.abs(clientVel.getY());
+                double absVelocityY = Math.abs(grimPlayer.clientVelocity.getY());
                 if (absVelocityY < 0.1) {
                     double d1 = 0.4D + absVelocityY * 0.2D;
-                    clientVel.multiply(new Vector(d1, 1, d1));
+                    grimPlayer.clientVelocity.multiply(new Vector(d1, 1, d1));
                 }
             }
         }
 
-        clientVel.multiply(grimPlayer.blockSpeedMultiplier);
+        grimPlayer.clientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
         grimPlayer.lastStuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
@@ -112,7 +113,7 @@ public class MovementVelocityCheck {
             grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
         }
 
-        return clientVel;
+        return grimPlayer.clientVelocity;
     }
 
     public void livingEntityAIStep() {

@@ -69,11 +69,13 @@ public class AxisAlignedBB {
                 (minZ1 - maxZ2) < -COLLISION_EPSILON && (maxZ1 - minZ2) > COLLISION_EPSILON;
     }
 
+    // Source move is used to find the first thing that blocks the movement
     public static double collideX(AxisAlignedBB target, AxisAlignedBB source, double source_move) {
         if (source_move == 0.0) {
             return 0.0;
         }
 
+        // First check that the bounding boxes are overlapping
         if ((source.minY - target.maxY) < -COLLISION_EPSILON && (source.maxY - target.minY) > COLLISION_EPSILON &&
                 (source.minZ - target.maxZ) < -COLLISION_EPSILON && (source.maxZ - target.minZ) > COLLISION_EPSILON) {
 
@@ -94,11 +96,13 @@ public class AxisAlignedBB {
         return source_move;
     }
 
+    // Source move is used to find the first thing that blocks the movement
     public static double collideY(AxisAlignedBB target, AxisAlignedBB source, double source_move) {
         if (source_move == 0.0) {
             return 0.0;
         }
 
+        // First check that the bounding boxes are overlapping
         if ((source.minX - target.maxX) < -COLLISION_EPSILON && (source.maxX - target.minX) > COLLISION_EPSILON &&
                 (source.minZ - target.maxZ) < -COLLISION_EPSILON && (source.maxZ - target.minZ) > COLLISION_EPSILON) {
             if (source_move >= 0.0) {
@@ -118,11 +122,13 @@ public class AxisAlignedBB {
         return source_move;
     }
 
+    // Source move is used to find the first thing that blocks the movement
     public static double collideZ(AxisAlignedBB target, AxisAlignedBB source, double source_move) {
         if (source_move == 0.0) {
             return 0.0;
         }
 
+        // First check that the bounding boxes are overlapping
         if ((source.minX - target.maxX) < -COLLISION_EPSILON && (source.maxX - target.minX) > COLLISION_EPSILON &&
                 (source.minY - target.maxY) < -COLLISION_EPSILON && (source.maxY - target.minY) > COLLISION_EPSILON) {
             if (source_move >= 0.0) {
@@ -334,6 +340,11 @@ public class AxisAlignedBB {
     public final AxisAlignedBB expand(double x, double y, double z) {
         return b(x, y, z);
     } // Paper - OBFHELPER
+
+    // Grim - obfuscation helper until I convert all this to Mojang mappings
+    public AxisAlignedBB expandToCoordinate(double x, double y, double z) {
+        return b(x, y, z);
+    }
 
     public AxisAlignedBB b(double d0, double d1, double d2) {
         double d3 = this.minX;

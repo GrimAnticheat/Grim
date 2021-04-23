@@ -7,7 +7,7 @@ public class GetBoundingBox {
     // Size shifting on 1.14+ (19w12a): 0.6 width 1.5 height
     // Size while gliding/swimming: 0.6 width 0.6 height
     // Size while sleeping: 0.2 width 0.2 height
-    public static AxisAlignedBB getPlayerBoundingBox(double centerX, double minY, double centerZ, boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, short clientVersion) {
+    public static ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB getPlayerBoundingBox(double centerX, double minY, double centerZ, boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, short clientVersion) {
         double playerHeight;
         double playerWidth = 0.6;
 

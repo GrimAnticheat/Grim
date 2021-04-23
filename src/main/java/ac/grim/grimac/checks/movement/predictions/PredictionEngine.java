@@ -79,25 +79,24 @@ public abstract class PredictionEngine {
             possibleVelocities.forEach((a) -> grimPlayer.couldSkipTick = grimPlayer.couldSkipTick || a.getX() * a.getX() + a.getY() * a.getY() + a.getZ() + a.getZ() < 9.0E-4D);
         }
 
-        Vector bestClientVelOutput = null;
-        Vector bestClientPredictionOutput = null;
+        Vector bestCollisionVel = null;
 
         for (Vector clientVelAfterInput : possibleVelocities) {
-            Vector outputVel = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, clientVelAfterInput);
-            double resultAccuracy = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
+            Vector outputVel = Collisions.collide(Collisions.maybeBackOffFromEdge(clientVelAfterInput, MoverType.SELF, grimPlayer), grimPlayer);
+            double resultAccuracy = outputVel.distance(grimPlayer.actualMovement);
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
-                bestClientVelOutput = outputVel.clone();
-                bestClientPredictionOutput = grimPlayer.predictedVelocity.clone();
+                grimPlayer.clientVelocity = clientVelAfterInput.clone();
+                bestCollisionVel = outputVel.clone();
 
                 // Optimization - Close enough, other inputs won't get closer
                 if (resultAccuracy < 0.01) break;
             }
         }
 
-        grimPlayer.clientVelocity = bestClientVelOutput;
-        grimPlayer.predictedVelocity = bestClientPredictionOutput;
+        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
+        grimPlayer.predictedVelocity = bestCollisionVel;
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 

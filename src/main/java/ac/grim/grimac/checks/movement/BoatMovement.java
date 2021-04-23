@@ -18,7 +18,7 @@ public class BoatMovement {
         floatBoat(grimPlayer);
         controlBoat(grimPlayer);
 
-        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
+        MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity.clone().multiply(grimPlayer.stuckSpeedMultiplier));
     }
 
     private static void floatBoat(GrimPlayer grimPlayer) {
