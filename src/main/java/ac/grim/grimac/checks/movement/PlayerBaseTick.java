@@ -125,7 +125,7 @@ public class PlayerBaseTick {
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
-        AxisAlignedBB aABB = player.boundingBox.shrink(0.001);
+        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB aABB = player.boundingBox.shrink(0.001);
         int n2 = Mth.floor(aABB.minX);
         int n3 = Mth.ceil(aABB.maxX);
         int n4 = Mth.floor(aABB.minY);

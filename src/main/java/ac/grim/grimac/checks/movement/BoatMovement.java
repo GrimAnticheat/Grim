@@ -107,7 +107,7 @@ public class BoatMovement {
     }
 
     public static float getWaterLevelAbove(GrimPlayer grimPlayer) {
-        AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
+        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
         int i = (int) Math.floor(axisalignedbb.minX);
         int j = (int) Math.ceil(axisalignedbb.maxX);
         int k = (int) Math.floor(axisalignedbb.maxY);
@@ -144,7 +144,7 @@ public class BoatMovement {
     }
 
     private static BoatEntityStatus isUnderwater(GrimPlayer grimPlayer) {
-        AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
+        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
         double d0 = axisalignedbb.maxY + 0.001D;
         int i = Mth.floor(axisalignedbb.minX);
         int j = Mth.ceil(axisalignedbb.maxX);
@@ -176,7 +176,7 @@ public class BoatMovement {
     }
 
     private static boolean checkInWater(GrimPlayer grimPlayer) {
-        AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
+        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
         int i = Mth.floor(axisalignedbb.minX);
         int j = Mth.ceil(axisalignedbb.maxX);
         int k = Mth.floor(axisalignedbb.minY);
@@ -206,7 +206,7 @@ public class BoatMovement {
     }
 
     public static float getGroundFriction(GrimPlayer grimPlayer) {
-        AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
+        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB axisalignedbb = grimPlayer.boundingBox;
         AxisAlignedBB axisalignedbb1 = new AxisAlignedBB(axisalignedbb.minX, axisalignedbb.minY - 0.001D, axisalignedbb.minZ, axisalignedbb.maxX, axisalignedbb.minY, axisalignedbb.maxZ);
         int i = (int) (Math.floor(axisalignedbb1.minX) - 1);
         int j = (int) (Math.ceil(axisalignedbb1.maxX) + 1);

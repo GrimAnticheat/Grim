@@ -1,7 +1,9 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB;
+import net.minecraft.server.v1_16_R3.MathHelper;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -9,7 +11,7 @@ import java.util.List;
 
 
 public class LegacyCollisions {
-    public Vector doCollisions(GrimPlayer grimPlayer, double xWithCollision, double yWithCollision, double zWithCollision) {
+    public static Vector collide(GrimPlayer grimPlayer, double xWithCollision, double yWithCollision, double zWithCollision) {
         AxisAlignedBB currentPosBB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
 
         List<AxisAlignedBB> desiredMovementCollisionBoxes = getCollisionBoxes(grimPlayer, currentPosBB.a(xWithCollision, yWithCollision, zWithCollision));
@@ -33,7 +35,7 @@ public class LegacyCollisions {
 
         if (xWithCollision != 0.0D) {
             for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
-                xWithCollision = AxisAlignedBB.collideY(bb, currentPosBB, xWithCollision;
+                xWithCollision = AxisAlignedBB.collideY(bb, currentPosBB, xWithCollision);
             }
 
             if (xWithCollision != 0) {
@@ -141,7 +143,20 @@ public class LegacyCollisions {
     }
 
     // Just a test
-    public List<AxisAlignedBB> getCollisionBoxes(GrimPlayer grimPlayer, AxisAlignedBB wantedBB) {
-        return new ArrayList<>();
+    // grimPlayer will be used eventually to get blocks from the player's cache
+    public static List<AxisAlignedBB> getCollisionBoxes(GrimPlayer grimPlayer, AxisAlignedBB wantedBB) {
+        List<AxisAlignedBB> listOfBlocks = new ArrayList<>();
+
+        for (int minY = MathHelper.floor(wantedBB.minY) - 1; minY < Math.ceil(wantedBB.maxY) + 1; minY++) {
+            for (int minZ = MathHelper.floor(wantedBB.minZ) - 1; minZ < Math.ceil(wantedBB.maxZ) + 1; minZ++) {
+                for (int minX = MathHelper.floor(wantedBB.minX) - 1; minX < Math.ceil(wantedBB.maxX) + 1; minX++) {
+                    if (ChunkCache.getBlockAt(minX, minY, minZ) != 0) {
+                        listOfBlocks.add(new AxisAlignedBB(minX, minY, minZ, minX + 1, minY + 1, minZ + 1));
+                    }
+                }
+            }
+        }
+
+        return listOfBlocks;
     }
 }

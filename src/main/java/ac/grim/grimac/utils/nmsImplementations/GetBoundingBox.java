@@ -1,7 +1,5 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
-import net.minecraft.server.v1_16_R3.AxisAlignedBB;
-
 public class GetBoundingBox {
     // Size regular: 0.6 width 1.8 height
     // Size shifting on 1.14+ (19w12a): 0.6 width 1.5 height
@@ -28,10 +26,10 @@ public class GetBoundingBox {
         double maxZ = centerZ + (playerWidth / 2);
         double maxY = minY + playerHeight;
 
-        return new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
+        return new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
-    public static AxisAlignedBB getBoatBoundingBox(double centerX, double minY, double centerZ) {
+    public static ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB getBoatBoundingBox(double centerX, double minY, double centerZ) {
         double boatWidth = 1.375;
         double boatHeight = 0.5625;
 
@@ -41,6 +39,6 @@ public class GetBoundingBox {
         double minZ = centerZ - (boatWidth / 2);
         double maxZ = centerZ + (boatWidth / 2);
 
-        return new AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
+        return new ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB(minX, minY, minZ, maxX, maxY, maxZ);
     }
 }

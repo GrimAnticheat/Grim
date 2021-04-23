@@ -25,7 +25,8 @@ public class Collisions {
     // This MUST return a new vector!!!
     // If it does not the predicted velocity will be overridden
     public static Vector collide(Vector vector, GrimPlayer grimPlayer) {
-        Vec3D vec3 = new Vec3D(vector.getX(), vector.getY(), vector.getZ());
+        return vector;
+        /*Vec3D vec3 = new Vec3D(vector.getX(), vector.getY(), vector.getZ());
 
         AxisAlignedBB aABB = grimPlayer.boundingBox;
         VoxelShapeCollision collisionContext = VoxelShapeCollision.a(grimPlayer.entityPlayer);
@@ -55,7 +56,7 @@ public class Collisions {
                 return new Vector(vec34.x, vec34.y, vec34.z);
             }
         }
-        return new Vector(vec32.x, vec32.y, vec32.z);
+        return new Vector(vec32.x, vec32.y, vec32.z);*/
     }
 
     public static Vec3D collideBoundingBoxHeuristically(@Nullable Entity entity, Vec3D vec3d, AxisAlignedBB axisalignedbb, World world, VoxelShapeCollision voxelshapecollision, StreamAccumulator<VoxelShape> streamaccumulator) {
@@ -238,7 +239,7 @@ public class Collisions {
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
         //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
-        if (!grimPlayer.specialFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.isSneaking && isAboveGround(grimPlayer)) {
+        /*if (!grimPlayer.specialFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.isSneaking && isAboveGround(grimPlayer)) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
             while (d != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(d, -maxUpStep, 0.0))) {
@@ -276,7 +277,7 @@ public class Collisions {
                 d2 += 0.05;
             }
             vec3 = new Vector(d, vec3.getY(), d2);
-        }
+        }*/
         return vec3;
     }
 
@@ -284,13 +285,14 @@ public class Collisions {
     private static boolean isAboveGround(GrimPlayer grimPlayer) {
         //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
-        return grimPlayer.lastOnGround || grimPlayer.fallDistance < Collisions.maxUpStep && !
-                noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, grimPlayer.fallDistance - Collisions.maxUpStep, 0.0));
+        return false;
+        /*return grimPlayer.lastOnGround || grimPlayer.fallDistance < Collisions.maxUpStep && !
+                noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, grimPlayer.fallDistance - Collisions.maxUpStep, 0.0));*/
     }
 
     public static void handleInsideBlocks(GrimPlayer grimPlayer) {
         // Use the bounding box for after the player's movement is applied
-        AxisAlignedBB aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
         Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
         Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
 

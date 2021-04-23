@@ -2,8 +2,8 @@ package ac.grim.grimac;
 
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.FireworkData;
+import ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB;
 import io.github.retrooper.packetevents.PacketEvents;
-import net.minecraft.server.v1_16_R3.AxisAlignedBB;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
