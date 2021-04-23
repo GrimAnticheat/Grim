@@ -64,6 +64,8 @@ public class LegacyCollisions {
             double d7 = zWithCollision;
             double stepUpHeight = grimPlayer.getMaxUpStep();
 
+            AxisAlignedBB justAfterCollisionBB = setBB;
+
             // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
             List<AxisAlignedBB> stepUpCollisionBoxes = getCollisionBoxes(grimPlayer, setBB.expandToCoordinate(clonedX, stepUpHeight, clonedZ));
 
@@ -118,7 +120,7 @@ public class LegacyCollisions {
             // Calculate Z offset
             double zWithCollisionClonedOnceAgain = clonedZ;
             for (AxisAlignedBB bb : stepUpCollisionBoxes) {
-                zWithCollisionClonedOnceAgain = AxisAlignedBB.collideX(bb, alwaysStepUpBB, zWithCollisionClonedOnceAgain);
+                zWithCollisionClonedOnceAgain = AxisAlignedBB.collideZ(bb, alwaysStepUpBB, zWithCollisionClonedOnceAgain);
             }
             alwaysStepUpBB = alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
 
@@ -134,7 +136,7 @@ public class LegacyCollisions {
             setBB = setBB.offset(0.0D, yWithCollision, 0.0D);
 
             if (d14 * d14 + d7 * d7 >= xWithCollision * xWithCollision + zWithCollision * zWithCollision) {
-                setBB = currentPosBB;
+                setBB = justAfterCollisionBB;
             }
         }
 
