@@ -27,29 +27,51 @@ public class LegacyCollisions {
         // Mojang implemented the if Z > X thing in 1.14+
         if (yWithCollision != 0.0D) {
             for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
-                yWithCollision = AxisAlignedBB.collideY(bb, currentPosBB, yWithCollision);
+                yWithCollision = AxisAlignedBB.collideY(bb, setBB, yWithCollision);
             }
 
             setBB = setBB.offset(0.0D, yWithCollision, 0.0D);
         }
 
-        if (xWithCollision != 0.0D) {
-            for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
-                xWithCollision = AxisAlignedBB.collideX(bb, currentPosBB, xWithCollision);
+        if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && grimPlayer.clientVersion >= 477) {
+            if (zWithCollision != 0.0D) {
+                for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
+                    zWithCollision = AxisAlignedBB.collideZ(bb, setBB, zWithCollision);
+                }
+
+                if (zWithCollision != 0) {
+                    setBB = setBB.offset(0.0D, 0.0D, zWithCollision);
+                }
             }
 
-            if (xWithCollision != 0) {
-                setBB = setBB.offset(xWithCollision, 0.0D, 0.0D);
-            }
-        }
+            if (xWithCollision != 0.0D) {
+                for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
+                    xWithCollision = AxisAlignedBB.collideX(bb, setBB, xWithCollision);
+                }
 
-        if (zWithCollision != 0.0D) {
-            for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
-                zWithCollision = AxisAlignedBB.collideZ(bb, currentPosBB, zWithCollision);
+                if (xWithCollision != 0) {
+                    setBB = setBB.offset(xWithCollision, 0.0D, 0.0D);
+                }
+            }
+        } else {
+            if (xWithCollision != 0.0D) {
+                for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
+                    xWithCollision = AxisAlignedBB.collideX(bb, setBB, xWithCollision);
+                }
+
+                if (xWithCollision != 0) {
+                    setBB = setBB.offset(xWithCollision, 0.0D, 0.0D);
+                }
             }
 
-            if (zWithCollision != 0) {
-                setBB = setBB.offset(0.0D, 0.0D, zWithCollision);
+            if (zWithCollision != 0.0D) {
+                for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
+                    zWithCollision = AxisAlignedBB.collideZ(bb, setBB, zWithCollision);
+                }
+
+                if (zWithCollision != 0) {
+                    setBB = setBB.offset(0.0D, 0.0D, zWithCollision);
+                }
             }
         }
 
@@ -85,20 +107,36 @@ public class LegacyCollisions {
 
             yCollisionStepUpBB = yCollisionStepUpBB.offset(0.0D, stepMaxClone, 0.0D);
 
-            // Calculate X offset
-            double clonedClonedX = clonedX;
-            for (AxisAlignedBB bb : stepUpCollisionBoxes) {
-                clonedClonedX = AxisAlignedBB.collideX(bb, yCollisionStepUpBB, clonedClonedX);
-            }
-            yCollisionStepUpBB = yCollisionStepUpBB.offset(clonedClonedX, 0.0D, 0.0D);
+            double clonedClonedX;
+            double clonedClonedZ;
+            if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && grimPlayer.clientVersion >= 477) {
+                // Calculate Z offset
+                clonedClonedZ = clonedZ;
+                for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                    clonedClonedZ = AxisAlignedBB.collideZ(bb, yCollisionStepUpBB, clonedClonedZ);
+                }
+                yCollisionStepUpBB = yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
+                // Calculate X offset
+                clonedClonedX = clonedX;
+                for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                    clonedClonedX = AxisAlignedBB.collideX(bb, yCollisionStepUpBB, clonedClonedX);
+                }
+                yCollisionStepUpBB = yCollisionStepUpBB.offset(clonedClonedX, 0.0D, 0.0D);
+            } else {
+                // Calculate X offset
+                clonedClonedX = clonedX;
+                for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                    clonedClonedX = AxisAlignedBB.collideX(bb, yCollisionStepUpBB, clonedClonedX);
+                }
+                yCollisionStepUpBB = yCollisionStepUpBB.offset(clonedClonedX, 0.0D, 0.0D);
 
-            // Calculate Z offset
-            double clonedClonedZ = clonedZ;
-            for (AxisAlignedBB bb : stepUpCollisionBoxes) {
-                clonedClonedZ = AxisAlignedBB.collideZ(bb, yCollisionStepUpBB, clonedClonedZ);
+                // Calculate Z offset
+                clonedClonedZ = clonedZ;
+                for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                    clonedClonedZ = AxisAlignedBB.collideZ(bb, yCollisionStepUpBB, clonedClonedZ);
+                }
+                yCollisionStepUpBB = yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
             }
-            yCollisionStepUpBB = yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
-
 
             // Then calculate collisions with the step up height added to the Y axis
             AxisAlignedBB alwaysStepUpBB = setBB;
@@ -108,18 +146,36 @@ public class LegacyCollisions {
                 stepUpHeightCloned = AxisAlignedBB.collideY(bb, alwaysStepUpBB, stepUpHeightCloned);
             }
             alwaysStepUpBB = alwaysStepUpBB.offset(0.0D, stepUpHeightCloned, 0.0D);
-            // Calculate X offset
-            double xWithCollisionClonedOnceAgain = clonedX;
-            for (AxisAlignedBB bb : stepUpCollisionBoxes) {
-                xWithCollisionClonedOnceAgain = AxisAlignedBB.collideX(bb, alwaysStepUpBB, xWithCollisionClonedOnceAgain);
+
+            double zWithCollisionClonedOnceAgain;
+            double xWithCollisionClonedOnceAgain;
+            if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && grimPlayer.clientVersion >= 477) {
+                // Calculate Z offset
+                zWithCollisionClonedOnceAgain = clonedZ;
+                for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                    zWithCollisionClonedOnceAgain = AxisAlignedBB.collideZ(bb, alwaysStepUpBB, zWithCollisionClonedOnceAgain);
+                }
+                alwaysStepUpBB = alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
+                // Calculate X offset
+                xWithCollisionClonedOnceAgain = clonedX;
+                for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                    xWithCollisionClonedOnceAgain = AxisAlignedBB.collideX(bb, alwaysStepUpBB, xWithCollisionClonedOnceAgain);
+                }
+                alwaysStepUpBB = alwaysStepUpBB.offset(xWithCollisionClonedOnceAgain, 0.0D, 0.0D);
+            } else {
+                // Calculate X offset
+                xWithCollisionClonedOnceAgain = clonedX;
+                for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                    xWithCollisionClonedOnceAgain = AxisAlignedBB.collideX(bb, alwaysStepUpBB, xWithCollisionClonedOnceAgain);
+                }
+                alwaysStepUpBB = alwaysStepUpBB.offset(xWithCollisionClonedOnceAgain, 0.0D, 0.0D);
+                // Calculate Z offset
+                zWithCollisionClonedOnceAgain = clonedZ;
+                for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                    zWithCollisionClonedOnceAgain = AxisAlignedBB.collideZ(bb, alwaysStepUpBB, zWithCollisionClonedOnceAgain);
+                }
+                alwaysStepUpBB = alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
             }
-            alwaysStepUpBB = alwaysStepUpBB.offset(xWithCollisionClonedOnceAgain, 0.0D, 0.0D);
-            // Calculate Z offset
-            double zWithCollisionClonedOnceAgain = clonedZ;
-            for (AxisAlignedBB bb : stepUpCollisionBoxes) {
-                zWithCollisionClonedOnceAgain = AxisAlignedBB.collideZ(bb, alwaysStepUpBB, zWithCollisionClonedOnceAgain);
-            }
-            alwaysStepUpBB = alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
 
 
             double d23 = clonedClonedX * clonedClonedX + clonedClonedZ * clonedClonedZ;
