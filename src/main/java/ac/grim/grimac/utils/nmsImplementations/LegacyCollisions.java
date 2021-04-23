@@ -59,9 +59,6 @@ public class LegacyCollisions {
         // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
         // If not, just return the collisions without stepping up that we calculated earlier
         if (grimPlayer.getMaxUpStep() > 0.0F && movingIntoGround && (clonedX != xWithCollision || clonedZ != zWithCollision)) {
-            double d14 = xWithCollision;
-            double d6 = yWithCollision;
-            double d7 = zWithCollision;
             double stepUpHeight = grimPlayer.getMaxUpStep();
 
             AxisAlignedBB justAfterCollisionBB = setBB;
@@ -135,7 +132,7 @@ public class LegacyCollisions {
 
             setBB = setBB.offset(0.0D, yWithCollision, 0.0D);
 
-            if (d14 * d14 + d7 * d7 >= xWithCollision * xWithCollision + zWithCollision * zWithCollision) {
+            if (xWithCollision * xWithCollision + zWithCollision * zWithCollision >= xWithCollision * xWithCollision + zWithCollision * zWithCollision) {
                 setBB = justAfterCollisionBB;
             }
         }
