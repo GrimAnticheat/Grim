@@ -81,6 +81,7 @@ public abstract class PredictionEngine {
 
         Vector bestCollisionVel = null;
 
+
         for (Vector clientVelAfterInput : possibleVelocities) {
             Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput, MoverType.SELF, grimPlayer);
             Vector outputVel = LegacyCollisions.collide(grimPlayer, backOff.getX(), backOff.getY(), backOff.getZ());
@@ -96,8 +97,9 @@ public abstract class PredictionEngine {
             }
         }
 
+        grimPlayer.clientVelocity = bestCollisionVel.clone();
         grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
-        grimPlayer.predictedVelocity = bestCollisionVel;
+        grimPlayer.predictedVelocity = bestCollisionVel.clone();
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }
 

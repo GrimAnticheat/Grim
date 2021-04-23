@@ -35,7 +35,7 @@ public class LegacyCollisions {
 
         if (xWithCollision != 0.0D) {
             for (AxisAlignedBB bb : desiredMovementCollisionBoxes) {
-                xWithCollision = AxisAlignedBB.collideY(bb, currentPosBB, xWithCollision);
+                xWithCollision = AxisAlignedBB.collideX(bb, currentPosBB, xWithCollision);
             }
 
             if (xWithCollision != 0) {
