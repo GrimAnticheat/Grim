@@ -99,7 +99,7 @@ public class Collisions {
             double stepUpHeight = grimPlayer.getMaxUpStep();
             // Undo the offsets done above, but keep the result in justAfterCollisionBB
             SimpleCollisionBox justAfterCollisionBB = setBB.copy();
-            setBB = currentPosBB;
+            setBB = currentPosBB.copy();
 
 
             // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
@@ -118,7 +118,7 @@ public class Collisions {
             // TODO: We could probably return normal collision if stepMaxClone == 0 - as we aren't stepping on anything
             // Check some 1.8 jar for it - TacoSpigot would be the best bet for any optimizations here
             // I do need to debug that though. Not sure.
-            SimpleCollisionBox yCollisionStepUpBB = setBB.copy();
+            SimpleCollisionBox yCollisionStepUpBB = currentPosBB.copy();
 
 
             yCollisionStepUpBB.offset(0.0D, stepMaxClone, 0.0D);

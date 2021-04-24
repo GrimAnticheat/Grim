@@ -156,29 +156,22 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     public SimpleCollisionBox expandToCoordinate(double x, double y, double z) {
-        double d0 = this.minX;
-        double d1 = this.minY;
-        double d2 = this.minZ;
-        double d3 = this.maxX;
-        double d4 = this.maxY;
-        double d5 = this.maxZ;
-
         if (x < 0.0D) {
-            d0 += x;
+            minX += x;
         } else if (x > 0.0D) {
-            d3 += x;
+            maxX += x;
         }
 
         if (y < 0.0D) {
-            d1 += y;
+            minY += y;
         } else if (y > 0.0D) {
-            d4 += y;
+            maxY += y;
         }
 
         if (z < 0.0D) {
-            d2 += z;
+            minZ += z;
         } else if (z > 0.0D) {
-            d5 += z;
+            maxZ += z;
         }
 
         return this;
