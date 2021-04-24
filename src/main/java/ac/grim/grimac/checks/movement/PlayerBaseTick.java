@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
@@ -39,10 +40,10 @@ public class PlayerBaseTick {
         // LocalPlayer:aiStep line 647
         // Players in boats don't care about being in blocks
         if (!player.inVehicle) {
-            this.moveTowardsClosestSpace(player.lastX - player.boundingBox.b() * 0.35, player.lastZ + player.boundingBox.d() * 0.35);
-            this.moveTowardsClosestSpace(player.lastX - player.boundingBox.b() * 0.35, player.lastZ - player.boundingBox.d() * 0.35);
-            this.moveTowardsClosestSpace(player.lastX + player.boundingBox.b() * 0.35, player.lastZ - player.boundingBox.d() * 0.35);
-            this.moveTowardsClosestSpace(player.lastX + player.boundingBox.b() * 0.35, player.lastZ + player.boundingBox.d() * 0.35);
+            this.moveTowardsClosestSpace(player.lastX - (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ + (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
+            this.moveTowardsClosestSpace(player.lastX - (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ - (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
+            this.moveTowardsClosestSpace(player.lastX + (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ - (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
+            this.moveTowardsClosestSpace(player.lastX + (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ + (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
         }
 
         float f = BlockProperties.getBlockSpeedFactor(player);
@@ -125,7 +126,7 @@ public class PlayerBaseTick {
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
-        ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB aABB = player.boundingBox.shrink(0.001);
+        SimpleCollisionBox aABB = player.boundingBox.expand(-0.001);
         int n2 = Mth.floor(aABB.minX);
         int n3 = Mth.ceil(aABB.maxX);
         int n4 = Mth.floor(aABB.minY);

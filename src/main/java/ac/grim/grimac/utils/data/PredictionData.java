@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import ac.grim.grimac.utils.collisions.Collisions;
 import net.minecraft.server.v1_16_R3.EntityBoat;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;

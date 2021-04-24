@@ -4,14 +4,13 @@ import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineLava;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
+import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.data.FireworkData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
-import ac.grim.grimac.utils.nmsImplementations.LegacyCollisions;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -52,7 +51,7 @@ public class MovementVelocityCheck {
                 inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
             }
 
-            collide = LegacyCollisions.collide(grimPlayer, inputVel.getX(), inputVel.getY(), inputVel.getZ());
+            collide = Collisions.collide(grimPlayer, inputVel.getX(), inputVel.getY(), inputVel.getZ());
         }
 
         // This is where vanilla moves the bounding box and sets it

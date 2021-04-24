@@ -1,8 +1,8 @@
 package ac.grim.grimac;
 
+import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.FireworkData;
-import ac.grim.grimac.utils.nmsImplementations.tuinityVoxelShapes.AxisAlignedBB;
 import io.github.retrooper.packetevents.PacketEvents;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
@@ -73,7 +73,7 @@ public class GrimPlayer {
     public boolean isClimbing;
     public boolean isFallFlying;
     public double fallDistance;
-    public AxisAlignedBB boundingBox;
+    public SimpleCollisionBox boundingBox;
     public World playerWorld;
 
     public double movementSpeed;

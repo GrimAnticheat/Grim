@@ -2,11 +2,10 @@ package ac.grim.grimac.checks.movement.predictions;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.MovementVelocityCheck;
+import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import ac.grim.grimac.utils.nmsImplementations.LegacyCollisions;
 import net.minecraft.server.v1_16_R3.TagsFluid;
 import org.bukkit.util.Vector;
 
@@ -84,7 +83,7 @@ public abstract class PredictionEngine {
 
         for (Vector clientVelAfterInput : possibleVelocities) {
             Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput, MoverType.SELF, grimPlayer);
-            Vector outputVel = LegacyCollisions.collide(grimPlayer, backOff.getX(), backOff.getY(), backOff.getZ());
+            Vector outputVel = Collisions.collide(grimPlayer, backOff.getX(), backOff.getY(), backOff.getZ());
             double resultAccuracy = outputVel.distance(grimPlayer.actualMovement);
 
             if (resultAccuracy < bestInput) {

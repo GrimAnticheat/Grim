@@ -76,6 +76,10 @@
             <id>dmulloy2-repo</id>
             <url>https://repo.dmulloy2.net/repository/public/</url>
         </repository>
+        <repository>
+            <id>funkemunky-releases</id>
+            <url>http://nexus.funkemunky.cc/content/repositories/releases/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -111,6 +115,12 @@
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil</artifactId>
             <version>8.5.4</version>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.20</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
