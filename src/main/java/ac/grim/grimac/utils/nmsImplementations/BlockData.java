@@ -476,6 +476,7 @@ public enum BlockData {
     public static BlockData getData(Material material) {
         // Material matched = MiscUtils.match(material.toString());
         BlockData data = lookup[material.ordinal()];
+
         return data != null ? data : _DEFAULT;
     }
 
