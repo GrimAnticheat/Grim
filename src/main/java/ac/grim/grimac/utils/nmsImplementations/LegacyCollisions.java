@@ -82,6 +82,8 @@ public class LegacyCollisions {
         // If not, just return the collisions without stepping up that we calculated earlier
         if (grimPlayer.getMaxUpStep() > 0.0F && movingIntoGround && (clonedX != xWithCollision || clonedZ != zWithCollision)) {
             double stepUpHeight = grimPlayer.getMaxUpStep();
+            // Undo the offsets done above
+            setBB = currentPosBB;
 
             AxisAlignedBB justAfterCollisionBB = setBB;
 
@@ -180,15 +182,29 @@ public class LegacyCollisions {
 
             double d23 = clonedClonedX * clonedClonedX + clonedClonedZ * clonedClonedZ;
             double d9 = xWithCollisionClonedOnceAgain * xWithCollisionClonedOnceAgain + zWithCollisionClonedOnceAgain * zWithCollisionClonedOnceAgain;
-            setBB = d23 > d9 ? yCollisionStepUpBB : alwaysStepUpBB;
 
-            for (AxisAlignedBB bb : stepUpCollisionBoxes) {
-                yWithCollision = AxisAlignedBB.collideY(bb, setBB, yWithCollision);
+            double x;
+            double y;
+            double z;
+            if (d23 > d9) {
+                x = clonedClonedX;
+                y = -stepMaxClone;
+                z = clonedClonedZ;
+                setBB = yCollisionStepUpBB;
+            } else {
+                x = xWithCollisionClonedOnceAgain;
+                y = -stepUpHeightCloned;
+                z = zWithCollisionClonedOnceAgain;
+                setBB = alwaysStepUpBB;
             }
 
-            setBB = setBB.offset(0.0D, yWithCollision, 0.0D);
+            for (AxisAlignedBB bb : stepUpCollisionBoxes) {
+                y = AxisAlignedBB.collideY(bb, setBB, y);
+            }
 
-            if (xWithCollision * xWithCollision + zWithCollision * zWithCollision >= xWithCollision * xWithCollision + zWithCollision * zWithCollision) {
+            setBB = setBB.offset(0.0D, y, 0.0D);
+
+            if (xWithCollision * xWithCollision + zWithCollision * zWithCollision >= x * x + z * z) {
                 setBB = justAfterCollisionBB;
             }
         }
