@@ -1,3 +1,5 @@
+Note: There currently is no stable branch, the majority of stuff is currently disabled and broken in the master branch while doing major refactors.
+
 A free and open source anticheat for 1.16. Everything that can be promised is promised, except legacy support, and is
 about 30% complete. Should release late summer or early fall 2021. We are a prediction based anticheat meaning that we
 use client code directly in order to see whether a movement is possible. This gives us a huge advantage over traditional
