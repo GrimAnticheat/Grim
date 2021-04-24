@@ -42,7 +42,7 @@ public class Collisions {
         // Mojang implemented the if Z > X thing in 1.14+
         if (yWithCollision != 0.0D) {
             for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                yWithCollision = setBB.collideY(bb, yWithCollision);
+                yWithCollision = bb.collideY(setBB, yWithCollision);
             }
 
             setBB.offset(0.0D, yWithCollision, 0.0D);
@@ -51,7 +51,7 @@ public class Collisions {
         if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && grimPlayer.clientVersion >= 477) {
             if (zWithCollision != 0.0D) {
                 for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                    zWithCollision = setBB.collideZ(bb, zWithCollision);
+                    zWithCollision = bb.collideZ(setBB, zWithCollision);
                 }
 
                 if (zWithCollision != 0) {
@@ -61,7 +61,7 @@ public class Collisions {
 
             if (xWithCollision != 0.0D) {
                 for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                    xWithCollision = setBB.collideX(bb, xWithCollision);
+                    xWithCollision = bb.collideX(setBB, xWithCollision);
                 }
 
                 if (xWithCollision != 0) {
@@ -71,7 +71,7 @@ public class Collisions {
         } else {
             if (xWithCollision != 0.0D) {
                 for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                    xWithCollision = setBB.collideX(bb, xWithCollision);
+                    xWithCollision = bb.collideX(setBB, xWithCollision);
                 }
 
                 if (xWithCollision != 0) {
@@ -81,7 +81,7 @@ public class Collisions {
 
             if (zWithCollision != 0.0D) {
                 for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                    zWithCollision = setBB.collideZ(bb, zWithCollision);
+                    zWithCollision = bb.collideZ(setBB, zWithCollision);
                 }
 
                 if (zWithCollision != 0) {
@@ -111,7 +111,7 @@ public class Collisions {
             double stepMaxClone = stepUpHeight;
             // See how far upwards we go in the Y axis with coordinate expanded collision
             for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                stepMaxClone = expandedToCoordinateBB.collideY(bb, stepMaxClone);
+                stepMaxClone = bb.collideY(expandedToCoordinateBB, stepMaxClone);
             }
 
 
@@ -129,27 +129,27 @@ public class Collisions {
                 // Calculate Z offset
                 clonedClonedZ = clonedZ;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    clonedClonedZ = yCollisionStepUpBB.collideZ(bb, clonedClonedZ);
+                    clonedClonedZ = bb.collideZ(yCollisionStepUpBB, clonedClonedZ);
                 }
                 yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
                 // Calculate X offset
                 clonedClonedX = clonedX;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    clonedClonedX = yCollisionStepUpBB.collideX(bb, clonedClonedX);
+                    clonedClonedX = bb.collideX(yCollisionStepUpBB, clonedClonedX);
                 }
                 yCollisionStepUpBB.offset(clonedClonedX, 0.0D, 0.0D);
             } else {
                 // Calculate X offset
                 clonedClonedX = clonedX;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    clonedClonedX = yCollisionStepUpBB.collideX(bb, clonedClonedX);
+                    clonedClonedX = bb.collideX(yCollisionStepUpBB, clonedClonedX);
                 }
                 yCollisionStepUpBB.offset(clonedClonedX, 0.0D, 0.0D);
 
                 // Calculate Z offset
                 clonedClonedZ = clonedZ;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    clonedClonedZ = yCollisionStepUpBB.collideZ(bb, clonedClonedZ);
+                    clonedClonedZ = bb.collideZ(yCollisionStepUpBB, clonedClonedZ);
                 }
                 yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
             }
@@ -169,26 +169,26 @@ public class Collisions {
                 // Calculate Z offset
                 zWithCollisionClonedOnceAgain = clonedZ;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    zWithCollisionClonedOnceAgain = alwaysStepUpBB.collideZ(bb, zWithCollisionClonedOnceAgain);
+                    zWithCollisionClonedOnceAgain = bb.collideZ(alwaysStepUpBB, zWithCollisionClonedOnceAgain);
                 }
                 alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
                 // Calculate X offset
                 xWithCollisionClonedOnceAgain = clonedX;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    xWithCollisionClonedOnceAgain = alwaysStepUpBB.collideX(bb, xWithCollisionClonedOnceAgain);
+                    xWithCollisionClonedOnceAgain = bb.collideX(alwaysStepUpBB, xWithCollisionClonedOnceAgain);
                 }
                 alwaysStepUpBB.offset(xWithCollisionClonedOnceAgain, 0.0D, 0.0D);
             } else {
                 // Calculate X offset
                 xWithCollisionClonedOnceAgain = clonedX;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    xWithCollisionClonedOnceAgain = alwaysStepUpBB.collideX(bb, xWithCollisionClonedOnceAgain);
+                    xWithCollisionClonedOnceAgain = bb.collideX(alwaysStepUpBB, xWithCollisionClonedOnceAgain);
                 }
                 alwaysStepUpBB.offset(xWithCollisionClonedOnceAgain, 0.0D, 0.0D);
                 // Calculate Z offset
                 zWithCollisionClonedOnceAgain = clonedZ;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    zWithCollisionClonedOnceAgain = alwaysStepUpBB.collideZ(bb, zWithCollisionClonedOnceAgain);
+                    zWithCollisionClonedOnceAgain = bb.collideZ(alwaysStepUpBB, zWithCollisionClonedOnceAgain);
                 }
                 alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
             }
