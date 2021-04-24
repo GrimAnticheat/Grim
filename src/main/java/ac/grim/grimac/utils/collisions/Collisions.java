@@ -155,11 +155,11 @@ public class Collisions {
             }
 
             // Then calculate collisions with the step up height added to the Y axis
-            SimpleCollisionBox alwaysStepUpBB = setBB.copy();
+            SimpleCollisionBox alwaysStepUpBB = currentPosBB.copy();
             // Calculate y offset
             double stepUpHeightCloned = stepUpHeight;
             for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                stepUpHeightCloned = alwaysStepUpBB.collideY(bb, stepUpHeightCloned);
+                stepUpHeightCloned = bb.collideY(alwaysStepUpBB, stepUpHeightCloned);
             }
             alwaysStepUpBB.offset(0.0D, stepUpHeightCloned, 0.0D);
 
@@ -213,8 +213,9 @@ public class Collisions {
             }
 
             for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                y = setBB.collideY(bb, y);
+                y = bb.collideY(setBB, y);
             }
+
 
             setBB.offset(0.0D, y, 0.0D);
 
