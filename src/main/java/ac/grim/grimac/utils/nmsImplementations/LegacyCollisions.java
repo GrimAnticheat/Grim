@@ -82,10 +82,10 @@ public class LegacyCollisions {
         // If not, just return the collisions without stepping up that we calculated earlier
         if (grimPlayer.getMaxUpStep() > 0.0F && movingIntoGround && (clonedX != xWithCollision || clonedZ != zWithCollision)) {
             double stepUpHeight = grimPlayer.getMaxUpStep();
-            // Undo the offsets done above
+            // Undo the offsets done above, but keep the result in justAfterCollisionBB
+            AxisAlignedBB justAfterCollisionBB = setBB;
             setBB = currentPosBB;
 
-            AxisAlignedBB justAfterCollisionBB = setBB;
 
             // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
             List<AxisAlignedBB> stepUpCollisionBoxes = getCollisionBoxes(grimPlayer, setBB.expandToCoordinate(clonedX, stepUpHeight, clonedZ));
