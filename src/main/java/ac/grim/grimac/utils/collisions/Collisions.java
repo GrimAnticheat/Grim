@@ -31,6 +31,9 @@ public class Collisions {
 
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(grimPlayer, currentPosBB.copy().offset(xWithCollision, yWithCollision, zWithCollision));
         SimpleCollisionBox setBB = currentPosBB.copy();
+        double setX = 0;
+        double setY = 0;
+        double setZ = 0;
 
         double clonedX = xWithCollision;
         double clonedY = yWithCollision;
@@ -46,6 +49,7 @@ public class Collisions {
             }
 
             setBB.offset(0.0D, yWithCollision, 0.0D);
+            setY += yWithCollision;
         }
 
         if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && grimPlayer.clientVersion >= 477) {
@@ -56,6 +60,7 @@ public class Collisions {
 
                 if (zWithCollision != 0) {
                     setBB.offset(0.0D, 0.0D, zWithCollision);
+                    setZ += zWithCollision;
                 }
             }
 
@@ -66,6 +71,7 @@ public class Collisions {
 
                 if (xWithCollision != 0) {
                     setBB.offset(xWithCollision, 0.0D, 0.0D);
+                    setX += xWithCollision;
                 }
             }
         } else {
@@ -76,6 +82,7 @@ public class Collisions {
 
                 if (xWithCollision != 0) {
                     setBB.offset(xWithCollision, 0.0D, 0.0D);
+                    setX += xWithCollision;
                 }
             }
 
@@ -86,6 +93,7 @@ public class Collisions {
 
                 if (zWithCollision != 0) {
                     setBB.offset(0.0D, 0.0D, zWithCollision);
+                    setZ += zWithCollision;
                 }
             }
         }
@@ -119,9 +127,12 @@ public class Collisions {
             // Check some 1.8 jar for it - TacoSpigot would be the best bet for any optimizations here
             // I do need to debug that though. Not sure.
             SimpleCollisionBox yCollisionStepUpBB = currentPosBB.copy();
-
+            double xSetYCol = 0;
+            double ySetYCol = 0;
+            double zSetYCol = 0;
 
             yCollisionStepUpBB.offset(0.0D, stepMaxClone, 0.0D);
+            ySetYCol += stepMaxClone;
 
             double clonedClonedX;
             double clonedClonedZ;
@@ -132,12 +143,14 @@ public class Collisions {
                     clonedClonedZ = bb.collideZ(yCollisionStepUpBB, clonedClonedZ);
                 }
                 yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
+                zSetYCol += clonedClonedZ;
                 // Calculate X offset
                 clonedClonedX = clonedX;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
                     clonedClonedX = bb.collideX(yCollisionStepUpBB, clonedClonedX);
                 }
                 yCollisionStepUpBB.offset(clonedClonedX, 0.0D, 0.0D);
+                xSetYCol += clonedClonedX;
             } else {
                 // Calculate X offset
                 clonedClonedX = clonedX;
@@ -145,6 +158,7 @@ public class Collisions {
                     clonedClonedX = bb.collideX(yCollisionStepUpBB, clonedClonedX);
                 }
                 yCollisionStepUpBB.offset(clonedClonedX, 0.0D, 0.0D);
+                xSetYCol += clonedClonedX;
 
                 // Calculate Z offset
                 clonedClonedZ = clonedZ;
@@ -152,16 +166,22 @@ public class Collisions {
                     clonedClonedZ = bb.collideZ(yCollisionStepUpBB, clonedClonedZ);
                 }
                 yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
+                zSetYCol += clonedClonedZ;
             }
 
             // Then calculate collisions with the step up height added to the Y axis
             SimpleCollisionBox alwaysStepUpBB = currentPosBB.copy();
+            double xAlways = 0;
+            double yAlways = 0;
+            double zAlways = 0;
+
             // Calculate y offset
             double stepUpHeightCloned = stepUpHeight;
             for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
                 stepUpHeightCloned = bb.collideY(alwaysStepUpBB, stepUpHeightCloned);
             }
             alwaysStepUpBB.offset(0.0D, stepUpHeightCloned, 0.0D);
+            yAlways += stepUpHeightCloned;
 
             double zWithCollisionClonedOnceAgain;
             double xWithCollisionClonedOnceAgain;
@@ -172,12 +192,14 @@ public class Collisions {
                     zWithCollisionClonedOnceAgain = bb.collideZ(alwaysStepUpBB, zWithCollisionClonedOnceAgain);
                 }
                 alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
+                zAlways += zWithCollisionClonedOnceAgain;
                 // Calculate X offset
                 xWithCollisionClonedOnceAgain = clonedX;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
                     xWithCollisionClonedOnceAgain = bb.collideX(alwaysStepUpBB, xWithCollisionClonedOnceAgain);
                 }
                 alwaysStepUpBB.offset(xWithCollisionClonedOnceAgain, 0.0D, 0.0D);
+                xAlways += xWithCollisionClonedOnceAgain;
             } else {
                 // Calculate X offset
                 xWithCollisionClonedOnceAgain = clonedX;
@@ -185,12 +207,14 @@ public class Collisions {
                     xWithCollisionClonedOnceAgain = bb.collideX(alwaysStepUpBB, xWithCollisionClonedOnceAgain);
                 }
                 alwaysStepUpBB.offset(xWithCollisionClonedOnceAgain, 0.0D, 0.0D);
+                xAlways += xWithCollisionClonedOnceAgain;
                 // Calculate Z offset
                 zWithCollisionClonedOnceAgain = clonedZ;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
                     zWithCollisionClonedOnceAgain = bb.collideZ(alwaysStepUpBB, zWithCollisionClonedOnceAgain);
                 }
                 alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
+                zAlways += zWithCollisionClonedOnceAgain;
             }
 
 
@@ -200,16 +224,27 @@ public class Collisions {
             double x;
             double y;
             double z;
+
+            double originalSetX = setX;
+            double originalSetY = setY;
+            double originalSetZ = setZ;
+
             if (d23 > d9) {
                 x = clonedClonedX;
                 y = -stepMaxClone;
                 z = clonedClonedZ;
                 setBB = yCollisionStepUpBB;
+                setX = xSetYCol;
+                setY = ySetYCol;
+                setZ = zSetYCol;
             } else {
                 x = xWithCollisionClonedOnceAgain;
                 y = -stepUpHeightCloned;
                 z = zWithCollisionClonedOnceAgain;
                 setBB = alwaysStepUpBB;
+                setX = xAlways;
+                setY = yAlways;
+                setZ = zAlways;
             }
 
             for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
@@ -218,14 +253,19 @@ public class Collisions {
 
 
             setBB.offset(0.0D, y, 0.0D);
+            setY += y;
 
             if (xWithCollision * xWithCollision + zWithCollision * zWithCollision >= x * x + z * z) {
                 setBB = justAfterCollisionBB;
+                setX = originalSetX;
+                setY = originalSetY;
+                setZ = originalSetZ;
             }
         }
 
         // Convert bounding box movement back into a vector
-        return new Vector(setBB.minX - currentPosBB.minX, setBB.minY - currentPosBB.minY, setBB.minZ - currentPosBB.minZ);
+        return new Vector(setX, setY, setZ);
+        //return new Vector(setBB.minX - currentPosBB.minX, setBB.minY - currentPosBB.minY, setBB.minZ - currentPosBB.minZ);
     }
 
     private static int a(double var0, double var2, double var4) {

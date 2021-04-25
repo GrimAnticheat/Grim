@@ -82,13 +82,14 @@ public abstract class PredictionEngine {
 
 
         for (Vector clientVelAfterInput : possibleVelocities) {
+            // TODO: Player inputs should most likely be done before maybeBackOffOfEdge
             Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput, MoverType.SELF, grimPlayer);
             Vector outputVel = Collisions.collide(grimPlayer, backOff.getX(), backOff.getY(), backOff.getZ());
             double resultAccuracy = outputVel.distance(grimPlayer.actualMovement);
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
-                grimPlayer.clientVelocity = clientVelAfterInput.clone();
+                grimPlayer.clientVelocity = backOff.clone();
                 bestCollisionVel = outputVel.clone();
 
                 // Optimization - Close enough, other inputs won't get closer
@@ -96,7 +97,6 @@ public abstract class PredictionEngine {
             }
         }
 
-        grimPlayer.clientVelocity = bestCollisionVel.clone();
         grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
         grimPlayer.predictedVelocity = bestCollisionVel.clone();
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
