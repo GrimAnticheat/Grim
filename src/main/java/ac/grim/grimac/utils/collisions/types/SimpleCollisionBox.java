@@ -8,6 +8,7 @@ import java.util.List;
 
 public class SimpleCollisionBox implements CollisionBox {
     public double minX, minY, minZ, maxX, maxY, maxZ;
+    public static final double COLLISION_EPSILON = 1.0E-7;
 
     public SimpleCollisionBox() {
         this(0, 0, 0, 0, 0, 0);
@@ -212,22 +213,27 @@ public class SimpleCollisionBox implements CollisionBox {
      * calculated offset.  Otherwise return the calculated offset.
      */
     public double collideX(SimpleCollisionBox other, double offsetX) {
-        if (other.maxY > this.minY && other.minY < this.maxY && other.maxZ > this.minZ && other.minZ < this.maxZ) {
-            if (offsetX > 0.0D && other.maxX <= this.minX) {
-                double d1 = this.minX - other.maxX;
-
-                if (d1 < offsetX) {
-                    offsetX = d1;
-                }
-            } else if (offsetX < 0.0D && other.minX >= this.maxX) {
-                double d0 = this.maxX - other.minX;
-
-                if (d0 > offsetX) {
-                    offsetX = d0;
-                }
-            }
+        if (offsetX == 0.0) {
+            return 0.0;
         }
 
+        if ((other.minY - maxY) < -COLLISION_EPSILON && (other.maxY - minY) > COLLISION_EPSILON &&
+                (other.minZ - maxZ) < -COLLISION_EPSILON && (other.maxZ - minZ) > COLLISION_EPSILON) {
+
+            if (offsetX >= 0.0) {
+                double max_move = minX - other.maxX; // < 0.0 if no strict collision
+                if (max_move < -COLLISION_EPSILON) {
+                    return offsetX;
+                }
+                return Math.min(max_move, offsetX);
+            } else {
+                double max_move = maxX - other.minX; // > 0.0 if no strict collision
+                if (max_move > COLLISION_EPSILON) {
+                    return offsetX;
+                }
+                return Math.max(max_move, offsetX);
+            }
+        }
         return offsetX;
     }
 
@@ -237,22 +243,26 @@ public class SimpleCollisionBox implements CollisionBox {
      * calculated offset.  Otherwise return the calculated offset.
      */
     public double collideY(SimpleCollisionBox other, double offsetY) {
-        if (other.maxX > this.minX && other.minX < this.maxX && other.maxZ > this.minZ && other.minZ < this.maxZ) {
-            if (offsetY > 0.0D && other.maxY <= this.minY) {
-                double d1 = this.minY - other.maxY;
-
-                if (d1 < offsetY) {
-                    offsetY = d1;
-                }
-            } else if (offsetY < 0.0D && other.minY >= this.maxY) {
-                double d0 = this.maxY - other.minY;
-
-                if (d0 > offsetY) {
-                    offsetY = d0;
-                }
-            }
+        if (offsetY == 0.0) {
+            return 0.0;
         }
 
+        if ((other.minX - maxX) < -COLLISION_EPSILON && (other.maxX - minX) > COLLISION_EPSILON &&
+                (other.minZ - maxZ) < -COLLISION_EPSILON && (other.maxZ - minZ) > COLLISION_EPSILON) {
+            if (offsetY >= 0.0) {
+                double max_move = minY - other.maxY; // < 0.0 if no strict collision
+                if (max_move < -COLLISION_EPSILON) {
+                    return offsetY;
+                }
+                return Math.min(max_move, offsetY);
+            } else {
+                double max_move = maxY - other.minY; // > 0.0 if no strict collision
+                if (max_move > COLLISION_EPSILON) {
+                    return offsetY;
+                }
+                return Math.max(max_move, offsetY);
+            }
+        }
         return offsetY;
     }
 
@@ -262,22 +272,26 @@ public class SimpleCollisionBox implements CollisionBox {
      * calculated offset.  Otherwise return the calculated offset.
      */
     public double collideZ(SimpleCollisionBox other, double offsetZ) {
-        if (other.maxX > this.minX && other.minX < this.maxX && other.maxY > this.minY && other.minY < this.maxY) {
-            if (offsetZ > 0.0D && other.maxZ <= this.minZ) {
-                double d1 = this.minZ - other.maxZ;
-
-                if (d1 < offsetZ) {
-                    offsetZ = d1;
-                }
-            } else if (offsetZ < 0.0D && other.minZ >= this.maxZ) {
-                double d0 = this.maxZ - other.minZ;
-
-                if (d0 > offsetZ) {
-                    offsetZ = d0;
-                }
-            }
+        if (offsetZ == 0.0) {
+            return 0.0;
         }
 
+        if ((other.minX - maxX) < -COLLISION_EPSILON && (other.maxX - minX) > COLLISION_EPSILON &&
+                (other.minY - maxY) < -COLLISION_EPSILON && (other.maxY - minY) > COLLISION_EPSILON) {
+            if (offsetZ >= 0.0) {
+                double max_move = minZ - other.maxZ; // < 0.0 if no strict collision
+                if (max_move < -COLLISION_EPSILON) {
+                    return offsetZ;
+                }
+                return Math.min(max_move, offsetZ);
+            } else {
+                double max_move = maxZ - other.minZ; // > 0.0 if no strict collision
+                if (max_move > COLLISION_EPSILON) {
+                    return offsetZ;
+                }
+                return Math.max(max_move, offsetZ);
+            }
+        }
         return offsetZ;
     }
 
