@@ -444,7 +444,7 @@ public enum BlockData {
     _DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1),
             XMaterial.STONE.parseMaterial());
 
-    private static final BlockData[] lookup = new BlockData[Material.values().length];
+    private static final BlockData[] lookup = new BlockData[net.minecraft.server.v1_16_R3.Block.REGISTRY_ID.a()];
 
     static {
         for (BlockData data : values()) {
@@ -476,7 +476,6 @@ public enum BlockData {
     public static BlockData getData(Material material) {
         // Material matched = MiscUtils.match(material.toString());
         BlockData data = lookup[material.ordinal()];
-
         return data != null ? data : _DEFAULT;
     }
 
