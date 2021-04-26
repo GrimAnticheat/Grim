@@ -1,7 +1,9 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
+import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import ac.grim.grimac.utils.collisions.blocks.DynamicWall;
+import ac.grim.grimac.utils.collisions.blocks.staticBlock.HopperBounding;
 import ac.grim.grimac.utils.collisions.types.*;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
@@ -9,6 +11,8 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.MultipleFacing;
+import org.bukkit.block.data.type.Cake;
+import org.bukkit.block.data.type.Ladder;
 import org.bukkit.block.data.type.Slab;
 
 import java.util.Arrays;
@@ -245,6 +249,74 @@ public enum CollisionData {
             XMaterial.CREEPER_HEAD.parseMaterial(), XMaterial.DRAGON_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
             XMaterial.PLAYER_HEAD.parseMaterial(), XMaterial.ZOMBIE_HEAD.parseMaterial()),
 
+
+    // I would use streams but I don't want to accidentally touch legacy materials.
+    _DOOR(new DoorHandler(), XMaterial.ACACIA_DOOR.parseMaterial(), XMaterial.BIRCH_DOOR.parseMaterial(),
+            XMaterial.CRIMSON_DOOR.parseMaterial(), XMaterial.DARK_OAK_DOOR.parseMaterial(),
+            XMaterial.IRON_DOOR.parseMaterial(), XMaterial.JUNGLE_DOOR.parseMaterial(),
+            XMaterial.OAK_DOOR.parseMaterial(), XMaterial.SPRUCE_DOOR.parseMaterial(),
+            XMaterial.WARPED_DOOR.parseMaterial()),
+
+    _HOPPER(new HopperBounding(), XMaterial.HOPPER.parseMaterial()),
+
+
+    _CAKE(new CollisionFactory() {
+        // Byte is the number of bytes eaten.
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            double slicesEaten = (1 + data * 2) / 16D;
+            return new SimpleCollisionBox(slicesEaten, 0, 0.0625, 1 - 0.0625, 0.5, 1 - 0.0625);
+        }
+
+        // Note that this is for stuff on walls and not regular skull blocks
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Cake cake = (Cake) block;
+            return fetch(version, (byte) cake.getBites(), x, y, z);
+        }
+    }, XMaterial.CAKE.parseMaterial()),
+
+
+    _LADDER(new CollisionFactory() {
+        // Byte is the number of bytes eaten.
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            float var3 = 0.1875F;
+
+            if (data == 2) { // North
+                return new HexCollisionBox(0.0D, 0.0D, 13.0D, 16.0D, 16.0D, 16.0D);
+            } else if (data == 3) { // South
+                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 3.0D);
+            } else if (data == 4) { // West
+                return new HexCollisionBox(13.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+            } else if (data == 5) { // East
+                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
+            }
+
+            // This code is unreachable but the compiler does not know this
+            return NoCollisionBox.INSTANCE;
+        }
+
+        // Note that this is for stuff on walls and not regular skull blocks
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Ladder ladder = (Ladder) block;
+
+            switch (ladder.getFacing()) {
+                case NORTH:
+                    return new HexCollisionBox(0.0D, 0.0D, 13.0D, 16.0D, 16.0D, 16.0D);
+                case SOUTH:
+                    return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 3.0D);
+                case WEST:
+                    return new HexCollisionBox(13.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+                case EAST:
+                    return new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
+            }
+
+            // This code is unreachable but the compiler does not know this
+            return NoCollisionBox.INSTANCE;
+        }
+    }, XMaterial.LADDER.parseMaterial()),
 
     // TODO: Some of these blocks have a collision box, fix them for the interact check
     _NONE(NoCollisionBox.INSTANCE, XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial(),
