@@ -1,10 +1,7 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
-import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
-import ac.grim.grimac.utils.collisions.blocks.DynamicFence;
-import ac.grim.grimac.utils.collisions.blocks.DynamicPane;
-import ac.grim.grimac.utils.collisions.blocks.DynamicWall;
+import ac.grim.grimac.utils.collisions.blocks.*;
 import ac.grim.grimac.utils.collisions.blocks.staticBlock.HopperBounding;
 import ac.grim.grimac.utils.collisions.types.*;
 import ac.grim.grimac.utils.data.ProtocolVersion;
@@ -21,7 +18,6 @@ import org.bukkit.block.data.type.Snow;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public enum CollisionData {
     _VINE(new CollisionFactory() {
@@ -149,19 +145,13 @@ public enum CollisionData {
     }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
 
 
-    _WALL(new DynamicWall(), XMaterial.ANDESITE_WALL.parseMaterial(), XMaterial.BRICK_WALL.parseMaterial(),
-            XMaterial.COBBLESTONE_WALL.parseMaterial(), XMaterial.DIORITE_WALL.parseMaterial(),
-            XMaterial.END_STONE_BRICK_WALL.parseMaterial(), XMaterial.GRANITE_WALL.parseMaterial(),
-            XMaterial.MOSSY_COBBLESTONE_WALL.parseMaterial(), XMaterial.MOSSY_STONE_BRICK_WALL.parseMaterial(),
-            XMaterial.NETHER_BRICK_WALL.parseMaterial(), XMaterial.POLISHED_BLACKSTONE_BRICK_WALL.parseMaterial(),
-            XMaterial.POLISHED_BLACKSTONE_WALL.parseMaterial(), XMaterial.PRISMARINE_WALL.parseMaterial(),
-            XMaterial.RED_NETHER_BRICK_WALL.parseMaterial(), XMaterial.SANDSTONE_WALL.parseMaterial(),
-            XMaterial.STONE_BRICK_WALL.parseMaterial()),
+    _WALL(new DynamicWall(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("WALL")
+            && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER")
+            && !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
+            .map(XMaterial::parseMaterial)
+            .toArray(Material[]::new)),
 
 
-    // Fully using streams might be better, but then you are hacking around stuff like Material.PIG_STEP
-    // This is simpler and easier to debug than using a stream to do the same thing in less lines
-    // We still have to remove the double slabs for legacy versions of the game.
     _SLAB(new CollisionFactory() {
         @Override
         public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
@@ -184,20 +174,10 @@ public enum CollisionData {
 
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
         }
-    }, Stream.of(XMaterial.OAK_SLAB.parseMaterial(), XMaterial.SPRUCE_SLAB.parseMaterial(), XMaterial.BIRCH_SLAB.parseMaterial(),
-            XMaterial.JUNGLE_SLAB.parseMaterial(), XMaterial.ACACIA_SLAB.parseMaterial(), XMaterial.DARK_OAK_SLAB.parseMaterial(),
-            XMaterial.CRIMSON_SLAB.parseMaterial(), XMaterial.WARPED_SLAB.parseMaterial(), XMaterial.STONE_SLAB.parseMaterial(),
-            XMaterial.SMOOTH_STONE_SLAB.parseMaterial(), XMaterial.SANDSTONE_SLAB.parseMaterial(), XMaterial.CUT_SANDSTONE_SLAB.parseMaterial(),
-            XMaterial.PETRIFIED_OAK_SLAB.parseMaterial(), XMaterial.COBBLESTONE_SLAB.parseMaterial(), XMaterial.BRICK_SLAB.parseMaterial(),
-            XMaterial.STONE_BRICK_SLAB.parseMaterial(), XMaterial.NETHER_BRICK_SLAB.parseMaterial(), XMaterial.QUARTZ_SLAB.parseMaterial(),
-            XMaterial.RED_SANDSTONE_SLAB.parseMaterial(), XMaterial.CUT_RED_SANDSTONE_SLAB.parseMaterial(), XMaterial.PURPUR_SLAB.parseMaterial(),
-            XMaterial.PRISMARINE_SLAB.parseMaterial(), XMaterial.PRISMARINE_BRICK_SLAB.parseMaterial(), XMaterial.DARK_PRISMARINE_SLAB.parseMaterial(),
-            XMaterial.POLISHED_GRANITE_SLAB.parseMaterial(), XMaterial.SMOOTH_RED_SANDSTONE_SLAB.parseMaterial(), XMaterial.MOSSY_STONE_BRICK_SLAB.parseMaterial(),
-            XMaterial.POLISHED_DIORITE_SLAB.parseMaterial(), XMaterial.MOSSY_COBBLESTONE_SLAB.parseMaterial(), XMaterial.END_STONE_BRICK_SLAB.parseMaterial(),
-            XMaterial.SMOOTH_SANDSTONE_SLAB.parseMaterial(), XMaterial.SMOOTH_QUARTZ_SLAB.parseMaterial(), XMaterial.GRANITE_SLAB.parseMaterial(),
-            XMaterial.ANDESITE_SLAB.parseMaterial(), XMaterial.RED_NETHER_BRICK_SLAB.parseMaterial(), XMaterial.POLISHED_ANDESITE_SLAB.parseMaterial(),
-            XMaterial.DIORITE_SLAB.parseMaterial(), XMaterial.BLACKSTONE_SLAB.parseMaterial(), XMaterial.POLISHED_BLACKSTONE_SLAB.parseMaterial(),
-            XMaterial.POLISHED_BLACKSTONE_BRICK_SLAB.parseMaterial()).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
+        // 1.13 can handle double slabs as it's in the block data
+        // 1.12 has double slabs as a separate block, no block data to differentiate it
+    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_SLAB"))
+            .map(XMaterial::parseMaterial).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
 
     // Note, getting legacy byte seems broken for skulls
     _WALL_SKULL(new CollisionFactory() {
@@ -253,15 +233,10 @@ public enum CollisionData {
             XMaterial.PLAYER_HEAD.parseMaterial(), XMaterial.ZOMBIE_HEAD.parseMaterial()),
 
 
-    // I would use streams but I don't want to accidentally touch legacy materials.
-    _DOOR(new DoorHandler(), XMaterial.ACACIA_DOOR.parseMaterial(), XMaterial.BIRCH_DOOR.parseMaterial(),
-            XMaterial.CRIMSON_DOOR.parseMaterial(), XMaterial.DARK_OAK_DOOR.parseMaterial(),
-            XMaterial.IRON_DOOR.parseMaterial(), XMaterial.JUNGLE_DOOR.parseMaterial(),
-            XMaterial.OAK_DOOR.parseMaterial(), XMaterial.SPRUCE_DOOR.parseMaterial(),
-            XMaterial.WARPED_DOOR.parseMaterial()),
+    _DOOR(new DoorHandler(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_DOOR"))
+            .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
     _HOPPER(new HopperBounding(), XMaterial.HOPPER.parseMaterial()),
-
 
     _CAKE(new CollisionFactory() {
         // Byte is the number of bytes eaten.
@@ -359,21 +334,13 @@ public enum CollisionData {
             .toArray(Material[]::new)),
 
 
-    _FENCE(new DynamicFence(), XMaterial.OAK_FENCE.parseMaterial(), XMaterial.SPRUCE_FENCE.parseMaterial(),
-            XMaterial.BIRCH_FENCE.parseMaterial(), XMaterial.JUNGLE_FENCE.parseMaterial(),
-            XMaterial.ACACIA_FENCE.parseMaterial(), XMaterial.DARK_OAK_FENCE.parseMaterial(),
-            XMaterial.CRIMSON_FENCE.parseMaterial(), XMaterial.WARPED_FENCE.parseMaterial()),
+    _FENCE(new DynamicFence(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE"))
+            .map(XMaterial::parseMaterial)
+            .toArray(Material[]::new)),
 
 
-    _PANE(new DynamicPane(), XMaterial.BLACK_STAINED_GLASS_PANE.parseMaterial(), XMaterial.BLUE_STAINED_GLASS_PANE.parseMaterial(),
-            XMaterial.BROWN_STAINED_GLASS_PANE.parseMaterial(), XMaterial.CYAN_STAINED_GLASS_PANE.parseMaterial(),
-            XMaterial.GRAY_STAINED_GLASS_PANE.parseMaterial(), XMaterial.GREEN_STAINED_GLASS_PANE.parseMaterial(),
-            XMaterial.LIGHT_BLUE_STAINED_GLASS_PANE.parseMaterial(), XMaterial.LIGHT_GRAY_STAINED_GLASS_PANE.parseMaterial(),
-            XMaterial.LIME_STAINED_GLASS_PANE.parseMaterial(), XMaterial.MAGENTA_STAINED_GLASS_PANE.parseMaterial(),
-            XMaterial.ORANGE_STAINED_GLASS_PANE.parseMaterial(), XMaterial.PINK_STAINED_GLASS_PANE.parseMaterial(),
-            XMaterial.RED_STAINED_GLASS_PANE.parseMaterial(), XMaterial.WHITE_STAINED_GLASS_PANE.parseMaterial(),
-            XMaterial.YELLOW_STAINED_GLASS_PANE.parseMaterial(), XMaterial.GLASS_PANE.parseMaterial(),
-            XMaterial.IRON_BARS.parseMaterial()),
+    _PANE(new DynamicPane(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().equals("IRON_BARS"))
+            .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
 
     _SNOW(new CollisionFactory() {
@@ -393,6 +360,53 @@ public enum CollisionData {
         }
     }, XMaterial.SNOW.parseMaterial()),
 
+
+    _STAIR(new DynamicStair(),
+            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("STAIRS"))
+                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+
+
+    _CHEST(new DynamicChest(), XMaterial.CHEST.parseMaterial(), XMaterial.TRAPPED_CHEST.parseMaterial()),
+
+
+    _ENDERCHEST(new SimpleCollisionBox(0.0625F, 0.0F, 0.0625F,
+            0.9375F, 0.875F, 0.9375F),
+            XMaterial.ENDER_CHEST.parseMaterial()),
+
+
+    _ETABLE(new SimpleCollisionBox(0, 0, 0, 1, 1 - 0.25, 1),
+            XMaterial.ENCHANTING_TABLE.parseMaterial()),
+
+
+    // TODO: This actually depends on client version?
+    _FRAME(new SimpleCollisionBox(0, 0, 0, 1, 1 - (0.0625 * 3), 1),
+            XMaterial.END_PORTAL_FRAME.parseMaterial()),
+
+    _CARPET(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F),
+            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("CARPET"))
+                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+
+    _Daylight(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F),
+            XMaterial.DAYLIGHT_DETECTOR.parseMaterial()),
+
+
+    _LILIPAD(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            if (version.isBelow(ProtocolVersion.V1_9))
+                return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f);
+            return new SimpleCollisionBox(0.0625, 0.0F, 0.0625, 0.9375, 0.015625F, 0.9375);
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            return fetch(version, (byte) 0, x, y, z);
+        }
+    }, XMaterial.LILY_PAD.parseMaterial()),
+
+    _BED(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.5625, 1.0F),
+            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("BED") && !mat.name().contains("ROCK"))
+                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
     // TODO: Some of these blocks have a collision box, fix them for the interact check
     _NONE(NoCollisionBox.INSTANCE, XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial(),
