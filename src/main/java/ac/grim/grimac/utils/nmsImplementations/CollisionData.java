@@ -2,6 +2,8 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
+import ac.grim.grimac.utils.collisions.blocks.DynamicFence;
+import ac.grim.grimac.utils.collisions.blocks.DynamicPane;
 import ac.grim.grimac.utils.collisions.blocks.DynamicWall;
 import ac.grim.grimac.utils.collisions.blocks.staticBlock.HopperBounding;
 import ac.grim.grimac.utils.collisions.types.*;
@@ -14,6 +16,7 @@ import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Cake;
 import org.bukkit.block.data.type.Gate;
 import org.bukkit.block.data.type.Slab;
+import org.bukkit.block.data.type.Snow;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -354,6 +357,41 @@ public enum CollisionData {
     }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
             .map(XMaterial::parseMaterial)
             .toArray(Material[]::new)),
+
+
+    _FENCE(new DynamicFence(), XMaterial.OAK_FENCE.parseMaterial(), XMaterial.SPRUCE_FENCE.parseMaterial(),
+            XMaterial.BIRCH_FENCE.parseMaterial(), XMaterial.JUNGLE_FENCE.parseMaterial(),
+            XMaterial.ACACIA_FENCE.parseMaterial(), XMaterial.DARK_OAK_FENCE.parseMaterial(),
+            XMaterial.CRIMSON_FENCE.parseMaterial(), XMaterial.WARPED_FENCE.parseMaterial()),
+
+
+    _PANE(new DynamicPane(), XMaterial.BLACK_STAINED_GLASS_PANE.parseMaterial(), XMaterial.BLUE_STAINED_GLASS_PANE.parseMaterial(),
+            XMaterial.BROWN_STAINED_GLASS_PANE.parseMaterial(), XMaterial.CYAN_STAINED_GLASS_PANE.parseMaterial(),
+            XMaterial.GRAY_STAINED_GLASS_PANE.parseMaterial(), XMaterial.GREEN_STAINED_GLASS_PANE.parseMaterial(),
+            XMaterial.LIGHT_BLUE_STAINED_GLASS_PANE.parseMaterial(), XMaterial.LIGHT_GRAY_STAINED_GLASS_PANE.parseMaterial(),
+            XMaterial.LIME_STAINED_GLASS_PANE.parseMaterial(), XMaterial.MAGENTA_STAINED_GLASS_PANE.parseMaterial(),
+            XMaterial.ORANGE_STAINED_GLASS_PANE.parseMaterial(), XMaterial.PINK_STAINED_GLASS_PANE.parseMaterial(),
+            XMaterial.RED_STAINED_GLASS_PANE.parseMaterial(), XMaterial.WHITE_STAINED_GLASS_PANE.parseMaterial(),
+            XMaterial.YELLOW_STAINED_GLASS_PANE.parseMaterial(), XMaterial.GLASS_PANE.parseMaterial(),
+            XMaterial.IRON_BARS.parseMaterial()),
+
+
+    _SNOW(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // Byte format = number of layers of snow
+            if (data == 0)
+                return NoCollisionBox.INSTANCE;
+
+            return new SimpleCollisionBox(0, 0, 0, 1, data * 0.125, 1);
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Snow snow = (Snow) block;
+            return fetch(version, (byte) snow.getLayers(), x, y, z);
+        }
+    }, XMaterial.SNOW.parseMaterial()),
 
 
     // TODO: Some of these blocks have a collision box, fix them for the interact check
