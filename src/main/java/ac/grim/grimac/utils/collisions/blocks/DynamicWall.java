@@ -5,10 +5,7 @@ import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
-import org.bukkit.material.Stairs;
+import org.bukkit.block.data.BlockData;
 
 @SuppressWarnings("Duplicates")
 public class DynamicWall implements CollisionFactory {
@@ -17,8 +14,10 @@ public class DynamicWall implements CollisionFactory {
     private static final double min = .5 - width;
     private static final double max = .5 + width;
 
-    private static boolean wallConnects(ProtocolVersion v, Block fenceBlock, BlockFace direction) {
-        Block targetBlock = fenceBlock.getRelative(direction, 1);
+    private static boolean wallConnects(ProtocolVersion v, int currX, int currY, int currZ, int x, int y, int z) {
+
+        return false;
+        /*Block targetBlock = fenceBlock.getRelative(direction, 1);
         BlockState sTarget = targetBlock.getState();
         Material target = sTarget.getType();
 
@@ -29,7 +28,7 @@ public class DynamicWall implements CollisionFactory {
             if (v.isBelow(ProtocolVersion.V1_12)) return false;
             Stairs stairs = (Stairs) sTarget.getData();
             return stairs.getFacing() == direction;
-        } else return isWall(target) || (target.isSolid() && !target.isTransparent());
+        } else return isWall(target) || (target.isSolid() && !target.isTransparent());*/
     }
 
     private static boolean isWall(Material m) {
@@ -37,11 +36,11 @@ public class DynamicWall implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(ProtocolVersion version, Block b) {
-        boolean var3 = wallConnects(version, b, BlockFace.NORTH);
-        boolean var4 = wallConnects(version, b, BlockFace.SOUTH);
-        boolean var5 = wallConnects(version, b, BlockFace.WEST);
-        boolean var6 = wallConnects(version, b, BlockFace.EAST);
+    public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
+        boolean var3 = wallConnects(version, x, y, z, x, y, z - 1);
+        boolean var4 = wallConnects(version, x, y, z, x, y, z + 1);
+        boolean var5 = wallConnects(version, x, y, z, x - 1, y, z);
+        boolean var6 = wallConnects(version, x, y, z, x + 1, y, z);
 
         double var7 = 0.25;
         double var8 = 0.75;
@@ -73,6 +72,11 @@ public class DynamicWall implements CollisionFactory {
         }
 
         return new SimpleCollisionBox(var7, 0.0, var9, var8, 1.5, var10);
+    }
+
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+        return fetch(version, (byte) 0, x, y, z);
     }
 
 }

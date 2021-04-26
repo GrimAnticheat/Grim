@@ -5,6 +5,7 @@ import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.utils.chunks.CachedBlockShape;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
@@ -54,6 +55,7 @@ public final class GrimAC extends JavaPlugin {
         registerEvents();
         registerPackets();
         registerChecks();
+        ChunkCache.initBlockID();
         scheduleTransactionPacketSend();
         handleReload();
 

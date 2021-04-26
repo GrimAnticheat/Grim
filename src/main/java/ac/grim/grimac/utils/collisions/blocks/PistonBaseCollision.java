@@ -4,12 +4,12 @@ import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
-import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 
 public class PistonBaseCollision implements CollisionFactory {
     @Override
-    public CollisionBox fetch(ProtocolVersion version, Block block) {
-        byte data = block.getState().getData().getData();
+    public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+        //byte data = block.getState().getData().getData();
 
         if ((data & 8) != 0) {
             switch (data & 7) {
@@ -30,5 +30,10 @@ public class PistonBaseCollision implements CollisionFactory {
             return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
         }
         return null;
+    }
+
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+        return fetch(version, (byte) 0, x, y, z);
     }
 }

@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import com.google.common.collect.Lists;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.util.CraftMagicNumbers;
 import org.bukkit.util.Vector;
@@ -442,7 +441,8 @@ public class Collisions {
         for (int x = (int) Math.floor(wantedBB.minX); x <= Math.ceil(wantedBB.maxX); x++) {
             for (int y = (int) Math.floor(wantedBB.minY); y <= Math.ceil(wantedBB.maxY); y++) {
                 for (int z = (int) Math.floor(wantedBB.minZ); z <= Math.ceil(wantedBB.maxZ); z++) {
-                    BlockData.getData(CraftMagicNumbers.getMaterial(ChunkCache.getBlockDataAt(x, y, z)).getItemType()).getBox(Bukkit.getWorld("world").getBlockAt(x, y, z), ProtocolVersion.v1_16_5).downCast(listOfBlocks);
+                    org.bukkit.block.data.BlockData data = ChunkCache.getBukkitBlockDataAt(x, y, z);
+                    BlockData.getData(data.getMaterial()).getBox(data, x, y, z, ProtocolVersion.v1_16_5).downCast(listOfBlocks);
                     CraftMagicNumbers.getMaterial(ChunkCache.getBlockDataAt(x, y, z)).getData();
                 }
             }

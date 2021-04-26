@@ -7,11 +7,7 @@ import ac.grim.grimac.utils.collisions.types.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
-import org.bukkit.material.Gate;
-import org.bukkit.material.Stairs;
+import org.bukkit.block.data.BlockData;
 
 public class DynamicFence implements CollisionFactory {
 
@@ -35,10 +31,11 @@ public class DynamicFence implements CollisionFactory {
         }
     }
 
-    private static boolean fenceConnects(ProtocolVersion v, Block fenceBlock, BlockFace direction) {
-        Block targetBlock = fenceBlock.getRelative(direction, 1);
-        BlockState sFence = fenceBlock.getState();
-        BlockState sTarget = targetBlock.getState();
+    private static boolean fenceConnects(ProtocolVersion v, int currX, int currY, int currZ, int x, int y, int z) {
+        // TODO: Fix this method to use block cache
+        return false;
+        /*IBlockData blockDir = ChunkCache.getBlockDataAt(x, y, z);
+        IBlockData currBlock = ChunkCache.getBlockDataAt(currX, currY, currZ);
         Material target = sTarget.getType();
         Material fence = sFence.getType();
 
@@ -48,7 +45,8 @@ public class DynamicFence implements CollisionFactory {
         if (Materials.checkFlag(target, Materials.STAIRS)) {
             if (v.isBelow(ProtocolVersion.V1_12)) return false;
             Stairs stairs = (Stairs) sTarget.getData();
-            return stairs.getFacing() == direction;
+            BlockDirectional blockDirDir = (BlockDirectional) blockDir.getBlock();
+            return blockDirDir..getFacing() == direction;
         } else if (target.name().contains("GATE")) {
             Gate gate = (Gate) sTarget.getData();
             BlockFace f1 = gate.getFacing();
@@ -59,7 +57,7 @@ public class DynamicFence implements CollisionFactory {
             if (isFence(target))
                 return !fence.name().contains("NETHER") && !target.name().contains("NETHER");
             else return isFence(target) || (target.isSolid() && !target.isTransparent());
-        }
+        }*/
     }
 
     private static boolean isFence(Material material) {
@@ -67,12 +65,12 @@ public class DynamicFence implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(ProtocolVersion version, Block b) {
+    public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
         ComplexCollisionBox box = new ComplexCollisionBox(new SimpleCollisionBox(min, 0, min, max, 1.5, max));
-        boolean east = fenceConnects(version, b, BlockFace.EAST);
-        boolean north = fenceConnects(version, b, BlockFace.NORTH);
-        boolean south = fenceConnects(version, b, BlockFace.SOUTH);
-        boolean west = fenceConnects(version, b, BlockFace.WEST);
+        boolean east = fenceConnects(version, x, y, z, x + 1, y, z);
+        boolean north = fenceConnects(version, x, y, z, x, y, z - 1);
+        boolean south = fenceConnects(version, x, y, z, x, y, z + 1);
+        boolean west = fenceConnects(version, x, y, z, x - 1, y, z);
         if (east) box.add(new SimpleCollisionBox(max, 0, min, 1, 1.5, max));
         if (west) box.add(new SimpleCollisionBox(0, 0, min, max, 1.5, max));
         if (north) box.add(new SimpleCollisionBox(min, 0, 0, max, 1.5, min));
@@ -80,4 +78,8 @@ public class DynamicFence implements CollisionFactory {
         return box;
     }
 
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+        return fetch(version, (byte) 0, x, y, z);
+    }
 }

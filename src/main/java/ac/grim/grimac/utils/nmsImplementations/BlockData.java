@@ -2,15 +2,10 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.blocks.*;
+import ac.grim.grimac.utils.collisions.blocks.staticBlock.CouldronBounding;
 import ac.grim.grimac.utils.collisions.types.*;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
-import org.bukkit.material.Gate;
-import org.bukkit.material.MaterialData;
-import org.bukkit.material.Vine;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -18,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 public enum BlockData {
-    _VINE((v, block) -> {
+    /*_VINE((v, block) -> {
         Vine data = (Vine) block.getType().getNewData(block.getData());
 
         if (data.isOnFace(BlockFace.UP))
@@ -57,7 +52,7 @@ public enum BlockData {
             .filter(mat -> mat.name().toLowerCase().contains("rail"))
             .toArray(Material[]::new)),*/
 
-    _ANVIL((protocol, b) -> {
+    /*_ANVIL((protocol, b) -> {
         BlockState state = b.getState();
         b.setType(XMaterial.ANVIL.parseMaterial());
         int dir = state.getData().getData() & 0b01;
@@ -111,7 +106,7 @@ public enum BlockData {
         return new SimpleCollisionBox(f1, 0, 0.0625, 1 - 0.0625, 0.5, 1 - 0.0625);
     }, MiscUtils.match("CAKE"), MiscUtils.match("CAKE_BLOCK")),*/
 
-    _LADDER((protocol, b) -> {
+    /*_LADDER((protocol, b) -> {
         CollisionBox box = NoCollisionBox.INSTANCE;
         float var3 = 0.125F;
 
@@ -126,9 +121,9 @@ public enum BlockData {
             box = new SimpleCollisionBox(0.0F, 0.0F, 0.0F, var3, 1.0F, 1.0F);
         }
         return box;
-    }, XMaterial.LADDER.parseMaterial()),
+    }, XMaterial.LADDER.parseMaterial()),*/
 
-    _FENCE_GATE((protocol, b) -> {
+    /*_FENCE_GATE((protocol, b) -> {
         byte var5 = b.getState().getData().getData();
 
         CollisionBox box = NoCollisionBox.INSTANCE;
@@ -142,7 +137,7 @@ public enum BlockData {
         return box;
     }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
             .map(XMaterial::parseMaterial)
-            .toArray(Material[]::new)),
+            .toArray(Material[]::new)),*/
 
     _FENCE(new DynamicFence(), Arrays.stream(XMaterial.values())
             .filter(mat -> mat.name().equals("FENCE") || mat.name().endsWith("FENCE"))
@@ -152,7 +147,7 @@ public enum BlockData {
             MiscUtils.match("IRON_FENCE")),*/
 
 
-    _SNOW((protocol, b) -> {
+    /*_SNOW((protocol, b) -> {
         MaterialData state = b.getState().getData();
         int height = (state.getData() & 0b1111);
         if (height == 0) return new SimpleCollisionBox(0, 0, 0, 1, 0, 1); // return NoCollisionBox.INSTANCE;
@@ -188,7 +183,7 @@ public enum BlockData {
             .map(BlockData::m)
             .toArray(Material[]::new)),
 
-    _CHEST((protocol, b) -> {
+    /*_CHEST((protocol, b) -> {
         if (b.getRelative(BlockFace.NORTH).getType().name().contains("CHEST")) {
             return new SimpleCollisionBox(0.0625F, 0.0F, 0.0F,
                     0.9375F, 0.875F, 0.9375F);
@@ -254,8 +249,8 @@ public enum BlockData {
 
     _SOULSAND(new SimpleCollisionBox(0, 0, 0, 1, 0.875, 1),
             XMaterial.SOUL_SAND.parseMaterial()),
-    _PICKLE((version, block) -> {
-        // TODO: Fix pickles
+    //_PICKLE((version, block) -> {
+    // TODO: Fix pickles
         /*val wrapped = new WrappedClass(block.getClass());
         val getBlockData = wrapped.getMethod("getBlockData");
         val pickleClass = Reflections.getNMSClass("SeaPickle");
@@ -277,12 +272,12 @@ public enum BlockData {
                 return new SimpleCollisionBox(2.0D / 15, 0.0D, 2.0D / 15,
                         14.0D / 15, 7.0D / 15, 14.0D / 15);
         }*/
-        return NoCollisionBox.INSTANCE;
-    }, XMaterial.SEA_PICKLE.parseMaterial()),
+    //    return NoCollisionBox.INSTANCE;
+    //}, XMaterial.SEA_PICKLE.parseMaterial()),
     _POT(new SimpleCollisionBox(0.3125, 0.0, 0.3125, 0.6875, 0.375, 0.6875),
             XMaterial.FLOWER_POT.parseMaterial()),
 
-    _WALL_SIGN((version, block) -> {
+    /*_WALL_SIGN((version, block) -> {
 
         byte data = block.getData();
         double var4 = 0.28125;
@@ -325,7 +320,7 @@ public enum BlockData {
                 return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL_SIGN"))
-            .toArray(Material[]::new)),
+            .toArray(Material[]::new)),*/
 
     _SIGN(new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75),
             XMaterial.ACACIA_SIGN.parseMaterial(), XMaterial.ACACIA_WALL_SIGN.parseMaterial(),
@@ -336,7 +331,7 @@ public enum BlockData {
             XMaterial.OAK_SIGN.parseMaterial(), XMaterial.OAK_WALL_SIGN.parseMaterial(),
             XMaterial.SPRUCE_SIGN.parseMaterial(), XMaterial.SPRUCE_WALL_SIGN.parseMaterial(),
             XMaterial.WARPED_SIGN.parseMaterial(), XMaterial.WARPED_WALL_SIGN.parseMaterial()),
-    _BUTTON((version, block) -> {
+    /*_BUTTON((version, block) -> {
         BlockFace face;
         switch (block.getData() & 7) {
             case 0:
@@ -379,9 +374,9 @@ public enum BlockData {
                 return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625);
         }
         return NoCollisionBox.INSTANCE;
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BUTTON")).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BUTTON")).toArray(Material[]::new)),*/
 
-    _LEVER((version, block) -> {
+    /*_LEVER((version, block) -> {
         byte data = (byte) (block.getData() & 7);
         BlockFace face;
         switch (data) {
@@ -425,7 +420,7 @@ public enum BlockData {
                 return new SimpleCollisionBox(0.25, 0.4, 0.25, 0.75, 1.0, 0.75);
         }
         return NoCollisionBox.INSTANCE;
-    }, XMaterial.LEVER.parseMaterial()),
+    }, XMaterial.LEVER.parseMaterial()),*/
 
     _NONE(NoCollisionBox.INSTANCE, Stream.of(XMaterial.TORCH, XMaterial.REDSTONE_TORCH,
             XMaterial.REDSTONE_WIRE, XMaterial.REDSTONE_WALL_TORCH, XMaterial.POWERED_RAIL, XMaterial.WALL_TORCH,
@@ -444,7 +439,7 @@ public enum BlockData {
     _DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1),
             XMaterial.STONE.parseMaterial());
 
-    private static final BlockData[] lookup = new BlockData[net.minecraft.server.v1_16_R3.Block.REGISTRY_ID.a()];
+    private static final BlockData[] lookup = new BlockData[Material.values().length];
 
     static {
         for (BlockData data : values()) {
@@ -483,9 +478,9 @@ public enum BlockData {
         return xmat.parseMaterial();
     }
 
-    public CollisionBox getBox(Block block, ProtocolVersion version) {
+    public CollisionBox getBox(org.bukkit.block.data.BlockData block, int x, int y, int z, ProtocolVersion version) {
         if (this.box != null)
-            return this.box.copy().offset(block.getX(), block.getY(), block.getZ());
-        return new DynamicCollisionBox(dynamic, block, version).offset(block.getX(), block.getY(), block.getZ());
+            return this.box.copy().offset(x, y, z);
+        return new DynamicCollisionBox(dynamic, block, version).offset(x, y, z);
     }
 }

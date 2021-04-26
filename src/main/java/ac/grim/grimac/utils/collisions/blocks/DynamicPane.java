@@ -2,13 +2,13 @@ package ac.grim.grimac.utils.collisions.blocks;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
-import ac.grim.grimac.utils.collisions.types.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.material.Stairs;
 
 @SuppressWarnings("Duplicates")
@@ -41,8 +41,10 @@ public class DynamicPane implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(ProtocolVersion version, Block b) {
-        ComplexCollisionBox box = new ComplexCollisionBox(new SimpleCollisionBox(min, 0, min, max, 1, max));
+    public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
+
+        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+        /*ComplexCollisionBox box = new ComplexCollisionBox(new SimpleCollisionBox(min, 0, min, max, 1, max));
         boolean east = fenceConnects(version, b, BlockFace.EAST);
         boolean north = fenceConnects(version, b, BlockFace.NORTH);
         boolean south = fenceConnects(version, b, BlockFace.SOUTH);
@@ -59,7 +61,11 @@ public class DynamicPane implements CollisionFactory {
         if (west) box.add(new SimpleCollisionBox(0, 0, min, max, 1, max));
         if (north) box.add(new SimpleCollisionBox(min, 0, 0, max, 1, min));
         if (south) box.add(new SimpleCollisionBox(min, 0, max, max, 1, 1));
-        return box;
+        return box;*/
     }
 
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+    }
 }

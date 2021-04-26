@@ -2,18 +2,14 @@ package ac.grim.grimac.utils.collisions.blocks;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
-import ac.grim.grimac.utils.collisions.types.NoCollisionBox;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.material.Door;
-import org.bukkit.material.MaterialData;
+import org.bukkit.block.data.BlockData;
 
 public class DoorHandler implements CollisionFactory {
     @Override
-    public CollisionBox fetch(ProtocolVersion version, Block b) {
-        Door state = (Door) b.getState().getData();
+    public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
+        /*Door state = (Door) b.getState().getData();
         byte data = state.getData();
         if ((data & 0b01000) != 0) {
             MaterialData state2 = b.getRelative(BlockFace.DOWN).getState().getData();
@@ -78,9 +74,17 @@ public class DoorHandler implements CollisionFactory {
             } else {
                 box = new SimpleCollisionBox(0.0F, 0.0F, 1.0F - offset, 1.0F, 1.0F, 1.0F);
             }
-        }
+        }*/
 //        if (state.isTopHalf())
 //            box.offset(0,1,0);
-        return box;
+
+        // TODO: Fix the bounding box
+        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+        //return box;
+    }
+
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+        return null;
     }
 }

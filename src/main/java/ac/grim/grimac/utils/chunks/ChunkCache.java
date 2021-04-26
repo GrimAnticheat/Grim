@@ -1,11 +1,21 @@
 package ac.grim.grimac.utils.chunks;
 
 import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import net.minecraft.server.v1_16_R3.Block;
 import net.minecraft.server.v1_16_R3.IBlockData;
+import org.apache.logging.log4j.core.util.Integers;
+import org.bukkit.Bukkit;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Objects;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class ChunkCache {
@@ -13,6 +23,8 @@ public class ChunkCache {
     private static final int MIN_WORLD_HEIGHT = 0;
     private static final int MAX_WORLD_HEIGHT = 255;
     private static final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
+
+    public static BlockData[] globalPaletteToBlockData = new BlockData[Block.REGISTRY_ID.a()];
 
     public static void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
@@ -40,6 +52,24 @@ public class ChunkCache {
 
     public static IBlockData getBlockDataAt(double x, double y, double z) {
         return getBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+    }
+
+    public static BlockData getBukkitBlockDataAt(int x, int y, int z) {
+        Column column = getChunk(x >> 4, z >> 4);
+
+        if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return globalPaletteToBlockData[JAVA_AIR_ID];
+
+        try {
+            Chunk chunk = column.getChunks()[y >> 4];
+            if (chunk != null) {
+                return globalPaletteToBlockData[chunk.get(x & 0xF, y & 0xF, z & 0xF)];
+            }
+        } catch (Exception e) {
+            GrimAC.plugin.getLogger().warning("Unable to get block data from chunk x " + (x >> 4) + " z " + (z >> 4));
+        }
+
+
+        return globalPaletteToBlockData[JAVA_AIR_ID];
     }
 
     public static IBlockData getBlockDataAt(int x, int y, int z) {
@@ -78,5 +108,37 @@ public class ChunkCache {
     public static void removeChunk(int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
+    }
+
+    public static void initBlockID() {
+        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
+        String line;
+
+        try {
+            while ((line = paletteReader.readLine()) != null) {
+                if (!paletteReader.ready()) break;
+                // Example line:
+                // 109 minecraft:oak_wood[axis=x]
+                String number = line.substring(0, line.indexOf(" "));
+
+                // This is the integer used when sending chunks
+                int globalPaletteID = Integers.parseInt(number);
+
+                // This is the string saved from the block
+                // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
+                // I could technically generate this on startup but that requires setting blocks in the world
+                // Would rather have a known clean file on all servers.
+                String blockString = line.substring(line.indexOf(" ") + 1);
+                org.bukkit.block.data.@NotNull BlockData referencedBlockData = Bukkit.createBlockData(blockString);
+
+                // Link this global palette ID to the blockdata for the second part of the script
+                globalPaletteToBlockData[globalPaletteID] = referencedBlockData;
+
+
+            }
+        } catch (IOException e) {
+            System.out.println("Palette reading failed! Unsupported version?");
+            e.printStackTrace();
+        }
     }
 }

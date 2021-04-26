@@ -4,12 +4,12 @@ import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
-import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 
 public class TrapDoorHandler implements CollisionFactory {
     @Override
-    public CollisionBox fetch(ProtocolVersion version, Block block) {
-        byte data = block.getState().getData().getData();
+    public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+        //byte data = block.getState().getData().getData();
         double var2 = 0.1875;
 
         if ((data & 4) != 0) {
@@ -36,5 +36,10 @@ public class TrapDoorHandler implements CollisionFactory {
             }
         }
         return null;
+    }
+
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+        return fetch(version, (byte) 0, x, y, z);
     }
 }

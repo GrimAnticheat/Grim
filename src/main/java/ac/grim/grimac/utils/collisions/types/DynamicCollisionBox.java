@@ -2,18 +2,18 @@ package ac.grim.grimac.utils.collisions.types;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
-import org.bukkit.block.Block;
+import org.bukkit.block.data.BlockData;
 
 import java.util.List;
 
 public class DynamicCollisionBox implements CollisionBox {
 
     private final CollisionFactory box;
-    private Block block;
+    private BlockData block;
     private ProtocolVersion version;
-    private double x, y, z;
+    private int x, y, z;
 
-    public DynamicCollisionBox(CollisionFactory box, Block block, ProtocolVersion version) {
+    public DynamicCollisionBox(CollisionFactory box, BlockData block, ProtocolVersion version) {
         this.box = box;
         this.block = block;
         this.version = version;
@@ -21,12 +21,12 @@ public class DynamicCollisionBox implements CollisionBox {
 
     @Override
     public boolean isCollided(CollisionBox other) {
-        return box.fetch(version, block).offset(x, y, z).isCollided(other);
+        return box.fetch(version, block, x, y, z).offset(x, y, z).isCollided(other);
     }
 
     @Override
     public boolean isIntersected(CollisionBox other) {
-        return box.fetch(version, block).offset(x, y, z).isIntersected(other);
+        return box.fetch(version, block, x, y, z).offset(x, y, z).isIntersected(other);
     }
 
     @Override
@@ -44,15 +44,15 @@ public class DynamicCollisionBox implements CollisionBox {
 
     @Override
     public void downCast(List<SimpleCollisionBox> list) {
-        box.fetch(version, block).offset(x, y, z).downCast(list);
+        box.fetch(version, block, x, y, z).offset(x, y, z).downCast(list);
     }
 
     @Override
     public boolean isNull() {
-        return box.fetch(version, block).isNull();
+        return box.fetch(version, block, x, y, z).isNull();
     }
 
-    public void setBlock(Block block) {
+    public void setBlock(BlockData block) {
         this.block = block;
     }
 

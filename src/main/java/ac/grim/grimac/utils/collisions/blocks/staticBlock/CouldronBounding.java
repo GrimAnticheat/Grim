@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.collisions.blocks;
+package ac.grim.grimac.utils.collisions.blocks.staticBlock;
 
 import ac.grim.grimac.utils.collisions.types.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
