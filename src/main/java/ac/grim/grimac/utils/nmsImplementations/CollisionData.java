@@ -12,7 +12,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Cake;
-import org.bukkit.block.data.type.Ladder;
+import org.bukkit.block.data.type.Gate;
 import org.bukkit.block.data.type.Slab;
 
 import java.util.Arrays;
@@ -278,11 +278,8 @@ public enum CollisionData {
 
 
     _LADDER(new CollisionFactory() {
-        // Byte is the number of bytes eaten.
         @Override
         public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
-            float var3 = 0.1875F;
-
             if (data == 2) { // North
                 return new HexCollisionBox(0.0D, 0.0D, 13.0D, 16.0D, 16.0D, 16.0D);
             } else if (data == 3) { // South
@@ -300,7 +297,7 @@ public enum CollisionData {
         // Note that this is for stuff on walls and not regular skull blocks
         @Override
         public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
-            Ladder ladder = (Ladder) block;
+            Directional ladder = (Directional) block;
 
             switch (ladder.getFacing()) {
                 case NORTH:
@@ -317,6 +314,47 @@ public enum CollisionData {
             return NoCollisionBox.INSTANCE;
         }
     }, XMaterial.LADDER.parseMaterial()),
+
+    _FENCE_GATE(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            CollisionBox box = NoCollisionBox.INSTANCE;
+
+            // Byte format - 0x1, 0x2 facing direction. 0x4 gate open/closed. 1 if open.
+            if ((data & 0x4) == 0) {
+                if (data == 0 || data == 2) {
+                    // Facing north or south
+                    box = new SimpleCollisionBox(0.0F, 0.0F, 0.375F, 1.0F, 1.5F, 0.625F);
+                } else {
+                    box = new SimpleCollisionBox(0.375F, 0.0F, 0.0F, 0.625F, 1.5F, 1.0F);
+                }
+            }
+            return box;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Gate gate = (Gate) block;
+
+            if (gate.isOpen())
+                return NoCollisionBox.INSTANCE;
+
+            switch (gate.getFacing()) {
+                case NORTH:
+                case SOUTH:
+                    return new SimpleCollisionBox(0.0F, 0.0F, 0.375F, 1.0F, 1.5F, 0.625F);
+                case WEST:
+                case EAST:
+                    return new SimpleCollisionBox(0.375F, 0.0F, 0.0F, 0.625F, 1.5F, 1.0F);
+            }
+
+            // This code is unreachable but the compiler does not know this
+            return NoCollisionBox.INSTANCE;
+        }
+    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
+            .map(XMaterial::parseMaterial)
+            .toArray(Material[]::new)),
+
 
     // TODO: Some of these blocks have a collision box, fix them for the interact check
     _NONE(NoCollisionBox.INSTANCE, XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial(),

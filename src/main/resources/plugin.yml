@@ -1,5 +1,5 @@
 name: GrimAC
 version: ${project.version}
 main: ac.grim.grimac.GrimAC
-api-version: 1.16
+api-version: 1.13
 load: POSTWORLD
