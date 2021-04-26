@@ -192,6 +192,60 @@ public enum CollisionData {
             XMaterial.DIORITE_SLAB.parseMaterial(), XMaterial.BLACKSTONE_SLAB.parseMaterial(), XMaterial.POLISHED_BLACKSTONE_SLAB.parseMaterial(),
             XMaterial.POLISHED_BLACKSTONE_BRICK_SLAB.parseMaterial()).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
 
+    // Note, getting legacy byte seems broken for skulls
+    _WALL_SKULL(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            int rotation = data & 7;
+            switch (rotation) {
+                // Normal on floor - for any rotation.
+                case 1:
+                default:
+                    return new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F);
+                // Facing north
+                case 2:
+                    return new SimpleCollisionBox(0.25F, 0.25F, 0.5F, 0.75F, 0.75F, 1.0F);
+                // Facing south
+                case 3:
+                    return new SimpleCollisionBox(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.5F);
+                // Facing west
+                case 4:
+                    return new SimpleCollisionBox(0.5F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F);
+                // Facing east
+                case 5:
+                    return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F);
+            }
+        }
+
+        // Note that this is for stuff on walls and not regular skull blocks
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Directional skullDir = (Directional) block;
+
+            switch (skullDir.getFacing()) {
+                // Heads on walls cannot have diagonal rotations
+                default:
+                    return new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F);
+                case NORTH:
+                    return new SimpleCollisionBox(0.25F, 0.25F, 0.5F, 0.75F, 0.75F, 1.0F);
+                case SOUTH:
+                    return new SimpleCollisionBox(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.5F);
+                case WEST:
+                    return new SimpleCollisionBox(0.5F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F);
+                case EAST:
+                    return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F);
+            }
+        }
+    }, XMaterial.SKELETON_WALL_SKULL.parseMaterial(), XMaterial.WITHER_SKELETON_WALL_SKULL.parseMaterial(),
+            XMaterial.CREEPER_WALL_HEAD.parseMaterial(), XMaterial.DRAGON_WALL_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
+            XMaterial.PLAYER_WALL_HEAD.parseMaterial(), XMaterial.ZOMBIE_WALL_HEAD.parseMaterial()),
+
+
+    _SKULL(new SimpleCollisionBox(0.25, 0, 0.25, 0.75, 0.5, 0.75), XMaterial.SKELETON_SKULL.parseMaterial(), XMaterial.WITHER_SKELETON_SKULL.parseMaterial(),
+            XMaterial.CREEPER_HEAD.parseMaterial(), XMaterial.DRAGON_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
+            XMaterial.PLAYER_HEAD.parseMaterial(), XMaterial.ZOMBIE_HEAD.parseMaterial()),
+
+
     // TODO: Some of these blocks have a collision box, fix them for the interact check
     _NONE(NoCollisionBox.INSTANCE, XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial(),
             XMaterial.REDSTONE_WIRE.parseMaterial(), XMaterial.REDSTONE_WALL_TORCH.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial(), XMaterial.WALL_TORCH.parseMaterial(),
