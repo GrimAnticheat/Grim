@@ -192,6 +192,12 @@ public enum CollisionData {
             XMaterial.DIORITE_SLAB.parseMaterial(), XMaterial.BLACKSTONE_SLAB.parseMaterial(), XMaterial.POLISHED_BLACKSTONE_SLAB.parseMaterial(),
             XMaterial.POLISHED_BLACKSTONE_BRICK_SLAB.parseMaterial()).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
 
+    // TODO: Some of these blocks have a collision box, fix them for the interact check
+    _NONE(NoCollisionBox.INSTANCE, XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial(),
+            XMaterial.REDSTONE_WIRE.parseMaterial(), XMaterial.REDSTONE_WALL_TORCH.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial(), XMaterial.WALL_TORCH.parseMaterial(),
+            XMaterial.RAIL.parseMaterial(), XMaterial.ACTIVATOR_RAIL.parseMaterial(), XMaterial.DETECTOR_RAIL.parseMaterial(), XMaterial.AIR.parseMaterial(), XMaterial.TALL_GRASS.parseMaterial(),
+            XMaterial.TRIPWIRE.parseMaterial(), XMaterial.TRIPWIRE_HOOK.parseMaterial()),
+
     _DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1),
             XMaterial.STONE.parseMaterial());
 
