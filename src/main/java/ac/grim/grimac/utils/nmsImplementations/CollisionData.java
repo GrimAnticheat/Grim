@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
+import ac.grim.grimac.utils.collisions.blocks.DynamicWall;
 import ac.grim.grimac.utils.collisions.types.*;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
@@ -8,10 +9,12 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.MultipleFacing;
+import org.bukkit.block.data.type.Slab;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Stream;
 
 public enum CollisionData {
     _VINE(new CollisionFactory() {
@@ -128,6 +131,7 @@ public enum CollisionData {
         public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
             Directional facing = (Directional) block;
 
+            // Making exemption for not using legacy stuff in modern stuff, as we are doing our own byte conversion
             if (facing.getFacing() == BlockFace.EAST || facing.getFacing() == BlockFace.WEST) {
                 return fetch(version, (byte) 1, x, y, z);
             } else {
@@ -135,8 +139,61 @@ public enum CollisionData {
                 return fetch(version, (byte) 0, x, y, z);
             }
         }
-    }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial());
+    }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
 
+
+    _WALL(new DynamicWall(), XMaterial.ANDESITE_WALL.parseMaterial(), XMaterial.BRICK_WALL.parseMaterial(),
+            XMaterial.COBBLESTONE_WALL.parseMaterial(), XMaterial.DIORITE_WALL.parseMaterial(),
+            XMaterial.END_STONE_BRICK_WALL.parseMaterial(), XMaterial.GRANITE_WALL.parseMaterial(),
+            XMaterial.MOSSY_COBBLESTONE_WALL.parseMaterial(), XMaterial.MOSSY_STONE_BRICK_WALL.parseMaterial(),
+            XMaterial.NETHER_BRICK_WALL.parseMaterial(), XMaterial.POLISHED_BLACKSTONE_BRICK_WALL.parseMaterial(),
+            XMaterial.POLISHED_BLACKSTONE_WALL.parseMaterial(), XMaterial.PRISMARINE_WALL.parseMaterial(),
+            XMaterial.RED_NETHER_BRICK_WALL.parseMaterial(), XMaterial.SANDSTONE_WALL.parseMaterial(),
+            XMaterial.STONE_BRICK_WALL.parseMaterial()),
+
+
+    // Fully using streams might be better, but then you are hacking around stuff like Material.PIG_STEP
+    // This is simpler and easier to debug than using a stream to do the same thing in less lines
+    // We still have to remove the double slabs for legacy versions of the game.
+    _SLAB(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            if ((data & 8) == 0) {
+                return new SimpleCollisionBox(0, 0, 0, 1, 0.5, 1);
+            }
+
+            return new SimpleCollisionBox(0, 0.5, 0, 1, 1, 1);
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Slab slab = (Slab) block;
+
+            if (slab.getType() == Slab.Type.BOTTOM) {
+                return new SimpleCollisionBox(0, 0, 0, 1, 0.5, 1);
+            } else if (slab.getType() == Slab.Type.TOP) {
+                return new SimpleCollisionBox(0, 0.5, 0, 1, 1, 1);
+            }
+
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+        }
+    }, Stream.of(XMaterial.OAK_SLAB.parseMaterial(), XMaterial.SPRUCE_SLAB.parseMaterial(), XMaterial.BIRCH_SLAB.parseMaterial(),
+            XMaterial.JUNGLE_SLAB.parseMaterial(), XMaterial.ACACIA_SLAB.parseMaterial(), XMaterial.DARK_OAK_SLAB.parseMaterial(),
+            XMaterial.CRIMSON_SLAB.parseMaterial(), XMaterial.WARPED_SLAB.parseMaterial(), XMaterial.STONE_SLAB.parseMaterial(),
+            XMaterial.SMOOTH_STONE_SLAB.parseMaterial(), XMaterial.SANDSTONE_SLAB.parseMaterial(), XMaterial.CUT_SANDSTONE_SLAB.parseMaterial(),
+            XMaterial.PETRIFIED_OAK_SLAB.parseMaterial(), XMaterial.COBBLESTONE_SLAB.parseMaterial(), XMaterial.BRICK_SLAB.parseMaterial(),
+            XMaterial.STONE_BRICK_SLAB.parseMaterial(), XMaterial.NETHER_BRICK_SLAB.parseMaterial(), XMaterial.QUARTZ_SLAB.parseMaterial(),
+            XMaterial.RED_SANDSTONE_SLAB.parseMaterial(), XMaterial.CUT_RED_SANDSTONE_SLAB.parseMaterial(), XMaterial.PURPUR_SLAB.parseMaterial(),
+            XMaterial.PRISMARINE_SLAB.parseMaterial(), XMaterial.PRISMARINE_BRICK_SLAB.parseMaterial(), XMaterial.DARK_PRISMARINE_SLAB.parseMaterial(),
+            XMaterial.POLISHED_GRANITE_SLAB.parseMaterial(), XMaterial.SMOOTH_RED_SANDSTONE_SLAB.parseMaterial(), XMaterial.MOSSY_STONE_BRICK_SLAB.parseMaterial(),
+            XMaterial.POLISHED_DIORITE_SLAB.parseMaterial(), XMaterial.MOSSY_COBBLESTONE_SLAB.parseMaterial(), XMaterial.END_STONE_BRICK_SLAB.parseMaterial(),
+            XMaterial.SMOOTH_SANDSTONE_SLAB.parseMaterial(), XMaterial.SMOOTH_QUARTZ_SLAB.parseMaterial(), XMaterial.GRANITE_SLAB.parseMaterial(),
+            XMaterial.ANDESITE_SLAB.parseMaterial(), XMaterial.RED_NETHER_BRICK_SLAB.parseMaterial(), XMaterial.POLISHED_ANDESITE_SLAB.parseMaterial(),
+            XMaterial.DIORITE_SLAB.parseMaterial(), XMaterial.BLACKSTONE_SLAB.parseMaterial(), XMaterial.POLISHED_BLACKSTONE_SLAB.parseMaterial(),
+            XMaterial.POLISHED_BLACKSTONE_BRICK_SLAB.parseMaterial()).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
+
+    _DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1),
+            XMaterial.STONE.parseMaterial());
 
     private static final CollisionData[] lookup = new CollisionData[Material.values().length];
 
@@ -169,7 +226,7 @@ public enum CollisionData {
         // Material matched = MiscUtils.match(material.toString());
         CollisionData data = lookup[material.ordinal()];
         // _DEFAULT for second thing
-        return data;
+        return data != null ? data : _DEFAULT;
     }
 
     private static Material m(XMaterial xmat) {
