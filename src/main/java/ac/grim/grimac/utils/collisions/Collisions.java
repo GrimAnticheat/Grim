@@ -29,7 +29,7 @@ public class Collisions {
     public static Vector collide(GrimPlayer grimPlayer, double xWithCollision, double yWithCollision, double zWithCollision) {
         SimpleCollisionBox currentPosBB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
 
-        List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(grimPlayer, currentPosBB.copy().offset(xWithCollision, yWithCollision, zWithCollision));
+        List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(grimPlayer, currentPosBB.copy().expandToCoordinate(xWithCollision, yWithCollision, zWithCollision));
         SimpleCollisionBox setBB = currentPosBB.copy();
         double setX = 0;
         double setY = 0;
