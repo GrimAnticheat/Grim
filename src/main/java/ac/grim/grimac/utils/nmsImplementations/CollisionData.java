@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.blocks.*;
+import ac.grim.grimac.utils.collisions.blocks.staticBlock.CouldronBounding;
 import ac.grim.grimac.utils.collisions.blocks.staticBlock.HopperBounding;
 import ac.grim.grimac.utils.collisions.types.*;
 import ac.grim.grimac.utils.data.ProtocolVersion;
@@ -10,10 +11,8 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.block.data.type.Cake;
-import org.bukkit.block.data.type.Gate;
-import org.bukkit.block.data.type.Slab;
-import org.bukkit.block.data.type.Snow;
+import org.bukkit.block.data.Powerable;
+import org.bukkit.block.data.type.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -408,11 +407,217 @@ public enum CollisionData {
             Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("BED") && !mat.name().contains("ROCK"))
                     .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
+    _TRAPDOOR(new TrapDoorHandler(), Arrays.stream(Material.values())
+            .filter(mat -> mat.name().contains("TRAP_DOOR")).toArray(Material[]::new)),
+
+
+    _STUPID(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F),
+            matchLegacy("LEGACY_DIODE_BLOCK_OFF"), matchLegacy("LEGACY_DIODE_BLOCK_ON"),
+            matchLegacy("LEGACY_REDSTONE_COMPARATOR_ON"), matchLegacy("LEGACY_REDSTONE_COMPARATOR_OFF"),
+            XMaterial.REPEATER.parseMaterial(), XMaterial.COMPARATOR.parseMaterial()),
+
+    _STRUCTURE_VOID(new SimpleCollisionBox(0.375, 0.375, 0.375,
+            0.625, 0.625, 0.625),
+            XMaterial.STRUCTURE_VOID.parseMaterial()),
+
+    _END_ROD(new DynamicRod(), XMaterial.END_ROD.parseMaterial()),
+
+    _CAULDRON(new CouldronBounding(), XMaterial.CAULDRON.parseMaterial()),
+
+    _CACTUS(new SimpleCollisionBox(0.0625, 0, 0.0625,
+            1 - 0.0625, 1 - 0.0625, 1 - 0.0625), XMaterial.CACTUS.parseMaterial()),
+
+
+    _PISTON_BASE(new PistonBaseCollision(), m(XMaterial.PISTON), m(XMaterial.STICKY_PISTON)),
+
+    _PISTON_ARM(new PistonHeadCollision(), m(XMaterial.PISTON_HEAD)),
+
+    _SOULSAND(new SimpleCollisionBox(0, 0, 0, 1, 0.875, 1),
+            XMaterial.SOUL_SAND.parseMaterial()),
+
+    _PICKLE(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.13+ only block
+            return NoCollisionBox.INSTANCE;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            int pickles = ((SeaPickle) block).getPickles();
+
+            switch (pickles) {
+                case 1:
+                    return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 6.0D, 10.0D);
+                case 2:
+                    return new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 6.0D, 13.0D);
+                case 3:
+                    return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 6.0D, 14.0D);
+                case 4:
+                    return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 7.0D, 14.0D);
+            }
+            return NoCollisionBox.INSTANCE;
+        }
+    }, XMaterial.SEA_PICKLE.parseMaterial()),
+
+
+    _POT(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
+            XMaterial.FLOWER_POT.parseMaterial()),
+
+
+    _WALL_SIGN(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.13+ only block
+            if (data == 2) { // North
+                return new HexCollisionBox(0.0D, 4.5D, 14.0D, 16.0D, 12.5D, 16.0D);
+            } else if (data == 3) { // South
+                return new HexCollisionBox(0.0D, 4.5D, 0.0D, 16.0D, 12.5D, 2.0D);
+            } else if (data == 4) { // West
+                return new HexCollisionBox(14.0D, 4.5D, 0.0D, 16.0D, 12.5D, 16.0D);
+            } else if (data == 5) { // East
+                return new HexCollisionBox(0.0D, 4.5D, 0.0D, 2.0D, 12.5D, 16.0D);
+            }
+
+            // Shouldn't be reachable
+            return NoCollisionBox.INSTANCE;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            WallSign sign = (WallSign) block;
+
+            switch (sign.getFacing()) {
+                case NORTH:
+                    return fetch(version, (byte) 2, x, y, z);
+                case SOUTH:
+                    return fetch(version, (byte) 3, x, y, z);
+                case WEST:
+                    return fetch(version, (byte) 4, x, y, z);
+                case EAST:
+                    return fetch(version, (byte) 5, x, y, z);
+                default:
+                    return NoCollisionBox.INSTANCE;
+            }
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL_SIGN"))
+            .toArray(Material[]::new)),
+
+
+    // The nether signes map to sign post and other regular sign
+    _SIGN(new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75),
+            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("SIGN") && !mat.name().contains("WALL"))
+                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+
+
+    _BUTTON(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            boolean flag = (data & 8) == 8; //is powered;
+            double f2 = (float) (flag ? 1 : 2) / 16.0;
+
+            switch (data & 7) {
+                case 1:
+                    return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875);
+                case 2:
+                    return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875);
+                case 3:
+                    return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2);
+                case 4:
+                    return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0);
+                case 5:
+                    return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625);
+                case 0:
+                    return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625);
+            }
+
+            return NoCollisionBox.INSTANCE;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            BlockFace direction = ((Directional) block).getFacing();
+            Powerable powerable = (Powerable) block;
+
+            double f2 = (float) (powerable.isPowered() ? 1 : 2) / 16.0;
+
+            switch (direction) {
+                case WEST:
+                    return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875);
+                case EAST:
+                    return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875);
+                case NORTH:
+                    return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2);
+                case SOUTH:
+                    return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0);
+                case DOWN:
+                    return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625);
+                case UP:
+                    return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625);
+            }
+
+            return NoCollisionBox.INSTANCE;
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BUTTON")).toArray(Material[]::new)),
+
+    _LEVER(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            double f = 0.1875;
+
+            switch (data & 7) {
+                case 0: // up
+                case 7:
+                    return new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 0.6, 0.75);
+                case 1: // west
+                    return new SimpleCollisionBox(1.0 - f * 2.0, 0.2, 0.5 - f, 1.0, 0.8, 0.5 + f);
+                case 2: // east
+                    return new SimpleCollisionBox(0.0, 0.2, 0.5 - f, f * 2.0, 0.8, 0.5 + f);
+                case 3: // north
+                    return new SimpleCollisionBox(0.5 - f, 0.2, 1.0 - f * 2.0, 0.5 + f, 0.8, 1.0);
+                case 4: // south
+                    return new SimpleCollisionBox(0.5 - f, 0.2, 0.0, 0.5 + f, 0.8, f * 2.0);
+                case 5: // down
+                case 6:
+                    return new SimpleCollisionBox(0.25, 0.4, 0.25, 0.75, 1.0, 0.75);
+                default:
+                    return NoCollisionBox.INSTANCE;
+            }
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            BlockFace direction = ((Directional) block).getFacing();
+            double f = 0.1875;
+
+            switch (direction) {
+                case WEST:
+                    return new SimpleCollisionBox(1.0 - f * 2.0, 0.2, 0.5 - f, 1.0, 0.8, 0.5 + f);
+                case EAST:
+                    return new SimpleCollisionBox(0.0, 0.2, 0.5 - f, f * 2.0, 0.8, 0.5 + f);
+                case NORTH:
+                    return new SimpleCollisionBox(0.5 - f, 0.2, 1.0 - f * 2.0, 0.5 + f, 0.8, 1.0);
+                case SOUTH:
+                    return new SimpleCollisionBox(0.5 - f, 0.2, 0.0, 0.5 + f, 0.8, f * 2.0);
+                case DOWN:
+                    return new SimpleCollisionBox(0.25, 0.4, 0.25, 0.75, 1.0, 0.75);
+                case UP:
+                    return new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 0.6, 0.75);
+            }
+
+            return NoCollisionBox.INSTANCE;
+        }
+    }, XMaterial.LEVER.parseMaterial()),
+
     // TODO: Some of these blocks have a collision box, fix them for the interact check
     _NONE(NoCollisionBox.INSTANCE, XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial(),
             XMaterial.REDSTONE_WIRE.parseMaterial(), XMaterial.REDSTONE_WALL_TORCH.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial(), XMaterial.WALL_TORCH.parseMaterial(),
             XMaterial.RAIL.parseMaterial(), XMaterial.ACTIVATOR_RAIL.parseMaterial(), XMaterial.DETECTOR_RAIL.parseMaterial(), XMaterial.AIR.parseMaterial(), XMaterial.TALL_GRASS.parseMaterial(),
             XMaterial.TRIPWIRE.parseMaterial(), XMaterial.TRIPWIRE_HOOK.parseMaterial()),
+
+    _NONE2(NoCollisionBox.INSTANCE,
+            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_PLATE"))
+                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
     _DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1),
             XMaterial.STONE.parseMaterial());
@@ -428,7 +633,6 @@ public enum CollisionData {
     private final Material[] materials;
     private CollisionBox box;
     private CollisionFactory dynamic;
-
 
     CollisionData(CollisionBox box, Material... materials) {
         this.box = box;
@@ -453,6 +657,13 @@ public enum CollisionData {
 
     private static Material m(XMaterial xmat) {
         return xmat.parseMaterial();
+    }
+
+    public static Material matchLegacy(String material) {
+        if (ProtocolVersion.getGameVersion().isOrAbove(ProtocolVersion.V1_13)) {
+            return null;
+        }
+        return Material.getMaterial(material.replace("LEGACY_", ""));
     }
 
     public CollisionBox getBox(BlockData block, int x, int y, int z, ProtocolVersion version) {

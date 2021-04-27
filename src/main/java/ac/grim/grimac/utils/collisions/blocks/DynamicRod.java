@@ -13,6 +13,7 @@ public class DynamicRod implements CollisionFactory {
     public static final CollisionBox EW = new SimpleCollisionBox(0, 0.4375, 0.4375, 1, 0.5625, 0.625);
     public static final CollisionBox NS = new SimpleCollisionBox(0.4375, 0.4375, 0, 0.5625, 0.625, 1);
 
+    // TODO: This is a 1.9+ block
     @Override
     public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
         switch (b) {
