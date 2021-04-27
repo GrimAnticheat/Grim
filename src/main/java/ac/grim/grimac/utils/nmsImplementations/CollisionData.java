@@ -6,10 +6,7 @@ import ac.grim.grimac.utils.collisions.types.*;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.block.data.Powerable;
+import org.bukkit.block.data.*;
 import org.bukkit.block.data.type.*;
 
 import java.util.Arrays;
@@ -339,6 +336,94 @@ public enum CollisionData {
         }
     }, XMaterial.LECTERN.parseMaterial()),
 
+
+    _HONEY_BLOCK(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.15+ block
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 15.0D, 15.0D);
+        }
+    }, XMaterial.HONEY_BLOCK.parseMaterial()),
+
+
+    _DRAGON_EGG_BLOCK(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), XMaterial.DRAGON_EGG.parseMaterial()),
+
+    _GRINDSTONE(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.14+ block
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Grindstone grindstone = (Grindstone) block;
+
+            if (grindstone.getAttachedFace() == FaceAttachable.AttachedFace.FLOOR) {
+                if (grindstone.getFacing() == BlockFace.NORTH || grindstone.getFacing() == BlockFace.SOUTH) {
+                    return new ComplexCollisionBox(new HexCollisionBox(2.0D, 0.0D, 6.0D, 4.0D, 7.0D, 10.0D),
+                            new HexCollisionBox(12.0D, 0.0D, 6.0D, 14.0D, 7.0D, 10.0D),
+                            new HexCollisionBox(2.0D, 7.0D, 5.0D, 4.0D, 13.0D, 11.0D),
+                            new HexCollisionBox(12.0D, 7.0D, 5.0D, 14.0D, 13.0D, 11.0D),
+                            new HexCollisionBox(4.0D, 4.0D, 2.0D, 12.0D, 16.0D, 14.0D));
+                } else {
+                    return new ComplexCollisionBox(new HexCollisionBox(6.0D, 0.0D, 2.0D, 10.0D, 7.0D, 4.0D),
+                            new HexCollisionBox(6.0D, 0.0D, 12.0D, 10.0D, 7.0D, 14.0D),
+                            new HexCollisionBox(5.0D, 7.0D, 2.0D, 11.0D, 13.0D, 4.0D),
+                            new HexCollisionBox(5.0D, 7.0D, 12.0D, 11.0D, 13.0D, 14.0D),
+                            new HexCollisionBox(2.0D, 4.0D, 4.0D, 14.0D, 16.0D, 12.0D));
+                }
+            } else if (grindstone.getAttachedFace() == FaceAttachable.AttachedFace.WALL) {
+                switch (grindstone.getFacing()) {
+                    case NORTH:
+                        return new ComplexCollisionBox(new HexCollisionBox(2.0D, 6.0D, 7.0D, 4.0D, 10.0D, 16.0D),
+                                new HexCollisionBox(12.0D, 6.0D, 7.0D, 14.0D, 10.0D, 16.0D),
+                                new HexCollisionBox(2.0D, 5.0D, 3.0D, 4.0D, 11.0D, 9.0D),
+                                new HexCollisionBox(12.0D, 5.0D, 3.0D, 14.0D, 11.0D, 9.0D),
+                                new HexCollisionBox(4.0D, 2.0D, 0.0D, 12.0D, 14.0D, 12.0D));
+                    case WEST:
+                        return new ComplexCollisionBox(new HexCollisionBox(7.0D, 6.0D, 2.0D, 16.0D, 10.0D, 4.0D),
+                                new HexCollisionBox(7.0D, 6.0D, 12.0D, 16.0D, 10.0D, 14.0D),
+                                new HexCollisionBox(3.0D, 5.0D, 2.0D, 9.0D, 11.0D, 4.0D),
+                                new HexCollisionBox(3.0D, 5.0D, 12.0D, 9.0D, 11.0D, 14.0D),
+                                new HexCollisionBox(0.0D, 2.0D, 4.0D, 12.0D, 14.0D, 12.0D));
+                    case SOUTH:
+                        return new ComplexCollisionBox(new HexCollisionBox(2.0D, 6.0D, 0.0D, 4.0D, 10.0D, 7.0D),
+                                new HexCollisionBox(12.0D, 6.0D, 0.0D, 14.0D, 10.0D, 7.0D),
+                                new HexCollisionBox(2.0D, 5.0D, 7.0D, 4.0D, 11.0D, 13.0D),
+                                new HexCollisionBox(12.0D, 5.0D, 7.0D, 14.0D, 11.0D, 13.0D),
+                                new HexCollisionBox(4.0D, 2.0D, 4.0D, 12.0D, 14.0D, 16.0D));
+                    case EAST:
+                        return new ComplexCollisionBox(new HexCollisionBox(0.0D, 6.0D, 2.0D, 9.0D, 10.0D, 4.0D),
+                                new HexCollisionBox(0.0D, 6.0D, 12.0D, 9.0D, 10.0D, 14.0D),
+                                new HexCollisionBox(7.0D, 5.0D, 2.0D, 13.0D, 11.0D, 4.0D),
+                                new HexCollisionBox(7.0D, 5.0D, 12.0D, 13.0D, 11.0D, 14.0D),
+                                new HexCollisionBox(4.0D, 2.0D, 4.0D, 16.0D, 14.0D, 12.0D));
+                }
+            } else {
+                if (grindstone.getFacing() == BlockFace.NORTH || grindstone.getFacing() == BlockFace.SOUTH) {
+                    return new ComplexCollisionBox(new HexCollisionBox(2.0D, 9.0D, 6.0D, 4.0D, 16.0D, 10.0D),
+                            new HexCollisionBox(12.0D, 9.0D, 6.0D, 14.0D, 16.0D, 10.0D),
+                            new HexCollisionBox(2.0D, 3.0D, 5.0D, 4.0D, 9.0D, 11.0D),
+                            new HexCollisionBox(12.0D, 3.0D, 5.0D, 14.0D, 9.0D, 11.0D),
+                            new HexCollisionBox(4.0D, 0.0D, 2.0D, 12.0D, 12.0D, 14.0D));
+                } else {
+                    return new ComplexCollisionBox(new HexCollisionBox(6.0D, 9.0D, 2.0D, 10.0D, 16.0D, 4.0D),
+                            new HexCollisionBox(6.0D, 9.0D, 12.0D, 10.0D, 16.0D, 14.0D),
+                            new HexCollisionBox(5.0D, 3.0D, 2.0D, 11.0D, 9.0D, 4.0D),
+                            new HexCollisionBox(5.0D, 3.0D, 12.0D, 11.0D, 9.0D, 14.0D),
+                            new HexCollisionBox(2.0D, 0.0D, 4.0D, 14.0D, 12.0D, 12.0D));
+                }
+            }
+
+            return NoCollisionBox.INSTANCE;
+        }
+    }, XMaterial.GRINDSTONE.parseMaterial()),
 
     _FENCE_GATE(new CollisionFactory() {
         @Override
