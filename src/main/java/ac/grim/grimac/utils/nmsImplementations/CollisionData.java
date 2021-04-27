@@ -256,6 +256,60 @@ public enum CollisionData {
     }, XMaterial.CAKE.parseMaterial()),
 
 
+    _COCOA_BEANS(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Cocoa cocoa = (Cocoa) block;
+
+            switch (cocoa.getFacing()) {
+                case EAST:
+                    switch (cocoa.getAge()) {
+                        case 0:
+                            return new HexCollisionBox(11.0D, 7.0D, 6.0D, 15.0D, 12.0D, 10.0D);
+                        case 1:
+                            return new HexCollisionBox(9.0D, 5.0D, 5.0D, 15.0D, 12.0D, 11.0D);
+                        case 2:
+                            return new HexCollisionBox(7.0D, 3.0D, 4.0D, 15.0D, 12.0D, 12.0D);
+                    }
+                case WEST:
+                    switch (cocoa.getAge()) {
+                        case 0:
+                            return new HexCollisionBox(1.0D, 7.0D, 6.0D, 5.0D, 12.0D, 10.0D);
+                        case 1:
+                            return new HexCollisionBox(1.0D, 5.0D, 5.0D, 7.0D, 12.0D, 11.0D);
+                        case 2:
+                            return new HexCollisionBox(1.0D, 3.0D, 4.0D, 9.0D, 12.0D, 12.0D);
+                    }
+                case NORTH:
+                    switch (cocoa.getAge()) {
+                        case 0:
+                            return new HexCollisionBox(6.0D, 7.0D, 1.0D, 10.0D, 12.0D, 5.0D);
+                        case 1:
+                            return new HexCollisionBox(5.0D, 5.0D, 1.0D, 11.0D, 12.0D, 7.0D);
+                        case 2:
+                            return new HexCollisionBox(4.0D, 3.0D, 1.0D, 12.0D, 12.0D, 9.0D);
+                    }
+                case SOUTH:
+                    switch (cocoa.getAge()) {
+                        case 0:
+                            return new HexCollisionBox(6.0D, 7.0D, 11.0D, 10.0D, 12.0D, 15.0D);
+                        case 1:
+                            return new HexCollisionBox(5.0D, 5.0D, 9.0D, 11.0D, 12.0D, 15.0D);
+                        case 2:
+                            return new HexCollisionBox(4.0D, 3.0D, 7.0D, 12.0D, 12.0D, 15.0D);
+                    }
+            }
+
+            return NoCollisionBox.INSTANCE;
+        }
+    }, XMaterial.COCOA.parseMaterial()),
+
+
     _LADDER(new CollisionFactory() {
         @Override
         public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
