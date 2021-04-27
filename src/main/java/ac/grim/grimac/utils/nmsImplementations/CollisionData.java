@@ -467,6 +467,8 @@ public enum CollisionData {
         }
     }, XMaterial.SWEET_BERRY_BUSH.parseMaterial()),
 
+    _CHORUS_FLOWER(new DynamicChorusFlower(), XMaterial.CHORUS_FLOWER.parseMaterial()),
+
     _FENCE_GATE(new CollisionFactory() {
         @Override
         public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
@@ -595,7 +597,42 @@ public enum CollisionData {
             0.625, 0.625, 0.625),
             XMaterial.STRUCTURE_VOID.parseMaterial()),
 
-    _END_ROD(new DynamicRod(), XMaterial.END_ROD.parseMaterial()),
+    _END_ROD(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
+            switch (b) {
+                case 0:
+                case 1:
+                default: // Up and down
+                    return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 16.0D, 10.0);
+                case 2:
+                case 3: // North and South
+                    return new HexCollisionBox(6.0D, 6.0D, 0.0D, 10.0D, 10.0D, 16.0D);
+                case 4:
+                case 5: // East and West
+                    return new HexCollisionBox(0.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D);
+            }
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Directional rod = (Directional) block;
+
+            switch (rod.getFacing()) {
+                case EAST:
+                case WEST:
+                    return fetch(version, (byte) 4, x, y, z);
+                case UP:
+                case DOWN:
+                    return fetch(version, (byte) 0, x, y, z);
+                case NORTH:
+                case SOUTH:
+                    return fetch(version, (byte) 2, x, y, z);
+            }
+
+            return NoCollisionBox.INSTANCE;
+        }
+    }, XMaterial.END_ROD.parseMaterial()),
 
     _CAULDRON(new ComplexCollisionBox(
             new SimpleCollisionBox(0, 0, 0, 1, 0.3125, 1),
