@@ -310,6 +310,56 @@ public enum CollisionData {
     }, XMaterial.COCOA.parseMaterial()),
 
 
+    _STONE_CUTTER(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D),
+            XMaterial.STONECUTTER.parseMaterial()),
+
+    _BELL(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.14+ only block
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Bell bell = (Bell) block;
+            BlockFace direction = bell.getFacing();
+
+            if (bell.getAttachment() == Bell.Attachment.FLOOR) {
+                return direction != BlockFace.NORTH && direction != BlockFace.SOUTH ?
+                        new HexCollisionBox(4.0D, 0.0D, 0.0D, 12.0D, 16.0D, 16.0D) :
+                        new HexCollisionBox(0.0D, 0.0D, 4.0D, 16.0D, 16.0D, 12.0D);
+
+            }
+
+            ComplexCollisionBox complex = new ComplexCollisionBox(
+                    new HexCollisionBox(5.0D, 6.0D, 5.0D, 11.0D, 13.0D, 11.0D),
+                    new HexCollisionBox(4.0D, 4.0D, 4.0D, 12.0D, 6.0D, 12.0D));
+
+            if (bell.getAttachment() == Bell.Attachment.CEILING) {
+                complex.add(new HexCollisionBox(7.0D, 13.0D, 7.0D, 9.0D, 16.0D, 9.0D));
+            } else if (bell.getAttachment() == Bell.Attachment.DOUBLE_WALL) {
+                if (direction != BlockFace.NORTH && direction != BlockFace.SOUTH) {
+                    complex.add(new HexCollisionBox(0.0D, 13.0D, 7.0D, 16.0D, 15.0D, 9.0D));
+                } else {
+                    complex.add(new HexCollisionBox(7.0D, 13.0D, 0.0D, 9.0D, 15.0D, 16.0D));
+                }
+            } else if (direction == BlockFace.NORTH) {
+                complex.add(new HexCollisionBox(7.0D, 13.0D, 0.0D, 9.0D, 15.0D, 13.0D));
+            } else if (direction == BlockFace.SOUTH) {
+                complex.add(new HexCollisionBox(7.0D, 13.0D, 3.0D, 9.0D, 15.0D, 16.0D));
+            } else {
+                if (direction == BlockFace.EAST) {
+                    complex.add(new HexCollisionBox(3.0D, 13.0D, 7.0D, 16.0D, 15.0D, 9.0D));
+                } else {
+                    complex.add(new HexCollisionBox(0.0D, 13.0D, 7.0D, 13.0D, 15.0D, 9.0D));
+                }
+            }
+
+            return complex;
+        }
+    }, XMaterial.BELL.parseMaterial()),
+
     _LADDER(new CollisionFactory() {
         @Override
         public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
