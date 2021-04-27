@@ -425,6 +425,29 @@ public enum CollisionData {
         }
     }, XMaterial.GRINDSTONE.parseMaterial()),
 
+    _CHAIN_BLOCK(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Chain chain = (Chain) block;
+
+            switch (chain.getAxis()) {
+                case X:
+                    return new HexCollisionBox(0.0D, 6.5D, 6.5D, 16.0D, 9.5D, 9.5D);
+                case Y:
+                    return new HexCollisionBox(6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
+                case Z:
+                    return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
+            }
+
+            return null;
+        }
+    }, XMaterial.CHAIN.parseMaterial()),
+
     _FENCE_GATE(new CollisionFactory() {
         @Override
         public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
