@@ -28,7 +28,7 @@ public class Materials {
                 MATERIAL_FLAGS[i] |= STAIRS;
             }
 
-            if (material.name().contains("SLAB") || material.name().contains("STEP")) {
+            if (material.name().contains("SLAB") || material.name().contains("_STEP") && !material.name().contains("LEGACY")) {
                 MATERIAL_FLAGS[i] |= SLABS;
             }
         }

@@ -359,7 +359,7 @@ public enum CollisionData {
         @Override
         public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
             Snow snow = (Snow) block;
-            return fetch(version, (byte) snow.getLayers(), x, y, z);
+            return fetch(version, (byte) (snow.getLayers() - 1), x, y, z);
         }
     }, XMaterial.SNOW.parseMaterial()),
 
