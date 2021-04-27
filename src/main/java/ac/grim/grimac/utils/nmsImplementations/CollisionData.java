@@ -2,8 +2,6 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.blocks.*;
-import ac.grim.grimac.utils.collisions.blocks.staticBlock.CouldronBounding;
-import ac.grim.grimac.utils.collisions.blocks.staticBlock.HopperBounding;
 import ac.grim.grimac.utils.collisions.types.*;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
@@ -235,7 +233,13 @@ public enum CollisionData {
     _DOOR(new DoorHandler(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_DOOR"))
             .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
-    _HOPPER(new HopperBounding(), XMaterial.HOPPER.parseMaterial()),
+    _HOPPER(new ComplexCollisionBox(
+            new SimpleCollisionBox(0, 0, 0, 1, 0.125 * 5, 1),
+            new SimpleCollisionBox(0, 0.125 * 5, 0, 0.125, 1, 1),
+            new SimpleCollisionBox(1 - 0.125, 0.125 * 5, 0, 1, 1, 1),
+            new SimpleCollisionBox(0, 0.125 * 5, 0, 1, 1, 0.125),
+            new SimpleCollisionBox(0, 0.125 * 5, 1 - 0.125, 1, 1, 1)
+    ), XMaterial.HOPPER.parseMaterial()),
 
     _CAKE(new CollisionFactory() {
         // Byte is the number of bytes eaten.
@@ -422,7 +426,12 @@ public enum CollisionData {
 
     _END_ROD(new DynamicRod(), XMaterial.END_ROD.parseMaterial()),
 
-    _CAULDRON(new CouldronBounding(), XMaterial.CAULDRON.parseMaterial()),
+    _CAULDRON(new ComplexCollisionBox(
+            new SimpleCollisionBox(0, 0, 0, 1, 0.3125, 1),
+            new SimpleCollisionBox(0, 0.3125, 0, 0.125, 1, 1),
+            new SimpleCollisionBox(1 - 0.125, 0.3125, 0, 1, 1, 1),
+            new SimpleCollisionBox(0, 0.3125, 0, 1, 1, 0.125), new SimpleCollisionBox(0, 0.3125, 1 - 0.125, 1, 1, 1)),
+            XMaterial.CAULDRON.parseMaterial()),
 
     _CACTUS(new SimpleCollisionBox(0.0625, 0, 0.0625,
             1 - 0.0625, 1 - 0.0625, 1 - 0.0625), XMaterial.CACTUS.parseMaterial()),
