@@ -448,6 +448,25 @@ public enum CollisionData {
         }
     }, XMaterial.CHAIN.parseMaterial()),
 
+    _SWEET_BERRY(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.14 only block
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Ageable berry = (Ageable) block;
+
+            if (berry.getAge() == 0) {
+                return new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
+            }
+
+            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
+        }
+    }, XMaterial.SWEET_BERRY_BUSH.parseMaterial()),
+
     _FENCE_GATE(new CollisionFactory() {
         @Override
         public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
