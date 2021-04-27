@@ -103,7 +103,8 @@ public enum CollisionData {
                         complexAnvil.add(new HexCollisionBox(4.0D, 4.0D, 3.0D, 12.0D, 5.0D, 13.0D));
                         complexAnvil.add(new HexCollisionBox(6.0D, 5.0D, 4.0D, 10.0D, 10.0D, 12.0D));
                         complexAnvil.add(new HexCollisionBox(3.0D, 10.0D, 0.0D, 13.0D, 16.0D, 16.0D));
-                        // East and West top
+                        break;
+                    // East and West top
                     case (1):
                         complexAnvil.add(new HexCollisionBox(3.0D, 4.0D, 4.0D, 13.0D, 5.0D, 12.0D));
                         complexAnvil.add(new HexCollisionBox(4.0D, 5.0D, 6.0D, 12.0D, 10.0D, 10.0D));
@@ -295,6 +296,49 @@ public enum CollisionData {
             return NoCollisionBox.INSTANCE;
         }
     }, XMaterial.LADDER.parseMaterial()),
+
+    _CAMPFIRE(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 7.0D, 16.0D), XMaterial.CAMPFIRE.parseMaterial(), XMaterial.SOUL_CAMPFIRE.parseMaterial()),
+
+    _LANTERN(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // Block only exists in 1.14+
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            Lantern lantern = (Lantern) block;
+
+            if (lantern.isHanging()) {
+                return new ComplexCollisionBox(new HexCollisionBox(5.0D, 1.0D, 5.0D, 11.0D, 8.0D, 11.0D),
+                        new HexCollisionBox(6.0D, 8.0D, 6.0D, 10.0D, 10.0D, 10.0D));
+            }
+
+            return new ComplexCollisionBox(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 7.0D, 11.0D),
+                    new HexCollisionBox(6.0D, 7.0D, 6.0D, 10.0D, 9.0D, 10.0D));
+        }
+    }, XMaterial.LANTERN.parseMaterial(), XMaterial.SOUL_LANTERN.parseMaterial()),
+
+
+    _LECTERN(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.14+ block
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            // I'm not sure why the top plate isn't applied, wrongly named variable or special modern collision stuff?
+            // new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 15.0D, 16.0D) - Top plate
+            return new ComplexCollisionBox(
+                    new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D), // base
+                    new HexCollisionBox(4.0D, 2.0D, 4.0D, 12.0D, 14.0D, 12.0D) // post
+            );
+        }
+    }, XMaterial.LECTERN.parseMaterial()),
+
 
     _FENCE_GATE(new CollisionFactory() {
         @Override
