@@ -102,7 +102,10 @@ public class MovementVelocityCheck {
 
         grimPlayer.clientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
 
+        // Reset stuck speed so it can update
+        grimPlayer.lastStuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
         grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
+
         Collisions.handleInsideBlocks(grimPlayer);
 
         // Flying players are not affected by cobwebs/sweet berry bushes

@@ -225,7 +225,7 @@ public class MovementCheckRunner implements Listener {
 
                 // possibleVelocities.add(handleOnClimbable(possibleLastTickOutput.clone().add(
                 // getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer));
-                Vector theoreticalInput = PredictionEngine.getMovementResultFromInput(bestMovement.multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot);
+                Vector theoreticalInput = PredictionEngine.getMovementResultFromInput(bestMovement.multiply(grimPlayer.lastStuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot);
 
                 // handleOnClimbable removed as it's clamping will essentially be worthless
                 //Vector inputResult = PredictionEngine.getMovementResultFromInput(theoreticalInput, grimPlayer.speed, grimPlayer.xRot);

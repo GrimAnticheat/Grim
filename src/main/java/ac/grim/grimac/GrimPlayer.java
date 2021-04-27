@@ -40,6 +40,7 @@ public class GrimPlayer {
     public Vector actualMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
     public Vector blockSpeedMultiplier = new Vector(1, 1, 1);
+    public Vector lastStuckSpeedMultiplier = new Vector(1, 1, 1);
 
     public double gravity;
     public float friction;
