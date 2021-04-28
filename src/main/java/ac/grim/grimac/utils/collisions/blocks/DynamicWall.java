@@ -9,7 +9,10 @@ import org.bukkit.block.data.BlockData;
 
 @SuppressWarnings("Duplicates")
 public class DynamicWall implements CollisionFactory {
+    // https://bugs.mojang.com/browse/MC-9565
+    // https://bugs.mojang.com/browse/MC-94016
 
+    // Wall sides are different in 1.13 and reflect what they look like
     private static final double width = 0.25;
     private static final double min = .5 - width;
     private static final double max = .5 + width;

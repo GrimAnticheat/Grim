@@ -71,10 +71,81 @@ public enum CollisionData {
     _LIQUID(new SimpleCollisionBox(0, 0, 0, 1f, 0.9f, 1f),
             XMaterial.WATER.parseMaterial(), XMaterial.LAVA.parseMaterial()),
 
-    _BREWINGSTAND(new ComplexCollisionBox(
-            new SimpleCollisionBox(0, 0, 0, 1, 0.125, 1),                      //base
-            new SimpleCollisionBox(0.4375, 0.0, 0.4375, 0.5625, 0.875, 0.5625) //top
-    ), XMaterial.BREWING_STAND.parseMaterial()),
+    _BREWINGSTAND(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            int base = 0;
+
+            if (version.isOrAbove(ProtocolVersion.V1_13))
+                base = 1;
+
+            return new ComplexCollisionBox(
+                    new HexCollisionBox(base, 0, base, 16 - base, 2, 16 - base),
+                    new SimpleCollisionBox(0.4375, 0.0, 0.4375, 0.5625, 0.875, 0.5625));
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            return fetch(version, (byte) 0, x, y, z);
+        }
+
+    }, XMaterial.BREWING_STAND.parseMaterial()),
+
+    _BAMBOO(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.14+ block
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            // Offset taken from NMS
+            long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
+            i = i * i * 42317861L + i * 11L;
+            i = i >> 16;
+
+            return new HexCollisionBox(6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D).offset((((i & 15L) / 15.0F) - 0.5D) * 0.5D, 0, (((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D);
+        }
+    }, XMaterial.BAMBOO.parseMaterial()),
+
+
+    _BAMBOO_SAPLING(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.14+ block
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
+            i = i * i * 42317861L + i * 11L;
+            i = i >> 16;
+
+            return new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 12.0D, 12.0D).offset((((i & 15L) / 15.0F) - 0.5D) * 0.5D, 0, (((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D);
+        }
+    }, XMaterial.BAMBOO_SAPLING.parseMaterial()),
+
+    _COMPOSTER(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // 1.14+ only block
+            return null;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            double height = 0.125;
+
+            return new ComplexCollisionBox(
+                    new SimpleCollisionBox(0, 0, 0, 1, height, 1),
+                    new SimpleCollisionBox(0, height, 0, 0.125, 1, 1),
+                    new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1),
+                    new SimpleCollisionBox(0, height, 0, 1, 1, 0.125),
+                    new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
+        }
+    }, XMaterial.COMPOSTER.parseMaterial()),
 
     _RAIL(new SimpleCollisionBox(0, 0, 0, 1, 0.125, 0),
             XMaterial.RAIL.parseMaterial(), XMaterial.ACTIVATOR_RAIL.parseMaterial(),
@@ -231,13 +302,27 @@ public enum CollisionData {
     _DOOR(new DoorHandler(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_DOOR"))
             .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
-    _HOPPER(new ComplexCollisionBox(
-            new SimpleCollisionBox(0, 0, 0, 1, 0.125 * 5, 1),
-            new SimpleCollisionBox(0, 0.125 * 5, 0, 0.125, 1, 1),
-            new SimpleCollisionBox(1 - 0.125, 0.125 * 5, 0, 1, 1, 1),
-            new SimpleCollisionBox(0, 0.125 * 5, 0, 1, 1, 0.125),
-            new SimpleCollisionBox(0, 0.125 * 5, 1 - 0.125, 1, 1, 1)
-    ), XMaterial.HOPPER.parseMaterial()),
+    _HOPPER(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            double height = 0.125 * 5;
+
+            if (version.isOrAbove(ProtocolVersion.V1_13))
+                height = 0.6875;
+
+            return new ComplexCollisionBox(
+                    new SimpleCollisionBox(0, 0, 0, 1, height, 1),
+                    new SimpleCollisionBox(0, height, 0, 0.125, 1, 1),
+                    new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1),
+                    new SimpleCollisionBox(0, height, 0, 1, 1, 0.125),
+                    new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            return fetch(version, (byte) 0, x, y, z);
+        }
+    }, XMaterial.HOPPER.parseMaterial()),
 
     _CAKE(new CollisionFactory() {
         // Byte is the number of bytes eaten.
@@ -265,10 +350,16 @@ public enum CollisionData {
         @Override
         public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
             Cocoa cocoa = (Cocoa) block;
+            int age = cocoa.getAge();
+
+            // From 1.9 - 1.10, the large cocoa block is the same as the medium one
+            // https://bugs.mojang.com/browse/MC-94274
+            if (version.isOrAbove(ProtocolVersion.V1_9_1) && version.isBelow(ProtocolVersion.V1_11))
+                age = Math.min(age, 1);
 
             switch (cocoa.getFacing()) {
                 case EAST:
-                    switch (cocoa.getAge()) {
+                    switch (age) {
                         case 0:
                             return new HexCollisionBox(11.0D, 7.0D, 6.0D, 15.0D, 12.0D, 10.0D);
                         case 1:
@@ -277,7 +368,7 @@ public enum CollisionData {
                             return new HexCollisionBox(7.0D, 3.0D, 4.0D, 15.0D, 12.0D, 12.0D);
                     }
                 case WEST:
-                    switch (cocoa.getAge()) {
+                    switch (age) {
                         case 0:
                             return new HexCollisionBox(1.0D, 7.0D, 6.0D, 5.0D, 12.0D, 10.0D);
                         case 1:
@@ -286,7 +377,7 @@ public enum CollisionData {
                             return new HexCollisionBox(1.0D, 3.0D, 4.0D, 9.0D, 12.0D, 12.0D);
                     }
                 case NORTH:
-                    switch (cocoa.getAge()) {
+                    switch (age) {
                         case 0:
                             return new HexCollisionBox(6.0D, 7.0D, 1.0D, 10.0D, 12.0D, 5.0D);
                         case 1:
@@ -295,7 +386,7 @@ public enum CollisionData {
                             return new HexCollisionBox(4.0D, 3.0D, 1.0D, 12.0D, 12.0D, 9.0D);
                     }
                 case SOUTH:
-                    switch (cocoa.getAge()) {
+                    switch (age) {
                         case 0:
                             return new HexCollisionBox(6.0D, 7.0D, 11.0D, 10.0D, 12.0D, 15.0D);
                         case 1:
@@ -658,9 +749,31 @@ public enum CollisionData {
             XMaterial.ENCHANTING_TABLE.parseMaterial()),
 
 
-    // TODO: This actually depends on client version?
-    _FRAME(new SimpleCollisionBox(0, 0, 0, 1, 1 - (0.0625 * 3), 1),
-            XMaterial.END_PORTAL_FRAME.parseMaterial()),
+    // 1.12 clients do not differentiate between the eye being in and not
+    _FRAME(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            ComplexCollisionBox complexCollisionBox = new ComplexCollisionBox(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D));
+
+            if (version.isOrAbove(ProtocolVersion.V1_13) && (data & 0x04) == 1) {
+                complexCollisionBox.add(new HexCollisionBox(4.0D, 13.0D, 4.0D, 12.0D, 16.0D, 12.0D));
+            }
+
+            return complexCollisionBox;
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            EndPortalFrame frame = (EndPortalFrame) block;
+            ComplexCollisionBox complexCollisionBox = new ComplexCollisionBox(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D));
+
+            if (version.isOrAbove(ProtocolVersion.V1_13) && frame.hasEye()) {
+                complexCollisionBox.add(new HexCollisionBox(4.0D, 13.0D, 4.0D, 12.0D, 16.0D, 12.0D));
+            }
+
+            return complexCollisionBox;
+        }
+    }, XMaterial.END_PORTAL_FRAME.parseMaterial()),
 
     _CARPET(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F),
             Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("CARPET"))
@@ -669,13 +782,28 @@ public enum CollisionData {
     _Daylight(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F),
             XMaterial.DAYLIGHT_DETECTOR.parseMaterial()),
 
+    _FARMLAND(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            // This will be wrong if a player uses 1.10.0 or 1.10.1, not sure if I can fix this as protocol version is same
+            if (version.isOrAbove(ProtocolVersion.V1_10))
+                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
 
-    _LILIPAD(new CollisionFactory() {
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            return fetch(version, (byte) 0, x, y, z);
+        }
+    }, XMaterial.FARMLAND.parseMaterial()),
+
+    _LILYPAD(new CollisionFactory() {
         @Override
         public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
             if (version.isBelow(ProtocolVersion.V1_9))
                 return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f);
-            return new SimpleCollisionBox(0.0625, 0.0F, 0.0625, 0.9375, 0.015625F, 0.9375);
+            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
         }
 
         @Override
@@ -738,12 +866,27 @@ public enum CollisionData {
         }
     }, XMaterial.END_ROD.parseMaterial()),
 
-    _CAULDRON(new ComplexCollisionBox(
-            new SimpleCollisionBox(0, 0, 0, 1, 0.3125, 1),
-            new SimpleCollisionBox(0, 0.3125, 0, 0.125, 1, 1),
-            new SimpleCollisionBox(1 - 0.125, 0.3125, 0, 1, 1, 1),
-            new SimpleCollisionBox(0, 0.3125, 0, 1, 1, 0.125), new SimpleCollisionBox(0, 0.3125, 1 - 0.125, 1, 1, 1)),
-            XMaterial.CAULDRON.parseMaterial()),
+    _CAULDRON(new CollisionFactory() {
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
+            double height = 0.25;
+
+            if (version.isOrAbove(ProtocolVersion.V1_13))
+                height = 0.3125;
+
+            return new ComplexCollisionBox(
+                    new SimpleCollisionBox(0, 0, 0, 1, height, 1),
+                    new SimpleCollisionBox(0, height, 0, 0.125, 1, 1),
+                    new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1),
+                    new SimpleCollisionBox(0, height, 0, 1, 1, 0.125),
+                    new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
+        }
+
+        @Override
+        public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+            return fetch(version, (byte) 0, x, y, z);
+        }
+    }, XMaterial.CAULDRON.parseMaterial()),
 
     _CACTUS(new SimpleCollisionBox(0.0625, 0, 0.0625,
             1 - 0.0625, 1 - 0.0625, 1 - 0.0625), XMaterial.CACTUS.parseMaterial()),

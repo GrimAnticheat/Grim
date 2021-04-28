@@ -10,6 +10,8 @@ import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 
 public class DynamicFence implements CollisionFactory {
+    // https://bugs.mojang.com/browse/MC-9565
+    // https://bugs.mojang.com/browse/MC-94016
 
     private static final double width = 0.125;
     private static final double min = .5 - width;
