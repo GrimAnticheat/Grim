@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.collisions.CollisionBox;
+import ac.grim.grimac.utils.collisions.Materials;
 import ac.grim.grimac.utils.collisions.blocks.*;
 import ac.grim.grimac.utils.collisions.types.*;
 import ac.grim.grimac.utils.data.ProtocolVersion;
@@ -1130,7 +1131,10 @@ public enum CollisionData {
         return Material.getMaterial(material.replace("LEGACY_", ""));
     }
 
-    public CollisionBox getBox(BlockData block, int x, int y, int z, ProtocolVersion version) {
+    public CollisionBox getMovementCollisionBox(BlockData block, int x, int y, int z, ProtocolVersion version) {
+        if (!Materials.checkFlag(block.getMaterial(), 1))
+            return NoCollisionBox.INSTANCE;
+
         if (this.box != null)
             return this.box.copy().offset(x, y, z);
         return new DynamicCollisionBox(dynamic, block, version).offset(x, y, z);

@@ -442,7 +442,7 @@ public class Collisions {
             for (int y = (int) Math.floor(wantedBB.minY); y <= Math.ceil(wantedBB.maxY); y++) {
                 for (int z = (int) Math.floor(wantedBB.minZ); z <= Math.ceil(wantedBB.maxZ); z++) {
                     org.bukkit.block.data.BlockData data = ChunkCache.getBukkitBlockDataAt(x, y, z);
-                    CollisionData.getData(data.getMaterial()).getBox(data, x, y, z, ProtocolVersion.v1_16_5).downCast(listOfBlocks);
+                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, ProtocolVersion.v1_16_5).downCast(listOfBlocks);
                     CraftMagicNumbers.getMaterial(ChunkCache.getBlockDataAt(x, y, z)).getData();
                 }
             }

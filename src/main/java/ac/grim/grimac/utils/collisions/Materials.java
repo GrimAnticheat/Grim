@@ -3,6 +3,8 @@ package ac.grim.grimac.utils.collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 
+import java.util.Arrays;
+
 public class Materials {
     public static final int SOLID = 0b00000000000000000000000000001;
     public static final int LADDER = 0b00000000000000000000000000010;
@@ -44,6 +46,15 @@ public class Materials {
         MATERIAL_FLAGS[XMaterial.SKELETON_WALL_SKULL.parseMaterial().ordinal()] = SOLID;
         MATERIAL_FLAGS[XMaterial.WITHER_SKELETON_SKULL.parseMaterial().ordinal()] = SOLID;
         MATERIAL_FLAGS[XMaterial.WITHER_SKELETON_WALL_SKULL.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.FLOWER_POT.parseMaterial().ordinal()] = SOLID;
+
+
+        // Update for 1.13
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = 0);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("CORAL") && !xMaterial.name().contains("BLOCK")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = 0);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_SIGN")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = 0);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_BANNER")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = 0);
+
 
         // liquids
         MATERIAL_FLAGS[XMaterial.WATER.parseMaterial().ordinal()] |= LIQUID | WATER;
