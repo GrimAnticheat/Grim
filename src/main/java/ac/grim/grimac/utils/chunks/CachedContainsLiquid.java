@@ -1,13 +1,13 @@
 package ac.grim.grimac.utils.chunks;
 
-import net.minecraft.server.v1_16_R3.AxisAlignedBB;
+import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import net.minecraft.server.v1_16_R3.IBlockData;
 import net.minecraft.server.v1_16_R3.MathHelper;
 
 public class CachedContainsLiquid {
-    public static boolean containsLiquid(AxisAlignedBB var0) {
+    public static boolean containsLiquid(SimpleCollisionBox var0) {
         int var1 = MathHelper.floor(var0.minX);
-        int var2 = MathHelper.f(var0.maxX);
+        int var2 = MathHelper.f(var0.maxX); // f -> ceiling
         int var3 = MathHelper.floor(var0.minY);
         int var4 = MathHelper.f(var0.maxY);
         int var5 = MathHelper.floor(var0.minZ);

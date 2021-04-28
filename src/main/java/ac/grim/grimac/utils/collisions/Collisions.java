@@ -8,16 +8,13 @@ import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import com.google.common.collect.Lists;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_16_R3.util.CraftMagicNumbers;
 import org.bukkit.util.Vector;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 public class Collisions {
     public static final double maxUpStep = 0.6f;
@@ -408,30 +405,6 @@ public class Collisions {
         }
     }
 
-    public static boolean noCollision(Entity p_226665_1_, AxisAlignedBB p_226665_2_) {
-        return noCollision(p_226665_1_, p_226665_2_, (p_234863_0_) -> {
-            return true;
-        });
-    }
-
-    public static boolean noCollision(@Nullable Entity p_234865_1_, AxisAlignedBB
-            p_234865_2_, Predicate<Entity> p_234865_3_) {
-        // TODO: Optimize this - meaning rip out anything 1.13+
-        // I still don't understand why we have 1.13 collisions
-
-        //return getCollisions(p_234865_1_, p_234865_2_, p_234865_3_).allMatch(VoxelShape::isEmpty);
-        return true;
-    }
-
-    /*public static Stream<VoxelShape> getCollisions(@Nullable Entity p_234867_1_, AxisAlignedBB
-            p_234867_2_, Predicate<Entity> p_234867_3_) {
-        return Stream.concat(getBlockCollisions(p_234867_1_, p_234867_2_), getEntityCollisions(p_234867_1_, p_234867_2_, p_234867_3_));
-    }
-
-    public static Stream<VoxelShape> getBlockCollisions(@Nullable Entity p_226666_1_, AxisAlignedBB p_226666_2_) {
-        return StreamSupport.stream(new CachedVoxelShapeSpliterator(p_226666_1_, p_226666_2_), false);
-    }*/
-
     // Just a test
     // grimPlayer will be used eventually to get blocks from the player's cache
     public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer grimPlayer, SimpleCollisionBox wantedBB) {
@@ -451,47 +424,12 @@ public class Collisions {
         return listOfBlocks;
     }
 
-    // TODO: We need to use the grim player's bounding boxlistOfBlocks = {ArrayList@19373}  size = 20
-    /*public static Stream<VoxelShape> getEntityCollisions(Entity p_230318_1_, AxisAlignedBB
-            p_230318_2_, Predicate<Entity> p_230318_3_) {
-        /*if (p_230318_2_.a() < 1.0E-7D) { // a() -> getSize()
-            return Stream.empty();
-        } else {
-            AxisAlignedBB axisalignedbb = p_230318_2_.grow(1.0E-7D); // g() -> inflate()
-            return getEntities(p_230318_1_, axisalignedbb, p_230318_3_.and((p_234892_2_) -> {
-                if (p_234892_2_.getBoundingBox().c(axisalignedbb)) { // c() -> intersects()
-                    // The player entity is not going to be null
-                    /*if (p_230318_1_ == null) {
-                        if (p_234892_2_.canBeCollidedWith()) {
-                            return true;
-                        }
-                    return p_230318_1_.canCollideWith(p_234892_2_);
-                }
+    public static boolean isEmpty(GrimPlayer grimPlayer, SimpleCollisionBox playerBB) {
+        for (CollisionBox collisionBox : getCollisionBoxes(grimPlayer, playerBB)) {
+            if (collisionBox.isCollided(playerBB)) return false;
+        }
 
-                return false;
-            })).stream().map(Entity::getBoundingBox).map(VoxelShapes::a);
-        }*/
-    //}
-
-    public static List<Entity> getEntities(@Nullable Entity p_175674_1_, AxisAlignedBB
-            p_175674_2_, @Nullable Predicate<? super Entity> p_175674_3_) {
-        List<Entity> list = Lists.newArrayList();
-        int i = MathHelper.floor((p_175674_2_.minX - 2.0D) / 16.0D);
-        int j = MathHelper.floor((p_175674_2_.maxX + 2.0D) / 16.0D);
-        int k = MathHelper.floor((p_175674_2_.minZ - 2.0D) / 16.0D);
-        int l = MathHelper.floor((p_175674_2_.maxZ + 2.0D) / 16.0D);
-
-        // TODO: This entire method lmao
-        /*for (int i1 = i; i1 <= j; ++i1) {
-            for (int j1 = k; j1 <= l; ++j1) {
-                Chunk chunk = abstractchunkprovider.getChunk(i1, j1, false);
-                if (chunk != null) {
-                    chunk.getEntities(p_175674_1_, p_175674_2_, list, p_175674_3_);
-                }
-            }
-        }*/
-
-        return list;
+        return true;
     }
 
     public static boolean onClimbable(GrimPlayer grimPlayer) {
@@ -514,22 +452,26 @@ public class Collisions {
         return false;
     }
 
-    private static int a(double d0, double d1) {
-        if (d0 >= -1.0E-7D && d1 <= 1.0000001D) {
-            for (int i = 0; i <= 3; ++i) {
-                double d2 = d0 * (double) (1 << i);
-                double d3 = d1 * (double) (1 << i);
-                boolean flag = Math.abs(d2 - Math.floor(d2)) < 1.0E-7D;
-                boolean flag1 = Math.abs(d3 - Math.floor(d3)) < 1.0E-7D;
+    // 1.12 collision boxes
+    /*public List<Entity> getEntitiesWithinAABBExcludingEntity(@Nullable Entity entityIn, AxisAlignedBB bb) {
+        return this.getEntitiesInAABBexcluding(entityIn, bb, EntitySelectors.NOT_SPECTATING);
+    }
 
-                if (flag && flag1) {
-                    return i;
+    public List<Entity> getEntitiesInAABBexcluding(@Nullable Entity entityIn, AxisAlignedBB boundingBox, @Nullable Predicate<? super Entity> predicate) {
+        List<Entity> list = Lists.<Entity>newArrayList();
+        int j2 = MathHelper.floor((boundingBox.minX - 2.0D) / 16.0D);
+        int k2 = MathHelper.floor((boundingBox.maxX + 2.0D) / 16.0D);
+        int l2 = MathHelper.floor((boundingBox.minZ - 2.0D) / 16.0D);
+        int i3 = MathHelper.floor((boundingBox.maxZ + 2.0D) / 16.0D);
+
+        for (int j3 = j2; j3 <= k2; ++j3) {
+            for (int k3 = l2; k3 <= i3; ++k3) {
+                if (this.isChunkLoaded(j3, k3, true)) {
+                    this.getChunkFromChunkCoords(j3, k3).getEntitiesWithinAABBForEntity(entityIn, boundingBox, list, predicate);
                 }
             }
-
-            return -1;
-        } else {
-            return -1;
         }
-    }
+
+        return list;
+    }*/
 }

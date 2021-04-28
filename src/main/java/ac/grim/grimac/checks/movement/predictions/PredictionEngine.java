@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.movement.predictions;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.MovementVelocityCheck;
+import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
@@ -173,10 +174,9 @@ public abstract class PredictionEngine {
     }
 
     public boolean canSwimHop(GrimPlayer grimPlayer, Vector vector) {
-        return false;
-        /*boolean bl = Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.shrink(0.1).d(vector.getX(), 0.6, vector.getZ()));
-        boolean bl2 = !Collisions.noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.grow(0.1, 0.1, 0.1));
-        boolean bl3 = CachedContainsLiquid.containsLiquid(grimPlayer.boundingBox.grow(0.1, 0.1, 0.1));
+        boolean bl = Collisions.isEmpty(grimPlayer, grimPlayer.boundingBox.copy().expand(-0.1).offset(vector.getX(), 0.6, vector.getZ()));
+        boolean bl2 = !Collisions.isEmpty(grimPlayer, grimPlayer.boundingBox.copy().expand(0.1, 0.1, 0.1));
+        boolean bl3 = CachedContainsLiquid.containsLiquid(grimPlayer.boundingBox.copy().expand(0.1, 0.1, 0.1));
 
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava
@@ -188,6 +188,6 @@ public abstract class PredictionEngine {
         // Requirement 2 - The player must have their bounding box plus X movement, Y movement + 0.6, Z movement minus 0.1 blocks have no collision
         // Requirement 3 - The player must have something to collide with within 0.1 blocks
 
-        return bl && bl2 && bl3;*/
+        return bl && bl2 && bl3;
     }
 }

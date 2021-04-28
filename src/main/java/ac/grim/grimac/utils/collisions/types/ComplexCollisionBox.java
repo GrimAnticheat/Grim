@@ -19,7 +19,10 @@ public class ComplexCollisionBox implements CollisionBox {
 
     @Override
     public boolean isCollided(CollisionBox other) {
-        return boxes.stream().anyMatch(box -> box.isCollided(other));
+        for (CollisionBox box : boxes) {
+            if (box.isCollided(other)) return true;
+        }
+        return false;
     }
 
     @Override
