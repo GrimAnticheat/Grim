@@ -59,6 +59,7 @@ public class Materials {
         MATERIAL_FLAGS[XMaterial.CREEPER_HEAD.parseMaterial().ordinal()] = SOLID;
 
         // Update for 1.13
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("POTTED")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = SOLID);
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = 0);
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("CORAL") && !xMaterial.name().contains("BLOCK")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = 0);
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_SIGN")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = 0);

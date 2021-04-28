@@ -9,32 +9,9 @@ import net.minecraft.server.v1_16_R3.TagsBlock;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 
-import java.lang.reflect.Field;
-
 public class BlockProperties {
     public static float getBlockFriction(GrimPlayer player) {
         return ChunkCache.getBlockDataAt(Math.floor(player.lastX), player.lastY - 0.5000001, Math.floor(player.lastZ)).getBlock().getFrictionFactor();
-    }
-
-    // TODO: Compile all these values into an array on startup to improve performance
-    public static boolean getCanCollideWith(Object object) {
-        Class clazz = object.getClass();
-
-        while (clazz != null) {
-            try {
-                Field canCollide = clazz.getDeclaredField("at");
-                canCollide.setAccessible(true);
-                boolean can = canCollide.getBoolean(object);
-
-                return can;
-            } catch (NoSuchFieldException | IllegalAccessException noSuchFieldException) {
-                clazz = clazz.getSuperclass();
-            }
-        }
-
-        // We should always be able to get a field
-        new Exception().printStackTrace();
-        return false;
     }
 
     public static float getFrictionInfluencedSpeed(float f, GrimPlayer grimPlayer) {

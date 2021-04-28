@@ -2,8 +2,6 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
-import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -28,19 +26,6 @@ public class PlayerJoinLeaveListener implements Listener {
         grimPlayer.yRot = player.getLocation().getPitch();
 
         GrimAC.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
-    }
-
-    public VoxelShape c(IBlockData iblockdata, BlockPosition blockposition) {
-        Block block = iblockdata.getBlock();
-
-        // Shulker boxes reads entity data from the world, which we can't do async
-        // What if we use shulkers to determine a player's ping :)
-        // TODO: Do something about shulkers because false positives!
-        if (block instanceof BlockShulkerBox) {
-            return VoxelShapes.b();
-        }
-
-        return BlockProperties.getCanCollideWith(block) ? iblockdata.getShape(null, blockposition) : VoxelShapes.a();
     }
 
     @EventHandler
