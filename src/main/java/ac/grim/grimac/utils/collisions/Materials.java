@@ -42,12 +42,21 @@ public class Materials {
         MATERIAL_FLAGS[XMaterial.SNOW.parseMaterial().ordinal()] = SOLID;
         MATERIAL_FLAGS[XMaterial.ANVIL.parseMaterial().ordinal()] = SOLID;
         MATERIAL_FLAGS[XMaterial.LILY_PAD.parseMaterial().ordinal()] = SOLID;
-        MATERIAL_FLAGS[XMaterial.SKELETON_SKULL.parseMaterial().ordinal()] = SOLID;
-        MATERIAL_FLAGS[XMaterial.SKELETON_WALL_SKULL.parseMaterial().ordinal()] = SOLID;
-        MATERIAL_FLAGS[XMaterial.WITHER_SKELETON_SKULL.parseMaterial().ordinal()] = SOLID;
-        MATERIAL_FLAGS[XMaterial.WITHER_SKELETON_WALL_SKULL.parseMaterial().ordinal()] = SOLID;
         MATERIAL_FLAGS[XMaterial.FLOWER_POT.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.SEA_PICKLE.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.TURTLE_EGG.parseMaterial().ordinal()] = SOLID;
 
+        MATERIAL_FLAGS[XMaterial.CREEPER_HEAD.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.DRAGON_HEAD.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.PLAYER_HEAD.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.ZOMBIE_HEAD.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.SKELETON_WALL_SKULL.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.WITHER_SKELETON_WALL_SKULL.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.CREEPER_WALL_HEAD.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.DRAGON_WALL_HEAD.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.PLAYER_WALL_HEAD.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.ZOMBIE_WALL_HEAD.parseMaterial().ordinal()] = SOLID;
+        MATERIAL_FLAGS[XMaterial.CREEPER_HEAD.parseMaterial().ordinal()] = SOLID;
 
         // Update for 1.13
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).map(XMaterial::parseMaterial).forEach(material -> MATERIAL_FLAGS[material.ordinal()] = 0);
