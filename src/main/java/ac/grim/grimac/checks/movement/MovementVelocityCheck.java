@@ -91,7 +91,7 @@ public class MovementVelocityCheck {
 
         // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
         if (onBlock instanceof BlockSlime) {
-            if (grimPlayer.onGround && !grimPlayer.wasSneaking) {
+            if (grimPlayer.onGround && !grimPlayer.isSneaking) {
                 double absVelocityY = Math.abs(grimPlayer.clientVelocity.getY());
                 if (absVelocityY < 0.1) {
                     double d1 = 0.4D + absVelocityY * 0.2D;

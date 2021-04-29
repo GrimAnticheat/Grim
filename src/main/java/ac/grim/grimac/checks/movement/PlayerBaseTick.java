@@ -65,6 +65,37 @@ public class PlayerBaseTick {
 
         float f = BlockProperties.getBlockSpeedFactor(player);
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
+
+        updatePlayerPose();
+    }
+
+    protected void updatePlayerPose() {
+        if (canEnterPose(Pose.SWIMMING)) {
+            Pose pose;
+            if (player.isFallFlying) {
+                pose = Pose.FALL_FLYING;
+            } else if (player.bukkitPlayer.isSleeping()) {
+                pose = Pose.SLEEPING;
+            } else if (player.isSwimming) {
+                pose = Pose.SWIMMING;
+            } else if (player.bukkitPlayer.isRiptiding()) {
+                pose = Pose.SPIN_ATTACK;
+            } else if (player.isSneaking && !player.isFlying) {
+                pose = Pose.CROUCHING;
+            } else {
+                pose = Pose.STANDING;
+            }
+
+            if (!player.inVehicle && !canEnterPose(pose)) {
+                if (canEnterPose(Pose.CROUCHING)) {
+                    pose = Pose.CROUCHING;
+                } else {
+                    pose = Pose.SWIMMING;
+                }
+            }
+
+            player.pose = pose;
+        }
     }
 
     protected boolean canEnterPose(Pose pose) {

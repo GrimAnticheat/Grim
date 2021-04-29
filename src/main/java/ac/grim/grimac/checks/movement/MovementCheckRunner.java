@@ -63,7 +63,6 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.onGround = data.onGround;
             grimPlayer.lastSprinting = grimPlayer.isSprinting;
             grimPlayer.isSprinting = data.isSprinting;
-            grimPlayer.wasSneaking = grimPlayer.isSneaking;
             grimPlayer.isSneaking = data.isSneaking;
             grimPlayer.wasCrouching = grimPlayer.isCrouching;
             grimPlayer.specialFlying = grimPlayer.onGround && !data.isFlying && grimPlayer.isFlying || data.isFlying;
@@ -86,7 +85,7 @@ public class MovementCheckRunner implements Listener {
             if (!grimPlayer.inVehicle) {
                 grimPlayer.xRot = data.xRot;
                 grimPlayer.yRot = data.yRot;
-                grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isCrouching, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+                grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
 
                 // This is not affected by any movement
                 new PlayerBaseTick(grimPlayer).doBaseTick();
@@ -144,7 +143,6 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastXRot = grimPlayer.xRot;
         grimPlayer.lastYRot = grimPlayer.yRot;
         grimPlayer.lastOnGround = grimPlayer.onGround;
-        grimPlayer.lastSneaking = grimPlayer.wasSneaking;
         grimPlayer.lastClimbing = grimPlayer.isClimbing;
 
         if (grimPlayer.tasksNotFinished.getAndDecrement() > 1) {

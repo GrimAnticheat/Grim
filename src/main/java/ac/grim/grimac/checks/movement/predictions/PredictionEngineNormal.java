@@ -34,7 +34,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setY(Math.max(vector.getY(), -0.15));
 
             // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(ChunkCache.getBlockDataAt(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ).getBlock() instanceof BlockScaffolding) && grimPlayer.wasSneaking && !grimPlayer.specialFlying) {
+            if (vector.getY() < 0.0 && !(ChunkCache.getBlockDataAt(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ).getBlock() instanceof BlockScaffolding) && grimPlayer.isSneaking && !grimPlayer.specialFlying) {
                 vector.setY(0.0);
             }
         }
