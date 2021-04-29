@@ -21,7 +21,6 @@ public class PredictionData {
     public boolean isSprinting;
     public boolean isSneaking;
     public boolean isFlying;
-    public boolean isSwimming;
     public boolean isClimbing;
     public boolean isFallFlying;
     public World playerWorld;
@@ -101,7 +100,6 @@ public class PredictionData {
         }
 
         this.isFlying = false;
-        this.isSwimming = false;
         this.isClimbing = false;
         this.isFallFlying = false;
         this.playerWorld = grimPlayer.bukkitPlayer.getWorld();

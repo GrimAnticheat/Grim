@@ -60,6 +60,7 @@ public class GrimPlayer {
     public boolean isSneaking;
     public boolean wasSneaking;
     public boolean isSprinting;
+    public boolean lastSprinting;
     public boolean packetIsFlying;
     public boolean isFlying;
     // If a player collides with the ground, their flying will be set false after their movement
@@ -69,7 +70,6 @@ public class GrimPlayer {
     // If the player touches the ground and was flying, and now isn't flying - the player was flying during movement
     // Or if the player is flying - the player is flying during movement
     public boolean specialFlying;
-    public boolean packetIsSwimming;
     public boolean isSwimming;
     public boolean isClimbing;
     public boolean isFallFlying;

@@ -10,10 +10,10 @@ import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Bukkit;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
+import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
-
-import java.util.Iterator;
 
 public class PlayerBaseTick {
     GrimPlayer player;
@@ -64,26 +64,24 @@ public class PlayerBaseTick {
     private void updateFluidOnEyes() {
         player.wasEyeInWater = player.isEyeInFluid(TagsFluid.WATER);
         player.fluidOnEyes = null;
-        double d0 = player.entityPlayer.getHeadY() - 0.1111111119389534D;
+        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isSneaking, player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.clientVersion) - 0.1111111119389534D;
 
-        // Probably not async safe
-        if (!player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (player.playerVehicle instanceof Boat && !player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
-        BlockPosition blockposition = new BlockPosition(player.x, d0, player.z);
-        Fluid fluid = ChunkCache.getBlockDataAt(player.x, player.y, player.z).getFluid();
-        Iterator iterator = TagsFluid.b().iterator();
+        BlockData eyeFluid = ChunkCache.getBukkitBlockDataAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
 
-        while (iterator.hasNext()) {
-            Tag tag = (Tag) iterator.next();
-            if (fluid.a(tag)) {
-                double d1 = (float) blockposition.getY() + fluid.getHeight(player.entityPlayer.getWorld(), blockposition);
-                if (d1 > d0) {
-                    player.fluidOnEyes = tag;
-                }
-
-                return;
+        // TODO: Support 1.12 with Material.STATIONARY_WATER
+        if (eyeFluid.getMaterial() == org.bukkit.Material.WATER) {
+            double d1 = (float) Math.floor(d0) + ChunkCache.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+            if (d1 > d0) {
+                player.fluidOnEyes = TagsFluid.WATER;
+            }
+        } else if (eyeFluid.getMaterial() == org.bukkit.Material.LAVA) {
+            double d1 = (float) Math.floor(d0) + ChunkCache.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+            if (d1 > d0) {
+                player.fluidOnEyes = TagsFluid.LAVA;
             }
         }
     }
@@ -91,84 +89,26 @@ public class PlayerBaseTick {
     public void updateSwimming() {
         // This doesn't seem like the right place for determining swimming, but it's fine for now
         if (player.isFlying) {
-            player.packetIsSwimming = false;
+            player.isSwimming = false;
         } else {
 
-            Bukkit.broadcastMessage("Is touching water " + isTouchingWater(player));
-            Bukkit.broadcastMessage("Is eyes in water " + isEyesInWaterForSwimming(player));
+            Bukkit.broadcastMessage("Is touching water " + player.wasTouchingWater);
+            Bukkit.broadcastMessage("Is eyes in water " + player.wasEyeInWater);
             Bukkit.broadcastMessage("Is sprinting " + player.isPacketSprinting);
 
-            if (player.packetIsSwimming) {
-                player.isSwimming = player.isSprinting && isTouchingWater(player);
+
+            if (player.inVehicle) {
+                player.isSwimming = false;
+            } else if (player.isSwimming) {
+                player.isSwimming = player.lastSprinting && player.wasTouchingWater;
             } else {
-                player.isSwimming = player.isSprinting && isEyesInWaterForSwimming(player);
+                player.isSwimming = player.lastSprinting && player.wasEyeInWater && player.wasTouchingWater;
             }
+
+            Bukkit.broadcastMessage("Is swimming " + player.isSwimming);
         }
     }
 
-    private boolean isEyesInWaterForSwimming(GrimPlayer grimPlayer) {
-        // isShifting, isGliding, isSwimming, isSleeping, clientVersion
-        SimpleCollisionBox axisalignedbb = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.packetIsSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
-
-        int i = MathHelper.floor(axisalignedbb.minX);
-        int j = MathHelper.f(axisalignedbb.maxX);
-        int k = MathHelper.floor(axisalignedbb.minY);
-        int l = MathHelper.f(axisalignedbb.maxY);
-        int i1 = MathHelper.floor(axisalignedbb.minZ);
-        int j1 = MathHelper.f(axisalignedbb.maxZ);
-
-        double waterEyeHeight = grimPlayer.lastY + GetBoundingBox.getEyeHeight(grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.packetIsSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion) - 0.11111111F;
-
-        if (!CheckIfChunksLoaded.hasChunksAt(i, k, i1, j, l, j1)) {
-            return false;
-        } else {
-            for (int l1 = i; l1 < j; ++l1) {
-                for (int i2 = k; i2 < l; ++i2) {
-                    for (int j2 = i1; j2 < j1; ++j2) {
-
-                        double fluidHeight = i2 + ChunkCache.getWaterFluidLevelAt(l1, i2, j2);
-
-                        if (fluidHeight >= waterEyeHeight) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean isTouchingWater(GrimPlayer grimPlayer) {
-        // isShifting, isGliding, isSwimming, isSleeping, clientVersion
-        SimpleCollisionBox axisalignedbb = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.packetIsSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
-
-        int i = MathHelper.floor(axisalignedbb.minX);
-        int j = MathHelper.f(axisalignedbb.maxX);
-        int k = MathHelper.floor(axisalignedbb.minY);
-        int l = MathHelper.f(axisalignedbb.maxY);
-        int i1 = MathHelper.floor(axisalignedbb.minZ);
-        int j1 = MathHelper.f(axisalignedbb.maxZ);
-
-        if (!CheckIfChunksLoaded.hasChunksAt(i, k, i1, j, l, j1)) {
-            return false;
-        } else {
-            for (int l1 = i; l1 < j; ++l1) {
-                for (int i2 = k; i2 < l; ++i2) {
-                    for (int j2 = i1; j2 < j1; ++j2) {
-
-                        double fluidHeight = i2 + ChunkCache.getWaterFluidLevelAt(l1, i2, j2);
-
-                        if (fluidHeight >= grimPlayer.y) {
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
 
     private void moveTowardsClosestSpace(double xPosition, double zPosition) {
         BlockPosition blockPos = new BlockPosition(xPosition, player.lastY, zPosition);
@@ -200,13 +140,12 @@ public class PlayerBaseTick {
 
     // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
-        // Watersplash effect removed (Entity 981).  Shouldn't affect movement
-        //player.fallDistance = 0.0f;
-        //this.clearFire();
-        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);
-        /*if (player.playerVehicle instanceof EntityBoat) {
+        if (player.playerVehicle instanceof Boat) {
             player.wasTouchingWater = false;
-        } else player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);*/
+            return;
+        }
+
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
