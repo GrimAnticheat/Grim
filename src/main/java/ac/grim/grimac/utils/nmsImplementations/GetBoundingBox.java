@@ -57,6 +57,8 @@ public class GetBoundingBox {
             return 0.17;
         } else if (isShifting && clientVersion >= 466) {
             return 1.27;
+        } else if (isShifting) {
+            return 1.54;
         } else {
             return 1.62;
         }
