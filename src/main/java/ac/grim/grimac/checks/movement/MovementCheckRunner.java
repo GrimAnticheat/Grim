@@ -65,6 +65,7 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.isSprinting = data.isSprinting;
             grimPlayer.wasSneaking = grimPlayer.isSneaking;
             grimPlayer.isSneaking = data.isSneaking;
+            grimPlayer.wasCrouching = grimPlayer.isCrouching;
             grimPlayer.specialFlying = grimPlayer.onGround && !data.isFlying && grimPlayer.isFlying || data.isFlying;
             grimPlayer.isFlying = data.isFlying;
             grimPlayer.isClimbing = data.isClimbing;
@@ -85,7 +86,7 @@ public class MovementCheckRunner implements Listener {
             if (!grimPlayer.inVehicle) {
                 grimPlayer.xRot = data.xRot;
                 grimPlayer.yRot = data.yRot;
-                grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+                grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isCrouching, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
 
                 // This is not affected by any movement
                 new PlayerBaseTick(grimPlayer).doBaseTick();
@@ -221,7 +222,7 @@ public class MovementCheckRunner implements Listener {
                 //grimPlayer.clientVelocity.multiply(grimPlayer.baseTickSet);
 
                 // TODO: isSneaking should take a lag compensated value in case sneaking -> not sneaking -> sneaking
-                Vector bestMovement = getBestContinuousInput(grimPlayer.crouching, getBestTheoreticalPlayerInput(wantedMovement.clone().divide(grimPlayer.stuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot));
+                Vector bestMovement = getBestContinuousInput(grimPlayer.isCrouching, getBestTheoreticalPlayerInput(wantedMovement.clone().divide(grimPlayer.stuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot));
 
                 // possibleVelocities.add(handleOnClimbable(possibleLastTickOutput.clone().add(
                 // getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer));

@@ -24,7 +24,7 @@ public class Collisions {
     // This MUST return a new vector!!!
     // If it does not the predicted velocity will be overridden
     public static Vector collide(GrimPlayer grimPlayer, double xWithCollision, double yWithCollision, double zWithCollision) {
-        SimpleCollisionBox currentPosBB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.wasSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+        SimpleCollisionBox currentPosBB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isCrouching, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
 
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(grimPlayer, currentPosBB.copy().expandToCoordinate(xWithCollision, yWithCollision, zWithCollision));
         SimpleCollisionBox setBB = currentPosBB.copy();
@@ -327,7 +327,7 @@ public class Collisions {
 
     public static void handleInsideBlocks(GrimPlayer grimPlayer) {
         // Use the bounding box for after the player's movement is applied
-        SimpleCollisionBox aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.crouching, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+        SimpleCollisionBox aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.isCrouching, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.isSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
         Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
         Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
 
