@@ -2,7 +2,9 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
@@ -40,6 +42,11 @@ public class PlayerBaseTick {
         updateFluidOnEyes();
         updateSwimming();
 
+        // LocalPlayer:aiStep determining crouching
+        // Tick order is entityBaseTick and then the aiStep stuff
+        // This code is in the wrong place, I'll fix it later
+        player.crouching = !player.specialFlying && !player.isSwimming && canEnterPose(Pose.CROUCHING) && (player.isSneaking || !player.bukkitPlayer.isSleeping() || !canEnterPose(Pose.STANDING));
+
         // LocalPlayer:aiStep line 647
         // Players in boats don't care about being in blocks
         if (!player.inVehicle) {
@@ -51,6 +58,15 @@ public class PlayerBaseTick {
 
         float f = BlockProperties.getBlockSpeedFactor(player);
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
+    }
+
+    protected boolean canEnterPose(Pose pose) {
+        return Collisions.isEmpty(player, getBoundingBoxForPose(pose).expand(-1.0E-7D));
+    }
+
+    protected SimpleCollisionBox getBoundingBoxForPose(Pose pose) {
+        float radius = pose.width / 2.0F;
+        return new SimpleCollisionBox(player.lastX - radius, player.lastY, player.lastZ - radius, player.lastX + radius, player.lastY + pose.height, player.lastZ + radius);
     }
 
     // Entity line 937

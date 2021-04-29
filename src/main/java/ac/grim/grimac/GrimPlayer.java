@@ -59,6 +59,7 @@ public class GrimPlayer {
     // Set from the time that the movement packet was received, to be thread safe
     public boolean isSneaking;
     public boolean wasSneaking;
+    public boolean crouching;
     public boolean isSprinting;
     public boolean lastSprinting;
     public boolean packetIsFlying;
