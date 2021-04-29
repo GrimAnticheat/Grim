@@ -46,7 +46,7 @@ public class PlayerBaseTick {
         // LocalPlayer:aiStep determining crouching
         // Tick order is entityBaseTick and then the aiStep stuff
         // This code is in the wrong place, I'll fix it later
-        player.isCrouching = !player.specialFlying && !player.isSwimming && canEnterPose(Pose.CROUCHING) && (player.isSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(Pose.STANDING));
+        player.isCrouching = !player.specialFlying && !player.isSwimming && canEnterPose(Pose.CROUCHING) && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(Pose.STANDING));
 
         if (!player.isCrouching) {
             Bukkit.broadcastMessage("Not crouching!");
@@ -104,7 +104,7 @@ public class PlayerBaseTick {
 
     protected SimpleCollisionBox getBoundingBoxForPose(Pose pose) {
         float radius = pose.width / 2.0F;
-        return new SimpleCollisionBox(player.x - radius, player.y, player.z - radius, player.x + radius, player.y + pose.height, player.z + radius);
+        return new SimpleCollisionBox(player.lastX - radius, player.lastY, player.lastZ - radius, player.lastX + radius, player.lastY + pose.height, player.lastZ + radius);
     }
 
     // Entity line 937

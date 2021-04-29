@@ -63,8 +63,8 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.onGround = data.onGround;
             grimPlayer.lastSprinting = grimPlayer.isSprinting;
             grimPlayer.isSprinting = data.isSprinting;
+            grimPlayer.wasSneaking = grimPlayer.isSneaking;
             grimPlayer.isSneaking = data.isSneaking;
-            grimPlayer.wasCrouching = grimPlayer.isCrouching;
             grimPlayer.specialFlying = grimPlayer.onGround && !data.isFlying && grimPlayer.isFlying || data.isFlying;
             grimPlayer.isFlying = data.isFlying;
             grimPlayer.isClimbing = data.isClimbing;

@@ -39,7 +39,7 @@ public abstract class PredictionEngine {
     }
 
     public static boolean isMovingSlowly(GrimPlayer grimPlayer) {
-        return grimPlayer.wasCrouching || (grimPlayer.pose == Pose.SWIMMING && !grimPlayer.wasTouchingWater);
+        return grimPlayer.isCrouching || (grimPlayer.pose == Pose.SWIMMING && !grimPlayer.wasTouchingWater);
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
