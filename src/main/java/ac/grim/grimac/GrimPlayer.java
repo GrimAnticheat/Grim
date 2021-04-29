@@ -78,6 +78,8 @@ public class GrimPlayer {
     public double fallDistance;
     public SimpleCollisionBox boundingBox;
     public Pose pose = Pose.STANDING;
+    // This has to be done before pose is updated
+    public boolean isSlowMovement = false;
     public World playerWorld;
 
     public double movementSpeed;

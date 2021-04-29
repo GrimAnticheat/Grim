@@ -47,6 +47,7 @@ public class PlayerBaseTick {
         // Tick order is entityBaseTick and then the aiStep stuff
         // This code is in the wrong place, I'll fix it later
         player.isCrouching = !player.specialFlying && !player.isSwimming && canEnterPose(Pose.CROUCHING) && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(Pose.STANDING));
+        player.isSlowMovement = player.isCrouching || (player.pose == Pose.SWIMMING && !player.wasTouchingWater);
 
         if (!player.isCrouching) {
             Bukkit.broadcastMessage("Not crouching!");

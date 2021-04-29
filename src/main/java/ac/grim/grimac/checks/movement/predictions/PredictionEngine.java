@@ -5,7 +5,6 @@ import ac.grim.grimac.checks.movement.MovementVelocityCheck;
 import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.enums.MoverType;
-import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.TagsFluid;
@@ -22,7 +21,8 @@ public abstract class PredictionEngine {
         float bestPossibleX;
         float bestPossibleZ;
 
-        if (isMovingSlowly(grimPlayer)) {
+        // We save the slow movement status as it's easier and takes less CPU than recalculating it with newly stored old values
+        if (grimPlayer.isSlowMovement) {
             bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
             bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
         } else {
@@ -36,10 +36,6 @@ public abstract class PredictionEngine {
         if (inputVector.lengthSquared() > 1) inputVector.normalize();
 
         return inputVector;
-    }
-
-    public static boolean isMovingSlowly(GrimPlayer grimPlayer) {
-        return grimPlayer.isCrouching || (grimPlayer.pose == Pose.SWIMMING && !grimPlayer.wasTouchingWater);
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
