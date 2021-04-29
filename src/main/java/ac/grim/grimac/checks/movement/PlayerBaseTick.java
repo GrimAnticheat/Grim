@@ -81,7 +81,7 @@ public class PlayerBaseTick {
                 pose = Pose.SWIMMING;
             } else if (player.bukkitPlayer.isRiptiding()) {
                 pose = Pose.SPIN_ATTACK;
-            } else if (player.isSneaking && !player.isFlying) {
+            } else if (player.isSneaking && !player.specialFlying) {
                 pose = Pose.CROUCHING;
             } else {
                 pose = Pose.STANDING;

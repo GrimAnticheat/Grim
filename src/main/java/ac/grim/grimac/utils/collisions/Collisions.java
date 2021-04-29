@@ -272,12 +272,10 @@ public class Collisions {
     // MCP mappings PlayerEntity 959
     // Mojang mappings 911
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
-        //Player bukkitPlayer = grimPlayer.bukkitPlayer;
-
-        /*if (!grimPlayer.specialFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.isSneaking && isAboveGround(grimPlayer)) {
+        if (!grimPlayer.specialFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && grimPlayer.isSneaking && isAboveGround(grimPlayer)) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
-            while (d != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(d, -maxUpStep, 0.0))) {
+            while (d != 0.0 && isEmpty(grimPlayer, grimPlayer.boundingBox.copy().offset(d, -maxUpStep, 0.0))) {
                 if (d < 0.05 && d >= -0.05) {
                     d = 0.0;
                     continue;
@@ -288,7 +286,7 @@ public class Collisions {
                 }
                 d += 0.05;
             }
-            while (d2 != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, -maxUpStep, d2))) {
+            while (d2 != 0.0 && isEmpty(grimPlayer, grimPlayer.boundingBox.copy().offset(0.0, -maxUpStep, d2))) {
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
                     continue;
@@ -299,8 +297,8 @@ public class Collisions {
                 }
                 d2 += 0.05;
             }
-            while (d != 0.0 && d2 != 0.0 && noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(d, -maxUpStep, d2))) {
-                d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? (d -= 0.05) : (d += 0.05));
+            while (d != 0.0 && d2 != 0.0 && isEmpty(grimPlayer, grimPlayer.boundingBox.copy().offset(d, -maxUpStep, d2))) {
+                d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? d - 0.05 : d + 0.05);
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
                     continue;
@@ -312,7 +310,7 @@ public class Collisions {
                 d2 += 0.05;
             }
             vec3 = new Vector(d, vec3.getY(), d2);
-        }*/
+        }
         return vec3;
     }
 
@@ -320,9 +318,8 @@ public class Collisions {
     private static boolean isAboveGround(GrimPlayer grimPlayer) {
         //Player bukkitPlayer = grimPlayer.bukkitPlayer;
 
-        return false;
-        /*return grimPlayer.lastOnGround || grimPlayer.fallDistance < Collisions.maxUpStep && !
-                noCollision(grimPlayer.entityPlayer, grimPlayer.boundingBox.d(0.0, grimPlayer.fallDistance - Collisions.maxUpStep, 0.0));*/
+        return grimPlayer.lastOnGround || grimPlayer.fallDistance < Collisions.maxUpStep &&
+                !isEmpty(grimPlayer, grimPlayer.boundingBox.copy().offset(0.0, grimPlayer.fallDistance - Collisions.maxUpStep, 0.0));
     }
 
     public static void handleInsideBlocks(GrimPlayer grimPlayer) {
