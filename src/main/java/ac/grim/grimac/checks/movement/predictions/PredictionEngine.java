@@ -4,10 +4,13 @@ import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.MovementVelocityCheck;
 import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.collisions.Collisions;
+import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.TagsFluid;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -175,13 +178,20 @@ public abstract class PredictionEngine {
     }
 
     public boolean canSwimHop(GrimPlayer grimPlayer, Vector vector) {
-        boolean bl = Collisions.isEmpty(grimPlayer, grimPlayer.boundingBox.copy().expand(-0.1).offset(vector.getX(), 0.6, vector.getZ()));
-        boolean bl2 = !Collisions.isEmpty(grimPlayer, grimPlayer.boundingBox.copy().expand(0.1, 0.1, 0.1));
-        boolean bl3 = CachedContainsLiquid.containsLiquid(grimPlayer.boundingBox.copy().expand(0.1, 0.1, 0.1));
+        boolean canCollideHorizontally = !Collisions.isEmpty(grimPlayer, grimPlayer.boundingBox.copy().expand(0.1, -0.01, 0.1));
+
+        SimpleCollisionBox isFreeBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.x, grimPlayer.y, grimPlayer.z).offset(vector.getX(), vector.getY() + 0.6 - grimPlayer.y + grimPlayer.lastY, vector.getZ());
+        Bukkit.broadcastMessage("isFreeBox " + isFreeBox.minX + " " + isFreeBox.minY + " " + isFreeBox.minZ + " " + isFreeBox.maxX + " " + isFreeBox.maxY + " " + isFreeBox.maxZ);
+
+        boolean isFree = Collisions.isEmpty(grimPlayer, isFreeBox);
+        // TODO: Can we just use .wasTouchingWater or does the < 0.03 mess it up too much.
+        boolean inWater = CachedContainsLiquid.containsLiquid(grimPlayer.boundingBox.copy().expand(0.1, 0.1, 0.1));
+
+        Bukkit.broadcastMessage("Swim hopping " + canCollideHorizontally + " " + isFree + " " + inWater);
 
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava
-        // Requirement 2 - The player must have X movement, Y movement + 0.6, Z movement no collision
+        // Requirement 2 - The player must have X position + X movement, Y position + Y movement - Y position before tick + 0.6, Z position + Z movement have no collision
         // Requirement 3 - The player must have horizontal collision
 
         // Our system ->
@@ -189,6 +199,6 @@ public abstract class PredictionEngine {
         // Requirement 2 - The player must have their bounding box plus X movement, Y movement + 0.6, Z movement minus 0.1 blocks have no collision
         // Requirement 3 - The player must have something to collide with within 0.1 blocks
 
-        return bl && bl2 && bl3;
+        return canCollideHorizontally && isFree && inWater;
     }
 }
