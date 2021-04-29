@@ -8,18 +8,11 @@ public class GetBoundingBox {
     // Size while gliding/swimming: 0.6 width 0.6 height
     // Size while sleeping: 0.2 width 0.2 height
     public static SimpleCollisionBox getPlayerBoundingBox(double centerX, double minY, double centerZ, boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, short clientVersion) {
-        double playerHeight;
+        double playerHeight = getHeadHeight(isShifting, isGliding, isSwimming, isSleeping, clientVersion);
         double playerWidth = 0.6;
 
-        if (isGliding || isSwimming) {
-            playerHeight = 0.6;
-        } else if (isSleeping) {
-            playerHeight = 0.2;
+        if (isSleeping) {
             playerWidth = 0.2;
-        } else if (isShifting && clientVersion >= 466) {
-            playerHeight = 1.5;
-        } else {
-            playerHeight = 1.8;
         }
 
         double minX = centerX - (playerWidth / 2);
@@ -42,5 +35,30 @@ public class GetBoundingBox {
         double maxZ = centerZ + (boatWidth / 2);
 
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public static double getHeadHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, short clientVersion) {
+        if (isGliding || isSwimming) {
+            return 0.6;
+        } else if (isSleeping) {
+            return 0.2;
+        } else if (isShifting && clientVersion >= 466) {
+            return 1.5;
+        } else {
+            return 1.8;
+        }
+    }
+
+    public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, short clientVersion) {
+        if (isGliding || isSwimming) {
+            return 0.4;
+        } else if (isSleeping) {
+            // I'm not sure if this is correct.  I'm guessing based on some code.  It doesn't matter.
+            return 0.17;
+        } else if (isShifting && clientVersion >= 466) {
+            return 1.27;
+        } else {
+            return 1.62;
+        }
     }
 }

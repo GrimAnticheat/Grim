@@ -7,7 +7,9 @@ import net.minecraft.server.v1_16_R3.Block;
 import net.minecraft.server.v1_16_R3.IBlockData;
 import org.apache.logging.log4j.core.util.Integers;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -103,6 +105,19 @@ public class ChunkCache {
         }
 
         return JAVA_AIR_ID;
+    }
+
+    // I can't figure out what levels above 8 do.
+    // Even on debug mode, they still can't go above level 8
+    // Must have been an optimization that is no longer used
+    // Doesn't work on 1.12
+    public static double getWaterFluidLevelAt(int x, int y, int z) {
+        BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
+        if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == Material.WATER) {
+            return Math.max(((Levelled) bukkitBlock).getLevel() / 8, 1);
+        }
+
+        return 0;
     }
 
     public static void removeChunk(int chunkX, int chunkZ) {
