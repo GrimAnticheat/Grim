@@ -7,7 +7,9 @@ import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.util.Vector;
 
@@ -36,6 +38,7 @@ public class PlayerBaseTick {
 
         updateInWaterStateAndDoFluidPushing();
         updateFluidOnEyes();
+        updateSwimming();
 
         // LocalPlayer:aiStep line 647
         // Players in boats don't care about being in blocks
@@ -83,7 +86,88 @@ public class PlayerBaseTick {
                 return;
             }
         }
+    }
 
+    public void updateSwimming() {
+        // This doesn't seem like the right place for determining swimming, but it's fine for now
+        if (player.isFlying) {
+            player.packetIsSwimming = false;
+        } else {
+
+            Bukkit.broadcastMessage("Is touching water " + isTouchingWater(player));
+            Bukkit.broadcastMessage("Is eyes in water " + isEyesInWaterForSwimming(player));
+            Bukkit.broadcastMessage("Is sprinting " + player.isPacketSprinting);
+
+            if (player.packetIsSwimming) {
+                player.isSwimming = player.isSprinting && isTouchingWater(player);
+            } else {
+                player.isSwimming = player.isSprinting && isEyesInWaterForSwimming(player);
+            }
+        }
+    }
+
+    private boolean isEyesInWaterForSwimming(GrimPlayer grimPlayer) {
+        // isShifting, isGliding, isSwimming, isSleeping, clientVersion
+        SimpleCollisionBox axisalignedbb = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.packetIsSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+
+        int i = MathHelper.floor(axisalignedbb.minX);
+        int j = MathHelper.f(axisalignedbb.maxX);
+        int k = MathHelper.floor(axisalignedbb.minY);
+        int l = MathHelper.f(axisalignedbb.maxY);
+        int i1 = MathHelper.floor(axisalignedbb.minZ);
+        int j1 = MathHelper.f(axisalignedbb.maxZ);
+
+        double waterEyeHeight = grimPlayer.lastY + GetBoundingBox.getEyeHeight(grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.packetIsSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion) - 0.11111111F;
+
+        if (!CheckIfChunksLoaded.hasChunksAt(i, k, i1, j, l, j1)) {
+            return false;
+        } else {
+            for (int l1 = i; l1 < j; ++l1) {
+                for (int i2 = k; i2 < l; ++i2) {
+                    for (int j2 = i1; j2 < j1; ++j2) {
+
+                        double fluidHeight = i2 + ChunkCache.getWaterFluidLevelAt(l1, i2, j2);
+
+                        if (fluidHeight >= waterEyeHeight) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isTouchingWater(GrimPlayer grimPlayer) {
+        // isShifting, isGliding, isSwimming, isSleeping, clientVersion
+        SimpleCollisionBox axisalignedbb = GetBoundingBox.getPlayerBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, grimPlayer.isSneaking, grimPlayer.bukkitPlayer.isGliding(), grimPlayer.packetIsSwimming, grimPlayer.bukkitPlayer.isSleeping(), grimPlayer.clientVersion);
+
+        int i = MathHelper.floor(axisalignedbb.minX);
+        int j = MathHelper.f(axisalignedbb.maxX);
+        int k = MathHelper.floor(axisalignedbb.minY);
+        int l = MathHelper.f(axisalignedbb.maxY);
+        int i1 = MathHelper.floor(axisalignedbb.minZ);
+        int j1 = MathHelper.f(axisalignedbb.maxZ);
+
+        if (!CheckIfChunksLoaded.hasChunksAt(i, k, i1, j, l, j1)) {
+            return false;
+        } else {
+            for (int l1 = i; l1 < j; ++l1) {
+                for (int i2 = k; i2 < l; ++i2) {
+                    for (int j2 = i1; j2 < j1; ++j2) {
+
+                        double fluidHeight = i2 + ChunkCache.getWaterFluidLevelAt(l1, i2, j2);
+
+                        if (fluidHeight >= grimPlayer.y) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private void moveTowardsClosestSpace(double xPosition, double zPosition) {

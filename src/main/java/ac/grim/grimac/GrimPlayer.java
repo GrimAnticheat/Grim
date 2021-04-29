@@ -53,7 +53,6 @@ public class GrimPlayer {
     public float xRot;
     public float yRot;
     public boolean onGround;
-    // Packet sprinting isn't lag compensated, regular one is
     public boolean isPacketSneaking;
     public boolean isPacketSprinting;
 
