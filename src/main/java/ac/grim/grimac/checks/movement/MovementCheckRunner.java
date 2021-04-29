@@ -221,7 +221,7 @@ public class MovementCheckRunner implements Listener {
                 //grimPlayer.clientVelocity.multiply(grimPlayer.baseTickSet);
 
                 // TODO: isSneaking should take a lag compensated value in case sneaking -> not sneaking -> sneaking
-                Vector bestMovement = getBestContinuousInput(grimPlayer.isSneaking, getBestTheoreticalPlayerInput(wantedMovement.clone().divide(grimPlayer.stuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot));
+                Vector bestMovement = getBestContinuousInput(grimPlayer.crouching, getBestTheoreticalPlayerInput(wantedMovement.clone().divide(grimPlayer.stuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot));
 
                 // possibleVelocities.add(handleOnClimbable(possibleLastTickOutput.clone().add(
                 // getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer));
@@ -255,11 +255,11 @@ public class MovementCheckRunner implements Listener {
         //Bukkit.broadcastMessage("Total movement " + totalMovement);
     }
 
-    public static Vector getBestContinuousInput(boolean isSneaking, Vector theoreticalInput) {
+    public static Vector getBestContinuousInput(boolean isCrouching, Vector theoreticalInput) {
         double bestPossibleX;
         double bestPossibleZ;
 
-        if (isSneaking) {
+        if (isCrouching) {
             bestPossibleX = Math.min(Math.max(-0.294, theoreticalInput.getX()), 0.294);
             bestPossibleZ = Math.min(Math.max(-0.294, theoreticalInput.getZ()), 0.294);
         } else {

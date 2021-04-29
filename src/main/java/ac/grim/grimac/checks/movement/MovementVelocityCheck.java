@@ -73,7 +73,7 @@ public class MovementVelocityCheck {
 
         if (inputVel.getY() != collide.getY()) {
             if (onBlock instanceof BlockSlime) {
-                if (grimPlayer.isSneaking) {
+                if (grimPlayer.isSneaking) { // Slime blocks use shifting instead of sneaking
                     grimPlayer.clientVelocity.setY(0);
                 } else {
                     if (grimPlayer.clientVelocity.getY() < 0.0) {

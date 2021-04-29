@@ -29,6 +29,7 @@ public class PlayerBaseTick {
         player.baseTickSet = new Vector();
         player.baseTickAddition = new Vector(0, 0, 0);
 
+        // You cannot crouch while flying, only shift - could be specific to 1.14?
         // LocalPlayer:aiStep line 728
         if (player.entityPlayer.isInWater() && player.isSneaking && !player.specialFlying && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
@@ -80,7 +81,7 @@ public class PlayerBaseTick {
     private void updateFluidOnEyes() {
         player.wasEyeInWater = player.isEyeInFluid(TagsFluid.WATER);
         player.fluidOnEyes = null;
-        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isSneaking, player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.clientVersion) - 0.1111111119389534D;
+        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.crouching, player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.clientVersion) - 0.1111111119389534D;
 
         if (player.playerVehicle instanceof Boat && !player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
