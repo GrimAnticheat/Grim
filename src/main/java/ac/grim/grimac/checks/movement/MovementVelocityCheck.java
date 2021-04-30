@@ -63,11 +63,14 @@ public class MovementVelocityCheck {
 
         Block onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
 
+        double xBeforeZero = grimPlayer.clientVelocity.getX();
         if (inputVel.getX() != collide.getX()) {
             grimPlayer.clientVelocity.setX(0);
         }
 
+        // Strangely, collision on the Z axis resets X set to zero.  Is this a bug or a feature?  Doesn't matter.
         if (inputVel.getZ() != collide.getZ()) {
+            grimPlayer.clientVelocity.setX(xBeforeZero);
             grimPlayer.clientVelocity.setZ(0);
         }
 
