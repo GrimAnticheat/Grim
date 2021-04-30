@@ -104,6 +104,7 @@ public class MovementCheckRunner implements Listener {
 
                 BoatMovement.doBoatMovement(grimPlayer);
 
+
                 grimPlayer.vehicleForward = data.vehicleForward;
                 grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
             }

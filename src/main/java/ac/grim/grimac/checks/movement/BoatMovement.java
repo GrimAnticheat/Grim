@@ -19,6 +19,7 @@ public class BoatMovement {
         // This does stuff like getting the boat's movement on the water
         new PlayerBaseTick(grimPlayer).doBaseTick();
 
+        grimPlayer.boatData.oldStatus = grimPlayer.boatData.status;
         grimPlayer.boatData.status = getStatus(grimPlayer);
         floatBoat(grimPlayer);
         controlBoat(grimPlayer);
