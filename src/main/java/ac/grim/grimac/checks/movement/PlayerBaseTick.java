@@ -11,7 +11,6 @@ import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Bukkit;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Boat;
@@ -46,14 +45,10 @@ public class PlayerBaseTick {
         // LocalPlayer:aiStep determining crouching
         // Tick order is entityBaseTick and then the aiStep stuff
         // This code is in the wrong place, I'll fix it later
-        player.isCrouching = !player.specialFlying && !player.isSwimming && canEnterPose(Pose.CROUCHING) && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(Pose.STANDING));
+        player.isCrouching = !player.specialFlying && !player.isSwimming && canEnterPose(Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
+                && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(Pose.STANDING, player.lastX, player.lastY, player.lastZ));
         player.isSlowMovement = player.isCrouching || (player.pose == Pose.SWIMMING && !player.wasTouchingWater);
 
-        if (!player.isCrouching) {
-            Bukkit.broadcastMessage("Not crouching!");
-        }
-
-        Bukkit.broadcastMessage("Player bounding box " + player.boundingBox.maxY);
 
         // LocalPlayer:aiStep line 647
         // Players in boats don't care about being in blocks
@@ -71,7 +66,7 @@ public class PlayerBaseTick {
     }
 
     protected void updatePlayerPose() {
-        if (canEnterPose(Pose.SWIMMING)) {
+        if (canEnterPose(Pose.SWIMMING, player.x, player.y, player.z)) {
             Pose pose;
             if (player.isFallFlying) {
                 pose = Pose.FALL_FLYING;
@@ -87,8 +82,8 @@ public class PlayerBaseTick {
                 pose = Pose.STANDING;
             }
 
-            if (!player.inVehicle && !canEnterPose(pose)) {
-                if (canEnterPose(Pose.CROUCHING)) {
+            if (!player.inVehicle && !canEnterPose(pose, player.x, player.y, player.z)) {
+                if (canEnterPose(Pose.CROUCHING, player.x, player.y, player.z)) {
                     pose = Pose.CROUCHING;
                 } else {
                     pose = Pose.SWIMMING;
@@ -99,13 +94,13 @@ public class PlayerBaseTick {
         }
     }
 
-    protected boolean canEnterPose(Pose pose) {
-        return Collisions.isEmpty(player, getBoundingBoxForPose(pose).expand(-1.0E-7D));
+    protected boolean canEnterPose(Pose pose, double x, double y, double z) {
+        return Collisions.isEmpty(player, getBoundingBoxForPose(pose, x, y, z).expand(-1.0E-7D));
     }
 
-    protected SimpleCollisionBox getBoundingBoxForPose(Pose pose) {
+    protected SimpleCollisionBox getBoundingBoxForPose(Pose pose, double x, double y, double z) {
         float radius = pose.width / 2.0F;
-        return new SimpleCollisionBox(player.lastX - radius, player.lastY, player.lastZ - radius, player.lastX + radius, player.lastY + pose.height, player.lastZ + radius);
+        return new SimpleCollisionBox(x - radius, y, z - radius, x + radius, y + pose.height, z + radius);
     }
 
     // Entity line 937
@@ -146,12 +141,6 @@ public class PlayerBaseTick {
         if (player.isFlying) {
             player.isSwimming = false;
         } else {
-
-            Bukkit.broadcastMessage("Is touching water " + player.wasTouchingWater);
-            Bukkit.broadcastMessage("Is eyes in water " + player.wasEyeInWater);
-            Bukkit.broadcastMessage("Is sprinting " + player.isPacketSprinting);
-
-
             if (player.inVehicle) {
                 player.isSwimming = false;
             } else if (player.isSwimming) {
@@ -159,8 +148,6 @@ public class PlayerBaseTick {
             } else {
                 player.isSwimming = player.lastSprinting && player.wasEyeInWater && player.wasTouchingWater;
             }
-
-            Bukkit.broadcastMessage("Is swimming " + player.isSwimming);
         }
     }
 

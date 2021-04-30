@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import net.minecraft.server.v1_16_R3.TagsFluid;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -181,13 +180,10 @@ public abstract class PredictionEngine {
         boolean canCollideHorizontally = !Collisions.isEmpty(grimPlayer, grimPlayer.boundingBox.copy().expand(0.1, -0.01, 0.1));
 
         SimpleCollisionBox isFreeBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.x, grimPlayer.y, grimPlayer.z).offset(vector.getX(), vector.getY() + 0.6 - grimPlayer.y + grimPlayer.lastY, vector.getZ());
-        Bukkit.broadcastMessage("isFreeBox " + isFreeBox.minX + " " + isFreeBox.minY + " " + isFreeBox.minZ + " " + isFreeBox.maxX + " " + isFreeBox.maxY + " " + isFreeBox.maxZ);
 
         boolean isFree = Collisions.isEmpty(grimPlayer, isFreeBox);
         // TODO: Can we just use .wasTouchingWater or does the < 0.03 mess it up too much.
         boolean inWater = CachedContainsLiquid.containsLiquid(grimPlayer.boundingBox.copy().expand(0.1, 0.1, 0.1));
-
-        Bukkit.broadcastMessage("Swim hopping " + canCollideHorizontally + " " + isFree + " " + inWater);
 
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava
