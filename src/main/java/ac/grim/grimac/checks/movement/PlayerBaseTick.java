@@ -182,12 +182,7 @@ public class PlayerBaseTick {
 
     // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
-        if (player.playerVehicle instanceof Boat) {
-            player.wasTouchingWater = false;
-            return;
-        }
-
-        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014);
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014) && !(player.playerVehicle instanceof Boat);
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
