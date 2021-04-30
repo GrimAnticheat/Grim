@@ -114,10 +114,23 @@ public class ChunkCache {
     public static double getWaterFluidLevelAt(int x, int y, int z) {
         BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
         if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == Material.WATER) {
-            return Math.max(((Levelled) bukkitBlock).getLevel() / 8, 1);
+            int waterLevel = ((Levelled) bukkitBlock).getLevel();
+            if (getBukkitBlockDataAt(x, y + 1, z).getMaterial() == Material.WATER) return 1;
+
+            return (8 - waterLevel) / 9f;
         }
 
         return 0;
+    }
+
+    public static boolean isWaterSourceBlock(int x, int y, int z) {
+        BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
+        if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == Material.WATER) {
+            return ((Levelled) bukkitBlock).getLevel() == 0;
+        }
+
+        // Not a water block
+        return false;
     }
 
     public static void removeChunk(int chunkX, int chunkZ) {
