@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
-import org.bukkit.craftbukkit.v1_16_R3.util.CraftMagicNumbers;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -413,7 +412,6 @@ public class Collisions {
                 for (int z = (int) Math.floor(wantedBB.minZ); z <= Math.ceil(wantedBB.maxZ); z++) {
                     org.bukkit.block.data.BlockData data = ChunkCache.getBukkitBlockDataAt(x, y, z);
                     CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, ProtocolVersion.v1_16_5).downCast(listOfBlocks);
-                    CraftMagicNumbers.getMaterial(ChunkCache.getBlockDataAt(x, y, z)).getData();
                 }
             }
         }

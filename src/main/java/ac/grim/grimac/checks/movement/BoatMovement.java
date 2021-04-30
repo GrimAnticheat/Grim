@@ -11,7 +11,7 @@ import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import net.minecraft.server.v1_16_R3.BlockWaterLily;
 import net.minecraft.server.v1_16_R3.IBlockData;
-import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 public class BoatMovement {
@@ -222,7 +222,9 @@ public class BoatMovement {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
                             mutableBlockPos.d(l1, k2, i2);
                             IBlockData blockData = ChunkCache.getBlockDataAt(l1, k2, i2);
-                            if (!(blockData.getBlock() instanceof BlockWaterLily) && CollisionData.getData(Material.LILY_PAD).getMovementCollisionBox(ChunkCache.getBukkitBlockDataAt(l1, k2, i2), l1, k2, i2, ProtocolVersion.v1_16_4).isIntersected(axisalignedbb1)) {
+                            BlockData bukkitData = ChunkCache.getBukkitBlockDataAt(l1, k2, i2);
+
+                            if (!(blockData.getBlock() instanceof BlockWaterLily) && CollisionData.getData(bukkitData.getMaterial()).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
                                 f += blockData.getBlock().getFrictionFactor();
                                 ++k1;
                             }
