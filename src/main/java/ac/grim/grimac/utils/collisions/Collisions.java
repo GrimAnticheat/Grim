@@ -23,7 +23,7 @@ public class Collisions {
     // This MUST return a new vector!!!
     // If it does not the predicted velocity will be overridden
     public static Vector collide(GrimPlayer grimPlayer, double xWithCollision, double yWithCollision, double zWithCollision) {
-        SimpleCollisionBox currentPosBB = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
+        SimpleCollisionBox currentPosBB = grimPlayer.boundingBox;
 
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(grimPlayer, currentPosBB.copy().expandToCoordinate(xWithCollision, yWithCollision, zWithCollision));
         SimpleCollisionBox setBB = currentPosBB.copy();
