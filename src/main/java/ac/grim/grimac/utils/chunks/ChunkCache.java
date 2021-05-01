@@ -159,8 +159,10 @@ public class ChunkCache {
             return ((Levelled) bukkitBlock).getLevel() == 0;
         }
 
-        // Not a water block
-        return false;
+        // These blocks are also considered source blocks
+        return bukkitBlock.getMaterial() == Material.SEAGRASS || bukkitBlock.getMaterial() == Material.TALL_SEAGRASS
+                || bukkitBlock.getMaterial() == Material.KELP || bukkitBlock.getMaterial() == Material.KELP_PLANT ||
+                bukkitBlock.getMaterial() == Material.BUBBLE_COLUMN;
     }
 
     public static void removeChunk(int chunkX, int chunkZ) {
