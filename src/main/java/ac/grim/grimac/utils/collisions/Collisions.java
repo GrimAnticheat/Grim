@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
+import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -323,7 +324,15 @@ public class Collisions {
 
     public static void handleInsideBlocks(GrimPlayer grimPlayer) {
         // Use the bounding box for after the player's movement is applied
-        SimpleCollisionBox aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.x, grimPlayer.y, grimPlayer.z);
+
+        // This is a terrible hack :(
+        SimpleCollisionBox aABB;
+        if (grimPlayer.playerVehicle instanceof Boat) {
+            aABB = GetBoundingBox.getBoatBoundingBox(grimPlayer.x, grimPlayer.y, grimPlayer.z);
+        } else {
+            aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.x, grimPlayer.y, grimPlayer.z);
+        }
+
         Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
         Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
 
@@ -347,20 +356,30 @@ public class Collisions {
                         IBlockData blockData = ChunkCache.getBlockDataAt(i, j, k);
                         IBlockData blockAbove = ChunkCache.getBlockDataAt(i, j + 1, k).getBlock().getBlockData();
 
-                        if (blockAbove.isAir()) {
-                            for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                        if (grimPlayer.playerVehicle instanceof Boat) {
+                            if (!blockAbove.isAir()) {
                                 if (blockData.get(DRAG_DOWN)) {
-                                    vector.setY(Math.max(-0.9D, vector.getY() - 0.03D));
+                                    grimPlayer.clientVelocity.setY(Math.max(-0.3D, grimPlayer.clientVelocity.getY() - 0.03D));
                                 } else {
-                                    vector.setY(Math.min(1.8D, vector.getY() + 0.1D));
+                                    grimPlayer.clientVelocity.setY(Math.min(0.7D, grimPlayer.clientVelocity.getY() + 0.06D));
                                 }
                             }
                         } else {
-                            for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-                                if (blockData.get(DRAG_DOWN)) {
-                                    vector.setY(Math.max(-0.3D, vector.getY() - 0.03D));
-                                } else {
-                                    vector.setY(Math.min(0.7D, vector.getY() + 0.06D));
+                            if (blockAbove.isAir()) {
+                                for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                                    if (blockData.get(DRAG_DOWN)) {
+                                        vector.setY(Math.max(-0.9D, vector.getY() - 0.03D));
+                                    } else {
+                                        vector.setY(Math.min(1.8D, vector.getY() + 0.1D));
+                                    }
+                                }
+                            } else {
+                                for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                                    if (blockData.get(DRAG_DOWN)) {
+                                        vector.setY(Math.max(-0.3D, vector.getY() - 0.03D));
+                                    } else {
+                                        vector.setY(Math.min(0.7D, vector.getY() + 0.06D));
+                                    }
                                 }
                             }
                         }

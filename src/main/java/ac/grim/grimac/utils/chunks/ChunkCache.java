@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.jetbrains.annotations.NotNull;
@@ -113,9 +114,38 @@ public class ChunkCache {
     // Doesn't work on 1.12
     public static double getWaterFluidLevelAt(int x, int y, int z) {
         BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
+
+        if (bukkitBlock.getMaterial() == Material.SEAGRASS || bukkitBlock.getMaterial() == Material.TALL_SEAGRASS
+                || bukkitBlock.getMaterial() == Material.KELP || bukkitBlock.getMaterial() == Material.KELP_PLANT ||
+                bukkitBlock.getMaterial() == Material.BUBBLE_COLUMN) {
+            // This is terrible lmao
+            BlockData aboveData = getBukkitBlockDataAt(x, y + 1, z);
+
+            if (aboveData instanceof Waterlogged && ((Waterlogged) aboveData).isWaterlogged() ||
+                    aboveData.getMaterial() == Material.SEAGRASS || aboveData.getMaterial() == Material.TALL_SEAGRASS
+                    || aboveData.getMaterial() == Material.KELP || aboveData.getMaterial() == Material.KELP_PLANT ||
+                    aboveData.getMaterial() == Material.BUBBLE_COLUMN || bukkitBlock.getMaterial() == Material.WATER) {
+                return 1;
+            }
+
+            return 8 / 9f;
+        }
+
+        // Not sure if this is correct, but it seems so.
+        if (bukkitBlock instanceof Waterlogged) {
+            if (((Waterlogged) bukkitBlock).isWaterlogged()) return 8 / 9f;
+        }
+
         if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == Material.WATER) {
             int waterLevel = ((Levelled) bukkitBlock).getLevel();
-            if (getBukkitBlockDataAt(x, y + 1, z).getMaterial() == Material.WATER) return 1;
+            BlockData aboveData = getBukkitBlockDataAt(x, y + 1, z);
+
+            if (aboveData instanceof Waterlogged && ((Waterlogged) aboveData).isWaterlogged() ||
+                    aboveData.getMaterial() == Material.SEAGRASS || aboveData.getMaterial() == Material.TALL_SEAGRASS
+                    || aboveData.getMaterial() == Material.KELP || aboveData.getMaterial() == Material.KELP_PLANT ||
+                    aboveData.getMaterial() == Material.BUBBLE_COLUMN || aboveData.getMaterial() == Material.WATER) {
+                return 1;
+            }
 
             return (8 - waterLevel) / 9f;
         }
