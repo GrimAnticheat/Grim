@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import net.minecraft.server.v1_16_R3.BlockWaterLily;
 import net.minecraft.server.v1_16_R3.IBlockData;
+import org.bukkit.Bukkit;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
@@ -25,6 +26,9 @@ public class BoatMovement {
         controlBoat(grimPlayer);
 
         MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity.clone().multiply(grimPlayer.stuckSpeedMultiplier));
+        grimPlayer.predictedVelocity.add(new Vector(0, grimPlayer.boatData.midTickY, 0));
+
+        grimPlayer.boatData.midTickY = 0;
     }
 
     private static void floatBoat(GrimPlayer grimPlayer) {
@@ -34,8 +38,13 @@ public class BoatMovement {
         float invFriction = 0.05F;
         if (grimPlayer.boatData.oldStatus == BoatEntityStatus.IN_AIR && grimPlayer.boatData.status != BoatEntityStatus.IN_AIR && grimPlayer.boatData.status != BoatEntityStatus.ON_LAND) {
             grimPlayer.boatData.waterLevel = grimPlayer.lastY + grimPlayer.boundingBox.maxY - grimPlayer.boundingBox.minY;
-            grimPlayer.boatData.midTickY = getWaterLevelAbove(grimPlayer) - grimPlayer.boundingBox.maxY - grimPlayer.boundingBox.minY + 0.101D;
+
+            grimPlayer.boatData.midTickY = getWaterLevelAbove(grimPlayer) - grimPlayer.boundingBox.maxY - grimPlayer.boundingBox.minY + 0.101D + grimPlayer.boundingBox.minY;
+            grimPlayer.boundingBox.offset(0, grimPlayer.boatData.midTickY, 0);
+
+
             grimPlayer.clientVelocity.setY(0);
+
             grimPlayer.boatData.lastYd = 0.0D;
             grimPlayer.boatData.status = BoatEntityStatus.IN_WATER;
         } else {

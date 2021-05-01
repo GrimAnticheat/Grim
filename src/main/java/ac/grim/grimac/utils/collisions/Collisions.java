@@ -333,15 +333,15 @@ public class Collisions {
             aABB = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.x, grimPlayer.y, grimPlayer.z);
         }
 
-        Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001, aABB.minY + 0.001, aABB.minZ + 0.001);
-        Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001, aABB.maxY - 0.001, aABB.maxZ - 0.001);
+        Location blockPos = new Location(grimPlayer.playerWorld, aABB.minX + 0.001D, aABB.minY + 0.001D, aABB.minZ + 0.001D);
+        Location blockPos2 = new Location(grimPlayer.playerWorld, aABB.maxX - 0.001D, aABB.maxY - 0.001D, aABB.maxZ - 0.001D);
 
         if (!CheckIfChunksLoaded.hasChunksAt(blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
             return;
 
-        for (int i = blockPos.getBlockX(); i <= blockPos2.getX(); ++i) {
-            for (int j = blockPos.getBlockY(); j <= blockPos2.getY(); ++j) {
-                for (int k = blockPos.getBlockZ(); k <= blockPos2.getZ(); ++k) {
+        for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
+            for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
+                for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
                     Block block = ChunkCache.getBlockDataAt(i, j, k).getBlock();
 
                     if (block instanceof BlockWeb) {
