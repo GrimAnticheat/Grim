@@ -147,6 +147,7 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastYRot = grimPlayer.yRot;
         grimPlayer.lastOnGround = grimPlayer.onGround;
         grimPlayer.lastClimbing = grimPlayer.isClimbing;
+        grimPlayer.isJustTeleported = false;
 
         if (grimPlayer.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;

@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.FireworkData;
 import ac.grim.grimac.utils.enums.Pose;
 import io.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
 import net.minecraft.server.v1_16_R3.FluidType;
 import net.minecraft.server.v1_16_R3.Tag;
@@ -106,6 +107,8 @@ public class GrimPlayer {
 
     // Handled by entity spawn event, removed when firework dies
     public HashMap<Integer, FireworkData> fireworks = new HashMap<>();
+    public HashMap<Integer, Vector3d> teleports = new HashMap<>();
+
 
     // Set after checks
     public double lastX;
@@ -118,6 +121,7 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean lastClimbing;
     public boolean couldSkipTick = false;
+    public boolean isJustTeleported = false;
 
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
