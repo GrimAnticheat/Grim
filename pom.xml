@@ -94,7 +94,7 @@
         <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents</artifactId>
-            <version>v1.8-pre-13</version>
+            <version>v1.8-pre-14</version>
         </dependency>
         <dependency>
             <groupId>com.github.Steveice10</groupId>

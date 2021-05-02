@@ -55,7 +55,7 @@ public class MovementVelocityCheck {
         }
 
         // This is where vanilla moves the bounding box and sets it
-        grimPlayer.predictedVelocity = collide;
+        grimPlayer.predictedVelocity = collide.clone();
 
         grimPlayer.horizontalCollision = !Mth.equal(inputVel.getX(), collide.getX()) || !Mth.equal(inputVel.getZ(), collide.getZ());
         grimPlayer.verticalCollision = inputVel.getY() != collide.getY();

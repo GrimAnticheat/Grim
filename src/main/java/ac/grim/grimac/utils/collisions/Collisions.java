@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import net.minecraft.server.v1_16_R3.*;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
@@ -363,7 +362,6 @@ public class Collisions {
                                     grimPlayer.clientVelocity.setY(Math.max(-0.3D, grimPlayer.clientVelocity.getY() - 0.03D));
                                 } else {
                                     grimPlayer.clientVelocity.setY(Math.min(0.7D, grimPlayer.clientVelocity.getY() + 0.06D));
-                                    Bukkit.broadcastMessage("Increasing y because " + i + " " + j + " " + k);
                                 }
                             }
                         } else {

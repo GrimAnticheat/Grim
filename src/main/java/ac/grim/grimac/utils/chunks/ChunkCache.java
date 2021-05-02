@@ -13,7 +13,6 @@ import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -189,7 +188,7 @@ public class ChunkCache {
                 // I could technically generate this on startup but that requires setting blocks in the world
                 // Would rather have a known clean file on all servers.
                 String blockString = line.substring(line.indexOf(" ") + 1);
-                org.bukkit.block.data.@NotNull BlockData referencedBlockData = Bukkit.createBlockData(blockString);
+                org.bukkit.block.data.BlockData referencedBlockData = Bukkit.createBlockData(blockString);
 
                 // Link this global palette ID to the blockdata for the second part of the script
                 globalPaletteToBlockData[globalPaletteID] = referencedBlockData;

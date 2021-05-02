@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
@@ -11,7 +12,6 @@ import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import net.minecraft.server.v1_16_R3.BlockPosition;
 import net.minecraft.server.v1_16_R3.BlockWaterLily;
 import net.minecraft.server.v1_16_R3.IBlockData;
-import org.bukkit.Bukkit;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
@@ -23,12 +23,12 @@ public class BoatMovement {
         grimPlayer.boatData.oldStatus = grimPlayer.boatData.status;
         grimPlayer.boatData.status = getStatus(grimPlayer);
 
-        Bukkit.broadcastMessage("Boat status is " + grimPlayer.boatData.status);
-
         floatBoat(grimPlayer);
+
         controlBoat(grimPlayer);
 
-        MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity.clone().multiply(grimPlayer.stuckSpeedMultiplier));
+
+        MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity.multiply(grimPlayer.stuckSpeedMultiplier));
         grimPlayer.predictedVelocity.add(new Vector(0, grimPlayer.boatData.midTickY, 0));
         Collisions.handleInsideBlocks(grimPlayer);
 
