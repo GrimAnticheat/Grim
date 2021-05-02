@@ -101,7 +101,7 @@ public abstract class PredictionEngine {
             }
         }
 
-        grimPlayer.clientVelocity = MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
+        MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
         grimPlayer.predictedVelocity = bestCollisionVel.clone();
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }

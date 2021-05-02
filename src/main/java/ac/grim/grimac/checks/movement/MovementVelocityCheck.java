@@ -26,13 +26,13 @@ public class MovementVelocityCheck {
         this.bukkitPlayer = grimPlayer.bukkitPlayer;
     }
 
-    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel) {
-        return move(grimPlayer, moverType, inputVel, inputVel);
+    public static void move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel) {
+        move(grimPlayer, moverType, inputVel, inputVel);
     }
 
     // Entity line 527
     // TODO: Entity piston and entity shulker (want to) call this method too.
-    public static Vector move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel, Vector collide) {
+    public static void move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel, Vector collide) {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
@@ -115,8 +115,6 @@ public class MovementVelocityCheck {
         if (grimPlayer.specialFlying) {
             grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
         }
-
-        return grimPlayer.clientVelocity;
     }
 
     public void livingEntityAIStep() {
@@ -245,7 +243,7 @@ public class MovementVelocityCheck {
                 }
 
                 //grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
-                grimPlayer.clientVelocity = move(grimPlayer, MoverType.SELF, clientVelocity);
+                move(grimPlayer, MoverType.SELF, clientVelocity);
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);

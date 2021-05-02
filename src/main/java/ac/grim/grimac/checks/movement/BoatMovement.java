@@ -30,6 +30,7 @@ public class BoatMovement {
 
         MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity.clone().multiply(grimPlayer.stuckSpeedMultiplier));
         grimPlayer.predictedVelocity.add(new Vector(0, grimPlayer.boatData.midTickY, 0));
+        Collisions.handleInsideBlocks(grimPlayer);
 
         grimPlayer.boatData.midTickY = 0;
     }
