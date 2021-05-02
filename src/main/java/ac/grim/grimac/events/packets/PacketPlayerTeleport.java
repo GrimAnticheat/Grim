@@ -9,7 +9,7 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.teleportaccept.WrappedPacketInTeleportAccept;
 import io.github.retrooper.packetevents.packetwrappers.play.out.position.WrappedPacketOutPosition;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.util.Vector;
+import org.bukkit.Bukkit;
 
 public class PacketPlayerTeleport extends PacketListenerDynamic {
 
@@ -22,11 +22,17 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
 
             player.isJustTeleported = true;
 
-            // A bit hacky but should be fine
+            // A bit hacky but should be fine - set this stuff twice as optimization
+            // Otherwise we will be running more scenarios to try and get the right velocity
+            // Setting last coordinates here is necessary though, don't change that.
             player.lastX = teleportLocation.getX();
             player.lastY = teleportLocation.getY();
             player.lastZ = teleportLocation.getZ();
-            player.clientVelocity = new Vector();
+            player.baseTickSetX(0);
+            player.baseTickSetY(0);
+            player.baseTickSetZ(0);
+
+            Bukkit.broadcastMessage("Teleport accepted!");
         }
     }
 
@@ -39,6 +45,8 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             // This shouldn't be null unless another plugin is incorrectly using packets
             player.teleports.put(teleport.getTeleportId().get(), teleport.getPosition());
+
+            Bukkit.broadcastMessage("Teleporting to " + teleport.getPosition().toString());
         }
     }
 }

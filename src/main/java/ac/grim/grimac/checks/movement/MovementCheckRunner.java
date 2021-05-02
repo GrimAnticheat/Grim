@@ -79,6 +79,7 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.inVehicle = data.inVehicle;
             grimPlayer.playerVehicle = data.playerVehicle;
 
+
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
 
@@ -107,6 +108,17 @@ public class MovementCheckRunner implements Listener {
 
                 grimPlayer.vehicleForward = data.vehicleForward;
                 grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
+            }
+
+
+            // Teleporting overwrites all movements
+            if (grimPlayer.isJustTeleported) {
+                grimPlayer.baseTickSetX(0);
+                grimPlayer.baseTickSetY(0);
+                grimPlayer.baseTickSetZ(0);
+                grimPlayer.predictedVelocity = new Vector();
+
+                grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
             }
 
 
