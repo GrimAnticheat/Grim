@@ -22,6 +22,9 @@ public class BoatMovement {
 
         grimPlayer.boatData.oldStatus = grimPlayer.boatData.status;
         grimPlayer.boatData.status = getStatus(grimPlayer);
+
+        Bukkit.broadcastMessage("Boat status is " + grimPlayer.boatData.status);
+
         floatBoat(grimPlayer);
         controlBoat(grimPlayer);
 
@@ -168,9 +171,9 @@ public class BoatMovement {
         for (int k1 = i; k1 < j; ++k1) {
             for (int l1 = k; l1 < l; ++l1) {
                 for (int i2 = i1; i2 < j1; ++i2) {
-                    double level = ChunkCache.getWaterFluidLevelAt(k1, l1, i1);
+                    double level = ChunkCache.getWaterFluidLevelAt(k1, l1, i2);
                     if (d0 < l1 + level) {
-                        if (!ChunkCache.isWaterSourceBlock(k1, l1, i1)) {
+                        if (!ChunkCache.isWaterSourceBlock(k1, l1, i2)) {
                             return BoatEntityStatus.UNDER_FLOWING_WATER;
                         }
 
