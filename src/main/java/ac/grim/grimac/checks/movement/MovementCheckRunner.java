@@ -9,6 +9,8 @@ import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Boat;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -37,10 +39,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 // If stage 0 - Add one and add the data to the workers
 // If stage 1 - Add the data to the queue and add one
 public class MovementCheckRunner implements Listener {
+    public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
     // List instead of Set for consistency in debug output
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
-
-    public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
     // I actually don't know how many threads is good, more testing is needed!
     static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
 
@@ -95,7 +96,7 @@ public class MovementCheckRunner implements Listener {
                 new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
 
                 //handleSkippedTicks(grimPlayer);
-            } else {
+            } else if (grimPlayer.playerVehicle instanceof Boat) {
                 grimPlayer.boatData.lastYRot = grimPlayer.boatData.yRot;
                 // What the fuck Mojang. Why are you using yRot???
                 grimPlayer.boatData.yRot = data.xRot;
@@ -105,6 +106,15 @@ public class MovementCheckRunner implements Listener {
 
                 BoatMovement.doBoatMovement(grimPlayer);
 
+                grimPlayer.vehicleForward = data.vehicleForward;
+                grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
+            } else if (grimPlayer.playerVehicle instanceof AbstractHorse) {
+                grimPlayer.xRot = data.xRot;
+                grimPlayer.yRot = data.yRot;
+                // TODO: This is 100% wrong
+                grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
+
+                AbstractHorseMovement.travel(new Vector(), grimPlayer);
 
                 grimPlayer.vehicleForward = data.vehicleForward;
                 grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
