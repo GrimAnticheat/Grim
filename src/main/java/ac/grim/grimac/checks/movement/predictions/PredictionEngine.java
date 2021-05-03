@@ -1,7 +1,7 @@
 package ac.grim.grimac.checks.movement.predictions;
 
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheck;
+import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheckPlayerMovement;
 import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
@@ -101,7 +101,7 @@ public abstract class PredictionEngine {
             }
         }
 
-        MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
+        new MovementVelocityCheckPlayerMovement(grimPlayer).move(MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
         grimPlayer.predictedVelocity = bestCollisionVel.clone();
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }

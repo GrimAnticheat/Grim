@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.movement.movementTick;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.data.FireworkData;
 import ac.grim.grimac.utils.enums.MoverType;
@@ -23,13 +24,70 @@ public class MovementVelocityCheck {
         this.bukkitPlayer = grimPlayer.bukkitPlayer;
     }
 
-    public static void move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel) {
-        move(grimPlayer, moverType, inputVel, inputVel);
+    public static void vectorEndOfTick(GrimPlayer grimPlayer, Vector vector) {
+        double d9 = vector.getY();
+        if (grimPlayer.levitationAmplifier > 0) {
+            d9 += (0.05 * (double) (grimPlayer.levitationAmplifier + 1) - vector.getY()) * 0.2;
+        } else if (ChunkCache.getChunk((int) grimPlayer.x >> 4, (int) grimPlayer.z >> 4) != null) {
+            // Commenting out hasGravity check because playesr always have gravity
+            d9 -= grimPlayer.gravity;
+        } else {
+            d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
+        }
+
+        vector.setX(vector.getX() * grimPlayer.friction);
+        vector.setY(d9 * 0.9800000190734863);
+        vector.setZ(vector.getZ() * grimPlayer.friction);
+    }
+
+    public void move(MoverType moverType, Vector inputVel) {
+        move(moverType, inputVel, inputVel);
+    }
+
+    public void livingEntityAIStep() {
+        // Living Entity line 2153
+        // TODO: 1.8 clients have a different minimum movement than 1.9.  I believe it is 0.005
+        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+            if (Math.abs(vector.getX()) < 0.003D) {
+                vector.setX(0D);
+            }
+
+            if (Math.abs(vector.getY()) < 0.003D) {
+                vector.setY(0D);
+            }
+
+            if (Math.abs(vector.getZ()) < 0.003D) {
+                vector.setZ(0D);
+            }
+        }
+
+        playerEntityTravel();
+    }
+
+    // Player line 1208
+    public void playerEntityTravel() {
+        if (grimPlayer.specialFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
+            double oldY = grimPlayer.clientVelocity.getY();
+            double oldYJumping = oldY + grimPlayer.flySpeed * 3;
+            livingEntityTravel();
+
+            if (Math.abs(oldY - grimPlayer.actualMovement.getY()) < (oldYJumping - grimPlayer.actualMovement.getY())) {
+                grimPlayer.baseTickSetY(oldY * 0.6);
+
+            } else {
+                grimPlayer.baseTickSetY(oldYJumping * 0.6);
+            }
+
+        } else {
+            livingEntityTravel();
+        }
+
+        grimPlayer.clientVelocityFireworkBoost = null;
     }
 
     // Entity line 527
     // TODO: Entity piston and entity shulker (want to) call this method too.
-    public static void move(GrimPlayer grimPlayer, MoverType moverType, Vector inputVel, Vector collide) {
+    public void move(MoverType moverType, Vector inputVel, Vector collide) {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
@@ -114,45 +172,13 @@ public class MovementVelocityCheck {
         }
     }
 
-    public void livingEntityAIStep() {
-        // Living Entity line 2153
-        // TODO: 1.8 clients have a different minimum movement than 1.9.  I believe it is 0.005
-        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-            if (Math.abs(vector.getX()) < 0.003D) {
-                vector.setX(0D);
-            }
-
-            if (Math.abs(vector.getY()) < 0.003D) {
-                vector.setY(0D);
-            }
-
-            if (Math.abs(vector.getZ()) < 0.003D) {
-                vector.setZ(0D);
-            }
-        }
-
-        playerEntityTravel();
+    public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
     }
 
-    // Player line 1208
-    public void playerEntityTravel() {
-        if (grimPlayer.specialFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
-            double oldY = grimPlayer.clientVelocity.getY();
-            double oldYJumping = oldY + grimPlayer.flySpeed * 3;
-            livingEntityTravel();
+    public void doLavaMove() {
+    }
 
-            if (Math.abs(oldY - grimPlayer.actualMovement.getY()) < (oldYJumping - grimPlayer.actualMovement.getY())) {
-                grimPlayer.baseTickSetY(oldY * 0.6);
-
-            } else {
-                grimPlayer.baseTickSetY(oldYJumping * 0.6);
-            }
-
-        } else {
-            livingEntityTravel();
-        }
-
-        grimPlayer.clientVelocityFireworkBoost = null;
+    public void doNormalMove(float blockFriction) {
     }
 
     // LivingEntity line 1741
@@ -240,7 +266,7 @@ public class MovementVelocityCheck {
                 }
 
                 //grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
-                move(grimPlayer, MoverType.SELF, clientVelocity);
+                move(MoverType.SELF, clientVelocity);
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
@@ -249,15 +275,6 @@ public class MovementVelocityCheck {
                 doNormalMove(blockFriction);
             }
         }
-    }
-
-    public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
-    }
-
-    public void doLavaMove() {
-    }
-
-    public void doNormalMove(float blockFriction) {
     }
 
     // Use transaction packets to handle lag compensation instead of whatever the fuck this is

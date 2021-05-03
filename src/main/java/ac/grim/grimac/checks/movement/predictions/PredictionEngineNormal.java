@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.movement.predictions;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheck;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
 import net.minecraft.server.v1_16_R3.BlockScaffolding;
@@ -19,7 +20,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         // We still do climbing at the end, as it uses a different client velocity
         if (grimPlayer.isClimbing) {
             Vector hackyClimbVector = grimPlayer.clientVelocity.clone().setY(0.2);
-            vectorEndOfTick(grimPlayer, hackyClimbVector);
+            MovementVelocityCheck.vectorEndOfTick(grimPlayer, hackyClimbVector);
             regularInputs.add(hackyClimbVector);
         }
 
@@ -51,25 +52,9 @@ public class PredictionEngineNormal extends PredictionEngine {
         }
 
         for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-            vectorEndOfTick(grimPlayer, vector);
+            MovementVelocityCheck.vectorEndOfTick(grimPlayer, vector);
         }
 
         super.endOfTick(grimPlayer, d, friction);
-    }
-
-    public void vectorEndOfTick(GrimPlayer grimPlayer, Vector vector) {
-        double d9 = vector.getY();
-        if (grimPlayer.levitationAmplifier > 0) {
-            d9 += (0.05 * (double) (grimPlayer.levitationAmplifier + 1) - vector.getY()) * 0.2;
-        } else if (ChunkCache.getChunk((int) grimPlayer.x >> 4, (int) grimPlayer.z >> 4) != null) {
-            // Commenting out hasGravity check because playesr always have gravity
-            d9 -= grimPlayer.gravity;
-        } else {
-            d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
-        }
-
-        vector.setX(vector.getX() * grimPlayer.friction);
-        vector.setY(d9 * 0.9800000190734863);
-        vector.setZ(vector.getZ() * grimPlayer.friction);
     }
 }
