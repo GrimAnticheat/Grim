@@ -56,6 +56,9 @@ public class AbstractHorseMovement {
 
             //this.setSpeed((float) this.getAttributeValue(Attributes.MOVEMENT_SPEED));
 
+            // LivingEntity AIStep
+            grimPlayer.clientVelocity.multiply(0.98);
+
             // TODO: This doesn't work with water or lava.
             float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
             grimPlayer.friction = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
