@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheckHorse;
 import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheckPlayerMovement;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
@@ -113,9 +114,10 @@ public class MovementCheckRunner implements Listener {
                 grimPlayer.xRot = data.xRot;
                 grimPlayer.yRot = data.yRot;
                 // TODO: This is 100% wrong
-                grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
+                grimPlayer.boundingBox = GetBoundingBox.getHorseBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (AbstractHorse) grimPlayer.playerVehicle);
 
-                AbstractHorseMovement.travel(new Vector(), grimPlayer);
+                new MovementVelocityCheckHorse(grimPlayer).livingEntityTravel();
+
 
                 grimPlayer.vehicleForward = data.vehicleForward;
                 grimPlayer.vehicleHorizontal = data.vehicleHorizontal;

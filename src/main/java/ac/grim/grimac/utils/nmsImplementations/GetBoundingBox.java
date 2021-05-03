@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import org.bukkit.entity.AbstractHorse;
 
 public class GetBoundingBox {
     // Size regular: 0.6 width 1.8 height
@@ -30,6 +31,19 @@ public class GetBoundingBox {
         double maxY = minY + boatHeight;
         double minZ = centerZ - (boatWidth / 2);
         double maxZ = centerZ + (boatWidth / 2);
+
+        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public static SimpleCollisionBox getHorseBoundingBox(double centerX, double minY, double centerZ, AbstractHorse horse) {
+        double width = horse.getBoundingBox().getMaxX() - horse.getBoundingBox().getMinX();
+        double height = horse.getBoundingBox().getMaxY() - horse.getBoundingBox().getMinY();
+
+        double minX = centerX - (width / 2);
+        double maxX = centerX + (width / 2);
+        double maxY = minY + height;
+        double minZ = centerZ - (width / 2);
+        double maxZ = centerZ + (width / 2);
 
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
