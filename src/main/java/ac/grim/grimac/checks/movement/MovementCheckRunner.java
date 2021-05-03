@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerHorse;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerPig;
+import ac.grim.grimac.checks.movement.movementTick.MovementTickerStrider;
 import ac.grim.grimac.checks.movement.movementTick.MovementTicketPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
@@ -15,6 +16,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Pig;
+import org.bukkit.entity.Strider;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -120,6 +122,12 @@ public class MovementCheckRunner implements Listener {
 
                 new PlayerBaseTick(grimPlayer).doBaseTick();
                 new MovementTickerPig(grimPlayer).livingEntityTravel();
+            } else if (grimPlayer.playerVehicle instanceof Strider) {
+
+                grimPlayer.boundingBox = GetBoundingBox.getStriderBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (Strider) grimPlayer.playerVehicle);
+
+                new PlayerBaseTick(grimPlayer).doBaseTick();
+                new MovementTickerStrider(grimPlayer).livingEntityTravel();
             }
 
 

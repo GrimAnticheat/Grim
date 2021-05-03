@@ -3,10 +3,14 @@ package ac.grim.grimac.checks.movement.movementTick;
 import ac.grim.grimac.GrimPlayer;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Strider;
+import org.bukkit.util.Vector;
 
 public class MovementTickerStrider extends MovementTickerRideable {
     public MovementTickerStrider(GrimPlayer grimPlayer) {
         super(grimPlayer);
+
+        movementInput = new Vector(0, 0, 1);
+
     }
 
     public float getSteeringSpeed() {

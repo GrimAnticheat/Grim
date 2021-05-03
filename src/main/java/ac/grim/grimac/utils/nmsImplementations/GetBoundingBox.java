@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Pig;
+import org.bukkit.entity.Strider;
 
 public class GetBoundingBox {
     // Size regular: 0.6 width 1.8 height
@@ -42,6 +43,22 @@ public class GetBoundingBox {
         } else {
             width = 0.45;
             height = 0.45;
+        }
+
+        return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
+    }
+
+    public static SimpleCollisionBox getStriderBoundingBox(double centerX, double minY, double centerZ, Strider strider) {
+        // Only adults can be ridden, but plugin magic can make players ride babies
+        double width;
+        double height;
+
+        if (strider.isAdult()) {
+            width = 0.9;
+            height = 1.7;
+        } else {
+            width = 0.45;
+            height = 0.85;
         }
 
         return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
