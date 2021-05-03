@@ -68,7 +68,10 @@ public class AbstractHorseMovement {
 
             float frictionSpeed = getFrictionInfluencedSpeed(blockFriction, grimPlayer);
 
-            Vector movementInputResult = getMovementResultFromInput(new Vector(f, 0, f1), frictionSpeed, grimPlayer.xRot);
+            Vector movementInput = new Vector(f, 0, f1);
+            if (movementInput.lengthSquared() > 1) movementInput.normalize();
+
+            Vector movementInputResult = getMovementResultFromInput(movementInput, frictionSpeed, grimPlayer.xRot);
             grimPlayer.clientVelocity = grimPlayer.clientVelocity.clone().add(movementInputResult).multiply(grimPlayer.stuckSpeedMultiplier);
             MovementVelocityCheck.move(grimPlayer, MoverType.SELF, grimPlayer.clientVelocity);
 
