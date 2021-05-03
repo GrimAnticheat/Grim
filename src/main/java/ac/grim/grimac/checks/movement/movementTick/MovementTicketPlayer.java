@@ -6,8 +6,8 @@ import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 
-public class MovementVelocityCheckPlayerMovement extends MovementVelocityCheck {
-    public MovementVelocityCheckPlayerMovement(GrimPlayer grimPlayer) {
+public class MovementTicketPlayer extends MovementTicker {
+    public MovementTicketPlayer(GrimPlayer grimPlayer) {
         super(grimPlayer);
     }
 

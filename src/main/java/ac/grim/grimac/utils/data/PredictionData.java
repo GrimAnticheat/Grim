@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Collisions;
-import net.minecraft.server.v1_16_R3.EntityBoat;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.attribute.Attribute;
@@ -37,7 +36,6 @@ public class PredictionData {
     public int number;
 
     public boolean inVehicle;
-    public boolean boatUnderwater;
     public Entity playerVehicle;
     public float vehicleHorizontal;
     public float vehicleForward;
@@ -51,7 +49,7 @@ public class PredictionData {
         this.xRot = xRot;
         this.yRot = yRot;
         this.onGround = onGround;
-        this.inVehicle = false;
+        this.inVehicle = grimPlayer.playerVehicle != null;
 
         this.number = grimPlayer.taskNumber.getAndIncrement();
 
@@ -92,12 +90,7 @@ public class PredictionData {
         this.vehicleForward = grimPlayer.packetVehicleForward;
         this.vehicleHorizontal = grimPlayer.packetVehicleHorizontal;
 
-        this.boatUnderwater = false;
         this.inVehicle = true;
-        if (grimPlayer.entityPlayer.getVehicle() instanceof EntityBoat) {
-            EntityBoat boat = (EntityBoat) grimPlayer.entityPlayer.getVehicle();
-            this.boatUnderwater = boat.aI();
-        }
 
         this.isFlying = false;
         this.isClimbing = false;

@@ -1,7 +1,7 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheck;
+import ac.grim.grimac.checks.movement.movementTick.MovementTicker;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
@@ -29,7 +29,7 @@ public class BoatMovement {
         controlBoat(grimPlayer);
 
 
-        new MovementVelocityCheck(grimPlayer).move(MoverType.SELF, grimPlayer.clientVelocity.multiply(grimPlayer.stuckSpeedMultiplier));
+        new MovementTicker(grimPlayer).move(MoverType.SELF, grimPlayer.clientVelocity.multiply(grimPlayer.stuckSpeedMultiplier));
         grimPlayer.predictedVelocity.add(new Vector(0, grimPlayer.boatData.midTickY, 0));
         Collisions.handleInsideBlocks(grimPlayer);
 

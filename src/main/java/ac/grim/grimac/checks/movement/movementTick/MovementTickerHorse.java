@@ -1,19 +1,13 @@
 package ac.grim.grimac.checks.movement.movementTick;
 
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
-import ac.grim.grimac.utils.enums.MoverType;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.util.Vector;
 
-import static ac.grim.grimac.checks.movement.predictions.PredictionEngine.getMovementResultFromInput;
+public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
-public class MovementVelocityCheckHorse extends MovementVelocityCheck {
-    Vector movementInput;
-
-    public MovementVelocityCheckHorse(GrimPlayer grimPlayer) {
+    public MovementTickerHorse(GrimPlayer grimPlayer) {
         super(grimPlayer);
 
         grimPlayer.clientVelocity.multiply(0.98);
@@ -76,40 +70,5 @@ public class MovementVelocityCheckHorse extends MovementVelocityCheck {
 
         this.movementInput = new Vector(f, 0, f1);
         if (movementInput.lengthSquared() > 1) movementInput.normalize();
-    }
-
-    public void move(MoverType moverType, Vector movementResult) {
-        grimPlayer.clientVelocity.add(movementResult);
-        super.move(moverType, grimPlayer.clientVelocity);
-    }
-
-    @Override
-    public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
-        Vector movementInputResult = getMovementResultFromInput(movementInput, swimSpeed, grimPlayer.xRot);
-        move(MoverType.SELF, movementInputResult);
-
-        PredictionEngineWater.staticVectorEndOfTick(grimPlayer, grimPlayer.clientVelocity, swimFriction, grimPlayer.gravity, isFalling);
-    }
-
-    @Override
-    public void doLavaMove() {
-        Vector movementInputResult = getMovementResultFromInput(movementInput, 0.02F, grimPlayer.xRot);
-        move(MoverType.SELF, movementInputResult);
-
-        // Lava doesn't have an end of tick thing?
-        //vectorEndOfTick(grimPlayer, grimPlayer.clientVelocity);
-    }
-
-    @Override
-    public void doNormalMove(float blockFriction) {
-        // We don't know if the horse is on the ground
-        // TODO: Different friction if horse is in the air
-        grimPlayer.friction = blockFriction * 0.91f;
-
-        Vector movementInputResult = getMovementResultFromInput(movementInput, grimPlayer.speed, grimPlayer.xRot);
-
-        move(MoverType.SELF, movementInputResult);
-
-        PredictionEngineNormal.staticVectorEndOfTick(grimPlayer, grimPlayer.clientVelocity);
     }
 }

@@ -2,8 +2,8 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheckHorse;
-import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheckPlayerMovement;
+import ac.grim.grimac.checks.movement.movementTick.MovementTickerHorse;
+import ac.grim.grimac.checks.movement.movementTick.MovementTicketPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.math.Mth;
@@ -95,7 +95,7 @@ public class MovementCheckRunner implements Listener {
                 new PlayerBaseTick(grimPlayer).doBaseTick();
 
                 // baseTick occurs before this
-                new MovementVelocityCheckPlayerMovement(grimPlayer).livingEntityAIStep();
+                new MovementTicketPlayer(grimPlayer).livingEntityAIStep();
 
                 //handleSkippedTicks(grimPlayer);
             } else if (grimPlayer.playerVehicle instanceof Boat) {
@@ -117,7 +117,7 @@ public class MovementCheckRunner implements Listener {
                 grimPlayer.boundingBox = GetBoundingBox.getHorseBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (AbstractHorse) grimPlayer.playerVehicle);
 
                 new PlayerBaseTick(grimPlayer).doBaseTick();
-                new MovementVelocityCheckHorse(grimPlayer).livingEntityTravel();
+                new MovementTickerHorse(grimPlayer).livingEntityTravel();
 
 
                 grimPlayer.vehicleForward = data.vehicleForward;
@@ -242,7 +242,7 @@ public class MovementCheckRunner implements Listener {
                 }
 
                 // baseTick occurs before this
-                new MovementVelocityCheckPlayerMovement(grimPlayer).livingEntityAIStep();
+                new MovementTicketPlayer(grimPlayer).livingEntityAIStep();
 
                 // Simulate the base tick efficiently by keeping track of the last movement
                 //grimPlayer.clientVelocity.add(grimPlayer.baseTickAddition);

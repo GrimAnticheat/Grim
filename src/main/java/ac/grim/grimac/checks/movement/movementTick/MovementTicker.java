@@ -14,11 +14,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-public class MovementVelocityCheck {
+public class MovementTicker {
     public final Player bukkitPlayer;
     public final GrimPlayer grimPlayer;
 
-    public MovementVelocityCheck(GrimPlayer grimPlayer) {
+    public MovementTicker(GrimPlayer grimPlayer) {
         this.grimPlayer = grimPlayer;
         this.bukkitPlayer = grimPlayer.bukkitPlayer;
     }
