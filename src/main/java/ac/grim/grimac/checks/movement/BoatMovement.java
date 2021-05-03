@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheck;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;

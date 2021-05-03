@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheckPlayerMovement;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.math.Mth;
@@ -93,7 +94,7 @@ public class MovementCheckRunner implements Listener {
                 new PlayerBaseTick(grimPlayer).doBaseTick();
 
                 // baseTick occurs before this
-                new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
+                new MovementVelocityCheckPlayerMovement(grimPlayer).livingEntityAIStep();
 
                 //handleSkippedTicks(grimPlayer);
             } else if (grimPlayer.playerVehicle instanceof Boat) {
@@ -238,7 +239,7 @@ public class MovementCheckRunner implements Listener {
                 }
 
                 // baseTick occurs before this
-                new MovementVelocityCheck(grimPlayer).livingEntityAIStep();
+                new MovementVelocityCheckPlayerMovement(grimPlayer).livingEntityAIStep();
 
                 // Simulate the base tick efficiently by keeping track of the last movement
                 //grimPlayer.clientVelocity.add(grimPlayer.baseTickAddition);

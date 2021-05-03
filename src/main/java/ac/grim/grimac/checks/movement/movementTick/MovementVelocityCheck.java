@@ -1,9 +1,6 @@
-package ac.grim.grimac.checks.movement;
+package ac.grim.grimac.checks.movement.movementTick;
 
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineLava;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.data.FireworkData;
 import ac.grim.grimac.utils.enums.MoverType;
@@ -18,8 +15,8 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 public class MovementVelocityCheck {
-    private final Player bukkitPlayer;
-    private final GrimPlayer grimPlayer;
+    public final Player bukkitPlayer;
+    public final GrimPlayer grimPlayer;
 
     public MovementVelocityCheck(GrimPlayer grimPlayer) {
         this.grimPlayer = grimPlayer;
@@ -201,7 +198,7 @@ public class MovementVelocityCheck {
                 swimFriction = 0.96F;
             }
 
-            new PredictionEngineWater().guessBestMovement(swimSpeed, grimPlayer, isFalling, playerGravity, swimFriction, lastY);
+            doWaterMove(swimSpeed, isFalling, swimFriction);
 
             if (grimPlayer.isClimbing) {
                 grimPlayer.clientVelocityOnLadder = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, grimPlayer.clientVelocity.clone().setY(0.16));
@@ -211,7 +208,7 @@ public class MovementVelocityCheck {
             if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && !grimPlayer.specialFlying) {
                 lastY = grimPlayer.lastY;
 
-                new PredictionEngineLava().guessBestMovement(0.02F, grimPlayer);
+                doLavaMove();
 
                 if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) <= 0.4D) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
@@ -249,9 +246,18 @@ public class MovementVelocityCheck {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
                 grimPlayer.friction = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
-                new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+                doNormalMove(blockFriction);
             }
         }
+    }
+
+    public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
+    }
+
+    public void doLavaMove() {
+    }
+
+    public void doNormalMove(float blockFriction) {
     }
 
     // Use transaction packets to handle lag compensation instead of whatever the fuck this is

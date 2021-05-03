@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.checks.movement.movementTick.MovementVelocityCheck;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import org.bukkit.attribute.Attribute;
