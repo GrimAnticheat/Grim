@@ -213,7 +213,7 @@ public class MovementTicker {
             }
 
         } else {
-            if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && !grimPlayer.specialFlying) {
+            if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && !grimPlayer.specialFlying && !canStandOnLava()) {
                 lastY = grimPlayer.lastY;
 
                 doLavaMove();
@@ -326,5 +326,9 @@ public class MovementTicker {
         }
 
         return vector;
+    }
+
+    public boolean canStandOnLava() {
+        return false;
     }
 }
