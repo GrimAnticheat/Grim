@@ -13,6 +13,8 @@ public class MovementTickerLivingVehicle extends MovementTicker {
 
     public MovementTickerLivingVehicle(GrimPlayer grimPlayer) {
         super(grimPlayer);
+
+        grimPlayer.clientVelocity.multiply(0.98);
     }
 
     @Override

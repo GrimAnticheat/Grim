@@ -105,7 +105,7 @@ public class BoatMovement {
             f -= 0.005F;
         }
 
-        grimPlayer.clientVelocity.add(new Vector(Mth.sin(-grimPlayer.boatData.yRot * ((float) Math.PI / 180F)) * f, 0, (double) (Mth.cos(grimPlayer.boatData.yRot * ((float) Math.PI / 180F)) * f)));
+        grimPlayer.clientVelocity.add(new Vector(Mth.sin(-grimPlayer.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (Mth.cos(grimPlayer.xRot * ((float) Math.PI / 180F)) * f)));
     }
 
     private static BoatEntityStatus getStatus(GrimPlayer grimPlayer) {

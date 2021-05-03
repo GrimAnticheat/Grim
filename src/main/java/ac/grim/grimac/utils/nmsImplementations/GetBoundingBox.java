@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Pig;
 
 public class GetBoundingBox {
     // Size regular: 0.6 width 1.8 height
@@ -10,35 +11,43 @@ public class GetBoundingBox {
     // Size while gliding/swimming: 0.6 width 0.6 height
     // Size while sleeping: 0.2 width 0.2 height
     public static SimpleCollisionBox getPlayerBoundingBox(GrimPlayer grimPlayer, double centerX, double minY, double centerZ) {
-        double playerHeight = grimPlayer.pose.height;
-        double playerWidth = grimPlayer.pose.width;
+        double width = grimPlayer.pose.width;
+        double height = grimPlayer.pose.height;
 
-        double minX = centerX - (playerWidth / 2);
-        double maxX = centerX + (playerWidth / 2);
-        double minZ = centerZ - (playerWidth / 2);
-        double maxZ = centerZ + (playerWidth / 2);
-        double maxY = minY + playerHeight;
-
-        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+        return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
     }
 
     public static SimpleCollisionBox getBoatBoundingBox(double centerX, double minY, double centerZ) {
-        double boatWidth = 1.375;
-        double boatHeight = 0.5625;
+        double width = 1.375;
+        double height = 0.5625;
 
-        double minX = centerX - (boatWidth / 2);
-        double maxX = centerX + (boatWidth / 2);
-        double maxY = minY + boatHeight;
-        double minZ = centerZ - (boatWidth / 2);
-        double maxZ = centerZ + (boatWidth / 2);
-
-        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+        return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
     }
 
     public static SimpleCollisionBox getHorseBoundingBox(double centerX, double minY, double centerZ, AbstractHorse horse) {
         double width = horse.getBoundingBox().getMaxX() - horse.getBoundingBox().getMinX();
         double height = horse.getBoundingBox().getMaxY() - horse.getBoundingBox().getMinY();
 
+        return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
+    }
+
+    public static SimpleCollisionBox getPigBoundingBox(double centerX, double minY, double centerZ, Pig pig) {
+        // Only adults can be ridden, but plugin magic can make players ride babies
+        double width;
+        double height;
+
+        if (pig.isAdult()) {
+            width = 0.9;
+            height = 0.9;
+        } else {
+            width = 0.45;
+            height = 0.45;
+        }
+
+        return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
+    }
+
+    private static SimpleCollisionBox getBoundingBoxFromPosAndSize(double centerX, double minY, double centerZ, double width, double height) {
         double minX = centerX - (width / 2);
         double maxX = centerX + (width / 2);
         double maxY = minY + height;
@@ -48,6 +57,7 @@ public class GetBoundingBox {
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
+    // TODO: This should probably just be done in the player's pose
     public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, short clientVersion) {
         if (isGliding || isSwimming) {
             return 0.4;

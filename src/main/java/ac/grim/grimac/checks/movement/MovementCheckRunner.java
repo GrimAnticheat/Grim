@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.movement;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerHorse;
+import ac.grim.grimac.checks.movement.movementTick.MovementTickerPig;
 import ac.grim.grimac.checks.movement.movementTick.MovementTicketPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
@@ -13,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Boat;
+import org.bukkit.entity.Pig;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -63,6 +65,8 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.x = data.playerX;
             grimPlayer.y = data.playerY;
             grimPlayer.z = data.playerZ;
+            grimPlayer.xRot = data.xRot;
+            grimPlayer.yRot = data.yRot;
             grimPlayer.onGround = data.onGround;
             grimPlayer.lastSprinting = grimPlayer.isSprinting;
             grimPlayer.isSprinting = data.isSprinting;
@@ -87,8 +91,6 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
 
             if (!grimPlayer.inVehicle) {
-                grimPlayer.xRot = data.xRot;
-                grimPlayer.yRot = data.yRot;
                 grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
 
                 // This is not affected by any movement
@@ -99,29 +101,25 @@ public class MovementCheckRunner implements Listener {
 
                 //handleSkippedTicks(grimPlayer);
             } else if (grimPlayer.playerVehicle instanceof Boat) {
-                grimPlayer.boatData.lastYRot = grimPlayer.boatData.yRot;
-                // What the fuck Mojang. Why are you using yRot???
-                grimPlayer.boatData.yRot = data.xRot;
 
-                // TODO: We will have to handle teleports
+                // TODO: We will have to handle teleports (occurs multiple times a second due to vanilla glitchyness)
                 grimPlayer.boundingBox = GetBoundingBox.getBoatBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
 
                 BoatMovement.doBoatMovement(grimPlayer);
 
-                grimPlayer.vehicleForward = data.vehicleForward;
-                grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
             } else if (grimPlayer.playerVehicle instanceof AbstractHorse) {
-                grimPlayer.xRot = data.xRot;
-                grimPlayer.yRot = data.yRot;
 
                 grimPlayer.boundingBox = GetBoundingBox.getHorseBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (AbstractHorse) grimPlayer.playerVehicle);
 
                 new PlayerBaseTick(grimPlayer).doBaseTick();
                 new MovementTickerHorse(grimPlayer).livingEntityTravel();
 
+            } else if (grimPlayer.playerVehicle instanceof Pig) {
 
-                grimPlayer.vehicleForward = data.vehicleForward;
-                grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
+                grimPlayer.boundingBox = GetBoundingBox.getPigBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (Pig) grimPlayer.playerVehicle);
+
+                new PlayerBaseTick(grimPlayer).doBaseTick();
+                new MovementTickerPig(grimPlayer).livingEntityTravel();
             }
 
 
@@ -174,6 +172,10 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastOnGround = grimPlayer.onGround;
         grimPlayer.lastClimbing = grimPlayer.isClimbing;
         grimPlayer.isJustTeleported = false;
+
+
+        grimPlayer.vehicleForward = data.vehicleForward;
+        grimPlayer.vehicleHorizontal = data.vehicleHorizontal;
 
         if (grimPlayer.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;

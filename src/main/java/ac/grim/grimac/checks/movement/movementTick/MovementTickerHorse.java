@@ -10,8 +10,6 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
     public MovementTickerHorse(GrimPlayer grimPlayer) {
         super(grimPlayer);
 
-        grimPlayer.clientVelocity.multiply(0.98);
-
         AbstractHorse horse = (AbstractHorse) grimPlayer.playerVehicle;
         grimPlayer.speed = (float) horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
 

@@ -12,8 +12,6 @@ public class BoatData {
     public double waterLevel;
     public double boatVelocity;
     public float deltaRotation;
-    public float lastYRot;
-    public float yRot;
 
     public BoatData() {
 
