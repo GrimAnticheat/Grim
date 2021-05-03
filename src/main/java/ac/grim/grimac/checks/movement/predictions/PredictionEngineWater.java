@@ -16,6 +16,14 @@ public class PredictionEngineWater extends PredictionEngine {
     float swimmingFriction;
     double lastY;
 
+    public static void staticVectorEndOfTick(GrimPlayer grimPlayer, Vector vector, float swimmingFriction, double playerGravity, boolean isFalling) {
+        vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
+        Vector fluidVector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, vector);
+        vector.setX(fluidVector.getX());
+        vector.setY(fluidVector.getY());
+        vector.setZ(fluidVector.getZ());
+    }
+
     public void guessBestMovement(float swimmingSpeed, GrimPlayer grimPlayer, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
         this.isFalling = isFalling;
         this.playerGravity = playerGravity;
@@ -63,11 +71,7 @@ public class PredictionEngineWater extends PredictionEngine {
     @Override
     public void endOfTick(GrimPlayer grimPlayer, double playerGravity, float friction) {
         for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-            vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
-            Vector fluidVector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, vector);
-            vector.setX(fluidVector.getX());
-            vector.setY(fluidVector.getY());
-            vector.setZ(fluidVector.getZ());
+            staticVectorEndOfTick(grimPlayer, vector, swimmingFriction, playerGravity, isFalling);
         }
 
         super.endOfTick(grimPlayer, playerGravity, friction);

@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.movement.movementTick;
 
 import ac.grim.grimac.GrimPlayer;
-import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.data.FireworkData;
 import ac.grim.grimac.utils.enums.MoverType;
@@ -22,22 +21,6 @@ public class MovementVelocityCheck {
     public MovementVelocityCheck(GrimPlayer grimPlayer) {
         this.grimPlayer = grimPlayer;
         this.bukkitPlayer = grimPlayer.bukkitPlayer;
-    }
-
-    public static void vectorEndOfTick(GrimPlayer grimPlayer, Vector vector) {
-        double d9 = vector.getY();
-        if (grimPlayer.levitationAmplifier > 0) {
-            d9 += (0.05 * (double) (grimPlayer.levitationAmplifier + 1) - vector.getY()) * 0.2;
-        } else if (ChunkCache.getChunk((int) grimPlayer.x >> 4, (int) grimPlayer.z >> 4) != null) {
-            // Commenting out hasGravity check because playesr always have gravity
-            d9 -= grimPlayer.gravity;
-        } else {
-            d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
-        }
-
-        vector.setX(vector.getX() * grimPlayer.friction);
-        vector.setY(d9 * 0.9800000190734863);
-        vector.setZ(vector.getZ() * grimPlayer.friction);
     }
 
     public void move(MoverType moverType, Vector inputVel) {
@@ -203,7 +186,6 @@ public class MovementVelocityCheck {
 
         if (grimPlayer.wasTouchingWater && !grimPlayer.specialFlying) {
             // 0.8F seems hardcoded in
-            lastY = grimPlayer.lastY;
             swimFriction = grimPlayer.isSprinting ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
             f2 = (float) EnchantmentManager.e(entityPlayer);

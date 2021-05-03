@@ -113,9 +113,10 @@ public class MovementCheckRunner implements Listener {
             } else if (grimPlayer.playerVehicle instanceof AbstractHorse) {
                 grimPlayer.xRot = data.xRot;
                 grimPlayer.yRot = data.yRot;
-                // TODO: This is 100% wrong
+
                 grimPlayer.boundingBox = GetBoundingBox.getHorseBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (AbstractHorse) grimPlayer.playerVehicle);
 
+                new PlayerBaseTick(grimPlayer).doBaseTick();
                 new MovementVelocityCheckHorse(grimPlayer).livingEntityTravel();
 
 

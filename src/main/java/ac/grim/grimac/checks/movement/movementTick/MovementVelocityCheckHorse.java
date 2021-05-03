@@ -1,6 +1,8 @@
 package ac.grim.grimac.checks.movement.movementTick;
 
 import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
+import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.enums.MoverType;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.AbstractHorse;
@@ -83,14 +85,19 @@ public class MovementVelocityCheckHorse extends MovementVelocityCheck {
 
     @Override
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
-        Vector movementInputResult = getMovementResultFromInput(movementInput, swimFriction, grimPlayer.xRot);
+        Vector movementInputResult = getMovementResultFromInput(movementInput, swimSpeed, grimPlayer.xRot);
         move(MoverType.SELF, movementInputResult);
+
+        PredictionEngineWater.staticVectorEndOfTick(grimPlayer, grimPlayer.clientVelocity, swimFriction, grimPlayer.gravity, isFalling);
     }
 
     @Override
     public void doLavaMove() {
         Vector movementInputResult = getMovementResultFromInput(movementInput, 0.02F, grimPlayer.xRot);
         move(MoverType.SELF, movementInputResult);
+
+        // Lava doesn't have an end of tick thing?
+        //vectorEndOfTick(grimPlayer, grimPlayer.clientVelocity);
     }
 
     @Override
@@ -103,6 +110,6 @@ public class MovementVelocityCheckHorse extends MovementVelocityCheck {
 
         move(MoverType.SELF, movementInputResult);
 
-        vectorEndOfTick(grimPlayer, grimPlayer.clientVelocity);
+        PredictionEngineNormal.staticVectorEndOfTick(grimPlayer, grimPlayer.clientVelocity);
     }
 }
