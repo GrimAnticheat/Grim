@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.movement.movementTick;
 
-import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.enums.MoverType;
 import org.bukkit.util.Vector;
 

@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.movement.movementTick;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.util.Vector;

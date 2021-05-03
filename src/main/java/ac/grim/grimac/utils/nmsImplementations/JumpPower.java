@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
 import org.bukkit.util.Vector;

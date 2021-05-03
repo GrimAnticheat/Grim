@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.math;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import net.minecraft.server.v1_16_R3.Vec3D;
 import org.bukkit.util.Vector;
 

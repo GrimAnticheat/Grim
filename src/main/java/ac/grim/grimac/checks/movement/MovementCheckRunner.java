@@ -1,12 +1,12 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.GrimAC;
-import ac.grim.grimac.GrimPlayer;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerHorse;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerPig;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerStrider;
 import ac.grim.grimac.checks.movement.movementTick.MovementTicketPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;

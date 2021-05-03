@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.movement.predictions;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
 import net.minecraft.server.v1_16_R3.BlockScaffolding;

@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.movement.MovementCheckRunner;
 import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.packets.*;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;

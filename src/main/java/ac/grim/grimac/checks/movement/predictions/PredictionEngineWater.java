@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.movement.predictions;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;

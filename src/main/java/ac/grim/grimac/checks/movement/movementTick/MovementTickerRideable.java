@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.movement.movementTick;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 
 public class MovementTickerRideable extends MovementTickerLivingVehicle {
 

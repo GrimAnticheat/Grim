@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Collisions;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;

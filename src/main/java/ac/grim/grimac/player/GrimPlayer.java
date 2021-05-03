@@ -1,5 +1,6 @@
-package ac.grim.grimac;
+package ac.grim.grimac.player;
 
+import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.FireworkData;
@@ -133,7 +134,7 @@ public class GrimPlayer {
     public short movementTransaction = Short.MIN_VALUE;
 
     // Determining player ping
-    ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
+    public ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;

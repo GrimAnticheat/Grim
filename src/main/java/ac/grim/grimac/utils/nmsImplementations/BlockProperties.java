@@ -1,17 +1,39 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import net.minecraft.server.v1_16_R3.Block;
 import net.minecraft.server.v1_16_R3.BlockFenceGate;
 import net.minecraft.server.v1_16_R3.IBlockData;
 import net.minecraft.server.v1_16_R3.TagsBlock;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
+    static Material ice = XMaterial.ICE.parseMaterial();
+    static Material slime = XMaterial.SLIME_BLOCK.parseMaterial();
+    static Material packedIce = XMaterial.PACKED_ICE.parseMaterial();
+    static Material frostedIce = XMaterial.FROSTED_ICE.parseMaterial();
+    static Material blueIce = XMaterial.BLUE_ICE.parseMaterial();
+
     public static float getBlockFriction(GrimPlayer player) {
-        return ChunkCache.getBlockDataAt(Math.floor(player.lastX), player.lastY - 0.5000001, Math.floor(player.lastZ)).getBlock().getFrictionFactor();
+        if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
+
+        Material material = ChunkCache.getBukkitBlockDataAt(player.x, player.y - 0.5000001, player.z).getMaterial();
+
+        float friction = 0.6f;
+
+        if (material == ice) friction = 0.98f;
+        if (material == slime) friction = 0.8f;
+        if (material == packedIce) friction = 0.98f;
+        if (material == frostedIce) friction = 0.98f;
+        if (material == blueIce) {
+            friction = 0.98f;
+            if (player.clientVersion >= 13) friction = 0.989f;
+        }
+
+        return friction;
     }
 
     public static float getFrictionInfluencedSpeed(float f, GrimPlayer grimPlayer) {

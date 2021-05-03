@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.util.Vector;
 
 public class FluidFallingAdjustedMovement {

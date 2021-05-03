@@ -56,6 +56,10 @@ public class ChunkCache {
         return getBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
+    public static BlockData getBukkitBlockDataAt(double x, double y, double z) {
+        return getBukkitBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+    }
+
     public static BlockData getBukkitBlockDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 

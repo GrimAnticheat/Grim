@@ -1,7 +1,7 @@
 package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;

@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.movement.predictions;
 
-import ac.grim.grimac.GrimPlayer;
+import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
