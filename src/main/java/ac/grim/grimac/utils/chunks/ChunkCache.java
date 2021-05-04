@@ -133,7 +133,10 @@ public class ChunkCache {
             Levelled lava = (Levelled) bukkitBlock;
             lava.getLevel();
 
-            return ((Levelled) bukkitBlock).getLevel() / 9f;
+            // I have no clue why this is needed.
+            // What the server STORES and SENDS is different from what the client f3 menu shows!
+            // This is not a glitch in this software, it is a vanilla glitch we are "hacking" around
+            return (8 - ((Levelled) bukkitBlock).getLevel()) / 9f;
         }
 
         return 0;

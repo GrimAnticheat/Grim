@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Boat;
@@ -31,7 +32,7 @@ public class PlayerBaseTick {
 
         // You cannot crouch while flying, only shift - could be specific to 1.14?
         // LocalPlayer:aiStep line 728
-        if (player.entityPlayer.isInWater() && player.isSneaking && !player.specialFlying && !player.inVehicle) {
+        if (player.wasTouchingWater && player.isSneaking && !player.specialFlying && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
 
@@ -108,7 +109,7 @@ public class PlayerBaseTick {
     public void updateInWaterStateAndDoFluidPushing() {
         player.fluidHeight.clear();
         updateInWaterStateAndDoWaterCurrentPushing();
-        double d = player.entityPlayer.world.getDimensionManager().isNether() ? 0.007 : 0.0023333333333333335;
+        double d = player.playerWorld.getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
         this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
     }
 
