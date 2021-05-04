@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
@@ -108,11 +109,11 @@ public class PlayerBaseTick {
         player.fluidHeight.clear();
         updateInWaterStateAndDoWaterCurrentPushing();
         double d = player.entityPlayer.world.getDimensionManager().isNether() ? 0.007 : 0.0023333333333333335;
-        this.updateFluidHeightAndDoFluidPushing(TagsFluid.LAVA, d);
+        this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
     }
 
     private void updateFluidOnEyes() {
-        player.wasEyeInWater = player.isEyeInFluid(TagsFluid.WATER);
+        player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
         player.fluidOnEyes = null;
         double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.clientVersion) - 0.1111111119389534D;
 
@@ -126,12 +127,12 @@ public class PlayerBaseTick {
         if (eyeFluid.getMaterial() == org.bukkit.Material.WATER) {
             double d1 = (float) Math.floor(d0) + ChunkCache.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
             if (d1 > d0) {
-                player.fluidOnEyes = TagsFluid.WATER;
+                player.fluidOnEyes = FluidTag.WATER;
             }
         } else if (eyeFluid.getMaterial() == org.bukkit.Material.LAVA) {
             double d1 = (float) Math.floor(d0) + ChunkCache.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
             if (d1 > d0) {
-                player.fluidOnEyes = TagsFluid.LAVA;
+                player.fluidOnEyes = FluidTag.LAVA;
             }
         }
     }
@@ -182,10 +183,10 @@ public class PlayerBaseTick {
 
     // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
-        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(TagsFluid.WATER, 0.014) && !(player.playerVehicle instanceof Boat);
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle instanceof Boat);
     }
 
-    public boolean updateFluidHeightAndDoFluidPushing(Tag.e<FluidType> tag, double d) {
+    public boolean updateFluidHeightAndDoFluidPushing(FluidTag tag, double d) {
         SimpleCollisionBox aABB = player.boundingBox.copy().expand(-0.001);
         int n2 = Mth.floor(aABB.minX);
         int n3 = Mth.ceil(aABB.maxX);
@@ -201,21 +202,28 @@ public class PlayerBaseTick {
         Vec3D vec3 = Vec3D.ORIGIN;
         int n7 = 0;
         BlockPosition.MutableBlockPosition mutableBlockPos = new BlockPosition.MutableBlockPosition();
-        WorldServer playerWorld = ((CraftWorld) player.playerWorld).getHandle();
+
         for (int i = n2; i < n3; ++i) {
             for (int j = n4; j < n5; ++j) {
                 for (int k = n6; k < n; ++k) {
                     double d3;
                     mutableBlockPos.d(i, j, k);
-                    Fluid fluid = ChunkCache.getBlockDataAt(i, j, k).getFluid();
-                    // TODO: This is not async safe!
-                    if (!fluid.a(tag) || !((d3 = (float) j + fluid.getHeight(playerWorld, mutableBlockPos)) >= aABB.minY))
+
+                    double fluidHeight;
+                    if (tag == FluidTag.WATER) {
+                        fluidHeight = ChunkCache.getWaterFluidLevelAt(i, j, k);
+                    } else {
+                        fluidHeight = ChunkCache.getLavaFluidLevelAt(i, j, k);
+                    }
+
+                    if (fluidHeight == 0 || (d3 = (float) j + fluidHeight) < aABB.minY)
                         continue;
+
                     bl2 = true;
                     d2 = Math.max(d3 - aABB.minY, d2);
 
                     if (!player.specialFlying) {
-                        Vec3D vec32 = FluidTypeFlowing.getFlow(mutableBlockPos, fluid);
+                        Vec3D vec32 = FluidTypeFlowing.getFlow(mutableBlockPos, ChunkCache.getBlockDataAt(i, j, k).getFluid());
                         if (d2 < 0.4) {
                             vec32 = vec32.a(d2);
                         }

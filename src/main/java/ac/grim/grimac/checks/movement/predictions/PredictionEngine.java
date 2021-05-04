@@ -5,11 +5,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import net.minecraft.server.v1_16_R3.TagsFluid;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -140,14 +140,14 @@ public abstract class PredictionEngine {
     }
 
     public void doJump(GrimPlayer grimPlayer, Vector vector) {
-        double d7 = grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0);
-        boolean bl = grimPlayer.fluidHeight.getOrDefault(TagsFluid.WATER, 0) > 0 && d7 > 0.0;
+        double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
+        boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
         double d8 = 0.4D;
 
         if (!grimPlayer.specialFlying) {
             if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
                 vector.add(new Vector(0, 0.4, 0));
-            } else if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+            } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
                 vector.add(new Vector(0, 0.4, 0));
             } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
                 JumpPower.jumpFromGround(grimPlayer, vector);

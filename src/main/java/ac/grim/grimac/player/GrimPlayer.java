@@ -4,12 +4,11 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.FireworkData;
+import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import net.minecraft.server.v1_16_R3.EntityPlayer;
-import net.minecraft.server.v1_16_R3.FluidType;
-import net.minecraft.server.v1_16_R3.Tag;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
@@ -87,6 +86,7 @@ public class GrimPlayer {
     public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;
+    public float depthStriderLevel;
     public float flySpeed;
 
     public boolean inVehicle;
@@ -101,10 +101,10 @@ public class GrimPlayer {
     public boolean isActuallyOnGround;
 
     // Set from base tick
-    public Object2DoubleMap<Tag.e<FluidType>> fluidHeight = new Object2DoubleArrayMap<>(2);
+    public Object2DoubleMap<FluidTag> fluidHeight = new Object2DoubleArrayMap<>(2);
     public boolean wasTouchingWater = false;
     public boolean wasEyeInWater = false;
-    public Tag fluidOnEyes;
+    public FluidTag fluidOnEyes;
 
     // Handled by entity spawn event, removed when firework dies
     public HashMap<Integer, FireworkData> fireworks = new HashMap<>();
@@ -253,7 +253,7 @@ public class GrimPlayer {
         return inVehicle ? 0f : 0.6f;
     }
 
-    public boolean isEyeInFluid(Tag tag) {
+    public boolean isEyeInFluid(FluidTag tag) {
         return this.fluidOnEyes == tag;
     }
 }

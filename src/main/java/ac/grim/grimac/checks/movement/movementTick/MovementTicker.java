@@ -3,13 +3,13 @@ package ac.grim.grimac.checks.movement.movementTick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.data.FireworkData;
+import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -182,8 +182,6 @@ public class MovementTicker {
 
         grimPlayer.gravity = playerGravity;
 
-        EntityPlayer entityPlayer = grimPlayer.entityPlayer;
-
         double lastY;
         float swimFriction;
         float f2;
@@ -194,21 +192,21 @@ public class MovementTicker {
             // 0.8F seems hardcoded in
             swimFriction = grimPlayer.isSprinting ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
-            f2 = (float) EnchantmentManager.e(entityPlayer);
-            if (f2 > 3.0F) {
-                f2 = 3.0F;
+
+            if (grimPlayer.depthStriderLevel > 3.0F) {
+                grimPlayer.depthStriderLevel = 3.0F;
             }
 
             if (!grimPlayer.lastOnGround) {
-                f2 *= 0.5F;
+                grimPlayer.depthStriderLevel *= 0.5F;
             }
 
-            if (f2 > 0.0F) {
-                swimFriction += (0.54600006F - swimFriction) * f2 / 3.0F;
-                swimSpeed += (entityPlayer.dN() - swimSpeed) * f2 / 3.0F;
+            if (grimPlayer.depthStriderLevel > 0.0F) {
+                swimFriction += (0.54600006F - swimFriction) * grimPlayer.depthStriderLevel / 3.0F;
+                swimSpeed += (grimPlayer.movementSpeed - swimSpeed) * grimPlayer.depthStriderLevel / 3.0F;
             }
 
-            if (entityPlayer.hasEffect(MobEffects.DOLPHINS_GRACE)) {
+            if (grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.DOLPHINS_GRACE)) {
                 swimFriction = 0.96F;
             }
 
@@ -219,12 +217,12 @@ public class MovementTicker {
             }
 
         } else {
-            if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) > 0 && !grimPlayer.specialFlying && !canStandOnLava()) {
+            if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && !grimPlayer.specialFlying && !canStandOnLava()) {
                 lastY = grimPlayer.lastY;
 
                 doLavaMove();
 
-                if (grimPlayer.fluidHeight.getOrDefault(TagsFluid.LAVA, 0) <= 0.4D) {
+                if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
                     grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
                     grimPlayer.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, grimPlayer.clientVelocity);
                 } else {
@@ -233,10 +231,6 @@ public class MovementTicker {
 
                 // Removed reference to gravity
                 grimPlayer.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
-
-                if (grimPlayer.horizontalCollision && entityPlayer.e(grimPlayer.clientVelocity.getX(), grimPlayer.clientVelocity.getY() + 0.6000000238418579D - grimPlayer.y + lastY, grimPlayer.clientVelocity.getZ())) {
-                    grimPlayer.clientVelocity = new Vector(grimPlayer.clientVelocity.getX(), 0.30000001192092896D, grimPlayer.clientVelocity.getZ());
-                }
 
             } else if (bukkitPlayer.isGliding()) {
                 Vector clientVelocity = grimPlayer.clientVelocity.clone();
@@ -313,7 +307,7 @@ public class MovementTicker {
         double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double d3 = vector.clone().setY(0).length();
         double d4 = lookVector.length();
-        float f3 = MathHelper.cos(yRotRadians);
+        float f3 = Mth.cos(yRotRadians);
         f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
         vector.add(new Vector(0.0D, grimPlayer.gravity * (-1.0D + (double) f3 * 0.75D), 0.0D));
         double d5;
@@ -323,7 +317,7 @@ public class MovementTicker {
         }
 
         if (yRotRadians < 0.0F && d2 > 0.0D) {
-            d5 = d3 * (double) (-MathHelper.sin(yRotRadians)) * 0.04D;
+            d5 = d3 * (double) (-Mth.sin(yRotRadians)) * 0.04D;
             vector.add(new Vector(-lookVector.getX() * d5 / d2, d5 * 3.2D, -lookVector.getZ() * d5 / d2));
         }
 
