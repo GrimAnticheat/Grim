@@ -25,7 +25,7 @@ public class ChunkCache {
     private static final int MIN_WORLD_HEIGHT = 0;
     private static final int MAX_WORLD_HEIGHT = 255;
     private static final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
-
+    private static final Material flattenedLava = Material.LAVA;
     public static BlockData[] globalPaletteToBlockData = new BlockData[Block.REGISTRY_ID.a()];
 
     public static void addToCache(Column chunk, int chunkX, int chunkZ) {
@@ -109,6 +109,30 @@ public class ChunkCache {
         }
 
         return JAVA_AIR_ID;
+    }
+
+    public static double getFluidLevelAt(int x, int y, int z) {
+        return Math.max(getWaterFluidLevelAt(x, y, z), getLavaFluidLevelAt(x, y, z));
+    }
+
+    // 1.13+ only
+    public static double getLavaFluidLevelAt(int x, int y, int z) {
+        BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
+
+        if (bukkitBlock.getMaterial() == flattenedLava) {
+            BlockData aboveData = getBukkitBlockDataAt(x, y + 1, z);
+
+            if (aboveData.getMaterial() == flattenedLava) {
+                return 1;
+            }
+
+            Levelled lava = (Levelled) bukkitBlock;
+            lava.getLevel();
+
+            return ((Levelled) bukkitBlock).getLevel() / 9f;
+        }
+
+        return 0;
     }
 
     // I can't figure out what levels above 8 do.
