@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
-import net.minecraft.server.v1_16_R3.TagsBlock;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -12,16 +11,34 @@ import org.bukkit.block.data.type.Wall;
 import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
-    static Material ice = XMaterial.ICE.parseMaterial();
-    static Material slime = XMaterial.SLIME_BLOCK.parseMaterial();
-    static Material packedIce = XMaterial.PACKED_ICE.parseMaterial();
-    static Material frostedIce = XMaterial.FROSTED_ICE.parseMaterial();
-    static Material blueIce = XMaterial.BLUE_ICE.parseMaterial();
+    private final static Material ice = XMaterial.ICE.parseMaterial();
+    private final static Material slime = XMaterial.SLIME_BLOCK.parseMaterial();
+    private final static Material packedIce = XMaterial.PACKED_ICE.parseMaterial();
+    private final static Material frostedIce = XMaterial.FROSTED_ICE.parseMaterial();
+    private final static Material blueIce = XMaterial.BLUE_ICE.parseMaterial();
+
+    private final static Material soulSand = XMaterial.SOUL_SAND.parseMaterial();
+    private final static Material honeyBlock = XMaterial.HONEY_BLOCK.parseMaterial();
+
+    // WATER and STATIONARY_WATER on 1.12
+    // WATER and BUBBLE_COLUMN on 1.13
+    private final static Material water;
+    private final static Material alsoWater;
+
+    static {
+        if (XMaterial.isNewVersion()) {
+            water = Material.WATER;
+            alsoWater = Material.BUBBLE_COLUMN;
+        } else {
+            water = Material.WATER;
+            alsoWater = Material.LEGACY_STATIONARY_WATER;
+        }
+    }
 
     public static float getBlockFriction(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
-        Material material = ChunkCache.getBukkitBlockDataAt(player.x, player.y - 0.5000001, player.z).getMaterial();
+        Material material = ChunkCache.getBukkitBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getMaterial();
 
         float friction = 0.6f;
 
@@ -77,19 +94,29 @@ public class BlockProperties {
     public static float getBlockSpeedFactor(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
-        net.minecraft.server.v1_16_R3.Block block = ChunkCache.getBlockDataAt(player.x, player.y, player.z).getBlock();
+        Material block = ChunkCache.getBukkitBlockDataAt(player.x, player.y, player.z).getMaterial();
 
-        if (block.a(TagsBlock.SOUL_SPEED_BLOCKS)) {
+        if (block == soulSand) {
             if (player.bukkitPlayer.getInventory().getBoots() != null && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
                 return 1.0f;
+            return 0.4f;
         }
 
-        float f = block.getSpeedFactor();
+        float f = 1.0f;
 
-        if (block == net.minecraft.server.v1_16_R3.Blocks.WATER || block == net.minecraft.server.v1_16_R3.Blocks.BUBBLE_COLUMN) {
+        if (block == honeyBlock) f = 0.4F;
+
+        if (block == water || block == alsoWater) {
             return f;
         }
 
-        return f == 1.0 ? ChunkCache.getBlockDataAt(player.x, player.y - 0.5000001, player.z).getBlock().getSpeedFactor() : f;
+        if (f == 1.0) {
+            Material block2 = ChunkCache.getBukkitBlockDataAt(player.x, player.y - 0.5000001, player.z).getMaterial();
+            if (block2 == honeyBlock) return 0.4F;
+            if (block2 == soulSand) return 0.4F;
+            return 1.0f;
+        }
+
+        return f;
     }
 }
