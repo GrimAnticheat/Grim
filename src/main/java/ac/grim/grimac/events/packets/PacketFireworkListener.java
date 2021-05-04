@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.FireworkData;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
@@ -11,7 +10,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPa
 import net.minecraft.server.v1_16_R3.DataWatcher;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityDestroy;
 import net.minecraft.server.v1_16_R3.PacketPlayOutEntityMetadata;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Firework;
 
 import java.lang.reflect.Field;
@@ -57,11 +55,9 @@ public class PacketFireworkListener extends PacketListenerDynamic {
                     OptionalInt attachedEntityID = (OptionalInt) value.get(entry);
 
                     if (attachedEntityID.isPresent()) {
-                        Bukkit.broadcastMessage("What is this? " + attachedEntityID.getAsInt());
-
                         for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
                             if (grimPlayer.entityID == attachedEntityID.getAsInt()) {
-                                grimPlayer.fireworks.put(entityID.getInt(metadata), new FireworkData(grimPlayer));
+                                grimPlayer.compensatedFireworks.addNewFirework(entityID.getInt(metadata));
                             }
                         }
                     }
@@ -79,10 +75,7 @@ public class PacketFireworkListener extends PacketListenerDynamic {
 
                 for (int entity : (int[]) entities.get(destroy)) {
                     for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
-                        if (grimPlayer.fireworks.containsKey(entity)) {
-                            FireworkData fireworkData = grimPlayer.fireworks.get(entity);
-                            fireworkData.setDestroyed();
-                        }
+                        grimPlayer.compensatedFireworks.removeFirework(entity);
                     }
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {

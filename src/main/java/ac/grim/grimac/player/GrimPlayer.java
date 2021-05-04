@@ -3,9 +3,9 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
-import ac.grim.grimac.utils.data.FireworkData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedFlying;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -35,7 +35,9 @@ public class GrimPlayer {
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
-    public Vector clientVelocityFireworkBoost = new Vector();
+    public Vector clientVelocityFireworkBoostOne = new Vector();
+    public Vector clientVelocityFireworkBoostTwo = new Vector();
+
 
     public Vector predictedVelocity = new Vector();
     public Vector actualMovement = new Vector();
@@ -106,10 +108,7 @@ public class GrimPlayer {
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
 
-    // Handled by entity spawn event, removed when firework dies
-    public HashMap<Integer, FireworkData> fireworks = new HashMap<>();
     public HashMap<Integer, Vector3d> teleports = new HashMap<>();
-
 
     // Set after checks
     public double lastX;
@@ -127,6 +126,7 @@ public class GrimPlayer {
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
     public CompensatedFlying compensatedFlying;
+    public CompensatedFireworks compensatedFireworks;
 
     // Keep track of basetick stuff
     public Vector baseTickSet;
@@ -150,6 +150,7 @@ public class GrimPlayer {
         lastZ = loginLocation.getZ();
 
         compensatedFlying = new CompensatedFlying(this);
+        compensatedFireworks = new CompensatedFireworks(this);
         packetFlyingDanger = bukkitPlayer.isFlying();
     }
 
@@ -172,8 +173,12 @@ public class GrimPlayer {
             possibleMovements.add(clientVelocitySwimHop);
         }
 
-        if (clientVelocityFireworkBoost != null) {
-            possibleMovements.add(clientVelocityFireworkBoost);
+        if (clientVelocityFireworkBoostOne != null) {
+            possibleMovements.add(clientVelocityFireworkBoostOne);
+        }
+
+        if (clientVelocityFireworkBoostTwo != null) {
+            possibleMovements.add(clientVelocityFireworkBoostTwo);
         }
 
         return possibleMovements;
@@ -207,8 +212,8 @@ public class GrimPlayer {
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.add(vector);
 
-        if (clientVelocityFireworkBoost != null)
-            clientVelocityFireworkBoost.setX(x);
+        if (clientVelocityFireworkBoostOne != null)
+            clientVelocityFireworkBoostOne.setX(x);
     }
 
     public void baseTickSetX(double x) {
@@ -221,8 +226,8 @@ public class GrimPlayer {
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setX(x);
 
-        if (clientVelocityFireworkBoost != null)
-            clientVelocityFireworkBoost.setX(x);
+        if (clientVelocityFireworkBoostOne != null)
+            clientVelocityFireworkBoostOne.setX(x);
     }
 
     public void baseTickSetY(double y) {
@@ -235,8 +240,8 @@ public class GrimPlayer {
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setY(y);
 
-        if (clientVelocityFireworkBoost != null)
-            clientVelocityFireworkBoost.setX(x);
+        if (clientVelocityFireworkBoostOne != null)
+            clientVelocityFireworkBoostOne.setX(x);
     }
 
     public void baseTickSetZ(double z) {
@@ -249,8 +254,8 @@ public class GrimPlayer {
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setZ(z);
 
-        if (clientVelocityFireworkBoost != null)
-            clientVelocityFireworkBoost.setX(x);
+        if (clientVelocityFireworkBoostOne != null)
+            clientVelocityFireworkBoostOne.setX(x);
     }
 
     public float getMaxUpStep() {

@@ -1,6 +1,6 @@
 package ac.grim.grimac.checks.movement.predictions;
 
-import ac.grim.grimac.checks.movement.movementTick.MovementTicketPlayer;
+import ac.grim.grimac.checks.movement.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.collisions.Collisions;
@@ -101,7 +101,7 @@ public abstract class PredictionEngine {
             }
         }
 
-        new MovementTicketPlayer(grimPlayer).move(MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
+        new MovementTickerPlayer(grimPlayer).move(MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
         grimPlayer.predictedVelocity = bestCollisionVel.clone();
         endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
     }

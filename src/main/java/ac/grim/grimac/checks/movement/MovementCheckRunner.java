@@ -3,8 +3,8 @@ package ac.grim.grimac.checks.movement;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerHorse;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerPig;
+import ac.grim.grimac.checks.movement.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.checks.movement.movementTick.MovementTickerStrider;
-import ac.grim.grimac.checks.movement.movementTick.MovementTicketPlayer;
 import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
@@ -99,7 +99,7 @@ public class MovementCheckRunner implements Listener {
                 new PlayerBaseTick(grimPlayer).doBaseTick();
 
                 // baseTick occurs before this
-                new MovementTicketPlayer(grimPlayer).livingEntityAIStep();
+                new MovementTickerPlayer(grimPlayer).livingEntityAIStep();
 
                 //handleSkippedTicks(grimPlayer);
             } else if (grimPlayer.playerVehicle instanceof Boat) {
@@ -252,7 +252,7 @@ public class MovementCheckRunner implements Listener {
                 }
 
                 // baseTick occurs before this
-                new MovementTicketPlayer(grimPlayer).livingEntityAIStep();
+                new MovementTickerPlayer(grimPlayer).livingEntityAIStep();
 
                 // Simulate the base tick efficiently by keeping track of the last movement
                 //grimPlayer.clientVelocity.add(grimPlayer.baseTickAddition);
