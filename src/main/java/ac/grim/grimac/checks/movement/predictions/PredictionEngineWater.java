@@ -50,7 +50,7 @@ public class PredictionEngineWater extends PredictionEngine {
 
         if (grimPlayer.isSwimming && grimPlayer.playerVehicle == null) {
             for (Vector vector : baseVelocities) {
-                double d = MovementVectorsCalc.getLookAngle(grimPlayer).y;
+                double d = MovementVectorsCalc.getLookAngle(grimPlayer).getY();
                 double d5 = d < -0.2 ? 0.085 : 0.06;
 
                 // The player can always press jump and activate this

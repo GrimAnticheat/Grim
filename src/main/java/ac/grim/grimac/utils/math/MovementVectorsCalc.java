@@ -1,22 +1,21 @@
 package ac.grim.grimac.utils.math;
 
 import ac.grim.grimac.player.GrimPlayer;
-import net.minecraft.server.v1_16_R3.Vec3D;
 import org.bukkit.util.Vector;
 
 public class MovementVectorsCalc {
-    public static Vec3D getLookAngle(GrimPlayer grimPlayer) {
+    public static Vector getLookAngle(GrimPlayer grimPlayer) {
         return MovementVectorsCalc.calculateViewVector(grimPlayer.yRot, grimPlayer.xRot);
     }
 
-    public static Vec3D calculateViewVector(float f, float f2) {
+    public static Vector calculateViewVector(float f, float f2) {
         float f3 = f * 0.017453292f;
         float f4 = -f2 * 0.017453292f;
         float f5 = Mth.cos(f4);
         float f6 = Mth.sin(f4);
         float f7 = Mth.cos(f3);
         float f8 = Mth.sin(f3);
-        return new Vec3D(f6 * f7, -f8, f5 * f7);
+        return new Vector(f6 * f7, -f8, f5 * f7);
     }
 
     // Entity line 1243 - (MCP mappings)
