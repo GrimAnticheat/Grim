@@ -3,12 +3,14 @@ package ac.grim.grimac.checks.movement.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.math.Mth;
-import net.minecraft.server.v1_16_R3.BlockScaffolding;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
 import java.util.Set;
 
 public class PredictionEngineNormal extends PredictionEngine {
+    public static final Material scaffolding = XMaterial.SCAFFOLDING.parseMaterial();
 
     public static void staticVectorEndOfTick(GrimPlayer grimPlayer, Vector vector) {
         double d9 = vector.getY();
@@ -34,7 +36,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setY(Math.max(vector.getY(), -0.15));
 
             // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(ChunkCache.getBlockDataAt(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ).getBlock() instanceof BlockScaffolding) && grimPlayer.isSneaking && !grimPlayer.specialFlying) {
+            if (vector.getY() < 0.0 && !(ChunkCache.getBukkitBlockDataAt(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ).getMaterial() == scaffolding) && grimPlayer.isSneaking && !grimPlayer.specialFlying) {
                 vector.setY(0.0);
             }
         }

@@ -111,6 +111,10 @@ public class ChunkCache {
         return JAVA_AIR_ID;
     }
 
+    public static double getFluidLevelAt(double x, double y, double z) {
+        return getFluidLevelAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
+    }
+
     public static double getFluidLevelAt(int x, int y, int z) {
         return Math.max(getWaterFluidLevelAt(x, y, z), getLavaFluidLevelAt(x, y, z));
     }

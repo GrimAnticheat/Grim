@@ -57,7 +57,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 swimmingVelocities.add(new Vector(vector.getX(), vector.getY() + ((d - vector.getY()) * d5), vector.getZ()));
 
                 // This scenario will occur if the player does not press jump and the other conditions are met
-                if (d > 0.0 && ChunkCache.getBlockDataAt(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ).getFluid().isEmpty()) {
+                if (d > 0.0 && ChunkCache.getFluidLevelAt(grimPlayer.lastX, grimPlayer.lastY + 1.0 - 0.1, grimPlayer.lastZ) == 0) {
                     swimmingVelocities.add(vector);
                 }
             }
