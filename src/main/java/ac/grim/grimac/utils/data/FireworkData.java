@@ -13,6 +13,6 @@ public class FireworkData {
     }
 
     public void setDestroyed() {
-        this.destroyTime = grimPlayer.lastTransactionReceived;
+        this.destroyTime = grimPlayer.lastTransactionSent.get();
     }
 }

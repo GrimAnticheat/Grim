@@ -189,8 +189,6 @@ public class MovementTicker {
         float swimFriction;
         float f2;
 
-        handleFireworks();
-
         if (grimPlayer.wasTouchingWater && !grimPlayer.specialFlying) {
             // 0.8F seems hardcoded in
             swimFriction = grimPlayer.isSprinting ? 0.9F : 0.8F;
@@ -236,26 +234,33 @@ public class MovementTicker {
                 grimPlayer.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (bukkitPlayer.isGliding()) {
-                Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
+                Vector currentLook = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
                 Vector lastLook = MovementVectorsCalc.getVectorForRotation(grimPlayer.lastYRot, grimPlayer.lastXRot);
 
-                // Tick order of player vs firework isn't constant
-                // A firework can tick twice, and then tick zero times the next tick - relative to player movements
-                // Yes, this allows some lenience but it's "close enough"
-                int maxFireworks = grimPlayer.compensatedFireworks.getMaxFireworksAppliedPossible();
+                // Tick order of player movements vs firework isn't constant
+                int maxFireworks = grimPlayer.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
 
                 Set<Vector> possibleVelocities = new HashSet<>();
 
+                // Vector 1: All possible fireworks * 2 on the past look vector
+                // Vector 2: All possible fireworks * 2 on the next look vector
+                // Vector 3: No fireworks at all for the first look vector
+                // Vector 4: No fireworks at all for the second look vector
+                //
+                // The client's velocity clone is then forced to be between vector 1 and 3
+                // The client's velocity clone is then forced to be between vector 2 and 4
+                //
+                // The closest of these two vector clones are the predicted velocity.
                 for (Vector possibleVelocity : grimPlayer.getPossibleVelocities()) {
                     if (maxFireworks > 0) {
                         Vector boostOne = possibleVelocity.clone();
                         Vector boostTwo = possibleVelocity.clone();
 
-                        Vector noFireworksOne = getElytraMovement(boostOne.clone(), lookVector).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworksOne = getElytraMovement(boostOne.clone(), currentLook).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
                         Vector noFireworksTwo = getElytraMovement(boostTwo.clone(), lastLook).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
 
                         for (int i = 0; i < maxFireworks; i++) {
-                            boostOne.add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - boostOne.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - boostOne.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
+                            boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
                             boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
                         }
 
@@ -268,12 +273,14 @@ public class MovementTicker {
                             possibleVelocities.add(cutTwo);
                         }
                     } else {
-                        Vector noFireworksOne = getElytraMovement(possibleVelocity.clone(), lookVector).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworksOne = getElytraMovement(possibleVelocity.clone(), currentLook).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
                         Vector noFireworksTwo = getElytraMovement(possibleVelocity.clone(), lastLook).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
 
-                        Vector cut = cutVectorsToPlayerMovement(noFireworksOne, noFireworksTwo);
-
-                        possibleVelocities.add(cut);
+                        if (noFireworksOne.distanceSquared(grimPlayer.actualMovement) < noFireworksTwo.distanceSquared(grimPlayer.actualMovement)) {
+                            possibleVelocities.add(noFireworksOne);
+                        } else {
+                            possibleVelocities.add(noFireworksTwo);
+                        }
                     }
                 }
 
@@ -343,23 +350,6 @@ public class MovementTicker {
         }
 
         return actualMovementCloned;
-    }
-
-    // Use transaction packets to handle lag compensation instead of whatever the fuck this is
-    public void handleFireworks() {
-        int maxFireworks = grimPlayer.compensatedFireworks.getMaxFireworksAppliedPossible();
-
-        if (maxFireworks > 0) {
-            Vector lookVector = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
-            Vector lastLook = MovementVectorsCalc.getVectorForRotation(grimPlayer.lastYRot, grimPlayer.lastXRot);
-            grimPlayer.clientVelocityFireworkBoostOne = grimPlayer.clientVelocity.clone();
-            grimPlayer.clientVelocityFireworkBoostTwo = grimPlayer.clientVelocity.clone();
-
-            for (int i = 0; i < maxFireworks; i++) {
-                grimPlayer.clientVelocityFireworkBoostOne.add(new Vector(lookVector.getX() * 0.1 + (lookVector.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoostOne.getX()) * 0.5, lookVector.getY() * 0.1 + (lookVector.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoostOne.getY()) * 0.5, (lookVector.getZ() * 0.1 + (lookVector.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoostOne.getZ()) * 0.5)));
-                grimPlayer.clientVelocityFireworkBoostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - grimPlayer.clientVelocityFireworkBoostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - grimPlayer.clientVelocityFireworkBoostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - grimPlayer.clientVelocityFireworkBoostTwo.getZ()) * 0.5)));
-            }
-        }
     }
 
     public Vector getElytraMovement(Vector vector, Vector lookVector) {
