@@ -248,7 +248,8 @@ public class MovementTicker {
                 }
 
                 //grimPlayer.clientVelocity.multiply(new Vector(0.99F, 0.98F, 0.99F));
-                move(MoverType.SELF, clientVelocity);
+                grimPlayer.clientVelocity = clientVelocity;
+                move(MoverType.SELF, grimPlayer.clientVelocity);
 
             } else {
                 float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
