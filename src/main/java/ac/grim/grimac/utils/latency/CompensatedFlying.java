@@ -24,12 +24,20 @@ public class CompensatedFlying {
         int lastTransactionReceived = grimPlayer.lastTransactionReceived;
 
         boolean canFly = canPlayerFly;
+        int bestKey = 0;
 
         Iterator<Map.Entry<Integer, Boolean>> iterator = lagCompensatedFlyingMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Integer, Boolean> flightStatus = iterator.next();
 
             if (flightStatus.getKey() > lastTransactionReceived) continue;
+
+            if (flightStatus.getKey() < bestKey) {
+                iterator.remove();
+                continue;
+            }
+
+            bestKey = flightStatus.getKey();
             canFly = flightStatus.getValue();
 
             iterator.remove();
