@@ -8,8 +8,12 @@ import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Bed;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -17,6 +21,8 @@ import org.bukkit.util.Vector;
 public class MovementTicker {
     public final Player bukkitPlayer;
     public final GrimPlayer grimPlayer;
+
+    private static final Material slime = XMaterial.SLIME_BLOCK.parseMaterial();
 
     public MovementTicker(GrimPlayer grimPlayer) {
         this.grimPlayer = grimPlayer;
@@ -99,7 +105,7 @@ public class MovementTicker {
         grimPlayer.verticalCollision = inputVel.getY() != collide.getY();
         grimPlayer.isActuallyOnGround = grimPlayer.verticalCollision && inputVel.getY() < 0.0D;
 
-        Block onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
+        BlockData onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
 
         double xBeforeZero = grimPlayer.clientVelocity.getX();
         if (inputVel.getX() != collide.getX()) {
@@ -113,7 +119,7 @@ public class MovementTicker {
         }
 
         if (inputVel.getY() != collide.getY()) {
-            if (onBlock instanceof BlockSlime) {
+            if (onBlock.getMaterial() == slime) {
                 if (grimPlayer.isSneaking) { // Slime blocks use shifting instead of sneaking
                     grimPlayer.clientVelocity.setY(0);
                 } else {
@@ -121,7 +127,7 @@ public class MovementTicker {
                         grimPlayer.clientVelocity.setY(-grimPlayer.clientVelocity.getY() * (grimPlayer.inVehicle ? 0.8 : 1.0));
                     }
                 }
-            } else if (onBlock instanceof BlockBed) {
+            } else if (onBlock instanceof Bed) {
                 if (grimPlayer.clientVelocity.getY() < 0.0) {
                     grimPlayer.clientVelocity.setY(-grimPlayer.clientVelocity.getY() * 0.6600000262260437 * (grimPlayer.inVehicle ? 0.8 : 1.0));
                 }
@@ -131,7 +137,7 @@ public class MovementTicker {
         }
 
         // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
-        if (onBlock instanceof BlockSlime) {
+        if (onBlock.getMaterial() == slime) {
             if ((grimPlayer.inVehicle || grimPlayer.onGround) && !grimPlayer.isSneaking) {
                 double absVelocityY = Math.abs(grimPlayer.clientVelocity.getY());
                 if (absVelocityY < 0.1) {

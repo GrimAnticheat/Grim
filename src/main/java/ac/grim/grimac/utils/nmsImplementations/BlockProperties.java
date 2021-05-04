@@ -2,12 +2,13 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
-import net.minecraft.server.v1_16_R3.Block;
-import net.minecraft.server.v1_16_R3.BlockFenceGate;
-import net.minecraft.server.v1_16_R3.IBlockData;
 import net.minecraft.server.v1_16_R3.TagsBlock;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Fence;
+import org.bukkit.block.data.type.Gate;
+import org.bukkit.block.data.type.Wall;
 import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
@@ -58,18 +59,18 @@ public class BlockProperties {
     }
 
     // Entity line 617
-    public static Block getOnBlock(Location getBlockLocation) {
-        IBlockData block1 = ChunkCache.getBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
+    public static BlockData getOnBlock(Location getBlockLocation) {
+        BlockData block1 = ChunkCache.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
 
-        if (block1.isAir()) {
-            Block block2 = ChunkCache.getBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ()).getBlock();
+        if (block1.getMaterial().isAir()) {
+            BlockData block2 = ChunkCache.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
 
-            if (block2.a(TagsBlock.FENCES) || block2.a(TagsBlock.WALLS) || block2 instanceof BlockFenceGate) {
+            if (block2 instanceof Fence || block2 instanceof Wall || block2 instanceof Gate) {
                 return block2;
             }
         }
 
-        return block1.getBlock();
+        return block1;
     }
 
     // Entity line 637
