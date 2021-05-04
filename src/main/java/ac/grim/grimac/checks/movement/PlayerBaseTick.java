@@ -11,10 +11,11 @@ import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.server.v1_16_R3.BlockPosition;
+import net.minecraft.server.v1_16_R3.EnumDirection;
+import net.minecraft.server.v1_16_R3.Vec3D;
 import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
 
@@ -257,10 +258,8 @@ public class PlayerBaseTick {
     }
 
     private boolean suffocatesAt(BlockPosition blockPos2) {
-        AxisAlignedBB axisAlignedBB = new AxisAlignedBB(blockPos2.getX(), player.boundingBox.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, player.boundingBox.maxY, blockPos2.getZ() + 1.0).grow(-1.0E-7, -1.0E-7, -1.0E-7);
-        // It looks like the method it usually calls is gone from the server?
-        // So we have to just do the allMatch ourselves.
-        // TODO: This is not async safe!
-        return !((CraftWorld) player.playerWorld).getHandle().b(player.entityPlayer, axisAlignedBB, (blockState, blockPos) -> blockState.o(player.entityPlayer.getWorld(), blockPos)).allMatch(VoxelShape::isEmpty);
+        SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(blockPos2.getX(), player.boundingBox.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, player.boundingBox.maxY, blockPos2.getZ() + 1.0).expand(-1.0E-7);
+
+        return !Collisions.isEmpty(player, axisAlignedBB);
     }
 }

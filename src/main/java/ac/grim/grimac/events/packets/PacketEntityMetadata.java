@@ -14,9 +14,7 @@ public class PacketEntityMetadata extends PacketListenerDynamic {
             WrappedPacketInAbilities action = new WrappedPacketInAbilities(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            // TODO: We need to lag compensate can fly
-            // TODO: If a player logs in while flying, the canFly is wrong.  Hacked around by using bukkit player isFlying
-            player.packetIsFlying = action.isFlying() && (player.entityPlayer.abilities.canFly || player.bukkitPlayer.isFlying());
+            player.packetFlyingDanger = action.isFlying();
         }
     }
 }

@@ -37,8 +37,6 @@ public final class GrimAC extends JavaPlugin {
     public void onDisable() {
         transactionSender.shutdownNow();
         PacketEvents.get().terminate();
-
-
     }
 
     @Override
@@ -68,6 +66,7 @@ public final class GrimAC extends JavaPlugin {
 
     public void registerPackets() {
         PacketEvents.get().registerListener(new PacketPositionListener());
+        PacketEvents.get().registerListener(new PacketPlayerAbilities());
         PacketEvents.get().registerListener(new PacketPlayerVelocity());
         PacketEvents.get().registerListener(new PacketPingListener());
         PacketEvents.get().registerListener(new PacketEntityMetadata());
@@ -145,6 +144,7 @@ public final class GrimAC extends JavaPlugin {
                     PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, packetID, false));
                     // Get current time for every player just in cause of pauses
                     player.transactionsSent.put(packetID, System.currentTimeMillis());
+                    player.lastTransactionSent.getAndIncrement();
                 } catch (Exception e) {
                     GrimAC.plugin.getLogger().warning("Error sending transaction packet, did the player log out?");
                 }

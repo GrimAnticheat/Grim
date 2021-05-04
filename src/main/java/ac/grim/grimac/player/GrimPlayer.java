@@ -6,9 +6,9 @@ import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.FireworkData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.latency.CompensatedFlying;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import net.minecraft.server.v1_16_R3.EntityPlayer;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
@@ -27,7 +27,6 @@ public class GrimPlayer {
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Player bukkitPlayer;
-    public EntityPlayer entityPlayer;
     public int entityID;
     public short clientVersion;
 
@@ -64,7 +63,8 @@ public class GrimPlayer {
     public boolean isCrouching;
     public boolean isSprinting;
     public boolean lastSprinting;
-    public boolean packetIsFlying;
+
+    public boolean packetFlyingDanger;
     public boolean isFlying;
     // If a player collides with the ground, their flying will be set false after their movement
     // But we need to know if they were flying DURING the movement
@@ -126,11 +126,13 @@ public class GrimPlayer {
 
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
+    public CompensatedFlying compensatedFlying;
 
     // Keep track of basetick stuff
     public Vector baseTickSet;
     public Vector baseTickAddition;
-    public short lastTransactionReceived = 0;
+    public AtomicInteger lastTransactionSent = new AtomicInteger(0);
+    public Integer lastTransactionReceived = 0;
     public short movementTransaction = Short.MIN_VALUE;
 
     // Determining player ping
@@ -138,7 +140,6 @@ public class GrimPlayer {
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
-        this.entityPlayer = ((CraftPlayer) player).getHandle();
         this.playerUUID = player.getUniqueId();
         this.entityID = player.getEntityId();
         this.clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(player).getProtocolVersion();
@@ -147,6 +148,9 @@ public class GrimPlayer {
         lastX = loginLocation.getX();
         lastY = loginLocation.getY();
         lastZ = loginLocation.getZ();
+
+        compensatedFlying = new CompensatedFlying(this);
+        packetFlyingDanger = bukkitPlayer.isFlying();
     }
 
     public Set<Vector> getPossibleVelocities() {

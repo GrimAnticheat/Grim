@@ -182,8 +182,8 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.isJustTeleported = false;
 
 
-        grimPlayer.vehicleForward = (float) Math.max(0.98, Math.min(-0.98, data.vehicleForward));
-        grimPlayer.vehicleHorizontal = (float) Math.max(0.98, Math.min(-0.98, data.vehicleHorizontal));
+        grimPlayer.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
+        grimPlayer.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
 
         if (grimPlayer.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;

@@ -56,7 +56,10 @@ public class PredictionData {
         this.isSprinting = grimPlayer.isPacketSprinting;
         this.isSneaking = grimPlayer.isPacketSneaking;
 
-        this.isFlying = grimPlayer.packetIsFlying;
+        // Don't let the player fly with packets - Don't rely on non-lag compensated bukkit
+        this.isFlying = grimPlayer.packetFlyingDanger && grimPlayer.compensatedFlying.getCanPlayerFlyLagCompensated();
+        // Stop false from if a player is flying, we toggle their fly off, they land, we toggle their flight on
+        grimPlayer.packetFlyingDanger = isFlying;
 
         this.isClimbing = Collisions.onClimbable(grimPlayer);
         this.isFallFlying = grimPlayer.bukkitPlayer.isGliding();
@@ -74,7 +77,7 @@ public class PredictionData {
         PotionEffect levitationEffect = grimPlayer.bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION);
         this.levitationAmplifier = levitationEffect == null ? 0 : levitationEffect.getAmplifier();
 
-        this.flySpeed = grimPlayer.entityPlayer.abilities.flySpeed;
+        this.flySpeed = grimPlayer.bukkitPlayer.getFlySpeed() / 2;
         this.playerVehicle = grimPlayer.bukkitPlayer.getVehicle();
     }
 
