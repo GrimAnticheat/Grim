@@ -8,8 +8,13 @@ import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Tag;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.BubbleColumn;
+import org.bukkit.block.data.type.Ladder;
+import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
 
@@ -18,8 +23,6 @@ import java.util.List;
 
 public class Collisions {
     public static final double maxUpStep = 0.6f;
-    public static final BlockStateBoolean DRAG_DOWN = BlockProperties.e;
-
     // Entity line 686
     // This MUST return a new vector!!!
     // If it does not the predicted velocity will be overridden
@@ -265,10 +268,6 @@ public class Collisions {
         //return new Vector(setBB.minX - currentPosBB.minX, setBB.minY - currentPosBB.minY, setBB.minZ - currentPosBB.minZ);
     }
 
-    private static int a(double var0, double var2, double var4) {
-        return var0 > 0.0D ? MathHelper.floor(var4 + var0) + 1 : MathHelper.floor(var2 + var0) - 1;
-    }
-
     // MCP mappings PlayerEntity 959
     // Mojang mappings 911
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer grimPlayer) {
@@ -342,32 +341,33 @@ public class Collisions {
         for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
             for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
                 for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
-                    Block block = ChunkCache.getBlockDataAt(i, j, k).getBlock();
+                    BlockData block = ChunkCache.getBukkitBlockDataAt(i, j, k);
+                    Material blockType = block.getMaterial();
 
-                    if (block instanceof BlockWeb) {
+                    if (blockType == Material.COBWEB) {
                         grimPlayer.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
                     }
 
-                    if (block instanceof BlockSweetBerryBush) {
+                    if (blockType == Material.SWEET_BERRY_BUSH) {
                         grimPlayer.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
                     }
 
-                    if (block instanceof BlockBubbleColumn) {
-                        IBlockData blockData = ChunkCache.getBlockDataAt(i, j, k);
-                        IBlockData blockAbove = ChunkCache.getBlockDataAt(i, j + 1, k).getBlock().getBlockData();
+                    if (blockType == Material.BUBBLE_COLUMN) {
+                        BlockData blockAbove = ChunkCache.getBukkitBlockDataAt(i, j + 1, k);
+                        BubbleColumn bubbleColumn = (BubbleColumn) block;
 
                         if (grimPlayer.playerVehicle instanceof Boat) {
-                            if (!blockAbove.isAir()) {
-                                if (blockData.get(DRAG_DOWN)) {
+                            if (!blockAbove.getMaterial().isAir()) {
+                                if (bubbleColumn.isDrag()) {
                                     grimPlayer.clientVelocity.setY(Math.max(-0.3D, grimPlayer.clientVelocity.getY() - 0.03D));
                                 } else {
                                     grimPlayer.clientVelocity.setY(Math.min(0.7D, grimPlayer.clientVelocity.getY() + 0.06D));
                                 }
                             }
                         } else {
-                            if (blockAbove.isAir()) {
+                            if (blockAbove.getMaterial().isAir()) {
                                 for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-                                    if (blockData.get(DRAG_DOWN)) {
+                                    if (bubbleColumn.isDrag()) {
                                         vector.setY(Math.max(-0.9D, vector.getY() - 0.03D));
                                     } else {
                                         vector.setY(Math.min(1.8D, vector.getY() + 0.1D));
@@ -375,7 +375,7 @@ public class Collisions {
                                 }
                             } else {
                                 for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-                                    if (blockData.get(DRAG_DOWN)) {
+                                    if (bubbleColumn.isDrag()) {
                                         vector.setY(Math.max(-0.3D, vector.getY() - 0.03D));
                                     } else {
                                         vector.setY(Math.min(0.7D, vector.getY() + 0.06D));
@@ -385,7 +385,7 @@ public class Collisions {
                         }
                     }
 
-                    if (block instanceof BlockHoney) {
+                    if (blockType == Material.HONEY_BLOCK) {
                         for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
                             if (isSlidingDown(vector, grimPlayer, i, j, j)) {
                                 if (vector.getY() < -0.13D) {
@@ -449,18 +449,23 @@ public class Collisions {
     public static boolean onClimbable(GrimPlayer grimPlayer) {
         // spectator check
 
-        IBlockData blockData = ChunkCache.getBlockDataAt(grimPlayer.x, grimPlayer.y, grimPlayer.z);
-        if (blockData.a(TagsBlock.CLIMBABLE)) {
+        BlockData blockData = ChunkCache.getBukkitBlockDataAt(grimPlayer.x, grimPlayer.y, grimPlayer.z);
+
+        if (Tag.CLIMBABLE.isTagged(blockData.getMaterial())) {
             return true;
         }
 
-        return blockData.getBlock() instanceof BlockTrapdoor && trapdoorUsableAsLadder(grimPlayer.x, grimPlayer.y, grimPlayer.z, blockData);
+        return Tag.TRAPDOORS.isTagged(blockData.getMaterial()) && trapdoorUsableAsLadder(grimPlayer.x, grimPlayer.y, grimPlayer.z, (TrapDoor) blockData);
     }
 
-    private static boolean trapdoorUsableAsLadder(double x, double y, double z, IBlockData blockData) {
-        if (blockData.get(BlockTrapdoor.OPEN)) {
-            IBlockData blockBelow = ChunkCache.getBlockDataAt(x, y - 1, z);
-            return blockBelow.a(Blocks.LADDER) && blockBelow.get(BlockLadder.FACING) == blockData.get(BlockLadder.FACING);
+    private static boolean trapdoorUsableAsLadder(double x, double y, double z, TrapDoor blockData) {
+        if (blockData.isOpen()) {
+            BlockData blockBelow = ChunkCache.getBukkitBlockDataAt(x, y - 1, z);
+
+            if (blockBelow.getMaterial() == Material.LADDER) {
+                Ladder ladder = (Ladder) blockBelow;
+                return ladder.getFacing() == blockData.getFacing();
+            }
         }
 
         return false;
