@@ -277,7 +277,8 @@ public class MovementCheckRunner implements Listener {
         if (player.couldSkipTick && wantedMovement.lengthSquared() > theoreticalOutput.lengthSquared() * 1.25) {
             for (x = 0; x < 19; x++) {
                 // Set to detect 1% speed increase < 0.03 such as in lava
-                if (wantedMovement.length() / theoreticalOutput.length() < 0.99) {
+
+                if (wantedMovement.length() / theoreticalOutput.length() < 1.01) {
                     break;
                 }
 
