@@ -180,7 +180,6 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastOnGround = grimPlayer.onGround;
         grimPlayer.lastClimbing = grimPlayer.isClimbing;
         grimPlayer.isJustTeleported = false;
-        grimPlayer.addBaseTick = true;
         grimPlayer.lastTransactionReceived = grimPlayer.packetLastTransactionReceived;
 
 
@@ -276,8 +275,6 @@ public class MovementCheckRunner implements Listener {
         // TODO: Exempt/fix if speed/potions change between movement ticks
 
         if (player.couldSkipTick && wantedMovement.lengthSquared() > theoreticalOutput.lengthSquared() * 1.25) {
-            player.addBaseTick = false;
-
             for (x = 0; x < 19; x++) {
                 // Set to detect 1% speed increase < 0.03 such as in lava
                 if (wantedMovement.length() / theoreticalOutput.length() < 0.99) {

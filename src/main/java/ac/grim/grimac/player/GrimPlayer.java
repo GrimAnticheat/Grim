@@ -124,7 +124,6 @@ public class GrimPlayer {
     public boolean lastClimbing;
     public boolean couldSkipTick = false;
     public boolean isJustTeleported = false;
-    public boolean addBaseTick = false;
 
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
@@ -209,8 +208,6 @@ public class GrimPlayer {
 
     public void baseTickAddVector(Vector vector) {
         baseTickAddition.add(vector);
-
-        if (!addBaseTick) return;
 
         clientVelocity.add(vector);
 
