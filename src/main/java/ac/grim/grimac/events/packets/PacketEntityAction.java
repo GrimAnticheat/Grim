@@ -17,15 +17,19 @@ public class PacketEntityAction extends PacketListenerDynamic {
             switch (action.getAction()) {
                 case START_SPRINTING:
                     player.isPacketSprinting = true;
+                    player.isPacketSprintingChange = true;
                     break;
                 case STOP_SPRINTING:
                     player.isPacketSprinting = false;
+                    player.isPacketSprintingChange = true;
                     break;
                 case START_SNEAKING:
                     player.isPacketSneaking = true;
+                    player.isPacketSneakingChange = true;
                     break;
                 case STOP_SNEAKING:
                     player.isPacketSneaking = false;
+                    player.isPacketSneakingChange = true;
                     break;
             }
         }

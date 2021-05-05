@@ -26,6 +26,15 @@ public class PlayerBaseTick {
         this.player = player;
     }
 
+    public static boolean canEnterPose(GrimPlayer player, Pose pose, double x, double y, double z) {
+        return Collisions.isEmpty(player, getBoundingBoxForPose(pose, x, y, z).expand(-1.0E-7D));
+    }
+
+    protected static SimpleCollisionBox getBoundingBoxForPose(Pose pose, double x, double y, double z) {
+        float radius = pose.width / 2.0F;
+        return new SimpleCollisionBox(x - radius, y, z - radius, x + radius, y + pose.height, z + radius);
+    }
+
     public void doBaseTick() {
         // Keep track of basetick stuff
         player.baseTickSet = new Vector();
@@ -48,8 +57,8 @@ public class PlayerBaseTick {
         // LocalPlayer:aiStep determining crouching
         // Tick order is entityBaseTick and then the aiStep stuff
         // This code is in the wrong place, I'll fix it later
-        player.isCrouching = !player.specialFlying && !player.isSwimming && canEnterPose(Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
-                && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(Pose.STANDING, player.lastX, player.lastY, player.lastZ));
+        player.isCrouching = !player.specialFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
+                && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ));
         player.isSlowMovement = player.isCrouching || (player.pose == Pose.SWIMMING && !player.wasTouchingWater);
 
 
@@ -69,7 +78,7 @@ public class PlayerBaseTick {
     }
 
     protected void updatePlayerPose() {
-        if (canEnterPose(Pose.SWIMMING, player.x, player.y, player.z)) {
+        if (canEnterPose(player, Pose.SWIMMING, player.x, player.y, player.z)) {
             Pose pose;
             if (player.isFallFlying) {
                 pose = Pose.FALL_FLYING;
@@ -85,8 +94,8 @@ public class PlayerBaseTick {
                 pose = Pose.STANDING;
             }
 
-            if (!player.inVehicle && !canEnterPose(pose, player.x, player.y, player.z)) {
-                if (canEnterPose(Pose.CROUCHING, player.x, player.y, player.z)) {
+            if (!player.inVehicle && !canEnterPose(player, pose, player.x, player.y, player.z)) {
+                if (canEnterPose(player, Pose.CROUCHING, player.x, player.y, player.z)) {
                     pose = Pose.CROUCHING;
                 } else {
                     pose = Pose.SWIMMING;
@@ -95,15 +104,6 @@ public class PlayerBaseTick {
 
             player.pose = pose;
         }
-    }
-
-    protected boolean canEnterPose(Pose pose, double x, double y, double z) {
-        return Collisions.isEmpty(player, getBoundingBoxForPose(pose, x, y, z).expand(-1.0E-7D));
-    }
-
-    protected SimpleCollisionBox getBoundingBoxForPose(Pose pose, double x, double y, double z) {
-        float radius = pose.width / 2.0F;
-        return new SimpleCollisionBox(x - radius, y, z - radius, x + radius, y + pose.height, z + radius);
     }
 
     // Entity line 937

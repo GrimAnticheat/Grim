@@ -40,6 +40,9 @@ public class PredictionData {
     public float vehicleHorizontal;
     public float vehicleForward;
 
+    public boolean isSprintingChange;
+    public boolean isSneakingChange;
+
     // For regular movement
     public PredictionData(GrimPlayer grimPlayer, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
         this.grimPlayer = grimPlayer;
@@ -55,6 +58,11 @@ public class PredictionData {
 
         this.isSprinting = grimPlayer.isPacketSprinting;
         this.isSneaking = grimPlayer.isPacketSneaking;
+
+        this.isSprintingChange = grimPlayer.isPacketSprintingChange;
+        this.isSneakingChange = grimPlayer.isPacketSneakingChange;
+        grimPlayer.isPacketSprintingChange = false;
+        grimPlayer.isPacketSneakingChange = false;
 
         // Don't let the player fly with packets - Don't rely on non-lag compensated bukkit
         this.isFlying = grimPlayer.packetFlyingDanger && grimPlayer.compensatedFlying.getCanPlayerFlyLagCompensated();

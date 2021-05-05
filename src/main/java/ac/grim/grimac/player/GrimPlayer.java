@@ -58,6 +58,8 @@ public class GrimPlayer {
     public boolean onGround;
     public boolean isPacketSneaking;
     public boolean isPacketSprinting;
+    public boolean isPacketSneakingChange;
+    public boolean isPacketSprintingChange;
 
     // Set from the time that the movement packet was received, to be thread safe
     public boolean isSneaking;
@@ -122,6 +124,7 @@ public class GrimPlayer {
     public boolean lastClimbing;
     public boolean couldSkipTick = false;
     public boolean isJustTeleported = false;
+    public boolean addBaseTick = false;
 
     // Possible inputs into the player's movement thing
     public List<Vector> possibleKnockback = new ArrayList<>();
@@ -206,6 +209,9 @@ public class GrimPlayer {
 
     public void baseTickAddVector(Vector vector) {
         baseTickAddition.add(vector);
+
+        if (!addBaseTick) return;
+
         clientVelocity.add(vector);
 
         if (clientVelocityOnLadder != null)
