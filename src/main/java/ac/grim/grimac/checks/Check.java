@@ -1,5 +1,5 @@
 package ac.grim.grimac.checks;
 
 public class Check {
-    int violations = 0;
+    // TODO: Write the base check class
 }

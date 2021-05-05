@@ -1,11 +1,12 @@
-package ac.grim.grimac.checks.movement;
+package ac.grim.grimac.checks.predictionengine;
 
 import ac.grim.grimac.GrimAC;
-import ac.grim.grimac.checks.movement.movementTick.MovementTickerHorse;
-import ac.grim.grimac.checks.movement.movementTick.MovementTickerPig;
-import ac.grim.grimac.checks.movement.movementTick.MovementTickerPlayer;
-import ac.grim.grimac.checks.movement.movementTick.MovementTickerStrider;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngine;
+import ac.grim.grimac.checks.movement.TimerCheck;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerHorse;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPig;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPlayer;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerStrider;
+import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.math.Mth;
@@ -52,13 +53,15 @@ public class MovementCheckRunner implements Listener {
     static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
 
     public static void addQueuedPrediction(PredictionData data) {
+        // TODO: This is a hack that should be fixed
+        TimerCheck.processMovementPacket(data.grimPlayer);
+
         if (data.grimPlayer.tasksNotFinished.getAndIncrement() == 0) {
             executor.submit(() -> check(data));
         } else {
             queuedPredictions.get(data.grimPlayer.playerUUID).add(data);
         }
     }
-
     public static void check(PredictionData data) {
         GrimPlayer grimPlayer = data.grimPlayer;
 
@@ -153,7 +156,7 @@ public class MovementCheckRunner implements Listener {
                 color = ChatColor.RED;
             }
 
-            grimPlayer.bukkitPlayer.sendMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
+            /*grimPlayer.bukkitPlayer.sendMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
             grimPlayer.bukkitPlayer.sendMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
             grimPlayer.bukkitPlayer.sendMessage("O:" + color + grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement));
 
@@ -161,7 +164,7 @@ public class MovementCheckRunner implements Listener {
             GrimAC.plugin.getLogger().info(grimPlayer.lastX + " " + grimPlayer.lastY + " " + grimPlayer.lastZ);
             GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
             GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
-
+            */
 
             //Bukkit.broadcastMessage("O: " + color + (grimPlayer.predictedVelocity.getX() - +grimPlayer.actualMovement.getX()) + " " + (grimPlayer.predictedVelocity.getY() - grimPlayer.actualMovement.getY()) + " " + (grimPlayer.predictedVelocity.getZ() - grimPlayer.actualMovement.getZ()));
 

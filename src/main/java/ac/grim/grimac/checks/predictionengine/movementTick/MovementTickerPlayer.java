@@ -1,8 +1,8 @@
-package ac.grim.grimac.checks.movement.movementTick;
+package ac.grim.grimac.checks.predictionengine.movementTick;
 
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineLava;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
+import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngineLava;
+import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngineNormal;
+import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 

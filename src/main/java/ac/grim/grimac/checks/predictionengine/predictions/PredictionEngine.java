@@ -1,6 +1,6 @@
-package ac.grim.grimac.checks.movement.predictions;
+package ac.grim.grimac.checks.predictionengine.predictions;
 
-import ac.grim.grimac.checks.movement.movementTick.MovementTickerPlayer;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.collisions.Collisions;

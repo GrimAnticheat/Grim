@@ -1,6 +1,6 @@
 package ac.grim.grimac;
 
-import ac.grim.grimac.checks.movement.MovementCheckRunner;
+import ac.grim.grimac.checks.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.packets.*;

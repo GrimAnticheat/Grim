@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.movement.predictions;
+package ac.grim.grimac.checks.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;

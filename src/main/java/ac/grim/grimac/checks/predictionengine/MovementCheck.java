@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.movement;
+package ac.grim.grimac.checks.predictionengine;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;

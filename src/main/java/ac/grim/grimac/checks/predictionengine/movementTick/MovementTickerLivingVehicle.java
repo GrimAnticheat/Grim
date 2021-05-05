@@ -1,12 +1,12 @@
-package ac.grim.grimac.checks.movement.movementTick;
+package ac.grim.grimac.checks.predictionengine.movementTick;
 
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineNormal;
-import ac.grim.grimac.checks.movement.predictions.PredictionEngineWater;
+import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngineNormal;
+import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.enums.MoverType;
 import org.bukkit.util.Vector;
 
-import static ac.grim.grimac.checks.movement.predictions.PredictionEngine.getMovementResultFromInput;
+import static ac.grim.grimac.checks.predictionengine.predictions.PredictionEngine.getMovementResultFromInput;
 
 public class MovementTickerLivingVehicle extends MovementTicker {
     Vector movementInput;
