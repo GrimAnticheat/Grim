@@ -133,7 +133,7 @@ public class GrimPlayer {
     public Vector baseTickAddition;
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public Integer lastTransactionReceived = 0;
-    public short movementTransaction = Short.MIN_VALUE;
+    public int movementTransaction = Integer.MIN_VALUE;
     public int timerTransaction = Integer.MIN_VALUE;
 
     // Determining player ping

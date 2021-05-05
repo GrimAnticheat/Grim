@@ -1,12 +1,10 @@
 package ac.grim.grimac.checks.predictionengine;
 
-import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerHorse;
 import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPig;
 import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerStrider;
-import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.math.Mth;
@@ -53,7 +51,8 @@ public class MovementCheckRunner implements Listener {
     static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
 
     public static void addQueuedPrediction(PredictionData data) {
-        // TODO: This is a hack that should be fixed
+        // TODO: This is a hack that should be fixed - maybe
+        // This allows animal movement packets to also go through this system
         TimerCheck.processMovementPacket(data.grimPlayer);
 
         if (data.grimPlayer.tasksNotFinished.getAndIncrement() == 0) {
@@ -104,7 +103,7 @@ public class MovementCheckRunner implements Listener {
                 // baseTick occurs before this
                 new MovementTickerPlayer(grimPlayer).livingEntityAIStep();
 
-                //handleSkippedTicks(grimPlayer);
+                handleSkippedTicks(grimPlayer);
             } else if (grimPlayer.playerVehicle instanceof Boat) {
 
                 // TODO: We will have to handle teleports (occurs multiple times a second due to vanilla glitchyness)
@@ -244,57 +243,32 @@ public class MovementCheckRunner implements Listener {
         Vector totalMovement = grimPlayer.predictedVelocity.clone();
         int x = 0;
 
-        //Bukkit.broadcastMessage("Wanted movement " + wantedMovement);
-        //Bukkit.broadcastMessage("Total movement " + totalMovement);
-
+        // Fuck it, proof of concept. Just use the client velocity plus some math
         // TODO: Double check that the player's velocity would have dipped below 0.03
         if (grimPlayer.couldSkipTick && wantedMovement.lengthSquared() > totalMovement.lengthSquared() * 1.25) {
-            for (x = 0; x < 20; x++) {
-                if (wantedMovement.lengthSquared() < totalMovement.lengthSquared()) {
+            for (x = 0; x < 19; x++) {
+                // Set to detect 1% speed increase < 0.03 such as in lava
+                if (grimPlayer.actualMovement.lengthSquared() / (x + 1) / grimPlayer.clientVelocity.lengthSquared() < 1.01) {
                     break;
                 }
-
-                // baseTick occurs before this
-                new MovementTickerPlayer(grimPlayer).livingEntityAIStep();
-
-                // Simulate the base tick efficiently by keeping track of the last movement
-                //grimPlayer.clientVelocity.add(grimPlayer.baseTickAddition);
-                // Allow speed to be multiplied by 0 in case player is in cobwebs/sweet berry bushes
-                //grimPlayer.clientVelocity.multiply(grimPlayer.baseTickSet);
-
-                // TODO: isSneaking should take a lag compensated value in case sneaking -> not sneaking -> sneaking
-                Vector bestMovement = getBestContinuousInput(grimPlayer.isCrouching, getBestTheoreticalPlayerInput(wantedMovement.clone().divide(grimPlayer.stuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot));
-
-                // possibleVelocities.add(handleOnClimbable(possibleLastTickOutput.clone().add(
-                // getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer));
-                Vector theoreticalInput = PredictionEngine.getMovementResultFromInput(bestMovement.multiply(grimPlayer.lastStuckSpeedMultiplier), grimPlayer.speed, grimPlayer.xRot);
-
-                // handleOnClimbable removed as it's clamping will essentially be worthless
-                //Vector inputResult = PredictionEngine.getMovementResultFromInput(theoreticalInput, grimPlayer.speed, grimPlayer.xRot);
-
-                //Bukkit.broadcastMessage("Result is " + theoreticalInput);
-                //Bukkit.broadcastMessage("Input is " + bestMovement);
-
-                // 1.001 is just a buffer, it is there since floats aren't precise and since length is compared without an epsilon
-                totalMovement.add(theoreticalInput.multiply(1.001));
             }
         }
 
-        //Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + grimPlayer.movementTransaction + " recent " + grimPlayer.lastTransactionReceived);
-        grimPlayer.movementTransaction += x + 1;
-
-        // 0.03 required for this to occur
-        //if (grimPlayer.actualMovement.clone().subtract(grimPlayer.predictedVelocity).lengthSquared() > 0.03) {
-        // The client waited too long to send their input
-
-        if (grimPlayer.movementTransaction > GrimAC.currentTick.get()) {
-            Bukkit.broadcastMessage("Player has speed!");
+        // This is going to lead to some bypasses
+        // For example, noclip would be able to abuse this
+        // Oh well, I'll just say it's a "proof of concept" then it's fine
+        if (x > 0) {
+            grimPlayer.predictedVelocity = grimPlayer.actualMovement.clone();
         }
 
-        grimPlayer.movementTransaction = (short) Math.max(grimPlayer.movementTransaction, grimPlayer.lastTransactionReceived);
+        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + grimPlayer.movementTransaction + " recent " + grimPlayer.lastTransactionReceived);
+        grimPlayer.movementTransaction += x + 1;
 
-        //Bukkit.broadcastMessage("Wanted movement " + wantedMovement);
-        //Bukkit.broadcastMessage("Total movement " + totalMovement);
+        if (grimPlayer.movementTransaction > grimPlayer.lastTransactionReceived + 2) {
+            Bukkit.broadcastMessage(ChatColor.RED + "Player has speed!");
+        }
+
+        grimPlayer.movementTransaction = Math.max(grimPlayer.movementTransaction, grimPlayer.lastTransactionReceived);
     }
 
     public static Vector getBestContinuousInput(boolean isCrouching, Vector theoreticalInput) {
