@@ -185,9 +185,7 @@ public class MovementTicker {
 
         grimPlayer.gravity = playerGravity;
 
-        double lastY;
         float swimFriction;
-        float f2;
 
         if (grimPlayer.wasTouchingWater && !grimPlayer.specialFlying) {
             // 0.8F seems hardcoded in
@@ -219,7 +217,6 @@ public class MovementTicker {
 
         } else {
             if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && !grimPlayer.specialFlying && !canStandOnLava()) {
-                lastY = grimPlayer.lastY;
 
                 doLavaMove();
 

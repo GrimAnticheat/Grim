@@ -1,12 +1,7 @@
 package ac.grim.grimac.checks.predictionengine;
 
-import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.checks.movement.TimerCheck;
-import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerHorse;
-import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPig;
-import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPlayer;
-import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerStrider;
-import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngine;
+import ac.grim.grimac.checks.predictionengine.movementTick.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.enums.Pose;
@@ -158,7 +153,7 @@ public class MovementCheckRunner implements Listener {
                 color = ChatColor.RED;
             }
 
-            grimPlayer.bukkitPlayer.sendMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
+            /*grimPlayer.bukkitPlayer.sendMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
             grimPlayer.bukkitPlayer.sendMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
             grimPlayer.bukkitPlayer.sendMessage("O:" + color + grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement));
 
@@ -166,7 +161,7 @@ public class MovementCheckRunner implements Listener {
             GrimAC.plugin.getLogger().info(grimPlayer.lastX + " " + grimPlayer.lastY + " " + grimPlayer.lastZ);
             GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
             GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
-
+*/
 
             //Bukkit.broadcastMessage("O: " + color + (grimPlayer.predictedVelocity.getX() - +grimPlayer.actualMovement.getX()) + " " + (grimPlayer.predictedVelocity.getY() - grimPlayer.actualMovement.getY()) + " " + (grimPlayer.predictedVelocity.getZ() - grimPlayer.actualMovement.getZ()));
 
@@ -244,7 +239,7 @@ public class MovementCheckRunner implements Listener {
     //
     // tl;dr: I made a perfectly lag compensated speed check
     public static void handleSkippedTicks(GrimPlayer player) {
-        Vector wantedMovement = player.actualMovement.clone().subtract(player.predictedVelocity);
+        Vector wantedMovement = player.actualMovement.clone();
         Vector theoreticalOutput = player.predictedVelocity.clone();
 
         int x = 0;
@@ -284,20 +279,20 @@ public class MovementCheckRunner implements Listener {
             player.addBaseTick = false;
 
             for (x = 0; x < 19; x++) {
-                if (player.actualMovement.length() / (x + 1) / theoreticalOutput.length() < 1.01) {
+                // Set to detect 1% speed increase < 0.03 such as in lava
+                if (wantedMovement.length() / theoreticalOutput.length() < 0.99) {
                     break;
                 }
 
-                // Set to detect 1% speed increase < 0.03 such as in lava
-                Vector bestMovement = getBestContinuousInput(player.isCrouching && optimisticCrouching, getBestTheoreticalPlayerInput(wantedMovement.clone().subtract(theoreticalOutput).divide(optimisticStuckSpeed), player.speed, player.xRot));
-                theoreticalOutput.add(player.baseTickAddition);
-                theoreticalOutput.add(PredictionEngine.getMovementResultFromInput(bestMovement.multiply(optimisticStuckSpeed), player.speed, player.xRot));
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerSlow(player, optimisticCrouching, optimisticStuckSpeed, wantedMovement, theoreticalOutput).playerEntityTravel();
+                theoreticalOutput.add(player.predictedVelocity);
             }
         }
 
-        /*Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + player.movementTransaction + " recent " + player.lastTransactionReceived);
-        Bukkit.broadcastMessage("Predicted velocity " + player.predictedVelocity);
-        Bukkit.broadcastMessage("Actual velocity " + player.actualMovement);*/
+        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + player.movementTransaction + " recent " + player.lastTransactionReceived);
+        Bukkit.broadcastMessage("Predicted velocity " + theoreticalOutput);
+        Bukkit.broadcastMessage("Actual velocity " + player.actualMovement);
         player.movementTransaction += x + 1;
 
         // This is going to lead to some bypasses
