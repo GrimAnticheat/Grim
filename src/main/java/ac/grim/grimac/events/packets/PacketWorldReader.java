@@ -24,9 +24,6 @@ public class PacketWorldReader extends PacketListenerDynamic {
     public static Method getY;
     public static Method getZ;
 
-    //private static final String NMS_VERSION_SUFFIX = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName()
-    //        .replace(".", ",").split(",")[3] + ".";
-
     public PacketWorldReader() throws ClassNotFoundException, NoSuchMethodException {
         super(PacketEventPriority.MONITOR);
 

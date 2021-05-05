@@ -74,6 +74,8 @@ public class FluidTypeFlowing {
                 fluid2 == FluidTypes.FLOWING_LAVA || fluid2 == FluidTypes.LAVA;
     }
 
+    // I believe this is safe to do async??
+    // Should spit out a stacktrace if it isn't.
     protected static boolean isSolidFace(BlockPosition blockposition, EnumDirection enumdirection, FluidType fluidType) {
         IBlockData blockState = ChunkCache.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ());
         Fluid fluidState = ChunkCache.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ()).getFluid();
