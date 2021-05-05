@@ -132,6 +132,7 @@ public class GrimPlayer {
     public Vector baseTickSet;
     public Vector baseTickAddition;
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
+    public Integer packetLastTransactionReceived = 0;
     public Integer lastTransactionReceived = 0;
     public int movementTransaction = Integer.MIN_VALUE;
     public int timerTransaction = Integer.MIN_VALUE;
@@ -190,7 +191,7 @@ public class GrimPlayer {
 
         if (transactionsSent.containsKey(transactionID)) {
             millisecondResponse = System.currentTimeMillis() - transactionsSent.remove(transactionID);
-            lastTransactionReceived++;
+            packetLastTransactionReceived++;
         } else if (System.currentTimeMillis() - GrimAC.lastReload > 30 * 1000) {
             // The server only sends positive transactions, no negative transactions
             bukkitPlayer.kickPlayer("Invalid packet!");

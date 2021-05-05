@@ -182,6 +182,7 @@ public class MovementCheckRunner implements Listener {
         grimPlayer.lastOnGround = grimPlayer.onGround;
         grimPlayer.lastClimbing = grimPlayer.isClimbing;
         grimPlayer.isJustTeleported = false;
+        grimPlayer.lastTransactionReceived = grimPlayer.packetLastTransactionReceived;
 
 
         grimPlayer.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
@@ -266,7 +267,7 @@ public class MovementCheckRunner implements Listener {
             grimPlayer.predictedVelocity = grimPlayer.actualMovement.clone();
         }
 
-        if (grimPlayer.movementTransaction > grimPlayer.lastTransactionReceived + 2) {
+        if (grimPlayer.movementTransaction > grimPlayer.lastTransactionSent.get()) {
             Bukkit.broadcastMessage(ChatColor.RED + "Player has speed!");
         }
 
