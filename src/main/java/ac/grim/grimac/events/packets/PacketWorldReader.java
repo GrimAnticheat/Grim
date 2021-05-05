@@ -9,21 +9,20 @@ import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
-import net.minecraft.server.v1_16_R3.Block;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.PacketPlayOutBlockChange;
-import net.minecraft.server.v1_16_R3.PacketPlayOutMapChunk;
+import io.github.retrooper.packetevents.utils.nms.NMSUtils;
+import io.github.retrooper.packetevents.utils.reflection.Reflection;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class PacketWorldReader extends PacketListenerDynamic {
-    private static final int MIN_PALETTE_BITS_PER_ENTRY = 4;
-    private static final int MAX_PALETTE_BITS_PER_ENTRY = 8;
-    private static final int GLOBAL_PALETTE_BITS_PER_ENTRY = 14;
-    public static Method blockCacheField;
+    public static Method getByCombinedID;
+    public static Method getX;
+    public static Method getY;
+    public static Method getZ;
 
     //private static final String NMS_VERSION_SUFFIX = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage().getName()
     //        .replace(".", ",").split(",")[3] + ".";
@@ -32,10 +31,12 @@ public class PacketWorldReader extends PacketListenerDynamic {
         super(PacketEventPriority.MONITOR);
 
         // Yes, we are using reflection to get a reflected class. I'm not maintaining my own reflection.
-        //blockCacheField = Reflection.getMethod(NMSUtils.iBlockDataClass, "getBlock", 0);
+        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
+        getByCombinedID.setAccessible(true);
 
-        //Block.getByCombinedId();
-        //blockCacheField.setAccessible(true);
+        getX = Reflection.getMethod(NMSUtils.blockPosClass, "getX", 0);
+        getY = Reflection.getMethod(NMSUtils.blockPosClass, "getY", 0);
+        getZ = Reflection.getMethod(NMSUtils.blockPosClass, "getZ", 0);
     }
 
 
@@ -44,7 +45,8 @@ public class PacketWorldReader extends PacketListenerDynamic {
         byte packetID = event.getPacketId();
 
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
-            PacketPlayOutMapChunk chunk = (PacketPlayOutMapChunk) event.getNMSPacket().getRawNMSPacket();
+            // PacketPlayOutMapChunk
+            Object chunk = event.getNMSPacket().getRawNMSPacket();
 
             try {
                 Field x = chunk.getClass().getDeclaredField("a");
@@ -80,16 +82,22 @@ public class PacketWorldReader extends PacketListenerDynamic {
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
-            PacketPlayOutBlockChange blockChange = (PacketPlayOutBlockChange) event.getNMSPacket().getRawNMSPacket();
+            // PacketPlayOutBlockChange
+            Object blockChange = event.getNMSPacket().getRawNMSPacket();
             try {
                 Field position = blockChange.getClass().getDeclaredField("a");
                 position.setAccessible(true);
 
-                BlockPosition blockPosition = (BlockPosition) position.get(blockChange);
-                int blockID = Block.getCombinedId(blockChange.block);
+                Field block = blockChange.getClass().getDeclaredField("block");
+                block.setAccessible(true);
 
-                ChunkCache.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockID);
-            } catch (NoSuchFieldException | IllegalAccessException exception) {
+                // BlockPosition
+                Object blockPosition = position.get(blockChange);
+
+                int blockID = (int) getByCombinedID.invoke(null, block.get(blockChange));
+
+                ChunkCache.updateBlock((Integer) getX.invoke(blockPosition), (Integer) getY.invoke(blockPosition), (Integer) getZ.invoke(blockPosition), blockID);
+            } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
         }

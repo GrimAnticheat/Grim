@@ -52,10 +52,6 @@ public class ChunkCache {
         return chunks.getOrDefault(chunkPosition, null);
     }
 
-    public static IBlockData getBlockDataAt(double x, double y, double z) {
-        return getBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
-    }
-
     public static BlockData getBukkitBlockDataAt(double x, double y, double z) {
         return getBukkitBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
