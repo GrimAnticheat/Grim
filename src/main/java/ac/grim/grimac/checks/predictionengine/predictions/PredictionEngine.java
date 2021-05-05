@@ -52,29 +52,16 @@ public abstract class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    public void guessBestMovement(float f, GrimPlayer grimPlayer) {
-        grimPlayer.speed = f;
-
-        List<Vector> possibleVelocities = new ArrayList<>();
+    public void guessBestMovement(float speed, GrimPlayer grimPlayer) {
+        grimPlayer.speed = speed;
         double bestInput = Double.MAX_VALUE;
 
-        // Stop omni-sprint
-        // Optimization - Also cuts down needed possible inputs by 2/3
-        int zMin = grimPlayer.isSprinting ? 1 : -1;
-        for (Vector possibleLastTickOutput : fetchPossibleInputs(grimPlayer)) {
-            for (int x = -1; x <= 1; x++) {
-                for (int z = zMin; z <= 1; z++) {
-                    possibleVelocities.add(handleOnClimbable(possibleLastTickOutput.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), f, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer));
-                }
-            }
-        }
+        List<Vector> possibleVelocities = multiplyPossibilitiesByInputs(grimPlayer, fetchPossibleInputs(grimPlayer), speed);
 
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a, b, grimPlayer));
 
-
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
-        // Currently not used, but should be very helpful for handling movement below 0.03
         grimPlayer.couldSkipTick = false;
         if (grimPlayer.onGround) {
             possibleVelocities.forEach((a) -> grimPlayer.couldSkipTick = grimPlayer.couldSkipTick || a.getX() * a.getX() + a.getZ() * a.getZ() < 9.0E-4D);
@@ -83,7 +70,6 @@ public abstract class PredictionEngine {
         }
 
         Vector bestCollisionVel = null;
-
 
         for (Vector clientVelAfterInput : possibleVelocities) {
             // TODO: Player inputs should most likely be done before maybeBackOffOfEdge
@@ -155,6 +141,23 @@ public abstract class PredictionEngine {
         } else {
             vector.add(new Vector(0, grimPlayer.flySpeed * 3, 0));
         }
+    }
+
+    public List<Vector> multiplyPossibilitiesByInputs(GrimPlayer grimPlayer, Set<Vector> possibleVectors, float speed) {
+        // Stop omni-sprint
+        // Optimization - Also cuts down needed possible inputs by 2/3
+        int zMin = grimPlayer.isSprinting ? 1 : -1;
+        List<Vector> returnVectors = new ArrayList<>();
+
+        for (Vector possibleLastTickOutput : possibleVectors) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = zMin; z <= 1; z++) {
+                    returnVectors.add(handleOnClimbable(possibleLastTickOutput.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), speed, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer));
+                }
+            }
+        }
+
+        return returnVectors;
     }
 
     public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
