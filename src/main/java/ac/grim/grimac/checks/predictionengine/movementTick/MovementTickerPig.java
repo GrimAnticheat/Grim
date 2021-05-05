@@ -14,7 +14,7 @@ public class MovementTickerPig extends MovementTickerRideable {
 
     // Pig and Strider should implement this
     public float getSteeringSpeed() {
-        Pig pig = (Pig) grimPlayer.playerVehicle;
+        Pig pig = (Pig) player.playerVehicle;
         return (float) (pig.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * 0.225F);
     }
 }

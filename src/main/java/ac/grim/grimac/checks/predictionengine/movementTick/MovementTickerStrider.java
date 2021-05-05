@@ -14,7 +14,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
     }
 
     public float getSteeringSpeed() {
-        Strider strider = (Strider) grimPlayer.playerVehicle;
+        Strider strider = (Strider) player.playerVehicle;
 
         // TODO: Lag compensate/listen to packets for suffocating.
         return (float) strider.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (strider.isShivering() ? 0.23F : 0.55F); // shivering -> suffocating

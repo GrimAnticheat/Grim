@@ -23,21 +23,21 @@ import java.util.Set;
 public class MovementTicker {
     private static final Material slime = XMaterial.SLIME_BLOCK.parseMaterial();
     public final Player bukkitPlayer;
-    public final GrimPlayer grimPlayer;
+    public final GrimPlayer player;
 
-    public MovementTicker(GrimPlayer grimPlayer) {
-        this.grimPlayer = grimPlayer;
-        this.bukkitPlayer = grimPlayer.bukkitPlayer;
+    public MovementTicker(GrimPlayer player) {
+        this.player = player;
+        this.bukkitPlayer = player.bukkitPlayer;
     }
 
     public void move(MoverType moverType, Vector inputVel) {
-        move(moverType, inputVel, inputVel);
+        move(moverType, inputVel.multiply(player.stuckSpeedMultiplier), inputVel.multiply(player.stuckSpeedMultiplier));
     }
 
     public void livingEntityAIStep() {
         // Living Entity line 2153
         // TODO: 1.8 clients have a different minimum movement than 1.9.  I believe it is 0.005
-        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+        for (Vector vector : player.getPossibleVelocitiesMinusKnockback()) {
             if (Math.abs(vector.getX()) < 0.003D) {
                 vector.setX(0D);
             }
@@ -56,24 +56,24 @@ public class MovementTicker {
 
     // Player line 1208
     public void playerEntityTravel() {
-        if (grimPlayer.specialFlying && grimPlayer.bukkitPlayer.getVehicle() == null) {
-            double oldY = grimPlayer.clientVelocity.getY();
-            double oldYJumping = oldY + grimPlayer.flySpeed * 3;
+        if (player.specialFlying && player.bukkitPlayer.getVehicle() == null) {
+            double oldY = player.clientVelocity.getY();
+            double oldYJumping = oldY + player.flySpeed * 3;
             livingEntityTravel();
 
-            if (Math.abs(oldY - grimPlayer.actualMovement.getY()) < (oldYJumping - grimPlayer.actualMovement.getY())) {
-                grimPlayer.baseTickSetY(oldY * 0.6);
+            if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
+                player.baseTickSetY(oldY * 0.6);
 
             } else {
-                grimPlayer.baseTickSetY(oldYJumping * 0.6);
+                player.baseTickSetY(oldYJumping * 0.6);
             }
 
         } else {
             livingEntityTravel();
         }
 
-        grimPlayer.clientVelocityFireworkBoostOne = null;
-        grimPlayer.clientVelocityFireworkBoostTwo = null;
+        player.clientVelocityFireworkBoostOne = null;
+        player.clientVelocityFireworkBoostTwo = null;
 
     }
 
@@ -84,83 +84,83 @@ public class MovementTicker {
         // Piston movement exemption
         // What is a motion multiplier?
 
-        if (grimPlayer.stuckSpeedMultiplier.getX() < 0.99) {
-            grimPlayer.baseTickSetX(0);
-            grimPlayer.baseTickSetY(0);
-            grimPlayer.baseTickSetZ(0);
-            grimPlayer.clientVelocity = new Vector();
+        if (player.stuckSpeedMultiplier.getX() < 0.99) {
+            player.baseTickSetX(0);
+            player.baseTickSetY(0);
+            player.baseTickSetZ(0);
+            player.clientVelocity = new Vector();
         }
 
         // Optimization - we run collisions before this occasionally so don't repeat them
         if (inputVel == collide) {
             // This is when client velocity is no longer referenced by inputVel
-            if (!grimPlayer.inVehicle) {
-                inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, grimPlayer);
+            if (!player.inVehicle) {
+                inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, player);
             }
 
-            collide = Collisions.collide(grimPlayer, inputVel.getX(), inputVel.getY(), inputVel.getZ());
+            collide = Collisions.collide(player, inputVel.getX(), inputVel.getY(), inputVel.getZ());
         }
 
         // This is where vanilla moves the bounding box and sets it
-        grimPlayer.predictedVelocity = collide.clone();
+        player.predictedVelocity = collide.clone();
 
-        grimPlayer.horizontalCollision = !Mth.equal(inputVel.getX(), collide.getX()) || !Mth.equal(inputVel.getZ(), collide.getZ());
-        grimPlayer.verticalCollision = inputVel.getY() != collide.getY();
-        grimPlayer.isActuallyOnGround = grimPlayer.verticalCollision && inputVel.getY() < 0.0D;
+        player.horizontalCollision = !Mth.equal(inputVel.getX(), collide.getX()) || !Mth.equal(inputVel.getZ(), collide.getZ());
+        player.verticalCollision = inputVel.getY() != collide.getY();
+        player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
 
-        BlockData onBlock = BlockProperties.getOnBlock(new Location(grimPlayer.playerWorld, grimPlayer.x, grimPlayer.y, grimPlayer.z));
+        BlockData onBlock = BlockProperties.getOnBlock(new Location(player.playerWorld, player.x, player.y, player.z));
 
-        double xBeforeZero = grimPlayer.clientVelocity.getX();
+        double xBeforeZero = player.clientVelocity.getX();
         if (inputVel.getX() != collide.getX()) {
-            grimPlayer.clientVelocity.setX(0);
+            player.clientVelocity.setX(0);
         }
 
         // Strangely, collision on the Z axis resets X set to zero.  Is this a bug or a feature?  Doesn't matter.
         if (inputVel.getZ() != collide.getZ()) {
-            grimPlayer.clientVelocity.setX(xBeforeZero);
-            grimPlayer.clientVelocity.setZ(0);
+            player.clientVelocity.setX(xBeforeZero);
+            player.clientVelocity.setZ(0);
         }
 
         if (inputVel.getY() != collide.getY()) {
             if (onBlock.getMaterial() == slime) {
-                if (grimPlayer.isSneaking) { // Slime blocks use shifting instead of sneaking
-                    grimPlayer.clientVelocity.setY(0);
+                if (player.isSneaking) { // Slime blocks use shifting instead of sneaking
+                    player.clientVelocity.setY(0);
                 } else {
-                    if (grimPlayer.clientVelocity.getY() < 0.0) {
-                        grimPlayer.clientVelocity.setY(-grimPlayer.clientVelocity.getY() * (grimPlayer.inVehicle ? 0.8 : 1.0));
+                    if (player.clientVelocity.getY() < 0.0) {
+                        player.clientVelocity.setY(-player.clientVelocity.getY() * (player.inVehicle ? 0.8 : 1.0));
                     }
                 }
             } else if (onBlock instanceof Bed) {
-                if (grimPlayer.clientVelocity.getY() < 0.0) {
-                    grimPlayer.clientVelocity.setY(-grimPlayer.clientVelocity.getY() * 0.6600000262260437 * (grimPlayer.inVehicle ? 0.8 : 1.0));
+                if (player.clientVelocity.getY() < 0.0) {
+                    player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 * (player.inVehicle ? 0.8 : 1.0));
                 }
             } else {
-                grimPlayer.clientVelocity.setY(0);
+                player.clientVelocity.setY(0);
             }
         }
 
         // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
         if (onBlock.getMaterial() == slime) {
-            if ((grimPlayer.inVehicle || grimPlayer.onGround) && !grimPlayer.isSneaking) {
-                double absVelocityY = Math.abs(grimPlayer.clientVelocity.getY());
+            if ((player.inVehicle || player.onGround) && !player.isSneaking) {
+                double absVelocityY = Math.abs(player.clientVelocity.getY());
                 if (absVelocityY < 0.1) {
                     double d1 = 0.4D + absVelocityY * 0.2D;
-                    grimPlayer.clientVelocity.multiply(new Vector(d1, 1, d1));
+                    player.clientVelocity.multiply(new Vector(d1, 1, d1));
                 }
             }
         }
 
-        grimPlayer.clientVelocity.multiply(grimPlayer.blockSpeedMultiplier);
+        player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
-        grimPlayer.lastStuckSpeedMultiplier = grimPlayer.stuckSpeedMultiplier;
-        grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
+        player.lastStuckSpeedMultiplier = player.stuckSpeedMultiplier;
+        player.stuckSpeedMultiplier = new Vector(1, 1, 1);
 
-        Collisions.handleInsideBlocks(grimPlayer);
+        Collisions.handleInsideBlocks(player);
 
         // Flying players are not affected by cobwebs/sweet berry bushes
-        if (grimPlayer.specialFlying) {
-            grimPlayer.stuckSpeedMultiplier = new Vector(1, 1, 1);
+        if (player.specialFlying) {
+            player.stuckSpeedMultiplier = new Vector(1, 1, 1);
         }
     }
 
@@ -177,65 +177,65 @@ public class MovementTicker {
     public void livingEntityTravel() {
         double playerGravity = 0.08;
 
-        boolean isFalling = grimPlayer.clientVelocity.getY() <= 0.0;
-        if (isFalling && grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
+        boolean isFalling = player.clientVelocity.getY() <= 0.0;
+        if (isFalling && player.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
             playerGravity = 0.01;
             //this.fallDistance = 0.0f;
         }
 
-        grimPlayer.gravity = playerGravity;
+        player.gravity = playerGravity;
 
         float swimFriction;
 
-        if (grimPlayer.wasTouchingWater && !grimPlayer.specialFlying) {
+        if (player.wasTouchingWater && !player.specialFlying) {
             // 0.8F seems hardcoded in
-            swimFriction = grimPlayer.isSprinting ? 0.9F : 0.8F;
+            swimFriction = player.isSprinting ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
 
-            if (grimPlayer.depthStriderLevel > 3.0F) {
-                grimPlayer.depthStriderLevel = 3.0F;
+            if (player.depthStriderLevel > 3.0F) {
+                player.depthStriderLevel = 3.0F;
             }
 
-            if (!grimPlayer.lastOnGround) {
-                grimPlayer.depthStriderLevel *= 0.5F;
+            if (!player.lastOnGround) {
+                player.depthStriderLevel *= 0.5F;
             }
 
-            if (grimPlayer.depthStriderLevel > 0.0F) {
-                swimFriction += (0.54600006F - swimFriction) * grimPlayer.depthStriderLevel / 3.0F;
-                swimSpeed += (grimPlayer.movementSpeed - swimSpeed) * grimPlayer.depthStriderLevel / 3.0F;
+            if (player.depthStriderLevel > 0.0F) {
+                swimFriction += (0.54600006F - swimFriction) * player.depthStriderLevel / 3.0F;
+                swimSpeed += (player.movementSpeed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
-            if (grimPlayer.bukkitPlayer.hasPotionEffect(PotionEffectType.DOLPHINS_GRACE)) {
+            if (player.bukkitPlayer.hasPotionEffect(PotionEffectType.DOLPHINS_GRACE)) {
                 swimFriction = 0.96F;
             }
 
             doWaterMove(swimSpeed, isFalling, swimFriction);
 
-            if (grimPlayer.isClimbing) {
-                grimPlayer.clientVelocityOnLadder = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, grimPlayer.clientVelocity.clone().setY(0.16));
+            if (player.isClimbing) {
+                player.clientVelocityOnLadder = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.16));
             }
 
         } else {
-            if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && !grimPlayer.specialFlying && !canStandOnLava()) {
+            if (player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && !player.specialFlying && !canStandOnLava()) {
 
                 doLavaMove();
 
-                if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
-                    grimPlayer.clientVelocity = grimPlayer.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
-                    grimPlayer.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(grimPlayer, playerGravity, isFalling, grimPlayer.clientVelocity);
+                if (player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
+                    player.clientVelocity = player.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
+                    player.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity);
                 } else {
-                    grimPlayer.clientVelocity.multiply(0.5D);
+                    player.clientVelocity.multiply(0.5D);
                 }
 
                 // Removed reference to gravity
-                grimPlayer.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
+                player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (bukkitPlayer.isGliding()) {
-                Vector currentLook = MovementVectorsCalc.getVectorForRotation(grimPlayer.yRot, grimPlayer.xRot);
-                Vector lastLook = MovementVectorsCalc.getVectorForRotation(grimPlayer.lastYRot, grimPlayer.lastXRot);
+                Vector currentLook = MovementVectorsCalc.getVectorForRotation(player.yRot, player.xRot);
+                Vector lastLook = MovementVectorsCalc.getVectorForRotation(player.lastYRot, player.lastXRot);
 
                 // Tick order of player movements vs firework isn't constant
-                int maxFireworks = grimPlayer.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
+                int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
 
                 Set<Vector> possibleVelocities = new HashSet<>();
 
@@ -248,13 +248,13 @@ public class MovementTicker {
                 // The client's velocity clone is then forced to be between vector 2 and 4
                 //
                 // The closest of these two vector clones are the predicted velocity.
-                for (Vector possibleVelocity : grimPlayer.getPossibleVelocities()) {
+                for (Vector possibleVelocity : player.getPossibleVelocities()) {
                     if (maxFireworks > 0) {
                         Vector boostOne = possibleVelocity.clone();
                         Vector boostTwo = possibleVelocity.clone();
 
-                        Vector noFireworksOne = getElytraMovement(boostOne.clone(), currentLook).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-                        Vector noFireworksTwo = getElytraMovement(boostTwo.clone(), lastLook).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworksOne = getElytraMovement(boostOne.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworksTwo = getElytraMovement(boostTwo.clone(), lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
 
                         for (int i = 0; i < maxFireworks; i++) {
                             boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
@@ -264,16 +264,16 @@ public class MovementTicker {
                         Vector cutOne = cutVectorsToPlayerMovement(boostOne, noFireworksTwo);
                         Vector cutTwo = cutVectorsToPlayerMovement(boostTwo, noFireworksOne);
 
-                        if (cutOne.distanceSquared(grimPlayer.actualMovement) < cutTwo.distanceSquared(grimPlayer.actualMovement)) {
+                        if (cutOne.distanceSquared(player.actualMovement) < cutTwo.distanceSquared(player.actualMovement)) {
                             possibleVelocities.add(cutOne);
                         } else {
                             possibleVelocities.add(cutTwo);
                         }
                     } else {
-                        Vector noFireworksOne = getElytraMovement(possibleVelocity.clone(), currentLook).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-                        Vector noFireworksTwo = getElytraMovement(possibleVelocity.clone(), lastLook).multiply(grimPlayer.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworksOne = getElytraMovement(possibleVelocity.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworksTwo = getElytraMovement(possibleVelocity.clone(), lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
 
-                        if (noFireworksOne.distanceSquared(grimPlayer.actualMovement) < noFireworksTwo.distanceSquared(grimPlayer.actualMovement)) {
+                        if (noFireworksOne.distanceSquared(player.actualMovement) < noFireworksTwo.distanceSquared(player.actualMovement)) {
                             possibleVelocities.add(noFireworksOne);
                         } else {
                             possibleVelocities.add(noFireworksTwo);
@@ -286,13 +286,13 @@ public class MovementTicker {
                 Vector bestCollisionVel = null;
 
                 for (Vector clientVelAfterInput : possibleVelocities) {
-                    Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput, MoverType.SELF, grimPlayer);
-                    Vector outputVel = Collisions.collide(grimPlayer, backOff.getX(), backOff.getY(), backOff.getZ());
-                    double resultAccuracy = outputVel.distance(grimPlayer.actualMovement);
+                    Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput, MoverType.SELF, player);
+                    Vector outputVel = Collisions.collide(player, backOff.getX(), backOff.getY(), backOff.getZ());
+                    double resultAccuracy = outputVel.distance(player.actualMovement);
 
                     if (resultAccuracy < bestInput) {
                         bestInput = resultAccuracy;
-                        grimPlayer.clientVelocity = backOff.clone();
+                        player.clientVelocity = backOff.clone();
                         bestCollisionVel = outputVel.clone();
 
                         // Optimization - Close enough, other inputs won't get closer
@@ -300,11 +300,11 @@ public class MovementTicker {
                     }
                 }
 
-                new MovementTickerPlayer(grimPlayer).move(MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel);
+                new MovementTickerPlayer(player).move(MoverType.SELF, player.clientVelocity, bestCollisionVel);
 
             } else {
-                float blockFriction = BlockProperties.getBlockFriction(grimPlayer);
-                grimPlayer.friction = grimPlayer.lastOnGround ? blockFriction * 0.91f : 0.91f;
+                float blockFriction = BlockProperties.getBlockFriction(player);
+                player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
                 doNormalMove(blockFriction);
             }
@@ -320,26 +320,26 @@ public class MovementTicker {
         double zMin = Math.min(vectorOne.getZ(), vectorTwo.getZ());
         double zMax = Math.max(vectorOne.getZ(), vectorTwo.getZ());
 
-        Vector actualMovementCloned = grimPlayer.actualMovement.clone();
+        Vector actualMovementCloned = player.actualMovement.clone();
 
-        if (xMin > grimPlayer.actualMovement.getX() || xMax < grimPlayer.actualMovement.getX()) {
-            if (Math.abs(grimPlayer.actualMovement.getX() - xMin) < Math.abs(grimPlayer.actualMovement.getX() - xMax)) {
+        if (xMin > player.actualMovement.getX() || xMax < player.actualMovement.getX()) {
+            if (Math.abs(player.actualMovement.getX() - xMin) < Math.abs(player.actualMovement.getX() - xMax)) {
                 actualMovementCloned.setX(xMin);
             } else {
                 actualMovementCloned.setX(xMax);
             }
         }
 
-        if (yMin > grimPlayer.actualMovement.getY() || yMax < grimPlayer.actualMovement.getY()) {
-            if (Math.abs(grimPlayer.actualMovement.getY() - yMin) < Math.abs(grimPlayer.actualMovement.getY() - yMax)) {
+        if (yMin > player.actualMovement.getY() || yMax < player.actualMovement.getY()) {
+            if (Math.abs(player.actualMovement.getY() - yMin) < Math.abs(player.actualMovement.getY() - yMax)) {
                 actualMovementCloned.setY(yMin);
             } else {
                 actualMovementCloned.setY(yMax);
             }
         }
 
-        if (zMin > grimPlayer.actualMovement.getZ() || zMax < grimPlayer.actualMovement.getZ()) {
-            if (Math.abs(grimPlayer.actualMovement.getZ() - zMin) < Math.abs(grimPlayer.actualMovement.getZ() - zMax)) {
+        if (zMin > player.actualMovement.getZ() || zMax < player.actualMovement.getZ()) {
+            if (Math.abs(player.actualMovement.getZ() - zMin) < Math.abs(player.actualMovement.getZ() - zMax)) {
                 actualMovementCloned.setZ(zMin);
             } else {
                 actualMovementCloned.setZ(zMax);
@@ -350,13 +350,13 @@ public class MovementTicker {
     }
 
     public Vector getElytraMovement(Vector vector, Vector lookVector) {
-        float yRotRadians = grimPlayer.yRot * 0.017453292F;
+        float yRotRadians = player.yRot * 0.017453292F;
         double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double d3 = vector.clone().setY(0).length();
         double d4 = lookVector.length();
         float f3 = Mth.cos(yRotRadians);
         f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
-        vector.add(new Vector(0.0D, grimPlayer.gravity * (-1.0D + (double) f3 * 0.75D), 0.0D));
+        vector.add(new Vector(0.0D, player.gravity * (-1.0D + (double) f3 * 0.75D), 0.0D));
         double d5;
         if (vector.getY() < 0.0D && d2 > 0.0D) {
             d5 = vector.getY() * -0.1D * (double) f3;

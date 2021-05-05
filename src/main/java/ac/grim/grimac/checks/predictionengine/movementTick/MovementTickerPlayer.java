@@ -12,14 +12,14 @@ public class MovementTickerPlayer extends MovementTicker {
     }
 
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
-        new PredictionEngineWater().guessBestMovement(swimSpeed, grimPlayer, isFalling, grimPlayer.gravity, swimFriction, grimPlayer.lastY);
+        new PredictionEngineWater().guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);
     }
 
     public void doLavaMove() {
-        new PredictionEngineLava().guessBestMovement(0.02F, grimPlayer);
+        new PredictionEngineLava().guessBestMovement(0.02F, player);
     }
 
     public void doNormalMove(float blockFriction) {
-        new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, grimPlayer), grimPlayer);
+        new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, player), player);
     }
 }

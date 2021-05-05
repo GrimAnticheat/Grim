@@ -19,15 +19,15 @@ public class MovementTickerLivingVehicle extends MovementTicker {
 
     @Override
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
-        Vector movementInputResult = getMovementResultFromInput(movementInput, swimSpeed, grimPlayer.xRot);
+        Vector movementInputResult = getMovementResultFromInput(movementInput, swimSpeed, player.xRot);
         addAndMove(MoverType.SELF, movementInputResult);
 
-        PredictionEngineWater.staticVectorEndOfTick(grimPlayer, grimPlayer.clientVelocity, swimFriction, grimPlayer.gravity, isFalling);
+        PredictionEngineWater.staticVectorEndOfTick(player, player.clientVelocity, swimFriction, player.gravity, isFalling);
     }
 
     @Override
     public void doLavaMove() {
-        Vector movementInputResult = getMovementResultFromInput(movementInput, 0.02F, grimPlayer.xRot);
+        Vector movementInputResult = getMovementResultFromInput(movementInput, 0.02F, player.xRot);
         addAndMove(MoverType.SELF, movementInputResult);
 
         // Lava doesn't have an end of tick thing?
@@ -38,17 +38,17 @@ public class MovementTickerLivingVehicle extends MovementTicker {
     public void doNormalMove(float blockFriction) {
         // We don't know if the horse is on the ground
         // TODO: Different friction if horse is in the air
-        grimPlayer.friction = blockFriction * 0.91f;
+        player.friction = blockFriction * 0.91f;
 
-        Vector movementInputResult = getMovementResultFromInput(movementInput, grimPlayer.speed, grimPlayer.xRot);
+        Vector movementInputResult = getMovementResultFromInput(movementInput, player.speed, player.xRot);
 
         addAndMove(MoverType.SELF, movementInputResult);
 
-        PredictionEngineNormal.staticVectorEndOfTick(grimPlayer, grimPlayer.clientVelocity);
+        PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
     }
 
     public void addAndMove(MoverType moverType, Vector movementResult) {
-        grimPlayer.clientVelocity.add(movementResult);
-        super.move(moverType, grimPlayer.clientVelocity);
+        player.clientVelocity.add(movementResult);
+        super.move(moverType, player.clientVelocity);
     }
 }
