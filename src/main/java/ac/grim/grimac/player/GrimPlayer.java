@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedFlying;
+import ac.grim.grimac.utils.latency.CompensatedKnockback;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Location;
@@ -18,7 +19,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -127,9 +131,9 @@ public class GrimPlayer {
     public boolean isJustTeleported = false;
 
     // Possible inputs into the player's movement thing
-    public List<Vector> possibleKnockback = new ArrayList<>();
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
+    public CompensatedKnockback compensatedKnockback;
 
     // Keep track of basetick stuff
     public Vector baseTickSet;
@@ -156,6 +160,7 @@ public class GrimPlayer {
 
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
+        compensatedKnockback = new CompensatedKnockback(this);
         packetFlyingDanger = bukkitPlayer.isFlying();
         isFlying = bukkitPlayer.isFlying();
         wasFlying = bukkitPlayer.isFlying();
@@ -163,7 +168,7 @@ public class GrimPlayer {
 
     public Set<Vector> getPossibleVelocities() {
         Set<Vector> possibleMovements = getPossibleVelocitiesMinusKnockback();
-        possibleMovements.addAll(possibleKnockback);
+        possibleMovements.addAll(compensatedKnockback.getPossibleKnockback(lastTransactionReceived));
 
         return possibleMovements;
     }

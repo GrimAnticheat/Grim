@@ -28,13 +28,8 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
 
                     Vector playerVelocity = new Vector(velX, velY, velZ);
                     //Bukkit.broadcastMessage("Adding " + playerVelocity);
-                    GrimAC.playerGrimHashMap.get(event.getPlayer()).possibleKnockback.add(playerVelocity);
 
-                    for (Vector vector : GrimAC.playerGrimHashMap.get(event.getPlayer()).possibleKnockback) {
-                        //Bukkit.broadcastMessage(ChatColor.AQUA + "Current vectors " + vector);
-                    }
-
-                    event.getPlayer().sendMessage("You have taken velocity!");
+                    GrimAC.playerGrimHashMap.get(event.getPlayer()).compensatedKnockback.addPlayerKnockback(playerVelocity);
                 }
             }
         }
