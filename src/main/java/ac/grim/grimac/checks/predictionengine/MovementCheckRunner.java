@@ -248,11 +248,16 @@ public class MovementCheckRunner implements Listener {
         if (grimPlayer.couldSkipTick && wantedMovement.lengthSquared() > totalMovement.lengthSquared() * 1.25) {
             for (x = 0; x < 19; x++) {
                 // Set to detect 1% speed increase < 0.03 such as in lava
-                if (grimPlayer.actualMovement.lengthSquared() / (x + 1) / grimPlayer.clientVelocity.lengthSquared() < 1.01) {
+                if (grimPlayer.actualMovement.length() / (x + 1) / grimPlayer.predictedVelocity.length() < 1.01) {
                     break;
                 }
             }
         }
+
+        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + grimPlayer.movementTransaction + " recent " + grimPlayer.lastTransactionReceived);
+        Bukkit.broadcastMessage("Predicted velocity " + grimPlayer.predictedVelocity);
+        Bukkit.broadcastMessage("Actual velocity " + grimPlayer.actualMovement);
+        grimPlayer.movementTransaction += x + 1;
 
         // This is going to lead to some bypasses
         // For example, noclip would be able to abuse this
@@ -260,9 +265,6 @@ public class MovementCheckRunner implements Listener {
         if (x > 0) {
             grimPlayer.predictedVelocity = grimPlayer.actualMovement.clone();
         }
-
-        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + grimPlayer.movementTransaction + " recent " + grimPlayer.lastTransactionReceived);
-        grimPlayer.movementTransaction += x + 1;
 
         if (grimPlayer.movementTransaction > grimPlayer.lastTransactionReceived + 2) {
             Bukkit.broadcastMessage(ChatColor.RED + "Player has speed!");
