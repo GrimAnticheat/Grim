@@ -70,6 +70,7 @@ public class GrimPlayer {
 
     public boolean packetFlyingDanger;
     public boolean isFlying;
+    public boolean wasFlying;
     // If a player collides with the ground, their flying will be set false after their movement
     // But we need to know if they were flying DURING the movement
     // Thankfully we can 100% recover from this using some logic in PredictionData
@@ -156,6 +157,8 @@ public class GrimPlayer {
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
         packetFlyingDanger = bukkitPlayer.isFlying();
+        isFlying = bukkitPlayer.isFlying();
+        wasFlying = bukkitPlayer.isFlying();
     }
 
     public Set<Vector> getPossibleVelocities() {

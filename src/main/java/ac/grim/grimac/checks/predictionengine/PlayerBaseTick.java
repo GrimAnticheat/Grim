@@ -57,7 +57,7 @@ public class PlayerBaseTick {
         // LocalPlayer:aiStep determining crouching
         // Tick order is entityBaseTick and then the aiStep stuff
         // This code is in the wrong place, I'll fix it later
-        player.isCrouching = !player.specialFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
+        player.isCrouching = !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
                 && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ));
         player.isSlowMovement = player.isCrouching || (player.pose == Pose.SWIMMING && !player.wasTouchingWater);
 
