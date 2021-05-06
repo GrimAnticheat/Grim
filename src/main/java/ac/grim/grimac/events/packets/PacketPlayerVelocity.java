@@ -6,6 +6,8 @@ import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
+import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
@@ -32,6 +34,16 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
                     GrimAC.playerGrimHashMap.get(event.getPlayer()).compensatedKnockback.addPlayerKnockback(playerVelocity);
                 }
             }
+        }
+
+        if (packetID == PacketType.Play.Server.EXPLOSION) {
+            WrappedPacketOutExplosion explosion = new WrappedPacketOutExplosion(event.getNMSPacket());
+
+            Bukkit.broadcastMessage("X vel " + explosion.getPlayerMotionX());
+            Bukkit.broadcastMessage("Y vel " + explosion.getPlayerMotionY());
+            Bukkit.broadcastMessage("Z vel " + explosion.getPlayerMotionZ());
+
+
         }
     }
 

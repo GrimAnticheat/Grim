@@ -6,10 +6,7 @@ import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.latency.CompensatedFireworks;
-import ac.grim.grimac.utils.latency.CompensatedFlying;
-import ac.grim.grimac.utils.latency.CompensatedKnockback;
-import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.latency.*;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Location;
@@ -129,12 +126,12 @@ public class GrimPlayer {
     public boolean couldSkipTick = false;
     public boolean isJustTeleported = false;
 
-    // Possible inputs into the player's movement thing
-    // TODO: I could probably just initialize everything here, but I don't want to risk breaking everything when I'm already breaking everything
+    // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
     public CompensatedKnockback compensatedKnockback;
     public CompensatedWorld compensatedWorld;
+    public CompensatedEntities compensatedEntities;
 
     // Keep track of basetick stuff
     public Vector baseTickSet;
@@ -159,13 +156,15 @@ public class GrimPlayer {
         lastY = loginLocation.getY();
         lastZ = loginLocation.getZ();
 
+        packetFlyingDanger = bukkitPlayer.isFlying();
+        isFlying = bukkitPlayer.isFlying();
+        wasFlying = bukkitPlayer.isFlying();
+
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedKnockback = new CompensatedKnockback(this);
         compensatedWorld = new CompensatedWorld(this);
-        packetFlyingDanger = bukkitPlayer.isFlying();
-        isFlying = bukkitPlayer.isFlying();
-        wasFlying = bukkitPlayer.isFlying();
+        compensatedEntities = new CompensatedEntities(this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
