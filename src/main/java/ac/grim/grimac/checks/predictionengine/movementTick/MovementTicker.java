@@ -258,14 +258,15 @@ public class MovementTicker {
                             boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
                         }
 
+                        getElytraMovement(boostOne, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        getElytraMovement(boostTwo, lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+
                         Vector cutOne = cutVectorsToPlayerMovement(boostOne, noFireworksTwo);
                         Vector cutTwo = cutVectorsToPlayerMovement(boostTwo, noFireworksOne);
+                        Vector cutCombined = cutVectorsToPlayerMovement(cutOne, cutTwo);
 
-                        if (cutOne.distanceSquared(player.actualMovement) < cutTwo.distanceSquared(player.actualMovement)) {
-                            possibleVelocities.add(cutOne);
-                        } else {
-                            possibleVelocities.add(cutTwo);
-                        }
+                        possibleVelocities.add(cutCombined);
+
                     } else {
                         Vector noFireworksOne = getElytraMovement(possibleVelocity.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
                         Vector noFireworksTwo = getElytraMovement(possibleVelocity.vector.clone(), lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
