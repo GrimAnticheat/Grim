@@ -7,9 +7,6 @@ import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
-import net.minecraft.server.v1_16_R3.DataWatcher;
-import net.minecraft.server.v1_16_R3.PacketPlayOutEntityDestroy;
-import net.minecraft.server.v1_16_R3.PacketPlayOutEntityMetadata;
 import org.bukkit.entity.Firework;
 
 import java.lang.reflect.Field;
@@ -37,7 +34,8 @@ public class PacketFireworkListener extends PacketListenerDynamic {
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_METADATA) {
-            PacketPlayOutEntityMetadata metadata = (PacketPlayOutEntityMetadata) event.getNMSPacket().getRawNMSPacket();
+            // PacketPlayOutEntityMetadata
+            Object metadata = event.getNMSPacket().getRawNMSPacket();
 
             try {
                 Field entityID = metadata.getClass().getDeclaredField("a");
@@ -46,9 +44,11 @@ public class PacketFireworkListener extends PacketListenerDynamic {
                 if (fireworks.remove(entityID.getInt(metadata))) {
                     Field data = metadata.getClass().getDeclaredField("b");
                     data.setAccessible(true);
-                    List<DataWatcher.Item<?>> b = (List<DataWatcher.Item<?>>) data.get(metadata);
+                    // DataWatcher.Item<?>
+                    List<Object> b = (List<Object>) data.get(metadata);
 
-                    DataWatcher.Item<?> entry = b.get(4);
+                    // DataWatcher.Item<?>
+                    Object entry = b.get(4);
                     Field value = entry.getClass().getDeclaredField("b");
                     value.setAccessible(true);
 
@@ -68,7 +68,8 @@ public class PacketFireworkListener extends PacketListenerDynamic {
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
-            PacketPlayOutEntityDestroy destroy = (PacketPlayOutEntityDestroy) event.getNMSPacket().getRawNMSPacket();
+            // PacketPlayOutEntityDestroy
+            Object destroy = event.getNMSPacket().getRawNMSPacket();
             try {
                 Field entities = destroy.getClass().getDeclaredField("a");
                 entities.setAccessible(true);
