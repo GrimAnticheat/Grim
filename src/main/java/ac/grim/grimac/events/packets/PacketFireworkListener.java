@@ -7,6 +7,7 @@ import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
+import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.WrappedPacketOutEntityDestroy;
 import org.bukkit.entity.Firework;
 
 import java.lang.reflect.Field;
@@ -68,20 +69,14 @@ public class PacketFireworkListener extends PacketListenerDynamic {
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
-            // PacketPlayOutEntityDestroy
-            Object destroy = event.getNMSPacket().getRawNMSPacket();
-            try {
-                Field entities = destroy.getClass().getDeclaredField("a");
-                entities.setAccessible(true);
+            WrappedPacketOutEntityDestroy destroy = new WrappedPacketOutEntityDestroy(event.getNMSPacket());
 
-                for (int entity : (int[]) entities.get(destroy)) {
-                    for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
-                        grimPlayer.compensatedFireworks.removeFirework(entity);
-                    }
+            for (int entity : destroy.getEntityIds()) {
+                for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
+                    grimPlayer.compensatedFireworks.removeFirework(entity);
                 }
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
             }
+
         }
     }
 }
