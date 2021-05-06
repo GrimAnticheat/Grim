@@ -90,6 +90,8 @@ public class MovementCheckRunner implements Listener {
             player.inVehicle = data.inVehicle;
             player.playerVehicle = data.playerVehicle;
 
+            player.firstBreadKB = data.firstBreadKB;
+            player.possibleKB = data.possibleKB;
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);

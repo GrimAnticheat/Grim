@@ -4,17 +4,14 @@ import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
-import io.github.retrooper.packetevents.utils.list.ConcurrentList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class CompensatedKnockback {
-    ConcurrentHashMap<Integer, ConcurrentList<Vector>> requiredKnockback = new ConcurrentHashMap<>();
     Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
     GrimPlayer player;
 
@@ -60,13 +57,20 @@ public class CompensatedKnockback {
 
     }
 
-    public List<Vector> getPossibleKnockback(int lastTransactionReceived) {
+    public List<Vector> getPossibleKnockback() {
         if (firstBreadOnlyKnockback != null) {
             List<Vector> knockbackList = new ArrayList<>(possibleKnockbackValuesTaken);
             knockbackList.add(firstBreadOnlyKnockback);
             return knockbackList;
         }
 
-        return possibleKnockbackValuesTaken;
+        List<Vector> lastKBList = possibleKnockbackValuesTaken;
+        possibleKnockbackValuesTaken = new ArrayList<>();
+
+        return lastKBList;
+    }
+
+    public Vector getFirstBreadOnlyKnockback() {
+        return firstBreadOnlyKnockback;
     }
 }

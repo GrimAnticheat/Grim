@@ -17,10 +17,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -148,6 +145,9 @@ public class GrimPlayer {
     // Determining player ping
     public ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
 
+    public Vector firstBreadKB = null;
+    public List<Vector> possibleKB = new ArrayList<>();
+
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
         this.playerUUID = player.getUniqueId();
@@ -175,7 +175,7 @@ public class GrimPlayer {
         Set<VectorData> possibleMovements = getPossibleVelocitiesMinusKnockback();
 
         // Allow water pushing to affect knockback
-        for (Vector vector : compensatedKnockback.getPossibleKnockback(lastTransactionReceived)) {
+        for (Vector vector : possibleKB) {
             possibleMovements.add(new VectorData(vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
         }
 

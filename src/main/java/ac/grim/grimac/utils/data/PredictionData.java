@@ -8,6 +8,10 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class PredictionData {
     public GrimPlayer player;
@@ -42,6 +46,9 @@ public class PredictionData {
 
     public boolean isSprintingChange;
     public boolean isSneakingChange;
+
+    public Vector firstBreadKB = null;
+    public List<Vector> possibleKB = new ArrayList<>();
 
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
@@ -87,6 +94,9 @@ public class PredictionData {
 
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
         this.playerVehicle = player.bukkitPlayer.getVehicle();
+
+        firstBreadKB = player.compensatedKnockback.getFirstBreadOnlyKnockback();
+        possibleKB = player.compensatedKnockback.getPossibleKnockback();
     }
 
     // For boat movement
