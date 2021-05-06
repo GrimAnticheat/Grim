@@ -114,15 +114,21 @@ public abstract class PredictionEngine {
         // TODO: Make sure the player is actually on the ground
         // TODO: Add check to stop players from jumping more than once every 10 ticks
 
-        //for (Vector vector : existingVelocities) {
-        //    existingVelocities.add(handleSwimJump(player, vector));
-        //}
-
-        // Clone to stop ConcurrentModificationException
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             Vector clonedVector = vector.vector.clone();
             doJump(player, vector.vector);
             existingVelocities.add(new VectorData(clonedVector, vector.vectorType));
+        }
+    }
+
+    public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {
+        for (VectorData vector : new HashSet<>(existingVelocities)) {
+            // TODO: Add only the stuff the player has received
+            for (Vector explosion : player.compensatedExplosion.getPossibleExplosions(player.lastTransactionReceived)) {
+                Vector clonedVector = vector.vector.clone();
+                clonedVector.add(explosion);
+                existingVelocities.add(new VectorData(clonedVector, vector.vectorType));
+            }
         }
     }
 
@@ -164,6 +170,7 @@ public abstract class PredictionEngine {
     public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
         Set<VectorData> velocities = player.getPossibleVelocities();
 
+        addAdditionToPossibleVectors(player, velocities);
         addJumpsToPossibilities(player, velocities);
 
         return velocities;

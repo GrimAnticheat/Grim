@@ -7,7 +7,6 @@ import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
@@ -39,38 +38,14 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.EXPLOSION) {
             WrappedPacketOutExplosion explosion = new WrappedPacketOutExplosion(event.getNMSPacket());
 
-            Bukkit.broadcastMessage("X vel " + explosion.getPlayerMotionX());
-            Bukkit.broadcastMessage("Y vel " + explosion.getPlayerMotionY());
-            Bukkit.broadcastMessage("Z vel " + explosion.getPlayerMotionZ());
+            double x = explosion.getPlayerMotionX();
+            double y = explosion.getPlayerMotionY();
+            double z = explosion.getPlayerMotionZ();
 
-
+            // Don't get GrimPlayer object if we don't have to
+            if (x != 0 || y != 0 || z != 0) {
+                GrimAC.playerGrimHashMap.get(event.getPlayer()).compensatedExplosion.addPlayerExplosion(x, y, z);
+            }
         }
     }
-
-    /*public void registerPackets() {
-        manager.addPacketListener(new PacketAdapter(plugin, ListenerPriority.MONITOR, PacketType.Play.Server.ENTITY_VELOCITY) {
-            @Override
-            public void onPacketSending(PacketEvent event) {
-                PacketContainer packet = event.getPacket();
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-
-                // This means we are not setting the velocity of the player
-                if (packet.getIntegers().read(0) != event.getPlayer().getEntityId()) {
-                    return;
-                }
-
-                double x = packet.getIntegers().read(1) / 8000d;
-                double y = packet.getIntegers().read(2) / 8000d;
-                double z = packet.getIntegers().read(3) / 8000d;
-
-                Vector playerVelocity = new Vector(x, y, z);
-                Bukkit.broadcastMessage("Adding " + playerVelocity);
-                player.possibleKnockback.add(playerVelocity);
-
-                for (Vector vector : player.possibleKnockback) {
-                    Bukkit.broadcastMessage(ChatColor.AQUA + "Current vectors " + vector);
-                }
-            }
-        });
-    }*/
 }

@@ -130,6 +130,7 @@ public class GrimPlayer {
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
     public CompensatedKnockback compensatedKnockback;
+    public CompensatedExplosion compensatedExplosion;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
 
@@ -163,6 +164,7 @@ public class GrimPlayer {
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedKnockback = new CompensatedKnockback(this);
+        compensatedExplosion = new CompensatedExplosion(this);
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
     }
