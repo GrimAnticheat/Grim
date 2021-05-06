@@ -3,6 +3,7 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedFireworks;
@@ -39,9 +40,6 @@ public class GrimPlayer {
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
-    public Vector clientVelocityFireworkBoostOne = new Vector();
-    public Vector clientVelocityFireworkBoostTwo = new Vector();
-
 
     public Vector predictedVelocity = new Vector();
     public Vector actualMovement = new Vector();
@@ -166,31 +164,26 @@ public class GrimPlayer {
         wasFlying = bukkitPlayer.isFlying();
     }
 
-    public Set<Vector> getPossibleVelocities() {
-        Set<Vector> possibleMovements = getPossibleVelocitiesMinusKnockback();
-        possibleMovements.addAll(compensatedKnockback.getPossibleKnockback(lastTransactionReceived));
+    public Set<VectorData> getPossibleVelocities() {
+        Set<VectorData> possibleMovements = getPossibleVelocitiesMinusKnockback();
+
+        for (Vector vector : compensatedKnockback.getPossibleKnockback(lastTransactionReceived)) {
+            possibleMovements.add(new VectorData(vector, VectorData.VectorType.Knockback));
+        }
 
         return possibleMovements;
     }
 
-    public Set<Vector> getPossibleVelocitiesMinusKnockback() {
-        Set<Vector> possibleMovements = new HashSet<>();
-        possibleMovements.add(clientVelocity);
+    public Set<VectorData> getPossibleVelocitiesMinusKnockback() {
+        Set<VectorData> possibleMovements = new HashSet<>();
+        possibleMovements.add(new VectorData(clientVelocity, VectorData.VectorType.Normal));
 
         if (clientVelocityOnLadder != null) {
-            possibleMovements.add(clientVelocityOnLadder);
+            possibleMovements.add(new VectorData(clientVelocityOnLadder, VectorData.VectorType.Ladder));
         }
 
         if (clientVelocitySwimHop != null) {
-            possibleMovements.add(clientVelocitySwimHop);
-        }
-
-        if (clientVelocityFireworkBoostOne != null) {
-            possibleMovements.add(clientVelocityFireworkBoostOne);
-        }
-
-        if (clientVelocityFireworkBoostTwo != null) {
-            possibleMovements.add(clientVelocityFireworkBoostTwo);
+            possibleMovements.add(new VectorData(clientVelocitySwimHop, VectorData.VectorType.Swimhop));
         }
 
         return possibleMovements;
@@ -224,9 +217,6 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.add(vector);
-
-        if (clientVelocityFireworkBoostOne != null)
-            clientVelocityFireworkBoostOne.setX(x);
     }
 
     public void baseTickSetX(double x) {
@@ -238,9 +228,6 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setX(x);
-
-        if (clientVelocityFireworkBoostOne != null)
-            clientVelocityFireworkBoostOne.setX(x);
     }
 
     public void baseTickSetY(double y) {
@@ -252,9 +239,6 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setY(y);
-
-        if (clientVelocityFireworkBoostOne != null)
-            clientVelocityFireworkBoostOne.setX(x);
     }
 
     public void baseTickSetZ(double z) {
@@ -266,9 +250,6 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null)
             clientVelocitySwimHop.setZ(z);
-
-        if (clientVelocityFireworkBoostOne != null)
-            clientVelocityFireworkBoostOne.setX(x);
     }
 
     public float getMaxUpStep() {

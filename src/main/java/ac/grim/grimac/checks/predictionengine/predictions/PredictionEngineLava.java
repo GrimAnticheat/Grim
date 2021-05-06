@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VectorData;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -13,14 +14,14 @@ public class PredictionEngineLava extends PredictionEngine {
 
 
     @Override
-    public void addJumpsToPossibilities(GrimPlayer grimPlayer, Set<Vector> existingVelocities) {
+    public void addJumpsToPossibilities(GrimPlayer grimPlayer, Set<VectorData> existingVelocities) {
 
-        for (Vector vector : new HashSet<>(existingVelocities)) {
+        for (VectorData vector : new HashSet<>(existingVelocities)) {
             // I don't believe you can ascend and jump regularly
-            existingVelocities.add(vector.clone().add(new Vector(0, 0.04, 0)));
-            Vector withJump = vector.clone();
+            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector.vectorType));
+            Vector withJump = vector.vector.clone();
             super.doJump(grimPlayer, withJump);
-            existingVelocities.add(withJump);
+            existingVelocities.add(new VectorData(withJump, vector.vectorType));
         }
 
         //handleSwimJump(grimPlayer, grimPlayer.clientVelocity);

@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
@@ -366,19 +367,19 @@ public class Collisions {
                             }
                         } else {
                             if (blockAbove.getMaterial().isAir()) {
-                                for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                                for (VectorData vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
                                     if (bubbleColumn.isDrag()) {
-                                        vector.setY(Math.max(-0.9D, vector.getY() - 0.03D));
+                                        vector.vector.setY(Math.max(-0.9D, vector.vector.getY() - 0.03D));
                                     } else {
-                                        vector.setY(Math.min(1.8D, vector.getY() + 0.1D));
+                                        vector.vector.setY(Math.min(1.8D, vector.vector.getY() + 0.1D));
                                     }
                                 }
                             } else {
-                                for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                                for (VectorData vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
                                     if (bubbleColumn.isDrag()) {
-                                        vector.setY(Math.max(-0.3D, vector.getY() - 0.03D));
+                                        vector.vector.setY(Math.max(-0.3D, vector.vector.getY() - 0.03D));
                                     } else {
-                                        vector.setY(Math.min(0.7D, vector.getY() + 0.06D));
+                                        vector.vector.setY(Math.min(0.7D, vector.vector.getY() + 0.06D));
                                     }
                                 }
                             }
@@ -386,15 +387,15 @@ public class Collisions {
                     }
 
                     if (blockType == Material.HONEY_BLOCK) {
-                        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-                            if (isSlidingDown(vector, grimPlayer, i, j, j)) {
-                                if (vector.getY() < -0.13D) {
-                                    double d0 = -0.05 / vector.getY();
-                                    vector.setX(vector.getX() * d0);
-                                    vector.setY(-0.05D);
-                                    vector.setZ(vector.getZ() * d0);
+                        for (VectorData vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+                            if (isSlidingDown(vector.vector, grimPlayer, i, j, j)) {
+                                if (vector.vector.getY() < -0.13D) {
+                                    double d0 = -0.05 / vector.vector.getY();
+                                    vector.vector.setX(vector.vector.getX() * d0);
+                                    vector.vector.setY(-0.05D);
+                                    vector.vector.setZ(vector.vector.getZ() * d0);
                                 } else {
-                                    vector.setY(-0.05D);
+                                    vector.vector.setY(-0.05D);
                                 }
                             }
                         }

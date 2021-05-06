@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
@@ -45,8 +46,8 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public Set<Vector> fetchPossibleInputs(GrimPlayer grimPlayer) {
-        Set<Vector> regularInputs = super.fetchPossibleInputs(grimPlayer);
+    public Set<VectorData> fetchPossibleInputs(GrimPlayer grimPlayer) {
+        Set<VectorData> regularInputs = super.fetchPossibleInputs(grimPlayer);
 
         // This is WRONG! Vanilla has this system at the end
         // However, due to 1.9 reduced movement precision, we aren't informed that the player could have this velocity
@@ -54,7 +55,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         if (grimPlayer.isClimbing) {
             Vector hackyClimbVector = grimPlayer.clientVelocity.clone().setY(0.2);
             staticVectorEndOfTick(grimPlayer, hackyClimbVector);
-            regularInputs.add(hackyClimbVector);
+            regularInputs.add(new VectorData(hackyClimbVector, VectorData.VectorType.Hackyladder));
         }
 
         return regularInputs;
@@ -68,8 +69,8 @@ public class PredictionEngineNormal extends PredictionEngine {
             grimPlayer.clientVelocityOnLadder = grimPlayer.clientVelocity.clone().setY(0.2);
         }
 
-        for (Vector vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(grimPlayer, vector);
+        for (VectorData vector : grimPlayer.getPossibleVelocitiesMinusKnockback()) {
+            staticVectorEndOfTick(grimPlayer, vector.vector);
         }
 
         super.endOfTick(grimPlayer, d, friction);

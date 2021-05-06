@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Collisions;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
@@ -37,17 +38,17 @@ public class MovementTicker {
     public void livingEntityAIStep() {
         // Living Entity line 2153
         // TODO: 1.8 clients have a different minimum movement than 1.9.  I believe it is 0.005
-        for (Vector vector : player.getPossibleVelocitiesMinusKnockback()) {
-            if (Math.abs(vector.getX()) < 0.003D) {
-                vector.setX(0D);
+        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
+            if (Math.abs(vector.vector.getX()) < 0.003D) {
+                vector.vector.setX(0D);
             }
 
-            if (Math.abs(vector.getY()) < 0.003D) {
-                vector.setY(0D);
+            if (Math.abs(vector.vector.getY()) < 0.003D) {
+                vector.vector.setY(0D);
             }
 
-            if (Math.abs(vector.getZ()) < 0.003D) {
-                vector.setZ(0D);
+            if (Math.abs(vector.vector.getZ()) < 0.003D) {
+                vector.vector.setZ(0D);
             }
         }
 
@@ -71,10 +72,6 @@ public class MovementTicker {
         } else {
             livingEntityTravel();
         }
-
-        player.clientVelocityFireworkBoostOne = null;
-        player.clientVelocityFireworkBoostTwo = null;
-
     }
 
     // Entity line 527
@@ -248,10 +245,10 @@ public class MovementTicker {
                 // The client's velocity clone is then forced to be between vector 2 and 4
                 //
                 // The closest of these two vector clones are the predicted velocity.
-                for (Vector possibleVelocity : player.getPossibleVelocities()) {
+                for (VectorData possibleVelocity : player.getPossibleVelocities()) {
                     if (maxFireworks > 0) {
-                        Vector boostOne = possibleVelocity.clone();
-                        Vector boostTwo = possibleVelocity.clone();
+                        Vector boostOne = possibleVelocity.vector.clone();
+                        Vector boostTwo = possibleVelocity.vector.clone();
 
                         Vector noFireworksOne = getElytraMovement(boostOne.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
                         Vector noFireworksTwo = getElytraMovement(boostTwo.clone(), lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
@@ -270,8 +267,8 @@ public class MovementTicker {
                             possibleVelocities.add(cutTwo);
                         }
                     } else {
-                        Vector noFireworksOne = getElytraMovement(possibleVelocity.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-                        Vector noFireworksTwo = getElytraMovement(possibleVelocity.clone(), lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworksOne = getElytraMovement(possibleVelocity.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworksTwo = getElytraMovement(possibleVelocity.vector.clone(), lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
 
                         if (noFireworksOne.distanceSquared(player.actualMovement) < noFireworksTwo.distanceSquared(player.actualMovement)) {
                             possibleVelocities.add(noFireworksOne);
