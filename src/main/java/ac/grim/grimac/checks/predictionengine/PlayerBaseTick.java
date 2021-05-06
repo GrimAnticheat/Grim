@@ -251,7 +251,11 @@ public class PlayerBaseTick {
             if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.f() < 0.0045000000000000005D) {
                 vec3 = vec3.d().a(0.0045000000000000005);
             }
-            player.baseTickAddVector(new Vector(vec3.x, vec3.y, vec3.z));
+
+            // If the player is using 1.16+ - 1.15 and below don't have lava pushing
+            if (tag != FluidTag.LAVA || player.clientVersion > 700) {
+                player.baseTickAddVector(new Vector(vec3.x, vec3.y, vec3.z));
+            }
         }
         player.fluidHeight.put(tag, d2);
         return bl2;
