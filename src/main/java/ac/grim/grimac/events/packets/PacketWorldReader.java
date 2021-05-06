@@ -10,6 +10,7 @@ import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 
@@ -101,6 +102,13 @@ public class PacketWorldReader extends PacketListenerDynamic {
             } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
+        }
+
+        if (packetID == PacketType.Play.Server.UNLOAD_CHUNK) {
+            WrappedPacketOutUnloadChunk unloadChunk = new WrappedPacketOutUnloadChunk(event.getNMSPacket());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+
+            player.compensatedWorld.removeChunk(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
         }
     }
 }
