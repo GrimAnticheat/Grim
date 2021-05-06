@@ -7,13 +7,10 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.Wrap
 import io.github.retrooper.packetevents.utils.list.ConcurrentList;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CompensatedKnockback {
@@ -21,7 +18,8 @@ public class CompensatedKnockback {
     Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
     GrimPlayer player;
 
-    ConcurrentHashMap<Integer, GrimPlayer> transactionMap = new ConcurrentHashMap<>();
+    List<Vector> possibleKnockbackValuesTaken = new ArrayList<>();
+    Vector firstBreadOnlyKnockback = null;
 
     public CompensatedKnockback(GrimPlayer player) {
         this.player = player;
@@ -29,11 +27,12 @@ public class CompensatedKnockback {
 
     public void handleTransactionPacket(int transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
-            Bukkit.broadcastMessage("Sandwich began!");
+            firstBreadOnlyKnockback = firstBreadMap.get(transactionID);
         }
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
-            Bukkit.broadcastMessage("Sandwich complete!");
+            firstBreadOnlyKnockback = null;
+            possibleKnockbackValuesTaken.add(firstBreadMap.get(transactionID + 1));
         }
     }
 
@@ -56,29 +55,18 @@ public class CompensatedKnockback {
         }
     }
 
+    // TODO: Handle setting firstBreadOnlyKnockback to null if it is used
     public void setPlayerKnockbackApplied(Vector knockback) {
-        // TODO:
+
     }
 
     public List<Vector> getPossibleKnockback(int lastTransactionReceived) {
-        List<Vector> knockbackList = new ArrayList<>();
-
-        Iterator<Map.Entry<Integer, ConcurrentList<Vector>>> iterator = requiredKnockback.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, ConcurrentList<Vector>> knockback = iterator.next();
-
-            // 20 is minimum ticks per movement packet
-            if (knockback.getKey() - 20 > lastTransactionReceived) continue;
-
-            if (knockback.getKey() < player.lastTransactionReceived) {
-                Bukkit.broadcastMessage("Player ignored kb!");
-                iterator.remove();
-                continue;
-            }
-
-            knockbackList.addAll(knockback.getValue());
+        if (firstBreadOnlyKnockback != null) {
+            List<Vector> knockbackList = new ArrayList<>(possibleKnockbackValuesTaken);
+            knockbackList.add(firstBreadOnlyKnockback);
+            return knockbackList;
         }
 
-        return knockbackList;
+        return possibleKnockbackValuesTaken;
     }
 }
