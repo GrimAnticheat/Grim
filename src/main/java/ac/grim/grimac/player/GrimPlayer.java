@@ -167,8 +167,9 @@ public class GrimPlayer {
     public Set<VectorData> getPossibleVelocities() {
         Set<VectorData> possibleMovements = getPossibleVelocitiesMinusKnockback();
 
+        // Allow water pushing to affect knockback
         for (Vector vector : compensatedKnockback.getPossibleKnockback(lastTransactionReceived)) {
-            possibleMovements.add(new VectorData(vector, VectorData.VectorType.Knockback));
+            possibleMovements.add(new VectorData(vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
         }
 
         return possibleMovements;
