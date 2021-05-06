@@ -57,6 +57,11 @@ public class CompensatedKnockback {
 
     }
 
+    // This will be called if there is kb taken but it isn't applied to the player
+    public void setKnockbackDenied(Vector knockback) {
+
+    }
+
     public List<Vector> getPossibleKnockback() {
         if (firstBreadOnlyKnockback != null) {
             List<Vector> knockbackList = new ArrayList<>(possibleKnockbackValuesTaken);

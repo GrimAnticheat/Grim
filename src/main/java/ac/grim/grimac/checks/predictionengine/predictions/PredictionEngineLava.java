@@ -18,10 +18,10 @@ public class PredictionEngineLava extends PredictionEngine {
 
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             // I don't believe you can ascend and jump regularly
-            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector.vectorType));
+            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector));
             Vector withJump = vector.vector.clone();
             super.doJump(player, withJump);
-            existingVelocities.add(new VectorData(withJump, vector.vectorType));
+            existingVelocities.add(new VectorData(withJump, vector));
         }
 
         //handleSwimJump(grimPlayer, grimPlayer.clientVelocity);

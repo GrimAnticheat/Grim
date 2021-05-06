@@ -81,7 +81,7 @@ public abstract class PredictionEngine {
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
                 player.clientVelocity = backOff.clone();
-                bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput.vectorType);
+                bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput);
 
                 // Optimization - Close enough, other inputs won't get closer
                 if (resultAccuracy < 0.01) break;
@@ -117,7 +117,7 @@ public abstract class PredictionEngine {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             Vector clonedVector = vector.vector.clone();
             doJump(player, vector.vector);
-            existingVelocities.add(new VectorData(clonedVector, vector.vectorType));
+            existingVelocities.add(new VectorData(clonedVector, vector));
         }
     }
 
@@ -127,7 +127,7 @@ public abstract class PredictionEngine {
             for (Vector explosion : player.compensatedExplosion.getPossibleExplosions(player.lastTransactionReceived)) {
                 Vector clonedVector = vector.vector.clone();
                 clonedVector.add(explosion);
-                existingVelocities.add(new VectorData(clonedVector, vector.vectorType));
+                existingVelocities.add(new VectorData(clonedVector, vector));
             }
         }
     }
@@ -159,7 +159,7 @@ public abstract class PredictionEngine {
         for (VectorData possibleLastTickOutput : possibleVectors) {
             for (int x = -1; x <= 1; x++) {
                 for (int z = zMin; z <= 1; z++) {
-                    returnVectors.add(new VectorData(handleOnClimbable(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(player, new Vector(x, 0, z)), speed, player.xRot)).multiply(player.stuckSpeedMultiplier), player), possibleLastTickOutput.vectorType));
+                    returnVectors.add(new VectorData(handleOnClimbable(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(player, new Vector(x, 0, z)), speed, player.xRot)).multiply(player.stuckSpeedMultiplier), player), possibleLastTickOutput));
                 }
             }
         }

@@ -36,10 +36,10 @@ public class PredictionEngineWater extends PredictionEngine {
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
-            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector.vectorType));
+            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector));
             Vector withJump = vector.vector.clone();
             super.doJump(player, withJump);
-            existingVelocities.add(new VectorData(withJump, vector.vectorType));
+            existingVelocities.add(new VectorData(withJump, vector));
         }
     }
 
@@ -58,7 +58,7 @@ public class PredictionEngineWater extends PredictionEngine {
 
                 // This scenario will occur if the player does not press jump and the other conditions are met
                 if (d > 0.0 && player.compensatedWorld.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
-                    swimmingVelocities.add(new VectorData(vector.vector, vector.vectorType));
+                    swimmingVelocities.add(new VectorData(vector.vector, vector));
                 }
             }
 
