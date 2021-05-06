@@ -6,8 +6,8 @@ import org.bukkit.entity.Pig;
 import org.bukkit.util.Vector;
 
 public class MovementTickerPig extends MovementTickerRideable {
-    public MovementTickerPig(GrimPlayer grimPlayer) {
-        super(grimPlayer);
+    public MovementTickerPig(GrimPlayer player) {
+        super(player);
 
         movementInput = new Vector(0, 0, 1);
     }

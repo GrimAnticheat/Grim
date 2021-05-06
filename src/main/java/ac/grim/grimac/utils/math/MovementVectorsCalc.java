@@ -4,8 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.util.Vector;
 
 public class MovementVectorsCalc {
-    public static Vector getLookAngle(GrimPlayer grimPlayer) {
-        return MovementVectorsCalc.calculateViewVector(grimPlayer.yRot, grimPlayer.xRot);
+    public static Vector getLookAngle(GrimPlayer player) {
+        return MovementVectorsCalc.calculateViewVector(player.yRot, player.xRot);
     }
 
     public static Vector calculateViewVector(float f, float f2) {

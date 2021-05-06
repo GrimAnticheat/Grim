@@ -7,8 +7,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 
 public class MovementTickerPlayer extends MovementTicker {
-    public MovementTickerPlayer(GrimPlayer grimPlayer) {
-        super(grimPlayer);
+    public MovementTickerPlayer(GrimPlayer player) {
+        super(player);
     }
 
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {

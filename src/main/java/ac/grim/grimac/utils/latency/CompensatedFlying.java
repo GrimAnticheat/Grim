@@ -9,19 +9,19 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CompensatedFlying {
     ConcurrentHashMap<Integer, Boolean> lagCompensatedFlyingMap = new ConcurrentHashMap<>();
     boolean canPlayerFly;
-    GrimPlayer grimPlayer;
+    GrimPlayer player;
 
-    public CompensatedFlying(GrimPlayer grimPlayer) {
-        this.grimPlayer = grimPlayer;
-        this.canPlayerFly = grimPlayer.bukkitPlayer.getAllowFlight();
+    public CompensatedFlying(GrimPlayer player) {
+        this.player = player;
+        this.canPlayerFly = player.bukkitPlayer.getAllowFlight();
     }
 
     public void setCanPlayerFly(boolean canFly) {
-        lagCompensatedFlyingMap.put(grimPlayer.lastTransactionSent.get(), canFly);
+        lagCompensatedFlyingMap.put(player.lastTransactionSent.get(), canFly);
     }
 
     public boolean getCanPlayerFlyLagCompensated() {
-        int lastTransactionReceived = grimPlayer.lastTransactionReceived;
+        int lastTransactionReceived = player.lastTransactionReceived;
 
         boolean canFly = canPlayerFly;
         int bestKey = 0;

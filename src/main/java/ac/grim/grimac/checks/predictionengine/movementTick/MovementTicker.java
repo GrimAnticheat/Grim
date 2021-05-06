@@ -105,7 +105,7 @@ public class MovementTicker {
         player.verticalCollision = inputVel.getY() != collide.getY();
         player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
 
-        BlockData onBlock = BlockProperties.getOnBlock(new Location(player.playerWorld, player.x, player.y, player.z));
+        BlockData onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
 
         double xBeforeZero = player.clientVelocity.getX();
         if (inputVel.getX() != collide.getX()) {

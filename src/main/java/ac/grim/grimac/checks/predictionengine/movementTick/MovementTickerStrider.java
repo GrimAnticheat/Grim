@@ -6,8 +6,8 @@ import org.bukkit.entity.Strider;
 import org.bukkit.util.Vector;
 
 public class MovementTickerStrider extends MovementTickerRideable {
-    public MovementTickerStrider(GrimPlayer grimPlayer) {
-        super(grimPlayer);
+    public MovementTickerStrider(GrimPlayer player) {
+        super(player);
 
         movementInput = new Vector(0, 0, 1);
 

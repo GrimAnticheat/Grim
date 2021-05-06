@@ -5,14 +5,14 @@ import ac.grim.grimac.player.GrimPlayer;
 public class FireworkData {
     public long creationTime;
     public long destroyTime = Long.MAX_VALUE;
-    GrimPlayer grimPlayer;
+    GrimPlayer player;
 
-    public FireworkData(GrimPlayer grimPlayer) {
-        this.grimPlayer = grimPlayer;
-        this.creationTime = grimPlayer.lastTransactionReceived;
+    public FireworkData(GrimPlayer player) {
+        this.player = player;
+        this.creationTime = player.lastTransactionReceived;
     }
 
     public void setDestroyed() {
-        this.destroyTime = grimPlayer.lastTransactionSent.get();
+        this.destroyTime = player.lastTransactionSent.get();
     }
 }

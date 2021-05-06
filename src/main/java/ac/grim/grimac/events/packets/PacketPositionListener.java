@@ -23,47 +23,47 @@ public class PacketPositionListener extends PacketListenerDynamic {
 
         if (packetID == PacketType.Play.Client.POSITION) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
-            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), grimPlayer.xRot, grimPlayer.yRot, position.isOnGround()));
+            MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot, position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
-            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(grimPlayer, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
+            MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
         // For movement predictions the look just loses us precision, it can be helpful for timer checks but ultimately it's useless for predictions
         /*if (packetID == PacketType.Play.Client.LOOK) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
-            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), grimPlayer.x, grimPlayer.y, grimPlayer.z, position.getYaw(), position.getPitch(), position.isOnGround()));
         }*/
 
         if (packetID == PacketType.Play.Client.FLYING) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
-            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), grimPlayer.x, grimPlayer.y, grimPlayer.z, grimPlayer.xRot, grimPlayer.yRot, position.isOnGround()));
+            MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), player.x, player.y, player.z, player.xRot, player.yRot, position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.STEER_VEHICLE) {
             WrappedPacketInSteerVehicle steer = new WrappedPacketInSteerVehicle(event.getNMSPacket());
-            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            grimPlayer.packetVehicleForward = steer.getForwardValue();
-            grimPlayer.packetVehicleHorizontal = steer.getSideValue();
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            player.packetVehicleForward = steer.getForwardValue();
+            player.packetVehicleHorizontal = steer.getSideValue();
 
             //Bukkit.broadcastMessage("Steer vehicle " + steer.getSideValue() + " and " + steer.getForwardValue());
         }
 
         if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
             WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
-            GrimPlayer grimPlayer = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(grimPlayer, move.getX(), move.getY(), move.getZ(), move.getYaw(), move.getPitch()));
+            MovementCheckRunner.addQueuedPrediction(new PredictionData(player, move.getX(), move.getY(), move.getZ(), move.getYaw(), move.getPitch()));
             //Bukkit.broadcastMessage("Move " + move.getX() + " " + move.getY() + " " + move.getZ());
         }
     }

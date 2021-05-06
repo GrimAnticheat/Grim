@@ -52,100 +52,100 @@ public class MovementCheckRunner implements Listener {
     public static void addQueuedPrediction(PredictionData data) {
         // TODO: This is a hack that should be fixed - maybe
         // This allows animal movement packets to also go through this system
-        TimerCheck.processMovementPacket(data.grimPlayer);
+        TimerCheck.processMovementPacket(data.player);
 
-        if (data.grimPlayer.tasksNotFinished.getAndIncrement() == 0) {
+        if (data.player.tasksNotFinished.getAndIncrement() == 0) {
             executor.submit(() -> check(data));
         } else {
-            queuedPredictions.get(data.grimPlayer.playerUUID).add(data);
+            queuedPredictions.get(data.player.playerUUID).add(data);
         }
     }
     public static void check(PredictionData data) {
-        GrimPlayer grimPlayer = data.grimPlayer;
+        GrimPlayer player = data.player;
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
         try {
-            grimPlayer.x = data.playerX;
-            grimPlayer.y = data.playerY;
-            grimPlayer.z = data.playerZ;
-            grimPlayer.xRot = data.xRot;
-            grimPlayer.yRot = data.yRot;
-            grimPlayer.onGround = data.onGround;
-            grimPlayer.lastSprinting = grimPlayer.isSprinting;
-            grimPlayer.wasFlying = grimPlayer.isFlying;
-            grimPlayer.isSprinting = data.isSprinting;
-            grimPlayer.wasSneaking = grimPlayer.isSneaking;
-            grimPlayer.isSneaking = data.isSneaking;
-            grimPlayer.specialFlying = grimPlayer.onGround && !data.isFlying && grimPlayer.isFlying || data.isFlying;
-            grimPlayer.isFlying = data.isFlying;
-            grimPlayer.isClimbing = data.isClimbing;
-            grimPlayer.isFallFlying = data.isFallFlying;
-            grimPlayer.playerWorld = data.playerWorld;
-            grimPlayer.fallDistance = data.fallDistance;
+            player.x = data.playerX;
+            player.y = data.playerY;
+            player.z = data.playerZ;
+            player.xRot = data.xRot;
+            player.yRot = data.yRot;
+            player.onGround = data.onGround;
+            player.lastSprinting = player.isSprinting;
+            player.wasFlying = player.isFlying;
+            player.isSprinting = data.isSprinting;
+            player.wasSneaking = player.isSneaking;
+            player.isSneaking = data.isSneaking;
+            player.specialFlying = player.onGround && !data.isFlying && player.isFlying || data.isFlying;
+            player.isFlying = data.isFlying;
+            player.isClimbing = data.isClimbing;
+            player.isFallFlying = data.isFallFlying;
+            player.playerWorld = data.playerWorld;
+            player.fallDistance = data.fallDistance;
 
-            grimPlayer.movementSpeed = data.movementSpeed;
-            grimPlayer.jumpAmplifier = data.jumpAmplifier;
-            grimPlayer.levitationAmplifier = data.levitationAmplifier;
-            grimPlayer.flySpeed = data.flySpeed;
-            grimPlayer.inVehicle = data.inVehicle;
-            grimPlayer.playerVehicle = data.playerVehicle;
+            player.movementSpeed = data.movementSpeed;
+            player.jumpAmplifier = data.jumpAmplifier;
+            player.levitationAmplifier = data.levitationAmplifier;
+            player.flySpeed = data.flySpeed;
+            player.inVehicle = data.inVehicle;
+            player.playerVehicle = data.playerVehicle;
 
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player
-            grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
+            player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
-            if (!grimPlayer.inVehicle) {
-                grimPlayer.boundingBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
+            if (!player.inVehicle) {
+                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
 
                 // This is not affected by any movement
-                new PlayerBaseTick(grimPlayer).doBaseTick();
+                new PlayerBaseTick(player).doBaseTick();
 
                 // baseTick occurs before this
-                new MovementTickerPlayer(grimPlayer).livingEntityAIStep();
+                new MovementTickerPlayer(player).livingEntityAIStep();
 
-                //handleSkippedTicks(grimPlayer);
-            } else if (grimPlayer.playerVehicle instanceof Boat) {
+                //handleSkippedTicks(player);
+            } else if (player.playerVehicle instanceof Boat) {
 
                 // TODO: We will have to handle teleports (occurs multiple times a second due to vanilla glitchyness)
-                grimPlayer.boundingBox = GetBoundingBox.getBoatBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ);
+                player.boundingBox = GetBoundingBox.getBoatBoundingBox(player.lastX, player.lastY, player.lastZ);
 
-                BoatMovement.doBoatMovement(grimPlayer);
+                BoatMovement.doBoatMovement(player);
 
-            } else if (grimPlayer.playerVehicle instanceof AbstractHorse) {
+            } else if (player.playerVehicle instanceof AbstractHorse) {
 
-                grimPlayer.boundingBox = GetBoundingBox.getHorseBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (AbstractHorse) grimPlayer.playerVehicle);
+                player.boundingBox = GetBoundingBox.getHorseBoundingBox(player.lastX, player.lastY, player.lastZ, (AbstractHorse) player.playerVehicle);
 
-                new PlayerBaseTick(grimPlayer).doBaseTick();
-                new MovementTickerHorse(grimPlayer).livingEntityTravel();
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerHorse(player).livingEntityTravel();
 
-            } else if (grimPlayer.playerVehicle instanceof Pig) {
+            } else if (player.playerVehicle instanceof Pig) {
 
-                grimPlayer.boundingBox = GetBoundingBox.getPigBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (Pig) grimPlayer.playerVehicle);
+                player.boundingBox = GetBoundingBox.getPigBoundingBox(player.lastX, player.lastY, player.lastZ, (Pig) player.playerVehicle);
 
-                new PlayerBaseTick(grimPlayer).doBaseTick();
-                new MovementTickerPig(grimPlayer).livingEntityTravel();
-            } else if (grimPlayer.playerVehicle instanceof Strider) {
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerPig(player).livingEntityTravel();
+            } else if (player.playerVehicle instanceof Strider) {
 
-                grimPlayer.boundingBox = GetBoundingBox.getStriderBoundingBox(grimPlayer.lastX, grimPlayer.lastY, grimPlayer.lastZ, (Strider) grimPlayer.playerVehicle);
+                player.boundingBox = GetBoundingBox.getStriderBoundingBox(player.lastX, player.lastY, player.lastZ, (Strider) player.playerVehicle);
 
-                new PlayerBaseTick(grimPlayer).doBaseTick();
-                new MovementTickerStrider(grimPlayer).livingEntityTravel();
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerStrider(player).livingEntityTravel();
             }
 
 
             // Teleporting overwrites all movements
-            if (grimPlayer.isJustTeleported) {
-                grimPlayer.baseTickSetX(0);
-                grimPlayer.baseTickSetY(0);
-                grimPlayer.baseTickSetZ(0);
-                grimPlayer.predictedVelocity = new Vector();
+            if (player.isJustTeleported) {
+                player.baseTickSetX(0);
+                player.baseTickSetY(0);
+                player.baseTickSetZ(0);
+                player.predictedVelocity = new Vector();
 
-                grimPlayer.actualMovement = new Vector(grimPlayer.x - grimPlayer.lastX, grimPlayer.y - grimPlayer.lastY, grimPlayer.z - grimPlayer.lastZ);
+                player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
             }
 
 
             ChatColor color;
-            double diff = grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement);
+            double diff = player.predictedVelocity.distance(player.actualMovement);
 
             if (diff < 0.01) {
                 color = ChatColor.GREEN;
@@ -155,40 +155,40 @@ public class MovementCheckRunner implements Listener {
                 color = ChatColor.RED;
             }
 
-            grimPlayer.bukkitPlayer.sendMessage("P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
-            grimPlayer.bukkitPlayer.sendMessage("A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
-            grimPlayer.bukkitPlayer.sendMessage("O:" + color + grimPlayer.predictedVelocity.distance(grimPlayer.actualMovement));
+            player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.getX() + " " + player.predictedVelocity.getY() + " " + player.predictedVelocity.getZ());
+            player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
+            player.bukkitPlayer.sendMessage("O:" + color + player.predictedVelocity.distance(player.actualMovement));
 
-            GrimAC.plugin.getLogger().info(grimPlayer.x + " " + grimPlayer.y + " " + grimPlayer.z);
-            GrimAC.plugin.getLogger().info(grimPlayer.lastX + " " + grimPlayer.lastY + " " + grimPlayer.lastZ);
-            GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "P: " + color + grimPlayer.predictedVelocity.getX() + " " + grimPlayer.predictedVelocity.getY() + " " + grimPlayer.predictedVelocity.getZ());
-            GrimAC.plugin.getLogger().info(grimPlayer.bukkitPlayer.getName() + "A: " + color + grimPlayer.actualMovement.getX() + " " + grimPlayer.actualMovement.getY() + " " + grimPlayer.actualMovement.getZ());
+            GrimAC.plugin.getLogger().info(player.x + " " + player.y + " " + player.z);
+            GrimAC.plugin.getLogger().info(player.lastX + " " + player.lastY + " " + player.lastZ);
+            GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.getX() + " " + player.predictedVelocity.getY() + " " + player.predictedVelocity.getZ());
+            GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
 
 
-            //Bukkit.broadcastMessage("O: " + color + (grimPlayer.predictedVelocity.getX() - +grimPlayer.actualMovement.getX()) + " " + (grimPlayer.predictedVelocity.getY() - grimPlayer.actualMovement.getY()) + " " + (grimPlayer.predictedVelocity.getZ() - grimPlayer.actualMovement.getZ()));
+            //Bukkit.broadcastMessage("O: " + color + (player.predictedVelocity.getX() - +player.actualMovement.getX()) + " " + (player.predictedVelocity.getY() - player.actualMovement.getY()) + " " + (player.predictedVelocity.getZ() - player.actualMovement.getZ()));
 
         } catch (Exception e) {
             e.printStackTrace();
 
             // Fail open
-            grimPlayer.clientVelocity = grimPlayer.actualMovement.clone();
+            player.clientVelocity = player.actualMovement.clone();
         }
 
-        grimPlayer.lastX = grimPlayer.x;
-        grimPlayer.lastY = grimPlayer.y;
-        grimPlayer.lastZ = grimPlayer.z;
-        grimPlayer.lastXRot = grimPlayer.xRot;
-        grimPlayer.lastYRot = grimPlayer.yRot;
-        grimPlayer.lastOnGround = grimPlayer.onGround;
-        grimPlayer.lastClimbing = grimPlayer.isClimbing;
-        grimPlayer.isJustTeleported = false;
-        grimPlayer.lastTransactionReceived = grimPlayer.packetLastTransactionReceived;
+        player.lastX = player.x;
+        player.lastY = player.y;
+        player.lastZ = player.z;
+        player.lastXRot = player.xRot;
+        player.lastYRot = player.yRot;
+        player.lastOnGround = player.onGround;
+        player.lastClimbing = player.isClimbing;
+        player.isJustTeleported = false;
+        player.lastTransactionReceived = player.packetLastTransactionReceived;
 
 
-        grimPlayer.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
-        grimPlayer.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
+        player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
+        player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
 
-        if (grimPlayer.tasksNotFinished.getAndDecrement() > 1) {
+        if (player.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;
 
             // We KNOW that there is data in the queue
@@ -199,7 +199,7 @@ public class MovementCheckRunner implements Listener {
             // In reality this should never occur, and if it does it should only happen once.
             // In theory it's good to design an asynchronous system that can never break
             do {
-                nextData = queuedPredictions.get(data.grimPlayer.playerUUID).poll();
+                nextData = queuedPredictions.get(data.player.playerUUID).poll();
             } while (nextData == null);
 
             PredictionData finalNextData = nextData;

@@ -6,22 +6,22 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 public class TimerCheck extends Check {
-    public static void processMovementPacket(GrimPlayer grimPlayer) {
+    public static void processMovementPacket(GrimPlayer player) {
         // TODO: If the packet is the position reminder, increment by 20 instead of 1
 
         // lastTransactionReceived should use real time but as a proof of concept this is easier
-        int lastTransactionReceived = grimPlayer.lastTransactionReceived;
-        int lastTransactionSent = grimPlayer.lastTransactionSent.get();
+        int lastTransactionReceived = player.lastTransactionReceived;
+        int lastTransactionSent = player.lastTransactionSent.get();
 
-        grimPlayer.timerTransaction++;
+        player.timerTransaction++;
 
-        if (grimPlayer.timerTransaction > lastTransactionSent + 1) {
-            Bukkit.broadcastMessage(ChatColor.RED + grimPlayer.bukkitPlayer.getName() + " is using timer!");
+        if (player.timerTransaction > lastTransactionSent + 1) {
+            Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");
 
             // Reset violation for debugging purposes
-            grimPlayer.timerTransaction = Math.min(grimPlayer.timerTransaction, lastTransactionReceived);
+            player.timerTransaction = Math.min(player.timerTransaction, lastTransactionReceived);
         }
 
-        grimPlayer.timerTransaction = Math.max(grimPlayer.timerTransaction, lastTransactionReceived);
+        player.timerTransaction = Math.max(player.timerTransaction, lastTransactionReceived);
     }
 }

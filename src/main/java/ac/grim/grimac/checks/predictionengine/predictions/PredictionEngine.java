@@ -20,12 +20,12 @@ import java.util.Set;
 
 public abstract class PredictionEngine {
 
-    public static Vector getBestPossiblePlayerInput(GrimPlayer grimPlayer, Vector theoreticalInput) {
+    public static Vector getBestPossiblePlayerInput(GrimPlayer player, Vector theoreticalInput) {
         float bestPossibleX;
         float bestPossibleZ;
 
         // We save the slow movement status as it's easier and takes less CPU than recalculating it with newly stored old values
-        if (grimPlayer.isSlowMovement) {
+        if (player.isSlowMovement) {
             bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
             bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
         } else {
@@ -53,34 +53,34 @@ public abstract class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    public void guessBestMovement(float speed, GrimPlayer grimPlayer) {
-        grimPlayer.speed = speed;
+    public void guessBestMovement(float speed, GrimPlayer player) {
+        player.speed = speed;
         double bestInput = Double.MAX_VALUE;
 
-        List<VectorData> possibleVelocities = multiplyPossibilitiesByInputs(grimPlayer, fetchPossibleInputs(grimPlayer), speed);
+        List<VectorData> possibleVelocities = multiplyPossibilitiesByInputs(player, fetchPossibleInputs(player), speed);
 
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
-        possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a.vector, b.vector, grimPlayer));
+        possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a.vector, b.vector, player));
 
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
-        grimPlayer.couldSkipTick = false;
-        if (grimPlayer.onGround) {
-            possibleVelocities.forEach((a) -> grimPlayer.couldSkipTick = grimPlayer.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 9.0E-4D);
+        player.couldSkipTick = false;
+        if (player.onGround) {
+            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 9.0E-4D);
         } else {
-            possibleVelocities.forEach((a) -> grimPlayer.couldSkipTick = grimPlayer.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getY() * a.vector.getY() + a.vector.getZ() + a.vector.getZ() < 9.0E-4D);
+            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getY() * a.vector.getY() + a.vector.getZ() + a.vector.getZ() < 9.0E-4D);
         }
 
         VectorData bestCollisionVel = null;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
             // TODO: Player inputs should most likely be done before maybeBackOffOfEdge
-            Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, MoverType.SELF, grimPlayer);
-            Vector outputVel = Collisions.collide(grimPlayer, backOff.getX(), backOff.getY(), backOff.getZ());
-            double resultAccuracy = outputVel.distance(grimPlayer.actualMovement);
+            Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, MoverType.SELF, player);
+            Vector outputVel = Collisions.collide(player, backOff.getX(), backOff.getY(), backOff.getZ());
+            double resultAccuracy = outputVel.distance(player.actualMovement);
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
-                grimPlayer.clientVelocity = backOff.clone();
+                player.clientVelocity = backOff.clone();
                 bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput.vectorType);
 
                 // Optimization - Close enough, other inputs won't get closer
@@ -88,15 +88,15 @@ public abstract class PredictionEngine {
             }
         }
 
-        new MovementTickerPlayer(grimPlayer).move(MoverType.SELF, grimPlayer.clientVelocity, bestCollisionVel.vector);
-        grimPlayer.predictedVelocity = bestCollisionVel.vector.clone();
-        endOfTick(grimPlayer, grimPlayer.gravity, grimPlayer.friction);
+        new MovementTickerPlayer(player).move(MoverType.SELF, player.clientVelocity, bestCollisionVel.vector);
+        player.predictedVelocity = bestCollisionVel.vector.clone();
+        endOfTick(player, player.gravity, player.friction);
     }
 
-    public int compareDistanceToActualMovement(Vector a, Vector b, GrimPlayer grimPlayer) {
-        double x = grimPlayer.actualMovement.getX();
-        double y = grimPlayer.actualMovement.getY();
-        double z = grimPlayer.actualMovement.getZ();
+    public int compareDistanceToActualMovement(Vector a, Vector b, GrimPlayer player) {
+        double x = player.actualMovement.getX();
+        double y = player.actualMovement.getY();
+        double z = player.actualMovement.getZ();
 
         // Weight y distance heavily to avoid jumping when we shouldn't be jumping, as it affects later ticks.
         double distance1 = Math.pow(a.getX() - x, 2) + Math.pow(a.getY() - y, 2) * 5 + Math.pow(a.getZ() - z, 2);
@@ -110,50 +110,50 @@ public abstract class PredictionEngine {
         return -1;
     }
 
-    public void addJumpsToPossibilities(GrimPlayer grimPlayer, Set<VectorData> existingVelocities) {
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         // TODO: Make sure the player is actually on the ground
         // TODO: Add check to stop players from jumping more than once every 10 ticks
 
         //for (Vector vector : existingVelocities) {
-        //    existingVelocities.add(handleSwimJump(grimPlayer, vector));
+        //    existingVelocities.add(handleSwimJump(player, vector));
         //}
 
         // Clone to stop ConcurrentModificationException
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             Vector clonedVector = vector.vector.clone();
-            doJump(grimPlayer, vector.vector);
+            doJump(player, vector.vector);
             existingVelocities.add(new VectorData(clonedVector, vector.vectorType));
         }
     }
 
-    public void doJump(GrimPlayer grimPlayer, Vector vector) {
-        double d7 = grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0);
-        boolean bl = grimPlayer.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
+    public void doJump(GrimPlayer player, Vector vector) {
+        double d7 = player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : player.fluidHeight.getOrDefault(FluidTag.WATER, 0);
+        boolean bl = player.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
         double d8 = 0.4D;
 
-        if (!grimPlayer.specialFlying) {
-            if (bl && (!grimPlayer.lastOnGround || d7 > d8)) {
+        if (!player.specialFlying) {
+            if (bl && (!player.lastOnGround || d7 > d8)) {
                 vector.add(new Vector(0, 0.4, 0));
-            } else if (grimPlayer.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!grimPlayer.lastOnGround || d7 > d8)) {
+            } else if (player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!player.lastOnGround || d7 > d8)) {
                 vector.add(new Vector(0, 0.4, 0));
-            } else if ((grimPlayer.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-                JumpPower.jumpFromGround(grimPlayer, vector);
+            } else if ((player.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
+                JumpPower.jumpFromGround(player, vector);
             }
         } else {
-            vector.add(new Vector(0, grimPlayer.flySpeed * 3, 0));
+            vector.add(new Vector(0, player.flySpeed * 3, 0));
         }
     }
 
-    public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer grimPlayer, Set<VectorData> possibleVectors, float speed) {
+    public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         // Stop omni-sprint
         // Optimization - Also cuts down needed possible inputs by 2/3
-        int zMin = grimPlayer.isSprinting ? 1 : -1;
+        int zMin = player.isSprinting ? 1 : -1;
         List<VectorData> returnVectors = new ArrayList<>();
 
         for (VectorData possibleLastTickOutput : possibleVectors) {
             for (int x = -1; x <= 1; x++) {
                 for (int z = zMin; z <= 1; z++) {
-                    returnVectors.add(new VectorData(handleOnClimbable(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(grimPlayer, new Vector(x, 0, z)), speed, grimPlayer.xRot)).multiply(grimPlayer.stuckSpeedMultiplier), grimPlayer), possibleLastTickOutput.vectorType));
+                    returnVectors.add(new VectorData(handleOnClimbable(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(player, new Vector(x, 0, z)), speed, player.xRot)).multiply(player.stuckSpeedMultiplier), player), possibleLastTickOutput.vectorType));
                 }
             }
         }
@@ -161,33 +161,33 @@ public abstract class PredictionEngine {
         return returnVectors;
     }
 
-    public Set<VectorData> fetchPossibleInputs(GrimPlayer grimPlayer) {
-        Set<VectorData> velocities = grimPlayer.getPossibleVelocities();
+    public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
+        Set<VectorData> velocities = player.getPossibleVelocities();
 
-        addJumpsToPossibilities(grimPlayer, velocities);
+        addJumpsToPossibilities(player, velocities);
 
         return velocities;
     }
 
-    public Vector handleOnClimbable(Vector vector, GrimPlayer grimPlayer) {
+    public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
         return vector;
     }
 
-    public void endOfTick(GrimPlayer grimPlayer, double d, float friction) {
-        grimPlayer.clientVelocitySwimHop = null;
-        if (canSwimHop(grimPlayer, grimPlayer.clientVelocity)) {
-            grimPlayer.clientVelocitySwimHop = grimPlayer.clientVelocity.clone().setY(0.3);
+    public void endOfTick(GrimPlayer player, double d, float friction) {
+        player.clientVelocitySwimHop = null;
+        if (canSwimHop(player, player.clientVelocity)) {
+            player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
         }
     }
 
-    public boolean canSwimHop(GrimPlayer grimPlayer, Vector vector) {
-        boolean canCollideHorizontally = !Collisions.isEmpty(grimPlayer, grimPlayer.boundingBox.copy().expand(0.1, -0.01, 0.1));
+    public boolean canSwimHop(GrimPlayer player, Vector vector) {
+        boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.1, -0.01, 0.1));
 
-        SimpleCollisionBox isFreeBox = GetBoundingBox.getPlayerBoundingBox(grimPlayer, grimPlayer.x, grimPlayer.y, grimPlayer.z).offset(vector.getX(), vector.getY() + 0.6 - grimPlayer.y + grimPlayer.lastY, vector.getZ());
+        SimpleCollisionBox isFreeBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).offset(vector.getX(), vector.getY() + 0.6 - player.y + player.lastY, vector.getZ());
 
-        boolean isFree = Collisions.isEmpty(grimPlayer, isFreeBox);
+        boolean isFree = Collisions.isEmpty(player, isFreeBox);
         // TODO: Can we just use .wasTouchingWater or does the < 0.03 mess it up too much.
-        boolean inWater = CachedContainsLiquid.containsLiquid(grimPlayer.boundingBox.copy().expand(0.1, 0.1, 0.1));
+        boolean inWater = CachedContainsLiquid.containsLiquid(player, player.boundingBox.copy().expand(0.1, 0.1, 0.1));
 
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava

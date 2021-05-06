@@ -11,18 +11,18 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class PlayerJoinLeaveListener implements Listener {
     @EventHandler
     public void onPlayerJoinEvent(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
-        GrimPlayer grimPlayer = new GrimPlayer(player);
-        grimPlayer.lastX = player.getLocation().getX();
-        grimPlayer.lastY = player.getLocation().getY();
-        grimPlayer.lastZ = player.getLocation().getZ();
-        grimPlayer.lastXRot = player.getLocation().getYaw();
-        grimPlayer.lastYRot = player.getLocation().getPitch();
-        grimPlayer.x = player.getLocation().getX();
-        grimPlayer.y = player.getLocation().getY();
-        grimPlayer.z = player.getLocation().getZ();
-        grimPlayer.xRot = player.getLocation().getYaw();
-        grimPlayer.yRot = player.getLocation().getPitch();
+        Player bukkitPlayer = event.getPlayer();
+        GrimPlayer player = new GrimPlayer(bukkitPlayer);
+        player.lastX = bukkitPlayer.getLocation().getX();
+        player.lastY = bukkitPlayer.getLocation().getY();
+        player.lastZ = bukkitPlayer.getLocation().getZ();
+        player.lastXRot = bukkitPlayer.getLocation().getYaw();
+        player.lastYRot = bukkitPlayer.getLocation().getPitch();
+        player.x = bukkitPlayer.getLocation().getX();
+        player.y = bukkitPlayer.getLocation().getY();
+        player.z = bukkitPlayer.getLocation().getZ();
+        player.xRot = bukkitPlayer.getLocation().getYaw();
+        player.yRot = bukkitPlayer.getLocation().getPitch();
 
         GrimAC.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
     }

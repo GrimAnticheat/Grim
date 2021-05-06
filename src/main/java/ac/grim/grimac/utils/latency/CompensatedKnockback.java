@@ -14,14 +14,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CompensatedKnockback {
     ConcurrentHashMap<Integer, ConcurrentList<Vector>> requiredKnockback = new ConcurrentHashMap<>();
     ConcurrentHashMap<Integer, ConcurrentList<Vector>> optionalKnockback = new ConcurrentHashMap<>();
-    GrimPlayer grimPlayer;
+    GrimPlayer player;
 
-    public CompensatedKnockback(GrimPlayer grimPlayer) {
-        this.grimPlayer = grimPlayer;
+    public CompensatedKnockback(GrimPlayer player) {
+        this.player = player;
     }
 
     public void addPlayerKnockback(Vector knockback) {
-        int lastTransactionSent = grimPlayer.lastTransactionSent.get();
+        int lastTransactionSent = player.lastTransactionSent.get();
 
         if (!requiredKnockback.containsKey(lastTransactionSent)) {
             requiredKnockback.put(lastTransactionSent, new ConcurrentList<>());
@@ -44,7 +44,7 @@ public class CompensatedKnockback {
             // 20 is minimum ticks per movement packet
             if (knockback.getKey() - 20 > lastTransactionReceived) continue;
 
-            if (knockback.getKey() < grimPlayer.lastTransactionReceived) {
+            if (knockback.getKey() < player.lastTransactionReceived) {
                 Bukkit.broadcastMessage("Player ignored kb!");
                 iterator.remove();
                 continue;

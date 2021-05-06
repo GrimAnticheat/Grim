@@ -1,6 +1,9 @@
-package ac.grim.grimac.utils.chunks;
+package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.chunks.ChunkUtils;
+import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import net.minecraft.server.v1_16_R3.Block;
@@ -20,21 +23,27 @@ import java.io.InputStreamReader;
 import java.util.Objects;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
-public class ChunkCache {
+public class CompensatedWorld {
     public static final int JAVA_AIR_ID = 0;
     private static final int MIN_WORLD_HEIGHT = 0;
     private static final int MAX_WORLD_HEIGHT = 255;
-    private static final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
+    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
     private static final Material flattenedLava = Material.LAVA;
     public static BlockData[] globalPaletteToBlockData = new BlockData[Block.REGISTRY_ID.a()];
 
-    public static void addToCache(Column chunk, int chunkX, int chunkZ) {
+    private final GrimPlayer player;
+
+    public CompensatedWorld(GrimPlayer player) {
+        this.player = player;
+    }
+
+    public void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
 
         chunks.put(chunkPosition, chunk);
     }
 
-    public static void updateBlock(int x, int y, int z, int block) {
+    public void updateBlock(int x, int y, int z, int block) {
         Column column = getChunk(x >> 4, z >> 4);
 
         try {
@@ -47,16 +56,16 @@ public class ChunkCache {
         }
     }
 
-    public static Column getChunk(int chunkX, int chunkZ) {
+    public Column getChunk(int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
         return chunks.getOrDefault(chunkPosition, null);
     }
 
-    public static BlockData getBukkitBlockDataAt(double x, double y, double z) {
+    public BlockData getBukkitBlockDataAt(double x, double y, double z) {
         return getBukkitBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
-    public static BlockData getBukkitBlockDataAt(int x, int y, int z) {
+    public BlockData getBukkitBlockDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
         if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return globalPaletteToBlockData[JAVA_AIR_ID];
@@ -74,7 +83,7 @@ public class ChunkCache {
         return globalPaletteToBlockData[JAVA_AIR_ID];
     }
 
-    public static IBlockData getBlockDataAt(int x, int y, int z) {
+    public IBlockData getBlockDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
         if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return Block.getByCombinedId(JAVA_AIR_ID);
@@ -92,7 +101,7 @@ public class ChunkCache {
         return Block.getByCombinedId(JAVA_AIR_ID);
     }
 
-    public static int getBlockAt(int x, int y, int z) {
+    public int getBlockAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
         try {
@@ -107,16 +116,16 @@ public class ChunkCache {
         return JAVA_AIR_ID;
     }
 
-    public static double getFluidLevelAt(double x, double y, double z) {
+    public double getFluidLevelAt(double x, double y, double z) {
         return getFluidLevelAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
-    public static double getFluidLevelAt(int x, int y, int z) {
+    public double getFluidLevelAt(int x, int y, int z) {
         return Math.max(getWaterFluidLevelAt(x, y, z), getLavaFluidLevelAt(x, y, z));
     }
 
     // 1.13+ only
-    public static double getLavaFluidLevelAt(int x, int y, int z) {
+    public double getLavaFluidLevelAt(int x, int y, int z) {
         BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
 
         if (bukkitBlock.getMaterial() == flattenedLava) {
@@ -142,7 +151,7 @@ public class ChunkCache {
     // Even on debug mode, they still can't go above level 8
     // Must have been an optimization that is no longer used
     // Doesn't work on 1.12
-    public static double getWaterFluidLevelAt(int x, int y, int z) {
+    public double getWaterFluidLevelAt(int x, int y, int z) {
         BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
 
         if (bukkitBlock.getMaterial() == Material.SEAGRASS || bukkitBlock.getMaterial() == Material.TALL_SEAGRASS
@@ -183,7 +192,7 @@ public class ChunkCache {
         return 0;
     }
 
-    public static boolean isWaterSourceBlock(int x, int y, int z) {
+    public boolean isWaterSourceBlock(int x, int y, int z) {
         BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
         if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == Material.WATER) {
             return ((Levelled) bukkitBlock).getLevel() == 0;
@@ -195,7 +204,7 @@ public class ChunkCache {
                 bukkitBlock.getMaterial() == Material.BUBBLE_COLUMN;
     }
 
-    public static void removeChunk(int chunkX, int chunkZ) {
+    public void removeChunk(int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
     }

@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.FluidTag;
@@ -123,16 +122,16 @@ public class PlayerBaseTick {
             return;
         }
 
-        BlockData eyeFluid = ChunkCache.getBukkitBlockDataAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+        BlockData eyeFluid = player.compensatedWorld.getBukkitBlockDataAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
 
         // TODO: Support 1.12 with Material.STATIONARY_WATER
         if (eyeFluid.getMaterial() == org.bukkit.Material.WATER) {
-            double d1 = (float) Math.floor(d0) + ChunkCache.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+            double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
             if (d1 > d0) {
                 player.fluidOnEyes = FluidTag.WATER;
             }
         } else if (eyeFluid.getMaterial() == org.bukkit.Material.LAVA) {
-            double d1 = (float) Math.floor(d0) + ChunkCache.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+            double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
             if (d1 > d0) {
                 player.fluidOnEyes = FluidTag.LAVA;
             }
@@ -196,7 +195,7 @@ public class PlayerBaseTick {
         int n5 = Mth.ceil(aABB.maxY);
         int n6 = Mth.floor(aABB.minZ);
         int n = Mth.ceil(aABB.maxZ);
-        if (!CheckIfChunksLoaded.hasChunksAt(n2, n4, n6, n3, n5, n)) {
+        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, n2, n4, n6, n3, n5, n)) {
             return false;
         }
         double d2 = 0.0;
@@ -213,9 +212,9 @@ public class PlayerBaseTick {
 
                     double fluidHeight;
                     if (tag == FluidTag.WATER) {
-                        fluidHeight = ChunkCache.getWaterFluidLevelAt(i, j, k);
+                        fluidHeight = player.compensatedWorld.getWaterFluidLevelAt(i, j, k);
                     } else {
-                        fluidHeight = ChunkCache.getLavaFluidLevelAt(i, j, k);
+                        fluidHeight = player.compensatedWorld.getLavaFluidLevelAt(i, j, k);
                     }
 
                     if (fluidHeight == 0 || (d3 = (float) j + fluidHeight) < aABB.minY)
@@ -225,7 +224,7 @@ public class PlayerBaseTick {
                     d2 = Math.max(d3 - aABB.minY, d2);
 
                     if (!player.specialFlying) {
-                        Vec3D vec32 = FluidTypeFlowing.getFlow(mutableBlockPos, ChunkCache.getBlockDataAt(i, j, k).getFluid());
+                        Vec3D vec32 = FluidTypeFlowing.getFlow(player, mutableBlockPos, player.compensatedWorld.getBlockDataAt(i, j, k).getFluid());
                         if (d2 < 0.4) {
                             vec32 = vec32.a(d2);
                         }

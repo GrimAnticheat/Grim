@@ -1,9 +1,9 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
-import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.player.GrimPlayer;
 
 public class CheckIfChunksLoaded {
-    public static boolean hasChunksAt(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    public static boolean isChunksUnloadedAt(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         if (maxY >= 0 && minY < 256) {
             minX = minX >> 4;
             minZ = minZ >> 4;
@@ -12,15 +12,15 @@ public class CheckIfChunksLoaded {
 
             for (int i = minX; i <= maxX; ++i) {
                 for (int j = minZ; j <= maxZ; ++j) {
-                    if (ChunkCache.getChunk(i, j) == null) {
-                        return false;
+                    if (player.compensatedWorld.getChunk(i, j) == null) {
+                        return true;
                     }
                 }
             }
 
-            return true;
-        } else {
             return false;
+        } else {
+            return true;
         }
     }
 }

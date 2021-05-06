@@ -11,10 +11,10 @@ import static ac.grim.grimac.checks.predictionengine.predictions.PredictionEngin
 public class MovementTickerLivingVehicle extends MovementTicker {
     Vector movementInput;
 
-    public MovementTickerLivingVehicle(GrimPlayer grimPlayer) {
-        super(grimPlayer);
+    public MovementTickerLivingVehicle(GrimPlayer player) {
+        super(player);
 
-        grimPlayer.clientVelocity.multiply(0.98);
+        player.clientVelocity.multiply(0.98);
     }
 
     @Override

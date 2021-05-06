@@ -5,9 +5,9 @@ import org.bukkit.util.Vector;
 
 public class FluidFallingAdjustedMovement {
     // LivingEntity line 1882
-    public static Vector getFluidFallingAdjustedMovement(GrimPlayer grimPlayer, double d, boolean bl, Vector vec3) {
+    public static Vector getFluidFallingAdjustedMovement(GrimPlayer player, double d, boolean bl, Vector vec3) {
         // Removed gravity reference because players always have gravity
-        if (!grimPlayer.isSprinting) {
+        if (!player.isSprinting) {
             double d2 = bl && Math.abs(vec3.getY() - 0.005) >= 0.003 && Math.abs(vec3.getY() - d / 16.0) < 0.003 ? -0.003 : vec3.getY() - d / 16.0;
             return new Vector(vec3.getX(), d2, vec3.getZ());
         }

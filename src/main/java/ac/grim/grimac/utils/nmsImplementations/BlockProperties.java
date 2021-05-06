@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.chunks.ChunkCache;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -38,7 +37,7 @@ public class BlockProperties {
     public static float getBlockFriction(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
-        Material material = ChunkCache.getBukkitBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getMaterial();
+        Material material = player.compensatedWorld.getBukkitBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getMaterial();
 
         float friction = 0.6f;
 
@@ -54,20 +53,20 @@ public class BlockProperties {
         return friction;
     }
 
-    public static float getFrictionInfluencedSpeed(float f, GrimPlayer grimPlayer) {
-        //Player bukkitPlayer = grimPlayer.bukkitPlayer;
+    public static float getFrictionInfluencedSpeed(float f, GrimPlayer player) {
+        //Player bukkitPlayer = player.bukkitPlayer;
 
         // Use base value because otherwise it isn't async safe.
         // Well, more async safe, still isn't 100% safe.
-        if (grimPlayer.lastOnGround) {
-            return (float) (grimPlayer.movementSpeed * (0.21600002f / (f * f * f)));
+        if (player.lastOnGround) {
+            return (float) (player.movementSpeed * (0.21600002f / (f * f * f)));
         }
 
-        if (grimPlayer.specialFlying) {
-            return grimPlayer.flySpeed * 20 * (grimPlayer.isSprinting ? 0.1f : 0.05f);
+        if (player.specialFlying) {
+            return player.flySpeed * 20 * (player.isSprinting ? 0.1f : 0.05f);
 
         } else {
-            if (grimPlayer.isSprinting) {
+            if (player.isSprinting) {
                 return 0.026f;
             } else {
                 return 0.02f;
@@ -76,11 +75,11 @@ public class BlockProperties {
     }
 
     // Entity line 617
-    public static BlockData getOnBlock(Location getBlockLocation) {
-        BlockData block1 = ChunkCache.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
+    public static BlockData getOnBlock(GrimPlayer player, Location getBlockLocation) {
+        BlockData block1 = player.compensatedWorld.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
 
         if (block1.getMaterial().isAir()) {
-            BlockData block2 = ChunkCache.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
+            BlockData block2 = player.compensatedWorld.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
 
             if (block2 instanceof Fence || block2 instanceof Wall || block2 instanceof Gate) {
                 return block2;
@@ -94,7 +93,7 @@ public class BlockProperties {
     public static float getBlockSpeedFactor(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
-        Material block = ChunkCache.getBukkitBlockDataAt(player.x, player.y, player.z).getMaterial();
+        Material block = player.compensatedWorld.getBukkitBlockDataAt(player.x, player.y, player.z).getMaterial();
 
         if (block == soulSand) {
             if (player.bukkitPlayer.getInventory().getBoots() != null && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
@@ -111,7 +110,7 @@ public class BlockProperties {
         }
 
         if (f == 1.0) {
-            Material block2 = ChunkCache.getBukkitBlockDataAt(player.x, player.y - 0.5000001, player.z).getMaterial();
+            Material block2 = player.compensatedWorld.getBukkitBlockDataAt(player.x, player.y - 0.5000001, player.z).getMaterial();
             if (block2 == honeyBlock) return 0.4F;
             if (block2 == soulSand) return 0.4F;
             return 1.0f;

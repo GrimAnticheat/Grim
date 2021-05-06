@@ -11,15 +11,15 @@ public class CompensatedFireworks {
     // Be concurrent to support async/multithreaded entity tracker
     ConcurrentHashMap<Integer, FireworkData> lagCompensatedFireworksMap = new ConcurrentHashMap<>();
     boolean canPlayerFly;
-    GrimPlayer grimPlayer;
+    GrimPlayer player;
 
-    public CompensatedFireworks(GrimPlayer grimPlayer) {
-        this.grimPlayer = grimPlayer;
-        this.canPlayerFly = grimPlayer.bukkitPlayer.getAllowFlight();
+    public CompensatedFireworks(GrimPlayer player) {
+        this.player = player;
+        this.canPlayerFly = player.bukkitPlayer.getAllowFlight();
     }
 
     public void addNewFirework(int entityID) {
-        lagCompensatedFireworksMap.put(entityID, new FireworkData(grimPlayer));
+        lagCompensatedFireworksMap.put(entityID, new FireworkData(player));
     }
 
     public void removeFirework(int entityID) {
@@ -30,7 +30,7 @@ public class CompensatedFireworks {
     }
 
     public int getMaxFireworksAppliedPossible() {
-        int lastTransactionReceived = grimPlayer.lastTransactionReceived;
+        int lastTransactionReceived = player.lastTransactionReceived;
         int fireworks = 0;
 
         Iterator<Map.Entry<Integer, FireworkData>> iterator = lagCompensatedFireworksMap.entrySet().iterator();

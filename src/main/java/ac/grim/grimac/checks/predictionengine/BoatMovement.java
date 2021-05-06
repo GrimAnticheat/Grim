@@ -2,7 +2,6 @@ package ac.grim.grimac.checks.predictionengine;
 
 import ac.grim.grimac.checks.predictionengine.movementTick.MovementTicker;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.chunks.ChunkCache;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
@@ -17,108 +16,108 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 public class BoatMovement {
-    public static void doBoatMovement(GrimPlayer grimPlayer) {
+    public static void doBoatMovement(GrimPlayer player) {
         // This does stuff like getting the boat's movement on the water
-        new PlayerBaseTick(grimPlayer).doBaseTick();
+        new PlayerBaseTick(player).doBaseTick();
 
-        grimPlayer.boatData.oldStatus = grimPlayer.boatData.status;
-        grimPlayer.boatData.status = getStatus(grimPlayer);
+        player.boatData.oldStatus = player.boatData.status;
+        player.boatData.status = getStatus(player);
 
-        floatBoat(grimPlayer);
+        floatBoat(player);
 
-        controlBoat(grimPlayer);
+        controlBoat(player);
 
 
-        new MovementTicker(grimPlayer).move(MoverType.SELF, grimPlayer.clientVelocity);
-        grimPlayer.predictedVelocity.add(new Vector(0, grimPlayer.boatData.midTickY, 0));
-        Collisions.handleInsideBlocks(grimPlayer);
+        new MovementTicker(player).move(MoverType.SELF, player.clientVelocity);
+        player.predictedVelocity.add(new Vector(0, player.boatData.midTickY, 0));
+        Collisions.handleInsideBlocks(player);
 
-        grimPlayer.boatData.midTickY = 0;
+        player.boatData.midTickY = 0;
     }
 
-    private static void floatBoat(GrimPlayer grimPlayer) {
+    private static void floatBoat(GrimPlayer player) {
         double d0 = -0.04F;
-        double d1 = grimPlayer.playerVehicle.hasGravity() ? (double) -0.04F : 0.0D;
+        double d1 = player.playerVehicle.hasGravity() ? (double) -0.04F : 0.0D;
         double d2 = 0.0D;
         float invFriction = 0.05F;
-        if (grimPlayer.boatData.oldStatus == BoatEntityStatus.IN_AIR && grimPlayer.boatData.status != BoatEntityStatus.IN_AIR && grimPlayer.boatData.status != BoatEntityStatus.ON_LAND) {
-            grimPlayer.boatData.waterLevel = grimPlayer.lastY + grimPlayer.boundingBox.maxY - grimPlayer.boundingBox.minY;
+        if (player.boatData.oldStatus == BoatEntityStatus.IN_AIR && player.boatData.status != BoatEntityStatus.IN_AIR && player.boatData.status != BoatEntityStatus.ON_LAND) {
+            player.boatData.waterLevel = player.lastY + player.boundingBox.maxY - player.boundingBox.minY;
 
-            grimPlayer.boatData.midTickY = getWaterLevelAbove(grimPlayer) - grimPlayer.boundingBox.maxY - grimPlayer.boundingBox.minY + 0.101D + grimPlayer.boundingBox.minY;
-            grimPlayer.boundingBox.offset(0, grimPlayer.boatData.midTickY, 0);
+            player.boatData.midTickY = getWaterLevelAbove(player) - player.boundingBox.maxY - player.boundingBox.minY + 0.101D + player.boundingBox.minY;
+            player.boundingBox.offset(0, player.boatData.midTickY, 0);
 
 
-            grimPlayer.clientVelocity.setY(0);
+            player.clientVelocity.setY(0);
 
-            grimPlayer.boatData.lastYd = 0.0D;
-            grimPlayer.boatData.status = BoatEntityStatus.IN_WATER;
+            player.boatData.lastYd = 0.0D;
+            player.boatData.status = BoatEntityStatus.IN_WATER;
         } else {
-            if (grimPlayer.boatData.status == BoatEntityStatus.IN_WATER) {
-                d2 = (grimPlayer.boatData.waterLevel - grimPlayer.lastY) / (grimPlayer.boundingBox.maxY - grimPlayer.boundingBox.minY);
+            if (player.boatData.status == BoatEntityStatus.IN_WATER) {
+                d2 = (player.boatData.waterLevel - player.lastY) / (player.boundingBox.maxY - player.boundingBox.minY);
                 invFriction = 0.9F;
-            } else if (grimPlayer.boatData.status == BoatEntityStatus.UNDER_FLOWING_WATER) {
+            } else if (player.boatData.status == BoatEntityStatus.UNDER_FLOWING_WATER) {
                 d1 = -7.0E-4D;
                 invFriction = 0.9F;
-            } else if (grimPlayer.boatData.status == BoatEntityStatus.UNDER_WATER) {
+            } else if (player.boatData.status == BoatEntityStatus.UNDER_WATER) {
                 d2 = 0.01F;
                 invFriction = 0.45F;
-            } else if (grimPlayer.boatData.status == BoatEntityStatus.IN_AIR) {
+            } else if (player.boatData.status == BoatEntityStatus.IN_AIR) {
                 invFriction = 0.9F;
-            } else if (grimPlayer.boatData.status == BoatEntityStatus.ON_LAND) {
-                invFriction = grimPlayer.boatData.landFriction;
-                grimPlayer.boatData.landFriction /= 2.0F;
+            } else if (player.boatData.status == BoatEntityStatus.ON_LAND) {
+                invFriction = player.boatData.landFriction;
+                player.boatData.landFriction /= 2.0F;
             }
 
-            Vector vector3d = grimPlayer.clientVelocity;
-            grimPlayer.clientVelocity.setX(vector3d.getX() * invFriction);
-            grimPlayer.clientVelocity.setY(vector3d.getY() + d1);
-            grimPlayer.clientVelocity.setZ(vector3d.getZ() * invFriction);
+            Vector vector3d = player.clientVelocity;
+            player.clientVelocity.setX(vector3d.getX() * invFriction);
+            player.clientVelocity.setY(vector3d.getY() + d1);
+            player.clientVelocity.setZ(vector3d.getZ() * invFriction);
 
-            grimPlayer.boatData.deltaRotation *= invFriction;
+            player.boatData.deltaRotation *= invFriction;
             if (d2 > 0.0D) {
-                double yVel = grimPlayer.clientVelocity.getY();
-                grimPlayer.clientVelocity.setY((yVel + d2 * 0.06153846016296973D) * 0.75D);
+                double yVel = player.clientVelocity.getY();
+                player.clientVelocity.setY((yVel + d2 * 0.06153846016296973D) * 0.75D);
             }
         }
     }
 
-    private static void controlBoat(GrimPlayer grimPlayer) {
+    private static void controlBoat(GrimPlayer player) {
         float f = 0.0F;
-        if (grimPlayer.vehicleHorizontal < -0.01) {
-            --grimPlayer.boatData.deltaRotation;
+        if (player.vehicleHorizontal < -0.01) {
+            --player.boatData.deltaRotation;
         }
 
-        if (grimPlayer.vehicleHorizontal > 0.01) {
-            ++grimPlayer.boatData.deltaRotation;
+        if (player.vehicleHorizontal > 0.01) {
+            ++player.boatData.deltaRotation;
         }
 
-        if (grimPlayer.vehicleHorizontal != 0 && grimPlayer.vehicleForward == 0) {
+        if (player.vehicleHorizontal != 0 && player.vehicleForward == 0) {
             f += 0.005F;
         }
 
-        //grimPlayer.boatData.yRot += grimPlayer.boatData.deltaRotation;
-        if (grimPlayer.vehicleForward > 0.1) {
+        //player.boatData.yRot += player.boatData.deltaRotation;
+        if (player.vehicleForward > 0.1) {
             f += 0.04F;
         }
 
-        if (grimPlayer.vehicleForward < -0.01) {
+        if (player.vehicleForward < -0.01) {
             f -= 0.005F;
         }
 
-        grimPlayer.clientVelocity.add(new Vector(Mth.sin(-grimPlayer.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (Mth.cos(grimPlayer.xRot * ((float) Math.PI / 180F)) * f)));
+        player.clientVelocity.add(new Vector(Mth.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (Mth.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
     }
 
-    private static BoatEntityStatus getStatus(GrimPlayer grimPlayer) {
-        BoatEntityStatus boatentity$status = isUnderwater(grimPlayer);
+    private static BoatEntityStatus getStatus(GrimPlayer player) {
+        BoatEntityStatus boatentity$status = isUnderwater(player);
         if (boatentity$status != null) {
-            grimPlayer.boatData.waterLevel = grimPlayer.boundingBox.maxY;
+            player.boatData.waterLevel = player.boundingBox.maxY;
             return boatentity$status;
-        } else if (checkInWater(grimPlayer)) {
+        } else if (checkInWater(player)) {
             return BoatEntityStatus.IN_WATER;
         } else {
-            float f = getGroundFriction(grimPlayer);
+            float f = getGroundFriction(player);
             if (f > 0.0F) {
-                grimPlayer.boatData.landFriction = f;
+                player.boatData.landFriction = f;
                 return BoatEntityStatus.ON_LAND;
             } else {
                 return BoatEntityStatus.IN_AIR;
@@ -126,12 +125,12 @@ public class BoatMovement {
         }
     }
 
-    public static float getWaterLevelAbove(GrimPlayer grimPlayer) {
-        SimpleCollisionBox axisalignedbb = grimPlayer.boundingBox;
+    public static float getWaterLevelAbove(GrimPlayer player) {
+        SimpleCollisionBox axisalignedbb = player.boundingBox;
         int i = (int) Math.floor(axisalignedbb.minX);
         int j = (int) Math.ceil(axisalignedbb.maxX);
         int k = (int) Math.floor(axisalignedbb.maxY);
-        int l = (int) Math.ceil(axisalignedbb.maxY - grimPlayer.boatData.lastYd);
+        int l = (int) Math.ceil(axisalignedbb.maxY - player.boatData.lastYd);
         int i1 = (int) Math.floor(axisalignedbb.minZ);
         int j1 = (int) Math.ceil(axisalignedbb.maxZ);
 
@@ -141,7 +140,7 @@ public class BoatMovement {
 
             for (int l1 = i; l1 < j; ++l1) {
                 for (int i2 = i1; i2 < j1; ++i2) {
-                    double level = ChunkCache.getWaterFluidLevelAt(l1, k1, i2);
+                    double level = player.compensatedWorld.getWaterFluidLevelAt(l1, k1, i2);
 
                     f = (float) Math.max(f, level);
 
@@ -159,8 +158,8 @@ public class BoatMovement {
         return (float) (l + 1);
     }
 
-    private static BoatEntityStatus isUnderwater(GrimPlayer grimPlayer) {
-        SimpleCollisionBox axisalignedbb = grimPlayer.boundingBox;
+    private static BoatEntityStatus isUnderwater(GrimPlayer player) {
+        SimpleCollisionBox axisalignedbb = player.boundingBox;
         double d0 = axisalignedbb.maxY + 0.001D;
         int i = Mth.floor(axisalignedbb.minX);
         int j = Mth.ceil(axisalignedbb.maxX);
@@ -173,9 +172,9 @@ public class BoatMovement {
         for (int k1 = i; k1 < j; ++k1) {
             for (int l1 = k; l1 < l; ++l1) {
                 for (int i2 = i1; i2 < j1; ++i2) {
-                    double level = ChunkCache.getWaterFluidLevelAt(k1, l1, i2);
+                    double level = player.compensatedWorld.getWaterFluidLevelAt(k1, l1, i2);
                     if (d0 < l1 + level) {
-                        if (!ChunkCache.isWaterSourceBlock(k1, l1, i2)) {
+                        if (!player.compensatedWorld.isWaterSourceBlock(k1, l1, i2)) {
                             return BoatEntityStatus.UNDER_FLOWING_WATER;
                         }
 
@@ -202,7 +201,7 @@ public class BoatMovement {
         for (int k1 = i; k1 < j; ++k1) {
             for (int l1 = k; l1 < l; ++l1) {
                 for (int i2 = i1; i2 < j1; ++i2) {
-                    double level = ChunkCache.getWaterFluidLevelAt(k1, l1, i2);
+                    double level = grimPlayer.compensatedWorld.getWaterFluidLevelAt(k1, l1, i2);
                     if (level > 0) {
                         float f = (float) ((float) l1 + level);
                         grimPlayer.boatData.waterLevel = Math.max(f, grimPlayer.boatData.waterLevel);
@@ -215,8 +214,8 @@ public class BoatMovement {
         return flag;
     }
 
-    public static float getGroundFriction(GrimPlayer grimPlayer) {
-        SimpleCollisionBox axisalignedbb = grimPlayer.boundingBox;
+    public static float getGroundFriction(GrimPlayer player) {
+        SimpleCollisionBox axisalignedbb = player.boundingBox;
         SimpleCollisionBox axisalignedbb1 = new SimpleCollisionBox(axisalignedbb.minX, axisalignedbb.minY - 0.001D, axisalignedbb.minZ, axisalignedbb.maxX, axisalignedbb.minY, axisalignedbb.maxZ);
         int i = (int) (Math.floor(axisalignedbb1.minX) - 1);
         int j = (int) (Math.ceil(axisalignedbb1.maxX) + 1);
@@ -236,8 +235,8 @@ public class BoatMovement {
                     for (int k2 = k; k2 < l; ++k2) {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
                             mutableBlockPos.d(l1, k2, i2);
-                            IBlockData blockData = ChunkCache.getBlockDataAt(l1, k2, i2);
-                            BlockData bukkitData = ChunkCache.getBukkitBlockDataAt(l1, k2, i2);
+                            IBlockData blockData = player.compensatedWorld.getBlockDataAt(l1, k2, i2);
+                            BlockData bukkitData = player.compensatedWorld.getBukkitBlockDataAt(l1, k2, i2);
 
                             if (!(blockData.getBlock() instanceof BlockWaterLily) && CollisionData.getData(bukkitData.getMaterial()).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
                                 f += blockData.getBlock().getFrictionFactor();

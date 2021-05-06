@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.packetlib.io.NetInput;
@@ -44,6 +45,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
             // PacketPlayOutMapChunk
             Object chunk = event.getNMSPacket().getRawNMSPacket();
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
                 Field x = chunk.getClass().getDeclaredField("a");
@@ -71,7 +73,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 }
 
                 Column column = new Column(chunkX, chunkZ, chunks);
-                ChunkCache.addToCache(column, chunkX, chunkZ);
+                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
 
             } catch (NoSuchFieldException | IllegalAccessException | IOException e) {
                 e.printStackTrace();
@@ -81,6 +83,8 @@ public class PacketWorldReader extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
             // PacketPlayOutBlockChange
             Object blockChange = event.getNMSPacket().getRawNMSPacket();
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+
             try {
                 Field position = blockChange.getClass().getDeclaredField("a");
                 position.setAccessible(true);
@@ -93,7 +97,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
                 int blockID = (int) getByCombinedID.invoke(null, block.get(blockChange));
 
-                ChunkCache.updateBlock((Integer) getX.invoke(blockPosition), (Integer) getY.invoke(blockPosition), (Integer) getZ.invoke(blockPosition), blockID);
+                player.compensatedWorld.updateBlock((Integer) getX.invoke(blockPosition), (Integer) getY.invoke(blockPosition), (Integer) getZ.invoke(blockPosition), blockID);
             } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }

@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
-import ac.grim.grimac.utils.chunks.ChunkCache;
+import ac.grim.grimac.player.GrimPlayer;
 import net.minecraft.server.v1_16_R3.*;
 
 import java.util.Iterator;
@@ -8,7 +8,7 @@ import java.util.Iterator;
 import static net.minecraft.server.v1_16_R3.FluidTypeFlowing.FALLING;
 
 public class FluidTypeFlowing {
-    public static Vec3D getFlow(BlockPosition blockposition, Fluid fluid) {
+    public static Vec3D getFlow(GrimPlayer player, BlockPosition blockposition, Fluid fluid) {
         // Only do this for flowing liquids
         if (fluid.getType() instanceof FluidTypeEmpty) return Vec3D.ORIGIN;
 
@@ -21,14 +21,14 @@ public class FluidTypeFlowing {
         while (iterator.hasNext()) {
             EnumDirection enumdirection = (EnumDirection) iterator.next();
             position.a(blockposition, enumdirection);
-            Fluid fluid1 = ChunkCache.getBlockDataAt(position.getX(), position.getY(), position.getZ()).getFluid();
+            Fluid fluid1 = player.compensatedWorld.getBlockDataAt(position.getX(), position.getY(), position.getZ()).getFluid();
             if (affectsFlow(fluid1, fluid.getType())) {
                 float f = fluid1.d(); // getOwnHeight
                 float f1 = 0.0F;
                 if (f == 0.0F) {
-                    if (!ChunkCache.getBlockDataAt(position.getX(), position.getY(), position.getZ()).getMaterial().isSolid()) {
+                    if (!player.compensatedWorld.getBlockDataAt(position.getX(), position.getY(), position.getZ()).getMaterial().isSolid()) {
                         BlockPosition blockposition1 = position.down();
-                        Fluid fluid2 = ChunkCache.getBlockDataAt(blockposition1.getX(), blockposition1.getY(), blockposition1.getZ()).getFluid();
+                        Fluid fluid2 = player.compensatedWorld.getBlockDataAt(blockposition1.getX(), blockposition1.getY(), blockposition1.getZ()).getFluid();
                         if (affectsFlow(fluid1, fluid.getType())) {
                             f = fluid2.d();
                             if (f > 0.0F) {
@@ -52,7 +52,7 @@ public class FluidTypeFlowing {
         if (fluid.get(FALLING)) {
             for (EnumDirection enumdirection1 : EnumDirection.EnumDirectionLimit.HORIZONTAL) {
                 position.a(blockposition, enumdirection1);
-                if (isSolidFace(position, enumdirection1, fluid.getType()) || isSolidFace(position.up(), enumdirection1, fluid.getType())) {
+                if (isSolidFace(player, position, enumdirection1, fluid.getType()) || isSolidFace(player, position.up(), enumdirection1, fluid.getType())) {
                     vec3d = vec3d.d().add(0.0D, -6.0D, 0.0D);
                     break;
                 }
@@ -76,9 +76,9 @@ public class FluidTypeFlowing {
 
     // I believe this is safe to do async??
     // Should spit out a stacktrace if it isn't.
-    protected static boolean isSolidFace(BlockPosition blockposition, EnumDirection enumdirection, FluidType fluidType) {
-        IBlockData blockState = ChunkCache.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ());
-        Fluid fluidState = ChunkCache.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ()).getFluid();
+    protected static boolean isSolidFace(GrimPlayer player, BlockPosition blockposition, EnumDirection enumdirection, FluidType fluidType) {
+        IBlockData blockState = player.compensatedWorld.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ());
+        Fluid fluidState = player.compensatedWorld.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ()).getFluid();
 
         if (isSame(fluidState.getType(), fluidType)) {
             return false;

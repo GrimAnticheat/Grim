@@ -7,18 +7,18 @@ import org.bukkit.util.Vector;
 
 public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
-    public MovementTickerHorse(GrimPlayer grimPlayer) {
-        super(grimPlayer);
+    public MovementTickerHorse(GrimPlayer player) {
+        super(player);
 
-        AbstractHorse horse = (AbstractHorse) grimPlayer.playerVehicle;
-        grimPlayer.speed = (float) horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+        AbstractHorse horse = (AbstractHorse) player.playerVehicle;
+        player.speed = (float) horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
 
         // LivingEntity AIStep
-        //grimPlayer.clientVelocity.multiply(0.98);
+        //player.clientVelocity.multiply(0.98);
 
         // Setup player inputs
-        float f = grimPlayer.vehicleHorizontal * 0.5F;
-        float f1 = grimPlayer.vehicleForward;
+        float f = player.vehicleHorizontal * 0.5F;
+        float f1 = player.vehicleForward;
 
         // TODO: This takes away control of the player when the horse is standing
             /*if (this.onGround && this.playerJumpPendingScale == 0.0F && this.isStanding() && !this.allowStandSliding) {
