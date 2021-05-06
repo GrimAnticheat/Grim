@@ -1,6 +1,5 @@
 package ac.grim.grimac.player;
 
-import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.VectorData;
@@ -87,6 +86,8 @@ public class GrimPlayer {
     // This has to be done before pose is updated
     public boolean isSlowMovement = false;
     public World playerWorld;
+    // Manage sandwiching packets with transactions
+    public boolean originalPacket = true;
 
     public double movementSpeed;
     public float jumpAmplifier;
@@ -202,9 +203,10 @@ public class GrimPlayer {
         if (transactionsSent.containsKey(transactionID)) {
             millisecondResponse = System.currentTimeMillis() - transactionsSent.remove(transactionID);
             packetLastTransactionReceived++;
-        } else if (System.currentTimeMillis() - GrimAC.lastReload > 30 * 1000) {
+        } else {
             // The server only sends positive transactions, no negative transactions
-            bukkitPlayer.kickPlayer("Invalid packet!");
+            // TODO: This implementation is bad
+            compensatedKnockback.handleTransactionPacket(transactionID);
         }
 
         //Bukkit.broadcastMessage("Time to response " + millisecondResponse);
@@ -212,6 +214,10 @@ public class GrimPlayer {
 
     public int getPing() {
         return ((CraftPlayer) bukkitPlayer).getHandle().ping;
+    }
+
+    public short getNextTransactionID() {
+        return (short) (-1 * (lastTransactionSent.getAndIncrement() % 32768));
     }
 
     public void baseTickAddVector(Vector vector) {

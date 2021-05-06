@@ -139,14 +139,13 @@ public final class GrimAC extends JavaPlugin {
     public void scheduleTransactionPacketSend() {
         transactionSender = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
         transactionSender.scheduleAtFixedRate(() -> {
-            short packetID = (short) (-1 * (currentTick.getAndIncrement() % 32768));
 
             for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                short packetID = player.getNextTransactionID();
                 try {
                     PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, packetID, false));
                     // Get current time for every player just in cause of pauses
                     player.transactionsSent.put(packetID, System.currentTimeMillis());
-                    player.lastTransactionSent.getAndIncrement();
                 } catch (Exception e) {
                     GrimAC.plugin.getLogger().warning("Error sending transaction packet, did the player log out?");
                 }

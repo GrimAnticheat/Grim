@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
@@ -12,7 +13,7 @@ import org.bukkit.util.Vector;
 
 public class PacketPlayerVelocity extends PacketListenerDynamic {
     public PacketPlayerVelocity() {
-        super(PacketEventPriority.MONITOR);
+        super(PacketEventPriority.HIGHEST);
     }
 
     @Override
@@ -28,9 +29,15 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
                     double velZ = velocity.getVelocityZ();
 
                     Vector playerVelocity = new Vector(velX, velY, velZ);
-                    //Bukkit.broadcastMessage("Adding " + playerVelocity);
 
-                    GrimAC.playerGrimHashMap.get(event.getPlayer()).compensatedKnockback.addPlayerKnockback(playerVelocity);
+                    GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+
+                    player.originalPacket = !player.originalPacket;
+
+                    if (!player.originalPacket) {
+                        player.compensatedKnockback.addPlayerKnockback(playerVelocity);
+                        event.setCancelled(true);
+                    }
                 }
             }
         }

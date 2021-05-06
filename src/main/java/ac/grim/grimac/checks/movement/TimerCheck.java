@@ -22,13 +22,6 @@ public class TimerCheck extends Check {
             player.timerTransaction = Math.min(player.timerTransaction, player.lastLastTransactionReceived);
         }
 
-        Bukkit.broadcastMessage("====================");
-        Bukkit.broadcastMessage("Last last transaction " + player.lastLastTransactionReceived);
-        Bukkit.broadcastMessage("Last transaction received " + player.lastTransactionReceived);
-        Bukkit.broadcastMessage("Timer transaction " + player.timerTransaction);
-        Bukkit.broadcastMessage("Last transaction sent " + player.lastTransactionSent);
-        Bukkit.broadcastMessage("====================");
-
         player.timerTransaction = Math.max(player.timerTransaction, player.lastLastTransactionReceived);
     }
 }
