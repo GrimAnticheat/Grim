@@ -182,6 +182,11 @@ public class MovementCheckRunner implements Listener {
         player.lastOnGround = player.onGround;
         player.lastClimbing = player.isClimbing;
         player.isJustTeleported = false;
+
+        if (player.lastTransactionReceived != player.packetLastTransactionReceived) {
+            player.lastLastTransactionReceived = player.lastTransactionReceived;
+        }
+
         player.lastTransactionReceived = player.packetLastTransactionReceived;
 
 

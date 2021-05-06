@@ -19,9 +19,16 @@ public class TimerCheck extends Check {
             Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");
 
             // Reset violation for debugging purposes
-            player.timerTransaction = Math.min(player.timerTransaction, lastTransactionReceived);
+            player.timerTransaction = Math.min(player.timerTransaction, player.lastLastTransactionReceived);
         }
 
-        player.timerTransaction = Math.max(player.timerTransaction, lastTransactionReceived);
+        Bukkit.broadcastMessage("====================");
+        Bukkit.broadcastMessage("Last last transaction " + player.lastLastTransactionReceived);
+        Bukkit.broadcastMessage("Last transaction received " + player.lastTransactionReceived);
+        Bukkit.broadcastMessage("Timer transaction " + player.timerTransaction);
+        Bukkit.broadcastMessage("Last transaction sent " + player.lastTransactionSent);
+        Bukkit.broadcastMessage("====================");
+
+        player.timerTransaction = Math.max(player.timerTransaction, player.lastLastTransactionReceived);
     }
 }

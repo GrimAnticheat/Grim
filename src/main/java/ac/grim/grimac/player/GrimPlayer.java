@@ -138,8 +138,9 @@ public class GrimPlayer {
     public Vector baseTickSet;
     public Vector baseTickAddition;
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
-    public Integer packetLastTransactionReceived = 0;
-    public Integer lastTransactionReceived = 0;
+    public int packetLastTransactionReceived = 0;
+    public int lastTransactionReceived = 0;
+    public int lastLastTransactionReceived = 0;
     public int movementTransaction = Integer.MIN_VALUE;
     public int timerTransaction = Integer.MIN_VALUE;
 
