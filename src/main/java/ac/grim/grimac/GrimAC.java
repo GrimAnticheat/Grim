@@ -1,8 +1,8 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.checks.predictionengine.MovementCheckRunner;
-import ac.grim.grimac.events.bukkit.PlayerJoinLeaveListener;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
+import ac.grim.grimac.events.bukkit.PlayerQuitListener;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
@@ -59,7 +59,7 @@ public final class GrimAC extends JavaPlugin {
     }
 
     public void registerEvents() {
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinLeaveListener(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
         Bukkit.getPluginManager().registerEvents(new MovementCheckRunner(), this);
     }
@@ -73,6 +73,7 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PacketEntityReplication());
         PacketEvents.get().registerListener(new PacketFireworkListener());
         PacketEvents.get().registerListener(new PacketPlayerTeleport());
+        PacketEvents.get().registerListener(new PacketPlayerJoin());
         PacketEvents.get().registerListener(new PacketVehicleMoveClientbound());
         PacketEvents.get().registerListener(new PacketMountVehicle());
 

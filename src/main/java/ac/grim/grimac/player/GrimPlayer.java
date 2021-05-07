@@ -133,8 +133,8 @@ public class GrimPlayer {
     public CompensatedEntities compensatedEntities;
 
     // Keep track of basetick stuff
-    public Vector baseTickSet;
-    public Vector baseTickAddition;
+    public Vector baseTickSet = new Vector();
+    public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public int packetLastTransactionReceived = 0;
     public int lastTransactionReceived = 0;
@@ -147,6 +147,9 @@ public class GrimPlayer {
 
     public Vector firstBreadKB = null;
     public List<Vector> possibleKB = new ArrayList<>();
+
+    public Vector firstBreadExplosion = null;
+    public List<Vector> possibleExplosion = new ArrayList<>();
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -207,6 +210,7 @@ public class GrimPlayer {
             // The server only sends positive transactions, no negative transactions
             // TODO: This implementation is bad
             compensatedKnockback.handleTransactionPacket(transactionID);
+            compensatedExplosion.handleTransactionPacket(transactionID);
         }
 
         //Bukkit.broadcastMessage("Time to response " + millisecondResponse);

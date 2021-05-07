@@ -124,7 +124,7 @@ public abstract class PredictionEngine {
     public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             // TODO: Add only the stuff the player has received
-            for (Vector explosion : player.compensatedExplosion.getPossibleExplosions(player.lastTransactionReceived)) {
+            for (Vector explosion : player.possibleExplosion) {
                 Vector clonedVector = vector.vector.clone();
                 clonedVector.add(explosion);
                 existingVelocities.add(new VectorData(clonedVector, vector));

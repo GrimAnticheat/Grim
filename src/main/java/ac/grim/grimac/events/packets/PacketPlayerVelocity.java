@@ -51,7 +51,14 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
 
             // Don't get GrimPlayer object if we don't have to
             if (x != 0 || y != 0 || z != 0) {
-                GrimAC.playerGrimHashMap.get(event.getPlayer()).compensatedExplosion.addPlayerExplosion(x, y, z);
+
+                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                player.originalPacket = !player.originalPacket;
+
+                if (!player.originalPacket) {
+                    player.compensatedExplosion.addPlayerExplosion(explosion);
+                    event.setCancelled(true);
+                }
             }
         }
     }

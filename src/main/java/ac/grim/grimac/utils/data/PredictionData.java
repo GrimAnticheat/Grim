@@ -50,6 +50,9 @@ public class PredictionData {
     public Vector firstBreadKB = null;
     public List<Vector> possibleKB = new ArrayList<>();
 
+    public Vector firstBreadExplosion = null;
+    public List<Vector> possibleExplosion = new ArrayList<>();
+
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
         this.player = player;
@@ -97,6 +100,9 @@ public class PredictionData {
 
         firstBreadKB = player.compensatedKnockback.getFirstBreadOnlyKnockback();
         possibleKB = player.compensatedKnockback.getPossibleKnockback();
+
+        firstBreadExplosion = player.compensatedExplosion.getFirstBreadAddedExplosion();
+        possibleExplosion = player.compensatedExplosion.getPossibleExplosions();
     }
 
     // For boat movement
