@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Collisions;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.attribute.Attribute;
@@ -81,7 +82,14 @@ public class PredictionData {
         // Accept that the player's flying status lies when landing on the ground
         //
         // This isn't perfect but I'm not doubling required scenarios because of flying...
+
+        // This will break on 1.7
+        if (player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
+            player.packetFlyingDanger = true;
+        }
+
         this.isFlying = player.compensatedFlying.updateForcedPlayerFlight() && player.compensatedFlying.getCanPlayerFlyLagCompensated();
+
 
         this.isClimbing = Collisions.onClimbable(player);
         this.isFallFlying = player.bukkitPlayer.isGliding();
