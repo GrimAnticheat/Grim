@@ -29,13 +29,13 @@ public class CompensatedExplosion {
 
     public void handleTransactionPacket(int transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
-            firstBreadAddedExplosion = lastExplosionsKnownTaken.add(firstBreadMap.get(transactionID));
+            firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(firstBreadMap.get(transactionID));
             breadValue = transactionID + 1;
         }
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
             firstBreadAddedExplosion = null;
-            lastExplosionsKnownTaken.add(firstBreadMap.get(transactionID + 1));
+            lastExplosionsKnownTaken.add(firstBreadMap.remove(transactionID + 1));
         }
     }
 
@@ -99,7 +99,7 @@ public class CompensatedExplosion {
             lastListHadFirstBreadKnockback = true;
         }
 
-        if (lastExplosionsKnownTaken != null) {
+        if (lastExplosionsKnownTaken.getX() != 0 || lastExplosionsKnownTaken.getY() != 0 || lastExplosionsKnownTaken.getZ() != 0) {
             knockbackList.add(lastExplosionsKnownTaken);
             lastExplosionsKnownTaken = new Vector();
         }

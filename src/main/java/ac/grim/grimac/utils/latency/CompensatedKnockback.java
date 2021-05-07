@@ -36,7 +36,7 @@ public class CompensatedKnockback {
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
             firstBreadOnlyKnockback = null;
-            lastKnockbackKnownTaken = firstBreadMap.get(transactionID + 1);
+            lastKnockbackKnownTaken = firstBreadMap.remove(transactionID + 1);
         }
     }
 
