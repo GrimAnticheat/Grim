@@ -18,7 +18,7 @@ public class CompensatedKnockback {
     Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
     GrimPlayer player;
 
-    List<Vector> possibleKnockbackValuesTaken = new ArrayList<>();
+    Vector lastKnockbackKnownTaken = null;
     Vector firstBreadOnlyKnockback = null;
 
     boolean lastListHadFirstBreadKnockback = false;
@@ -36,7 +36,7 @@ public class CompensatedKnockback {
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
             firstBreadOnlyKnockback = null;
-            possibleKnockbackValuesTaken.add(firstBreadMap.get(transactionID + 1));
+            lastKnockbackKnownTaken = firstBreadMap.get(transactionID + 1);
         }
     }
 
@@ -92,7 +92,7 @@ public class CompensatedKnockback {
     }
 
     public List<Vector> getPossibleKnockback() {
-        List<Vector> knockbackList = new ArrayList<>(possibleKnockbackValuesTaken);
+        List<Vector> knockbackList = new ArrayList<>();
         lastListHadFirstBreadKnockback = false;
 
         if (firstBreadOnlyKnockback != null) {
@@ -100,8 +100,10 @@ public class CompensatedKnockback {
             lastListHadFirstBreadKnockback = true;
         }
 
-        knockbackList.addAll(possibleKnockbackValuesTaken);
-        possibleKnockbackValuesTaken.clear();
+        if (lastKnockbackKnownTaken != null) {
+            knockbackList.add(lastKnockbackKnownTaken);
+            lastKnockbackKnownTaken = null;
+        }
 
         return knockbackList;
     }
