@@ -74,10 +74,14 @@ public class PredictionData {
         player.isPacketSprintingChange = false;
         player.isPacketSneakingChange = false;
 
-        // Don't let the player fly with packets - Don't rely on non-lag compensated bukkit
-        this.isFlying = player.packetFlyingDanger || player.compensatedFlying.isPlayerFlying() && player.compensatedFlying.getCanPlayerFlyLagCompensated();
-        // Stop false from if a player is flying, we toggle their fly off, they land, we toggle their flight on
-        player.packetFlyingDanger = isFlying;
+        // Flying status is just really. really. complicated.  You shouldn't need to touch this, but if you do -
+        // Don't let the player fly with packets
+        // Accept even if bukkit says the player can't fly lag might allow them to
+        // Accept that the server can change the player's packets without an update response from the player
+        // Accept that the player's flying status lies when landing on the ground
+        //
+        // This isn't perfect but I'm not doubling required scenarios because of flying...
+        this.isFlying = player.compensatedFlying.updateForcedPlayerFlight() && player.compensatedFlying.getCanPlayerFlyLagCompensated();
 
         this.isClimbing = Collisions.onClimbable(player);
         this.isFallFlying = player.bukkitPlayer.isGliding();

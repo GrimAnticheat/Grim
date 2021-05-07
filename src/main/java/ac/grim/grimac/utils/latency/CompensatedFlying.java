@@ -27,17 +27,17 @@ public class CompensatedFlying {
         forcedFlyMap.put(player.lastTransactionSent.get(), fly);
     }
 
-    public boolean isPlayerFlying() {
+    public boolean updateForcedPlayerFlight() {
         int lastTransactionReceived = player.lastTransactionReceived;
 
-        boolean isFly = canPlayerFly;
+        boolean isFly = player.packetFlyingDanger;
         int bestKey = 0;
 
-        Iterator<Map.Entry<Integer, Boolean>> iterator = lagCompensatedFlyingMap.entrySet().iterator();
+        Iterator<Map.Entry<Integer, Boolean>> iterator = forcedFlyMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Integer, Boolean> flightStatus = iterator.next();
 
-            if (flightStatus.getKey() > lastTransactionReceived) continue;
+            if (flightStatus.getKey() > lastTransactionReceived + 1) continue;
 
             if (flightStatus.getKey() < bestKey) {
                 iterator.remove();
@@ -50,7 +50,7 @@ public class CompensatedFlying {
             iterator.remove();
         }
 
-        canPlayerFly = isFly;
+        player.packetFlyingDanger = isFly;
 
         return isFly;
     }
