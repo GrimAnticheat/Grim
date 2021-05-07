@@ -146,7 +146,7 @@ public class GrimPlayer {
     public ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
 
     public Vector firstBreadKB = null;
-    public List<Vector> possibleKB = new ArrayList<>();
+    public Vector possibleKB = null;
 
     public Vector firstBreadExplosion = null;
     public List<Vector> possibleExplosion = new ArrayList<>();
@@ -175,14 +175,21 @@ public class GrimPlayer {
     }
 
     public Set<VectorData> getPossibleVelocities() {
-        Set<VectorData> possibleMovements = getPossibleVelocitiesMinusKnockback();
+        Set<VectorData> set = new HashSet<>();
 
-        // Allow water pushing to affect knockback
-        for (Vector vector : possibleKB) {
-            possibleMovements.add(new VectorData(vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
+        if (firstBreadKB != null) {
+            set.add(new VectorData(firstBreadKB.clone().add(baseTickAddition), VectorData.VectorType.PossibleKB));
         }
 
-        return possibleMovements;
+        if (possibleKB != null) {
+            // Allow water pushing to affect knockback
+            set.add(new VectorData(possibleKB.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
+        } else {
+            set.addAll(getPossibleVelocitiesMinusKnockback());
+            return set;
+        }
+
+        return set;
     }
 
     public Set<VectorData> getPossibleVelocitiesMinusKnockback() {

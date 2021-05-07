@@ -10,10 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
-
-// We are making a velocity sandwich between two pieces of bread
+// We are making a velocity sandwich between two pieces of transaction packets (bread)
 public class CompensatedKnockback {
     Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
     GrimPlayer player;
@@ -21,7 +18,6 @@ public class CompensatedKnockback {
     Vector lastKnockbackKnownTaken = null;
     Vector firstBreadOnlyKnockback = null;
 
-    boolean lastListHadFirstBreadKnockback = false;
     int breadValue = 0;
 
     public CompensatedKnockback(GrimPlayer player) {
@@ -71,9 +67,7 @@ public class CompensatedKnockback {
         // There is a fix for this, but it would allow cheaters to take knockback twice 100% of the time, which is worse IMO
         // One of the few cases where false positives are better than lenience
         //
-        // So just set it to null and be sad :(
-        //
-        // Hack to remove first bread data from an unknown number of next predictions
+        // Hack to remove this edge case from an unknown number of next predictions
         Vector markRemoved = player.firstBreadKB;
 
         if (knockback.equals(markRemoved)) {
@@ -85,30 +79,21 @@ public class CompensatedKnockback {
 
     // This will be called if there is kb taken but it isn't applied to the player
     public void handlePlayerIgnoredKB() {
-        if (player.possibleKB.size() != 1 || player.firstBreadKB == null) {
-            Bukkit.broadcastMessage(ChatColor.RED + "Ignored kb " + player.possibleKB.get(0));
+        if (player.possibleKB != null && player.firstBreadKB == null) {
+            Bukkit.broadcastMessage(ChatColor.RED + "Ignored kb " + player.possibleKB);
             Bukkit.broadcastMessage(ChatColor.RED + "PLAYER IS CHEATING! Knockback ignored");
         }
     }
 
-    public List<Vector> getPossibleKnockback() {
-        List<Vector> knockbackList = new ArrayList<>();
-        lastListHadFirstBreadKnockback = false;
+    public Vector getRequiredKB() {
+        Vector returnLastKB = lastKnockbackKnownTaken;
+        lastKnockbackKnownTaken = null;
 
-        if (firstBreadOnlyKnockback != null) {
-            knockbackList.add(firstBreadOnlyKnockback);
-            lastListHadFirstBreadKnockback = true;
-        }
-
-        if (lastKnockbackKnownTaken != null) {
-            knockbackList.add(lastKnockbackKnownTaken);
-            lastKnockbackKnownTaken = null;
-        }
-
-        return knockbackList;
+        return returnLastKB;
     }
 
     public Vector getFirstBreadOnlyKnockback() {
+
         return firstBreadOnlyKnockback;
     }
 }

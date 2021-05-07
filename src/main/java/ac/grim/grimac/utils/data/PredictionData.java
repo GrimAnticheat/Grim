@@ -48,7 +48,7 @@ public class PredictionData {
     public boolean isSneakingChange;
 
     public Vector firstBreadKB = null;
-    public List<Vector> possibleKB = new ArrayList<>();
+    public Vector requiredKB = null;
 
     public Vector firstBreadExplosion = null;
     public List<Vector> possibleExplosion = new ArrayList<>();
@@ -103,7 +103,7 @@ public class PredictionData {
         this.playerVehicle = player.bukkitPlayer.getVehicle();
 
         firstBreadKB = player.compensatedKnockback.getFirstBreadOnlyKnockback();
-        possibleKB = player.compensatedKnockback.getPossibleKnockback();
+        requiredKB = player.compensatedKnockback.getRequiredKB();
 
         firstBreadExplosion = player.compensatedExplosion.getFirstBreadAddedExplosion();
         possibleExplosion = player.compensatedExplosion.getPossibleExplosions();

@@ -93,7 +93,7 @@ public class MovementCheckRunner implements Listener {
             player.playerVehicle = data.playerVehicle;
 
             player.firstBreadKB = data.firstBreadKB;
-            player.possibleKB = data.possibleKB;
+            player.possibleKB = data.requiredKB;
 
             player.firstBreadExplosion = data.firstBreadExplosion;
             player.possibleExplosion = data.possibleExplosion;
@@ -103,7 +103,9 @@ public class MovementCheckRunner implements Listener {
 
             // Hack to remove knockback that were already applied to the player
             // Required due to the async nature of the anticheat, and this thread being in sync with the knockback application thread
-            player.possibleKB.removeIf(vector -> vector.getX() == 129326 && vector.getY() == 741979 && vector.getZ() == 916042);
+            if (player.possibleKB != null && player.possibleKB.getX() == 129326 && player.possibleKB.getY() == 741979 && player.possibleKB.getZ() == 916042) {
+                player.possibleKB = null;
+            }
 
             if (!player.inVehicle) {
                 player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
@@ -166,15 +168,16 @@ public class MovementCheckRunner implements Listener {
                 color = ChatColor.RED;
             }
 
+            double offset = player.predictedVelocity.vector.distance(player.actualMovement);
 
-            if (player.predictedVelocity.lastVector.vectorType == VectorData.VectorType.Knockback) {
+            // Handle first bread being applied to the player
+            if (player.predictedVelocity.lastVector.vectorType == VectorData.VectorType.PossibleKB) {
                 player.compensatedKnockback.setPlayerKnockbackApplied(player.predictedVelocity.lastVector.vector);
-                player.possibleKB.clear();
             }
 
-            if (player.predictedVelocity.lastVector != null && player.predictedVelocity.lastVector.vectorType != VectorData.VectorType.Knockback && !player.possibleKB.isEmpty()) {
+            // TODO: Run second tick through the same thing
+            if (player.possibleKB != null && offset > 0.01) {
                 player.compensatedKnockback.handlePlayerIgnoredKB();
-
             }
 
 
@@ -182,7 +185,7 @@ public class MovementCheckRunner implements Listener {
 
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O:" + color + player.predictedVelocity.vector.distance(player.actualMovement));
+            player.bukkitPlayer.sendMessage("O:" + color + offset);
 
             GrimAC.plugin.getLogger().info(player.x + " " + player.y + " " + player.z);
             GrimAC.plugin.getLogger().info(player.lastX + " " + player.lastY + " " + player.lastZ);

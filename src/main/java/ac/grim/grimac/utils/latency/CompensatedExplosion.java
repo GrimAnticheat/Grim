@@ -6,8 +6,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.Wrappe
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -84,10 +82,10 @@ public class CompensatedExplosion {
 
     // This will be called if there is kb taken but it isn't applied to the player
     public void handlePlayerIgnoredExplosion() {
-        if (player.possibleKB.size() != 1 || player.firstBreadKB == null) {
+        /*if (player.possibleKB.size() != 1 || player.firstBreadKB == null) {
             Bukkit.broadcastMessage(ChatColor.RED + "Ignored kb " + player.possibleKB.get(0));
             Bukkit.broadcastMessage(ChatColor.RED + "PLAYER IS CHEATING! Knockback ignored");
-        }
+        }*/
     }
 
     public List<Vector> getPossibleExplosions() {
