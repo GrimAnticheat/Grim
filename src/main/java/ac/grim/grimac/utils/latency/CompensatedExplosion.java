@@ -20,8 +20,6 @@ public class CompensatedExplosion {
     }
 
     public void addPlayerExplosion(double x, double y, double z) {
-        if (x == 0 && y == 0 && z == 0) return;
-
         int lastTransactionSent = player.lastTransactionSent.get();
 
         if (!requiredExplosion.containsKey(lastTransactionSent)) {

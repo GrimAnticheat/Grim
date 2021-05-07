@@ -89,7 +89,7 @@ public abstract class PredictionEngine {
         }
 
         new MovementTickerPlayer(player).move(MoverType.SELF, player.clientVelocity, bestCollisionVel.vector);
-        player.predictedVelocity = bestCollisionVel.vector.clone();
+        player.predictedVelocity = bestCollisionVel;
         endOfTick(player, player.gravity, player.friction);
     }
 

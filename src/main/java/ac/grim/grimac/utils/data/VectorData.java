@@ -21,7 +21,9 @@ public class VectorData {
     // For handling replacing the type of vector it is while keeping data
     // Not currently used as this system isn't complete
     public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
-
+        this.vector = vector;
+        this.lastVector = lastVector;
+        this.vectorType = vectorType;
     }
 
     public VectorData(Vector vector, VectorType vectorType) {
@@ -37,6 +39,8 @@ public class VectorData {
         Swimhop,
         Ladder,
         Knockback,
-        Hackyladder
+        Hackyladder,
+        Teleport,
+        SkippedTicks
     }
 }

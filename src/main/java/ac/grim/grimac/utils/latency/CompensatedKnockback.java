@@ -6,17 +6,23 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.W
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
 
+// We are making a velocity sandwich between two pieces of bread
 public class CompensatedKnockback {
     Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
     GrimPlayer player;
 
     List<Vector> possibleKnockbackValuesTaken = new ArrayList<>();
     Vector firstBreadOnlyKnockback = null;
+
+    boolean lastListHadFirstBreadKnockback = false;
+    int breadValue = 0;
 
     public CompensatedKnockback(GrimPlayer player) {
         this.player = player;
@@ -25,6 +31,7 @@ public class CompensatedKnockback {
     public void handleTransactionPacket(int transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
             firstBreadOnlyKnockback = firstBreadMap.get(transactionID);
+            breadValue = transactionID + 1;
         }
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
@@ -52,27 +59,51 @@ public class CompensatedKnockback {
         }
     }
 
-    // TODO: Handle setting firstBreadOnlyKnockback to null if it is used
     public void setPlayerKnockbackApplied(Vector knockback) {
+        // How to be a legit client and flag this check:
+        // First you must take multiple knockback values combined to arrive before the same movement packet
+        // This is unlikely
+        // Next, the last velocity must have the first bread arrive and the velocity not arrive
+        // This is unlikely
+        //
+        // As velocity checks will be much more strict than regular movement checks, this flags movement and not velocity
+        //
+        // There is a fix for this, but it would allow cheaters to take knockback twice 100% of the time, which is worse IMO
+        // One of the few cases where false positives are better than lenience
+        //
+        // So just set it to null and be sad :(
+        //
+        // Hack to remove first bread data from an unknown number of next predictions
+        Vector markRemoved = player.firstBreadKB;
 
+        if (knockback.equals(markRemoved)) {
+            markRemoved.setX(129326);
+            markRemoved.setY(741979);
+            markRemoved.setZ(916042);
+        }
     }
 
     // This will be called if there is kb taken but it isn't applied to the player
-    public void setKnockbackDenied(Vector knockback) {
-
+    public void handlePlayerIgnoredKB() {
+        if (player.possibleKB.size() != 1 || player.firstBreadKB == null) {
+            Bukkit.broadcastMessage(ChatColor.RED + "Ignored kb " + player.possibleKB.get(0));
+            Bukkit.broadcastMessage(ChatColor.RED + "PLAYER IS CHEATING! Knockback ignored");
+        }
     }
 
     public List<Vector> getPossibleKnockback() {
+        List<Vector> knockbackList = new ArrayList<>(possibleKnockbackValuesTaken);
+        lastListHadFirstBreadKnockback = false;
+
         if (firstBreadOnlyKnockback != null) {
-            List<Vector> knockbackList = new ArrayList<>(possibleKnockbackValuesTaken);
             knockbackList.add(firstBreadOnlyKnockback);
-            return knockbackList;
+            lastListHadFirstBreadKnockback = true;
         }
 
-        List<Vector> lastKBList = possibleKnockbackValuesTaken;
-        possibleKnockbackValuesTaken = new ArrayList<>();
+        knockbackList.addAll(possibleKnockbackValuesTaken);
+        possibleKnockbackValuesTaken.clear();
 
-        return lastKBList;
+        return knockbackList;
     }
 
     public Vector getFirstBreadOnlyKnockback() {

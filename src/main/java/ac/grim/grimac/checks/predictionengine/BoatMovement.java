@@ -29,7 +29,7 @@ public class BoatMovement {
 
 
         new MovementTicker(player).move(MoverType.SELF, player.clientVelocity);
-        player.predictedVelocity.add(new Vector(0, player.boatData.midTickY, 0));
+        player.predictedVelocity.vector.add(new Vector(0, player.boatData.midTickY, 0));
         Collisions.handleInsideBlocks(player);
 
         player.boatData.midTickY = 0;

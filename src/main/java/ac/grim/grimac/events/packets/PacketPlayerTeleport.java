@@ -20,6 +20,9 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             Vector3d teleportLocation = player.teleports.get(accept.getTeleportId());
 
+            // Impossible under normal vanilla client
+            if (teleportLocation == null) return;
+
             player.isJustTeleported = true;
 
             // A bit hacky but should be fine - set this stuff twice as optimization

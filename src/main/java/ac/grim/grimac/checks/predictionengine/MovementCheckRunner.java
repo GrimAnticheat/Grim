@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.checks.predictionengine.movementTick.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
@@ -60,6 +61,7 @@ public class MovementCheckRunner implements Listener {
             queuedPredictions.get(data.player.playerUUID).add(data);
         }
     }
+
     public static void check(PredictionData data) {
         GrimPlayer player = data.player;
 
@@ -95,6 +97,10 @@ public class MovementCheckRunner implements Listener {
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+
+            // Hack to remove knockback that were already applied to the player
+            // Required due to the async nature of the anticheat, and this thread being in sync with the knockback application thread
+            player.possibleKB.removeIf(vector -> vector.getX() == 129326 && vector.getY() == 741979 && vector.getZ() == 916042);
 
             if (!player.inVehicle) {
                 player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
@@ -140,14 +146,14 @@ public class MovementCheckRunner implements Listener {
                 player.baseTickSetX(0);
                 player.baseTickSetY(0);
                 player.baseTickSetZ(0);
-                player.predictedVelocity = new Vector();
+                player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
 
                 player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
             }
 
 
             ChatColor color;
-            double diff = player.predictedVelocity.distance(player.actualMovement);
+            double diff = player.predictedVelocity.vector.distance(player.actualMovement);
 
             if (diff < 0.01) {
                 color = ChatColor.GREEN;
@@ -157,13 +163,27 @@ public class MovementCheckRunner implements Listener {
                 color = ChatColor.RED;
             }
 
-            player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.getX() + " " + player.predictedVelocity.getY() + " " + player.predictedVelocity.getZ());
+
+            if (player.predictedVelocity.lastVector.vectorType == VectorData.VectorType.Knockback) {
+                player.compensatedKnockback.setPlayerKnockbackApplied(player.predictedVelocity.lastVector.vector);
+                player.possibleKB.clear();
+            }
+
+            if (player.predictedVelocity.lastVector != null && player.predictedVelocity.lastVector.vectorType != VectorData.VectorType.Knockback && !player.possibleKB.isEmpty()) {
+                player.compensatedKnockback.handlePlayerIgnoredKB();
+
+            }
+
+
+            GrimAC.plugin.getLogger().info("Original type: " + color + player.predictedVelocity.lastVector.vectorType);
+
+            player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O:" + color + player.predictedVelocity.distance(player.actualMovement));
+            player.bukkitPlayer.sendMessage("O:" + color + player.predictedVelocity.vector.distance(player.actualMovement));
 
             GrimAC.plugin.getLogger().info(player.x + " " + player.y + " " + player.z);
             GrimAC.plugin.getLogger().info(player.lastX + " " + player.lastY + " " + player.lastZ);
-            GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.getX() + " " + player.predictedVelocity.getY() + " " + player.predictedVelocity.getZ());
+            GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
 
 
@@ -248,7 +268,7 @@ public class MovementCheckRunner implements Listener {
     // tl;dr: I made a perfectly lag compensated speed check
     public static void handleSkippedTicks(GrimPlayer player) {
         Vector wantedMovement = player.actualMovement.clone();
-        Vector theoreticalOutput = player.predictedVelocity.clone();
+        Vector theoreticalOutput = player.predictedVelocity.vector.clone();
 
         int x = 0;
 
@@ -293,7 +313,7 @@ public class MovementCheckRunner implements Listener {
 
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerSlow(player, optimisticCrouching, optimisticStuckSpeed, wantedMovement, theoreticalOutput).playerEntityTravel();
-                theoreticalOutput.add(player.predictedVelocity);
+                theoreticalOutput.add(player.predictedVelocity.vector);
 
                 Bukkit.broadcastMessage("Adding " + player.predictedVelocity);
             }
@@ -308,7 +328,7 @@ public class MovementCheckRunner implements Listener {
         // For example, noclip would be able to abuse this
         // Oh well, I'll just say it's a "proof of concept" then it's fine
         if (x > 0) {
-            player.predictedVelocity = player.actualMovement.clone();
+            player.predictedVelocity = new VectorData(theoreticalOutput, VectorData.VectorType.SkippedTicks);
         }
 
         if (player.movementTransaction > player.lastTransactionSent.get()) {
