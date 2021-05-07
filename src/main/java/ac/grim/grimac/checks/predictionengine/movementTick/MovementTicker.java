@@ -37,6 +37,7 @@ public class MovementTicker {
 
     public void livingEntityAIStep() {
         // Living Entity line 2153
+        // TODO: 1.8 clients have a different minimum movement than 1.9. I believe it is 0.005.
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
             double minimumMovement = 0.03D;
             if (player.clientVersion < 48)
