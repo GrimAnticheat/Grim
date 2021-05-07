@@ -13,12 +13,11 @@ public class PacketPlayerAbilities extends PacketListenerDynamic {
 
     @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        byte packetID = event.getPacketId();
+        if (event.getPacketId() == PacketType.Play.Client.ABILITIES) {
+            WrappedPacketInAbilities action = new WrappedPacketInAbilities(event.getNMSPacket());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-        if (packetID == PacketType.Play.Client.ABILITIES) {
-            WrappedPacketInAbilities abilities = new WrappedPacketInAbilities(event.getNMSPacket());
-
-            abilities.isFlying();
+            player.packetFlyingDanger = action.isFlying();
         }
     }
 
@@ -28,6 +27,7 @@ public class PacketPlayerAbilities extends PacketListenerDynamic {
             WrappedPacketOutAbilities abilities = new WrappedPacketOutAbilities(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
+            player.compensatedFlying.setServerForcedPlayerFly(abilities.isFlying());
             player.compensatedFlying.setCanPlayerFly(abilities.isFlightAllowed());
         }
     }

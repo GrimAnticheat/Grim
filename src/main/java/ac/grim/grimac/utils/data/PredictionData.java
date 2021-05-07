@@ -72,7 +72,7 @@ public class PredictionData {
         player.isPacketSneakingChange = false;
 
         // Don't let the player fly with packets - Don't rely on non-lag compensated bukkit
-        this.isFlying = player.packetFlyingDanger && player.compensatedFlying.getCanPlayerFlyLagCompensated();
+        this.isFlying = player.packetFlyingDanger || player.compensatedFlying.isPlayerFlying() && player.compensatedFlying.getCanPlayerFlyLagCompensated();
         // Stop false from if a player is flying, we toggle their fly off, they land, we toggle their flight on
         player.packetFlyingDanger = isFlying;
 
