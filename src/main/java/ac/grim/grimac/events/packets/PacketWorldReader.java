@@ -13,6 +13,8 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import net.minecraft.server.v1_16_R3.PacketPlayOutMultiBlockChange;
+import net.minecraft.server.v1_16_R3.SectionPosition;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -38,6 +40,17 @@ public class PacketWorldReader extends PacketListenerDynamic {
         getZ = Reflection.getMethod(NMSUtils.blockPosClass, "getZ", 0);
     }
 
+    public static int sectionRelativeX(short data) {
+        return data >>> 8 & 15;
+    }
+
+    public static int sectionRelativeY(short data) {
+        return data & 15;
+    }
+
+    public static int sectionRelativeZ(short data) {
+        return data >>> 4 & 15;
+    }
 
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
@@ -100,6 +113,52 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
                 player.compensatedWorld.updateBlock((Integer) getX.invoke(blockPosition), (Integer) getY.invoke(blockPosition), (Integer) getZ.invoke(blockPosition), blockID);
             } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException exception) {
+                exception.printStackTrace();
+            }
+        }
+
+        if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+            PacketPlayOutMultiBlockChange blockChange = (PacketPlayOutMultiBlockChange) event.getNMSPacket().getRawNMSPacket();
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+
+            try {
+                // Reflect to the chunk section position
+                Field sectionField = blockChange.getClass().getDeclaredField("a");
+                sectionField.setAccessible(true);
+
+                SectionPosition position = (SectionPosition) sectionField.get(blockChange);
+
+                // Get the chunk section position itself
+                Method getX = position.getClass().getMethod("a");
+                Method getY = position.getClass().getMethod("b");
+                Method getZ = position.getClass().getMethod("c");
+
+                int chunkX = (int) getX.invoke(position) << 4;
+                int chunkZ = (int) getZ.invoke(position) << 4;
+                int chunkY = (int) getY.invoke(position) << 4;
+
+                Field blockPositionsField = blockChange.getClass().getDeclaredField("b");
+                blockPositionsField.setAccessible(true);
+
+                Field blockDataField = blockChange.getClass().getDeclaredField("c");
+                blockDataField.setAccessible(true);
+
+                short[] blockPositions = (short[]) blockPositionsField.get(blockChange);
+                Object[] blockDataArray = (Object[]) blockDataField.get(blockChange);
+
+                for (int i = 0; i < blockPositions.length; i++) {
+                    short blockPosition = blockPositions[i];
+
+                    int blockX = sectionRelativeX(blockPosition);
+                    int blockY = sectionRelativeY(blockPosition);
+                    int blockZ = sectionRelativeZ(blockPosition);
+
+                    int blockID = (int) getByCombinedID.invoke(null, blockDataArray[i]);
+
+                    player.compensatedWorld.updateBlock(chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID);
+                }
+
+            } catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
         }
