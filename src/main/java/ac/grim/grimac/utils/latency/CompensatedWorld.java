@@ -48,9 +48,17 @@ public class CompensatedWorld {
 
         try {
             Chunk chunk = column.getChunks()[y >> 4];
-            if (chunk != null) {
-                chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
+            if (chunk == null) {
+                column.getChunks()[y >> 4] = new Chunk();
+                chunk = column.getChunks()[y >> 4];
+
+                // Sets entire chunk to air
+                // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
+                // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
+                chunk.set(0, 0, 0, 0);
             }
+
+            chunk.set(x & 0xF, y & 0xF, z & 0xF, block);
         } catch (Exception e) {
             GrimAC.plugin.getLogger().warning("Unable to get set block data for chunk x " + (x >> 4) + " z " + (z >> 4));
         }
