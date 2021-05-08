@@ -155,7 +155,8 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
                     int blockID = (int) getByCombinedID.invoke(null, blockDataArray[i]);
 
-                    player.compensatedWorld.updateBlock(chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID);
+                    player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
+
                 }
 
             } catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException exception) {
