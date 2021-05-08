@@ -54,6 +54,8 @@ public class PredictionData {
     public Vector firstBreadExplosion = null;
     public List<Vector> possibleExplosion = new ArrayList<>();
 
+    public int minimumTickRequiredToContinue = 0;
+
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
         this.player = player;
@@ -115,6 +117,8 @@ public class PredictionData {
 
         firstBreadExplosion = player.compensatedExplosion.getFirstBreadAddedExplosion();
         possibleExplosion = player.compensatedExplosion.getPossibleExplosions();
+
+        minimumTickRequiredToContinue = player.minimumTickRequiredToContinue;
     }
 
     // For boat movement

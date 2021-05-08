@@ -144,6 +144,11 @@ public class GrimPlayer {
     public int movementTransaction = Integer.MIN_VALUE;
     public int timerTransaction = Integer.MIN_VALUE;
 
+    // Sync together block placing/breaking by waiting for the main thread
+    // This sucks, but it's the only "real" option
+    // Either we have to do the work of the server async to figure out whether a block placed, or we wait for the server to do it
+    public int minimumTickRequiredToContinue = 0;
+
     // Determining player ping
     public ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
 

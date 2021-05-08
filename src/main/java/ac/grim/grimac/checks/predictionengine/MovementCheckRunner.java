@@ -48,7 +48,8 @@ public class MovementCheckRunner implements Listener {
     // List instead of Set for consistency in debug output
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
     // I actually don't know how many threads is good, more testing is needed!
-    static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
+    public static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
+    public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
     public static void addQueuedPrediction(PredictionData data) {
         // TODO: This is a hack that should be fixed - maybe
@@ -64,6 +65,12 @@ public class MovementCheckRunner implements Listener {
 
     public static void check(PredictionData data) {
         GrimPlayer player = data.player;
+
+        // TODO: Busy waiting is bad (This isn't an issue with a filled queue)
+        if (data.minimumTickRequiredToContinue > GrimAC.currentTick.get()) {
+            waitingOnServerQueue.add(data);
+            return;
+        }
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
         try {

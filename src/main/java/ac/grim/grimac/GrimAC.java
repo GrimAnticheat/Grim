@@ -5,6 +5,7 @@ import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.bukkit.PlayerQuitListener;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
@@ -49,6 +50,18 @@ public final class GrimAC extends JavaPlugin {
         CompensatedWorld.initBlockID();
         scheduleTransactionPacketSend();
         handleReload();
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            currentTick.getAndIncrement();
+
+            while (true) {
+                PredictionData data = MovementCheckRunner.waitingOnServerQueue.poll();
+
+                if (data == null) break;
+
+                MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
+            }
+        }, 0, 1);
 
         // Debug
         Bukkit.getScheduler().runTaskTimer(this, () -> {
