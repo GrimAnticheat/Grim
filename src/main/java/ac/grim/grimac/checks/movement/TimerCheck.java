@@ -8,7 +8,7 @@ public class TimerCheck extends Check {
         // TODO: If the packet is the position reminder, increment by 20 instead of 1
 
         // lastTransactionReceived should use real time but as a proof of concept this is easier
-        int lastTransactionReceived = player.lastTransactionReceived;
+        int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
         int lastTransactionSent = player.lastTransactionSent.get();
 
         player.timerTransaction++;
@@ -17,9 +17,9 @@ public class TimerCheck extends Check {
             //Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");
 
             // Reset violation for debugging purposes
-            player.timerTransaction = Math.min(player.timerTransaction, player.lastLastTransactionReceived);
+            player.timerTransaction = Math.min(player.timerTransaction, player.lastLastTransactionBeforeLastMovement);
         }
 
-        player.timerTransaction = Math.max(player.timerTransaction, player.lastLastTransactionReceived);
+        player.timerTransaction = Math.max(player.timerTransaction, player.lastLastTransactionBeforeLastMovement);
     }
 }

@@ -9,7 +9,7 @@ public class FireworkData {
 
     public FireworkData(GrimPlayer player) {
         this.player = player;
-        this.creationTime = player.lastTransactionReceived;
+        this.creationTime = player.lastTransactionBeforeLastMovement;
     }
 
     public void setDestroyed() {

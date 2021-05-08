@@ -71,7 +71,7 @@ public class MovementCheckRunner implements Listener {
             return;
         }
 
-        player.compensatedWorld.tickUpdates(data.minimumTickRequiredToContinue);
+        player.compensatedWorld.tickUpdates(data.minimumTickRequiredToContinue, data.lastTransaction);
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
         try {
@@ -217,11 +217,11 @@ public class MovementCheckRunner implements Listener {
         player.lastClimbing = player.isClimbing;
         player.isJustTeleported = false;
 
-        if (player.lastTransactionReceived != player.packetLastTickTransactionReceived) {
-            player.lastLastTransactionReceived = player.lastTransactionReceived;
+        if (player.lastTransactionBeforeLastMovement != player.packetLastTransactionReceived) {
+            player.lastLastTransactionBeforeLastMovement = player.lastTransactionBeforeLastMovement;
         }
 
-        player.lastTransactionReceived = player.packetLastTickTransactionReceived;
+        player.lastTransactionBeforeLastMovement = player.packetLastTransactionReceived;
 
 
         player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
@@ -295,7 +295,7 @@ public class MovementCheckRunner implements Listener {
         } else {
             // Update to the latest and check if flying
             // Flight can't be rapidly toggled so we don't need to check off -> on -> off
-            player.lastTransactionSent.set(player.packetLastTickTransactionReceived);
+            player.lastTransactionSent.set(player.packetLastTransactionReceived);
             if (player.packetFlyingDanger && player.compensatedFlying.getCanPlayerFlyLagCompensated()) {
                 return;
             }
@@ -331,7 +331,7 @@ public class MovementCheckRunner implements Listener {
             }
         }
 
-        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + player.movementTransaction + " recent " + player.lastTransactionReceived);
+        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + player.movementTransaction + " recent " + player.lastTransactionBeforeLastMovement);
         Bukkit.broadcastMessage("Predicted velocity " + theoreticalOutput);
         Bukkit.broadcastMessage("Actual velocity " + player.actualMovement);
         player.movementTransaction += x + 1;
@@ -347,7 +347,7 @@ public class MovementCheckRunner implements Listener {
             Bukkit.broadcastMessage(ChatColor.RED + "Player has speed!");
         }
 
-        player.movementTransaction = Math.max(player.movementTransaction, player.lastTransactionReceived);
+        player.movementTransaction = Math.max(player.movementTransaction, player.lastTransactionBeforeLastMovement);
     }
 
     public static Vector getBestContinuousInput(boolean isCrouching, Vector theoreticalInput) {

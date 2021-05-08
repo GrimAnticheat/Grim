@@ -52,7 +52,7 @@ public class CompensatedWorld {
         this.player = player;
     }
 
-    public void tickUpdates(int minimumTickRequiredToContinue) {
+    public void tickUpdates(int minimumTickRequiredToContinue, int lastTransaction) {
         while (true) {
             PlayerChangeBlockData changeBlockData = player.changeBlockQueue.peek();
 
@@ -69,7 +69,7 @@ public class CompensatedWorld {
 
             if (changeBlockData == null) break;
             // The anticheat thread is behind, this event has not occurred yet
-            if (changeBlockData.tick > player.lastTransactionReceived) {
+            if (changeBlockData.tick > lastTransaction) {
                 break;
             }
 

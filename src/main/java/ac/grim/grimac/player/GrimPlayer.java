@@ -139,12 +139,20 @@ public class GrimPlayer {
     public Vector baseTickSet = new Vector();
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
+    // Async unsafe
     public int packetLastTransactionReceived = 0;
-    public int packetLastTickTransactionReceived = 0;
+    // Async safe
     public int lastTransactionReceived = 0;
-    public int lastLastTransactionReceived = 0;
-    public int movementTransaction = Integer.MIN_VALUE;
+
+    // For timer checks
+    public int lastTransactionBeforeLastMovement = 0;
+    // Also for timer checks
+    public int lastLastTransactionBeforeLastMovement = 0;
+    // For timer checks
     public int timerTransaction = Integer.MIN_VALUE;
+    // For speed checks under 0.03 precision
+    public int movementTransaction = Integer.MIN_VALUE;
+
 
     // Sync together block placing/breaking by waiting for the main thread
     // This sucks, but it's the only "real" option
@@ -219,7 +227,7 @@ public class GrimPlayer {
 
     public void addTransactionResponse(short transactionID) {
         checkTransactionValid(transactionID);
-        packetLastTickTransactionReceived++;
+        packetLastTransactionReceived++;
 
         if (!compensatedKnockback.handleTransactionPacket(transactionID) &&
                 !compensatedExplosion.handleTransactionPacket(transactionID)) {
@@ -232,7 +240,7 @@ public class GrimPlayer {
     // Nevermind, something can go wrong
     public void checkTransactionValid(short transactionID) {
         //Bukkit.broadcastMessage("Checking transaction " + transactionID + " versus " + packetLastTransactionReceived);
-        if (transactionID != ((((packetLastTickTransactionReceived % 32767) * -1) - 1))) {
+        if (transactionID != ((((packetLastTransactionReceived % 32767) * -1) - 1))) {
             //Bukkit.broadcastMessage("Not a valid transaction!");
         }
     }

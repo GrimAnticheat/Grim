@@ -30,7 +30,7 @@ public class CompensatedFireworks {
     }
 
     public int getMaxFireworksAppliedPossible() {
-        int lastTransactionReceived = player.lastTransactionReceived;
+        int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
         int fireworks = 0;
 
         Iterator<Map.Entry<Integer, FireworkData>> iterator = lagCompensatedFireworksMap.entrySet().iterator();

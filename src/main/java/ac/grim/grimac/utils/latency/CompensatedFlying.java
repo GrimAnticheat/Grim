@@ -28,7 +28,7 @@ public class CompensatedFlying {
     }
 
     public boolean updateForcedPlayerFlight() {
-        int lastTransactionReceived = player.lastTransactionReceived;
+        int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
 
         boolean isFly = player.packetFlyingDanger;
         int bestKey = 0;
@@ -56,7 +56,7 @@ public class CompensatedFlying {
     }
 
     public boolean getCanPlayerFlyLagCompensated() {
-        int lastTransactionReceived = player.lastTransactionReceived;
+        int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
 
         boolean canFly = canPlayerFly;
         int bestKey = 0;

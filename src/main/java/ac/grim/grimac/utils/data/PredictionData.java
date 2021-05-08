@@ -54,7 +54,8 @@ public class PredictionData {
     public Vector firstBreadExplosion = null;
     public List<Vector> possibleExplosion = new ArrayList<>();
 
-    public int minimumTickRequiredToContinue = 0;
+    public int minimumTickRequiredToContinue;
+    public int lastTransaction;
 
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
@@ -119,6 +120,7 @@ public class PredictionData {
         possibleExplosion = player.compensatedExplosion.getPossibleExplosions();
 
         minimumTickRequiredToContinue = player.minimumTickRequiredToContinue;
+        lastTransaction = player.packetLastTransactionReceived;
     }
 
     // For boat movement
@@ -141,5 +143,8 @@ public class PredictionData {
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = player.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+
+        minimumTickRequiredToContinue = player.minimumTickRequiredToContinue;
+        lastTransaction = player.packetLastTransactionReceived;
     }
 }
