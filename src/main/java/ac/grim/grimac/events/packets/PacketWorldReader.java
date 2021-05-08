@@ -33,10 +33,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
     public PacketWorldReader() throws ClassNotFoundException, NoSuchMethodException {
         super(PacketEventPriority.MONITOR);
 
-        // Yes, we are using reflection to get a reflected class. I'm not maintaining my own reflection.
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
-        getByCombinedID.setAccessible(true);
-
         getX = Reflection.getMethod(NMSUtils.blockPosClass, "getX", 0);
         getY = Reflection.getMethod(NMSUtils.blockPosClass, "getY", 0);
         getZ = Reflection.getMethod(NMSUtils.blockPosClass, "getZ", 0);

@@ -1,6 +1,7 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.checks.predictionengine.MovementCheckRunner;
+import ac.grim.grimac.events.bukkit.PlayerBlockBreakPlace;
 import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.bukkit.PlayerQuitListener;
 import ac.grim.grimac.events.packets.*;
@@ -75,6 +76,7 @@ public final class GrimAC extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
         Bukkit.getPluginManager().registerEvents(new MovementCheckRunner(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerBlockBreakPlace(), this);
     }
 
     public void registerPackets() {

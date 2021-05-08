@@ -22,8 +22,9 @@ import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHa
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
@@ -32,11 +33,15 @@ public class CompensatedWorld {
     private static final int MIN_WORLD_HEIGHT = 0;
     private static final int MAX_WORLD_HEIGHT = 255;
     private static final Material flattenedLava = Material.LAVA;
-    public static BlockData[] globalPaletteToBlockData = new BlockData[Block.REGISTRY_ID.a()];
-    public static Method getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
+    public static List<BlockData> globalPaletteToBlockData = new ArrayList<>(Block.REGISTRY_ID.a());
+    public static Method getByCombinedID;
+
+    static {
+        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
+    }
+
     private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
     private final GrimPlayer player;
-
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -64,8 +69,7 @@ public class CompensatedWorld {
                 org.bukkit.block.data.BlockData referencedBlockData = Bukkit.createBlockData(blockString);
 
                 // Link this global palette ID to the blockdata for the second part of the script
-                globalPaletteToBlockData[globalPaletteID] = referencedBlockData;
-
+                globalPaletteToBlockData.add(globalPaletteID, referencedBlockData);
 
             }
         } catch (IOException e) {
@@ -81,12 +85,7 @@ public class CompensatedWorld {
     }
 
     public void updateBlock(int x, int y, int z, BlockData blockData) {
-        try {
-            int blockID = (int) getByCombinedID.invoke(null, blockData);
-            updateBlock(x, y, z, blockID);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        updateBlock(x, y, z, globalPaletteToBlockData.indexOf(blockData));
     }
 
     public void updateBlock(int x, int y, int z, int block) {
@@ -122,19 +121,19 @@ public class CompensatedWorld {
     public BlockData getBukkitBlockDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
-        if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return globalPaletteToBlockData[JAVA_AIR_ID];
+        if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return globalPaletteToBlockData.get(JAVA_AIR_ID);
 
         try {
             Chunk chunk = column.getChunks()[y >> 4];
             if (chunk != null) {
-                return globalPaletteToBlockData[chunk.get(x & 0xF, y & 0xF, z & 0xF)];
+                return globalPaletteToBlockData.get(chunk.get(x & 0xF, y & 0xF, z & 0xF));
             }
         } catch (Exception e) {
             GrimAC.plugin.getLogger().warning("Unable to get block data from chunk x " + (x >> 4) + " z " + (z >> 4));
         }
 
 
-        return globalPaletteToBlockData[JAVA_AIR_ID];
+        return globalPaletteToBlockData.get(JAVA_AIR_ID);
     }
 
     public IBlockData getBlockDataAt(int x, int y, int z) {

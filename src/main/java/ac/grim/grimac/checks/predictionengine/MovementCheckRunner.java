@@ -74,9 +74,12 @@ public class MovementCheckRunner implements Listener {
 
 
         while (true) {
-            PlayerChangeBlockData changeBlockData = player.changeBlockQueue.poll();
+            PlayerChangeBlockData changeBlockData = player.changeBlockQueue.peek();
 
             if (changeBlockData == null) break;
+            // The anticheat thread is behind, this event has not occurred yet
+            if (changeBlockData.tick >= data.minimumTickRequiredToContinue) break;
+            player.changeBlockQueue.poll();
 
             player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.blockData);
         }
