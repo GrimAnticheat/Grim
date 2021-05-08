@@ -2,8 +2,6 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 
 public class TimerCheck extends Check {
     public static void processMovementPacket(GrimPlayer player) {
@@ -16,7 +14,7 @@ public class TimerCheck extends Check {
         player.timerTransaction++;
 
         if (player.timerTransaction > lastTransactionSent + 1) {
-            Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");
+            //Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");
 
             // Reset violation for debugging purposes
             player.timerTransaction = Math.min(player.timerTransaction, player.lastLastTransactionReceived);

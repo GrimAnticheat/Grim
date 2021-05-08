@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
@@ -111,6 +110,7 @@ public class GrimPlayer {
     public FluidTag fluidOnEyes;
 
     public HashMap<Integer, Vector3d> teleports = new HashMap<>();
+    public HashMap<Integer, Byte> relative = new HashMap<>();
 
     // Set after checks
     public double lastX;
@@ -220,10 +220,12 @@ public class GrimPlayer {
     }
 
     // Tested to 20k packets per second per player and couldn't false
+    //
+    // Nevermind, something can go wrong
     public void checkTransactionValid(short transactionID) {
         //Bukkit.broadcastMessage("Checking transaction " + transactionID + " versus " + packetLastTransactionReceived);
         if (transactionID != ((((packetLastTickTransactionReceived % 32767) * -1) - 1))) {
-            Bukkit.broadcastMessage("Not a valid transaction!");
+            //Bukkit.broadcastMessage("Not a valid transaction!");
         }
     }
 

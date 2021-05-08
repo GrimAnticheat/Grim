@@ -171,17 +171,15 @@ public class MovementCheckRunner implements Listener {
             double offset = player.predictedVelocity.vector.distance(player.actualMovement);
 
             // Handle first bread being applied to the player
-            if (player.predictedVelocity.lastVector.vectorType == VectorData.VectorType.PossibleKB) {
+            if (player.predictedVelocity.lastVector != null && player.predictedVelocity.lastVector.vectorType == VectorData.VectorType.PossibleKB) {
                 player.compensatedKnockback.setPlayerKnockbackApplied(player.predictedVelocity.lastVector.vector);
+                GrimAC.plugin.getLogger().info("Original type: " + color + player.predictedVelocity.lastVector.vectorType);
             }
 
             // TODO: Run second tick through the same thing
             if (player.possibleKB != null && offset > 0.01) {
                 player.compensatedKnockback.handlePlayerIgnoredKB();
             }
-
-
-            GrimAC.plugin.getLogger().info("Original type: " + color + player.predictedVelocity.lastVector.vectorType);
 
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());

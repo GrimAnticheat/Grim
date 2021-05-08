@@ -18,22 +18,42 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
         if (event.getPacketId() == PacketType.Play.Client.TELEPORT_ACCEPT) {
             WrappedPacketInTeleportAccept accept = new WrappedPacketInTeleportAccept(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            Vector3d teleportLocation = player.teleports.get(accept.getTeleportId());
+            Vector3d teleportLocation = player.teleports.remove(accept.getTeleportId());
+            byte relative = player.relative.remove(accept.getTeleportId());
 
             // Impossible under normal vanilla client
             if (teleportLocation == null) return;
 
+            double teleportX = teleportLocation.getX();
+            double teleportY = teleportLocation.getY();
+            double teleportZ = teleportLocation.getZ();
+
             player.isJustTeleported = true;
+
+            if ((relative & 1) == 1) {
+                teleportX += player.lastX;
+            } else {
+                player.baseTickSetX(0);
+            }
+
+            if ((relative >> 1 & 1) == 1) {
+                teleportY += player.lastY;
+            } else {
+                player.baseTickSetY(0);
+            }
+
+            if ((relative >> 2 & 1) == 1) {
+                teleportZ += player.lastZ;
+            } else {
+                player.baseTickSetZ(0);
+            }
 
             // A bit hacky but should be fine - set this stuff twice as optimization
             // Otherwise we will be running more scenarios to try and get the right velocity
             // Setting last coordinates here is necessary though, don't change that.
-            player.lastX = teleportLocation.getX();
-            player.lastY = teleportLocation.getY();
-            player.lastZ = teleportLocation.getZ();
-            player.baseTickSetX(0);
-            player.baseTickSetY(0);
-            player.baseTickSetZ(0);
+            player.lastX = teleportX;
+            player.lastY = teleportY;
+            player.lastZ = teleportZ;
 
             Bukkit.broadcastMessage("Teleport accepted!");
         }
@@ -46,8 +66,10 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             WrappedPacketOutPosition teleport = new WrappedPacketOutPosition(event.getNMSPacket());
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+
             // This shouldn't be null unless another plugin is incorrectly using packets
             player.teleports.put(teleport.getTeleportId().get(), teleport.getPosition());
+            player.relative.put(teleport.getTeleportId().get(), teleport.getRelativeFlagsMask());
 
             Bukkit.broadcastMessage("Teleporting to " + teleport.getPosition().toString());
         }
