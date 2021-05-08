@@ -6,6 +6,8 @@ import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+import io.github.retrooper.packetevents.utils.nms.NMSUtils;
+import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import net.minecraft.server.v1_16_R3.Block;
 import net.minecraft.server.v1_16_R3.IBlockData;
 import org.apache.logging.log4j.core.util.Integers;
@@ -20,6 +22,8 @@ import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHa
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Objects;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
@@ -27,20 +31,62 @@ public class CompensatedWorld {
     public static final int JAVA_AIR_ID = 0;
     private static final int MIN_WORLD_HEIGHT = 0;
     private static final int MAX_WORLD_HEIGHT = 255;
-    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
     private static final Material flattenedLava = Material.LAVA;
     public static BlockData[] globalPaletteToBlockData = new BlockData[Block.REGISTRY_ID.a()];
-
+    public static Method getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
+    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
     private final GrimPlayer player;
+
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
+    }
+
+    public static void initBlockID() {
+        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
+        String line;
+
+        try {
+            while ((line = paletteReader.readLine()) != null) {
+                if (!paletteReader.ready()) break;
+                // Example line:
+                // 109 minecraft:oak_wood[axis=x]
+                String number = line.substring(0, line.indexOf(" "));
+
+                // This is the integer used when sending chunks
+                int globalPaletteID = Integers.parseInt(number);
+
+                // This is the string saved from the block
+                // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
+                // I could technically generate this on startup but that requires setting blocks in the world
+                // Would rather have a known clean file on all servers.
+                String blockString = line.substring(line.indexOf(" ") + 1);
+                org.bukkit.block.data.BlockData referencedBlockData = Bukkit.createBlockData(blockString);
+
+                // Link this global palette ID to the blockdata for the second part of the script
+                globalPaletteToBlockData[globalPaletteID] = referencedBlockData;
+
+
+            }
+        } catch (IOException e) {
+            System.out.println("Palette reading failed! Unsupported version?");
+            e.printStackTrace();
+        }
     }
 
     public void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
 
         chunks.put(chunkPosition, chunk);
+    }
+
+    public void updateBlock(int x, int y, int z, BlockData blockData) {
+        try {
+            int blockID = (int) getByCombinedID.invoke(null, blockData);
+            updateBlock(x, y, z, blockID);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateBlock(int x, int y, int z, int block) {
@@ -215,37 +261,5 @@ public class CompensatedWorld {
     public void removeChunk(int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
-    }
-
-    public static void initBlockID() {
-        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
-        String line;
-
-        try {
-            while ((line = paletteReader.readLine()) != null) {
-                if (!paletteReader.ready()) break;
-                // Example line:
-                // 109 minecraft:oak_wood[axis=x]
-                String number = line.substring(0, line.indexOf(" "));
-
-                // This is the integer used when sending chunks
-                int globalPaletteID = Integers.parseInt(number);
-
-                // This is the string saved from the block
-                // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
-                // I could technically generate this on startup but that requires setting blocks in the world
-                // Would rather have a known clean file on all servers.
-                String blockString = line.substring(line.indexOf(" ") + 1);
-                org.bukkit.block.data.BlockData referencedBlockData = Bukkit.createBlockData(blockString);
-
-                // Link this global palette ID to the blockdata for the second part of the script
-                globalPaletteToBlockData[globalPaletteID] = referencedBlockData;
-
-
-            }
-        } catch (IOException e) {
-            System.out.println("Palette reading failed! Unsupported version?");
-            e.printStackTrace();
-        }
     }
 }

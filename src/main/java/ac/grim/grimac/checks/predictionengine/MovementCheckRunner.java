@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.checks.predictionengine.movementTick.*;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.PlayerChangeBlockData;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.Pose;
@@ -45,11 +46,11 @@ import java.util.concurrent.ThreadPoolExecutor;
 // If stage 1 - Add the data to the queue and add one
 public class MovementCheckRunner implements Listener {
     public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
-    // List instead of Set for consistency in debug output
-    static List<MovementCheck> movementCheckListeners = new ArrayList<>();
     // I actually don't know how many threads is good, more testing is needed!
     public static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
+    // List instead of Set for consistency in debug output
+    static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
     public static void addQueuedPrediction(PredictionData data) {
         // TODO: This is a hack that should be fixed - maybe
@@ -66,10 +67,18 @@ public class MovementCheckRunner implements Listener {
     public static void check(PredictionData data) {
         GrimPlayer player = data.player;
 
-        // TODO: Busy waiting is bad (This isn't an issue with a filled queue)
         if (data.minimumTickRequiredToContinue > GrimAC.currentTick.get()) {
             waitingOnServerQueue.add(data);
             return;
+        }
+
+
+        while (true) {
+            PlayerChangeBlockData changeBlockData = player.changeBlockQueue.poll();
+
+            if (changeBlockData == null) break;
+
+            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.blockData);
         }
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor

@@ -51,7 +51,7 @@ public final class GrimAC extends JavaPlugin {
         scheduleTransactionPacketSend();
         handleReload();
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
             currentTick.getAndIncrement();
 
             while (true) {
