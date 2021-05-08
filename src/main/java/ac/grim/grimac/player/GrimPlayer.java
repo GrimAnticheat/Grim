@@ -223,7 +223,7 @@ public class GrimPlayer {
 
         if (!compensatedKnockback.handleTransactionPacket(transactionID) &&
                 !compensatedExplosion.handleTransactionPacket(transactionID)) {
-            packetLastTickTransactionReceived++;
+
         }
     }
 

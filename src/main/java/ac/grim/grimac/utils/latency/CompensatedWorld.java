@@ -4,6 +4,8 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.data.PlayerChangeBlockData;
+import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -26,6 +28,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
@@ -36,6 +39,8 @@ public class CompensatedWorld {
     public static List<BlockData> globalPaletteToBlockData = new ArrayList<>(Block.REGISTRY_ID.a());
     public static Method getByCombinedID;
 
+    public ConcurrentLinkedQueue<WorldChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
+
     static {
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
     }
@@ -45,6 +50,33 @@ public class CompensatedWorld {
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
+    }
+
+    public void tickUpdates(int minimumTickRequiredToContinue) {
+        while (true) {
+            PlayerChangeBlockData changeBlockData = player.changeBlockQueue.peek();
+
+            if (changeBlockData == null) break;
+            // The anticheat thread is behind, this event has not occurred yet
+            if (changeBlockData.tick >= minimumTickRequiredToContinue) break;
+            player.changeBlockQueue.poll();
+
+            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.blockData);
+        }
+
+        while (true) {
+            WorldChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
+
+            if (changeBlockData == null) break;
+            // The anticheat thread is behind, this event has not occurred yet
+            if (changeBlockData.tick > player.lastTransactionReceived) {
+                break;
+            }
+
+            worldChangedBlockQueue.poll();
+
+            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.blockID);
+        }
     }
 
     public static void initBlockID() {

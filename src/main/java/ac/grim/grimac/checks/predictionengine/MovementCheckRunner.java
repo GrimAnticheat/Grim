@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.checks.predictionengine.movementTick.*;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.PlayerChangeBlockData;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.Pose;
@@ -72,17 +71,7 @@ public class MovementCheckRunner implements Listener {
             return;
         }
 
-
-        while (true) {
-            PlayerChangeBlockData changeBlockData = player.changeBlockQueue.peek();
-
-            if (changeBlockData == null) break;
-            // The anticheat thread is behind, this event has not occurred yet
-            if (changeBlockData.tick >= data.minimumTickRequiredToContinue) break;
-            player.changeBlockQueue.poll();
-
-            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.blockData);
-        }
+        player.compensatedWorld.tickUpdates(data.minimumTickRequiredToContinue);
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
         try {

@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
@@ -110,7 +111,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
                 int blockID = (int) getByCombinedID.invoke(null, block.get(blockChange));
 
-                player.compensatedWorld.updateBlock((Integer) getX.invoke(blockPosition), (Integer) getY.invoke(blockPosition), (Integer) getZ.invoke(blockPosition), blockID);
+                player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get() + 1, (Integer) getX.invoke(blockPosition), (Integer) getY.invoke(blockPosition), (Integer) getZ.invoke(blockPosition), blockID));
             } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
