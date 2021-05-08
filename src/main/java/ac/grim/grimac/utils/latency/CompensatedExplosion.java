@@ -25,16 +25,22 @@ public class CompensatedExplosion {
         this.player = player;
     }
 
-    public void handleTransactionPacket(int transactionID) {
+    public boolean handleTransactionPacket(int transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
             firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(firstBreadMap.get(transactionID));
             breadValue = transactionID + 1;
+
+            return true;
         }
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
             firstBreadAddedExplosion = null;
             lastExplosionsKnownTaken.add(firstBreadMap.remove(transactionID + 1));
+
+            return true;
         }
+
+        return false;
     }
 
     public void addPlayerExplosion(WrappedPacketOutExplosion explosion) {

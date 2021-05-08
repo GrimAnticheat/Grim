@@ -24,16 +24,22 @@ public class CompensatedKnockback {
         this.player = player;
     }
 
-    public void handleTransactionPacket(int transactionID) {
+    public boolean handleTransactionPacket(int transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
             firstBreadOnlyKnockback = firstBreadMap.get(transactionID);
             breadValue = transactionID + 1;
+
+            return true;
         }
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
             firstBreadOnlyKnockback = null;
             lastKnockbackKnownTaken = firstBreadMap.remove(transactionID + 1);
+
+            return true;
         }
+
+        return false;
     }
 
     public void addPlayerKnockback(Vector knockback) {

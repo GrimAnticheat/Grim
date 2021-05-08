@@ -211,11 +211,11 @@ public class MovementCheckRunner implements Listener {
         player.lastClimbing = player.isClimbing;
         player.isJustTeleported = false;
 
-        if (player.lastTransactionReceived != player.packetLastTransactionReceived) {
+        if (player.lastTransactionReceived != player.packetLastTickTransactionReceived) {
             player.lastLastTransactionReceived = player.lastTransactionReceived;
         }
 
-        player.lastTransactionReceived = player.packetLastTransactionReceived;
+        player.lastTransactionReceived = player.packetLastTickTransactionReceived;
 
 
         player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
@@ -289,7 +289,7 @@ public class MovementCheckRunner implements Listener {
         } else {
             // Update to the latest and check if flying
             // Flight can't be rapidly toggled so we don't need to check off -> on -> off
-            player.lastTransactionSent.set(player.packetLastTransactionReceived);
+            player.lastTransactionSent.set(player.packetLastTickTransactionReceived);
             if (player.packetFlyingDanger && player.compensatedFlying.getCanPlayerFlyLagCompensated()) {
                 return;
             }

@@ -138,6 +138,7 @@ public class GrimPlayer {
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public int packetLastTransactionReceived = 0;
+    public int packetLastTickTransactionReceived = 0;
     public int lastTransactionReceived = 0;
     public int lastLastTransactionReceived = 0;
     public int movementTransaction = Integer.MIN_VALUE;
@@ -210,16 +211,18 @@ public class GrimPlayer {
 
     public void addTransactionResponse(short transactionID) {
         checkTransactionValid(transactionID);
-        packetLastTransactionReceived++;
+        packetLastTickTransactionReceived++;
 
-        compensatedKnockback.handleTransactionPacket(transactionID);
-        compensatedExplosion.handleTransactionPacket(transactionID);
+        if (!compensatedKnockback.handleTransactionPacket(transactionID) &&
+                !compensatedExplosion.handleTransactionPacket(transactionID)) {
+            packetLastTickTransactionReceived++;
+        }
     }
 
     // Tested to 20k packets per second per player and couldn't false
     public void checkTransactionValid(short transactionID) {
         //Bukkit.broadcastMessage("Checking transaction " + transactionID + " versus " + packetLastTransactionReceived);
-        if (transactionID != ((((packetLastTransactionReceived % 32767) * -1) - 1))) {
+        if (transactionID != ((((packetLastTickTransactionReceived % 32767) * -1) - 1))) {
             Bukkit.broadcastMessage("Not a valid transaction!");
         }
     }
