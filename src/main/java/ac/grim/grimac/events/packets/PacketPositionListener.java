@@ -35,13 +35,12 @@ public class PacketPositionListener extends PacketListenerDynamic {
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
-        // For movement predictions the look just loses us precision, it can be helpful for timer checks but ultimately it's useless for predictions
-        /*if (packetID == PacketType.Play.Client.LOOK) {
+        if (packetID == PacketType.Play.Client.LOOK) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), grimPlayer.x, grimPlayer.y, grimPlayer.z, position.getYaw(), position.getPitch(), position.isOnGround()));
-        }*/
+            MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), player.x, player.y, player.z, position.getYaw(), position.getPitch(), position.isOnGround()));
+        }
 
         if (packetID == PacketType.Play.Client.FLYING) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
