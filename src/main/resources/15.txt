@@ -6140,7 +6140,7 @@
 6139 minecraft:heavy_weighted_pressure_plate[power=13]
 6140 minecraft:heavy_weighted_pressure_plate[power=14]
 6141 minecraft:heavy_weighted_pressure_plate[power=15]
-6142 minecraft:air
+6142 minecraft:comparator[facing=north,mode=compare,powered=true]
 6143 minecraft:comparator[facing=north,mode=compare,powered=false]
 6144 minecraft:comparator[facing=north,mode=subtract,powered=true]
 6145 minecraft:comparator[facing=north,mode=subtract,powered=false]

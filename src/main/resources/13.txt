@@ -5634,7 +5634,7 @@
 5633 minecraft:heavy_weighted_pressure_plate[power=13]
 5634 minecraft:heavy_weighted_pressure_plate[power=14]
 5635 minecraft:heavy_weighted_pressure_plate[power=15]
-5636 minecraft:air
+5636 minecraft:comparator[facing=north,mode=compare,powered=true]
 5637 minecraft:comparator[facing=north,mode=compare,powered=false]
 5638 minecraft:comparator[facing=north,mode=subtract,powered=true]
 5639 minecraft:comparator[facing=north,mode=subtract,powered=false]
