@@ -85,7 +85,6 @@ public class CompensatedWorld {
 
         try {
             while ((line = paletteReader.readLine()) != null) {
-                if (!paletteReader.ready()) break;
                 // Example line:
                 // 109 minecraft:oak_wood[axis=x]
                 String number = line.substring(0, line.indexOf(" "));
