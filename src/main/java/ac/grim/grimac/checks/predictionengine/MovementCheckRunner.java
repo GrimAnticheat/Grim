@@ -115,6 +115,8 @@ public class MovementCheckRunner implements Listener {
                 player.possibleKB = null;
             }
 
+            Vector beforeMovementVelocity = player.clientVelocity.clone();
+
             if (!player.inVehicle) {
                 player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
 
@@ -153,17 +155,13 @@ public class MovementCheckRunner implements Listener {
                 new MovementTickerStrider(player).livingEntityTravel();
             }
 
-
             // Teleporting overwrites all movements
             if (player.isJustTeleported) {
-                player.baseTickSetX(0);
-                player.baseTickSetY(0);
-                player.baseTickSetZ(0);
                 player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
-
                 player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-            }
 
+                player.clientVelocity = beforeMovementVelocity;
+            }
 
             ChatColor color;
             double diff = player.predictedVelocity.vector.distance(player.actualMovement);
