@@ -8,11 +8,10 @@ import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.WrappedPacketOutEntityDestroy;
+import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
 import org.bukkit.entity.Firework;
 
-import java.lang.reflect.Field;
 import java.util.HashSet;
-import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -35,36 +34,18 @@ public class PacketFireworkListener extends PacketListenerDynamic {
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_METADATA) {
-            // PacketPlayOutEntityMetadata
-            Object metadata = event.getNMSPacket().getRawNMSPacket();
+            WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
 
-            try {
-                Field entityID = metadata.getClass().getDeclaredField("a");
-                entityID.setAccessible(true);
+            if (fireworks.remove(entityMetadata.getEntityId())) {
+                OptionalInt attachedEntityID = (OptionalInt) entityMetadata.getWatchableObjects().get(4).getRawValue();
 
-                if (fireworks.remove(entityID.getInt(metadata))) {
-                    Field data = metadata.getClass().getDeclaredField("b");
-                    data.setAccessible(true);
-                    // DataWatcher.Item<?>
-                    List<Object> b = (List<Object>) data.get(metadata);
-
-                    // DataWatcher.Item<?>
-                    Object entry = b.get(4);
-                    Field value = entry.getClass().getDeclaredField("b");
-                    value.setAccessible(true);
-
-                    OptionalInt attachedEntityID = (OptionalInt) value.get(entry);
-
-                    if (attachedEntityID.isPresent()) {
-                        for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                            if (player.entityID == attachedEntityID.getAsInt()) {
-                                player.compensatedFireworks.addNewFirework(entityID.getInt(metadata));
-                            }
+                if (attachedEntityID.isPresent()) {
+                    for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                        if (player.entityID == attachedEntityID.getAsInt()) {
+                            player.compensatedFireworks.addNewFirework(entityMetadata.getEntityId());
                         }
                     }
                 }
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
             }
         }
 
