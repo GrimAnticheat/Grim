@@ -221,7 +221,9 @@ public class CompensatedWorld {
             }
 
             Levelled lava = (Levelled) bukkitBlock;
-            lava.getLevel();
+
+            // Falling lava has a level of 8
+            if (lava.getLevel() >= 8) return 8 / 9f;
 
             // I have no clue why this is needed.
             // What the server STORES and SENDS is different from what the client f3 menu shows!
@@ -232,10 +234,7 @@ public class CompensatedWorld {
         return 0;
     }
 
-    // I can't figure out what levels above 8 do.
-    // Even on debug mode, they still can't go above level 8
-    // Must have been an optimization that is no longer used
-    // Doesn't work on 1.12
+    // 1.13+ only
     public double getWaterFluidLevelAt(int x, int y, int z) {
         BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
 
@@ -270,6 +269,9 @@ public class CompensatedWorld {
                     aboveData.getMaterial() == Material.BUBBLE_COLUMN || aboveData.getMaterial() == Material.WATER) {
                 return 1;
             }
+
+            // Falling water has a level of 8
+            if (waterLevel >= 8) return 8 / 9f;
 
             return (8 - waterLevel) / 9f;
         }
