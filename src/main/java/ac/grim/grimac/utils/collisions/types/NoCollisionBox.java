@@ -35,6 +35,11 @@ public class NoCollisionBox implements CollisionBox {
     }
 
     @Override
+    public boolean isFullBlock() {
+        return false;
+    }
+
+    @Override
     public CollisionBox copy() {
         return this;
     }

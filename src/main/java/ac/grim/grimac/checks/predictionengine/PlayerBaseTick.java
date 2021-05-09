@@ -263,6 +263,6 @@ public class PlayerBaseTick {
     private boolean suffocatesAt(BlockPosition blockPos2) {
         SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(blockPos2.getX(), player.boundingBox.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, player.boundingBox.maxY, blockPos2.getZ() + 1.0).expand(-1.0E-7);
 
-        return !Collisions.isEmpty(player, axisAlignedBB);
+        return Collisions.suffocatesAt(player, axisAlignedBB);
     }
 }

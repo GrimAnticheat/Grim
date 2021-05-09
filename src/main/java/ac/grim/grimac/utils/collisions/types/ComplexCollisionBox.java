@@ -59,5 +59,8 @@ public class ComplexCollisionBox implements CollisionBox {
         return true;
     }
 
-
+    @Override
+    public boolean isFullBlock() {
+        return false;
+    }
 }

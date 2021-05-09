@@ -52,6 +52,11 @@ public class DynamicCollisionBox implements CollisionBox {
         return box.fetch(version, block, x, y, z).isNull();
     }
 
+    @Override
+    public boolean isFullBlock() {
+        return false;
+    }
+
     public void setBlock(BlockData block) {
         this.block = block;
     }

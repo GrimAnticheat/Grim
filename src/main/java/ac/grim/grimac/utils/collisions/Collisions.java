@@ -445,6 +445,32 @@ public class Collisions {
         return true;
     }
 
+    public static boolean suffocatesAt(GrimPlayer player, SimpleCollisionBox playerBB) {
+        List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
+
+        // Not the fasted way to iterate but everything is broken anyways
+        for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
+            for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
+                for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
+                    org.bukkit.block.data.BlockData data = player.compensatedWorld.getBukkitBlockDataAt(x, y, z);
+
+                    if (!data.getMaterial().isOccluding()) continue;
+                    CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, ProtocolVersion.v1_16_5);
+                    if (!box.isFullBlock()) continue;
+
+                    box.downCast(listOfBlocks);
+                }
+            }
+        }
+
+
+        for (CollisionBox collisionBox : listOfBlocks) {
+            if (collisionBox.isCollided(playerBB)) return true;
+        }
+
+        return false;
+    }
+
     public static boolean onClimbable(GrimPlayer player) {
         // spectator check
 

@@ -9,12 +9,15 @@ import java.util.List;
 public class SimpleCollisionBox implements CollisionBox {
     public double minX, minY, minZ, maxX, maxY, maxZ;
     public static final double COLLISION_EPSILON = 1.0E-7;
+    boolean isFullBlock = false;
 
     public SimpleCollisionBox() {
         this(0, 0, 0, 0, 0, 0);
     }
 
     public SimpleCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        if (minX == 0 && minY == 0 && minZ == 0 && maxX == 1 && maxY == 1 && maxZ == 1) isFullBlock = true;
+
         if (minX < maxX) {
             this.minX = minX;
             this.maxX = maxX;
@@ -98,6 +101,11 @@ public class SimpleCollisionBox implements CollisionBox {
     @Override
     public boolean isNull() {
         return false;
+    }
+
+    @Override
+    public boolean isFullBlock() {
+        return isFullBlock;
     }
 
     public SimpleCollisionBox expandMin(double x, double y, double z) {
