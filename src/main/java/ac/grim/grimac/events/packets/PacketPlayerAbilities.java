@@ -27,7 +27,6 @@ public class PacketPlayerAbilities extends PacketListenerDynamic {
             WrappedPacketOutAbilities abilities = new WrappedPacketOutAbilities(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
-            player.compensatedFlying.setServerForcedPlayerFly(abilities.isFlying());
             player.compensatedFlying.setCanPlayerFly(abilities.isFlightAllowed());
         }
     }

@@ -71,7 +71,9 @@ public class MovementCheckRunner implements Listener {
             return;
         }
 
+        player.lastTransactionReceived = data.lastTransaction;
         player.compensatedWorld.tickUpdates(data.minimumTickRequiredToContinue, data.lastTransaction);
+        player.compensatedFlying.tickUpdates(data.minimumTickRequiredToContinue);
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
         try {
@@ -294,7 +296,7 @@ public class MovementCheckRunner implements Listener {
             // Update to the latest and check if flying
             // Flight can't be rapidly toggled so we don't need to check off -> on -> off
             player.lastTransactionSent.set(player.packetLastTransactionReceived);
-            if (player.packetFlyingDanger && player.compensatedFlying.getCanPlayerFlyLagCompensated()) {
+            if (player.packetFlyingDanger && player.compensatedFlying.getCanPlayerFlyLagCompensated(player.lastTransactionBeforeLastMovement)) {
                 return;
             }
         }

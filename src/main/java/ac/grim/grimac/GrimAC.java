@@ -6,6 +6,7 @@ import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.bukkit.PlayerQuitListener;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.PlayerFlyingData;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -62,14 +63,11 @@ public final class GrimAC extends JavaPlugin {
 
                 MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
             }
-        }, 0, 1);
 
-        // Debug
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                //Bukkit.broadcastMessage("Ping is " + PacketEvents.get().getPlayerUtils().getSmoothedPing(player));
+            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                player.playerFlyingQueue.add(new PlayerFlyingData(currentTick.get(), player.bukkitPlayer.isFlying()));
             }
-        }, 1, 1);
+        }, 0, 1);
     }
 
     public void registerEvents() {

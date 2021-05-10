@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Collisions;
 import org.bukkit.GameMode;
@@ -91,7 +92,7 @@ public class PredictionData {
             player.packetFlyingDanger = true;
         }
 
-        this.isFlying = player.compensatedFlying.updateForcedPlayerFlight() && player.compensatedFlying.getCanPlayerFlyLagCompensated();
+        this.isFlying = player.compensatedFlying.somewhatLagCompensatedIsPlayerFlying() && player.compensatedFlying.getCanPlayerFlyLagCompensated(player.lastTransactionBeforeLastMovement);
 
 
         this.isClimbing = Collisions.onClimbable(player);
@@ -119,7 +120,7 @@ public class PredictionData {
         firstBreadExplosion = player.compensatedExplosion.getFirstBreadAddedExplosion();
         possibleExplosion = player.compensatedExplosion.getPossibleExplosions();
 
-        minimumTickRequiredToContinue = player.minimumTickRequiredToContinue;
+        minimumTickRequiredToContinue = GrimAC.currentTick.get() + 1;
         lastTransaction = player.packetLastTransactionReceived;
     }
 
@@ -144,7 +145,7 @@ public class PredictionData {
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = player.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
 
-        minimumTickRequiredToContinue = player.minimumTickRequiredToContinue;
+        minimumTickRequiredToContinue = GrimAC.currentTick.get() + 1;
         lastTransaction = player.packetLastTransactionReceived;
     }
 }

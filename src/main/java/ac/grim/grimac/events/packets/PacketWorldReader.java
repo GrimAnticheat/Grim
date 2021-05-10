@@ -8,11 +8,9 @@ import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedPacketInBlockDig;
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
@@ -169,25 +167,6 @@ public class PacketWorldReader extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             player.compensatedWorld.removeChunk(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
-        }
-    }
-
-    @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-
-        if (event.getPacketId() == PacketType.Play.Client.USE_ITEM) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            player.minimumTickRequiredToContinue = GrimAC.currentTick.get() + 1;
-        }
-
-        if (event.getPacketId() == PacketType.Play.Client.BLOCK_DIG) {
-            WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
-
-            // The player believes that they finished breaking the block
-            if (dig.getDigType() == WrappedPacketInBlockDig.PlayerDigType.STOP_DESTROY_BLOCK || dig.getDigType() == WrappedPacketInBlockDig.PlayerDigType.START_DESTROY_BLOCK) {
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-                player.minimumTickRequiredToContinue = GrimAC.currentTick.get() + 1;
-            }
         }
     }
 }
