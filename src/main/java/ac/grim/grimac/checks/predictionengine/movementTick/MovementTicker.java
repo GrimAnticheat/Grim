@@ -173,6 +173,43 @@ public class MovementTicker {
     public void doNormalMove(float blockFriction) {
     }
 
+    public static Vector cutVectorsToPlayerMovement(Vector vectorToCutTo, Vector vectorOne, Vector vectorTwo) {
+        double xMin = Math.min(vectorOne.getX(), vectorTwo.getX());
+        double xMax = Math.max(vectorOne.getX(), vectorTwo.getX());
+        double yMin = Math.min(vectorOne.getY(), vectorTwo.getY());
+        double yMax = Math.max(vectorOne.getY(), vectorTwo.getY());
+        double zMin = Math.min(vectorOne.getZ(), vectorTwo.getZ());
+        double zMax = Math.max(vectorOne.getZ(), vectorTwo.getZ());
+
+        Vector cutCloned = vectorToCutTo.clone();
+
+        if (xMin > vectorToCutTo.getX() || xMax < vectorToCutTo.getX()) {
+            if (Math.abs(vectorToCutTo.getX() - xMin) < Math.abs(vectorToCutTo.getX() - xMax)) {
+                cutCloned.setX(xMin);
+            } else {
+                cutCloned.setX(xMax);
+            }
+        }
+
+        if (yMin > vectorToCutTo.getY() || yMax < vectorToCutTo.getY()) {
+            if (Math.abs(vectorToCutTo.getY() - yMin) < Math.abs(vectorToCutTo.getY() - yMax)) {
+                cutCloned.setY(yMin);
+            } else {
+                cutCloned.setY(yMax);
+            }
+        }
+
+        if (zMin > vectorToCutTo.getZ() || zMax < vectorToCutTo.getZ()) {
+            if (Math.abs(vectorToCutTo.getZ() - zMin) < Math.abs(vectorToCutTo.getZ() - zMax)) {
+                cutCloned.setZ(zMin);
+            } else {
+                cutCloned.setZ(zMax);
+            }
+        }
+
+        return cutCloned;
+    }
+
     // LivingEntity line 1741
     public void livingEntityTravel() {
         double playerGravity = 0.08;
@@ -264,9 +301,9 @@ public class MovementTicker {
                         getElytraMovement(boostOne, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
                         getElytraMovement(boostTwo, lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
 
-                        Vector cutOne = cutVectorsToPlayerMovement(boostOne, noFireworksTwo);
-                        Vector cutTwo = cutVectorsToPlayerMovement(boostTwo, noFireworksOne);
-                        Vector cutCombined = cutVectorsToPlayerMovement(cutOne, cutTwo);
+                        Vector cutOne = cutVectorsToPlayerMovement(player.actualMovement, boostOne, noFireworksTwo);
+                        Vector cutTwo = cutVectorsToPlayerMovement(player.actualMovement, boostTwo, noFireworksOne);
+                        Vector cutCombined = cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
 
                         possibleVelocities.add(cutCombined);
 
@@ -311,43 +348,6 @@ public class MovementTicker {
             }
         }
 
-    }
-
-    public Vector cutVectorsToPlayerMovement(Vector vectorOne, Vector vectorTwo) {
-        double xMin = Math.min(vectorOne.getX(), vectorTwo.getX());
-        double xMax = Math.max(vectorOne.getX(), vectorTwo.getX());
-        double yMin = Math.min(vectorOne.getY(), vectorTwo.getY());
-        double yMax = Math.max(vectorOne.getY(), vectorTwo.getY());
-        double zMin = Math.min(vectorOne.getZ(), vectorTwo.getZ());
-        double zMax = Math.max(vectorOne.getZ(), vectorTwo.getZ());
-
-        Vector actualMovementCloned = player.actualMovement.clone();
-
-        if (xMin > player.actualMovement.getX() || xMax < player.actualMovement.getX()) {
-            if (Math.abs(player.actualMovement.getX() - xMin) < Math.abs(player.actualMovement.getX() - xMax)) {
-                actualMovementCloned.setX(xMin);
-            } else {
-                actualMovementCloned.setX(xMax);
-            }
-        }
-
-        if (yMin > player.actualMovement.getY() || yMax < player.actualMovement.getY()) {
-            if (Math.abs(player.actualMovement.getY() - yMin) < Math.abs(player.actualMovement.getY() - yMax)) {
-                actualMovementCloned.setY(yMin);
-            } else {
-                actualMovementCloned.setY(yMax);
-            }
-        }
-
-        if (zMin > player.actualMovement.getZ() || zMax < player.actualMovement.getZ()) {
-            if (Math.abs(player.actualMovement.getZ() - zMin) < Math.abs(player.actualMovement.getZ() - zMax)) {
-                actualMovementCloned.setZ(zMin);
-            } else {
-                actualMovementCloned.setZ(zMax);
-            }
-        }
-
-        return actualMovementCloned;
     }
 
     public Vector getElytraMovement(Vector vector, Vector lookVector) {
