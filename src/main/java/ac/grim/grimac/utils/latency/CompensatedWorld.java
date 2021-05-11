@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -40,6 +41,10 @@ public class CompensatedWorld {
     public static Method getByCombinedID;
 
     public ConcurrentLinkedQueue<WorldChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<PlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
+
+    public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
+
 
     static {
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
@@ -54,12 +59,12 @@ public class CompensatedWorld {
 
     public void tickUpdates(int minimumTickRequiredToContinue, int lastTransaction) {
         while (true) {
-            PlayerChangeBlockData changeBlockData = player.changeBlockQueue.peek();
+            PlayerChangeBlockData changeBlockData = changeBlockQueue.peek();
 
             if (changeBlockData == null) break;
             // The anticheat thread is behind, this event has not occurred yet
             if (changeBlockData.tick >= minimumTickRequiredToContinue) break;
-            player.changeBlockQueue.poll();
+            changeBlockQueue.poll();
 
             player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.blockData);
         }
@@ -107,6 +112,12 @@ public class CompensatedWorld {
             System.out.println("Palette reading failed! Unsupported version?");
             e.printStackTrace();
         }
+    }
+
+    public boolean isChunkLoaded(int chunkX, int chunkZ) {
+        long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
+
+        return chunks.containsKey(chunkPosition);
     }
 
     public void addToCache(Column chunk, int chunkX, int chunkZ) {

@@ -20,7 +20,7 @@ public class PlayerBlockBreakPlace implements Listener {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
         Block block = event.getBlock();
         PlayerChangeBlockData data = new PlayerChangeBlockData(GrimAC.currentTick.get(), block.getX(), block.getY(), block.getZ(), block.getBlockData());
-        player.changeBlockQueue.add(data);
+        player.compensatedWorld.changeBlockQueue.add(data);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -28,6 +28,6 @@ public class PlayerBlockBreakPlace implements Listener {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
         Block block = event.getBlock();
         PlayerChangeBlockData data = new PlayerChangeBlockData(GrimAC.currentTick.get(), block.getX(), block.getY(), block.getZ(), airBlockData);
-        player.changeBlockQueue.add(data);
+        player.compensatedWorld.changeBlockQueue.add(data);
     }
 }
