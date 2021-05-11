@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.packetlib.io.NetInput;
@@ -192,25 +193,18 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 BlockData blockData = player.compensatedWorld.getBukkitBlockDataAt(x, y, z);
 
                 if (blockData.getMaterial() == Material.PISTON || blockData.getMaterial() == Material.STICKY_PISTON) {
-                    Field b0 = action.getClass().getDeclaredField("b");
-                    Field b1 = action.getClass().getDeclaredField("c");
+                    while (true) {
+                        PistonData data = player.compensatedWorld.pistonData.peek();
 
-                    blockPosition.setAccessible(true);
-                    b0.setAccessible(true);
-                    b1.setAccessible(true);
+                        if (data == null) break;
 
-                    // b0 = 0 means extending
-                    // b0 = 1 means retracting
-                    // b0 = 2 means zero ticked and retracting without bringing back blocks
+                        // The player hasn't gotten this update yet
+                        if (data.lastTransactionSent > player.packetLastTransactionReceived) {
+                            break;
+                        }
 
-                    // b1 = 0 - down
-                    // b1 = 1 - up
-                    // b1 = 2 - south
-                    // b1 = 3 - west
-                    // b1 = 4 - north
-                    // b1 = 5 - east
-                    Bukkit.broadcastMessage("b0 is " + b0.get(action));
-                    Bukkit.broadcastMessage("b1 is " + b1.get(action));
+                        player.compensatedWorld.pistonData.poll();
+                    }
                 }
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 e.printStackTrace();

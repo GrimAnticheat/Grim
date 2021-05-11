@@ -57,7 +57,7 @@ public class CompensatedWorld {
         this.player = player;
     }
 
-    public void tickUpdates(int minimumTickRequiredToContinue, int lastTransaction) {
+    public void tickUpdates(int minimumTickRequiredToContinue, int lastTransactionReceived) {
         while (true) {
             PlayerChangeBlockData changeBlockData = changeBlockQueue.peek();
 
@@ -73,14 +73,29 @@ public class CompensatedWorld {
             WorldChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
 
             if (changeBlockData == null) break;
-            // The anticheat thread is behind, this event has not occurred yet
-            if (changeBlockData.tick > lastTransaction) {
+            // The player hasn't gotten this update yet
+            if (changeBlockData.tick > lastTransactionReceived) {
                 break;
             }
 
             worldChangedBlockQueue.poll();
 
             player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.blockID);
+        }
+
+        while (true) {
+            PistonData data = pistonData.peek();
+
+            if (data == null) break;
+
+            // The player hasn't gotten this update yet
+            if (data.lastTransactionSent > lastTransactionReceived) {
+                break;
+            }
+
+            pistonData.poll();
+
+
         }
     }
 
