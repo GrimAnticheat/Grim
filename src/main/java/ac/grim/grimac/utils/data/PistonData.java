@@ -15,7 +15,7 @@ public class PistonData {
     public final Block piston;
     public final List<Block> pushedBlocks;
     public final boolean isPush;
-    public final int lastTransactionSent;
+    public int lastTransactionSent = Integer.MAX_VALUE;
 
     // Calculate if the player has no-push, and when to end the possibility of applying piston
     public boolean hasPlayerRemainedInPushZone = true;
@@ -26,12 +26,11 @@ public class PistonData {
     // The actual blocks pushed by the piston, plus the piston head itself
     public List<SimpleCollisionBox> boxes = new ArrayList<>();
 
-    public PistonData(BlockFace direction, Block piston, List<Block> pushedBlocks, boolean isPush, int lastTransactionSent) {
+    public PistonData(BlockFace direction, Block piston, List<Block> pushedBlocks, boolean isPush) {
         this.direction = direction;
         this.piston = piston;
         this.pushedBlocks = pushedBlocks;
         this.isPush = isPush;
-        this.lastTransactionSent = lastTransactionSent;
 
         // We are doing some work on the main thread, be careful
         // We need to do this here otherwise the data will become desync'd as the blocks have already moved
