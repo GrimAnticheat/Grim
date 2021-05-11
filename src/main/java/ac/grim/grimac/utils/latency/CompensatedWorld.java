@@ -4,13 +4,9 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.collisions.CollisionBox;
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
-import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
-import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -53,6 +49,8 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<WorldChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<PlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
+
+    public List<PistonData> activePistons = new ArrayList<>();
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -126,17 +124,13 @@ public class CompensatedWorld {
 
             pistonData.poll();
 
-            List<SimpleCollisionBox> boxes = new ArrayList<>();
-
-            for (org.bukkit.block.Block block : data.pushedBlocks) {
-                CollisionBox box = CollisionData.getData(block.getType()).getMovementCollisionBox(block.getBlockData(), block.getX(), block.getY(), block.getZ(), ProtocolVersion.v1_16_5);
-                box.downCast(boxes);
-            }
-
-            // Add bounding box of the actual piston head pushing
-            CollisionBox box = new SimpleCollisionBox(0, 0, 0, 1, 1, 1).offset(data.piston.getX() + data.direction.getModX(), data.piston.getY() + data.direction.getModY(), data.piston.getZ() + data.direction.getModZ());
-            box.downCast(boxes);
+            activePistons.add(data);
         }
+    }
+
+    public void tickPlayerInPistonPushingArea() {
+        // Tick the pistons and remove them if they can no longer exist
+        activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
     }
 
     public boolean isChunkLoaded(int chunkX, int chunkZ) {

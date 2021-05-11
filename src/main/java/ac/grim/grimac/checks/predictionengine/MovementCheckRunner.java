@@ -73,6 +73,7 @@ public class MovementCheckRunner implements Listener {
 
         player.lastTransactionReceived = data.lastTransaction;
         player.compensatedWorld.tickUpdates(data.minimumTickRequiredToContinue, data.lastTransaction);
+        player.compensatedWorld.tickPlayerInPistonPushingArea();
         player.compensatedFlying.tickUpdates(data.minimumTickRequiredToContinue);
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
