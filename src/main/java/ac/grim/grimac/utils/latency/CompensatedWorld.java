@@ -4,9 +4,13 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.collisions.CollisionBox;
+import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
+import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
+import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -40,21 +44,48 @@ public class CompensatedWorld {
     public static List<BlockData> globalPaletteToBlockData = new ArrayList<>(Block.REGISTRY_ID.a());
     public static Method getByCombinedID;
 
-    public ConcurrentLinkedQueue<WorldChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<PlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
-
-    public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
-
-
     static {
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
     }
 
     private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
     private final GrimPlayer player;
+    public ConcurrentLinkedQueue<WorldChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<PlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
+    }
+
+    public static void initBlockID() {
+        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
+        String line;
+
+        try {
+            while ((line = paletteReader.readLine()) != null) {
+                // Example line:
+                // 109 minecraft:oak_wood[axis=x]
+                String number = line.substring(0, line.indexOf(" "));
+
+                // This is the integer used when sending chunks
+                int globalPaletteID = Integers.parseInt(number);
+
+                // This is the string saved from the block
+                // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
+                // I could technically generate this on startup but that requires setting blocks in the world
+                // Would rather have a known clean file on all servers.
+                String blockString = line.substring(line.indexOf(" ") + 1);
+                org.bukkit.block.data.BlockData referencedBlockData = Bukkit.createBlockData(blockString);
+
+                // Link this global palette ID to the blockdata for the second part of the script
+                globalPaletteToBlockData.add(globalPaletteID, referencedBlockData);
+
+            }
+        } catch (IOException e) {
+            System.out.println("Palette reading failed! Unsupported version?");
+            e.printStackTrace();
+        }
     }
 
     public void tickUpdates(int minimumTickRequiredToContinue, int lastTransactionReceived) {
@@ -95,37 +126,16 @@ public class CompensatedWorld {
 
             pistonData.poll();
 
+            List<SimpleCollisionBox> boxes = new ArrayList<>();
 
-        }
-    }
-
-    public static void initBlockID() {
-        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
-        String line;
-
-        try {
-            while ((line = paletteReader.readLine()) != null) {
-                // Example line:
-                // 109 minecraft:oak_wood[axis=x]
-                String number = line.substring(0, line.indexOf(" "));
-
-                // This is the integer used when sending chunks
-                int globalPaletteID = Integers.parseInt(number);
-
-                // This is the string saved from the block
-                // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
-                // I could technically generate this on startup but that requires setting blocks in the world
-                // Would rather have a known clean file on all servers.
-                String blockString = line.substring(line.indexOf(" ") + 1);
-                org.bukkit.block.data.BlockData referencedBlockData = Bukkit.createBlockData(blockString);
-
-                // Link this global palette ID to the blockdata for the second part of the script
-                globalPaletteToBlockData.add(globalPaletteID, referencedBlockData);
-
+            for (org.bukkit.block.Block block : data.pushedBlocks) {
+                CollisionBox box = CollisionData.getData(block.getType()).getMovementCollisionBox(block.getBlockData(), block.getX(), block.getY(), block.getZ(), ProtocolVersion.v1_16_5);
+                box.downCast(boxes);
             }
-        } catch (IOException e) {
-            System.out.println("Palette reading failed! Unsupported version?");
-            e.printStackTrace();
+
+            // Add bounding box of the actual piston head pushing
+            CollisionBox box = new SimpleCollisionBox(0, 0, 0, 1, 1, 1).offset(data.piston.getX() + data.direction.getModX(), data.piston.getY() + data.direction.getModY(), data.piston.getZ() + data.direction.getModZ());
+            box.downCast(boxes);
         }
     }
 

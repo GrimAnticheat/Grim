@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.packetlib.io.NetInput;
@@ -15,13 +14,8 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.PacketPlayOutBlockAction;
 import net.minecraft.server.v1_16_R3.PacketPlayOutMultiBlockChange;
 import net.minecraft.server.v1_16_R3.SectionPosition;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -59,9 +53,6 @@ public class PacketWorldReader extends PacketListenerDynamic {
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
-
-        if (event.getPacketId() == PacketType.Play.Server.CHAT) return;
-        Bukkit.broadcastMessage(event.getPacketName());
 
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
             // PacketPlayOutMapChunk
@@ -177,40 +168,5 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
             player.compensatedWorld.removeChunk(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
         }
-
-        if (packetID == PacketType.Play.Server.BLOCK_ACTION) {
-            PacketPlayOutBlockAction action = (PacketPlayOutBlockAction) event.getNMSPacket().getRawNMSPacket();
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-
-            try {
-                Field blockPosition = action.getClass().getDeclaredField("a");
-
-                BlockPosition position = (BlockPosition) blockPosition.get(action);
-                int x = position.getX();
-                int y = position.getY();
-                int z = position.getZ();
-
-                BlockData blockData = player.compensatedWorld.getBukkitBlockDataAt(x, y, z);
-
-                if (blockData.getMaterial() == Material.PISTON || blockData.getMaterial() == Material.STICKY_PISTON) {
-                    while (true) {
-                        PistonData data = player.compensatedWorld.pistonData.peek();
-
-                        if (data == null) break;
-
-                        // The player hasn't gotten this update yet
-                        if (data.lastTransactionSent > player.packetLastTransactionReceived) {
-                            break;
-                        }
-
-                        player.compensatedWorld.pistonData.poll();
-                    }
-                }
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-        }
-
     }
 }
