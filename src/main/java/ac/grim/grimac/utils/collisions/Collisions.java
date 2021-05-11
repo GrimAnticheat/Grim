@@ -27,6 +27,8 @@ public class Collisions {
     // This MUST return a new vector!!!
     // If it does not the predicted velocity will be overridden
     public static Vector collide(GrimPlayer player, double xWithCollision, double yWithCollision, double zWithCollision) {
+        if (xWithCollision == 0 && yWithCollision == 0 && zWithCollision == 0) return new Vector();
+
         SimpleCollisionBox currentPosBB = player.boundingBox;
 
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(player, currentPosBB.copy().expandToCoordinate(xWithCollision, yWithCollision, zWithCollision));

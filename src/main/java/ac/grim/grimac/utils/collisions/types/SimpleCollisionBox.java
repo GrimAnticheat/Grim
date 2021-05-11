@@ -310,4 +310,17 @@ public class SimpleCollisionBox implements CollisionBox {
 
         return hxz - (xwidth + zwidth + bxwidth + bzwidth) / 4;
     }
+
+    @Override
+    public String toString() {
+        return "SimpleCollisionBox{" +
+                "minX=" + minX +
+                ", minY=" + minY +
+                ", minZ=" + minZ +
+                ", maxX=" + maxX +
+                ", maxY=" + maxY +
+                ", maxZ=" + maxZ +
+                ", isFullBlock=" + isFullBlock +
+                '}';
+    }
 }

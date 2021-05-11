@@ -5,12 +5,14 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -72,6 +74,7 @@ public abstract class PredictionEngine {
 
         VectorData bestCollisionVel = null;
 
+
         for (VectorData clientVelAfterInput : possibleVelocities) {
             // TODO: Player inputs should most likely be done before maybeBackOffOfEdge
             Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, MoverType.SELF, player);
@@ -88,9 +91,62 @@ public abstract class PredictionEngine {
             }
         }
 
+        // Pistons probably affected this movement
+        if (bestInput > 0.01) {
+            for (PistonData data : player.compensatedWorld.pushingPistons) {
+                if (data.thisTickPushingPlayer) {
+                    double pistonPushTickOne;
+                    double pistonPushTickTwo;
+
+                    // For some reason in the negative direction, the pistons push 0.49 and 0.99
+                    if (data.direction.getModX() < 0 || data.direction.getModY() < 0 || data.direction.getModZ() < 0) {
+                        pistonPushTickOne = 0.51;
+                        pistonPushTickTwo = 1.01;
+                    } else { // For some reason in the positive direction, the pistons push 0.49 and 0.99
+                        pistonPushTickOne = 0.49;
+                        pistonPushTickTwo = 0.99;
+                    }
+
+                    for (SimpleCollisionBox box : data.boxes) {
+                        double x = 0;
+
+                        Bukkit.broadcastMessage("Direction is " + data.direction);
+                        Bukkit.broadcastMessage("Box is " + box);
+                        Bukkit.broadcastMessage("Player is " + player.boundingBox);
+
+                        switch (data.direction) {
+                            case EAST:
+                                x = box.maxX - player.boundingBox.minX;
+                                break;
+                            case WEST:
+                                x = box.minX - player.boundingBox.maxX;
+                                break;
+                            case NORTH:
+                                x = box.minZ - player.boundingBox.maxZ;
+                                break;
+                            case SOUTH:
+                                x = box.maxZ - player.boundingBox.minZ;
+                                break;
+                        }
+
+                        Bukkit.broadcastMessage("X is " + x);
+                    }
+
+                    Bukkit.broadcastMessage("Give lenience of " + data.direction.getModX() + " " + data.direction.getModY() + " " + data.direction.getModZ());
+                }
+            }
+        }
+
         new MovementTickerPlayer(player).move(MoverType.SELF, player.clientVelocity, bestCollisionVel.vector);
         player.predictedVelocity = bestCollisionVel;
         endOfTick(player, player.gravity, player.friction);
+    }
+
+    public List<Vector> getPossiblePlayerLocations(GrimPlayer player) {
+        List<Vector> locations = new ArrayList<>();
+        locations.add(new Vector(0, 0, 0));
+
+        return locations;
     }
 
     public int compareDistanceToActualMovement(Vector a, Vector b, GrimPlayer player) {

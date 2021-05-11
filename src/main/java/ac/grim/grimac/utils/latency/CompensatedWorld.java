@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
@@ -26,9 +27,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
@@ -51,6 +50,7 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
 
     public List<PistonData> activePistons = new ArrayList<>();
+    public Set<PistonData> pushingPistons = new HashSet<>();
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -129,6 +129,21 @@ public class CompensatedWorld {
     }
 
     public void tickPlayerInPistonPushingArea() {
+        pushingPistons.clear();
+
+        for (PistonData data : activePistons) {
+            data.thisTickPushingPlayer = false;
+
+            for (SimpleCollisionBox box : data.boxes) {
+                if (player.boundingBox.isCollided(box)) {
+                    pushingPistons.add(data);
+                    data.thisTickPushingPlayer = true;
+                }
+            }
+
+            data.hasPlayerRemainedInPushZone = data.hasPlayerRemainedInPushZone && data.thisTickPushingPlayer;
+        }
+
         // Tick the pistons and remove them if they can no longer exist
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
     }
