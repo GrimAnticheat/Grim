@@ -12,6 +12,8 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.server.v1_16_R3.Block;
 import net.minecraft.server.v1_16_R3.IBlockData;
 import org.apache.logging.log4j.core.util.Integers;
@@ -20,8 +22,6 @@ import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
-import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 
 import java.io.BufferedReader;
 import java.io.IOException;

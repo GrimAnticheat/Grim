@@ -43,10 +43,10 @@ public final class GrimAC extends JavaPlugin {
     public void onEnable() {
         plugin = this;
 
+        CompensatedWorld.initBlockID();
         registerEvents();
         registerPackets();
         registerChecks();
-        CompensatedWorld.initBlockID();
         scheduleTransactionPacketSend();
         handleReload();
 
