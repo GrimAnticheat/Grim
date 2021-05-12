@@ -155,13 +155,14 @@ public class PlayerBaseTick {
 
 
     private void moveTowardsClosestSpace(double xPosition, double zPosition) {
-        BlockPosition blockPos = new BlockPosition(xPosition, player.lastY, zPosition);
+        int blockX = (int) Math.floor(xPosition);
+        int blockZ = (int) Math.floor(zPosition);
 
-        if (!this.suffocatesAt(blockPos)) {
+        if (!this.suffocatesAt(blockX, blockZ)) {
             return;
         }
-        double relativeXMovement = xPosition - blockPos.getX();
-        double relativeZMovement = zPosition - blockPos.getZ();
+        double relativeXMovement = xPosition - blockX;
+        double relativeZMovement = zPosition - blockZ;
         BlockFace direction = null;
         double lowestValue = Double.MAX_VALUE;
         for (BlockFace direction2 : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
@@ -172,17 +173,17 @@ public class PlayerBaseTick {
             boolean doesSuffocate;
             switch (direction2) {
                 case EAST:
-                    doesSuffocate = this.suffocatesAt(blockPos.east());
+                    doesSuffocate = this.suffocatesAt(blockX + 1, blockZ);
                     break;
                 case WEST:
-                    doesSuffocate = this.suffocatesAt(blockPos.west());
+                    doesSuffocate = this.suffocatesAt(blockX - 1, blockZ);
                     break;
                 case NORTH:
-                    doesSuffocate = this.suffocatesAt(blockPos.north());
+                    doesSuffocate = this.suffocatesAt(blockX, blockZ - 1);
                     break;
                 default:
                 case SOUTH:
-                    doesSuffocate = this.suffocatesAt(blockPos.south());
+                    doesSuffocate = this.suffocatesAt(blockX, blockZ + 1);
                     break;
             }
 
@@ -277,8 +278,8 @@ public class PlayerBaseTick {
         return bl2;
     }
 
-    private boolean suffocatesAt(BlockPosition blockPos2) {
-        SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(blockPos2.getX(), player.boundingBox.minY, blockPos2.getZ(), blockPos2.getX() + 1.0, player.boundingBox.maxY, blockPos2.getZ() + 1.0).expand(-1.0E-7);
+    private boolean suffocatesAt(int x, int z) {
+        SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(x, player.boundingBox.minY, z, x + 1.0, player.boundingBox.maxY, z + 1.0).expand(-1.0E-7);
 
         return Collisions.suffocatesAt(player, axisAlignedBB);
     }
