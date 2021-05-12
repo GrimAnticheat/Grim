@@ -158,6 +158,18 @@ public class PredictionData {
         this.vehicleForward = player.packetVehicleForward;
         this.vehicleHorizontal = player.packetVehicleHorizontal;
 
+        this.teleportX = player.packetTeleportX;
+        this.teleportY = player.packetTeleportY;
+        this.teleportZ = player.packetTeleportZ;
+
+        this.teleportXRelative = player.packetTeleportXRelative;
+        this.teleportYRelative = player.packetTeleportYRelative;
+        this.teleportZRelative = player.packetTeleportZRelative;
+
+        player.packetTeleportX = Double.NaN;
+        player.packetTeleportY = Double.NaN;
+        player.packetTeleportZ = Double.NaN;
+
         this.inVehicle = true;
 
         this.isFlying = false;
