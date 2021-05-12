@@ -11,9 +11,9 @@ import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.EnumDirection;
 import net.minecraft.server.v1_16_R3.Vec3D;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
@@ -162,22 +162,39 @@ public class PlayerBaseTick {
         }
         double relativeXMovement = xPosition - blockPos.getX();
         double relativeZMovement = zPosition - blockPos.getZ();
-        EnumDirection direction = null;
+        BlockFace direction = null;
         double lowestValue = Double.MAX_VALUE;
-        for (EnumDirection direction2 : new EnumDirection[]{EnumDirection.WEST, EnumDirection.EAST, EnumDirection.NORTH, EnumDirection.SOUTH}) {
+        for (BlockFace direction2 : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
             double d6;
-            double d7 = direction2.n().a(relativeXMovement, 0.0, relativeZMovement);
-            d6 = direction2.e() == EnumDirection.EnumAxisDirection.POSITIVE ? 1.0 - d7 : d7;
+            double d7 = direction2 == BlockFace.WEST || direction2 == BlockFace.EAST ? relativeXMovement : relativeZMovement;
+            d6 = direction2 == BlockFace.EAST || direction2 == BlockFace.SOUTH ? 1.0 - d7 : d7;
             // d7 and d6 flip the movement direction based on desired movement direction
-            if (d6 >= lowestValue || this.suffocatesAt(blockPos.shift(direction2))) continue;
+            boolean doesSuffocate;
+            switch (direction2) {
+                case EAST:
+                    doesSuffocate = this.suffocatesAt(blockPos.east());
+                    break;
+                case WEST:
+                    doesSuffocate = this.suffocatesAt(blockPos.west());
+                    break;
+                case NORTH:
+                    doesSuffocate = this.suffocatesAt(blockPos.north());
+                    break;
+                default:
+                case SOUTH:
+                    doesSuffocate = this.suffocatesAt(blockPos.south());
+                    break;
+            }
+
+            if (d6 >= lowestValue || doesSuffocate) continue;
             lowestValue = d6;
             direction = direction2;
         }
         if (direction != null) {
-            if (direction.n() == EnumDirection.EnumAxis.X) {
-                player.baseTickSetX(0.1 * (double) direction.getAdjacentX());
+            if (direction == BlockFace.WEST || direction == BlockFace.EAST) {
+                player.baseTickSetX(0.1 * (double) direction.getModX());
             } else {
-                player.baseTickSetZ(0.1 * (double) direction.getAdjacentZ());
+                player.baseTickSetZ(0.1 * (double) direction.getModZ());
             }
         }
     }

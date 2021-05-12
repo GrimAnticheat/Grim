@@ -14,8 +14,6 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import net.minecraft.server.v1_16_R3.PacketPlayOutMultiBlockChange;
-import net.minecraft.server.v1_16_R3.SectionPosition;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -116,7 +114,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
         }
 
         if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
-            PacketPlayOutMultiBlockChange blockChange = (PacketPlayOutMultiBlockChange) event.getNMSPacket().getRawNMSPacket();
+            Object blockChange = event.getNMSPacket().getRawNMSPacket();
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
@@ -124,7 +122,8 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 Field sectionField = blockChange.getClass().getDeclaredField("a");
                 sectionField.setAccessible(true);
 
-                SectionPosition position = (SectionPosition) sectionField.get(blockChange);
+                // SectionPosition
+                Object position = sectionField.get(blockChange);
 
                 // Get the chunk section position itself
                 Method getX = position.getClass().getMethod("a");
