@@ -14,6 +14,7 @@ import org.bukkit.util.Vector;
 
 public class PacketPlayerTeleport extends PacketListenerDynamic {
 
+    // Warning: Do not put any bukkit broadcast messages in this listener... it breaks 1.8 clients (???)
     @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         if (event.getPacketId() == PacketType.Play.Client.TELEPORT_ACCEPT) {
@@ -56,8 +57,6 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             player.packetTeleportX = teleportX;
             player.packetTeleportY = teleportY;
             player.packetTeleportZ = teleportZ;
-
-            Bukkit.broadcastMessage("Teleport accepted!");
         }
     }
 

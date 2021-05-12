@@ -29,7 +29,7 @@ public class PacketPlayerJoin extends PacketListenerDynamic {
             player.xRot = bukkitPlayer.getLocation().getYaw();
             player.yRot = bukkitPlayer.getLocation().getPitch();
 
-            GrimAC.playerGrimHashMap.put(event.getPlayer(), new GrimPlayer(event.getPlayer()));
+            GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
         }
     }
 }
