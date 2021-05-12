@@ -9,7 +9,6 @@ import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PlayerFlyingData;
 import ac.grim.grimac.utils.data.PredictionData;
-import ac.grim.grimac.utils.latency.CompensatedWorld;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
@@ -43,7 +42,6 @@ public final class GrimAC extends JavaPlugin {
     public void onEnable() {
         plugin = this;
 
-        CompensatedWorld.initBlockID();
         registerEvents();
         registerPackets();
         registerChecks();

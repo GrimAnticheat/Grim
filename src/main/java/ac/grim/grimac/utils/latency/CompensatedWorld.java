@@ -41,29 +41,19 @@ public class CompensatedWorld {
 
     static {
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
-    }
 
-    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
-    private final GrimPlayer player;
-    public ConcurrentLinkedQueue<WorldChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<PlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
-
-    public List<PistonData> activePistons = new ArrayList<>();
-    public Set<PistonData> pushingPistons = new HashSet<>();
-
-    public CompensatedWorld(GrimPlayer player) {
-        this.player = player;
-    }
-
-    public static void initBlockID() {
         BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
-        String line;
-
         int paletteSize = (int) paletteReader.lines().count();
+        // Reset the reader after counting
+        paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
+
         globalPaletteToBlockData = new ArrayList<>(paletteSize);
 
+        String line;
+
         try {
+
+
             while ((line = paletteReader.readLine()) != null) {
                 // Example line:
                 // 109 minecraft:oak_wood[axis=x]
@@ -81,12 +71,24 @@ public class CompensatedWorld {
 
                 // Link this global palette ID to the blockdata for the second part of the script
                 globalPaletteToBlockData.add(globalPaletteID, referencedBlockData);
-
             }
         } catch (IOException e) {
             System.out.println("Palette reading failed! Unsupported version?");
             e.printStackTrace();
         }
+    }
+
+    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
+    private final GrimPlayer player;
+    public ConcurrentLinkedQueue<WorldChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<PlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
+
+    public List<PistonData> activePistons = new ArrayList<>();
+    public Set<PistonData> pushingPistons = new HashSet<>();
+
+    public CompensatedWorld(GrimPlayer player) {
+        this.player = player;
     }
 
     public void tickUpdates(int minimumTickRequiredToContinue, int lastTransactionReceived) {
