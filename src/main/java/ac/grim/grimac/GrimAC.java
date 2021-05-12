@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.latency.CompensatedWorld;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
-import io.github.retrooper.packetevents.settings.PacketEventsSettings;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -31,10 +30,7 @@ public final class GrimAC extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        PacketEvents.create(this);
-        PacketEventsSettings settings = PacketEvents.get().getSettings();
-        settings.checkForUpdates(false).compatInjector(false);
-        PacketEvents.get().loadAsyncNewThread();
+        PacketEvents.create(this).load();
     }
 
     @Override

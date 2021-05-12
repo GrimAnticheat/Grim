@@ -23,6 +23,9 @@ public class PredictionData {
     public double teleportX;
     public double teleportY;
     public double teleportZ;
+    public boolean teleportXRelative;
+    public boolean teleportYRelative;
+    public boolean teleportZRelative;
     public float xRot;
     public float yRot;
     public boolean onGround;
@@ -76,6 +79,10 @@ public class PredictionData {
         this.teleportX = player.packetTeleportX;
         this.teleportY = player.packetTeleportY;
         this.teleportZ = player.packetTeleportZ;
+
+        this.teleportXRelative = player.packetTeleportXRelative;
+        this.teleportYRelative = player.packetTeleportYRelative;
+        this.teleportZRelative = player.packetTeleportZRelative;
 
         player.packetTeleportX = Double.NaN;
         player.packetTeleportY = Double.NaN;

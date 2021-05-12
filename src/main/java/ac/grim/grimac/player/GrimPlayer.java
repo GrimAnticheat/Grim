@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Location;
@@ -29,7 +30,8 @@ public class GrimPlayer {
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Player bukkitPlayer;
     public int entityID;
-    public short clientVersion;
+    // This is set on bukkit's player join - give PacketEvents time to determine player version
+    public short clientVersion = (short) 16;
 
     public AtomicInteger taskNumber = new AtomicInteger(0);
 
@@ -135,6 +137,9 @@ public class GrimPlayer {
     public double packetTeleportX;
     public double packetTeleportY;
     public double packetTeleportZ;
+    public boolean packetTeleportXRelative;
+    public boolean packetTeleportYRelative;
+    public boolean packetTeleportZRelative;
 
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
@@ -180,7 +185,6 @@ public class GrimPlayer {
         this.bukkitPlayer = player;
         this.playerUUID = player.getUniqueId();
         this.entityID = player.getEntityId();
-        this.clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(player).getProtocolVersion();
 
         Location loginLocation = player.getLocation();
         lastX = loginLocation.getX();
@@ -311,5 +315,16 @@ public class GrimPlayer {
 
     public boolean isEyeInFluid(FluidTag tag) {
         return this.fluidOnEyes == tag;
+    }
+
+    public boolean isSetVelocityToZeroOnRelativeTeleport() {
+        // 1.7 clients set their velocity to 0 on relative teleport
+        // 1.8 clients don't, but they do on ViaRewind (?)
+        // 1.9+ clients don't seem to set their velocity to 0 on relative teleport
+        return getClientVersion() < 6 || XMaterial.getVersion() > 8 && getClientVersion() == 47;
+    }
+
+    public short getClientVersion() {
+        return PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer).getProtocolVersion();
     }
 }

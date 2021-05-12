@@ -35,23 +35,9 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
 
             player.isJustTeleported = true;
 
-            if ((relative & 1) == 1) {
-                teleportX += player.lastX;
-            } else {
-                player.baseTickSetX(0);
-            }
-
-            if ((relative >> 1 & 1) == 1) {
-                teleportY += player.lastY;
-            } else {
-                player.baseTickSetY(0);
-            }
-
-            if ((relative >> 2 & 1) == 1) {
-                teleportZ += player.lastZ;
-            } else {
-                player.baseTickSetZ(0);
-            }
+            player.packetTeleportXRelative = (relative & 1) == 1;
+            player.packetTeleportYRelative = (relative >> 1 & 1) == 1;
+            player.packetTeleportZRelative = (relative >> 2 & 1) == 1;
 
             // Avoid setting the X Y and Z directly as that isn't thread safe
             player.packetTeleportX = teleportX;

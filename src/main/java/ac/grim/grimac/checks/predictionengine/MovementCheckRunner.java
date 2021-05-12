@@ -98,9 +98,40 @@ public class MovementCheckRunner implements Listener {
             player.fallDistance = data.fallDistance;
 
             if (!Double.isNaN(data.teleportX)) {
-                player.lastX = data.playerX;
-                player.lastY = data.playerY;
                 player.lastZ = data.playerZ;
+
+                if (player.packetTeleportXRelative) {
+                    player.lastX += data.teleportX;
+
+                    if (player.isSetVelocityToZeroOnRelativeTeleport()) {
+                        player.baseTickSetX(0);
+                    }
+                } else {
+                    player.lastX = data.teleportX;
+                    player.baseTickSetX(0);
+                }
+
+                if (player.packetTeleportYRelative) {
+                    player.lastY += data.teleportY;
+
+                    if (player.isSetVelocityToZeroOnRelativeTeleport()) {
+                        player.baseTickSetY(0);
+                    }
+                } else {
+                    player.lastY = data.teleportY;
+                    player.baseTickSetY(0);
+                }
+
+                if (player.packetTeleportZRelative) {
+                    player.lastZ += data.teleportZ;
+
+                    if (player.isSetVelocityToZeroOnRelativeTeleport()) {
+                        player.baseTickSetZ(0);
+                    }
+                } else {
+                    player.lastZ = data.teleportZ;
+                    player.baseTickSetZ(0);
+                }
             }
 
             player.movementSpeed = data.movementSpeed;
