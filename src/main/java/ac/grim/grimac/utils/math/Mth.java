@@ -1,7 +1,5 @@
 package ac.grim.grimac.utils.math;
 
-import org.bukkit.craftbukkit.libs.org.apache.commons.lang3.math.NumberUtils;
-
 import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -244,10 +242,6 @@ public class Mth {
     public static float approachDegrees(float f, float f2, float f3) {
         float f4 = Mth.degreesDifference(f, f2);
         return Mth.approach(f, f + f4, f3);
-    }
-
-    public static int getInt(String string, int n) {
-        return NumberUtils.toInt(string, n);
     }
 
     public static int smallestEncompassingPowerOfTwo(int n) {

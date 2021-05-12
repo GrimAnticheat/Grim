@@ -10,11 +10,10 @@ import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
-import org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.objects.Object2DoubleMap;
-import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -254,10 +253,6 @@ public class GrimPlayer {
         if (transactionID != ((((packetLastTransactionReceived % 32767) * -1) - 1))) {
             //Bukkit.broadcastMessage("Not a valid transaction!");
         }
-    }
-
-    public int getPing() {
-        return ((CraftPlayer) bukkitPlayer).getHandle().ping;
     }
 
     public short getNextTransactionID() {
