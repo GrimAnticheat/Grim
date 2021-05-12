@@ -115,6 +115,9 @@ public class GrimPlayer {
     public HashMap<Integer, Vector3d> teleports = new HashMap<>();
     public HashMap<Integer, Byte> relative = new HashMap<>();
 
+    public Vector packetLastTeleport;
+    public Vector lastTeleport;
+
     // Set after checks
     public double lastX;
     public double lastY;
@@ -127,6 +130,11 @@ public class GrimPlayer {
     public boolean lastClimbing;
     public boolean couldSkipTick = false;
     public boolean isJustTeleported = false;
+
+    // Avoid setting stuff directly before
+    public double packetTeleportX;
+    public double packetTeleportY;
+    public double packetTeleportZ;
 
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;

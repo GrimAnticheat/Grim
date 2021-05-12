@@ -20,6 +20,9 @@ public class PredictionData {
     public double playerX;
     public double playerY;
     public double playerZ;
+    public double teleportX;
+    public double teleportY;
+    public double teleportZ;
     public float xRot;
     public float yRot;
     public boolean onGround;
@@ -54,6 +57,7 @@ public class PredictionData {
 
     public Vector firstBreadExplosion = null;
     public List<Vector> possibleExplosion = new ArrayList<>();
+    public Vector lastTeleport;
 
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
@@ -68,6 +72,14 @@ public class PredictionData {
         this.yRot = yRot;
         this.onGround = onGround;
         this.inVehicle = player.playerVehicle != null;
+
+        this.teleportX = player.packetTeleportX;
+        this.teleportY = player.packetTeleportY;
+        this.teleportZ = player.packetTeleportZ;
+
+        player.packetTeleportX = Double.NaN;
+        player.packetTeleportY = Double.NaN;
+        player.packetTeleportZ = Double.NaN;
 
         this.number = player.taskNumber.getAndIncrement();
 
@@ -116,6 +128,9 @@ public class PredictionData {
 
         firstBreadKB = player.compensatedKnockback.getFirstBreadOnlyKnockback();
         requiredKB = player.compensatedKnockback.getRequiredKB();
+        lastTeleport = player.packetLastTeleport;
+
+        player.packetLastTeleport = null;
 
         firstBreadExplosion = player.compensatedExplosion.getFirstBreadAddedExplosion();
         possibleExplosion = player.compensatedExplosion.getPossibleExplosions();

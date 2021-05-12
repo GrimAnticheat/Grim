@@ -51,7 +51,7 @@ public class PistonData {
     // We don't know when the piston has applied, or what stage of pushing it is on
     // Therefore, we need to use what we have - the number of movement packets.
     public boolean tickIfGuaranteedFinished() {
-        if (++movementPacketSincePossible >= 2) {
+        if (++movementPacketSincePossible >= 3) {
             if (hasPlayerRemainedInPushZone && !hasPushedPlayer) {
                 Bukkit.broadcastMessage("Piston done without pushing player!  Cheating?");
             }

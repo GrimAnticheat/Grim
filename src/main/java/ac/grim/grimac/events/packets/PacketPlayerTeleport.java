@@ -10,6 +10,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.teleportaccept.Wr
 import io.github.retrooper.packetevents.packetwrappers.play.out.position.WrappedPacketOutPosition;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
+import org.bukkit.util.Vector;
 
 public class PacketPlayerTeleport extends PacketListenerDynamic {
 
@@ -23,6 +24,9 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
 
             // Impossible under normal vanilla client
             if (teleportLocation == null) return;
+
+            // Set the player's old location because pistons are glitchy
+            player.packetLastTeleport = new Vector(player.lastX, player.lastY, player.lastZ);
 
             double teleportX = teleportLocation.getX();
             double teleportY = teleportLocation.getY();
@@ -48,12 +52,10 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
                 player.baseTickSetZ(0);
             }
 
-            // A bit hacky but should be fine - set this stuff twice as optimization
-            // Otherwise we will be running more scenarios to try and get the right velocity
-            // Setting last coordinates here is necessary though, don't change that.
-            player.lastX = teleportX;
-            player.lastY = teleportY;
-            player.lastZ = teleportZ;
+            // Avoid setting the X Y and Z directly as that isn't thread safe
+            player.packetTeleportX = teleportX;
+            player.packetTeleportY = teleportY;
+            player.packetTeleportZ = teleportZ;
 
             Bukkit.broadcastMessage("Teleport accepted!");
         }

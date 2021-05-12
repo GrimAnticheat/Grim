@@ -61,34 +61,49 @@ public abstract class PredictionEngine {
 
         List<VectorData> possibleVelocities = multiplyPossibilitiesByInputs(player, fetchPossibleInputs(player), speed);
 
+        Bukkit.broadcastMessage("Last teleport is " + player.lastTeleport);
+
         // Run pistons before sorting as an optimization
         // We will calculate the distance to actual movement after each piston
         // Each piston does have to run in order
         for (PistonData data : player.compensatedWorld.pushingPistons) {
             if (data.thisTickPushingPlayer) {
                 for (SimpleCollisionBox box : data.boxes) {
-                    double x = 0;
-
-                    Bukkit.broadcastMessage("Direction is " + data.direction);
-                    Bukkit.broadcastMessage("Box is " + box);
-                    Bukkit.broadcastMessage("Player is " + player.boundingBox);
+                    double stageOne = 0;
+                    double stageTwo = 0;
 
                     switch (data.direction) {
                         case EAST:
-                            x = box.maxX - player.boundingBox.minX;
+                            stageOne = box.maxX - 0.49 - player.boundingBox.minX;
+                            stageOne = Math.max(0, stageOne);
+
+                            stageTwo = box.maxX + 0.01 - player.boundingBox.minX;
+                            stageTwo = Math.max(0, stageTwo);
                             break;
                         case WEST:
-                            x = box.minX - player.boundingBox.maxX;
+                            stageOne = box.maxX + 0.49 - player.boundingBox.minX;
+                            stageOne = Math.max(0, stageOne);
+
+                            stageTwo = box.minX - 0.01 - player.boundingBox.maxX;
+                            stageTwo = Math.min(0, stageTwo);
                             break;
                         case NORTH:
-                            x = box.minZ - player.boundingBox.maxZ;
+                            stageOne = box.maxX + 0.49 - player.boundingBox.minX;
+                            stageOne = Math.max(0, stageOne);
+
+                            stageTwo = box.minZ - 0.01 - player.boundingBox.maxZ;
+                            stageTwo = Math.min(0, stageTwo);
                             break;
                         case SOUTH:
-                            x = box.maxZ - player.boundingBox.minZ;
+                            stageOne = box.maxX - 0.49 - player.boundingBox.minX;
+                            stageOne = Math.max(0, stageOne);
+
+                            stageTwo = box.maxZ + 0.01 - player.boundingBox.minZ;
+                            stageTwo = Math.max(0, stageTwo);
                             break;
                     }
 
-                    Bukkit.broadcastMessage("X is " + x);
+                    Bukkit.broadcastMessage("X is " + stageOne + " and " + stageTwo);
 
                 }
 
