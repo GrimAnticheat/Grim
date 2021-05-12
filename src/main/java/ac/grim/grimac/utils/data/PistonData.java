@@ -18,6 +18,7 @@ public class PistonData {
     public final int lastTransactionSent;
 
     // Calculate if the player has no-push, and when to end the possibility of applying piston
+    public boolean lastTickInPushZone = false;
     public boolean hasPlayerRemainedInPushZone = true;
     public boolean hasPushedPlayer = false;
     public boolean thisTickPushingPlayer = false;

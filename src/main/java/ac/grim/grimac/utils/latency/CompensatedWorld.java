@@ -122,6 +122,12 @@ public class CompensatedWorld {
                 break;
             }
 
+            for (SimpleCollisionBox box : data.boxes) {
+                if (player.boundingBox.isCollided(box)) {
+                    data.lastTickInPushZone = true;
+                }
+            }
+
             pistonData.poll();
             activePistons.add(data);
         }
@@ -131,6 +137,7 @@ public class CompensatedWorld {
         pushingPistons.clear();
 
         for (PistonData data : activePistons) {
+            data.lastTickInPushZone = data.thisTickPushingPlayer;
             data.thisTickPushingPlayer = false;
 
             for (SimpleCollisionBox box : data.boxes) {

@@ -62,6 +62,8 @@ public abstract class PredictionEngine {
         List<VectorData> possibleVelocities = multiplyPossibilitiesByInputs(player, fetchPossibleInputs(player), speed);
 
         // Run pistons before sorting as an optimization
+        // We will calculate the distance to actual movement after each piston
+        // Each piston does have to run in order
         for (PistonData data : player.compensatedWorld.pushingPistons) {
             if (data.thisTickPushingPlayer) {
                 for (SimpleCollisionBox box : data.boxes) {
