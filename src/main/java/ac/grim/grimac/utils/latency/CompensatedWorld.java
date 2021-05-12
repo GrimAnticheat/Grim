@@ -36,7 +36,7 @@ public class CompensatedWorld {
     private static final int MIN_WORLD_HEIGHT = 0;
     private static final int MAX_WORLD_HEIGHT = 255;
     private static final Material flattenedLava = Material.LAVA;
-    public static List<BlockData> globalPaletteToBlockData = new ArrayList<>(Block.REGISTRY_ID.a());
+    public static List<BlockData> globalPaletteToBlockData;
     public static Method getByCombinedID;
 
     static {
@@ -59,6 +59,9 @@ public class CompensatedWorld {
     public static void initBlockID() {
         BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
         String line;
+
+        int paletteSize = (int) paletteReader.lines().count();
+        globalPaletteToBlockData = new ArrayList<>(paletteSize);
 
         try {
             while ((line = paletteReader.readLine()) != null) {
