@@ -34,11 +34,15 @@ public class BlockProperties {
         }
     }
 
-    public static float getBlockFriction(GrimPlayer player) {
+    public static float getBlockFrictionUnderPlayer(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
         Material material = player.compensatedWorld.getBukkitBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getMaterial();
 
+        return getMaterialFriction(player, material);
+    }
+
+    public static float getMaterialFriction(GrimPlayer player, Material material) {
         float friction = 0.6f;
 
         if (material == ice) friction = 0.98f;

@@ -8,7 +8,6 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.WrappedPacketOutEntityDestroy;
 import io.github.retrooper.packetevents.packetwrappers.play.out.namedentityspawn.WrappedPacketOutNamedEntitySpawn;
-import net.minecraft.server.v1_16_R3.PacketPlayOutBlockAction;
 import org.bukkit.entity.Entity;
 
 public class PacketEntityReplication extends PacketListenerDynamic {
@@ -42,12 +41,6 @@ public class PacketEntityReplication extends PacketListenerDynamic {
 
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY_SPAWN) {
             WrappedPacketOutNamedEntitySpawn spawn = new WrappedPacketOutNamedEntitySpawn(event.getNMSPacket());
-
-        }
-
-        if (packetID == PacketType.Play.Server.BLOCK_ACTION) {
-            PacketPlayOutBlockAction action = (PacketPlayOutBlockAction) event.getNMSPacket().getRawNMSPacket();
-
 
         }
     }

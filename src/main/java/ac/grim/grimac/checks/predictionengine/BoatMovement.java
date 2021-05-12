@@ -8,10 +8,9 @@ import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
+import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.BlockWaterLily;
-import net.minecraft.server.v1_16_R3.IBlockData;
+import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
@@ -226,7 +225,6 @@ public class BoatMovement {
 
         float f = 0.0F;
         int k1 = 0;
-        BlockPosition.MutableBlockPosition mutableBlockPos = new BlockPosition.MutableBlockPosition();
 
         for (int l1 = i; l1 < j; ++l1) {
             for (int i2 = i1; i2 < j1; ++i2) {
@@ -234,12 +232,11 @@ public class BoatMovement {
                 if (j2 != 2) {
                     for (int k2 = k; k2 < l; ++k2) {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
-                            mutableBlockPos.d(l1, k2, i2);
-                            IBlockData blockData = player.compensatedWorld.getBlockDataAt(l1, k2, i2);
+                            BlockData blockData = player.compensatedWorld.getBukkitBlockDataAt(l1, k2, i2);
                             BlockData bukkitData = player.compensatedWorld.getBukkitBlockDataAt(l1, k2, i2);
 
-                            if (!(blockData.getBlock() instanceof BlockWaterLily) && CollisionData.getData(bukkitData.getMaterial()).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
-                                f += blockData.getBlock().getFrictionFactor();
+                            if (!(blockData.getMaterial() == Material.LILY_PAD) && CollisionData.getData(bukkitData.getMaterial()).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
+                                f += BlockProperties.getMaterialFriction(player, blockData.getMaterial());
                                 ++k1;
                             }
                         }

@@ -39,6 +39,9 @@ public class PacketPositionListener extends PacketListenerDynamic {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
+            // TODO: This isn't async safe
+            if (player.bukkitPlayer.getVehicle() != null) return;
+
             MovementCheckRunner.addQueuedPrediction(new PredictionData(GrimAC.playerGrimHashMap.get(event.getPlayer()), player.x, player.y, player.z, position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 

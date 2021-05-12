@@ -341,7 +341,7 @@ public class MovementTicker {
                 new MovementTickerPlayer(player).move(MoverType.SELF, player.clientVelocity, bestCollisionVel);
 
             } else {
-                float blockFriction = BlockProperties.getBlockFriction(player);
+                float blockFriction = BlockProperties.getBlockFrictionUnderPlayer(player);
                 player.friction = player.lastOnGround ? blockFriction * 0.91f : 0.91f;
 
                 doNormalMove(blockFriction);
