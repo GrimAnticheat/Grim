@@ -123,7 +123,6 @@ public class CompensatedWorld {
             }
 
             pistonData.poll();
-
             activePistons.add(data);
         }
     }

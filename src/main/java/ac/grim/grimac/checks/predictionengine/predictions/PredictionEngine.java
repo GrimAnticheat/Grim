@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -60,6 +61,39 @@ public abstract class PredictionEngine {
 
         List<VectorData> possibleVelocities = multiplyPossibilitiesByInputs(player, fetchPossibleInputs(player), speed);
 
+        // Run pistons before sorting as an optimization
+        for (PistonData data : player.compensatedWorld.pushingPistons) {
+            if (data.thisTickPushingPlayer) {
+                for (SimpleCollisionBox box : data.boxes) {
+                    double x = 0;
+
+                    Bukkit.broadcastMessage("Direction is " + data.direction);
+                    Bukkit.broadcastMessage("Box is " + box);
+                    Bukkit.broadcastMessage("Player is " + player.boundingBox);
+
+                    switch (data.direction) {
+                        case EAST:
+                            x = box.maxX - player.boundingBox.minX;
+                            break;
+                        case WEST:
+                            x = box.minX - player.boundingBox.maxX;
+                            break;
+                        case NORTH:
+                            x = box.minZ - player.boundingBox.maxZ;
+                            break;
+                        case SOUTH:
+                            x = box.maxZ - player.boundingBox.minZ;
+                            break;
+                    }
+
+                    Bukkit.broadcastMessage("X is " + x);
+
+                }
+
+                break;
+            }
+        }
+
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a.vector, b.vector, player));
 
@@ -72,7 +106,6 @@ public abstract class PredictionEngine {
         }
 
         VectorData bestCollisionVel = null;
-
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
             // TODO: Player inputs should most likely be done before maybeBackOffOfEdge
@@ -87,23 +120,6 @@ public abstract class PredictionEngine {
 
                 // Optimization - Close enough, other inputs won't get closer
                 if (resultAccuracy < 0.01) break;
-            }
-        }
-
-        // Pistons probably affected this movement
-        if (bestInput > 0.01) {
-            boolean hasPistonPushedPlayer = false;
-
-            for (PistonData data : player.compensatedWorld.pushingPistons) {
-                if (data.thisTickPushingPlayer) {
-                    hasPistonPushedPlayer = true;
-                    break;
-                }
-            }
-
-            if (hasPistonPushedPlayer) {
-                // Just exempt because this is too glitchy...
-                bestCollisionVel = new VectorData(MovementTickerPlayer.cutVectorsToPlayerMovement(player.actualMovement, player.clientVelocity.clone().add(new Vector(-1.5, -1.5, -1.5)), player.clientVelocity.clone().add(new Vector(1.5, 1.5, 1.5))), bestCollisionVel);
             }
         }
 
