@@ -11,6 +11,7 @@ import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -49,25 +50,14 @@ public class PacketWorldReader extends PacketListenerDynamic {
         byte packetID = event.getPacketId();
 
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
-            // PacketPlayOutMapChunk
-            Object chunk = event.getNMSPacket().getRawNMSPacket();
+            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
-                Field x = chunk.getClass().getDeclaredField("a");
-                Field z = chunk.getClass().getDeclaredField("b");
-                Field availableSections = chunk.getClass().getDeclaredField("c");
-                Field buffer = chunk.getClass().getDeclaredField("f");
-
-                x.setAccessible(true);
-                z.setAccessible(true);
-                availableSections.setAccessible(true);
-                buffer.setAccessible(true);
-
-                byte[] chunkData = (byte[]) buffer.get(chunk);
-                int availableSectionsInt = availableSections.getInt(chunk);
-                int chunkX = x.getInt(chunk);
-                int chunkZ = z.getInt(chunk);
+                byte[] chunkData = packet.readByteArray(0);
+                int chunkX = packet.readInt(0);
+                int chunkZ = packet.readInt(1);
+                int availableSectionsInt = packet.readInt(2);
 
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
                 Chunk[] chunks = new Chunk[16];
@@ -81,7 +71,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 Column column = new Column(chunkX, chunkZ, chunks);
                 player.compensatedWorld.addToCache(column, chunkX, chunkZ);
 
-            } catch (NoSuchFieldException | IllegalAccessException | IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
