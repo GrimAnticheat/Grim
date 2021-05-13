@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.Materials;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -83,7 +84,7 @@ public class BlockProperties {
         if (block1.getMaterial().isAir()) {
             BlockData block2 = player.compensatedWorld.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
 
-            if (Tag.FENCES.isTagged(block2.getMaterial()) || Tag.WALLS.isTagged(block2.getMaterial()) || Tag.FENCE_GATES.isTagged(block2.getMaterial())) {
+            if (Tag.FENCES.isTagged(block2.getMaterial()) || Tag.WALLS.isTagged(block2.getMaterial()) || Materials.checkFlag(block2.getMaterial(), Materials.GATE)) {
                 return block2;
             }
         }
@@ -98,7 +99,8 @@ public class BlockProperties {
         Material block = player.compensatedWorld.getBukkitBlockDataAt(player.x, player.y, player.z).getMaterial();
 
         if (block == soulSand) {
-            if (player.bukkitPlayer.getInventory().getBoots() != null && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+            // Soul speed is a 1.16+ enchantment
+            if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.getVersion() > 15 && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
         }
