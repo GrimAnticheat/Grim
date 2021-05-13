@@ -1,7 +1,11 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.ProtocolVersion;
 import net.minecraft.server.v1_16_R3.*;
+import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Snow;
 
 import java.util.Iterator;
 
@@ -74,10 +78,9 @@ public class FluidTypeFlowing {
                 fluid2 == FluidTypes.FLOWING_LAVA || fluid2 == FluidTypes.LAVA;
     }
 
-    // I believe this is safe to do async??
-    // Should spit out a stacktrace if it isn't.
+    // TODO: Stairs might be broken, can't be sure until I finish the dynamic bounding boxes
     protected static boolean isSolidFace(GrimPlayer player, BlockPosition blockposition, EnumDirection enumdirection, FluidType fluidType) {
-        IBlockData blockState = player.compensatedWorld.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ());
+        BlockData blockState = player.compensatedWorld.getBukkitBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ());
         Fluid fluidState = player.compensatedWorld.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ()).getFluid();
 
         if (isSame(fluidState.getType(), fluidType)) {
@@ -86,7 +89,15 @@ public class FluidTypeFlowing {
             return true;
         } else {
             // Short circuit out getting block collision for shulker boxes, as they read the world sync
-            return blockState.getMaterial() != Material.ICE && blockState.getBlock() instanceof BlockShulkerBox || blockState.d(null, blockposition, enumdirection);
+            // Soul sand is always true
+            // Leaves are always false despite a full bounding box
+            // Snow uses different bounding box getters than collisions
+            if (blockState.getMaterial() == Material.SNOW) {
+                Snow snow = (Snow) blockState;
+                return snow.getLayers() == 8;
+            }
+
+            return !org.bukkit.Tag.LEAVES.isTagged(blockState.getMaterial()) && (blockState.getMaterial() == Material.SOUL_SAND || blockState.getMaterial() != Material.ICE && CollisionData.getData(blockState.getMaterial()).getMovementCollisionBox(blockState, 0, 0, 0, ProtocolVersion.v1_16_4).isFullBlock());
         }
     }
 }
