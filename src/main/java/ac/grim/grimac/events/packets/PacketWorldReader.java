@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
@@ -33,15 +34,15 @@ public class PacketWorldReader extends PacketListenerDynamic {
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
     }
 
-    public static int sectionRelativeX(short data) {
+    public static int sixteenSectionRelativeX(short data) {
         return data >>> 8 & 15;
     }
 
-    public static int sectionRelativeY(short data) {
+    public static int sixteenSectionRelativeY(short data) {
         return data & 15;
     }
 
-    public static int sectionRelativeZ(short data) {
+    public static int sixteenSectionRelativeZ(short data) {
         return data >>> 4 & 15;
     }
 
@@ -95,45 +96,62 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
         if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
             WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-            Object blockChange = event.getNMSPacket().getRawNMSPacket();
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
-                // Section Position
+                // Section Position or Chunk Section - depending on version
                 Object position = packet.readAnyObject(0);
 
                 // Get the chunk section position itself
+                // By luck this also works for the 1.15 ChunkCoordIntPair
                 Method getX = Reflection.getMethod(position.getClass(), "getX", 0);
-                Method getY = Reflection.getMethod(position.getClass(), "getY", 0);
                 Method getZ = Reflection.getMethod(position.getClass(), "getZ", 0);
 
                 int chunkX = (int) getX.invoke(position) << 4;
                 int chunkZ = (int) getZ.invoke(position) << 4;
-                int chunkY = (int) getY.invoke(position) << 4;
 
-                Field blockPositionsField = blockChange.getClass().getDeclaredField("b");
-                blockPositionsField.setAccessible(true);
+                // In 1.16, chunk sections are used.  The have X, Y, and Z
+                if (XMaterial.getVersion() > 15) {
+                    Method getY = Reflection.getMethod(position.getClass(), "getY", 0);
+                    int chunkY = (int) getY.invoke(position) << 4;
 
-                Field blockDataField = blockChange.getClass().getDeclaredField("c");
-                blockDataField.setAccessible(true);
+                    short[] blockPositions = packet.readShortArray(0);
+                    Object[] blockDataArray = (Object[]) packet.readAnyObject(2);
 
-                short[] blockPositions = (short[]) blockPositionsField.get(blockChange);
-                Object[] blockDataArray = (Object[]) blockDataField.get(blockChange);
+                    for (int i = 0; i < blockPositions.length; i++) {
+                        short blockPosition = blockPositions[i];
 
-                for (int i = 0; i < blockPositions.length; i++) {
-                    short blockPosition = blockPositions[i];
+                        int blockX = sixteenSectionRelativeX(blockPosition);
+                        int blockY = sixteenSectionRelativeY(blockPosition);
+                        int blockZ = sixteenSectionRelativeZ(blockPosition);
 
-                    int blockX = sectionRelativeX(blockPosition);
-                    int blockY = sectionRelativeY(blockPosition);
-                    int blockZ = sectionRelativeZ(blockPosition);
+                        int blockID = (int) getByCombinedID.invoke(null, blockDataArray[i]);
 
-                    int blockID = (int) getByCombinedID.invoke(null, blockDataArray[i]);
+                        player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
 
-                    player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
+                    }
+                } else if (XMaterial.isNewVersion()) {
+                    Object[] blockInformation = (Object[]) packet.readAnyObject(2);
 
+                    // This shouldn't be possible
+                    if (blockInformation.length == 0) return;
+
+                    Field shortField = Reflection.getField(blockInformation[0].getClass(), 0);
+                    Field blockDataField = Reflection.getField(blockInformation[0].getClass(), 1);
+
+                    for (int i = 0; i < blockInformation.length; i++) {
+                        short pos = shortField.getShort(blockInformation);
+                        int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(blockInformation));
+
+                        int blockX = pos >> 12 & 15;
+                        int blockY = pos & 255;
+                        int blockZ = pos >> 8 & 15;
+
+                        player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, blockY, chunkZ + blockZ, blockID));
+                    }
                 }
 
-            } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException exception) {
+            } catch (IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
         }
