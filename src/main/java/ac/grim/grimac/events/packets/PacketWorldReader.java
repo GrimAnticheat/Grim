@@ -94,21 +94,18 @@ public class PacketWorldReader extends PacketListenerDynamic {
         }
 
         if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
             Object blockChange = event.getNMSPacket().getRawNMSPacket();
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
-                // Reflect to the chunk section position
-                Field sectionField = blockChange.getClass().getDeclaredField("a");
-                sectionField.setAccessible(true);
-
-                // SectionPosition
-                Object position = sectionField.get(blockChange);
+                // Section Position
+                Object position = packet.readAnyObject(0);
 
                 // Get the chunk section position itself
-                Method getX = position.getClass().getMethod("a");
-                Method getY = position.getClass().getMethod("b");
-                Method getZ = position.getClass().getMethod("c");
+                Method getX = Reflection.getMethod(position.getClass(), "getX", 0);
+                Method getY = Reflection.getMethod(position.getClass(), "getY", 0);
+                Method getZ = Reflection.getMethod(position.getClass(), "getZ", 0);
 
                 int chunkX = (int) getX.invoke(position) << 4;
                 int chunkZ = (int) getZ.invoke(position) << 4;
@@ -136,7 +133,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
                 }
 
-            } catch (NoSuchFieldException | IllegalAccessException | NoSuchMethodException | InvocationTargetException exception) {
+            } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
         }
