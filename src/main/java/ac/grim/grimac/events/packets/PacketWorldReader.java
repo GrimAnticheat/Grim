@@ -2,10 +2,10 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.chunkdata.sixteen.Chunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;

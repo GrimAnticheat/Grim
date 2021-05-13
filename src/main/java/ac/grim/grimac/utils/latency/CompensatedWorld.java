@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.chunkdata.sixteen.Chunk;
 import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
@@ -9,7 +10,6 @@ import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;

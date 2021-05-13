@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.chunks;
 
-import com.github.steveice10.mc.protocol.data.game.chunk.Chunk;
+
+import ac.grim.grimac.utils.chunkdata.sixteen.Chunk;
 
 public class Column {
     public final int x;
