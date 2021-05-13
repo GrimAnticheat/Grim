@@ -11,9 +11,11 @@ import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -23,17 +25,11 @@ import java.lang.reflect.Method;
 
 public class PacketWorldReader extends PacketListenerDynamic {
     public static Method getByCombinedID;
-    public static Method getX;
-    public static Method getY;
-    public static Method getZ;
 
     public PacketWorldReader() throws ClassNotFoundException, NoSuchMethodException {
         super(PacketEventPriority.MONITOR);
 
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
-        getX = Reflection.getMethod(NMSUtils.blockPosClass, "getX", 0);
-        getY = Reflection.getMethod(NMSUtils.blockPosClass, "getY", 0);
-        getZ = Reflection.getMethod(NMSUtils.blockPosClass, "getZ", 0);
     }
 
     public static int sectionRelativeX(short data) {
@@ -91,24 +87,18 @@ public class PacketWorldReader extends PacketListenerDynamic {
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
-            // PacketPlayOutBlockChange
-            Object blockChange = event.getNMSPacket().getRawNMSPacket();
+            WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
+
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
-                Field position = blockChange.getClass().getDeclaredField("a");
-                position.setAccessible(true);
+                Object blockObject = wrappedBlockChange.readAnyObject(1);
 
-                Field block = blockChange.getClass().getDeclaredField("block");
-                block.setAccessible(true);
+                int blockID = (int) getByCombinedID.invoke(null, blockObject);
+                Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
-                // BlockPosition
-                Object blockPosition = position.get(blockChange);
-
-                int blockID = (int) getByCombinedID.invoke(null, block.get(blockChange));
-
-                player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), (Integer) getX.invoke(blockPosition), (Integer) getY.invoke(blockPosition), (Integer) getZ.invoke(blockPosition), blockID));
-            } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException exception) {
+                player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockID));
+            } catch (IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
         }
