@@ -3,9 +3,7 @@ package ac.grim.grimac.events.packets;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
-import org.bukkit.Bukkit;
-
-import java.lang.reflect.Field;
+import io.github.retrooper.packetevents.packetwrappers.play.out.mount.WrappedPacketOutMount;
 
 public class PacketMountVehicle extends PacketListenerDynamic {
 
@@ -14,24 +12,9 @@ public class PacketMountVehicle extends PacketListenerDynamic {
         byte packetID = event.getPacketId();
 
         if (packetID == PacketType.Play.Server.MOUNT) {
-            try {
-                // TODO: Make WrappedPacketOutEntityMount
-                Object mountVehicle = event.getNMSPacket().getRawNMSPacket();
+            WrappedPacketOutMount mount = new WrappedPacketOutMount(event.getNMSPacket());
 
-                Field idField = mountVehicle.getClass().getDeclaredField("a");
-                Field inVehicle = mountVehicle.getClass().getDeclaredField("b");
-
-                idField.setAccessible(true);
-                inVehicle.setAccessible(true);
-
-                int vehicle = idField.getInt(mountVehicle);
-                int[] mountedID = (int[]) inVehicle.get(mountVehicle);
-
-                Bukkit.broadcastMessage("Vehicle " + vehicle + " mountedID " + mountedID);
-
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
+            // TODO: Handle setting player vehicles, requires entity replication which isn't done yet
         }
     }
 }
