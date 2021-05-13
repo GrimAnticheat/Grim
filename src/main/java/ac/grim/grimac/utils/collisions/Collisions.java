@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -23,6 +24,7 @@ import java.util.List;
 
 public class Collisions {
     public static final double maxUpStep = 0.6f;
+
     // Entity line 686
     // This MUST return a new vector!!!
     // If it does not the predicted velocity will be overridden
@@ -474,11 +476,16 @@ public class Collisions {
     }
 
     public static boolean onClimbable(GrimPlayer player) {
-        // spectator check
-
         BlockData blockData = player.compensatedWorld.getBukkitBlockDataAt(player.x, player.y, player.z);
 
-        if (Tag.CLIMBABLE.isTagged(blockData.getMaterial())) {
+        // The climbable tag was added in 1.16
+        if (XMaterial.getVersion() > 15 && Tag.CLIMBABLE.isTagged(blockData.getMaterial())) {
+            return true;
+        }
+
+        // Support versions without the climbable tag
+        if (blockData.getMaterial() == XMaterial.LADDER.parseMaterial() || blockData.getMaterial() == XMaterial.VINE.parseMaterial()
+                || blockData.getMaterial() == XMaterial.SCAFFOLDING.parseMaterial()) {
             return true;
         }
 
