@@ -2,7 +2,9 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.chunkdata.sixteen.Chunk;
+import ac.grim.grimac.utils.chunkdata.FlatChunk;
+import ac.grim.grimac.utils.chunkdata.fifteen.FifteenChunk;
+import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -61,11 +63,20 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 int availableSectionsInt = packet.readInt(2);
 
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
-                Chunk[] chunks = new Chunk[16];
-
-                for (int index = 0; index < chunks.length; ++index) {
-                    if ((availableSectionsInt & 1 << index) != 0) {
-                        chunks[index] = Chunk.read(dataIn);
+                FlatChunk[] chunks;
+                if (XMaterial.getVersion() > 15) {
+                    chunks = new SixteenChunk[16];
+                    for (int index = 0; index < chunks.length; ++index) {
+                        if ((availableSectionsInt & 1 << index) != 0) {
+                            chunks[index] = SixteenChunk.read(dataIn);
+                        }
+                    }
+                } else {
+                    chunks = new FifteenChunk[16];
+                    for (int index = 0; index < chunks.length; ++index) {
+                        if ((availableSectionsInt & 1 << index) != 0) {
+                            chunks[index] = FifteenChunk.read(dataIn);
+                        }
                     }
                 }
 

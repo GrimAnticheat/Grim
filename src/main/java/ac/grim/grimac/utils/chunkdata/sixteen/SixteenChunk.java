@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.chunkdata.sixteen;
 
+import ac.grim.grimac.utils.chunkdata.FlatChunk;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
 import lombok.NonNull;
@@ -7,7 +8,7 @@ import lombok.NonNull;
 import java.io.IOException;
 
 // Credit to https://github.com/Steveice10/MCProtocolLib/blob/master/src/main/java/com/github/steveice10/mc/protocol/data/game/chunk/Chunk.java
-public class Chunk {
+public class SixteenChunk implements FlatChunk {
     private static final int CHUNK_SIZE = 4096;
     private static final int MIN_PALETTE_BITS_PER_ENTRY = 4;
     private static final int MAX_PALETTE_BITS_PER_ENTRY = 8;
@@ -19,11 +20,11 @@ public class Chunk {
     @NonNull
     private BitStorage storage;
 
-    public Chunk() {
+    public SixteenChunk() {
         this(0, new ListPalette(4), new BitStorage(4, 4096));
     }
 
-    public Chunk(int blockCount, @NonNull Palette palette, @NonNull BitStorage storage) {
+    public SixteenChunk(int blockCount, @NonNull Palette palette, @NonNull BitStorage storage) {
         if (palette == null) {
             throw new NullPointerException("palette is marked non-null but is null");
         } else if (storage == null) {
@@ -35,15 +36,15 @@ public class Chunk {
         }
     }
 
-    public static Chunk read(NetInput in) throws IOException {
+    public static SixteenChunk read(NetInput in) throws IOException {
         int blockCount = in.readShort();
         int bitsPerEntry = in.readUnsignedByte();
         Palette palette = readPalette(bitsPerEntry, in);
         BitStorage storage = new BitStorage(bitsPerEntry, 4096, in.readLongs(in.readVarInt()));
-        return new Chunk(blockCount, palette, storage);
+        return new SixteenChunk(blockCount, palette, storage);
     }
 
-    public static void write(NetOutput out, Chunk chunk) throws IOException {
+    public static void write(NetOutput out, SixteenChunk chunk) throws IOException {
         out.writeShort(chunk.blockCount);
         out.writeByte(chunk.storage.getBitsPerEntry());
         if (!(chunk.palette instanceof GlobalPalette)) {

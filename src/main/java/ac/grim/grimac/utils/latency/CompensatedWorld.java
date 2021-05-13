@@ -2,7 +2,8 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.chunkdata.sixteen.Chunk;
+import ac.grim.grimac.utils.chunkdata.FlatChunk;
+import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
@@ -176,9 +177,9 @@ public class CompensatedWorld {
         Column column = getChunk(x >> 4, z >> 4);
 
         try {
-            Chunk chunk = column.getChunks()[y >> 4];
+            FlatChunk chunk = column.getChunks()[y >> 4];
             if (chunk == null) {
-                column.getChunks()[y >> 4] = new Chunk();
+                column.getChunks()[y >> 4] = new SixteenChunk();
                 chunk = column.getChunks()[y >> 4];
 
                 // Sets entire chunk to air
@@ -208,7 +209,7 @@ public class CompensatedWorld {
         if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return globalPaletteToBlockData.get(JAVA_AIR_ID);
 
         try {
-            Chunk chunk = column.getChunks()[y >> 4];
+            FlatChunk chunk = column.getChunks()[y >> 4];
             if (chunk != null) {
                 return globalPaletteToBlockData.get(chunk.get(x & 0xF, y & 0xF, z & 0xF));
             }
@@ -224,7 +225,7 @@ public class CompensatedWorld {
         Column column = getChunk(x >> 4, z >> 4);
 
         try {
-            Chunk chunk = column.getChunks()[y >> 4];
+            FlatChunk chunk = column.getChunks()[y >> 4];
             if (chunk != null) {
                 return chunk.get(x & 0xF, y & 0xF, z & 0xF);
             }
