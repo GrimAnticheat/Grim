@@ -14,9 +14,6 @@ import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import net.minecraft.server.v1_16_R3.Block;
-import net.minecraft.server.v1_16_R3.IBlockData;
-import org.apache.logging.log4j.core.util.Integers;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -60,7 +57,7 @@ public class CompensatedWorld {
                 String number = line.substring(0, line.indexOf(" "));
 
                 // This is the integer used when sending chunks
-                int globalPaletteID = Integers.parseInt(number);
+                int globalPaletteID = Integer.parseInt(number);
 
                 // This is the string saved from the block
                 // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
@@ -221,24 +218,6 @@ public class CompensatedWorld {
 
 
         return globalPaletteToBlockData.get(JAVA_AIR_ID);
-    }
-
-    public IBlockData getBlockDataAt(int x, int y, int z) {
-        Column column = getChunk(x >> 4, z >> 4);
-
-        if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return Block.getByCombinedId(JAVA_AIR_ID);
-
-        try {
-            Chunk chunk = column.getChunks()[y >> 4];
-            if (chunk != null) {
-                return Block.getByCombinedId(chunk.get(x & 0xF, y & 0xF, z & 0xF));
-            }
-        } catch (Exception e) {
-            GrimAC.plugin.getLogger().warning("Unable to get block data from chunk x " + (x >> 4) + " z " + (z >> 4));
-        }
-
-
-        return Block.getByCombinedId(JAVA_AIR_ID);
     }
 
     public int getBlockAt(int x, int y, int z) {

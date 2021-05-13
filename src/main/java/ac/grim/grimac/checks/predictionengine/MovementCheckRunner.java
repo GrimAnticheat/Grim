@@ -52,7 +52,6 @@ public class MovementCheckRunner implements Listener {
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
     public static void addQueuedPrediction(PredictionData data) {
-        Bukkit.broadcastMessage("Player reported position at " + data.playerX + " " + data.playerY + " " + data.playerZ);
         // TODO: This is a hack that should be fixed - maybe
         // This allows animal movement packets to also go through this system
         TimerCheck.processMovementPacket(data.player);

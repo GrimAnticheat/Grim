@@ -10,8 +10,6 @@ import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
 import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import net.minecraft.server.v1_16_R3.BlockPosition;
-import net.minecraft.server.v1_16_R3.Vec3D;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -218,15 +216,13 @@ public class PlayerBaseTick {
         }
         double d2 = 0.0;
         boolean bl2 = false;
-        Vec3D vec3 = Vec3D.ORIGIN;
+        Vector vec3 = new Vector();
         int n7 = 0;
-        BlockPosition.MutableBlockPosition mutableBlockPos = new BlockPosition.MutableBlockPosition();
 
         for (int i = n2; i < n3; ++i) {
             for (int j = n4; j < n5; ++j) {
                 for (int k = n6; k < n; ++k) {
                     double d3;
-                    mutableBlockPos.d(i, j, k);
 
                     double fluidHeight;
                     if (tag == FluidTag.WATER) {
@@ -242,36 +238,36 @@ public class PlayerBaseTick {
                     d2 = Math.max(d3 - aABB.minY, d2);
 
                     if (!player.specialFlying) {
-                        Vec3D vec32 = FluidTypeFlowing.getFlow(player, mutableBlockPos, player.compensatedWorld.getBlockDataAt(i, j, k).getFluid());
+                        Vector vec32 = FluidTypeFlowing.getFlow(player, i, j, k, player.compensatedWorld.getBukkitBlockDataAt(i, j, k));
                         if (d2 < 0.4) {
-                            vec32 = vec32.a(d2);
+                            vec32 = vec32.multiply(d2);
                         }
-                        vec3 = vec3.e(vec32);
+                        vec3 = vec3.add(vec32);
                         ++n7;
                     }
 
                 }
             }
         }
-        if (vec3.f() > 0.0) {
+        if (vec3.lengthSquared() > 0.0) { // distance
             if (n7 > 0) {
-                vec3 = vec3.a(1.0 / (double) n7);
+                vec3 = vec3.multiply(1.0 / (double) n7); // multiply
             }
 
             if (player.inVehicle) {
                 // This is a boat, normalize it for some reason.
-                vec3 = vec3.d();
+                vec3 = vec3.normalize(); // normalize
             }
 
             Vector vec33 = player.clientVelocity.clone();
-            vec3 = vec3.a(d);
-            if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.f() < 0.0045000000000000005D) {
-                vec3 = vec3.d().a(0.0045000000000000005);
+            vec3 = vec3.multiply(d); // multiply
+            if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
+                vec3 = vec3.normalize().multiply(0.0045000000000000005); // normalize then multiply
             }
 
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
             if (tag != FluidTag.LAVA || player.clientVersion > 700) {
-                player.baseTickAddVector(new Vector(vec3.x, vec3.y, vec3.z));
+                player.baseTickAddVector(new Vector(vec3.getX(), vec3.getY(), vec3.getZ()));
             }
         }
         player.fluidHeight.put(tag, d2);

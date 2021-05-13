@@ -61,8 +61,6 @@ public abstract class PredictionEngine {
 
         List<VectorData> possibleVelocities = multiplyPossibilitiesByInputs(player, fetchPossibleInputs(player), speed);
 
-        Bukkit.broadcastMessage("Last teleport is " + player.lastTeleport);
-
         // Run pistons before sorting as an optimization
         // We will calculate the distance to actual movement after each piston
         // Each piston does have to run in order

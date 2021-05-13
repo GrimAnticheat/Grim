@@ -2,91 +2,124 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ProtocolVersion;
-import net.minecraft.server.v1_16_R3.*;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.type.Snow;
-
-import java.util.Iterator;
-
-import static net.minecraft.server.v1_16_R3.FluidTypeFlowing.FALLING;
+import org.bukkit.util.Vector;
 
 public class FluidTypeFlowing {
-    public static Vec3D getFlow(GrimPlayer player, BlockPosition blockposition, Fluid fluid) {
-        // Only do this for flowing liquids
-        if (fluid.getType() instanceof FluidTypeEmpty) return Vec3D.ORIGIN;
+    public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ, BlockData blockOne) {
+        if (!(blockOne instanceof Levelled)) return new Vector();
+
+        int fluidLevelData = ((Levelled) blockOne).getLevel();
+        float fluidLevel = (float) player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ);
 
         double d0 = 0.0D;
         double d1 = 0.0D;
-        BlockPosition.MutableBlockPosition position = new BlockPosition.MutableBlockPosition();
-        Iterator iterator = EnumDirection.EnumDirectionLimit.HORIZONTAL.iterator();
+        for (BlockFace enumdirection : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
+            int modifiedX = originalX;
+            int modifiedZ = originalZ;
 
+            switch (enumdirection) {
+                case EAST:
+                    modifiedX += 1;
+                    break;
+                case WEST:
+                    modifiedX -= 1;
+                    break;
+                case NORTH:
+                    modifiedZ -= 1;
+                    break;
+                default:
+                case SOUTH:
+                    modifiedZ += 1;
+                    break;
+            }
 
-        while (iterator.hasNext()) {
-            EnumDirection enumdirection = (EnumDirection) iterator.next();
-            position.a(blockposition, enumdirection);
-            Fluid fluid1 = player.compensatedWorld.getBlockDataAt(position.getX(), position.getY(), position.getZ()).getFluid();
-            if (affectsFlow(fluid1, fluid.getType())) {
-                float f = fluid1.d(); // getOwnHeight
+            if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ)) {
+                float f = (float) player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ);
                 float f1 = 0.0F;
                 if (f == 0.0F) {
-                    if (!player.compensatedWorld.getBlockDataAt(position.getX(), position.getY(), position.getZ()).getMaterial().isSolid()) {
-                        BlockPosition blockposition1 = position.down();
-                        Fluid fluid2 = player.compensatedWorld.getBlockDataAt(blockposition1.getX(), blockposition1.getY(), blockposition1.getZ()).getFluid();
-                        if (affectsFlow(fluid1, fluid.getType())) {
-                            f = fluid2.d();
+                    if (!player.compensatedWorld.getBukkitBlockDataAt(modifiedX, originalY, modifiedZ).getMaterial().isSolid()) {
+                        if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
+                            f = (float) player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ);
                             if (f > 0.0F) {
-                                f1 = fluid.d() - (f - 0.8888889F);
+                                f1 = fluidLevel - (f - 0.8888889F);
                             }
                         }
                     }
                 } else if (f > 0.0F) {
-                    f1 = fluid.d() - f;
+                    f1 = fluidLevel - f;
                 }
 
                 if (f1 != 0.0F) {
-                    d0 += (float) enumdirection.getAdjacentX() * f1;
-                    d1 += (float) enumdirection.getAdjacentZ() * f1;
+                    d0 += (float) enumdirection.getModX() * f1;
+                    d1 += (float) enumdirection.getModZ() * f1;
                 }
             }
         }
 
-        Vec3D vec3d = new Vec3D(d0, 0.0D, d1);
+        Vector vec3d = new Vector(d0, 0.0D, d1);
 
-        if (fluid.get(FALLING)) {
-            for (EnumDirection enumdirection1 : EnumDirection.EnumDirectionLimit.HORIZONTAL) {
-                position.a(blockposition, enumdirection1);
-                if (isSolidFace(player, position, enumdirection1, fluid.getType()) || isSolidFace(player, position.up(), enumdirection1, fluid.getType())) {
-                    vec3d = vec3d.d().add(0.0D, -6.0D, 0.0D);
+        // Fluid level 1-7 is for regular fluid heights
+        // Fluid level 8-15 is for falling fluids
+        if (fluidLevelData > 7) {
+            for (BlockFace enumdirection : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
+                int modifiedX = originalX;
+                int modifiedZ = originalZ;
+
+                switch (enumdirection) {
+                    case EAST:
+                        modifiedX += 1;
+                        break;
+                    case WEST:
+                        modifiedX -= 1;
+                        break;
+                    case NORTH:
+                        modifiedZ -= 1;
+                        break;
+                    default:
+                    case SOUTH:
+                        modifiedZ += 1;
+                        break;
+                }
+
+                if (isSolidFace(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ) || isSolidFace(player, originalX, originalY, originalZ, modifiedX, originalY + 1, modifiedZ)) {
+                    vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector(0.0D, -6.0D, 0.0D));
                     break;
                 }
             }
         }
 
-        return vec3d.d();
+        return normalizeVectorWithoutNaN(vec3d);
     }
 
-    private static boolean affectsFlow(Fluid fluid, FluidType fluid2) {
-        return fluid.isEmpty() || fluid.getType().a(fluid2);
+    private static boolean affectsFlow(GrimPlayer player, int originalX, int originalY, int originalZ, int x2, int y2, int z2) {
+        return isEmpty(player, originalX, originalY, originalZ) || isSame(player, originalX, originalY, originalZ, x2, y2, z2);
+    }
+
+    public static boolean isEmpty(GrimPlayer player, int x, int y, int z) {
+        return player.compensatedWorld.getFluidLevelAt(x, y, z) == 0;
     }
 
     // Check if both are a type of water or both are a type of lava
-    public static boolean isSame(FluidType fluid1, FluidType fluid2) {
-        return fluid1 == FluidTypes.FLOWING_WATER || fluid1 == FluidTypes.WATER &&
-                fluid2 == FluidTypes.FLOWING_WATER || fluid2 == FluidTypes.WATER ||
-                fluid1 == FluidTypes.FLOWING_LAVA || fluid1 == FluidTypes.LAVA &&
-                fluid2 == FluidTypes.FLOWING_LAVA || fluid2 == FluidTypes.LAVA;
+    // This is a bit slow... but I don't see a better way to do it with the bukkit api and no nms
+    public static boolean isSame(GrimPlayer player, int x1, int y1, int z1, int x2, int y2, int z2) {
+        return player.compensatedWorld.getWaterFluidLevelAt(x1, y1, z1) > 0 &&
+                player.compensatedWorld.getWaterFluidLevelAt(x2, y2, z2) > 0 ||
+                player.compensatedWorld.getLavaFluidLevelAt(x1, y1, z1) > 0 &&
+                        player.compensatedWorld.getLavaFluidLevelAt(x2, y2, z2) > 0;
     }
 
     // TODO: Stairs might be broken, can't be sure until I finish the dynamic bounding boxes
-    protected static boolean isSolidFace(GrimPlayer player, BlockPosition blockposition, EnumDirection enumdirection, FluidType fluidType) {
-        BlockData blockState = player.compensatedWorld.getBukkitBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ());
-        Fluid fluidState = player.compensatedWorld.getBlockDataAt(blockposition.getX(), blockposition.getY(), blockposition.getZ()).getFluid();
+    protected static boolean isSolidFace(GrimPlayer player, int originalX, int originalY, int originalZ, int x, int y, int z) {
+        BlockData blockState = player.compensatedWorld.getBukkitBlockDataAt(x, y, z);
 
-        if (isSame(fluidState.getType(), fluidType)) {
+        // Removed a check for enumdirection of up, as that is impossible for the code we use
+        if (isSame(player, x, y, z, originalX, originalY, originalZ)) {
             return false;
-        } else if (enumdirection == EnumDirection.UP) {
-            return true;
         } else {
             // Short circuit out getting block collision for shulker boxes, as they read the world sync
             // Soul sand is always true
@@ -99,5 +132,10 @@ public class FluidTypeFlowing {
 
             return !org.bukkit.Tag.LEAVES.isTagged(blockState.getMaterial()) && (blockState.getMaterial() == Material.SOUL_SAND || blockState.getMaterial() != Material.ICE && CollisionData.getData(blockState.getMaterial()).getMovementCollisionBox(blockState, 0, 0, 0, ProtocolVersion.v1_16_4).isFullBlock());
         }
+    }
+
+    private static Vector normalizeVectorWithoutNaN(Vector vector) {
+        double var0 = vector.length();
+        return var0 < 1.0E-4 ? new Vector() : vector.multiply(1 / var0);
     }
 }
