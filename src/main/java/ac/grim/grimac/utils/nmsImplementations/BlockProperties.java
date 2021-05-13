@@ -3,10 +3,8 @@ package ac.grim.grimac.utils.nmsImplementations;
 import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.Fence;
-import org.bukkit.block.data.type.Gate;
-import org.bukkit.block.data.type.Wall;
 import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
@@ -85,7 +83,7 @@ public class BlockProperties {
         if (block1.getMaterial().isAir()) {
             BlockData block2 = player.compensatedWorld.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
 
-            if (block2 instanceof Fence || block2 instanceof Wall || block2 instanceof Gate) {
+            if (Tag.FENCES.isTagged(block2.getMaterial()) || Tag.WALLS.isTagged(block2.getMaterial()) || Tag.FENCE_GATES.isTagged(block2.getMaterial())) {
                 return block2;
             }
         }

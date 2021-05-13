@@ -12,6 +12,7 @@ import org.bukkit.block.data.type.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 public enum CollisionData {
@@ -244,7 +245,7 @@ public enum CollisionData {
         // 1.13 can handle double slabs as it's in the block data
         // 1.12 has double slabs as a separate block, no block data to differentiate it
     }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_SLAB"))
-            .map(XMaterial::parseMaterial).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
+            .map(XMaterial::parseMaterial).filter(Objects::nonNull).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
 
     // Note, getting legacy byte seems broken for skulls
     _WALL_SKULL(new CollisionFactory() {
