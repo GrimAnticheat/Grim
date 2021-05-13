@@ -113,16 +113,14 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 // Section Position or Chunk Section - depending on version
                 Object position = packet.readAnyObject(0);
 
-                // Get the chunk section position itself
-                // By luck this also works for the 1.15 ChunkCoordIntPair
-                Method getX = Reflection.getMethod(position.getClass(), "getX", 0);
-                Method getZ = Reflection.getMethod(position.getClass(), "getZ", 0);
-
-                int chunkX = (int) getX.invoke(position) << 4;
-                int chunkZ = (int) getZ.invoke(position) << 4;
-
                 // In 1.16, chunk sections are used.  The have X, Y, and Z
                 if (XMaterial.getVersion() > 15) {
+                    Method getX = Reflection.getMethod(position.getClass(), "getX", 0);
+                    Method getZ = Reflection.getMethod(position.getClass(), "getZ", 0);
+
+                    int chunkX = (int) getX.invoke(position) << 4;
+                    int chunkZ = (int) getZ.invoke(position) << 4;
+
                     Method getY = Reflection.getMethod(position.getClass(), "getY", 0);
                     int chunkY = (int) getY.invoke(position) << 4;
 
@@ -142,17 +140,23 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
                     }
                 } else if (XMaterial.isNewVersion()) {
-                    Object[] blockInformation = (Object[]) packet.readAnyObject(2);
+                    Object[] blockInformation = (Object[]) packet.readAnyObject(1);
 
                     // This shouldn't be possible
                     if (blockInformation.length == 0) return;
 
+                    Field getX = position.getClass().getDeclaredField("x");
+                    Field getZ = position.getClass().getDeclaredField("z");
+
+                    int chunkX = getX.getInt(position) << 4;
+                    int chunkZ = getZ.getInt(position) << 4;
+
                     Field shortField = Reflection.getField(blockInformation[0].getClass(), 0);
                     Field blockDataField = Reflection.getField(blockInformation[0].getClass(), 1);
 
-                    for (int i = 0; i < blockInformation.length; i++) {
-                        short pos = shortField.getShort(blockInformation);
-                        int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(blockInformation));
+                    for (Object o : blockInformation) {
+                        short pos = shortField.getShort(o);
+                        int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(o));
 
                         int blockX = pos >> 12 & 15;
                         int blockY = pos & 255;
@@ -162,7 +166,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                     }
                 }
 
-            } catch (IllegalAccessException | InvocationTargetException exception) {
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException exception) {
                 exception.printStackTrace();
             }
         }
