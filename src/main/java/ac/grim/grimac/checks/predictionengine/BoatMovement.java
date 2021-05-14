@@ -10,11 +10,14 @@ import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 public class BoatMovement {
+    private static final Material LILY_PAD = XMaterial.LILY_PAD.parseMaterial();
+
     public static void doBoatMovement(GrimPlayer player) {
         // This does stuff like getting the boat's movement on the water
         new PlayerBaseTick(player).doBaseTick();
@@ -235,7 +238,7 @@ public class BoatMovement {
                             BlockData blockData = player.compensatedWorld.getBukkitBlockDataAt(l1, k2, i2);
                             BlockData bukkitData = player.compensatedWorld.getBukkitBlockDataAt(l1, k2, i2);
 
-                            if (!(blockData.getMaterial() == Material.LILY_PAD) && CollisionData.getData(bukkitData.getMaterial()).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
+                            if (!(blockData.getMaterial() == LILY_PAD) && CollisionData.getData(bukkitData.getMaterial()).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
                                 f += BlockProperties.getMaterialFriction(player, blockData.getMaterial());
                                 ++k1;
                             }

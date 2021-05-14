@@ -15,6 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 public class FifteenChunk implements FlatChunk {
     private static final BlockState AIR = new BlockState(0);
+    private static final int AIR_ID = 0;
 
     private int blockCount;
     private int bitsPerEntry;
@@ -61,7 +62,8 @@ public class FifteenChunk implements FlatChunk {
     }
 
     public int get(int x, int y, int z) {
-        return this.storage.get(index(x, y, z));
+        int id = this.storage.get(index(x, y, z));
+        return this.bitsPerEntry <= 8 ? (id >= 0 && id < this.states.size() ? this.states.get(id).getId() : AIR_ID) : id;
     }
 
     @Override

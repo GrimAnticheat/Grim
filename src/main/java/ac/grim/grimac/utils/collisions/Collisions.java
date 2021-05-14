@@ -388,7 +388,7 @@ public class Collisions {
                         }
                     }
 
-                    if (blockType == Material.HONEY_BLOCK) {
+                    if (blockType == XMaterial.HONEY_BLOCK.parseMaterial()) {
                         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
                             if (isSlidingDown(vector.vector, player, i, j, j)) {
                                 if (vector.vector.getY() < -0.13D) {

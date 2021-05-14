@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
 
@@ -120,19 +119,15 @@ public class PlayerBaseTick {
             return;
         }
 
-        BlockData eyeFluid = player.compensatedWorld.getBukkitBlockDataAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+        double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+        if (d1 > d0) {
+            player.fluidOnEyes = FluidTag.WATER;
+            return;
+        }
 
-        // TODO: Support 1.12 with Material.STATIONARY_WATER
-        if (eyeFluid.getMaterial() == org.bukkit.Material.WATER) {
-            double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
-            if (d1 > d0) {
-                player.fluidOnEyes = FluidTag.WATER;
-            }
-        } else if (eyeFluid.getMaterial() == org.bukkit.Material.LAVA) {
-            double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
-            if (d1 > d0) {
-                player.fluidOnEyes = FluidTag.LAVA;
-            }
+        d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+        if (d1 > d0) {
+            player.fluidOnEyes = FluidTag.LAVA;
         }
     }
 
