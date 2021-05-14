@@ -351,7 +351,7 @@ public class Collisions {
                         player.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
                     }
 
-                    if (blockType == Material.SWEET_BERRY_BUSH) {
+                    if (blockType == XMaterial.SWEET_BERRY_BUSH.parseMaterial()) {
                         player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
                     }
 
@@ -360,7 +360,7 @@ public class Collisions {
                         BubbleColumn bubbleColumn = (BubbleColumn) block;
 
                         if (player.playerVehicle instanceof Boat) {
-                            if (!blockAbove.getMaterial().isAir()) {
+                            if (!Materials.checkFlag(blockAbove.getMaterial(), Materials.AIR)) {
                                 if (bubbleColumn.isDrag()) {
                                     player.clientVelocity.setY(Math.max(-0.3D, player.clientVelocity.getY() - 0.03D));
                                 } else {
@@ -368,7 +368,7 @@ public class Collisions {
                                 }
                             }
                         } else {
-                            if (blockAbove.getMaterial().isAir()) {
+                            if (Materials.checkFlag(blockAbove.getMaterial(), Materials.AIR)) {
                                 for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
                                     if (bubbleColumn.isDrag()) {
                                         vector.vector.setY(Math.max(-0.9D, vector.vector.getY() - 0.03D));

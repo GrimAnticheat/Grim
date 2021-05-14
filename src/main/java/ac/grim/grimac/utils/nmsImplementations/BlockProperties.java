@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Materials;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
 
@@ -81,10 +80,10 @@ public class BlockProperties {
     public static BlockData getOnBlock(GrimPlayer player, Location getBlockLocation) {
         BlockData block1 = player.compensatedWorld.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
 
-        if (block1.getMaterial().isAir()) {
+        if (Materials.checkFlag(block1.getMaterial(), Materials.AIR)) {
             BlockData block2 = player.compensatedWorld.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
 
-            if (Tag.FENCES.isTagged(block2.getMaterial()) || Tag.WALLS.isTagged(block2.getMaterial()) || Materials.checkFlag(block2.getMaterial(), Materials.GATE)) {
+            if (Materials.checkFlag(block2.getMaterial(), Materials.FENCE) || Materials.checkFlag(block2.getMaterial(), Materials.WALL) || Materials.checkFlag(block2.getMaterial(), Materials.GATE)) {
                 return block2;
             }
         }

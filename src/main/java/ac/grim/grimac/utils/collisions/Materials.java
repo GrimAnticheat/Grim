@@ -17,6 +17,8 @@ public class Materials {
     public static final int ICE = 0b00000000000000000000100000000;
     public static final int FENCE = 0b00000000000000000001000000000;
     public static final int GATE = 0b00000000000000000010000000000;
+    public static final int BED = 0b00000000000000000100000000000;
+    public static final int AIR = 0b00000000000000001000000000000;
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
@@ -57,16 +59,17 @@ public class Materials {
         for (Material mat : Material.values()) {
             if (!mat.isBlock()) continue;
             if (mat.name().contains("FENCE")) {
-                if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE | WALL;
-                else MATERIAL_FLAGS[mat.ordinal()] |= WALL;
+                if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
+                else MATERIAL_FLAGS[mat.ordinal()] |= GATE;
             }
-            if (mat.name().contains("WALL")) MATERIAL_FLAGS[mat.ordinal()] |= WALL;
-            if (mat.name().contains("PLATE")) MATERIAL_FLAGS[mat.ordinal()] = 0;
-            if (mat.name().contains("BED") && !mat.name().contains("ROCK")) MATERIAL_FLAGS[mat.ordinal()] |= SLABS;
+            if (mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
+                    !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
+                MATERIAL_FLAGS[mat.ordinal()] |= WALL;
+            if (mat.name().contains("BED") && !mat.name().contains("ROCK")) MATERIAL_FLAGS[mat.ordinal()] |= BED;
             if (mat.name().contains("ICE")) MATERIAL_FLAGS[mat.ordinal()] |= ICE;
             if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] = SOLID;
             if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] = GATE;
-            if (mat.name().contains("SIGN")) MATERIAL_FLAGS[mat.ordinal()] = 0;
+            if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] = AIR;
         }
     }
 
@@ -82,10 +85,6 @@ public class Materials {
         if (material.parseMaterial() != null) {
             MATERIAL_FLAGS[material.parseMaterial().ordinal()] = SOLID;
         }
-    }
-
-    private Materials() {
-
     }
 
     public static int getBitmask(Material material) {

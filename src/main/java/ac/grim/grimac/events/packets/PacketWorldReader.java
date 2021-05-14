@@ -71,7 +71,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                             chunks[index] = SixteenChunk.read(dataIn);
                         }
                     }
-                } else if (XMaterial.isNewVersion()) {
+                } else {
                     chunks = new FifteenChunk[16];
                     for (int index = 0; index < chunks.length; ++index) {
                         if ((availableSectionsInt & 1 << index) != 0) {
