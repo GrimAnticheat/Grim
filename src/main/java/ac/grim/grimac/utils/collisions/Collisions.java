@@ -25,6 +25,15 @@ import java.util.List;
 public class Collisions {
     public static final double maxUpStep = 0.6f;
 
+    private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
+    private static final Material COBWEB = XMaterial.COBWEB.parseMaterial();
+    private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
+    private static final Material SWEET_BERRY_BUSH = XMaterial.SWEET_BERRY_BUSH.parseMaterial();
+
+    private static final Material LADDER = XMaterial.LADDER.parseMaterial();
+    private static final Material VINE = XMaterial.VINE.parseMaterial();
+    private static final Material SCAFFOLDING = XMaterial.SCAFFOLDING.parseMaterial();
+
     // Entity line 686
     // This MUST return a new vector!!!
     // If it does not the predicted velocity will be overridden
@@ -260,7 +269,6 @@ public class Collisions {
             setY += y;
 
             if (xWithCollision * xWithCollision + zWithCollision * zWithCollision >= x * x + z * z) {
-                setBB = justAfterCollisionBB;
                 setX = originalSetX;
                 setY = originalSetY;
                 setZ = originalSetZ;
@@ -347,15 +355,15 @@ public class Collisions {
                     BlockData block = player.compensatedWorld.getBukkitBlockDataAt(i, j, k);
                     Material blockType = block.getMaterial();
 
-                    if (blockType == Material.COBWEB) {
+                    if (blockType == COBWEB) {
                         player.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
                     }
 
-                    if (blockType == XMaterial.SWEET_BERRY_BUSH.parseMaterial()) {
+                    if (blockType == SWEET_BERRY_BUSH) {
                         player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
                     }
 
-                    if (blockType == Material.BUBBLE_COLUMN) {
+                    if (blockType == BUBBLE_COLUMN) {
                         BlockData blockAbove = player.compensatedWorld.getBukkitBlockDataAt(i, j + 1, k);
                         BubbleColumn bubbleColumn = (BubbleColumn) block;
 
@@ -388,7 +396,7 @@ public class Collisions {
                         }
                     }
 
-                    if (blockType == XMaterial.HONEY_BLOCK.parseMaterial()) {
+                    if (blockType == HONEY_BLOCK) {
                         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
                             if (isSlidingDown(vector.vector, player, i, j, j)) {
                                 if (vector.vector.getY() < -0.13D) {
@@ -484,8 +492,8 @@ public class Collisions {
         }
 
         // Support versions without the climbable tag
-        if (blockData.getMaterial() == XMaterial.LADDER.parseMaterial() || blockData.getMaterial() == XMaterial.VINE.parseMaterial()
-                || blockData.getMaterial() == XMaterial.SCAFFOLDING.parseMaterial()) {
+        if (blockData.getMaterial() == LADDER || blockData.getMaterial() == VINE
+                || blockData.getMaterial() == SCAFFOLDING) {
             return true;
         }
 
@@ -496,7 +504,7 @@ public class Collisions {
         if (blockData.isOpen()) {
             BlockData blockBelow = player.compensatedWorld.getBukkitBlockDataAt(x, y - 1, z);
 
-            if (blockBelow.getMaterial() == Material.LADDER) {
+            if (blockBelow.getMaterial() == LADDER) {
                 Ladder ladder = (Ladder) blockBelow;
                 return ladder.getFacing() == blockData.getFacing();
             }

@@ -10,6 +10,10 @@ import org.bukkit.block.data.type.Snow;
 import org.bukkit.util.Vector;
 
 public class FluidTypeFlowing {
+    private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
+    private static final Material ICE = XMaterial.ICE.parseMaterial();
+    private static final Material SNOW = XMaterial.SNOW.parseMaterial();
+
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ, BlockData blockOne) {
         if (!(blockOne instanceof Levelled)) return new Vector();
 
@@ -125,12 +129,12 @@ public class FluidTypeFlowing {
             // Soul sand is always true
             // Leaves are always false despite a full bounding box
             // Snow uses different bounding box getters than collisions
-            if (blockState.getMaterial() == Material.SNOW) {
+            if (blockState.getMaterial() == SNOW) {
                 Snow snow = (Snow) blockState;
                 return snow.getLayers() == 8;
             }
 
-            return !org.bukkit.Tag.LEAVES.isTagged(blockState.getMaterial()) && (blockState.getMaterial() == Material.SOUL_SAND || blockState.getMaterial() != Material.ICE && CollisionData.getData(blockState.getMaterial()).getMovementCollisionBox(blockState, 0, 0, 0, ProtocolVersion.v1_16_4).isFullBlock());
+            return !org.bukkit.Tag.LEAVES.isTagged(blockState.getMaterial()) && (blockState.getMaterial() == SOUL_SAND || blockState.getMaterial() != ICE && CollisionData.getData(blockState.getMaterial()).getMovementCollisionBox(blockState, 0, 0, 0, ProtocolVersion.v1_16_4).isFullBlock());
         }
     }
 

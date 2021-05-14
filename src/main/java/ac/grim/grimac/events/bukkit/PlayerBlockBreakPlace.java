@@ -3,7 +3,7 @@ package ac.grim.grimac.events.bukkit;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
-import org.bukkit.Material;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.event.EventHandler;
@@ -13,7 +13,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 public class PlayerBlockBreakPlace implements Listener {
-    static final BlockData airBlockData = Material.AIR.createBlockData();
+    static final BlockData airBlockData = XMaterial.AIR.parseMaterial().createBlockData();
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {

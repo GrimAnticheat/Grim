@@ -33,9 +33,17 @@ public class CompensatedWorld {
     public static final int JAVA_AIR_ID = 0;
     private static final int MIN_WORLD_HEIGHT = 0;
     private static final int MAX_WORLD_HEIGHT = 255;
-    private static final Material flattenedLava = Material.LAVA;
+    private static final Material flattenedLava = XMaterial.LAVA.parseMaterial();
     public static List<BlockData> globalPaletteToBlockData;
     public static Method getByCombinedID;
+
+    private static final Material SEAGRASS = XMaterial.SEAGRASS.parseMaterial();
+    private static final Material TALL_SEAGRASS = XMaterial.TALL_SEAGRASS.parseMaterial();
+    private static final Material KELP = XMaterial.KELP.parseMaterial();
+    private static final Material KELP_PLANT = XMaterial.KELP_PLANT.parseMaterial();
+    private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
+    private static final Material WATER = XMaterial.WATER.parseMaterial();
+
 
     static {
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
@@ -50,8 +58,6 @@ public class CompensatedWorld {
         String line;
 
         try {
-
-
             while ((line = paletteReader.readLine()) != null) {
                 // Example line:
                 // 109 minecraft:oak_wood[axis=x]
@@ -273,16 +279,16 @@ public class CompensatedWorld {
     public double getWaterFluidLevelAt(int x, int y, int z) {
         BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
 
-        if (bukkitBlock.getMaterial() == Material.SEAGRASS || bukkitBlock.getMaterial() == Material.TALL_SEAGRASS
-                || bukkitBlock.getMaterial() == Material.KELP || bukkitBlock.getMaterial() == Material.KELP_PLANT ||
-                bukkitBlock.getMaterial() == Material.BUBBLE_COLUMN) {
+        if (bukkitBlock.getMaterial() == SEAGRASS || bukkitBlock.getMaterial() == TALL_SEAGRASS
+                || bukkitBlock.getMaterial() == KELP || bukkitBlock.getMaterial() == KELP_PLANT ||
+                bukkitBlock.getMaterial() == BUBBLE_COLUMN) {
             // This is terrible lmao
             BlockData aboveData = getBukkitBlockDataAt(x, y + 1, z);
 
             if (aboveData instanceof Waterlogged && ((Waterlogged) aboveData).isWaterlogged() ||
-                    aboveData.getMaterial() == Material.SEAGRASS || aboveData.getMaterial() == Material.TALL_SEAGRASS
-                    || aboveData.getMaterial() == Material.KELP || aboveData.getMaterial() == Material.KELP_PLANT ||
-                    aboveData.getMaterial() == Material.BUBBLE_COLUMN || bukkitBlock.getMaterial() == Material.WATER) {
+                    aboveData.getMaterial() == SEAGRASS || aboveData.getMaterial() == TALL_SEAGRASS
+                    || aboveData.getMaterial() == KELP || aboveData.getMaterial() == KELP_PLANT ||
+                    aboveData.getMaterial() == BUBBLE_COLUMN || bukkitBlock.getMaterial() == WATER) {
                 return 1;
             }
 
@@ -294,14 +300,14 @@ public class CompensatedWorld {
             if (((Waterlogged) bukkitBlock).isWaterlogged()) return 8 / 9f;
         }
 
-        if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == Material.WATER) {
+        if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
             int waterLevel = ((Levelled) bukkitBlock).getLevel();
             BlockData aboveData = getBukkitBlockDataAt(x, y + 1, z);
 
             if (aboveData instanceof Waterlogged && ((Waterlogged) aboveData).isWaterlogged() ||
-                    aboveData.getMaterial() == Material.SEAGRASS || aboveData.getMaterial() == Material.TALL_SEAGRASS
-                    || aboveData.getMaterial() == Material.KELP || aboveData.getMaterial() == Material.KELP_PLANT ||
-                    aboveData.getMaterial() == Material.BUBBLE_COLUMN || aboveData.getMaterial() == Material.WATER) {
+                    aboveData.getMaterial() == SEAGRASS || aboveData.getMaterial() == TALL_SEAGRASS
+                    || aboveData.getMaterial() == KELP || aboveData.getMaterial() == KELP_PLANT ||
+                    aboveData.getMaterial() == BUBBLE_COLUMN || aboveData.getMaterial() == WATER) {
                 return 1;
             }
 
@@ -316,14 +322,14 @@ public class CompensatedWorld {
 
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
-        if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == Material.WATER) {
+        if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
             return ((Levelled) bukkitBlock).getLevel() == 0;
         }
 
         // These blocks are also considered source blocks
-        return bukkitBlock.getMaterial() == Material.SEAGRASS || bukkitBlock.getMaterial() == Material.TALL_SEAGRASS
-                || bukkitBlock.getMaterial() == Material.KELP || bukkitBlock.getMaterial() == Material.KELP_PLANT ||
-                bukkitBlock.getMaterial() == Material.BUBBLE_COLUMN;
+        return bukkitBlock.getMaterial() == SEAGRASS || bukkitBlock.getMaterial() == TALL_SEAGRASS
+                || bukkitBlock.getMaterial() == KELP || bukkitBlock.getMaterial() == KELP_PLANT ||
+                bukkitBlock.getMaterial() == BUBBLE_COLUMN;
     }
 
     public void removeChunk(int chunkX, int chunkZ) {
