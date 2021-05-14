@@ -1,13 +1,13 @@
 package ac.grim.grimac.utils.chunkdata.fifteen;
 
 import ac.grim.grimac.utils.chunkdata.FlatChunk;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
 import lombok.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Data
@@ -23,12 +23,14 @@ public class FifteenChunk implements FlatChunk {
     private @NonNull List<BlockState> states;
     private @NonNull FlexibleStorage storage;
 
-    public FifteenChunk() {
-        this(0, 4, new ArrayList<>(Collections.singletonList(AIR)), new FlexibleStorage(4, 4096));
-    }
-
     public static FifteenChunk read(NetInput in) throws IOException {
-        int blockCount = in.readShort();
+        int blockCount = 0;
+        // 1.14 and 1.15 include block count in chunk data
+        // In 1.13 we don't send that, so there is no need to keep track of it
+        if (XMaterial.getVersion() != 13) {
+            blockCount = in.readShort();
+        }
+
         int bitsPerEntry = in.readUnsignedByte();
 
         List<BlockState> states = new ArrayList<>();
@@ -42,7 +44,12 @@ public class FifteenChunk implements FlatChunk {
     }
 
     public static void write(NetOutput out, FifteenChunk chunk) throws IOException {
-        out.writeShort(chunk.getBlockCount());
+        // ViaVersion should handle not writing block count in 1.13, as vanilla doesn't include it
+        // It would probably crash the client if we tried writing it
+        if (XMaterial.getVersion() != 13) {
+            out.writeShort(chunk.getBlockCount());
+        }
+
         out.writeByte(chunk.getBitsPerEntry());
 
         if (chunk.getBitsPerEntry() <= 8) {

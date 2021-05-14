@@ -71,11 +71,16 @@ public class PacketWorldReader extends PacketListenerDynamic {
                             chunks[index] = SixteenChunk.read(dataIn);
                         }
                     }
-                } else {
+                } else if (XMaterial.isNewVersion()) {
                     chunks = new FifteenChunk[16];
                     for (int index = 0; index < chunks.length; ++index) {
                         if ((availableSectionsInt & 1 << index) != 0) {
                             chunks[index] = FifteenChunk.read(dataIn);
+
+                            // Advance the data past the blocklight and skylight bytes
+                            if (XMaterial.getVersion() == 13) {
+                                dataIn.readBytes(4096);
+                            }
                         }
                     }
                 }
