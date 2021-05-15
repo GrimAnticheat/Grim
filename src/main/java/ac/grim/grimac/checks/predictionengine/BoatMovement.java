@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 public class BoatMovement {
@@ -235,10 +234,10 @@ public class BoatMovement {
                 if (j2 != 2) {
                     for (int k2 = k; k2 < l; ++k2) {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
-                            BlockData blockData = player.compensatedWorld.getBukkitBlockDataAt(l1, k2, i2);
-                            BlockData bukkitData = player.compensatedWorld.getBukkitBlockDataAt(l1, k2, i2);
+                            Material blockData = player.compensatedWorld.getBukkitMaterialAt(l1, k2, i2);
+                            Material bukkitData = player.compensatedWorld.getBukkitMaterialAt(l1, k2, i2);
 
-                            if (!(blockData.getMaterial() == LILY_PAD) && CollisionData.getData(bukkitData.getMaterial()).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
+                            if (!(blockData == LILY_PAD) && CollisionData.getData(bukkitData).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
                                 f += BlockProperties.getMaterialFriction(player, blockData.getMaterial());
                                 ++k1;
                             }

@@ -36,7 +36,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setY(Math.max(vector.getY(), -0.15));
 
             // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(player.compensatedWorld.getBukkitBlockDataAt(player.lastX, player.lastY, player.lastZ).getMaterial() == scaffolding) && player.isSneaking && !player.specialFlying) {
+            if (vector.getY() < 0.0 && !(player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY, player.lastZ) == scaffolding) && player.isSneaking && !player.specialFlying) {
                 vector.setY(0.0);
             }
         }

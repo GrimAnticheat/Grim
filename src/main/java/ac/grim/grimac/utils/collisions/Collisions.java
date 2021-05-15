@@ -484,20 +484,19 @@ public class Collisions {
     }
 
     public static boolean onClimbable(GrimPlayer player) {
-        BlockData blockData = player.compensatedWorld.getBukkitBlockDataAt(player.x, player.y, player.z);
+        Material blockData = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
 
-        // The climbable tag was added in 1.16
-        if (XMaterial.getVersion() > 15 && Tag.CLIMBABLE.isTagged(blockData.getMaterial())) {
+        // The climbable tag was added in 1.16 - use it to support datapacks
+        if (XMaterial.getVersion() > 15 && Tag.CLIMBABLE.isTagged(blockData)) {
             return true;
         }
 
         // Support versions without the climbable tag
-        if (blockData.getMaterial() == LADDER || blockData.getMaterial() == VINE
-                || blockData.getMaterial() == SCAFFOLDING) {
+        if (blockData == LADDER || blockData == VINE || blockData == SCAFFOLDING) {
             return true;
         }
 
-        return Tag.TRAPDOORS.isTagged(blockData.getMaterial()) && trapdoorUsableAsLadder(player, player.x, player.y, player.z, (TrapDoor) blockData);
+        return Materials.checkFlag(blockData, Materials.TRAPDOOR) && trapdoorUsableAsLadder(player, player.x, player.y, player.z, blockData);
     }
 
     private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, TrapDoor blockData) {

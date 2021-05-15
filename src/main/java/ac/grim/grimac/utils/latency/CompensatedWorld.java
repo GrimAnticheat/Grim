@@ -46,39 +46,42 @@ public class CompensatedWorld {
 
 
     static {
-        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
+        // The global palette only exists in 1.13+, 1.12- uses magic values for everything
+        if (XMaterial.isNewVersion()) {
+            getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
 
-        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
-        int paletteSize = (int) paletteReader.lines().count();
-        // Reset the reader after counting
-        paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
+            BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
+            int paletteSize = (int) paletteReader.lines().count();
+            // Reset the reader after counting
+            paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
 
-        globalPaletteToBlockData = new ArrayList<>(paletteSize);
+            globalPaletteToBlockData = new ArrayList<>(paletteSize);
 
-        String line;
+            String line;
 
-        try {
-            while ((line = paletteReader.readLine()) != null) {
-                // Example line:
-                // 109 minecraft:oak_wood[axis=x]
-                String number = line.substring(0, line.indexOf(" "));
+            try {
+                while ((line = paletteReader.readLine()) != null) {
+                    // Example line:
+                    // 109 minecraft:oak_wood[axis=x]
+                    String number = line.substring(0, line.indexOf(" "));
 
-                // This is the integer used when sending chunks
-                int globalPaletteID = Integer.parseInt(number);
+                    // This is the integer used when sending chunks
+                    int globalPaletteID = Integer.parseInt(number);
 
-                // This is the string saved from the block
-                // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
-                // I could technically generate this on startup but that requires setting blocks in the world
-                // Would rather have a known clean file on all servers.
-                String blockString = line.substring(line.indexOf(" ") + 1);
-                org.bukkit.block.data.BlockData referencedBlockData = Bukkit.createBlockData(blockString);
+                    // This is the string saved from the block
+                    // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
+                    // I could technically generate this on startup but that requires setting blocks in the world
+                    // Would rather have a known clean file on all servers.
+                    String blockString = line.substring(line.indexOf(" ") + 1);
+                    org.bukkit.block.data.BlockData referencedBlockData = Bukkit.createBlockData(blockString);
 
-                // Link this global palette ID to the blockdata for the second part of the script
-                globalPaletteToBlockData.add(globalPaletteID, referencedBlockData);
+                    // Link this global palette ID to the blockdata for the second part of the script
+                    globalPaletteToBlockData.add(globalPaletteID, referencedBlockData);
+                }
+            } catch (IOException e) {
+                System.out.println("Palette reading failed! Unsupported version?");
+                e.printStackTrace();
             }
-        } catch (IOException e) {
-            System.out.println("Palette reading failed! Unsupported version?");
-            e.printStackTrace();
         }
     }
 
@@ -209,6 +212,10 @@ public class CompensatedWorld {
         return getBukkitBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
+    public Material getBukkitMaterialAt(double x, double y, double z) {
+        return getBukkitBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)).getMaterial();
+    }
+
     public BlockData getBukkitBlockDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
@@ -223,23 +230,7 @@ public class CompensatedWorld {
             GrimAC.plugin.getLogger().warning("Unable to get block data from chunk x " + (x >> 4) + " z " + (z >> 4));
         }
 
-
         return globalPaletteToBlockData.get(JAVA_AIR_ID);
-    }
-
-    public int getBlockAt(int x, int y, int z) {
-        Column column = getChunk(x >> 4, z >> 4);
-
-        try {
-            FlatChunk chunk = column.getChunks()[y >> 4];
-            if (chunk != null) {
-                return chunk.get(x & 0xF, y & 0xF, z & 0xF);
-            }
-        } catch (Exception e) {
-            GrimAC.plugin.getLogger().warning("Unable to get block int from chunk x " + (x >> 4) + " z " + (z >> 4));
-        }
-
-        return JAVA_AIR_ID;
     }
 
     public double getFluidLevelAt(double x, double y, double z) {

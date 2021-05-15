@@ -19,6 +19,7 @@ public class Materials {
     public static final int GATE = 0b00000000000000000010000000000;
     public static final int BED = 0b00000000000000000100000000000;
     public static final int AIR = 0b00000000000000001000000000000;
+    public static final int TRAPDOOR = 0b00000000000000010000000000000;
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
@@ -70,6 +71,8 @@ public class Materials {
             if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] = SOLID;
             if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] = GATE;
             if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] = AIR;
+            if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR"))
+                MATERIAL_FLAGS[mat.ordinal()] = TRAPDOOR;
         }
     }
 
