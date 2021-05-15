@@ -26,8 +26,10 @@ public enum WrappedBlockData {
             switch (data.getBlockData() & 0b01) {
                 case (0):
                     setDirection(BlockFace.NORTH);
+                    break;
                 case (1):
                     setDirection(BlockFace.EAST);
+                    break;
             }
         }
     }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
@@ -41,12 +43,16 @@ public enum WrappedBlockData {
             switch (data.getBlockData()) {
                 case (1):
                     setDirections(BlockFace.SOUTH);
+                    break;
                 case (2):
                     setDirections(BlockFace.WEST);
+                    break;
                 case (4):
                     setDirections(BlockFace.NORTH);
+                    break;
                 case (8):
                     setDirections(BlockFace.EAST);
+                    break;
             }
         }
     }, XMaterial.VINE.parseMaterial()),
@@ -82,14 +88,19 @@ public enum WrappedBlockData {
                 case 1:
                 default: // On the floor
                     setDirection(BlockFace.DOWN);
+                    break;
                 case 2:
                     setDirection(BlockFace.NORTH);
+                    break;
                 case 3:
                     setDirection(BlockFace.SOUTH);
+                    break;
                 case 4:
                     setDirection(BlockFace.WEST);
+                    break;
                 case 5:
                     setDirection(BlockFace.EAST);
+                    break;
             }
         }
     }, XMaterial.SKELETON_WALL_SKULL.parseMaterial(), XMaterial.WITHER_SKELETON_WALL_SKULL.parseMaterial(),
@@ -118,12 +129,16 @@ public enum WrappedBlockData {
             switch (data.getBlockData() & (1 << 2) - 1) {
                 case 0:
                     setDirection(BlockFace.NORTH);
+                    break;
                 case 1:
                     setDirection(BlockFace.EAST);
+                    break;
                 case 2:
                     setDirection(BlockFace.SOUTH);
+                    break;
                 case 3:
                     setDirection(BlockFace.WEST);
+                    break;
             }
 
             age = (data.getBlockData() >> 2 & (1 << 2) - 1);
@@ -142,12 +157,16 @@ public enum WrappedBlockData {
             switch (data.getBlockData() & (1 << 2) - 1) {
                 case 0:
                     setDirection(BlockFace.NORTH);
+                    break;
                 case 1:
                     setDirection(BlockFace.EAST);
+                    break;
                 case 2:
                     setDirection(BlockFace.SOUTH);
+                    break;
                 case 3:
                     setDirection(BlockFace.WEST);
+                    break;
             }
         }
     }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
@@ -186,17 +205,23 @@ public enum WrappedBlockData {
             switch (data.getBlockData()) {
                 case 0:
                     setDirection(BlockFace.DOWN);
+                    break;
                 case 1:
                 default:
                     setDirection(BlockFace.UP);
+                    break;
                 case 2:
                     setDirection(BlockFace.NORTH);
+                    break;
                 case 3:
                     setDirection(BlockFace.SOUTH);
+                    break;
                 case 4:
                     setDirection(BlockFace.WEST);
+                    break;
                 case 5:
                     setDirection(BlockFace.EAST);
+                    break;
             }
         }
     }, XMaterial.END_ROD.parseMaterial()),
@@ -211,12 +236,16 @@ public enum WrappedBlockData {
             switch (data.getBlockData()) {
                 case 2:
                     setDirection(BlockFace.NORTH);
+                    break;
                 case 3:
                     setDirection(BlockFace.SOUTH);
+                    break;
                 case 4:
                     setDirection(BlockFace.WEST);
+                    break;
                 case 5:
                     setDirection(BlockFace.EAST);
+                    break;
             }
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL_SIGN"))
@@ -234,16 +263,22 @@ public enum WrappedBlockData {
             switch (data.getBlockData() & 7) {
                 case 0:
                     setDirection(BlockFace.DOWN);
+                    break;
                 case 1:
                     setDirection(BlockFace.EAST);
+                    break;
                 case 2:
                     setDirection(BlockFace.WEST);
+                    break;
                 case 3:
                     setDirection(BlockFace.SOUTH);
+                    break;
                 case 4:
                     setDirection(BlockFace.NORTH);
+                    break;
                 case 5:
                     setDirection(BlockFace.UP);
+                    break;
             }
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BUTTON")).toArray(Material[]::new)),
@@ -258,17 +293,23 @@ public enum WrappedBlockData {
                 case 0:
                 case 7:
                     setDirection(BlockFace.DOWN);
+                    break;
                 case 1:
                     setDirection(BlockFace.EAST);
+                    break;
                 case 2:
                     setDirection(BlockFace.WEST);
+                    break;
                 case 3:
                     setDirection(BlockFace.SOUTH);
+                    break;
                 case 4:
                     setDirection(BlockFace.NORTH);
+                    break;
                 case 5:
                 case 6:
                     setDirection(BlockFace.UP);
+                    break;
             }
         }
     }, XMaterial.LEVER.parseMaterial()),
@@ -282,14 +323,19 @@ public enum WrappedBlockData {
             switch (data.getBlockData() & 7) {
                 case 1:
                     setDirection(BlockFace.EAST);
+                    break;
                 case 2:
                     setDirection(BlockFace.WEST);
+                    break;
                 case 3:
                     setDirection(BlockFace.SOUTH);
+                    break;
                 case 4:
                     setDirection(BlockFace.NORTH);
+                    break;
                 case 5:
                     setDirection(BlockFace.UP);
+                    break;
             }
         }
     }, XMaterial.WALL_TORCH.parseMaterial(), XMaterial.REDSTONE_WALL_TORCH.parseMaterial()),
