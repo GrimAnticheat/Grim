@@ -38,4 +38,12 @@ public class MagicBlockState implements BaseBlockState {
     public int getBlockData() {
         return data;
     }
+
+    public int getId() {
+        return this.id;
+    }
+
+    public int getData() {
+        return this.data;
+    }
 }

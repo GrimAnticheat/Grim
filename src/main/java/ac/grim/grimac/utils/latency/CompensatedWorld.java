@@ -2,6 +2,10 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.blockdata.WrappedBlockData;
+import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
+import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.chunkdata.FlatChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunks.ChunkUtils;
@@ -208,15 +212,40 @@ public class CompensatedWorld {
         return chunks.getOrDefault(chunkPosition, null);
     }
 
-    public BlockData getBukkitBlockDataAt(double x, double y, double z) {
-        return getBukkitBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
-    }
-
     public Material getBukkitMaterialAt(double x, double y, double z) {
-        return getBukkitBlockDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)).getMaterial();
+        return getBukkitFlatDataAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z)).getMaterial();
     }
 
-    public BlockData getBukkitBlockDataAt(int x, int y, int z) {
+    public WrappedBlockDataValue getWrappedBlockData(int x, int y, int z) {
+        if (XMaterial.isNewVersion()) {
+            FlatBlockState blockData = getBukkitFlatDataAt(x, y, z);
+            WrappedBlockDataValue value = WrappedBlockData.getMaterialData(blockData.getMaterial());
+            value.getWrappedData(blockData);
+
+            return value;
+        }
+
+
+    }
+
+    private MagicBlockState getBukkitMagicDataAt(int x, int y, int z) {
+        Column column = getChunk(x >> 4, z >> 4);
+
+        if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return globalPaletteToBlockData.get(JAVA_AIR_ID);
+
+        try {
+            FlatChunk chunk = column.getChunks()[y >> 4];
+            if (chunk != null) {
+                return globalPaletteToBlockData.get(chunk.get(x & 0xF, y & 0xF, z & 0xF));
+            }
+        } catch (Exception e) {
+            GrimAC.plugin.getLogger().warning("Unable to get block data from chunk x " + (x >> 4) + " z " + (z >> 4));
+        }
+
+        return globalPaletteToBlockData.get(JAVA_AIR_ID);
+    }
+
+    private FlatBlockState getBukkitFlatDataAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
         if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return globalPaletteToBlockData.get(JAVA_AIR_ID);
@@ -243,10 +272,10 @@ public class CompensatedWorld {
 
     // 1.13+ only
     public double getLavaFluidLevelAt(int x, int y, int z) {
-        BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
+        BlockData bukkitBlock = getBukkitFlatDataAt(x, y, z);
 
         if (bukkitBlock.getMaterial() == flattenedLava) {
-            BlockData aboveData = getBukkitBlockDataAt(x, y + 1, z);
+            BlockData aboveData = getBukkitFlatDataAt(x, y + 1, z);
 
             if (aboveData.getMaterial() == flattenedLava) {
                 return 1;
@@ -268,13 +297,13 @@ public class CompensatedWorld {
 
     // 1.13+ only
     public double getWaterFluidLevelAt(int x, int y, int z) {
-        BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
+        BlockData bukkitBlock = getBukkitFlatDataAt(x, y, z);
 
         if (bukkitBlock.getMaterial() == SEAGRASS || bukkitBlock.getMaterial() == TALL_SEAGRASS
                 || bukkitBlock.getMaterial() == KELP || bukkitBlock.getMaterial() == KELP_PLANT ||
                 bukkitBlock.getMaterial() == BUBBLE_COLUMN) {
             // This is terrible lmao
-            BlockData aboveData = getBukkitBlockDataAt(x, y + 1, z);
+            BlockData aboveData = getBukkitFlatDataAt(x, y + 1, z);
 
             if (aboveData instanceof Waterlogged && ((Waterlogged) aboveData).isWaterlogged() ||
                     aboveData.getMaterial() == SEAGRASS || aboveData.getMaterial() == TALL_SEAGRASS
@@ -293,7 +322,7 @@ public class CompensatedWorld {
 
         if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
             int waterLevel = ((Levelled) bukkitBlock).getLevel();
-            BlockData aboveData = getBukkitBlockDataAt(x, y + 1, z);
+            BlockData aboveData = getBukkitFlatDataAt(x, y + 1, z);
 
             if (aboveData instanceof Waterlogged && ((Waterlogged) aboveData).isWaterlogged() ||
                     aboveData.getMaterial() == SEAGRASS || aboveData.getMaterial() == TALL_SEAGRASS
@@ -312,7 +341,7 @@ public class CompensatedWorld {
     }
 
     public boolean isWaterSourceBlock(int x, int y, int z) {
-        BlockData bukkitBlock = getBukkitBlockDataAt(x, y, z);
+        BlockData bukkitBlock = getBukkitFlatDataAt(x, y, z);
         if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
             return ((Levelled) bukkitBlock).getLevel() == 0;
         }

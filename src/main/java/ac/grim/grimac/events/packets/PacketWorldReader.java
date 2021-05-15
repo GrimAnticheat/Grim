@@ -2,9 +2,10 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.chunkdata.FlatChunk;
+import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.fifteen.FifteenChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
+import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.WorldChangeBlockData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -63,7 +64,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 int availableSectionsInt = packet.readInt(2);
 
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
-                FlatChunk[] chunks;
+                BaseChunk[] chunks;
                 if (XMaterial.getVersion() > 15) {
                     chunks = new SixteenChunk[16];
                     for (int index = 0; index < chunks.length; ++index) {
@@ -71,7 +72,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                             chunks[index] = SixteenChunk.read(dataIn);
                         }
                     }
-                } else {
+                } else if (XMaterial.isNewVersion()) {
                     chunks = new FifteenChunk[16];
                     for (int index = 0; index < chunks.length; ++index) {
                         if ((availableSectionsInt & 1 << index) != 0) {
@@ -81,6 +82,16 @@ public class PacketWorldReader extends PacketListenerDynamic {
                             if (XMaterial.getVersion() == 13) {
                                 dataIn.readBytes(4096);
                             }
+                        }
+                    }
+                } else {
+                    chunks = new TwelveChunk[16];
+                    for (int index = 0; index < chunks.length; ++index) {
+                        if ((availableSectionsInt & 1 << index) != 0) {
+                            chunks[index] = new TwelveChunk(dataIn);
+
+                            // Advance the data past the blocklight and skylight bytes
+                            dataIn.readBytes(4096);
                         }
                     }
                 }

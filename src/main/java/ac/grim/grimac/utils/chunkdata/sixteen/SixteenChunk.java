@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.chunkdata.sixteen;
 
+import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.FlatChunk;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
@@ -8,7 +9,7 @@ import lombok.NonNull;
 import java.io.IOException;
 
 // Credit to https://github.com/Steveice10/MCProtocolLib/blob/master/src/main/java/com/github/steveice10/mc/protocol/data/game/chunk/Chunk.java
-public class SixteenChunk implements FlatChunk {
+public class SixteenChunk extends BaseChunk implements FlatChunk {
     private static final int CHUNK_SIZE = 4096;
     private static final int MIN_PALETTE_BITS_PER_ENTRY = 4;
     private static final int MAX_PALETTE_BITS_PER_ENTRY = 8;

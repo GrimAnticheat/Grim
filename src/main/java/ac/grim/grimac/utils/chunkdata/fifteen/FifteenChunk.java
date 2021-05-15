@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.chunkdata.fifteen;
 
+import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.FlatChunk;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
@@ -13,7 +14,7 @@ import java.util.List;
 @Data
 @Setter(AccessLevel.NONE)
 @AllArgsConstructor
-public class FifteenChunk implements FlatChunk {
+public class FifteenChunk extends BaseChunk implements FlatChunk {
     private static final BlockState AIR = new BlockState(0);
     private static final int AIR_ID = 0;
 

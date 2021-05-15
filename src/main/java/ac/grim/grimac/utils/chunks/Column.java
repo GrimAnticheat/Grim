@@ -1,20 +1,20 @@
 package ac.grim.grimac.utils.chunks;
 
 
-import ac.grim.grimac.utils.chunkdata.FlatChunk;
+import ac.grim.grimac.utils.chunkdata.BaseChunk;
 
 public class Column {
     public final int x;
     public final int z;
-    public final FlatChunk[] chunks;
+    public final BaseChunk[] chunks;
 
-    public Column(int x, int z, FlatChunk[] chunks) {
+    public Column(int x, int z, BaseChunk[] chunks) {
         this.chunks = chunks;
         this.x = x;
         this.z = z;
     }
 
-    public FlatChunk[] getChunks() {
+    public BaseChunk[] getChunks() {
         return chunks;
     }
 }
