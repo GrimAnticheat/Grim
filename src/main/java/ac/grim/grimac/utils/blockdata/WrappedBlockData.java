@@ -16,6 +16,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+// Note that the data for these don't reset - default values are unknown - be careful!
 public enum WrappedBlockData {
 
     ANVIL(new WrappedDirectional() {
@@ -63,12 +64,12 @@ public enum WrappedBlockData {
         public void getWrappedData(FlatBlockState data) {
             Slab slab = (Slab) data.getBlockData();
 
+            isDouble = slab.getType() == Slab.Type.DOUBLE;
+
             if (slab.getType() == Slab.Type.BOTTOM) {
                 isBottom = true;
             } else if (slab.getType() == Slab.Type.TOP) {
                 isBottom = false;
-            } else {
-                isDouble = true;
             }
         }
 
