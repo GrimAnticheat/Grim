@@ -3,8 +3,8 @@ package ac.grim.grimac.events.bukkit;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ChangeBlockData;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,7 +19,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
     private static final Method getTypeId;
 
     static {
-        getTypeId = Reflection.getMethod(NMSUtils.blockClass, "getTypeId", int.class);
+        getTypeId = Reflection.getMethod(Material.class, "getId", int.class);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -27,7 +27,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         try {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             Block block = event.getBlock();
-            int materialID = (int) getTypeId.invoke(block);
+            int materialID = (int) getTypeId.invoke(block.getType());
             int blockData = block.getData();
 
             int combinedID = materialID + (blockData << 12);
@@ -44,7 +44,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         try {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             Block block = event.getBlock();
-            int materialID = (int) getTypeId.invoke(block);
+            int materialID = (int) getTypeId.invoke(block.getType());
             int blockData = block.getData();
 
             int combinedID = materialID + (blockData << 12);
