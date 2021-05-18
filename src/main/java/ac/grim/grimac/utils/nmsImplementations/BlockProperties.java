@@ -27,7 +27,7 @@ public class BlockProperties {
             alsoWater = Material.BUBBLE_COLUMN;
         } else {
             water = Material.WATER;
-            alsoWater = Material.LEGACY_STATIONARY_WATER;
+            alsoWater = Materials.matchLegacy("STATIONARY_WATER");
         }
     }
 

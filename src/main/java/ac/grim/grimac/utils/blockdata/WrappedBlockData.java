@@ -12,7 +12,9 @@ import org.bukkit.block.data.Rail;
 import org.bukkit.block.data.type.*;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public enum WrappedBlockData {
 
@@ -403,7 +405,9 @@ public enum WrappedBlockData {
 
     WrappedBlockData(WrappedBlockDataValue data, Material... materials) {
         this.data = data;
-        this.materials = materials;
+        Set<Material> mList = new HashSet<>(Arrays.asList(materials));
+        mList.remove(null); // Sets can contain one null
+        this.materials = mList.toArray(new Material[0]);
     }
 
     public static WrappedBlockDataValue getMaterialData(Material material) {
