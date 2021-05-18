@@ -241,7 +241,7 @@ public class MovementTicker {
                 swimSpeed += (player.movementSpeed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
-            if (player.bukkitPlayer.hasPotionEffect(PotionEffectType.DOLPHINS_GRACE)) {
+            if (XMaterial.getVersion() > 12 && player.bukkitPlayer.hasPotionEffect(PotionEffectType.DOLPHINS_GRACE)) {
                 swimFriction = 0.96F;
             }
 
