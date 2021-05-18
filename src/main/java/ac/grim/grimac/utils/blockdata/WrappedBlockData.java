@@ -285,6 +285,30 @@ public enum WrappedBlockData {
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BUTTON")).toArray(Material[]::new)),
 
+    LADDER(new WrappedDirectional() {
+        public void getWrappedData(FlatBlockState data) {
+            Directional ladder = (Directional) data.getBlockData();
+            setDirection(ladder.getFacing());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            switch (data.getBlockData()) {
+                case 2:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 4:
+                    setDirection(BlockFace.WEST);
+                    break;
+                case 5:
+                    setDirection(BlockFace.EAST);
+                    break;
+            }
+        }
+    }, XMaterial.LADDER.parseMaterial()),
+
     LEVER(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
             setDirection(((Directional) data.getBlockData()).getFacing());
