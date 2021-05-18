@@ -20,7 +20,7 @@ public enum WrappedBlockData {
 
     ANVIL(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
-            Directional facing = (Directional) data;
+            Directional facing = (Directional) data.getBlockData();
             setDirection(facing.getFacing());
         }
 
@@ -111,7 +111,7 @@ public enum WrappedBlockData {
 
     CAKE(new WrappedCake() {
         public void getWrappedData(FlatBlockState data) {
-            Cake cake = (Cake) data;
+            Cake cake = (Cake) data.getBlockData();
             slices = cake.getBites();
         }
 
@@ -122,7 +122,7 @@ public enum WrappedBlockData {
 
     COCOA(new WrappedCocoaBeans() {
         public void getWrappedData(FlatBlockState data) {
-            Cocoa cocoa = (Cocoa) data;
+            Cocoa cocoa = (Cocoa) data.getBlockData();
             setDirection(cocoa.getFacing());
             age = cocoa.getAge();
         }
@@ -199,7 +199,7 @@ public enum WrappedBlockData {
 
     END_ROD(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
-            Directional rod = (Directional) data;
+            Directional rod = (Directional) data.getBlockData();
             setDirection(rod.getFacing());
         }
 
@@ -230,7 +230,7 @@ public enum WrappedBlockData {
 
     WALL_SIGN(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
-            Directional rod = (Directional) data;
+            Directional rod = (Directional) data.getBlockData();
             setDirection(rod.getFacing());
         }
 
@@ -255,8 +255,8 @@ public enum WrappedBlockData {
 
     BUTTON(new WrappedButton() {
         public void getWrappedData(FlatBlockState data) {
-            setDirection(((Directional) data).getFacing());
-            setPowered(((Powerable) data).isPowered());
+            setDirection(((Directional) data.getBlockData()).getFacing());
+            setPowered(((Powerable) data.getBlockData()).isPowered());
         }
 
         public void getWrappedData(MagicBlockState data) {
@@ -287,7 +287,7 @@ public enum WrappedBlockData {
 
     LEVER(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
-            setDirection(((Directional) data).getFacing());
+            setDirection(((Directional) data.getBlockData()).getFacing());
         }
 
         public void getWrappedData(MagicBlockState data) {
@@ -318,7 +318,7 @@ public enum WrappedBlockData {
 
     WALL_TORCH(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
-            setDirection(((Directional) data).getFacing());
+            setDirection(((Directional) data.getBlockData()).getFacing());
         }
 
         public void getWrappedData(MagicBlockState data) {
@@ -359,7 +359,7 @@ public enum WrappedBlockData {
 
     TRAPDOOR(new WrappedTrapdoor() {
         public void getWrappedData(FlatBlockState data) {
-            TrapDoor trapDoor = (TrapDoor) data;
+            TrapDoor trapDoor = (TrapDoor) data.getBlockData();
             setOpen(trapDoor.isOpen());
             setDirection(trapDoor.getFacing());
         }
