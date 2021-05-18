@@ -35,7 +35,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
     public PacketWorldReader() throws ClassNotFoundException, NoSuchMethodException {
         super(PacketEventPriority.MONITOR);
 
-        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedID", int.class);
+        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
         ancientGetById = Reflection.getMethod(NMSUtils.blockClass, "getId", int.class);
     }
 
