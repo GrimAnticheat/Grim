@@ -132,7 +132,7 @@ public class Materials {
     private static void markAs(XMaterial material, int flag) {
         // Set the flag only if the version has the material
         if (material.parseMaterial() != null) {
-            MATERIAL_FLAGS[material.parseMaterial().ordinal()] |= SOLID;
+            MATERIAL_FLAGS[material.parseMaterial().ordinal()] |= flag;
         }
     }
 
