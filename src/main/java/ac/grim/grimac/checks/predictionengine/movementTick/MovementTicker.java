@@ -214,7 +214,7 @@ public class MovementTicker {
         double playerGravity = 0.08;
 
         boolean isFalling = player.clientVelocity.getY() <= 0.0;
-        if (isFalling && player.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
+        if (isFalling && XMaterial.getVersion() > 12 && player.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
             playerGravity = 0.01;
             //this.fallDistance = 0.0f;
         }

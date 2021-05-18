@@ -6,10 +6,7 @@ import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
-import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
-import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
-import ac.grim.grimac.utils.nmsImplementations.FluidTypeFlowing;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import ac.grim.grimac.utils.nmsImplementations.*;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Boat;
@@ -82,7 +79,7 @@ public class PlayerBaseTick {
                 pose = Pose.SLEEPING;
             } else if (player.isSwimming) {
                 pose = Pose.SWIMMING;
-            } else if (player.bukkitPlayer.isRiptiding()) {
+            } else if (XMaterial.getVersion() > 12 && player.bukkitPlayer.isRiptiding()) {
                 pose = Pose.SPIN_ATTACK;
             } else if (player.isSneaking && !player.specialFlying) {
                 pose = Pose.CROUCHING;
