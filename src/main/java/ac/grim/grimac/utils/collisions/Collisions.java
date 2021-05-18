@@ -17,7 +17,6 @@ import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.BubbleColumn;
 import org.bukkit.entity.Boat;
@@ -492,13 +491,7 @@ public class Collisions {
         BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(player.x, player.y, player.z);
         Material blockMaterial = blockState.getMaterial();
 
-        // The climbable tag was added in 1.16 - use it to support datapacks
-        if (XMaterial.getVersion() > 15 && Tag.CLIMBABLE.isTagged(blockMaterial)) {
-            return true;
-        }
-
-        // Support versions without the climbable tag
-        if (blockMaterial == LADDER || blockMaterial == VINE || blockMaterial == SCAFFOLDING) {
+        if (Materials.checkFlag(blockMaterial, Materials.CLIMBABLE)) {
             return true;
         }
 

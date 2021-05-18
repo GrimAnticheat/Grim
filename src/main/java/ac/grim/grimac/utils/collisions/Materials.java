@@ -13,7 +13,7 @@ import java.util.Arrays;
 
 public class Materials {
     public static final int SOLID = 0b00000000000000000000000000001;
-    public static final int LADDER = 0b00000000000000000000000000010;
+    public static final int CLIMBABLE = 0b00000000000000000000000000010;
     public static final int WALL = 0b00000000000000000000000000100;
     public static final int STAIRS = 0b00000000000000000000000001000;
     public static final int SLABS = 0b00000000000000000000000010000;
@@ -94,6 +94,14 @@ public class Materials {
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_BANNER")).forEach(Materials::markAsNotSolid);
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("HEAD") || xMaterial.name().contains("SKULL")).forEach(material -> markAs(material, SOLID));
 
+        markAs(XMaterial.LADDER, CLIMBABLE);
+        markAs(XMaterial.VINE, CLIMBABLE);
+        markAs(XMaterial.SCAFFOLDING, CLIMBABLE);
+        markAs(XMaterial.WEEPING_VINES, CLIMBABLE);
+        markAs(XMaterial.WEEPING_VINES_PLANT, CLIMBABLE);
+        markAs(XMaterial.TWISTING_VINES, CLIMBABLE);
+        markAs(XMaterial.TWISTING_VINES_PLANT, CLIMBABLE);
+
         for (Material mat : Material.values()) {
             if (!mat.isBlock()) continue;
             if (mat.name().contains("FENCE")) {
@@ -111,10 +119,7 @@ public class Materials {
             if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR"))
                 MATERIAL_FLAGS[mat.ordinal()] |= TRAPDOOR;
             if (mat.name().contains("LEAVES")) MATERIAL_FLAGS[mat.ordinal()] |= LEAVES;
-
         }
-
-
     }
 
     private static void markAsNotSolid(XMaterial material) {

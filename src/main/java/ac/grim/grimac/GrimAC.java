@@ -4,7 +4,7 @@ import ac.grim.grimac.checks.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.events.bukkit.FlatPlayerBlockBreakPlace;
 import ac.grim.grimac.events.bukkit.MagicPlayerBlockBreakPlace;
 import ac.grim.grimac.events.bukkit.PistonEvent;
-import ac.grim.grimac.events.bukkit.PlayerQuitListener;
+import ac.grim.grimac.events.bukkit.PlayerJoinQuitListener;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PlayerFlyingData;
@@ -71,8 +71,7 @@ public final class GrimAC extends JavaPlugin {
     }
 
     public void registerEvents() {
-        Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
-        Bukkit.getPluginManager().registerEvents(new MovementCheckRunner(), this);
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), this);
 
         if (XMaterial.isNewVersion()) {
             Bukkit.getPluginManager().registerEvents(new FlatPlayerBlockBreakPlace(), this);

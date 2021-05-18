@@ -12,11 +12,10 @@ import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.*;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Pig;
+import org.bukkit.entity.Strider;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 // When the player sends a packet and we have to add him to the queue:
 // If stage 0 - Add one and add the data to the workers
 // If stage 1 - Add the data to the queue and add one
-public class MovementCheckRunner implements Listener {
+public class MovementCheckRunner {
     public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
     // I actually don't know how many threads is good, more testing is needed!
     public static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
@@ -415,30 +414,5 @@ public class MovementCheckRunner implements Listener {
         float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
 
         return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
-    }
-
-    @EventHandler
-    public void playerJoinEvent(PlayerJoinEvent event) {
-        Player bukkitPlayer = event.getPlayer();
-        GrimPlayer player = new GrimPlayer(bukkitPlayer);
-        player.lastX = bukkitPlayer.getLocation().getX();
-        player.lastY = bukkitPlayer.getLocation().getY();
-        player.lastZ = bukkitPlayer.getLocation().getZ();
-        player.lastXRot = bukkitPlayer.getLocation().getYaw();
-        player.lastYRot = bukkitPlayer.getLocation().getPitch();
-        player.x = bukkitPlayer.getLocation().getX();
-        player.y = bukkitPlayer.getLocation().getY();
-        player.z = bukkitPlayer.getLocation().getZ();
-        player.xRot = bukkitPlayer.getLocation().getYaw();
-        player.yRot = bukkitPlayer.getLocation().getPitch();
-
-        GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
-
-        queuedPredictions.put(event.getPlayer().getUniqueId(), new ConcurrentLinkedQueue<>());
-    }
-
-    @EventHandler
-    public void playerQuitEvent(PlayerQuitEvent event) {
-        queuedPredictions.remove(event.getPlayer().getUniqueId());
     }
 }
