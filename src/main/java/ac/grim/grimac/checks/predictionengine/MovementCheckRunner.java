@@ -12,10 +12,7 @@ import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.entity.AbstractHorse;
-import org.bukkit.entity.Boat;
-import org.bukkit.entity.Pig;
-import org.bukkit.entity.Strider;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -422,6 +419,21 @@ public class MovementCheckRunner implements Listener {
 
     @EventHandler
     public void playerJoinEvent(PlayerJoinEvent event) {
+        Player bukkitPlayer = event.getPlayer();
+        GrimPlayer player = new GrimPlayer(bukkitPlayer);
+        player.lastX = bukkitPlayer.getLocation().getX();
+        player.lastY = bukkitPlayer.getLocation().getY();
+        player.lastZ = bukkitPlayer.getLocation().getZ();
+        player.lastXRot = bukkitPlayer.getLocation().getYaw();
+        player.lastYRot = bukkitPlayer.getLocation().getPitch();
+        player.x = bukkitPlayer.getLocation().getX();
+        player.y = bukkitPlayer.getLocation().getY();
+        player.z = bukkitPlayer.getLocation().getZ();
+        player.xRot = bukkitPlayer.getLocation().getYaw();
+        player.yRot = bukkitPlayer.getLocation().getPitch();
+
+        GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
+
         queuedPredictions.put(event.getPlayer().getUniqueId(), new ConcurrentLinkedQueue<>());
     }
 

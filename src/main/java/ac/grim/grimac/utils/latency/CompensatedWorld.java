@@ -212,7 +212,7 @@ public class CompensatedWorld {
 
     public Column getChunk(int chunkX, int chunkZ) {
         long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
-        return chunks.getOrDefault(chunkPosition, null);
+        return chunks.get(chunkPosition);
     }
 
     public Material getBukkitMaterialAt(double x, double y, double z) {

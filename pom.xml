@@ -42,8 +42,8 @@
                                     <shadedPattern>ac.grim.grimac.shaded.packetevents</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>io.papermc.lib</pattern>
-                                    <shadedPattern>ac.grim.grimac.shaded.paperlib</shadedPattern>
+                                    <pattern>it.unimi.dsi.fastutil</pattern>
+                                    <shadedPattern>ac.grim.grimac.shaded.fastutil</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
@@ -88,7 +88,8 @@
         <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents</artifactId>
-            <version>v1.8-pre-15</version>
+            <version>926252b</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.github.steveice10</groupId>
@@ -97,15 +98,10 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
-            <groupId>io.papermc</groupId>
-            <artifactId>paperlib</artifactId>
-            <version>1.0.6</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil</artifactId>
             <version>8.5.4</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

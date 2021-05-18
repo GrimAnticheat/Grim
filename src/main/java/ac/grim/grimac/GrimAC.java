@@ -13,6 +13,7 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
+import io.github.retrooper.packetevents.settings.PacketEventsSettings;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -30,7 +31,10 @@ public final class GrimAC extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        PacketEvents.create(this).load();
+        PacketEvents.create(this);
+        PacketEventsSettings settings = PacketEvents.get().getSettings();
+        settings.compatInjector(true).checkForUpdates(false).bStats(true);
+        PacketEvents.get().loadAsyncNewThread();
     }
 
     @Override
@@ -90,7 +94,6 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PacketFireworkListener());
         PacketEvents.get().registerListener(new PacketPlayerTeleport());
 
-        PacketEvents.get().registerListener(new PacketPlayerJoin());
         PacketEvents.get().registerListener(new PacketMountVehicle());
 
         try {
