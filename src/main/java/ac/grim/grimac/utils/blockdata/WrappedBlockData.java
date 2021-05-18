@@ -390,7 +390,7 @@ public enum WrappedBlockData {
 
     NO_DATA(new WrappedBlockDataValue(), XMaterial.AIR.parseMaterial());
 
-    private static final WrappedBlockData[] lookup = new WrappedBlockData[WrappedBlockData.values().length];
+    private static final WrappedBlockData[] lookup = new WrappedBlockData[Material.values().length];
 
     static {
         for (WrappedBlockData data : values()) {
