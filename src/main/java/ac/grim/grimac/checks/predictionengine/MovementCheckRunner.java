@@ -132,6 +132,8 @@ public class MovementCheckRunner {
             player.movementSpeed = data.movementSpeed;
             player.jumpAmplifier = data.jumpAmplifier;
             player.levitationAmplifier = data.levitationAmplifier;
+            player.slowFallingAmplifier = data.slowFallingAmplifier;
+            player.dolphinsGraceAmplifier = data.dolphinsGraceAmplifier;
             player.flySpeed = data.flySpeed;
             player.inVehicle = data.inVehicle;
             player.playerVehicle = data.playerVehicle;

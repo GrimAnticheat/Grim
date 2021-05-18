@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.data;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Collisions;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
@@ -13,6 +14,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class PredictionData {
@@ -40,6 +42,8 @@ public class PredictionData {
     public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;
+    public float slowFallingAmplifier;
+    public float dolphinsGraceAmplifier;
     public float flySpeed;
 
     public double fallDistance;
@@ -124,11 +128,12 @@ public class PredictionData {
         // But they are, so we need to multiply by sprinting speed boost until I just get the player's attributes from packets
         if (isSprinting && !player.bukkitPlayer.isSprinting()) this.movementSpeed *= 1.3;
 
-        PotionEffect jumpEffect = player.bukkitPlayer.getPotionEffect(PotionEffectType.JUMP);
-        this.jumpAmplifier = jumpEffect == null ? 0 : jumpEffect.getAmplifier();
+        Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
 
-        PotionEffect levitationEffect = player.bukkitPlayer.getPotionEffect(PotionEffectType.LEVITATION);
-        this.levitationAmplifier = levitationEffect == null ? 0 : levitationEffect.getAmplifier();
+        this.jumpAmplifier = getHighestPotionEffect(playerPotionEffects, "JUMP", 0);
+        this.levitationAmplifier = getHighestPotionEffect(playerPotionEffects, "LEVITATION", 9);
+        this.slowFallingAmplifier = getHighestPotionEffect(playerPotionEffects, "SLOW_FALLING", 13);
+        this.dolphinsGraceAmplifier = getHighestPotionEffect(playerPotionEffects, "DOLPHINS_GRACE", 13);
 
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
         this.playerVehicle = player.bukkitPlayer.getVehicle();
@@ -181,5 +186,19 @@ public class PredictionData {
 
         minimumTickRequiredToContinue = GrimAC.currentTick.get() + 1;
         lastTransaction = player.packetLastTransactionReceived;
+    }
+
+    private float getHighestPotionEffect(Collection<PotionEffect> effects, String typeName, int minimumVersion) {
+        if (XMaterial.getVersion() < minimumVersion) return 0;
+
+        PotionEffectType type = PotionEffectType.getByName(typeName);
+
+        float highestEffect = 0;
+        for (PotionEffect effect : effects) {
+            if (effect.getType() == type && effect.getAmplifier() > highestEffect)
+                highestEffect = effect.getAmplifier();
+        }
+
+        return highestEffect;
     }
 }

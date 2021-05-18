@@ -14,7 +14,6 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -214,7 +213,7 @@ public class MovementTicker {
         double playerGravity = 0.08;
 
         boolean isFalling = player.clientVelocity.getY() <= 0.0;
-        if (isFalling && XMaterial.getVersion() > 12 && player.bukkitPlayer.hasPotionEffect(PotionEffectType.SLOW_FALLING)) {
+        if (isFalling && player.slowFallingAmplifier > 0) {
             playerGravity = 0.01;
             //this.fallDistance = 0.0f;
         }
@@ -241,7 +240,7 @@ public class MovementTicker {
                 swimSpeed += (player.movementSpeed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
-            if (XMaterial.getVersion() > 12 && player.bukkitPlayer.hasPotionEffect(PotionEffectType.DOLPHINS_GRACE)) {
+            if (XMaterial.getVersion() > 12 && player.dolphinsGraceAmplifier > 0) {
                 swimFriction = 0.96F;
             }
 

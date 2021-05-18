@@ -93,6 +93,8 @@ public class GrimPlayer {
     public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;
+    public float slowFallingAmplifier;
+    public float dolphinsGraceAmplifier;
     public float depthStriderLevel;
     public float flySpeed;
 
