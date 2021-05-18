@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.chunkdata.fifteen.FifteenChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.data.WorldChangeBlockData;
+import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
@@ -30,11 +30,13 @@ import java.lang.reflect.Method;
 
 public class PacketWorldReader extends PacketListenerDynamic {
     public static Method getByCombinedID;
+    public static Method ancientGetById;
 
     public PacketWorldReader() throws ClassNotFoundException, NoSuchMethodException {
         super(PacketEventPriority.MONITOR);
 
-        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
+        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedID", int.class);
+        ancientGetById = Reflection.getMethod(NMSUtils.blockClass, "getId", int.class);
     }
 
     public static int sixteenSectionRelativeX(short data) {
@@ -110,12 +112,33 @@ public class PacketWorldReader extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
-                Object blockObject = wrappedBlockChange.readAnyObject(1);
+                int combinedID = 0;
 
-                int blockID = (int) getByCombinedID.invoke(null, blockObject);
+                if (XMaterial.getVersion() > 7) {
+                    // For 1.8 all the way to 1.16, the method for getting combined ID has never changed
+                    try {
+                        Object blockObject = wrappedBlockChange.readAnyObject(1);
+                        combinedID = (int) getByCombinedID.invoke(null, blockObject);
+                    } catch (InvocationTargetException | IllegalAccessException var4) {
+                        var4.printStackTrace();
+                    }
+                } else {
+                    // 1.7 includes the block data right in the packet
+                    Field id = Reflection.getField(event.getNMSPacket().getRawNMSPacket().getClass(), "data");
+                    int blockData = id.getInt(event.getNMSPacket().getRawNMSPacket());
+
+                    Field block = Reflection.getField(event.getNMSPacket().getRawNMSPacket().getClass(), "block");
+                    Object blockNMS = block.get(event.getNMSPacket().getRawNMSPacket());
+
+                    int materialID = (int) ancientGetById.invoke(blockNMS);
+
+                    combinedID = materialID + (blockData << 12);
+                }
+
                 Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
-                player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockID));
+                player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
+
             } catch (IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
@@ -152,10 +175,10 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
                         int blockID = (int) getByCombinedID.invoke(null, blockDataArray[i]);
 
-                        player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
+                        player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
 
                     }
-                } else if (XMaterial.isNewVersion()) {
+                } else {
                     Object[] blockInformation = (Object[]) packet.readAnyObject(1);
 
                     // This shouldn't be possible
@@ -178,7 +201,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                         int blockY = pos & 255;
                         int blockZ = pos >> 8 & 15;
 
-                        player.compensatedWorld.worldChangedBlockQueue.add(new WorldChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, blockY, chunkZ + blockZ, blockID));
+                        player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, blockY, chunkZ + blockZ, blockID));
                     }
                 }
 

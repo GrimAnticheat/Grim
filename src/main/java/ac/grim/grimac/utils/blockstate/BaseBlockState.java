@@ -4,4 +4,6 @@ import org.bukkit.Material;
 
 public interface BaseBlockState {
     Material getMaterial();
+
+    int getCombinedId();
 }

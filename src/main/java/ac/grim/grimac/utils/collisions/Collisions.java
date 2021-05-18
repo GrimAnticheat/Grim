@@ -1,6 +1,12 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.blockdata.WrappedBlockData;
+import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
+import ac.grim.grimac.utils.blockdata.WrappedDirectional;
+import ac.grim.grimac.utils.blockdata.WrappedTrapdoor;
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.data.VectorData;
@@ -14,8 +20,6 @@ import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.BubbleColumn;
-import org.bukkit.block.data.type.Ladder;
-import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
 
@@ -352,7 +356,7 @@ public class Collisions {
         for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
             for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
                 for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
-                    BlockData block = player.compensatedWorld.getBukkitBlockDataAt(i, j, k);
+                    BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(i, j, k);
                     Material blockType = block.getMaterial();
 
                     if (blockType == COBWEB) {
@@ -364,8 +368,9 @@ public class Collisions {
                     }
 
                     if (blockType == BUBBLE_COLUMN) {
-                        BlockData blockAbove = player.compensatedWorld.getBukkitBlockDataAt(i, j + 1, k);
-                        BubbleColumn bubbleColumn = (BubbleColumn) block;
+                        BaseBlockState blockAbove = player.compensatedWorld.getWrappedBlockStateAt(i, j + 1, k);
+                        BlockData bubbleData = ((FlatBlockState) block).getBlockData();
+                        BubbleColumn bubbleColumn = (BubbleColumn) bubbleData;
 
                         if (player.playerVehicle instanceof Boat) {
                             if (!Materials.checkFlag(blockAbove.getMaterial(), Materials.AIR)) {
@@ -440,7 +445,7 @@ public class Collisions {
         for (int x = (int) Math.floor(wantedBB.minX); x <= Math.ceil(wantedBB.maxX); x++) {
             for (int y = (int) Math.floor(wantedBB.minY); y <= Math.ceil(wantedBB.maxY); y++) {
                 for (int z = (int) Math.floor(wantedBB.minZ); z <= Math.ceil(wantedBB.maxZ); z++) {
-                    org.bukkit.block.data.BlockData data = player.compensatedWorld.getBukkitBlockDataAt(x, y, z);
+                    BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
                     CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, ProtocolVersion.v1_16_5).downCast(listOfBlocks);
                 }
             }
@@ -464,7 +469,7 @@ public class Collisions {
         for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
             for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
                 for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
-                    org.bukkit.block.data.BlockData data = player.compensatedWorld.getBukkitBlockDataAt(x, y, z);
+                    BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
 
                     if (!data.getMaterial().isOccluding()) continue;
                     CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, ProtocolVersion.v1_16_5);
@@ -484,28 +489,39 @@ public class Collisions {
     }
 
     public static boolean onClimbable(GrimPlayer player) {
-        Material blockData = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
+        BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(player.x, player.y, player.z);
+        Material blockMaterial = blockState.getMaterial();
 
         // The climbable tag was added in 1.16 - use it to support datapacks
-        if (XMaterial.getVersion() > 15 && Tag.CLIMBABLE.isTagged(blockData)) {
+        if (XMaterial.getVersion() > 15 && Tag.CLIMBABLE.isTagged(blockMaterial)) {
             return true;
         }
 
         // Support versions without the climbable tag
-        if (blockData == LADDER || blockData == VINE || blockData == SCAFFOLDING) {
+        if (blockMaterial == LADDER || blockMaterial == VINE || blockMaterial == SCAFFOLDING) {
             return true;
         }
 
-        return Materials.checkFlag(blockData, Materials.TRAPDOOR) && trapdoorUsableAsLadder(player, player.x, player.y, player.z, blockData);
+        return trapdoorUsableAsLadder(player, player.x, player.y, player.z, blockState);
     }
 
-    private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, TrapDoor blockData) {
-        if (blockData.isOpen()) {
-            BlockData blockBelow = player.compensatedWorld.getBukkitBlockDataAt(x, y - 1, z);
+
+    private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, BaseBlockState blockData) {
+        if (!Materials.checkFlag(blockData.getMaterial(), Materials.TRAPDOOR)) return false;
+
+        WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(blockData.getMaterial());
+        blockDataValue.getData(blockData);
+        WrappedTrapdoor trapdoor = (WrappedTrapdoor) blockDataValue;
+
+        if (trapdoor.isOpen()) {
+            BaseBlockState blockBelow = player.compensatedWorld.getWrappedBlockStateAt(x, y - 1, z);
 
             if (blockBelow.getMaterial() == LADDER) {
-                Ladder ladder = (Ladder) blockBelow;
-                return ladder.getFacing() == blockData.getFacing();
+                WrappedBlockDataValue belowData = WrappedBlockData.getMaterialData(blockBelow.getMaterial());
+                belowData.getData(blockBelow);
+
+                WrappedDirectional ladder = (WrappedDirectional) belowData;
+                return ladder.getDirection() == trapdoor.getDirection();
             }
         }
 

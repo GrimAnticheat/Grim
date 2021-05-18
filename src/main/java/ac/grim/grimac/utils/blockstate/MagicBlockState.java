@@ -19,6 +19,11 @@ public class MagicBlockState implements BaseBlockState {
     private final int id;
     private final int data;
 
+    public MagicBlockState(int combinedID) {
+        this.id = combinedID & 0xFF;
+        this.data = combinedID >> 12;
+    }
+
     public MagicBlockState(int id, int data) {
         this.id = id;
         this.data = data;
@@ -37,6 +42,10 @@ public class MagicBlockState implements BaseBlockState {
 
     public int getBlockData() {
         return data;
+    }
+
+    public int getCombinedId() {
+        return id + (data << 12);
     }
 
     public int getId() {

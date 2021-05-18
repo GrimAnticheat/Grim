@@ -1,14 +1,15 @@
 package ac.grim.grimac;
 
 import ac.grim.grimac.checks.predictionengine.MovementCheckRunner;
+import ac.grim.grimac.events.bukkit.FlatPlayerBlockBreakPlace;
+import ac.grim.grimac.events.bukkit.MagicPlayerBlockBreakPlace;
 import ac.grim.grimac.events.bukkit.PistonEvent;
-import ac.grim.grimac.events.bukkit.PlayerBlockBreakPlace;
-import ac.grim.grimac.events.bukkit.PlayerLagback;
 import ac.grim.grimac.events.bukkit.PlayerQuitListener;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PlayerFlyingData;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
@@ -67,9 +68,14 @@ public final class GrimAC extends JavaPlugin {
 
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
-        Bukkit.getPluginManager().registerEvents(new PlayerLagback(), this);
         Bukkit.getPluginManager().registerEvents(new MovementCheckRunner(), this);
-        Bukkit.getPluginManager().registerEvents(new PlayerBlockBreakPlace(), this);
+
+        if (XMaterial.isNewVersion()) {
+            Bukkit.getPluginManager().registerEvents(new FlatPlayerBlockBreakPlace(), this);
+        } else {
+            Bukkit.getPluginManager().registerEvents(new MagicPlayerBlockBreakPlace(), this);
+        }
+
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
     }
 

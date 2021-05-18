@@ -1,8 +1,12 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -38,8 +42,15 @@ public class PistonData {
         // We need to do this here otherwise the data will become desync'd as the blocks have already moved
         // Meaning that we will be grabbing bounding boxes of air
 
-        for (org.bukkit.block.Block block : pushedBlocks) {
-            CollisionBox box = CollisionData.getData(block.getType()).getMovementCollisionBox(block.getBlockData(), block.getX(), block.getY(), block.getZ(), ProtocolVersion.v1_16_5).offset(direction.getModX(), direction.getModY(), direction.getModZ());
+        for (Block block : pushedBlocks) {
+            BaseBlockState state;
+            if (XMaterial.isNewVersion()) {
+                state = new FlatBlockState(block.getBlockData());
+            } else {
+                state = new MagicBlockState(block.getType().getId(), block.getData());
+            }
+
+            CollisionBox box = CollisionData.getData(block.getType()).getMovementCollisionBox(state, block.getX(), block.getY(), block.getZ(), ProtocolVersion.v1_16_5).offset(direction.getModX(), direction.getModY(), direction.getModZ());
             box.downCast(boxes);
         }
 

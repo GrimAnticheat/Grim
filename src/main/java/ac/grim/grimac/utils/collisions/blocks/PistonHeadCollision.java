@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
+import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.ComplexCollisionBox;
@@ -14,7 +15,6 @@ public class PistonHeadCollision implements CollisionFactory {
         return p_76125_0_ < p_76125_1_ ? p_76125_1_ : (p_76125_0_ > p_76125_2_ ? p_76125_2_ : p_76125_0_);
     }
 
-    @Override
     public CollisionBox fetch(ProtocolVersion version, byte data, int x, int y, int z) {
         //byte data = block.getState().getData().getData();
 
@@ -41,8 +41,12 @@ public class PistonHeadCollision implements CollisionFactory {
         return null;
     }
 
-    @Override
     public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
         return fetch(version, (byte) 0, x, y, z);
+    }
+
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+        return null;
     }
 }

@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.nmsImplementations;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.Mth;
 import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 public class JumpPower {
@@ -40,9 +39,9 @@ public class JumpPower {
     }
 
     private static float getBlockJumpFactor(GrimPlayer player, Double x, Double y, Double z) {
-        BlockData blockData = player.compensatedWorld.getBukkitBlockDataAt(x, y, z);
+        Material jumpBlock = player.compensatedWorld.getBukkitMaterialAt(x, y, z);
 
-        if (blockData.getMaterial() == honey) return 0.5F;
+        if (jumpBlock == honey) return 0.5F;
 
         return 1.0F;
     }

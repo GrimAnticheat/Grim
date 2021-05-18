@@ -2,6 +2,7 @@ package ac.grim.grimac.checks.predictionengine;
 
 import ac.grim.grimac.checks.predictionengine.movementTick.MovementTicker;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
@@ -234,11 +235,11 @@ public class BoatMovement {
                 if (j2 != 2) {
                     for (int k2 = k; k2 < l; ++k2) {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
-                            Material blockData = player.compensatedWorld.getBukkitMaterialAt(l1, k2, i2);
-                            Material bukkitData = player.compensatedWorld.getBukkitMaterialAt(l1, k2, i2);
+                            BaseBlockState blockData = player.compensatedWorld.getWrappedBlockStateAt(l1, k2, i2);
+                            Material blockMaterial = blockData.getMaterial();
 
-                            if (!(blockData == LILY_PAD) && CollisionData.getData(bukkitData).getMovementCollisionBox(bukkitData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
-                                f += BlockProperties.getMaterialFriction(player, blockData.getMaterial());
+                            if (!(blockMaterial == LILY_PAD) && CollisionData.getData(blockMaterial).getMovementCollisionBox(blockData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
+                                f += BlockProperties.getMaterialFriction(player, blockMaterial);
                                 ++k1;
                             }
                         }

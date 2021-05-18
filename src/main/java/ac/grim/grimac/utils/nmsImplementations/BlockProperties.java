@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Materials;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
@@ -35,7 +34,7 @@ public class BlockProperties {
     public static float getBlockFrictionUnderPlayer(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
-        Material material = player.compensatedWorld.getBukkitBlockDataAt(player.lastX, player.lastY - 0.5000001, player.lastZ).getMaterial();
+        Material material = player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY - 0.5000001, player.lastZ);
 
         return getMaterialFriction(player, material);
     }
@@ -77,13 +76,13 @@ public class BlockProperties {
     }
 
     // Entity line 617
-    public static BlockData getOnBlock(GrimPlayer player, Location getBlockLocation) {
-        BlockData block1 = player.compensatedWorld.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
+    public static Material getOnBlock(GrimPlayer player, Location getBlockLocation) {
+        Material block1 = player.compensatedWorld.getBukkitMaterialAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
 
-        if (Materials.checkFlag(block1.getMaterial(), Materials.AIR)) {
-            BlockData block2 = player.compensatedWorld.getBukkitBlockDataAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
+        if (Materials.checkFlag(block1, Materials.AIR)) {
+            Material block2 = player.compensatedWorld.getBukkitMaterialAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 1.2F), getBlockLocation.getBlockZ());
 
-            if (Materials.checkFlag(block2.getMaterial(), Materials.FENCE) || Materials.checkFlag(block2.getMaterial(), Materials.WALL) || Materials.checkFlag(block2.getMaterial(), Materials.GATE)) {
+            if (Materials.checkFlag(block2, Materials.FENCE) || Materials.checkFlag(block2, Materials.WALL) || Materials.checkFlag(block2, Materials.GATE)) {
                 return block2;
             }
         }
@@ -95,7 +94,7 @@ public class BlockProperties {
     public static float getBlockSpeedFactor(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
-        Material block = player.compensatedWorld.getBukkitBlockDataAt(player.x, player.y, player.z).getMaterial();
+        Material block = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
 
         if (block == soulSand) {
             // Soul speed is a 1.16+ enchantment
@@ -113,7 +112,7 @@ public class BlockProperties {
         }
 
         if (f == 1.0) {
-            Material block2 = player.compensatedWorld.getBukkitBlockDataAt(player.x, player.y - 0.5000001, player.z).getMaterial();
+            Material block2 = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y - 0.5000001, player.z);
             if (block2 == honeyBlock) return 0.4F;
             if (block2 == soulSand) return 0.4F;
             return 1.0f;

@@ -1,7 +1,8 @@
 package ac.grim.grimac.utils.chunkdata.fifteen;
 
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
-import ac.grim.grimac.utils.chunkdata.FlatChunk;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
@@ -14,7 +15,7 @@ import java.util.List;
 @Data
 @Setter(AccessLevel.NONE)
 @AllArgsConstructor
-public class FifteenChunk extends BaseChunk implements FlatChunk {
+public class FifteenChunk implements BaseChunk {
     private static final BlockState AIR = new BlockState(0);
     private static final int AIR_ID = 0;
 
@@ -22,7 +23,7 @@ public class FifteenChunk extends BaseChunk implements FlatChunk {
     private int bitsPerEntry;
 
     private @NonNull List<BlockState> states;
-    private @NonNull FlexibleStorage storage;
+    private @NonNull LegacyFlexibleStorage storage;
 
     public static FifteenChunk read(NetInput in) throws IOException {
         int blockCount = 0;
@@ -40,7 +41,7 @@ public class FifteenChunk extends BaseChunk implements FlatChunk {
             states.add(BlockState.read(in));
         }
 
-        FlexibleStorage storage = new FlexibleStorage(bitsPerEntry, in.readLongs(in.readVarInt()));
+        LegacyFlexibleStorage storage = new LegacyFlexibleStorage(bitsPerEntry, in.readLongs(in.readVarInt()));
         return new FifteenChunk(blockCount, bitsPerEntry, states, storage);
     }
 
@@ -69,12 +70,15 @@ public class FifteenChunk extends BaseChunk implements FlatChunk {
         return y << 8 | z << 4 | x;
     }
 
-    public int get(int x, int y, int z) {
+    public BaseBlockState get(int x, int y, int z) {
+        return new FlatBlockState(getInt(x, y, z));
+    }
+
+    public int getInt(int x, int y, int z) {
         int id = this.storage.get(index(x, y, z));
         return this.bitsPerEntry <= 8 ? (id >= 0 && id < this.states.size() ? this.states.get(id).getId() : AIR_ID) : id;
     }
 
-    @Override
     public void set(int x, int y, int z, int state) {
         set(x, y, z, new BlockState(state));
     }
@@ -93,8 +97,8 @@ public class FifteenChunk extends BaseChunk implements FlatChunk {
                     this.bitsPerEntry = 13;
                 }
 
-                FlexibleStorage oldStorage = this.storage;
-                this.storage = new FlexibleStorage(this.bitsPerEntry, this.storage.getSize());
+                LegacyFlexibleStorage oldStorage = this.storage;
+                this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, this.storage.getSize());
                 for (int index = 0; index < this.storage.getSize(); index++) {
                     this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : oldStates.get(index).getId());
                 }

@@ -233,7 +233,7 @@ public class PlayerBaseTick {
                     d2 = Math.max(d3 - aABB.minY, d2);
 
                     if (!player.specialFlying) {
-                        Vector vec32 = FluidTypeFlowing.getFlow(player, i, j, k, player.compensatedWorld.getBukkitBlockDataAt(i, j, k));
+                        Vector vec32 = FluidTypeFlowing.getFlow(player, i, j, k);
                         if (d2 < 0.4) {
                             vec32 = vec32.multiply(d2);
                         }

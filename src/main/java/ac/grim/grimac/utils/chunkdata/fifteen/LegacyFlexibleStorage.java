@@ -1,22 +1,28 @@
-package ac.grim.grimac.utils.chunkdata.twelve;
+package ac.grim.grimac.utils.chunkdata.fifteen;
 
-public class TwelveFlexibleStorage {
-    private final long[] data;
+import lombok.Data;
+import lombok.NonNull;
+
+import java.util.Arrays;
+
+@Data
+public class LegacyFlexibleStorage {
+    private final @NonNull long[] data;
     private final int bitsPerEntry;
     private final int size;
     private final long maxEntryValue;
 
-    public TwelveFlexibleStorage(int bitsPerEntry, int size) {
+    public LegacyFlexibleStorage(int bitsPerEntry, int size) {
         this(bitsPerEntry, new long[roundToNearest(size * bitsPerEntry, 64) / 64]);
     }
 
-    public TwelveFlexibleStorage(int bitsPerEntry, long[] data) {
+    public LegacyFlexibleStorage(int bitsPerEntry, @NonNull long[] data) {
         if (bitsPerEntry < 4) {
             bitsPerEntry = 4;
         }
 
         this.bitsPerEntry = bitsPerEntry;
-        this.data = data;
+        this.data = Arrays.copyOf(data, data.length);
 
         this.size = this.data.length * 64 / this.bitsPerEntry;
         this.maxEntryValue = (1L << this.bitsPerEntry) - 1;
@@ -35,18 +41,6 @@ public class TwelveFlexibleStorage {
             int remainder = value % roundTo;
             return remainder != 0 ? value + roundTo - remainder : value;
         }
-    }
-
-    public long[] getData() {
-        return this.data;
-    }
-
-    public int getBitsPerEntry() {
-        return this.bitsPerEntry;
-    }
-
-    public int getSize() {
-        return this.size;
     }
 
     public int get(int index) {
@@ -86,3 +80,4 @@ public class TwelveFlexibleStorage {
         }
     }
 }
+

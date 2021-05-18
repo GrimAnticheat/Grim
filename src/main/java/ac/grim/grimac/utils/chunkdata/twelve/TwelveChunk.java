@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.chunkdata.twelve;
 
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
-import ac.grim.grimac.utils.chunkdata.MagicChunk;
+import ac.grim.grimac.utils.chunkdata.fifteen.LegacyFlexibleStorage;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
 
@@ -11,19 +11,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class TwelveChunk extends BaseChunk implements MagicChunk {
+public class TwelveChunk implements BaseChunk {
     private static final MagicBlockState AIR = new MagicBlockState(0, 0);
     private final List<MagicBlockState> states;
     private int bitsPerEntry;
-    private TwelveFlexibleStorage storage;
+    private LegacyFlexibleStorage storage;
 
     public TwelveChunk() {
         this.bitsPerEntry = 4;
 
-        this.states = new ArrayList<MagicBlockState>();
+        this.states = new ArrayList<>();
         this.states.add(AIR);
 
-        this.storage = new TwelveFlexibleStorage(this.bitsPerEntry, 4096);
+        this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, 4096);
     }
 
     public TwelveChunk(NetInput in) throws IOException {
@@ -35,7 +35,7 @@ public class TwelveChunk extends BaseChunk implements MagicChunk {
             this.states.add(readBlockState(in));
         }
 
-        this.storage = new TwelveFlexibleStorage(this.bitsPerEntry, in.readLongs(in.readVarInt()));
+        this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, in.readLongs(in.readVarInt()));
     }
 
     private static int index(int x, int y, int z) {
@@ -43,11 +43,7 @@ public class TwelveChunk extends BaseChunk implements MagicChunk {
     }
 
     private static MagicBlockState rawToState(int raw) {
-        return new MagicBlockState(raw >> 4, raw & 0xF);
-    }
-
-    private static int stateToRaw(MagicBlockState state) {
-        return (state.getId() << 4) | (state.getData() & 0xF);
+        return new MagicBlockState(raw & 0xFF, raw >> 12);
     }
 
     public static MagicBlockState readBlockState(NetInput in) throws IOException {
@@ -64,8 +60,13 @@ public class TwelveChunk extends BaseChunk implements MagicChunk {
         return this.bitsPerEntry <= 8 ? (id >= 0 && id < this.states.size() ? this.states.get(id) : AIR) : rawToState(id);
     }
 
+
+    public void set(int x, int y, int z, int combinedID) {
+        set(x, y, z, new MagicBlockState(combinedID));
+    }
+
     public void set(int x, int y, int z, MagicBlockState state) {
-        int id = this.bitsPerEntry <= 8 ? this.states.indexOf(state) : stateToRaw(state);
+        int id = this.bitsPerEntry <= 8 ? this.states.indexOf(state) : state.getCombinedId();
         if (id == -1) {
             this.states.add(state);
             if (this.states.size() > 1 << this.bitsPerEntry) {
@@ -73,19 +74,19 @@ public class TwelveChunk extends BaseChunk implements MagicChunk {
 
                 List<MagicBlockState> oldStates = this.states;
                 if (this.bitsPerEntry > 8) {
-                    oldStates = new ArrayList<MagicBlockState>(this.states);
+                    oldStates = new ArrayList<>(this.states);
                     this.states.clear();
                     this.bitsPerEntry = 13;
                 }
 
-                TwelveFlexibleStorage oldStorage = this.storage;
-                this.storage = new TwelveFlexibleStorage(this.bitsPerEntry, this.storage.getSize());
+                LegacyFlexibleStorage oldStorage = this.storage;
+                this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, this.storage.getSize());
                 for (int index = 0; index < this.storage.getSize(); index++) {
-                    this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : stateToRaw(oldStates.get(index)));
+                    this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : oldStates.get(index).getCombinedId());
                 }
             }
 
-            id = this.bitsPerEntry <= 8 ? this.states.indexOf(state) : stateToRaw(state);
+            id = this.bitsPerEntry <= 8 ? this.states.indexOf(state) : state.getCombinedId();
         }
 
         this.storage.set(index(x, y, z), id);
@@ -112,7 +113,7 @@ public class TwelveChunk extends BaseChunk implements MagicChunk {
         return Collections.unmodifiableList(this.states);
     }
 
-    public TwelveFlexibleStorage getStorage() {
+    public LegacyFlexibleStorage getStorage() {
         return this.storage;
     }
 }

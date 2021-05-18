@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.collisions.types;
 
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.data.ProtocolVersion;
 
@@ -9,11 +9,11 @@ import java.util.List;
 public class DynamicCollisionBox implements CollisionBox {
 
     private final CollisionFactory box;
-    private BaseBlockState block;
+    private WrappedBlockDataValue block;
     private ProtocolVersion version;
     private int x, y, z;
 
-    public DynamicCollisionBox(CollisionFactory box, BaseBlockState block, ProtocolVersion version) {
+    public DynamicCollisionBox(CollisionFactory box, WrappedBlockDataValue block, ProtocolVersion version) {
         this.box = box;
         this.block = block;
         this.version = version;
@@ -57,7 +57,7 @@ public class DynamicCollisionBox implements CollisionBox {
         return false;
     }
 
-    public void setBlock(BaseBlockState block) {
+    public void setBlock(WrappedBlockDataValue block) {
         this.block = block;
     }
 

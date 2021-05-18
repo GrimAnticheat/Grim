@@ -1,7 +1,8 @@
 package ac.grim.grimac.utils.chunkdata.sixteen;
 
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
-import ac.grim.grimac.utils.chunkdata.FlatChunk;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
 import lombok.NonNull;
@@ -9,7 +10,7 @@ import lombok.NonNull;
 import java.io.IOException;
 
 // Credit to https://github.com/Steveice10/MCProtocolLib/blob/master/src/main/java/com/github/steveice10/mc/protocol/data/game/chunk/Chunk.java
-public class SixteenChunk extends BaseChunk implements FlatChunk {
+public class SixteenChunk implements BaseChunk {
     private static final int CHUNK_SIZE = 4096;
     private static final int MIN_PALETTE_BITS_PER_ENTRY = 4;
     private static final int MAX_PALETTE_BITS_PER_ENTRY = 8;
@@ -26,15 +27,9 @@ public class SixteenChunk extends BaseChunk implements FlatChunk {
     }
 
     public SixteenChunk(int blockCount, @NonNull Palette palette, @NonNull BitStorage storage) {
-        if (palette == null) {
-            throw new NullPointerException("palette is marked non-null but is null");
-        } else if (storage == null) {
-            throw new NullPointerException("storage is marked non-null but is null");
-        } else {
-            this.blockCount = blockCount;
-            this.palette = palette;
-            this.storage = storage;
-        }
+        this.blockCount = blockCount;
+        this.palette = palette;
+        this.storage = storage;
     }
 
     public static SixteenChunk read(NetInput in) throws IOException {
@@ -82,9 +77,9 @@ public class SixteenChunk extends BaseChunk implements FlatChunk {
         return y << 8 | z << 4 | x;
     }
 
-    public int get(int x, int y, int z) {
+    public BaseBlockState get(int x, int y, int z) {
         int id = this.storage.get(index(x, y, z));
-        return this.palette.idToState(id);
+        return new FlatBlockState(this.palette.idToState(id));
     }
 
     public void set(int x, int y, int z, @NonNull int state) {

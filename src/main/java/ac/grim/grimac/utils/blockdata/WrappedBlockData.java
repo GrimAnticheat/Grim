@@ -355,6 +355,32 @@ public enum WrappedBlockData {
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("RAIL")).toArray(Material[]::new)),
 
+    TRAPDOOR(new WrappedTrapdoor() {
+        public void getWrappedData(FlatBlockState data) {
+            TrapDoor trapDoor = (TrapDoor) data;
+            setOpen(trapDoor.isOpen());
+            setDirection(trapDoor.getFacing());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            int magic = data.getBlockData();
+            setOpen((magic & 0x4) == 4);
+
+            // Magic values 2 to 5 are ascending
+            switch (magic & 7) {
+                case 0:
+                    setDirection(BlockFace.SOUTH);
+                case 1:
+                    setDirection(BlockFace.NORTH);
+                case 2:
+                    setDirection(BlockFace.EAST);
+                case 3:
+                    setDirection(BlockFace.WEST);
+            }
+        }
+    }, Arrays.stream(Material.values())
+            .filter(mat -> mat.name().contains("TRAP_DOOR") || mat.name().contains("TRAPDOOR")).toArray(Material[]::new)),
+
     FLAT_ONLY_BLOCK(new WrappedFlatBlock() {
         public void getWrappedData(FlatBlockState data) {
             this.blockData = data.getBlockData();

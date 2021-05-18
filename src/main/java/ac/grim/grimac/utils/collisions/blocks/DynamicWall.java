@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
+import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
@@ -38,7 +39,6 @@ public class DynamicWall implements CollisionFactory {
         return m.name().contains("WALL");
     }
 
-    @Override
     public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
         boolean var3 = wallConnects(version, x, y, z, x, y, z - 1);
         boolean var4 = wallConnects(version, x, y, z, x, y, z + 1);
@@ -77,9 +77,12 @@ public class DynamicWall implements CollisionFactory {
         return new SimpleCollisionBox(var7, 0.0, var9, var8, 1.5, var10);
     }
 
-    @Override
     public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
         return fetch(version, (byte) 0, x, y, z);
     }
 
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+        return null;
+    }
 }

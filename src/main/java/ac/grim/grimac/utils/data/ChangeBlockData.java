@@ -1,17 +1,17 @@
 package ac.grim.grimac.utils.data;
 
-public class WorldChangeBlockData {
+public class ChangeBlockData {
     public int tick;
     public int blockX;
     public int blockY;
     public int blockZ;
-    public int blockID;
+    public int combinedID;
 
-    public WorldChangeBlockData(int tick, int blockX, int blockY, int blockZ, int blockID) {
+    public ChangeBlockData(int tick, int blockX, int blockY, int blockZ, int combinedID) {
         this.tick = tick;
         this.blockX = blockX;
         this.blockY = blockY;
         this.blockZ = blockZ;
-        this.blockID = blockID;
+        this.combinedID = combinedID;
     }
 }

@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+import static ac.grim.grimac.utils.collisions.Materials.matchLegacy;
+
 public enum CollisionData {
     VINE((version, block, x, y, z) -> {
         ComplexCollisionBox boxes = new ComplexCollisionBox();
@@ -752,19 +754,15 @@ public enum CollisionData {
         return xmat.parseMaterial();
     }
 
-    public static Material matchLegacy(String material) {
-        if (ProtocolVersion.getGameVersion().isOrAbove(ProtocolVersion.V1_13)) {
-            return null;
-        }
-        return Material.getMaterial(material.replace("LEGACY_", ""));
-    }
-
     public CollisionBox getMovementCollisionBox(BaseBlockState block, int x, int y, int z, ProtocolVersion version) {
+        WrappedBlockDataValue blockData = WrappedBlockData.getMaterialData(block.getMaterial());
+        blockData.getData(block);
+
         if (!Materials.checkFlag(block.getMaterial(), 1))
             return NoCollisionBox.INSTANCE;
 
         if (this.box != null)
             return this.box.copy().offset(x, y, z);
-        return new DynamicCollisionBox(dynamic, block, version).offset(x, y, z);
+        return new DynamicCollisionBox(dynamic, blockData, version).offset(x, y, z);
     }
 }

@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
+import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.Materials;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
@@ -66,7 +67,6 @@ public class DynamicFence implements CollisionFactory {
         return Materials.checkFlag(material, Materials.FENCE) && material.name().contains("FENCE");
     }
 
-    @Override
     public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
         ComplexCollisionBox box = new ComplexCollisionBox(new SimpleCollisionBox(min, 0, min, max, 1.5, max));
         boolean east = fenceConnects(version, x, y, z, x + 1, y, z);
@@ -80,8 +80,12 @@ public class DynamicFence implements CollisionFactory {
         return box;
     }
 
-    @Override
     public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
         return fetch(version, (byte) 0, x, y, z);
+    }
+
+    @Override
+    public CollisionBox fetch(ProtocolVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+        return null;
     }
 }

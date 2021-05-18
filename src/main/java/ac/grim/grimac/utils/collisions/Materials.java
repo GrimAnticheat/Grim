@@ -1,7 +1,13 @@
 package ac.grim.grimac.utils.collisions;
 
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.blockstate.MagicBlockState;
+import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Waterlogged;
 
 import java.util.Arrays;
 
@@ -20,6 +26,8 @@ public class Materials {
     public static final int BED = 0b00000000000000000100000000000;
     public static final int AIR = 0b00000000000000001000000000000;
     public static final int TRAPDOOR = 0b00000000000000010000000000000;
+    public static final int WATER_SOURCE = 0b00000000000000100000000000000;
+    public static final int LEAVES = 0b00000000000001000000000000000;
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
@@ -40,22 +48,51 @@ public class Materials {
         }
 
         // fix some types where isSolid() returns the wrong value
-        markAsSolid(XMaterial.SLIME_BLOCK);
-        markAsSolid(XMaterial.COMPARATOR);
-        markAsSolid(XMaterial.SNOW);
-        markAsSolid(XMaterial.ANVIL);
-        markAsSolid(XMaterial.LILY_PAD);
-        markAsSolid(XMaterial.FLOWER_POT);
-        markAsSolid(XMaterial.SEA_PICKLE);
-        markAsSolid(XMaterial.TURTLE_EGG);
+        markAs(XMaterial.SLIME_BLOCK, SOLID);
+        markAs(XMaterial.COMPARATOR, SOLID);
+        markAs(XMaterial.SNOW, SOLID);
+        markAs(XMaterial.ANVIL, SOLID);
+        markAs(XMaterial.LILY_PAD, SOLID);
+        markAs(XMaterial.FLOWER_POT, SOLID);
+        markAs(XMaterial.SEA_PICKLE, SOLID);
+        markAs(XMaterial.TURTLE_EGG, SOLID);
+
+        markAs(XMaterial.WATER, WATER);
+
+        markAs(XMaterial.SEAGRASS, WATER);
+        markAs(XMaterial.SEAGRASS, WATER_SOURCE);
+
+        markAs(XMaterial.TALL_SEAGRASS, WATER);
+        markAs(XMaterial.TALL_SEAGRASS, WATER_SOURCE);
+
+        markAs(XMaterial.KELP, WATER);
+        markAs(XMaterial.KELP, WATER_SOURCE);
+
+        markAs(XMaterial.KELP_PLANT, WATER);
+        markAs(XMaterial.KELP_PLANT, WATER_SOURCE);
+
+        markAs(XMaterial.BUBBLE_COLUMN, WATER);
+        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE);
+
+        markAs(XMaterial.LAVA, LAVA);
+
+        Material legacyStationaryWater = matchLegacy("STATIONARY_WATER");
+        if (legacyStationaryWater != null) {
+            MATERIAL_FLAGS[legacyStationaryWater.ordinal()] = WATER;
+        }
+
+        Material legacyStationaryLava = matchLegacy("STATIONARY_LAVA");
+        if (legacyStationaryLava != null) {
+            MATERIAL_FLAGS[legacyStationaryLava.ordinal()] = LAVA;
+        }
 
         // Update for 1.13
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("POTTED")).forEach(Materials::markAsSolid);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("POTTED")).forEach(material -> markAs(material, SOLID));
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).forEach(Materials::markAsNotSolid);
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("CORAL") && !xMaterial.name().contains("BLOCK")).forEach(Materials::markAsNotSolid);
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_SIGN")).forEach(Materials::markAsNotSolid);
         Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_BANNER")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("HEAD") || xMaterial.name().contains("SKULL")).forEach(Materials::markAsSolid);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("HEAD") || xMaterial.name().contains("SKULL")).forEach(material -> markAs(material, SOLID));
 
         for (Material mat : Material.values()) {
             if (!mat.isBlock()) continue;
@@ -68,12 +105,16 @@ public class Materials {
                 MATERIAL_FLAGS[mat.ordinal()] |= WALL;
             if (mat.name().contains("BED") && !mat.name().contains("ROCK")) MATERIAL_FLAGS[mat.ordinal()] |= BED;
             if (mat.name().contains("ICE")) MATERIAL_FLAGS[mat.ordinal()] |= ICE;
-            if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] = SOLID;
-            if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] = GATE;
-            if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] = AIR;
+            if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
+            if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] |= GATE;
+            if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= AIR;
             if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR"))
-                MATERIAL_FLAGS[mat.ordinal()] = TRAPDOOR;
+                MATERIAL_FLAGS[mat.ordinal()] |= TRAPDOOR;
+            if (mat.name().contains("LEAVES")) MATERIAL_FLAGS[mat.ordinal()] |= LEAVES;
+
         }
+
+
     }
 
     private static void markAsNotSolid(XMaterial material) {
@@ -83,10 +124,10 @@ public class Materials {
         }
     }
 
-    private static void markAsSolid(XMaterial material) {
+    private static void markAs(XMaterial material, int flag) {
         // Set the flag only if the version has the material
         if (material.parseMaterial() != null) {
-            MATERIAL_FLAGS[material.parseMaterial().ordinal()] = SOLID;
+            MATERIAL_FLAGS[material.parseMaterial().ordinal()] |= SOLID;
         }
     }
 
@@ -106,4 +147,23 @@ public class Materials {
                 || nameLower.contains("trident");
     }
 
+    public static boolean isWater(BaseBlockState state) {
+        return checkFlag(state.getMaterial(), WATER) || isWaterlogged(state);
+    }
+
+    public static boolean isWaterlogged(BaseBlockState state) {
+        if (state instanceof MagicBlockState) return false;
+
+        FlatBlockState flat = (FlatBlockState) state;
+        BlockData blockData = flat.getBlockData();
+
+        return blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged();
+    }
+
+    public static Material matchLegacy(String material) {
+        if (ProtocolVersion.getGameVersion().isOrAbove(ProtocolVersion.V1_13)) {
+            return null;
+        }
+        return Material.getMaterial(material.replace("LEGACY_", ""));
+    }
 }
