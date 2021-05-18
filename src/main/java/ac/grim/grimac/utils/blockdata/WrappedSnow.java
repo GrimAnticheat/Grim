@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.blockdata;
 
 public class WrappedSnow extends WrappedBlockDataValue {
-    int layers;
+    int layers = 0;
 
     public int getLayers() {
         return layers;

@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.blockdata;
 
 public class WrappedButton extends WrappedDirectional {
-    boolean isPowered;
+    boolean isPowered = false;
 
     public boolean isPowered() {
         return isPowered;

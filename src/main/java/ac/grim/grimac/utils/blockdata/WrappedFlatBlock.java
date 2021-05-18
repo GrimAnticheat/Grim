@@ -1,9 +1,11 @@
 package ac.grim.grimac.utils.blockdata;
 
+import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 
 public class WrappedFlatBlock extends WrappedBlockDataValue {
-    BlockData blockData;
+    private static final BlockData AIR = Material.AIR.createBlockData();
+    BlockData blockData = AIR;
 
     public BlockData getBlockData() {
         return blockData;

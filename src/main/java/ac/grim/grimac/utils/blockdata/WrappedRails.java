@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.blockdata;
 
 public class WrappedRails extends WrappedBlockDataValue {
-    boolean isAscending;
+    boolean isAscending = false;
 
     public boolean isAscending() {
         return isAscending;
