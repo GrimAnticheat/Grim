@@ -273,12 +273,14 @@ public class CompensatedWorld {
                 return 1;
             }
 
-            Levelled lava = (Levelled) bukkitBlock;
+            BlockData thisBlockData = ((FlatBlockState) bukkitBlock).getBlockData();
 
-            // Falling lava has a level of 8
-            if (lava.getLevel() >= 8) return 8 / 9f;
+            if (thisBlockData instanceof Levelled) {
+                // Falling lava has a level of 8
+                if (((Levelled) thisBlockData).getLevel() >= 8) return 8 / 9f;
 
-            return (8 - ((Levelled) bukkitBlock).getLevel()) / 9f;
+                return (8 - ((Levelled) bukkitBlock).getLevel()) / 9f;
+            }
 
         } else {
             MagicBlockState magicBlockState = (MagicBlockState) bukkitBlock;
