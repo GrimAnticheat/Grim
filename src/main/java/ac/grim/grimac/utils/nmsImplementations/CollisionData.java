@@ -190,8 +190,11 @@ public enum CollisionData {
     }, XMaterial.HOPPER.parseMaterial()),
 
     CAKE((version, data, x, y, z) -> {
+        double height = 0.5;
+        if (version.isOlderThan(ClientVersion.v_1_8))
+            height = 0.4375;
         double eatenPosition = (1 + ((WrappedCake) data).getSlicesEaten() * 2) / 16D;
-        return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, 0.5, 1 - 0.0625);
+        return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, height, 1 - 0.0625);
     }, XMaterial.CAKE.parseMaterial()),
 
 
