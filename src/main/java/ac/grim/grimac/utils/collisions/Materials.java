@@ -31,6 +31,13 @@ public class Materials {
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).forEach(Materials::markAsNotSolid);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_SIGN")).forEach(Materials::markAsNotSolid);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_BANNER")).forEach(Materials::markAsNotSolid);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("CORAL") && !xMaterial.name().contains("BLOCK")).forEach(Materials::markAsNotSolid);
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("POTTED")).forEach(material -> markAs(material, SOLID));
+        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("HEAD") || xMaterial.name().contains("SKULL")).forEach(material -> markAs(material, SOLID));
+
         for (int i = 0; i < MATERIAL_FLAGS.length; i++) {
             Material material = Material.values()[i];
 
@@ -50,6 +57,7 @@ public class Materials {
         // fix some types where isSolid() returns the wrong value
         markAs(XMaterial.SLIME_BLOCK, SOLID);
         markAs(XMaterial.COMPARATOR, SOLID);
+        markAs(XMaterial.REPEATER, SOLID);
         markAs(XMaterial.SNOW, SOLID);
         markAs(XMaterial.ANVIL, SOLID);
         markAs(XMaterial.LILY_PAD, SOLID);
@@ -86,14 +94,6 @@ public class Materials {
             MATERIAL_FLAGS[legacyStationaryLava.ordinal()] = LAVA;
         }
 
-        // Update for 1.13
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("POTTED")).forEach(material -> markAs(material, SOLID));
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("CORAL") && !xMaterial.name().contains("BLOCK")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_SIGN")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_BANNER")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("HEAD") || xMaterial.name().contains("SKULL")).forEach(material -> markAs(material, SOLID));
-
         markAs(XMaterial.LADDER, CLIMBABLE);
         markAs(XMaterial.VINE, CLIMBABLE);
         markAs(XMaterial.SCAFFOLDING, CLIMBABLE);
@@ -119,6 +119,7 @@ public class Materials {
             if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR"))
                 MATERIAL_FLAGS[mat.ordinal()] |= TRAPDOOR;
             if (mat.name().contains("LEAVES")) MATERIAL_FLAGS[mat.ordinal()] |= LEAVES;
+            if (mat.name().contains("DIODE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
         }
     }
 

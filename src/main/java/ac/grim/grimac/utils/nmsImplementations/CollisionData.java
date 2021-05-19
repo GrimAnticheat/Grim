@@ -771,7 +771,7 @@ public enum CollisionData {
         WrappedBlockDataValue blockData = WrappedBlockData.getMaterialData(block.getMaterial());
         blockData.getData(block);
 
-        if (!Materials.checkFlag(block.getMaterial(), 1))
+        if (!Materials.checkFlag(block.getMaterial(), Materials.SOLID))
             return NoCollisionBox.INSTANCE;
 
         if (this.box != null)
