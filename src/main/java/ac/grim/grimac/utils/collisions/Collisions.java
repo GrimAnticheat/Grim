@@ -441,9 +441,9 @@ public class Collisions {
         List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
 
         // Not the fasted way to iterate but everything is broken anyways
-        for (int x = (int) Math.floor(wantedBB.minX); x <= Math.ceil(wantedBB.maxX); x++) {
-            for (int y = (int) Math.floor(wantedBB.minY); y <= Math.ceil(wantedBB.maxY); y++) {
-                for (int z = (int) Math.floor(wantedBB.minZ); z <= Math.ceil(wantedBB.maxZ); z++) {
+        for (int x = (int) Math.floor(wantedBB.minX) - 1; x <= Math.ceil(wantedBB.maxX); x++) {
+            for (int y = (int) Math.floor(wantedBB.minY) - 1; y <= Math.ceil(wantedBB.maxY); y++) {
+                for (int z = (int) Math.floor(wantedBB.minZ) - 1; z <= Math.ceil(wantedBB.maxZ); z++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
                     CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, ProtocolVersion.v1_16_5).downCast(listOfBlocks);
                 }
