@@ -768,11 +768,11 @@ public enum CollisionData {
     }
 
     public CollisionBox getMovementCollisionBox(BaseBlockState block, int x, int y, int z, ProtocolVersion version) {
-        WrappedBlockDataValue blockData = WrappedBlockData.getMaterialData(block.getMaterial());
-        blockData.getData(block);
-
         if (!Materials.checkFlag(block.getMaterial(), Materials.SOLID))
             return NoCollisionBox.INSTANCE;
+
+        WrappedBlockDataValue blockData = WrappedBlockData.getMaterialData(block.getMaterial());
+        blockData.getData(block);
 
         if (this.box != null)
             return this.box.copy().offset(x, y, z);

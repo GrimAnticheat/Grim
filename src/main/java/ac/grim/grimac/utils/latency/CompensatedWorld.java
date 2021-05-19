@@ -266,6 +266,8 @@ public class CompensatedWorld {
     public double getLavaFluidLevelAt(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
 
+        if (!Materials.checkFlag(bukkitBlock.getMaterial(), Materials.LAVA)) return 0;
+
         if (bukkitBlock instanceof FlatBlockState) {
             BaseBlockState aboveData = getWrappedBlockStateAt(x, y + 1, z);
 
@@ -301,32 +303,34 @@ public class CompensatedWorld {
 
     public double getWaterFluidLevelAt(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
+        boolean isWater = Materials.isWater(bukkitBlock);
 
-        // If water has water above it, it's block height is 1
-        if (Materials.isWater(bukkitBlock)) {
-            BaseBlockState aboveData = getWrappedBlockStateAt(x, y + 1, z);
+        if (!isWater) return 0;
 
-            if (Materials.isWater(aboveData)) {
-                return 1;
-            }
+        BaseBlockState aboveData = getWrappedBlockStateAt(x, y + 1, z);
+
+        // If water has water above it, it's block height is 1, even if it's waterlogged
+        if (Materials.isWater(aboveData)) {
+            return 1;
         }
 
         if (bukkitBlock instanceof FlatBlockState) {
             FlatBlockState flatBlockState = (FlatBlockState) bukkitBlock;
 
-            if (flatBlockState.getBlockData() instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
-                int waterLevel = ((Levelled) flatBlockState.getBlockData()).getLevel();
-                BaseBlockState aboveData = getWrappedBlockStateAt(x, y + 1, z);
+            if (flatBlockState.getBlockData() instanceof Levelled) {
+                if (bukkitBlock.getMaterial() == WATER) {
+                    int waterLevel = ((Levelled) flatBlockState.getBlockData()).getLevel();
 
-                if (Materials.isWater(aboveData)) {
-                    return 1;
+                    // Falling water has a level of 8
+                    if (waterLevel >= 8) return 8 / 9f;
+
+                    return (8 - waterLevel) / 9f;
                 }
-
-                // Falling water has a level of 8
-                if (waterLevel >= 8) return 8 / 9f;
-
-                return (8 - waterLevel) / 9f;
             }
+
+            // The block is water, isn't water material directly, and doesn't have block above, so it is waterlogged
+            // or another source-like block such as kelp.
+            return 8 / 9F;
         } else {
             MagicBlockState magicBlockState = (MagicBlockState) bukkitBlock;
 
