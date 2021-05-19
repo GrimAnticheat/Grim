@@ -6,7 +6,7 @@ import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.Materials;
 import ac.grim.grimac.utils.collisions.blocks.*;
 import ac.grim.grimac.utils.collisions.types.*;
-import ac.grim.grimac.utils.data.ProtocolVersion;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
@@ -54,7 +54,7 @@ public enum CollisionData {
     BREWINGSTAND((version, block, x, y, z) -> {
         int base = 0;
 
-        if (version.isOrAbove(ProtocolVersion.V1_13))
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_13))
             base = 1;
 
         return new ComplexCollisionBox(
@@ -101,7 +101,7 @@ public enum CollisionData {
         // https://www.mcpk.wiki/wiki/Version_Differences
         // The base is 0.75×0.75, and its floor is 0.25b high.
         // The top is 1×0.625, and its ceiling is 0.375b low.
-        if (version.isOrAbove(ProtocolVersion.V1_13)) {
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_13)) {
             ComplexCollisionBox complexAnvil = new ComplexCollisionBox();
             // Base of the anvil
             complexAnvil.add(new HexCollisionBox(2, 0, 2, 14, 4, 14));
@@ -178,7 +178,7 @@ public enum CollisionData {
     HOPPER((version, data, x, y, z) -> {
         double height = 0.125 * 5;
 
-        if (version.isOrAbove(ProtocolVersion.V1_13))
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_13))
             height = 0.6875;
 
         return new ComplexCollisionBox(
@@ -201,7 +201,7 @@ public enum CollisionData {
 
         // From 1.9 - 1.10, the large cocoa block is the same as the medium one
         // https://bugs.mojang.com/browse/MC-94274
-        if (version.isOrAbove(ProtocolVersion.V1_9_1) && version.isBelow(ProtocolVersion.V1_11))
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_9_1) && version.isOlderThan(ClientVersion.v_1_11))
             age = Math.min(age, 1);
 
         switch (beans.getDirection()) {
@@ -458,7 +458,7 @@ public enum CollisionData {
     SNOW((version, data, x, y, z) -> {
         WrappedSnow snow = (WrappedSnow) data;
 
-        if (snow.getLayers() == 0)
+        if (snow.getLayers() == 0 && version.isNewerThanOrEquals(ClientVersion.v_1_13))
             return NoCollisionBox.INSTANCE;
 
         return new SimpleCollisionBox(0, 0, 0, 1, snow.getLayers() * 0.125, 1);
@@ -487,7 +487,7 @@ public enum CollisionData {
         ComplexCollisionBox complexCollisionBox = new ComplexCollisionBox(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D));
 
         // 1.12 clients do not differentiate between the eye being in and not for collisions
-        if (version.isOrAbove(ProtocolVersion.V1_13) && frame.hasEye()) {
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_13) && frame.hasEye()) {
             complexCollisionBox.add(new HexCollisionBox(4.0D, 13.0D, 4.0D, 12.0D, 16.0D, 12.0D));
         }
 
@@ -504,7 +504,7 @@ public enum CollisionData {
 
     FARMLAND((version, data, x, y, z) -> {
         // This will be wrong if a player uses 1.10.0 or 1.10.1, not sure if I can fix this as protocol version is same
-        if (version.isOrAbove(ProtocolVersion.V1_10))
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_10))
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
 
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
@@ -512,7 +512,7 @@ public enum CollisionData {
     }, XMaterial.FARMLAND.parseMaterial()),
 
     LILYPAD((version, data, x, y, z) -> {
-        if (version.isBelow(ProtocolVersion.V1_9))
+        if (version.isOlderThan(ClientVersion.v_1_9))
             return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f);
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
     }, XMaterial.LILY_PAD.parseMaterial()),
@@ -555,7 +555,7 @@ public enum CollisionData {
     CAULDRON((version, data, x, y, z) -> {
         double height = 0.25;
 
-        if (version.isOrAbove(ProtocolVersion.V1_13))
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_13))
             height = 0.3125;
 
         return new ComplexCollisionBox(
@@ -767,7 +767,7 @@ public enum CollisionData {
         return xmat.parseMaterial();
     }
 
-    public CollisionBox getMovementCollisionBox(BaseBlockState block, int x, int y, int z, ProtocolVersion version) {
+    public CollisionBox getMovementCollisionBox(BaseBlockState block, int x, int y, int z, ClientVersion version) {
         if (!Materials.checkFlag(block.getMaterial(), Materials.SOLID))
             return NoCollisionBox.INSTANCE;
 

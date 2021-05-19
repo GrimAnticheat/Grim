@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.WrappedSnow;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.Materials;
-import ac.grim.grimac.utils.data.ProtocolVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
@@ -140,7 +139,7 @@ public class FluidTypeFlowing {
                 return snow.getLayers() == 8;
             }
 
-            return !Materials.checkFlag(blockMaterial, Materials.LEAVES) && (blockMaterial == SOUL_SAND || blockMaterial != ICE && CollisionData.getData(blockMaterial).getMovementCollisionBox(blockState, 0, 0, 0, ProtocolVersion.v1_16_4).isFullBlock());
+            return !Materials.checkFlag(blockMaterial, Materials.LEAVES) && (blockMaterial == SOUL_SAND || blockMaterial != ICE && CollisionData.getData(blockMaterial).getMovementCollisionBox(blockState, 0, 0, 0, player.getClientVersion()).isFullBlock());
         }
     }
 

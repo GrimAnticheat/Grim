@@ -6,7 +6,7 @@ import ac.grim.grimac.utils.collisions.Materials;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ProtocolVersion;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 
@@ -34,7 +34,7 @@ public class DynamicFence implements CollisionFactory {
         }
     }
 
-    private static boolean fenceConnects(ProtocolVersion v, int currX, int currY, int currZ, int x, int y, int z) {
+    private static boolean fenceConnects(ClientVersion v, int currX, int currY, int currZ, int x, int y, int z) {
         // TODO: Fix this method to use block cache
         return false;
         /*IBlockData blockDir = ChunkCache.getBlockDataAt(x, y, z);
@@ -67,7 +67,7 @@ public class DynamicFence implements CollisionFactory {
         return Materials.checkFlag(material, Materials.FENCE) && material.name().contains("FENCE");
     }
 
-    public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, byte b, int x, int y, int z) {
         ComplexCollisionBox box = new ComplexCollisionBox(new SimpleCollisionBox(min, 0, min, max, 1.5, max));
         boolean east = fenceConnects(version, x, y, z, x + 1, y, z);
         boolean north = fenceConnects(version, x, y, z, x, y, z - 1);
@@ -80,12 +80,12 @@ public class DynamicFence implements CollisionFactory {
         return box;
     }
 
-    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, BlockData block, int x, int y, int z) {
         return fetch(version, (byte) 0, x, y, z);
     }
 
     @Override
-    public CollisionBox fetch(ProtocolVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         return null;
     }
 }

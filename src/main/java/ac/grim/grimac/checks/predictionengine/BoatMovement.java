@@ -5,7 +5,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.Collisions;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
@@ -238,7 +237,7 @@ public class BoatMovement {
                             BaseBlockState blockData = player.compensatedWorld.getWrappedBlockStateAt(l1, k2, i2);
                             Material blockMaterial = blockData.getMaterial();
 
-                            if (!(blockMaterial == LILY_PAD) && CollisionData.getData(blockMaterial).getMovementCollisionBox(blockData, l1, k2, i2, ProtocolVersion.v1_16_5).isIntersected(axisalignedbb1)) {
+                            if (!(blockMaterial == LILY_PAD) && CollisionData.getData(blockMaterial).getMovementCollisionBox(blockData, l1, k2, i2, player.getClientVersion()).isIntersected(axisalignedbb1)) {
                                 f += BlockProperties.getMaterialFriction(player, blockMaterial);
                                 ++k1;
                             }

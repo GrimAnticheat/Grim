@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -41,7 +42,6 @@ public class PistonData {
         // We are doing some work on the main thread, be careful
         // We need to do this here otherwise the data will become desync'd as the blocks have already moved
         // Meaning that we will be grabbing bounding boxes of air
-
         for (Block block : pushedBlocks) {
             BaseBlockState state;
             if (XMaterial.isNewVersion()) {
@@ -50,7 +50,7 @@ public class PistonData {
                 state = new MagicBlockState(block.getType().getId(), block.getData());
             }
 
-            CollisionBox box = CollisionData.getData(block.getType()).getMovementCollisionBox(state, block.getX(), block.getY(), block.getZ(), ProtocolVersion.v1_16_5).offset(direction.getModX(), direction.getModY(), direction.getModZ());
+            CollisionBox box = CollisionData.getData(block.getType()).getMovementCollisionBox(state, block.getX(), block.getY(), block.getZ(), ClientVersion.v_1_16_4).offset(direction.getModX(), direction.getModY(), direction.getModZ());
             box.downCast(boxes);
         }
 

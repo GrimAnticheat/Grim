@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.blockdata.WrappedTrapdoor;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
@@ -445,7 +444,7 @@ public class Collisions {
             for (int y = (int) Math.floor(wantedBB.minY) - 1; y <= Math.ceil(wantedBB.maxY); y++) {
                 for (int z = (int) Math.floor(wantedBB.minZ) - 1; z <= Math.ceil(wantedBB.maxZ); z++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, ProtocolVersion.v1_16_5).downCast(listOfBlocks);
+                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, player.getClientVersion()).downCast(listOfBlocks);
                 }
             }
         }
@@ -471,7 +470,7 @@ public class Collisions {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
 
                     if (!data.getMaterial().isOccluding()) continue;
-                    CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, ProtocolVersion.v1_16_5);
+                    CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, player.getClientVersion());
                     if (!box.isFullBlock()) continue;
 
                     box.downCast(listOfBlocks);

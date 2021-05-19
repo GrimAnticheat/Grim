@@ -4,10 +4,10 @@ import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ProtocolVersion;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 
 public class DoorHandler implements CollisionFactory {
-    public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, byte b, int x, int y, int z) {
         /*Door state = (Door) b.getState().getData();
         byte data = state.getData();
         if ((data & 0b01000) != 0) {
@@ -83,7 +83,7 @@ public class DoorHandler implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(ProtocolVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         return null;
     }
 }

@@ -4,7 +4,7 @@ import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ProtocolVersion;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -19,7 +19,7 @@ public class DynamicPane implements CollisionFactory {
     private static final double min = .5 - width;
     private static final double max = .5 + width;
 
-    private static boolean fenceConnects(ProtocolVersion v, Block fenceBlock, BlockFace direction) {
+    private static boolean fenceConnects(ClientVersion v, Block fenceBlock, BlockFace direction) {
         Block targetBlock = fenceBlock.getRelative(direction, 1);
         BlockState sFence = fenceBlock.getState();
         BlockState sTarget = targetBlock.getState();
@@ -30,7 +30,7 @@ public class DynamicPane implements CollisionFactory {
             return false;
 
         if (target.name().contains("STAIRS")) {
-            if (v.isBelow(ProtocolVersion.V1_12)) return false;
+            if (v.isOlderThan(ClientVersion.v_1_12)) return false;
             Stairs stairs = (Stairs) sTarget.getData();
             return stairs.getFacing() == direction;
         } else return isPane(target) || (target.isSolid() && !target.isTransparent());
@@ -41,7 +41,7 @@ public class DynamicPane implements CollisionFactory {
         return id == 101 || id == 102 || id == 160;
     }
 
-    public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, byte b, int x, int y, int z) {
 
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
         /*ComplexCollisionBox box = new ComplexCollisionBox(new SimpleCollisionBox(min, 0, min, max, 1, max));
@@ -64,12 +64,12 @@ public class DynamicPane implements CollisionFactory {
         return box;*/
     }
 
-    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, BlockData block, int x, int y, int z) {
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
     }
 
     @Override
-    public CollisionBox fetch(ProtocolVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         return null;
     }
 }

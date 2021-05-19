@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
@@ -317,11 +318,13 @@ public class GrimPlayer {
     public boolean isSetVelocityToZeroOnRelativeTeleport() {
         // 1.7 clients set their velocity to 0 on relative teleport
         // 1.8 clients don't, but they do on ViaRewind (?)
+        // This is due to 1.7/1.8 clients having no teleport confirm packet
+        // Meaning that ViaVersion converts the packets to non-relative so that it can forge a confirm packet
         // 1.9+ clients don't seem to set their velocity to 0 on relative teleport
-        return getClientVersion() < 6 || XMaterial.getVersion() > 8 && getClientVersion() == 47;
+        return getClientVersion().isOlderThan(ClientVersion.v_1_8) || XMaterial.getVersion() > 8 && getClientVersion() == ClientVersion.v_1_8;
     }
 
-    public short getClientVersion() {
-        return PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer).getProtocolVersion();
+    public ClientVersion getClientVersion() {
+        return PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
     }
 }

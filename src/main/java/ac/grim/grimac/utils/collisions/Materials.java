@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.collisions;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
-import ac.grim.grimac.utils.data.ProtocolVersion;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -167,7 +166,7 @@ public class Materials {
     }
 
     public static Material matchLegacy(String material) {
-        if (ProtocolVersion.getGameVersion().isOrAbove(ProtocolVersion.V1_13)) {
+        if (XMaterial.isNewVersion()) {
             return null;
         }
         return Material.getMaterial(material.replace("LEGACY_", ""));

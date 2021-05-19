@@ -4,7 +4,7 @@ import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ProtocolVersion;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 
@@ -18,7 +18,7 @@ public class DynamicWall implements CollisionFactory {
     private static final double min = .5 - width;
     private static final double max = .5 + width;
 
-    private static boolean wallConnects(ProtocolVersion v, int currX, int currY, int currZ, int x, int y, int z) {
+    private static boolean wallConnects(ClientVersion v, int currX, int currY, int currZ, int x, int y, int z) {
 
         return false;
         /*Block targetBlock = fenceBlock.getRelative(direction, 1);
@@ -39,7 +39,7 @@ public class DynamicWall implements CollisionFactory {
         return m.name().contains("WALL");
     }
 
-    public CollisionBox fetch(ProtocolVersion version, byte b, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, byte b, int x, int y, int z) {
         boolean var3 = wallConnects(version, x, y, z, x, y, z - 1);
         boolean var4 = wallConnects(version, x, y, z, x, y, z + 1);
         boolean var5 = wallConnects(version, x, y, z, x - 1, y, z);
@@ -77,12 +77,12 @@ public class DynamicWall implements CollisionFactory {
         return new SimpleCollisionBox(var7, 0.0, var9, var8, 1.5, var10);
     }
 
-    public CollisionBox fetch(ProtocolVersion version, BlockData block, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, BlockData block, int x, int y, int z) {
         return fetch(version, (byte) 0, x, y, z);
     }
 
     @Override
-    public CollisionBox fetch(ProtocolVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+    public CollisionBox fetch(ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         return null;
     }
 }
