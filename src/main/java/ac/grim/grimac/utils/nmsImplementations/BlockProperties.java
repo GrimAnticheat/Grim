@@ -43,7 +43,7 @@ public class BlockProperties {
         float friction = 0.6f;
 
         if (material == ice) friction = 0.98f;
-        if (material == slime) friction = 0.8f;
+        if (material == slime && player.clientVersion >= 8) friction = 0.8f;
         if (material == packedIce) friction = 0.98f;
         if (material == frostedIce) friction = 0.98f;
         if (material == blueIce) {
