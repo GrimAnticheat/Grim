@@ -594,6 +594,16 @@ public enum CollisionData {
 
     }, XMaterial.SEA_PICKLE.parseMaterial()),
 
+    TURTLEEGG((version, data, x, y, z) -> {
+        TurtleEgg egg = (TurtleEgg) ((WrappedFlatBlock) data).getBlockData();
+
+        if (egg.getEggs() == 1) {
+            return new HexCollisionBox(3.0D, 0.0D, 3.0D, 12.0D, 7.0D, 12.0D);
+        }
+
+        return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 7.0D, 15.0D);
+    }, XMaterial.TURTLE_EGG.parseMaterial()),
+
 
     POT(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("POTTED") || mat.name().contains("FLOWER_POT")).toArray(Material[]::new)),

@@ -413,7 +413,8 @@ public enum WrappedBlockData {
             this.blockData = data.getBlockData();
         }
     }, XMaterial.BELL.parseMaterial(), XMaterial.LANTERN.parseMaterial(), XMaterial.GRINDSTONE.parseMaterial(),
-            XMaterial.CHAIN.parseMaterial(), XMaterial.SWEET_BERRIES.parseMaterial(), XMaterial.SEA_PICKLE.parseMaterial()),
+            XMaterial.CHAIN.parseMaterial(), XMaterial.SWEET_BERRIES.parseMaterial(), XMaterial.SEA_PICKLE.parseMaterial(),
+            XMaterial.TURTLE_EGG.parseMaterial()),
 
     NO_DATA(new WrappedBlockDataValue(), XMaterial.AIR.parseMaterial());
 
