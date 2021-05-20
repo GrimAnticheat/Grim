@@ -237,7 +237,7 @@ public class BoatMovement {
                             BaseBlockState blockData = player.compensatedWorld.getWrappedBlockStateAt(l1, k2, i2);
                             Material blockMaterial = blockData.getMaterial();
 
-                            if (!(blockMaterial == LILY_PAD) && CollisionData.getData(blockMaterial).getMovementCollisionBox(blockData, l1, k2, i2, player.getClientVersion()).isIntersected(axisalignedbb1)) {
+                            if (!(blockMaterial == LILY_PAD) && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockData, l1, k2, i2).isIntersected(axisalignedbb1)) {
                                 f += BlockProperties.getMaterialFriction(player, blockMaterial);
                                 ++k1;
                             }

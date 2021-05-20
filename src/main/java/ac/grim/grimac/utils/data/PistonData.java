@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
@@ -7,7 +8,6 @@ import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.CollisionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -32,7 +32,7 @@ public class PistonData {
     // The actual blocks pushed by the piston, plus the piston head itself
     public List<SimpleCollisionBox> boxes = new ArrayList<>();
 
-    public PistonData(BlockFace direction, Block piston, List<Block> pushedBlocks, boolean isPush, int lastTransactionSent) {
+    public PistonData(GrimPlayer player, BlockFace direction, Block piston, List<Block> pushedBlocks, boolean isPush, int lastTransactionSent) {
         this.direction = direction;
         this.piston = piston;
         this.pushedBlocks = pushedBlocks;
@@ -50,7 +50,7 @@ public class PistonData {
                 state = new MagicBlockState(block.getType().getId(), block.getData());
             }
 
-            CollisionBox box = CollisionData.getData(block.getType()).getMovementCollisionBox(state, block.getX(), block.getY(), block.getZ(), ClientVersion.v_1_16_4).offset(direction.getModX(), direction.getModY(), direction.getModZ());
+            CollisionBox box = CollisionData.getData(block.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, block.getX(), block.getY(), block.getZ()).offset(direction.getModX(), direction.getModY(), direction.getModZ());
             box.downCast(boxes);
         }
 

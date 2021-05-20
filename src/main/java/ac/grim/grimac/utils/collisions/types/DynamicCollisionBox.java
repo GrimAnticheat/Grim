@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.collisions.types;
 
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -8,30 +9,32 @@ import java.util.List;
 
 public class DynamicCollisionBox implements CollisionBox {
 
+    private final GrimPlayer player;
+    private ClientVersion version;
     private final CollisionFactory box;
     private WrappedBlockDataValue block;
-    private ClientVersion version;
     private int x, y, z;
 
-    public DynamicCollisionBox(CollisionFactory box, WrappedBlockDataValue block, ClientVersion version) {
+    public DynamicCollisionBox(GrimPlayer player, ClientVersion version, CollisionFactory box, WrappedBlockDataValue block) {
+        this.player = player;
+        this.version = version;
         this.box = box;
         this.block = block;
-        this.version = version;
     }
 
     @Override
     public boolean isCollided(CollisionBox other) {
-        return box.fetch(version, block, x, y, z).offset(x, y, z).isCollided(other);
+        return box.fetch(player, version, block, x, y, z).offset(x, y, z).isCollided(other);
     }
 
     @Override
     public boolean isIntersected(CollisionBox other) {
-        return box.fetch(version, block, x, y, z).offset(x, y, z).isIntersected(other);
+        return box.fetch(player, version, block, x, y, z).offset(x, y, z).isIntersected(other);
     }
 
     @Override
     public CollisionBox copy() {
-        return new DynamicCollisionBox(box, block, version).offset(x, y, z);
+        return new DynamicCollisionBox(player, version, box, block).offset(x, y, z);
     }
 
     @Override
@@ -44,12 +47,12 @@ public class DynamicCollisionBox implements CollisionBox {
 
     @Override
     public void downCast(List<SimpleCollisionBox> list) {
-        box.fetch(version, block, x, y, z).offset(x, y, z).downCast(list);
+        box.fetch(player, version, block, x, y, z).offset(x, y, z).downCast(list);
     }
 
     @Override
     public boolean isNull() {
-        return box.fetch(version, block, x, y, z).isNull();
+        return box.fetch(player, version, block, x, y, z).isNull();
     }
 
     @Override

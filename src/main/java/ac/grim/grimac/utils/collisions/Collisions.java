@@ -444,7 +444,7 @@ public class Collisions {
             for (int y = (int) Math.floor(wantedBB.minY) - 1; y <= Math.ceil(wantedBB.maxY); y++) {
                 for (int z = (int) Math.floor(wantedBB.minZ) - 1; z <= Math.ceil(wantedBB.maxZ); z++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, player.getClientVersion()).downCast(listOfBlocks);
+                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
                 }
             }
         }
@@ -470,7 +470,7 @@ public class Collisions {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
 
                     if (!data.getMaterial().isOccluding()) continue;
-                    CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(data, x, y, z, player.getClientVersion());
+                    CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
                     if (!box.isFullBlock()) continue;
 
                     box.downCast(listOfBlocks);

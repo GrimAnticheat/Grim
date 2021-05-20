@@ -139,7 +139,7 @@ public class FluidTypeFlowing {
                 return snow.getLayers() == 8;
             }
 
-            return !Materials.checkFlag(blockMaterial, Materials.LEAVES) && (blockMaterial == SOUL_SAND || blockMaterial != ICE && CollisionData.getData(blockMaterial).getMovementCollisionBox(blockState, 0, 0, 0, player.getClientVersion()).isFullBlock());
+            return !Materials.checkFlag(blockMaterial, Materials.LEAVES) && (blockMaterial == SOUL_SAND || blockMaterial != ICE && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock());
         }
     }
 

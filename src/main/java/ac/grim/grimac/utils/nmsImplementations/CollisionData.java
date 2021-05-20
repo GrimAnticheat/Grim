@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionBox;
@@ -22,7 +23,7 @@ import java.util.Set;
 import static ac.grim.grimac.utils.collisions.Materials.matchLegacy;
 
 public enum CollisionData {
-    VINE((version, block, x, y, z) -> {
+    VINE((player, version, block, x, y, z) -> {
         ComplexCollisionBox boxes = new ComplexCollisionBox();
 
         for (BlockFace face : ((WrappedMultipleFacing) block).getDirections()) {
@@ -51,7 +52,7 @@ public enum CollisionData {
     LIQUID(new SimpleCollisionBox(0, 0, 0, 1f, 0.9f, 1f),
             XMaterial.WATER.parseMaterial(), XMaterial.LAVA.parseMaterial()),
 
-    BREWINGSTAND((version, block, x, y, z) -> {
+    BREWINGSTAND((player, version, block, x, y, z) -> {
         int base = 0;
 
         if (version.isNewerThanOrEquals(ClientVersion.v_1_13))
@@ -63,7 +64,7 @@ public enum CollisionData {
 
     }, XMaterial.BREWING_STAND.parseMaterial()),
 
-    BAMBOO((version, block, x, y, z) -> {
+    BAMBOO((player, version, block, x, y, z) -> {
         // Offset taken from NMS
         long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
         i = i * i * 42317861L + i * 11L;
@@ -73,7 +74,7 @@ public enum CollisionData {
     }, XMaterial.BAMBOO.parseMaterial()),
 
 
-    BAMBOO_SAPLING((version, block, x, y, z) -> {
+    BAMBOO_SAPLING((player, version, block, x, y, z) -> {
         long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
         i = i * i * 42317861L + i * 11L;
         i = i >> 16;
@@ -81,7 +82,7 @@ public enum CollisionData {
         return new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 12.0D, 12.0D).offset((((i & 15L) / 15.0F) - 0.5D) * 0.5D, 0, (((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D);
     }, XMaterial.BAMBOO_SAPLING.parseMaterial()),
 
-    COMPOSTER((version, block, x, y, z) -> {
+    COMPOSTER((player, version, block, x, y, z) -> {
         double height = 0.125;
 
         return new ComplexCollisionBox(
@@ -96,7 +97,7 @@ public enum CollisionData {
             XMaterial.RAIL.parseMaterial(), XMaterial.ACTIVATOR_RAIL.parseMaterial(),
             XMaterial.DETECTOR_RAIL.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial()),
 
-    ANVIL((version, data, x, y, z) -> {
+    ANVIL((player, version, data, x, y, z) -> {
         // Anvil collision box was changed in 1.13 to be more accurate
         // https://www.mcpk.wiki/wiki/Version_Differences
         // The base is 0.75×0.75, and its floor is 0.25b high.
@@ -135,7 +136,7 @@ public enum CollisionData {
             .toArray(Material[]::new)),
 
 
-    SLAB((version, data, x, y, z) -> {
+    SLAB((player, version, data, x, y, z) -> {
         if (((WrappedSlab) data).isDouble()) {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
         } else if (((WrappedSlab) data).isBottom()) {
@@ -148,7 +149,7 @@ public enum CollisionData {
     }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_SLAB"))
             .map(XMaterial::parseMaterial).filter(Objects::nonNull).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
 
-    WALL_SKULL((version, data, x, y, z) -> {
+    WALL_SKULL((player, version, data, x, y, z) -> {
         switch (((WrappedDirectional) data).getDirection()) {
             case DOWN:
             default: // On the floor
@@ -175,7 +176,7 @@ public enum CollisionData {
     DOOR(new DoorHandler(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_DOOR"))
             .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
-    HOPPER((version, data, x, y, z) -> {
+    HOPPER((player, version, data, x, y, z) -> {
         double height = 0.125 * 5;
 
         if (version.isNewerThanOrEquals(ClientVersion.v_1_13))
@@ -189,7 +190,7 @@ public enum CollisionData {
                 new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
     }, XMaterial.HOPPER.parseMaterial()),
 
-    CAKE((version, data, x, y, z) -> {
+    CAKE((player, version, data, x, y, z) -> {
         double height = 0.5;
         if (version.isOlderThan(ClientVersion.v_1_8))
             height = 0.4375;
@@ -198,7 +199,7 @@ public enum CollisionData {
     }, XMaterial.CAKE.parseMaterial()),
 
 
-    COCOA_BEANS((version, data, x, y, z) -> {
+    COCOA_BEANS((player, version, data, x, y, z) -> {
         WrappedCocoaBeans beans = (WrappedCocoaBeans) data;
         int age = beans.getAge();
 
@@ -254,7 +255,7 @@ public enum CollisionData {
     STONE_CUTTER(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D),
             XMaterial.STONECUTTER.parseMaterial()),
 
-    BELL((version, data, x, y, z) -> {
+    BELL((player, version, data, x, y, z) -> {
         Bell bell = (Bell) ((WrappedFlatBlock) data).getBlockData();
         BlockFace direction = bell.getFacing();
 
@@ -293,7 +294,7 @@ public enum CollisionData {
 
     }, XMaterial.BELL.parseMaterial()),
 
-    LADDER((version, data, x, y, z) -> {
+    LADDER((player, version, data, x, y, z) -> {
         switch (((WrappedDirectional) data).getDirection()) {
             case NORTH:
                 return new HexCollisionBox(0.0D, 0.0D, 13.0D, 16.0D, 16.0D, 16.0D);
@@ -309,7 +310,7 @@ public enum CollisionData {
 
     CAMPFIRE(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 7.0D, 16.0D), XMaterial.CAMPFIRE.parseMaterial(), XMaterial.SOUL_CAMPFIRE.parseMaterial()),
 
-    LANTERN((version, data, x, y, z) -> {
+    LANTERN((player, version, data, x, y, z) -> {
         WrappedFlatBlock lantern = (WrappedFlatBlock) data;
 
         if (((Lantern) lantern.getBlockData()).isHanging()) {
@@ -335,7 +336,7 @@ public enum CollisionData {
 
     DRAGON_EGG_BLOCK(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), XMaterial.DRAGON_EGG.parseMaterial()),
 
-    GRINDSTONE((version, data, x, y, z) -> {
+    GRINDSTONE((player, version, data, x, y, z) -> {
         Grindstone grindstone = (Grindstone) ((WrappedFlatBlock) data).getBlockData();
 
         if (grindstone.getAttachedFace() == FaceAttachable.AttachedFace.FLOOR) {
@@ -399,7 +400,7 @@ public enum CollisionData {
 
     }, XMaterial.GRINDSTONE.parseMaterial()),
 
-    CHAIN_BLOCK((version, data, x, y, z) -> {
+    CHAIN_BLOCK((player, version, data, x, y, z) -> {
         Chain chain = (Chain) ((WrappedFlatBlock) data).getBlockData();
 
         switch (chain.getAxis()) {
@@ -414,7 +415,7 @@ public enum CollisionData {
 
     }, XMaterial.CHAIN.parseMaterial()),
 
-    SWEET_BERRY((version, data, x, y, z) -> {
+    SWEET_BERRY((player, version, data, x, y, z) -> {
         Ageable berry = (Ageable) ((WrappedFlatBlock) data).getBlockData();
 
         if (berry.getAge() == 0) {
@@ -426,7 +427,7 @@ public enum CollisionData {
 
     CHORUS_FLOWER(new DynamicChorusFlower(), XMaterial.CHORUS_FLOWER.parseMaterial()),
 
-    FENCE_GATE((version, data, x, y, z) -> {
+    FENCE_GATE((player, version, data, x, y, z) -> {
         WrappedFenceGate gate = (WrappedFenceGate) data;
 
         if (gate.isOpen())
@@ -458,7 +459,7 @@ public enum CollisionData {
             .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
 
-    SNOW((version, data, x, y, z) -> {
+    SNOW((player, version, data, x, y, z) -> {
         WrappedSnow snow = (WrappedSnow) data;
 
         if (snow.getLayers() == 0 && version.isNewerThanOrEquals(ClientVersion.v_1_13))
@@ -485,7 +486,7 @@ public enum CollisionData {
             XMaterial.ENCHANTING_TABLE.parseMaterial()),
 
 
-    FRAME((version, data, x, y, z) -> {
+    FRAME((player, version, data, x, y, z) -> {
         WrappedFrame frame = (WrappedFrame) data;
         ComplexCollisionBox complexCollisionBox = new ComplexCollisionBox(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D));
 
@@ -505,7 +506,7 @@ public enum CollisionData {
     DAYLIGHT(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F),
             XMaterial.DAYLIGHT_DETECTOR.parseMaterial()),
 
-    FARMLAND((version, data, x, y, z) -> {
+    FARMLAND((player, version, data, x, y, z) -> {
         // This will be wrong if a player uses 1.10.0 or 1.10.1, not sure if I can fix this as protocol version is same
         if (version.isNewerThanOrEquals(ClientVersion.v_1_10))
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
@@ -514,7 +515,7 @@ public enum CollisionData {
 
     }, XMaterial.FARMLAND.parseMaterial()),
 
-    LILYPAD((version, data, x, y, z) -> {
+    LILYPAD((player, version, data, x, y, z) -> {
         if (version.isOlderThan(ClientVersion.v_1_9))
             return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f);
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
@@ -537,7 +538,7 @@ public enum CollisionData {
             0.625, 0.625, 0.625),
             XMaterial.STRUCTURE_VOID.parseMaterial()),
 
-    END_ROD((version, data, x, y, z) -> {
+    END_ROD((player, version, data, x, y, z) -> {
         WrappedDirectional directional = (WrappedDirectional) data;
 
         switch (directional.getDirection()) {
@@ -555,7 +556,7 @@ public enum CollisionData {
 
     }, XMaterial.END_ROD.parseMaterial()),
 
-    CAULDRON((version, data, x, y, z) -> {
+    CAULDRON((player, version, data, x, y, z) -> {
         double height = 0.25;
 
         if (version.isNewerThanOrEquals(ClientVersion.v_1_13))
@@ -580,7 +581,7 @@ public enum CollisionData {
     SOULSAND(new SimpleCollisionBox(0, 0, 0, 1, 0.875, 1),
             XMaterial.SOUL_SAND.parseMaterial()),
 
-    PICKLE((version, data, x, y, z) -> {
+    PICKLE((player, version, data, x, y, z) -> {
         SeaPickle pickle = (SeaPickle) ((WrappedFlatBlock) data).getBlockData();
 
         switch (pickle.getPickles()) {
@@ -597,7 +598,7 @@ public enum CollisionData {
 
     }, XMaterial.SEA_PICKLE.parseMaterial()),
 
-    TURTLEEGG((version, data, x, y, z) -> {
+    TURTLEEGG((player, version, data, x, y, z) -> {
         TurtleEgg egg = (TurtleEgg) ((WrappedFlatBlock) data).getBlockData();
 
         if (egg.getEggs() == 1) {
@@ -607,7 +608,7 @@ public enum CollisionData {
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 7.0D, 15.0D);
     }, XMaterial.TURTLE_EGG.parseMaterial()),
 
-    CONDUIT((version, data, x, y, z) -> {
+    CONDUIT((player, version, data, x, y, z) -> {
         return new HexCollisionBox(5.0D, 5.0D, 5.0D, 11.0D, 11.0D, 11.0D);
     }, XMaterial.CONDUIT.parseMaterial()),
 
@@ -615,7 +616,7 @@ public enum CollisionData {
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("POTTED") || mat.name().contains("FLOWER_POT")).toArray(Material[]::new)),
 
 
-    WALL_SIGN((version, data, x, y, z) -> {
+    WALL_SIGN((player, version, data, x, y, z) -> {
         WrappedDirectional directional = (WrappedDirectional) data;
 
         switch (directional.getDirection()) {
@@ -640,7 +641,7 @@ public enum CollisionData {
                     .map(XMaterial::parseMaterial).toArray(Material[]::new)),
 
 
-    BUTTON((version, data, x, y, z) -> {
+    BUTTON((player, version, data, x, y, z) -> {
         WrappedButton button = (WrappedButton) data;
         double f2 = (float) (button.isPowered() ? 1 : 2) / 16.0;
 
@@ -663,7 +664,7 @@ public enum CollisionData {
 
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BUTTON")).toArray(Material[]::new)),
 
-    LEVER((version, data, x, y, z) -> {
+    LEVER((player, version, data, x, y, z) -> {
         double f = 0.1875;
 
         switch (((WrappedDirectional) data).getDirection()) {
@@ -688,7 +689,7 @@ public enum CollisionData {
     TORCH(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D),
             XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial()),
 
-    WALL_TORCH((version, data, x, y, z) -> {
+    WALL_TORCH((player, version, data, x, y, z) -> {
         Directional directional = (Directional) data;
 
         switch (directional.getFacing()) {
@@ -707,7 +708,7 @@ public enum CollisionData {
 
     }, XMaterial.WALL_TORCH.parseMaterial(), XMaterial.REDSTONE_WALL_TORCH.parseMaterial()),
 
-    RAILS((version, data, x, y, z) -> {
+    RAILS((player, version, data, x, y, z) -> {
         WrappedRails rail = (WrappedRails) data;
 
         if (rail.isAscending()) {
@@ -770,7 +771,7 @@ public enum CollisionData {
         return xmat.parseMaterial();
     }
 
-    public CollisionBox getMovementCollisionBox(BaseBlockState block, int x, int y, int z, ClientVersion version) {
+    public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, BaseBlockState block, int x, int y, int z) {
         if (!Materials.checkFlag(block.getMaterial(), Materials.SOLID))
             return NoCollisionBox.INSTANCE;
 
@@ -779,6 +780,6 @@ public enum CollisionData {
 
         if (this.box != null)
             return this.box.copy().offset(x, y, z);
-        return new DynamicCollisionBox(dynamic, blockData, version).offset(x, y, z);
+        return new DynamicCollisionBox(player, version, dynamic, blockData).offset(x, y, z);
     }
 }
