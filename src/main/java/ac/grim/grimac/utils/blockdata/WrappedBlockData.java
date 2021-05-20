@@ -5,10 +5,7 @@ import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.block.data.Powerable;
-import org.bukkit.block.data.Rail;
+import org.bukkit.block.data.*;
 import org.bukkit.block.data.type.*;
 
 import java.util.Arrays;
@@ -418,12 +415,14 @@ public enum WrappedBlockData {
         public void getWrappedData(FlatBlockState data) {
             TrapDoor trapDoor = (TrapDoor) data.getBlockData();
             setOpen(trapDoor.isOpen());
+            setBottom(trapDoor.getHalf() == Bisected.Half.BOTTOM);
             setDirection(trapDoor.getFacing());
         }
 
         public void getWrappedData(MagicBlockState data) {
             int magic = data.getBlockData();
             setOpen((magic & 0x4) == 4);
+            setBottom((magic & 0x8) == 0);
 
             // Magic values 2 to 5 are ascending
             switch (magic & 7) {
