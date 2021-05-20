@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.blockdata;
+package ac.grim.grimac.utils.blockdata.types;
 
 public class WrappedSnow extends WrappedBlockDataValue {
     int layers = 0;

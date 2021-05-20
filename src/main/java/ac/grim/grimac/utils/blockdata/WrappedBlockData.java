@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.blockdata;
 
+import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -36,7 +37,7 @@ public enum WrappedBlockData {
 
     VINE(new WrappedMultipleFacing() {
         public void getWrappedData(FlatBlockState data) {
-            directions = ((MultipleFacing) data.getBlockData()).getFaces();
+            setDirections(((MultipleFacing) data.getBlockData()).getFaces());
         }
 
         public void getWrappedData(MagicBlockState data) {
@@ -61,17 +62,18 @@ public enum WrappedBlockData {
         public void getWrappedData(FlatBlockState data) {
             Slab slab = (Slab) data.getBlockData();
 
-            isDouble = slab.getType() == Slab.Type.DOUBLE;
+            setDouble(slab.getType() == Slab.Type.DOUBLE);
 
             if (slab.getType() == Slab.Type.BOTTOM) {
-                isBottom = true;
+                setBottom(true);
             } else if (slab.getType() == Slab.Type.TOP) {
-                isBottom = false;
+                setBottom(false);
             }
         }
 
         public void getWrappedData(MagicBlockState data) {
-            isBottom = (data.getBlockData() & 8) == 0;
+            setDouble(false);
+            setBottom((data.getBlockData() & 8) == 0);
         }
         // 1.13 can handle double slabs as it's in the block data
         // 1.12 has double slabs as a separate block, no block data to differentiate it
@@ -80,7 +82,7 @@ public enum WrappedBlockData {
 
     WALL_SKULL(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
-            direction = ((Directional) data.getBlockData()).getFacing();
+            setDirection(((Directional) data.getBlockData()).getFacing());
         }
 
         public void getWrappedData(MagicBlockState data) {
@@ -142,11 +144,11 @@ public enum WrappedBlockData {
     CAKE(new WrappedCake() {
         public void getWrappedData(FlatBlockState data) {
             Cake cake = (Cake) data.getBlockData();
-            slices = cake.getBites();
+            setSlices(cake.getBites());
         }
 
         public void getWrappedData(MagicBlockState data) {
-            slices = data.getBlockData();
+            setSlices(data.getBlockData());
         }
     }, XMaterial.CAKE.parseMaterial()),
 
@@ -154,7 +156,7 @@ public enum WrappedBlockData {
         public void getWrappedData(FlatBlockState data) {
             Cocoa cocoa = (Cocoa) data.getBlockData();
             setDirection(cocoa.getFacing());
-            age = cocoa.getAge();
+            setAge(cocoa.getAge());
         }
 
         public void getWrappedData(MagicBlockState data) {
@@ -173,7 +175,7 @@ public enum WrappedBlockData {
                     break;
             }
 
-            age = (data.getBlockData() >> 2 & (1 << 2) - 1);
+            setAge(data.getBlockData() >> 2 & (1 << 2) - 1);
         }
     }, XMaterial.COCOA_BEANS.parseMaterial()),
 
@@ -446,6 +448,13 @@ public enum WrappedBlockData {
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("RAIL")).toArray(Material[]::new)),
 
+    DOOR(new WrappedDoor() {
+        public void getWrappedData(MagicBlockState data) {
+
+        }
+    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_DOOR"))
+            .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+
     TRAPDOOR(new WrappedTrapdoor() {
         public void getWrappedData(FlatBlockState data) {
             TrapDoor trapDoor = (TrapDoor) data.getBlockData();
@@ -476,7 +485,7 @@ public enum WrappedBlockData {
 
     FLAT_ONLY_BLOCK(new WrappedFlatBlock() {
         public void getWrappedData(FlatBlockState data) {
-            this.blockData = data.getBlockData();
+            setBlockData(data.getBlockData());
         }
     }, XMaterial.BELL.parseMaterial(), XMaterial.LANTERN.parseMaterial(), XMaterial.GRINDSTONE.parseMaterial(),
             XMaterial.CHAIN.parseMaterial(), XMaterial.SWEET_BERRIES.parseMaterial(), XMaterial.SEA_PICKLE.parseMaterial(),

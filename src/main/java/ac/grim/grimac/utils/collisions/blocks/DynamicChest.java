@@ -1,8 +1,8 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.WrappedChest;
+import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
+import ac.grim.grimac.utils.blockdata.types.WrappedChest;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionBox;
 import ac.grim.grimac.utils.collisions.types.CollisionFactory;

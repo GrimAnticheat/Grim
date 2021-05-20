@@ -2,8 +2,8 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
-import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.WrappedSnow;
+import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
+import ac.grim.grimac.utils.blockdata.types.WrappedSnow;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.Materials;
 import org.bukkit.Material;

@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.blockdata;
+package ac.grim.grimac.utils.blockdata.types;
 
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;

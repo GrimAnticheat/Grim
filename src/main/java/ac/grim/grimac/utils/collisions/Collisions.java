@@ -2,9 +2,9 @@ package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
-import ac.grim.grimac.utils.blockdata.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.WrappedDirectional;
-import ac.grim.grimac.utils.blockdata.WrappedTrapdoor;
+import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
+import ac.grim.grimac.utils.blockdata.types.WrappedDirectional;
+import ac.grim.grimac.utils.blockdata.types.WrappedTrapdoor;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
