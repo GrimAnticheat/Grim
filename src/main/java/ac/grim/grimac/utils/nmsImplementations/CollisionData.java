@@ -295,16 +295,20 @@ public enum CollisionData {
     }, XMaterial.BELL.parseMaterial()),
 
     LADDER((player, version, data, x, y, z) -> {
+        int width = 3;
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_8))
+            width = 2;
+
         switch (((WrappedDirectional) data).getDirection()) {
             case NORTH:
-                return new HexCollisionBox(0.0D, 0.0D, 13.0D, 16.0D, 16.0D, 16.0D);
+                return new HexCollisionBox(0.0D, 0.0D, 16.0D - width, 16.0D, 16.0D, 16.0D);
             case SOUTH:
-                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 3.0D);
+                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, width);
             case WEST:
-                return new HexCollisionBox(13.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+                return new HexCollisionBox(16.0D - width, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
             default:
             case EAST:
-                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
+                return new HexCollisionBox(0.0D, 0.0D, 0.0D, width, 16.0D, 16.0D);
         }
     }, XMaterial.LADDER.parseMaterial()),
 
