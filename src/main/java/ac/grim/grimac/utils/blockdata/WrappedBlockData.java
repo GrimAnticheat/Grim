@@ -396,6 +396,41 @@ public enum WrappedBlockData {
         }
     }, XMaterial.WALL_TORCH.parseMaterial(), XMaterial.REDSTONE_WALL_TORCH.parseMaterial()),
 
+    PISTON_EXTENSION(new WrappedPiston() {
+        public void getWrappedData(FlatBlockState data) {
+            PistonHead head = (PistonHead) data.getBlockData();
+            setDirection(head.getFacing());
+            setShort(head.isShort());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            // Short pistons are pistons that are currently extending or retracting
+            // There is no block data to differentiate these in 1.12
+            // In testing, I can only get
+            setShort(false);
+            switch (data.getBlockData() & 7) {
+                case 0:
+                    setDirection(BlockFace.DOWN);
+                    break;
+                case 1:
+                    setDirection(BlockFace.UP);
+                    break;
+                case 2:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 4:
+                    setDirection(BlockFace.WEST);
+                    break;
+                case 5:
+                    setDirection(BlockFace.EAST);
+                    break;
+            }
+        }
+    }, XMaterial.PISTON_HEAD.parseMaterial()),
+
     RAILS(new WrappedRails() {
         public void getWrappedData(FlatBlockState data) {
             Rail rail = (Rail) data.getBlockData();

@@ -226,7 +226,7 @@ public class CompensatedWorld {
     public BaseBlockState getWrappedBlockStateAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
 
-        if (y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return airData;
+        if (column == null || y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return airData;
 
         try {
             BaseChunk chunk = column.getChunks()[y >> 4];
