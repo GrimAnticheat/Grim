@@ -514,6 +514,15 @@ public enum WrappedBlockData {
     public static WrappedBlockDataValue getMaterialData(Material material) {
         WrappedBlockData data = lookup[material.ordinal()];
 
-        return data != null ? data.data : NO_DATA.data;
+        if (data != null) {
+            try {
+                // We need to create a new instance because the anticheat is multithreaded
+                return data.data.getClass().newInstance();
+            } catch (InstantiationException | IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return NO_DATA.data;
     }
 }

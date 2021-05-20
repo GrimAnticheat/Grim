@@ -2,14 +2,13 @@ package ac.grim.grimac.checks.predictionengine.predictions;
 
 import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.chunks.CachedContainsLiquid;
-import ac.grim.grimac.utils.collisions.Collisions;
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
@@ -250,8 +249,7 @@ public abstract class PredictionEngine {
         SimpleCollisionBox isFreeBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).offset(vector.getX(), vector.getY() + 0.6 - player.y + player.lastY, vector.getZ());
 
         boolean isFree = Collisions.isEmpty(player, isFreeBox);
-        // TODO: Can we just use .wasTouchingWater or does the < 0.03 mess it up too much.
-        boolean inWater = CachedContainsLiquid.containsLiquid(player, player.boundingBox.copy().expand(0.1, 0.1, 0.1));
+        boolean inWater = player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
 
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava

@@ -1,6 +1,5 @@
-package ac.grim.grimac.utils.collisions.types;
+package ac.grim.grimac.utils.collisions.datatypes;
 
-import ac.grim.grimac.utils.collisions.CollisionBox;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 

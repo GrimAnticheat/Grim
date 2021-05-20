@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.Materials;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;

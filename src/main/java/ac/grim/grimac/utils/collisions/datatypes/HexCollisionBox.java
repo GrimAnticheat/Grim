@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.collisions.types;
+package ac.grim.grimac.utils.collisions.datatypes;
 
 public class HexCollisionBox extends SimpleCollisionBox {
     public HexCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {

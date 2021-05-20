@@ -7,12 +7,11 @@ import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
-import ac.grim.grimac.utils.chunks.ChunkUtils;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.collisions.Materials;
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
@@ -177,16 +176,14 @@ public class CompensatedWorld {
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
     }
 
-    public boolean isChunkLoaded(int chunkX, int chunkZ) {
-        long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
-
-        return chunks.containsKey(chunkPosition);
+    public static long chunkPositionToLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
 
-    public void addToCache(Column chunk, int chunkX, int chunkZ) {
-        long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
+    public boolean isChunkLoaded(int chunkX, int chunkZ) {
+        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
 
-        chunks.put(chunkPosition, chunk);
+        return chunks.containsKey(chunkPosition);
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
@@ -210,9 +207,10 @@ public class CompensatedWorld {
         }
     }
 
-    public Column getChunk(int chunkX, int chunkZ) {
-        long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
-        return chunks.get(chunkPosition);
+    public void addToCache(Column chunk, int chunkX, int chunkZ) {
+        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
+
+        chunks.put(chunkPosition, chunk);
     }
 
     public Material getBukkitMaterialAt(double x, double y, double z) {
@@ -349,6 +347,11 @@ public class CompensatedWorld {
         return 0;
     }
 
+    public Column getChunk(int chunkX, int chunkZ) {
+        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
+        return chunks.get(chunkPosition);
+    }
+
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
         if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
@@ -361,8 +364,27 @@ public class CompensatedWorld {
                 bukkitBlock.getMaterial() == BUBBLE_COLUMN;
     }
 
+    public boolean containsLiquid(SimpleCollisionBox var0) {
+        int var1 = (int) Math.floor(var0.minX);
+        int var2 = (int) Math.ceil(var0.maxX);
+        int var3 = (int) Math.floor(var0.minY);
+        int var4 = (int) Math.ceil(var0.maxY);
+        int var5 = (int) Math.floor(var0.minZ);
+        int var6 = (int) Math.ceil(var0.maxZ);
+
+        for (int var8 = var1; var8 < var2; ++var8) {
+            for (int var9 = var3; var9 < var4; ++var9) {
+                for (int var10 = var5; var10 < var6; ++var10) {
+                    if (player.compensatedWorld.getFluidLevelAt(var8, var9, var10) > 0) return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public void removeChunk(int chunkX, int chunkZ) {
-        long chunkPosition = ChunkUtils.chunkPositionToLong(chunkX, chunkZ);
+        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
     }
 }

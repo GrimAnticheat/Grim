@@ -3,10 +3,10 @@ package ac.grim.grimac.utils.collisions.blocks;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedTrapdoor;
-import ac.grim.grimac.utils.collisions.CollisionBox;
-import ac.grim.grimac.utils.collisions.types.CollisionFactory;
-import ac.grim.grimac.utils.collisions.types.NoCollisionBox;
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
+import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 
 public class TrapDoorHandler implements CollisionFactory {

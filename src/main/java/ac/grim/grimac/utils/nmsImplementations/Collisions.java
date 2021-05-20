@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.collisions;
+package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
@@ -7,13 +7,11 @@ import ac.grim.grimac.utils.blockdata.types.WrappedDirectional;
 import ac.grim.grimac.utils.blockdata.types.WrappedTrapdoor;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.collisions.CollisionData;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
-import ac.grim.grimac.utils.nmsImplementations.CheckIfChunksLoaded;
-import ac.grim.grimac.utils.nmsImplementations.CollisionData;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;

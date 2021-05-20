@@ -1,8 +1,7 @@
 package ac.grim.grimac.checks.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.Collisions;
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;

@@ -1,6 +1,4 @@
-package ac.grim.grimac.utils.collisions;
-
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+package ac.grim.grimac.utils.collisions.datatypes;
 
 import java.util.List;
 

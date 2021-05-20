@@ -3,10 +3,10 @@ package ac.grim.grimac.utils.collisions.blocks;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedPiston;
-import ac.grim.grimac.utils.collisions.CollisionBox;
-import ac.grim.grimac.utils.collisions.types.CollisionFactory;
-import ac.grim.grimac.utils.collisions.types.ComplexCollisionBox;
-import ac.grim.grimac.utils.collisions.types.HexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
+import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 
 public class PistonHeadCollision implements CollisionFactory {

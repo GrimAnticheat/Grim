@@ -1,9 +1,8 @@
-package ac.grim.grimac.utils.collisions;
+package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;

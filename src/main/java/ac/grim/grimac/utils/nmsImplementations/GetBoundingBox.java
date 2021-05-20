@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Strider;

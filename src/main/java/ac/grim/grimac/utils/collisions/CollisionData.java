@@ -1,13 +1,13 @@
-package ac.grim.grimac.utils.nmsImplementations;
+package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.collisions.CollisionBox;
-import ac.grim.grimac.utils.collisions.Materials;
 import ac.grim.grimac.utils.collisions.blocks.*;
-import ac.grim.grimac.utils.collisions.types.*;
+import ac.grim.grimac.utils.collisions.datatypes.*;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -21,7 +21,7 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import static ac.grim.grimac.utils.collisions.Materials.matchLegacy;
+import static ac.grim.grimac.utils.nmsImplementations.Materials.matchLegacy;
 
 public enum CollisionData {
     VINE((player, version, block, x, y, z) -> {

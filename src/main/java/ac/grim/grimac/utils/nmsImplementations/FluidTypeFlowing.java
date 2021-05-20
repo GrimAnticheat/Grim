@@ -5,7 +5,7 @@ import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedSnow;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.collisions.Materials;
+import ac.grim.grimac.utils.collisions.CollisionData;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;

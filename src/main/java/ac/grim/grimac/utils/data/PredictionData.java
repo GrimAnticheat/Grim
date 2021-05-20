@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.Collisions;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.GameMode;
 import org.bukkit.World;

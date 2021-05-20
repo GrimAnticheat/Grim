@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.collisions.types;
+package ac.grim.grimac.utils.collisions.datatypes;
 
 import org.bukkit.util.Vector;
 

@@ -2,11 +2,11 @@ package ac.grim.grimac.utils.collisions.blocks;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import ac.grim.grimac.utils.collisions.CollisionBox;
-import ac.grim.grimac.utils.collisions.Materials;
-import ac.grim.grimac.utils.collisions.types.CollisionFactory;
-import ac.grim.grimac.utils.collisions.types.ComplexCollisionBox;
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
+import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;

@@ -1,6 +1,6 @@
 package ac.grim.grimac.player;
 
-import ac.grim.grimac.utils.collisions.types.SimpleCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.PlayerFlyingData;
 import ac.grim.grimac.utils.data.VectorData;
