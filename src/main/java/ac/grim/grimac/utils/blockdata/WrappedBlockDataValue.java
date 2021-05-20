@@ -13,11 +13,13 @@ public class WrappedBlockDataValue {
 
     }
 
-    public void getData(BaseBlockState data) {
+    public WrappedBlockDataValue getData(BaseBlockState data) {
         if (data instanceof FlatBlockState) {
             getWrappedData((FlatBlockState) data);
         } else {
             getWrappedData((MagicBlockState) data);
         }
+
+        return this;
     }
 }

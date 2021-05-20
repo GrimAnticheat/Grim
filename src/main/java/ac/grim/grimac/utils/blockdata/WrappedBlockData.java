@@ -110,6 +110,38 @@ public enum WrappedBlockData {
             XMaterial.CREEPER_WALL_HEAD.parseMaterial(), XMaterial.DRAGON_WALL_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
             XMaterial.PLAYER_WALL_HEAD.parseMaterial(), XMaterial.ZOMBIE_WALL_HEAD.parseMaterial()),
 
+    CHEST(new WrappedChest() {
+
+        public void getWrappedData(FlatBlockState data) {
+            Chest chest = ((Chest) data.getBlockData());
+
+            setDirection(chest.getFacing());
+            setType(chest.getType());
+            setTrapped(chest.getMaterial() == Material.TRAPPED_CHEST);
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            switch (data.getBlockData() & 7) {
+                default:
+                case 2:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 4:
+                    setDirection(BlockFace.WEST);
+                    break;
+                case 5:
+                    setDirection(BlockFace.EAST);
+                    break;
+            }
+
+            setTrapped(data.getMaterial() == Material.TRAPPED_CHEST);
+        }
+    }, XMaterial.CHEST.parseMaterial(), XMaterial.TRAPPED_CHEST.parseMaterial()),
+
+
     CAKE(new WrappedCake() {
         public void getWrappedData(FlatBlockState data) {
             Cake cake = (Cake) data.getBlockData();
