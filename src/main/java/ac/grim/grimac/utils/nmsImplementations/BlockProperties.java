@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.Materials;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -34,7 +35,12 @@ public class BlockProperties {
     public static float getBlockFrictionUnderPlayer(GrimPlayer player) {
         if (player.bukkitPlayer.isGliding() || player.specialFlying) return 1.0f;
 
-        Material material = player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY - 0.5000001, player.lastZ);
+        double searchBelowAmount = 0.5000001;
+
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15))
+            searchBelowAmount = 1;
+
+        Material material = player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY - searchBelowAmount, player.lastZ);
 
         return getMaterialFriction(player, material);
     }
