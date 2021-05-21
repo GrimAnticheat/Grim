@@ -417,9 +417,6 @@ public enum WrappedBlockData {
         }
 
         public void getWrappedData(MagicBlockState data) {
-            // Short pistons are pistons that are currently extending or retracting
-            // There is no block data to differentiate these in 1.12
-            // In testing, I can only get
             int magic = data.getData();
 
             setPowered((magic & 8) != 0);
