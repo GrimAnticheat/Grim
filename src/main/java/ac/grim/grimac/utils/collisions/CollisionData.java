@@ -430,7 +430,7 @@ public enum CollisionData {
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
     }, XMaterial.SWEET_BERRY_BUSH.parseMaterial()),
 
-    CHORUS_FLOWER(new DynamicChorusFlower(), XMaterial.CHORUS_FLOWER.parseMaterial()),
+    CHORUS_PLANT(new DynamicChorusPlant(), XMaterial.CHORUS_PLANT.parseMaterial()),
 
     FENCE_GATE((player, version, data, x, y, z) -> {
         WrappedFenceGate gate = (WrappedFenceGate) data;

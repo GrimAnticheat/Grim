@@ -58,6 +58,17 @@ public enum WrappedBlockData {
         }
     }, XMaterial.VINE.parseMaterial()),
 
+    CHORUS_PLANT(new WrappedMultipleFacing() {
+        public void getWrappedData(FlatBlockState data) {
+            setDirections(((MultipleFacing) data.getBlockData()).getFaces());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            // 1.12 doesn't store this blocks' data.
+            // It is determined by the state of the world
+        }
+    }, XMaterial.CHORUS_PLANT.parseMaterial()),
+
     SLAB(new WrappedSlab() {
         public void getWrappedData(FlatBlockState data) {
             Slab slab = (Slab) data.getBlockData();

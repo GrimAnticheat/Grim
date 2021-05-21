@@ -439,7 +439,7 @@ public class Collisions {
     public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
         List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
 
-        // Not the fasted way to iterate but everything is broken anyways
+        // Not the fastest way to iterate but everything is broken anyways
         for (int x = (int) Math.floor(wantedBB.minX - 0.25 - COLLISION_EPSILON); x < Math.ceil(wantedBB.maxX + 0.25 + COLLISION_EPSILON); x++) {
             for (int y = (int) Math.floor(wantedBB.minY - 0.5 - COLLISION_EPSILON); y < Math.ceil(wantedBB.maxY + 0.25 + COLLISION_EPSILON); y++) {
                 for (int z = (int) Math.floor(wantedBB.minZ - 0.25 - COLLISION_EPSILON) - 1; z < Math.ceil(wantedBB.maxZ + 0.25 + COLLISION_EPSILON); z++) {
