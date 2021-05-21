@@ -20,6 +20,10 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
         if (event.getPacketId() == PacketType.Play.Client.TELEPORT_ACCEPT) {
             WrappedPacketInTeleportAccept accept = new WrappedPacketInTeleportAccept(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+
+            // Occurs on login
+            if (player == null) return;
+
             Vector3d teleportLocation = player.teleports.remove(accept.getTeleportId());
             byte relative = 0;
 
@@ -56,6 +60,9 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             WrappedPacketOutPosition teleport = new WrappedPacketOutPosition(event.getNMSPacket());
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+
+            // Occurs on login
+            if (player == null) return;
 
             // This shouldn't be null unless another plugin is incorrectly using packets
             // Nevermind, it's null on 1.8

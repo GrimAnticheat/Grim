@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -13,7 +14,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PlayerJoinQuitListener implements Listener {
 
-    @EventHandler
+    // Allow other plugins to modify login location or flight status
+    @EventHandler(priority = EventPriority.MONITOR)
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player bukkitPlayer = event.getPlayer();
         GrimPlayer player = new GrimPlayer(bukkitPlayer);
@@ -28,12 +30,16 @@ public class PlayerJoinQuitListener implements Listener {
         player.xRot = bukkitPlayer.getLocation().getYaw();
         player.yRot = bukkitPlayer.getLocation().getPitch();
 
+        // Set because sometimes abilities packet is sent before player login event
+        player.compensatedFlying.setCanPlayerFly(bukkitPlayer.getAllowFlight());
+
         GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
 
         MovementCheckRunner.queuedPredictions.put(event.getPlayer().getUniqueId(), new ConcurrentLinkedQueue<>());
     }
 
-    @EventHandler
+    // Better compatibility with other plugins that use our API
+    @EventHandler(priority = EventPriority.HIGH)
     public void playerQuitEvent(PlayerQuitEvent event) {
         MovementCheckRunner.queuedPredictions.remove(event.getPlayer().getUniqueId());
         GrimAC.playerGrimHashMap.remove(event.getPlayer());
