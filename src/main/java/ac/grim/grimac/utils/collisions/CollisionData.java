@@ -579,9 +579,9 @@ public enum CollisionData {
             1 - 0.0625, 1 - 0.0625, 1 - 0.0625), XMaterial.CACTUS.parseMaterial()),
 
 
-    PISTON_BASE(new PistonBaseCollision(), m(XMaterial.PISTON), m(XMaterial.STICKY_PISTON)),
+    PISTON_BASE(new PistonBaseCollision(), XMaterial.PISTON.parseMaterial(), XMaterial.STICKY_PISTON.parseMaterial()),
 
-    PISTON_ARM(new PistonHeadCollision(), m(XMaterial.PISTON_HEAD)),
+    PISTON_HEAD(new PistonHeadCollision(), XMaterial.PISTON_HEAD.parseMaterial()),
 
     SOULSAND(new SimpleCollisionBox(0, 0, 0, 1, 0.875, 1),
             XMaterial.SOUL_SAND.parseMaterial()),
@@ -738,7 +738,6 @@ public enum CollisionData {
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1),
             XMaterial.STONE.parseMaterial());
 
-    // TODO: Some version increased the amount of bounding boxes of this block by an insane amount
     private static final CollisionData[] lookup = new CollisionData[Material.values().length];
 
     static {
@@ -770,10 +769,6 @@ public enum CollisionData {
         CollisionData data = lookup[material.ordinal()];
         // _DEFAULT for second thing
         return data != null ? data : DEFAULT;
-    }
-
-    private static Material m(XMaterial xmat) {
-        return xmat.parseMaterial();
     }
 
     public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, BaseBlockState block, int x, int y, int z) {
