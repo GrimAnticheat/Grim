@@ -460,8 +460,41 @@ public enum WrappedBlockData {
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("RAIL")).toArray(Material[]::new)),
 
     DOOR(new WrappedDoor() {
-        public void getWrappedData(MagicBlockState data) {
+        public void getWrappedData(FlatBlockState data) {
+            Door door = (Door) data.getBlockData();
+            setDirection(door.getFacing());
+            setOpen(door.isOpen());
+            setRightHinge(door.getHinge() == Door.Hinge.RIGHT);
+            setBottom(door.getHalf() == Bisected.Half.BOTTOM);
+        }
 
+        public void getWrappedData(MagicBlockState data) {
+            int magic = data.getData();
+
+            setBottom((magic & 0b1000) == 0);
+
+            if (isBottom()) {
+                setOpen((magic & 0b10) != 0);
+
+                switch (magic & 0b11) {
+                    case 0:
+                        setDirection(BlockFace.EAST);
+                        break;
+                    case 1:
+                        setDirection(BlockFace.SOUTH);
+                        break;
+                    case 2:
+                        setDirection(BlockFace.WEST);
+                        break;
+                    case 3:
+                        setDirection(BlockFace.NORTH);
+                        break;
+                }
+            } else {
+                setRightHinge((magic & 0b1) == 0);
+            }
+
+            setOpen((magic & 0b100) != 0);
         }
     }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_DOOR"))
             .map(XMaterial::parseMaterial).toArray(Material[]::new)),
