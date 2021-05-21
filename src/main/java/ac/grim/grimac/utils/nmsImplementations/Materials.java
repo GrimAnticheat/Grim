@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
@@ -155,11 +156,12 @@ public class Materials {
                 || nameLower.contains("trident");
     }
 
-    public static boolean isWater(BaseBlockState state) {
-        return checkFlag(state.getMaterial(), WATER) || isWaterlogged(state);
+    public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
+        return checkFlag(state.getMaterial(), WATER) || isWaterlogged(clientVersion, state);
     }
 
-    public static boolean isWaterlogged(BaseBlockState state) {
+    public static boolean isWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
+        if (clientVersion.isOlderThanOrEquals(ClientVersion.v_1_12_2)) return false;
         if (state instanceof MagicBlockState) return false;
 
         FlatBlockState flat = (FlatBlockState) state;
