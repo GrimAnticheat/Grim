@@ -136,9 +136,9 @@ public class GrimPlayer {
     public boolean isJustTeleported = false;
 
     // Avoid setting stuff directly before
-    public double packetTeleportX;
-    public double packetTeleportY;
-    public double packetTeleportZ;
+    public double packetTeleportX = Double.NaN;
+    public double packetTeleportY = Double.NaN;
+    public double packetTeleportZ = Double.NaN;
     public boolean packetTeleportXRelative;
     public boolean packetTeleportYRelative;
     public boolean packetTeleportZRelative;

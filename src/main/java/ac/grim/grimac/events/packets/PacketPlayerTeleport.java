@@ -21,9 +21,12 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             WrappedPacketInTeleportAccept accept = new WrappedPacketInTeleportAccept(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             Vector3d teleportLocation = player.teleports.remove(accept.getTeleportId());
-            byte relative = player.relative.remove(accept.getTeleportId());
+            byte relative = 0;
 
-            // Impossible under normal vanilla client
+            if (player.relative.containsKey(accept.getTeleportId()))
+                relative = player.relative.remove(accept.getTeleportId());
+
+            // Occurs on login
             if (teleportLocation == null) return;
 
             // Set the player's old location because pistons are glitchy
@@ -55,6 +58,7 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             // This shouldn't be null unless another plugin is incorrectly using packets
+            // Nevermind, it's null on 1.8
             player.teleports.put(teleport.getTeleportId().get(), teleport.getPosition());
             player.relative.put(teleport.getTeleportId().get(), teleport.getRelativeFlagsMask());
 

@@ -33,7 +33,7 @@ public final class GrimAC extends JavaPlugin {
     public void onLoad() {
         PacketEvents.create(this);
         PacketEventsSettings settings = PacketEvents.get().getSettings();
-        settings.compatInjector(true).checkForUpdates(false).bStats(true);
+        settings.checkForUpdates(false).bStats(true);
         PacketEvents.get().loadAsyncNewThread();
     }
 

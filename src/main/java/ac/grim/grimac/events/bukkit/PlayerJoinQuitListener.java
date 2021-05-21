@@ -36,5 +36,6 @@ public class PlayerJoinQuitListener implements Listener {
     @EventHandler
     public void playerQuitEvent(PlayerQuitEvent event) {
         MovementCheckRunner.queuedPredictions.remove(event.getPlayer().getUniqueId());
+        GrimAC.playerGrimHashMap.remove(event.getPlayer());
     }
 }
