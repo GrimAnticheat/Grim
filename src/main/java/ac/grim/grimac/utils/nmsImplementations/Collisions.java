@@ -23,6 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Collisions {
+    public static final double COLLISION_EPSILON = SimpleCollisionBox.COLLISION_EPSILON;
+
     public static final double maxUpStep = 0.6f;
 
     private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
@@ -438,9 +440,9 @@ public class Collisions {
         List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
 
         // Not the fasted way to iterate but everything is broken anyways
-        for (int x = (int) Math.floor(wantedBB.minX) - 1; x <= Math.ceil(wantedBB.maxX); x++) {
-            for (int y = (int) Math.floor(wantedBB.minY) - 1; y <= Math.ceil(wantedBB.maxY); y++) {
-                for (int z = (int) Math.floor(wantedBB.minZ) - 1; z <= Math.ceil(wantedBB.maxZ); z++) {
+        for (int x = (int) Math.floor(wantedBB.minX - 0.25 - COLLISION_EPSILON); x < Math.ceil(wantedBB.maxX + 0.25 + COLLISION_EPSILON); x++) {
+            for (int y = (int) Math.floor(wantedBB.minY - 0.5 - COLLISION_EPSILON); y < Math.ceil(wantedBB.maxY + 0.25 + COLLISION_EPSILON); y++) {
+                for (int z = (int) Math.floor(wantedBB.minZ - 0.25 - COLLISION_EPSILON) - 1; z < Math.ceil(wantedBB.maxZ + 0.25 + COLLISION_EPSILON); z++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
                     CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
                 }
