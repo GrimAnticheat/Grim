@@ -238,10 +238,12 @@ public enum WrappedBlockData {
             Stairs stairs = (Stairs) data.getBlockData();
             setUpsideDown(stairs.getHalf() == Bisected.Half.TOP);
             setDirection(stairs.getFacing());
+            setShapeOrdinal(stairs.getShape().ordinal());
         }
 
         public void getWrappedData(MagicBlockState data) {
             setUpsideDown((data.getBlockData() & 0x4) == 0);
+            setShapeOrdinal(-1);
             switch (data.getBlockData() & (1 << 2) - 1) {
                 case 0:
                     setDirection(BlockFace.EAST);

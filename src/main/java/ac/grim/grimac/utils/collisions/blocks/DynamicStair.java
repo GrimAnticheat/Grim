@@ -7,13 +7,29 @@ import ac.grim.grimac.utils.blockdata.types.WrappedStairs;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
-import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
 
+import java.util.stream.IntStream;
+
 public class DynamicStair implements CollisionFactory {
+    protected static final CollisionBox TOP_AABB = new HexCollisionBox(0, 8, 0, 16, 16, 16);
+    protected static final CollisionBox BOTTOM_AABB = new HexCollisionBox(0, 0, 0, 16, 8, 16);
+    protected static final CollisionBox OCTET_NNN = new HexCollisionBox(0.0D, 0.0D, 0.0D, 8.0D, 8.0D, 8.0D);
+    protected static final CollisionBox OCTET_NNP = new HexCollisionBox(0.0D, 0.0D, 8.0D, 8.0D, 8.0D, 16.0D);
+    protected static final CollisionBox OCTET_NPN = new HexCollisionBox(0.0D, 8.0D, 0.0D, 8.0D, 16.0D, 8.0D);
+    protected static final CollisionBox OCTET_NPP = new HexCollisionBox(0.0D, 8.0D, 8.0D, 8.0D, 16.0D, 16.0D);
+    protected static final CollisionBox OCTET_PNN = new HexCollisionBox(8.0D, 0.0D, 0.0D, 16.0D, 8.0D, 8.0D);
+    protected static final CollisionBox OCTET_PNP = new HexCollisionBox(8.0D, 0.0D, 8.0D, 16.0D, 8.0D, 16.0D);
+    protected static final CollisionBox OCTET_PPN = new HexCollisionBox(8.0D, 8.0D, 0.0D, 16.0D, 16.0D, 8.0D);
+    protected static final CollisionBox OCTET_PPP = new HexCollisionBox(8.0D, 8.0D, 8.0D, 16.0D, 16.0D, 16.0D);
+    protected static final CollisionBox[] TOP_SHAPES = makeShapes(TOP_AABB, OCTET_NNN, OCTET_PNN, OCTET_NNP, OCTET_PNP);
+    protected static final CollisionBox[] BOTTOM_SHAPES = makeShapes(BOTTOM_AABB, OCTET_NPN, OCTET_PPN, OCTET_NPP, OCTET_PPP);
+    private static final int[] SHAPE_BY_STATE = new int[]{12, 5, 3, 10, 14, 13, 7, 11, 13, 7, 11, 14, 8, 4, 1, 2, 4, 1, 2, 8};
+
     private static EnumShape getStairsShape(GrimPlayer player, WrappedStairs originalStairs, int x, int y, int z) {
         BlockFace facing = originalStairs.getDirection();
         BaseBlockState offsetOne = player.compensatedWorld.getWrappedBlockStateAt(x + facing.getModX(), y + facing.getModY(), z + facing.getModZ());
@@ -72,10 +88,67 @@ public class DynamicStair implements CollisionFactory {
         }
     }
 
+    private static CollisionBox[] makeShapes(CollisionBox p_199779_0_, CollisionBox p_199779_1_, CollisionBox p_199779_2_, CollisionBox p_199779_3_, CollisionBox p_199779_4_) {
+        return IntStream.range(0, 16).mapToObj((p_199780_5_) -> makeStairShape(p_199780_5_, p_199779_0_, p_199779_1_, p_199779_2_, p_199779_3_, p_199779_4_)).toArray(CollisionBox[]::new);
+    }
+
+    private static CollisionBox makeStairShape(int p_199781_0_, CollisionBox p_199781_1_, CollisionBox p_199781_2_, CollisionBox p_199781_3_, CollisionBox p_199781_4_, CollisionBox p_199781_5_) {
+        ComplexCollisionBox voxelshape = new ComplexCollisionBox(p_199781_1_);
+        if ((p_199781_0_ & 1) != 0) {
+            voxelshape.add(p_199781_2_);
+        }
+
+        if ((p_199781_0_ & 2) != 0) {
+            voxelshape.add(p_199781_3_);
+        }
+
+        if ((p_199781_0_ & 4) != 0) {
+            voxelshape.add(p_199781_4_);
+        }
+
+        if ((p_199781_0_ & 8) != 0) {
+            voxelshape.add(p_199781_5_);
+        }
+
+        return voxelshape;
+    }
+
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
-        Bukkit.broadcastMessage("Stair shape " + getStairsShape(player, (WrappedStairs) block, x, y, z));
-        return NoCollisionBox.INSTANCE;
+        WrappedStairs stairs = (WrappedStairs) block;
+
+        // If server is 1.13+ and client is also 1.13+, we can read the block's data directly
+        if (stairs.getShapeOrdinal() != -1 && version.isNewerThanOrEquals(ClientVersion.v_1_13)) {
+            return (stairs.getUpsideDown() ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[getShapeIndex(stairs, stairs.getShapeOrdinal())]].copy();
+        } else {
+            // We need to read the world to determine the stair's block shape for:
+            // 1.13 clients on 1.12 servers
+            // 1.12 clients on 1.13 servers
+            // 1.12 clients on 1.12 servers
+            EnumShape shape = getStairsShape(player, stairs, x, y, z);
+            return (stairs.getUpsideDown() ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[getShapeIndex(stairs, shape.ordinal())]].copy();
+        }
+    }
+
+    private int getShapeIndex(WrappedStairs p_196511_1_, int shapeOrdinal) {
+        return shapeOrdinal * 4 + directionToValue(p_196511_1_.getDirection());
+    }
+
+    private int directionToValue(BlockFace face) {
+        switch (face) {
+            default:
+            case UP:
+            case DOWN:
+                return -1;
+            case NORTH:
+                return 2;
+            case SOUTH:
+                return 0;
+            case WEST:
+                return 1;
+            case EAST:
+                return 3;
+        }
     }
 
     enum EnumShape {
