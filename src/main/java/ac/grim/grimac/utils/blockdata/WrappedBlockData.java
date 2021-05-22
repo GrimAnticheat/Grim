@@ -218,6 +218,48 @@ public enum WrappedBlockData {
             .map(XMaterial::parseMaterial)
             .toArray(Material[]::new)),
 
+    // 1.12 doesn't store any data about fences, 1.13+ does
+    FENCE(new WrappedMultipleFacing() {
+        public void getWrappedData(FlatBlockState data) {
+            Fence fence = (Fence) data.getBlockData();
+            setDirections(fence.getFaces());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+
+        }
+    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE"))
+            .map(XMaterial::parseMaterial)
+            .toArray(Material[]::new)),
+
+    STAIRS(new WrappedStairs() {
+        public void getWrappedData(FlatBlockState data) {
+            Stairs stairs = (Stairs) data.getBlockData();
+            setUpsideDown(stairs.getHalf() == Bisected.Half.TOP);
+            setDirection(stairs.getFacing());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            setUpsideDown((data.getBlockData() & 0x4) == 0);
+            switch (data.getBlockData() & (1 << 2) - 1) {
+                case 0:
+                    setDirection(BlockFace.EAST);
+                    break;
+                case 1:
+                    setDirection(BlockFace.WEST);
+                    break;
+                case 2:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.NORTH);
+                    break;
+            }
+        }
+    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().endsWith("_STAIRS"))
+            .map(XMaterial::parseMaterial)
+            .toArray(Material[]::new)),
+
     SNOW(new WrappedSnow() {
         public void getWrappedData(FlatBlockState data) {
             Snow snow = (Snow) data.getBlockData();

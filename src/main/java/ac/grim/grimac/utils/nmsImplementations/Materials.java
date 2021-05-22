@@ -28,6 +28,8 @@ public class Materials {
     public static final int WATER_SOURCE = 0b00000000000000100000000000000;
     public static final int LEAVES = 0b00000000000001000000000000000;
     public static final int DOOR = 0b00000000000010000000000000000;
+    public static final int SHULKER = 0b00000000000100000000000000000;
+    public static final int GLASS_BLOCK = 0b00000000001000000000000000000;
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
@@ -123,6 +125,9 @@ public class Materials {
             if (mat.name().contains("LEAVES")) MATERIAL_FLAGS[mat.ordinal()] |= LEAVES;
             if (mat.name().contains("DIODE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("_DOOR")) MATERIAL_FLAGS[mat.ordinal()] |= DOOR;
+            if (mat.name().contains("SHULKER_BOX")) MATERIAL_FLAGS[mat.ordinal()] |= SHULKER;
+            if (mat.name().contains("GLASS") && !mat.name().contains("PANE"))
+                MATERIAL_FLAGS[mat.ordinal()] |= GLASS_BLOCK;
         }
     }
 
