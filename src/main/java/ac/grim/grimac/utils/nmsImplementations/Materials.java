@@ -30,6 +30,7 @@ public class Materials {
     public static final int DOOR = 0b00000000000010000000000000000;
     public static final int SHULKER = 0b00000000000100000000000000000;
     public static final int GLASS_BLOCK = 0b00000000001000000000000000000;
+    public static final int GLASS_PANE = 0b00000000010000000000000000000;
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
@@ -128,6 +129,8 @@ public class Materials {
             if (mat.name().contains("SHULKER_BOX")) MATERIAL_FLAGS[mat.ordinal()] |= SHULKER;
             if (mat.name().contains("GLASS") && !mat.name().contains("PANE"))
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_BLOCK;
+            if (mat.name().contains("GLASS") && mat.name().contains("PANE"))
+                MATERIAL_FLAGS[mat.ordinal()] |= GLASS_PANE;
         }
     }
 

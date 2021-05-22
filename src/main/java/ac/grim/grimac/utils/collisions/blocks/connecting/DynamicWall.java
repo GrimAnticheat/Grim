@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.collisions.blocks;
+package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
@@ -14,26 +14,9 @@ public class DynamicWall implements CollisionFactory {
     // https://bugs.mojang.com/browse/MC-9565
     // https://bugs.mojang.com/browse/MC-94016
 
-    // Wall sides are different in 1.13 and reflect what they look like
-    private static final double width = 0.25;
-    private static final double min = .5 - width;
-    private static final double max = .5 + width;
-
     private static boolean wallConnects(ClientVersion v, int currX, int currY, int currZ, int x, int y, int z) {
 
         return false;
-        /*Block targetBlock = fenceBlock.getRelative(direction, 1);
-        BlockState sTarget = targetBlock.getState();
-        Material target = sTarget.getType();
-
-        if (!isWall(target) && DynamicFence.isBlacklisted(target))
-            return false;
-
-        if (target.name().contains("STAIRS")) {
-            if (v.isBelow(ProtocolVersion.V1_12)) return false;
-            Stairs stairs = (Stairs) sTarget.getData();
-            return stairs.getFacing() == direction;
-        } else return isWall(target) || (target.isSolid() && !target.isTransparent());*/
     }
 
     private static boolean isWall(Material m) {

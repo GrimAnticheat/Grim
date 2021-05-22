@@ -233,6 +233,20 @@ public enum WrappedBlockData {
             .map(XMaterial::parseMaterial)
             .toArray(Material[]::new)),
 
+    // 1.12 doesn't store any data about panes, 1.13+ does
+    GLASS_PANE(new WrappedMultipleFacing() {
+        public void getWrappedData(FlatBlockState data) {
+            GlassPane pane = (GlassPane) data.getBlockData();
+            setDirections(pane.getFaces());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+
+        }
+    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("GLASS") && mat.name().contains("PANE"))
+            .map(XMaterial::parseMaterial)
+            .toArray(Material[]::new)),
+
     STAIRS(new WrappedStairs() {
         public void getWrappedData(FlatBlockState data) {
             Stairs stairs = (Stairs) data.getBlockData();
