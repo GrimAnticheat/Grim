@@ -35,7 +35,7 @@ public class DoorHandler implements CollisionFactory {
                 // Doors have to be the same material in 1.12 for their block data to be connected together
                 // For example, if you somehow manage to get a jungle top with an oak bottom, the data isn't shared
                 if (data.getMaterial() == doorMaterial) {
-                    WrappedDoor upperDoor = (WrappedDoor) WrappedBlockData.getMaterialData(data.getMaterial()).getData(data);
+                    WrappedDoor upperDoor = (WrappedDoor) WrappedBlockData.getMaterialData(data);
                     door.setRightHinge(upperDoor.isRightHinge());
                 } else {
                     // Default missing value
@@ -45,7 +45,7 @@ public class DoorHandler implements CollisionFactory {
                 BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y - 1, z);
 
                 if (data.getMaterial() == doorMaterial) {
-                    WrappedDoor lowerDoor = (WrappedDoor) WrappedBlockData.getMaterialData(data.getMaterial()).getData(data);
+                    WrappedDoor lowerDoor = (WrappedDoor) WrappedBlockData.getMaterialData(data);
                     door.setOpen(lowerDoor.getOpen());
                     door.setDirection(lowerDoor.getDirection());
                 } else {

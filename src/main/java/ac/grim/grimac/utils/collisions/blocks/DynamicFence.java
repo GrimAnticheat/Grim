@@ -64,11 +64,11 @@ public class DynamicFence implements CollisionFactory {
             // 1.11- versions don't allow fences to connect to the back sides of stairs
             if (v.isOlderThan(ClientVersion.v_1_12) || (XMaterial.getVersion() < 12 && v.isNewerThanOrEquals(ClientVersion.v_1_13)))
                 return false;
-            WrappedStairs stairs = (WrappedStairs) WrappedBlockData.getMaterialData(target).getData(targetBlock);
+            WrappedStairs stairs = (WrappedStairs) WrappedBlockData.getMaterialData(targetBlock);
 
             return stairs.getDirection() == direction;
         } else if (Materials.checkFlag(target, Materials.GATE)) {
-            WrappedFenceGate gate = (WrappedFenceGate) WrappedBlockData.getMaterialData(target).getData(targetBlock);
+            WrappedFenceGate gate = (WrappedFenceGate) WrappedBlockData.getMaterialData(targetBlock);
             BlockFace f1 = gate.getDirection();
             BlockFace f2 = f1.getOppositeFace();
             return direction == f1 || direction == f2;

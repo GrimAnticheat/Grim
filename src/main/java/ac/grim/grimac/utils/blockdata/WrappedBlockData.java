@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.blockdata;
 
 import ac.grim.grimac.utils.blockdata.types.*;
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -634,13 +635,15 @@ public enum WrappedBlockData {
         this.materials = mList.toArray(new Material[0]);
     }
 
-    public static WrappedBlockDataValue getMaterialData(Material material) {
-        WrappedBlockData data = lookup[material.ordinal()];
+    public static WrappedBlockDataValue getMaterialData(BaseBlockState state) {
+        WrappedBlockData data = lookup[state.getMaterial().ordinal()];
 
         if (data != null) {
             try {
                 // We need to create a new instance because the anticheat is multithreaded
-                return data.data.getClass().newInstance();
+                WrappedBlockDataValue newData = data.data.getClass().newInstance();
+                newData.getData(state);
+                return newData;
             } catch (InstantiationException | IllegalAccessException e) {
                 e.printStackTrace();
             }

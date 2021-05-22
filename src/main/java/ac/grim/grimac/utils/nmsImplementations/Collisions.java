@@ -501,16 +501,14 @@ public class Collisions {
     private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, BaseBlockState blockData) {
         if (!Materials.checkFlag(blockData.getMaterial(), Materials.TRAPDOOR)) return false;
 
-        WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(blockData.getMaterial());
-        blockDataValue.getData(blockData);
+        WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(blockData);
         WrappedTrapdoor trapdoor = (WrappedTrapdoor) blockDataValue;
 
         if (trapdoor.isOpen()) {
             BaseBlockState blockBelow = player.compensatedWorld.getWrappedBlockStateAt(x, y - 1, z);
 
             if (blockBelow.getMaterial() == LADDER) {
-                WrappedBlockDataValue belowData = WrappedBlockData.getMaterialData(blockBelow.getMaterial());
-                belowData.getData(blockBelow);
+                WrappedBlockDataValue belowData = WrappedBlockData.getMaterialData(blockBelow);
 
                 WrappedDirectional ladder = (WrappedDirectional) belowData;
                 return ladder.getDirection() == trapdoor.getDirection();

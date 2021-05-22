@@ -775,8 +775,7 @@ public enum CollisionData {
         if (!Materials.checkFlag(block.getMaterial(), Materials.SOLID))
             return NoCollisionBox.INSTANCE;
 
-        WrappedBlockDataValue blockData = WrappedBlockData.getMaterialData(block.getMaterial());
-        blockData.getData(block);
+        WrappedBlockDataValue blockData = WrappedBlockData.getMaterialData(block);
 
         if (this.box != null)
             return this.box.copy().offset(x, y, z);

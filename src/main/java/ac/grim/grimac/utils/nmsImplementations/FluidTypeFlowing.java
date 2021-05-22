@@ -131,8 +131,7 @@ public class FluidTypeFlowing {
             // Leaves are always false despite a full bounding box
             // Snow uses different bounding box getters than collisions
             if (blockMaterial == SNOW) {
-                WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(SNOW);
-                dataValue.getData(blockState);
+                WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
 
                 WrappedSnow snow = (WrappedSnow) dataValue;
 
