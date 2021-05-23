@@ -22,6 +22,18 @@ import java.util.Collection;
 import java.util.List;
 
 public class PredictionData {
+    private static final Method onePointEightAttribute;
+    private static Object movementSpeedAttribute;
+
+    static {
+        onePointEightAttribute = Reflection.getMethod(NMSUtils.entityHumanClass, "getAttributeInstance", 0);
+        try {
+            movementSpeedAttribute = NMSUtils.getNMSClass("GenericAttributes").getDeclaredField("MOVEMENT_SPEED").get(null);
+        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
     public GrimPlayer player;
     public double playerX;
     public double playerY;
@@ -42,48 +54,28 @@ public class PredictionData {
     public boolean isFallFlying;
     public World playerWorld;
     public WorldBorder playerWorldBorder;
-
     public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;
     public float slowFallingAmplifier;
     public float dolphinsGraceAmplifier;
     public float flySpeed;
-
     public double fallDistance;
-
     // Debug, does nothing.
     public int number;
-
     public boolean inVehicle;
     public Entity playerVehicle;
     public float vehicleHorizontal;
     public float vehicleForward;
-
     public boolean isSprintingChange;
     public boolean isSneakingChange;
-
     public Vector firstBreadKB = null;
     public Vector requiredKB = null;
-
     public Vector firstBreadExplosion = null;
     public List<Vector> possibleExplosion = new ArrayList<>();
     public Vector lastTeleport;
-
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
-
-    private static final Method onePointEightAttribute;
-    private static Object movementSpeedAttribute;
-
-    static {
-        onePointEightAttribute = Reflection.getMethod(NMSUtils.entityHumanClass, "getAttributeInstance", 0);
-        try {
-            movementSpeedAttribute = NMSUtils.getNMSClass("GenericAttributes").getDeclaredField("MOVEMENT_SPEED");
-        } catch (ClassNotFoundException | NoSuchFieldException e) {
-            e.printStackTrace();
-        }
-    }
 
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
@@ -210,7 +202,8 @@ public class PredictionData {
         }
 
         try {
-            Object attribute = onePointEightAttribute.invoke(NMSUtils.getEntityPlayer(player), movementSpeedAttribute);
+            Method handle = Reflection.getMethod(player.getClass(), "getHandle", 0);
+            Object attribute = onePointEightAttribute.invoke(handle.invoke(player), movementSpeedAttribute);
             Method valueField = attribute.getClass().getMethod("getValue");
             return (double) valueField.invoke(attribute);
         } catch (Exception e) {
