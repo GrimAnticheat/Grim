@@ -247,6 +247,21 @@ public enum WrappedBlockData {
             .map(XMaterial::parseMaterial)
             .toArray(Material[]::new)),
 
+    // 1.12 doesn't store any data about walls, 1.13+ does
+    WALL(new WrappedMultipleFacing() {
+        public void getWrappedData(FlatBlockState data) {
+            Wall wall = (Wall) data.getBlockData();
+            wall.getHeight(BlockFace.NORTH);
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+
+        }
+    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
+            !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
+            .map(XMaterial::parseMaterial)
+            .toArray(Material[]::new)),
+
     STAIRS(new WrappedStairs() {
         public void getWrappedData(FlatBlockState data) {
             Stairs stairs = (Stairs) data.getBlockData();

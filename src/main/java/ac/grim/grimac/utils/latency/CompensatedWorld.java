@@ -6,7 +6,9 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
+import ac.grim.grimac.utils.chunkdata.fifteen.FifteenChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
+import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ChangeBlockData;
@@ -192,7 +194,14 @@ public class CompensatedWorld {
         try {
             BaseChunk chunk = column.getChunks()[y >> 4];
             if (chunk == null) {
-                column.getChunks()[y >> 4] = new SixteenChunk();
+                if (XMaterial.getVersion() > 15) {
+                    column.getChunks()[y >> 4] = new SixteenChunk();
+                } else if (XMaterial.isNewVersion()) {
+                    column.getChunks()[y >> 4] = new FifteenChunk();
+                } else {
+                    column.getChunks()[y >> 4] = new TwelveChunk();
+                }
+
                 chunk = column.getChunks()[y >> 4];
 
                 // Sets entire chunk to air

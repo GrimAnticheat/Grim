@@ -25,6 +25,15 @@ public class FifteenChunk implements BaseChunk {
     private @NonNull List<BlockState> states;
     private @NonNull LegacyFlexibleStorage storage;
 
+    public FifteenChunk() {
+        this.bitsPerEntry = 4;
+
+        this.states = new ArrayList<>();
+        this.states.add(AIR);
+
+        this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, 4096);
+    }
+
     public static FifteenChunk read(NetInput in) throws IOException {
         int blockCount = 0;
         // 1.14 and 1.15 include block count in chunk data

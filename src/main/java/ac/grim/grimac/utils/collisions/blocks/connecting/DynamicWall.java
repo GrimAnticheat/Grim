@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -19,36 +20,44 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
 
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
-        boolean var3 = connectsTo(player, version, x, y, z, BlockFace.NORTH);
-        boolean var4 = connectsTo(player, version, x, y, z, BlockFace.SOUTH);
-        boolean var5 = connectsTo(player, version, x, y, z, BlockFace.WEST);
-        boolean var6 = connectsTo(player, version, x, y, z, BlockFace.EAST);
+        boolean north = connectsTo(player, version, x, y, z, BlockFace.NORTH);
+        boolean south = connectsTo(player, version, x, y, z, BlockFace.SOUTH);
+        boolean west = connectsTo(player, version, x, y, z, BlockFace.WEST);
+        boolean east = connectsTo(player, version, x, y, z, BlockFace.EAST);
+
+        if (!XMaterial.isNewVersion() || version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
+            north = connectsTo(player, version, x, y, z, BlockFace.NORTH);
+            south = connectsTo(player, version, x, y, z, BlockFace.SOUTH);
+            west = connectsTo(player, version, x, y, z, BlockFace.WEST);
+            east = connectsTo(player, version, x, y, z, BlockFace.EAST);
+        } else {
+        }
 
         double var7 = 0.25;
         double var8 = 0.75;
         double var9 = 0.25;
         double var10 = 0.75;
 
-        if (var3) {
+        if (north) {
             var9 = 0.0;
         }
 
-        if (var4) {
+        if (south) {
             var10 = 1.0;
         }
 
-        if (var5) {
+        if (west) {
             var7 = 0.0;
         }
 
-        if (var6) {
+        if (east) {
             var8 = 1.0;
         }
 
-        if (var3 && var4 && !var5 && !var6) {
+        if (north && south && !west && !east) {
             var7 = 0.3125;
             var8 = 0.6875;
-        } else if (!var3 && !var4 && var5 && var6) {
+        } else if (!north && !south && west && east) {
             var9 = 0.3125;
             var10 = 0.6875;
         }
