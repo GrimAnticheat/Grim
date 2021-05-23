@@ -65,6 +65,13 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 int chunkZ = packet.readInt(1);
                 int availableSectionsInt = packet.readInt(2);
 
+                // This is how chunk unloading works in 1.7 and 1.8
+                // It's an okay optimization for 1.9+ servers too
+                if (availableSectionsInt == 0) {
+                    player.compensatedWorld.removeChunk(chunkX, chunkZ);
+                    return;
+                }
+
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
                 BaseChunk[] chunks;
                 if (XMaterial.getVersion() > 15) {
