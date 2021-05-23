@@ -73,11 +73,10 @@ public class PacketWorldReader extends PacketListenerDynamic {
                     Object chunkMap = packet.readAnyObject(2);
                     Field byteArray = chunkMap.getClass().getDeclaredField("a");
                     Field sections = chunkMap.getClass().getDeclaredField("b");
-                    Field continuous = chunkMap.getClass().getDeclaredField("d");
 
                     chunkData = (byte[]) byteArray.get(chunkMap);
                     availableSectionsInt = sections.getInt(chunkMap);
-                    boolean isContinuous = continuous.getBoolean(chunkMap);
+                    boolean isContinuous = packet.readBoolean(0);
 
                     // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
                     if (availableSectionsInt == 0 && isContinuous) {
