@@ -91,7 +91,13 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PacketEntityReplication());
 
         PacketEvents.get().registerListener(new PacketFireworkListener());
-        PacketEvents.get().registerListener(new PacketPlayerTeleport());
+
+        // TODO: Fix this teleport class
+        // It doesn't work on 1.8
+        // It barely works on 1.9+
+        if (XMaterial.getVersion() > 8) {
+            PacketEvents.get().registerListener(new PacketPlayerTeleport());
+        }
 
         PacketEvents.get().registerListener(new PacketMountVehicle());
 

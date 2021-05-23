@@ -4,15 +4,19 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import io.github.retrooper.packetevents.utils.nms.NMSUtils;
+import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -69,6 +73,18 @@ public class PredictionData {
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
 
+    private static final Method onePointEightAttribute;
+    private static Object movementSpeedAttribute;
+
+    static {
+        onePointEightAttribute = Reflection.getMethod(NMSUtils.entityHumanClass, "getAttributeInstance", 0);
+        try {
+            movementSpeedAttribute = NMSUtils.getNMSClass("GenericAttributes").getDeclaredField("MOVEMENT_SPEED");
+        } catch (ClassNotFoundException | NoSuchFieldException e) {
+            e.printStackTrace();
+        }
+    }
+
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
         this.player = player;
@@ -119,10 +135,10 @@ public class PredictionData {
 
 
         this.isClimbing = Collisions.onClimbable(player);
-        this.isFallFlying = player.bukkitPlayer.isGliding();
+        this.isFallFlying = XMaterial.getVersion() > 8 && player.bukkitPlayer.isGliding();
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
-        this.movementSpeed = player.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+        this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
 
         // When a player punches a mob, bukkit thinks the player isn't sprinting (?)
         // But they are, so we need to multiply by sprinting speed boost until I just get the player's attributes from packets
@@ -182,10 +198,26 @@ public class PredictionData {
         this.isFallFlying = false;
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
-        this.movementSpeed = player.bukkitPlayer.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+        this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
 
         minimumTickRequiredToContinue = GrimAC.currentTick.get() + 1;
         lastTransaction = player.packetLastTransactionReceived;
+    }
+
+    private double getMovementSpeedAttribute(Player player) {
+        if (XMaterial.getVersion() > 8) {
+            return player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+        }
+
+        try {
+            Object attribute = onePointEightAttribute.invoke(NMSUtils.getEntityPlayer(player), movementSpeedAttribute);
+            Method valueField = attribute.getClass().getMethod("getValue");
+            return (double) valueField.invoke(attribute);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return 0.1f;
     }
 
     private float getHighestPotionEffect(Collection<PotionEffect> effects, String typeName, int minimumVersion) {

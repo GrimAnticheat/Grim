@@ -109,7 +109,7 @@ public class PlayerBaseTick {
     private void updateFluidOnEyes() {
         player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
         player.fluidOnEyes = null;
-        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.clientVersion) - 0.1111111119389534D;
+        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, XMaterial.getVersion() > 8 && player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.clientVersion) - 0.1111111119389534D;
 
         if (player.playerVehicle instanceof Boat && !player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
