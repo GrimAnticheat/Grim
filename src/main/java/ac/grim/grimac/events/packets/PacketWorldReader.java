@@ -60,16 +60,30 @@ public class PacketWorldReader extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
-                byte[] chunkData = packet.readByteArray(0);
                 int chunkX = packet.readInt(0);
                 int chunkZ = packet.readInt(1);
-                int availableSectionsInt = packet.readInt(2);
+                byte[] chunkData;
+                int availableSectionsInt;
 
-                // This is how chunk unloading works in 1.7 and 1.8
-                // It's an okay optimization for 1.9+ servers too
-                if (availableSectionsInt == 0) {
-                    player.compensatedWorld.removeChunk(chunkX, chunkZ);
-                    return;
+                if (XMaterial.getVersion() > 8) {
+                    chunkData = packet.readByteArray(0);
+                    availableSectionsInt = packet.readInt(2);
+                } else {
+                    // 1.8 hides chunk data behind a ChunkMap class
+                    Object chunkMap = packet.readAnyObject(2);
+                    Field byteArray = chunkMap.getClass().getDeclaredField("a");
+                    Field sections = chunkMap.getClass().getDeclaredField("b");
+                    Field continuous = chunkMap.getClass().getDeclaredField("d");
+
+                    chunkData = (byte[]) byteArray.get(chunkMap);
+                    availableSectionsInt = sections.getInt(chunkMap);
+                    boolean isContinuous = continuous.getBoolean(chunkMap);
+
+                    // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
+                    if (availableSectionsInt == 0 && isContinuous) {
+                        player.compensatedWorld.removeChunk(chunkX, chunkZ);
+                        return;
+                    }
                 }
 
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
@@ -108,7 +122,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 Column column = new Column(chunkX, chunkZ, chunks);
                 player.compensatedWorld.addToCache(column, chunkX, chunkZ);
 
-            } catch (IOException e) {
+            } catch (IOException | NoSuchFieldException | IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
