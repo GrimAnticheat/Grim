@@ -27,4 +27,13 @@ public class FlatBlockState implements BaseBlockState {
     public int getCombinedId() {
         return CompensatedWorld.getFlattenedGlobalID(blockData);
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FlatBlockState)) return false;
+
+        FlatBlockState that = (FlatBlockState) o;
+        return getCombinedId() == that.getCombinedId();
+    }
 }
