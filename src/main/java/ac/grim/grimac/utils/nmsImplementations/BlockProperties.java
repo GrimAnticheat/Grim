@@ -103,7 +103,7 @@ public class BlockProperties {
 
         if (block == soulSand) {
             // Soul speed is a 1.16+ enchantment
-            if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.getVersion() > 15 && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+            if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
         }

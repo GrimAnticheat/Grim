@@ -236,7 +236,7 @@ public class MovementTicker {
                 swimSpeed += (player.movementSpeed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
-            if (XMaterial.getVersion() > 12 && player.dolphinsGraceAmplifier > 0) {
+            if (XMaterial.supports(13) && player.dolphinsGraceAmplifier > 0) {
                 swimFriction = 0.96F;
             }
 
@@ -261,7 +261,7 @@ public class MovementTicker {
                 // Removed reference to gravity
                 player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
-            } else if (XMaterial.getVersion() > 8 && bukkitPlayer.isGliding()) {
+            } else if (XMaterial.supports(9) && bukkitPlayer.isGliding()) {
                 Vector currentLook = MovementVectorsCalc.getVectorForRotation(player.yRot, player.xRot);
                 Vector lastLook = MovementVectorsCalc.getVectorForRotation(player.lastYRot, player.lastXRot);
 

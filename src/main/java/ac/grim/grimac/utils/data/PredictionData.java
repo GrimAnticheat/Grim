@@ -117,9 +117,7 @@ public class PredictionData {
         // Accept that the player's flying status lies when landing on the ground
         //
         // This isn't perfect but I'm not doubling required scenarios because of flying...
-
-        // This will break on 1.7
-        if (player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
+        if (XMaterial.supports(8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
             player.packetFlyingDanger = true;
         }
 

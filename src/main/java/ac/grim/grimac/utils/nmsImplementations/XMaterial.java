@@ -1394,13 +1394,7 @@ public enum XMaterial {
         return Optional.ofNullable(NAMES.get(name));
     }
 
-    /**
-     * The current version of the server.
-     *
-     * @return the current server version minor number.
-     * @see #isNewVersion()
-     * @since 2.0.0
-     */
+    // Use this one for version quirks and bugs
     public static int getVersion() {
         return Data.VERSION;
     }
@@ -1483,13 +1477,7 @@ public enum XMaterial {
         return new String(chs, 0, count);
     }
 
-    /**
-     * Checks if the specified version is the same version or higher than the current server version.
-     *
-     * @param version the major version to be checked. "1." is ignored. E.g. 1.12 = 12 | 1.9 = 9
-     * @return true of the version is equal or higher than the current version.
-     * @since 2.0.0
-     */
+    // Use this one for actual features
     public static boolean supports(int version) {
         return Data.VERSION >= version;
     }

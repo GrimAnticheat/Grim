@@ -95,7 +95,7 @@ public final class GrimAC extends JavaPlugin {
         // TODO: Fix this teleport class
         // It doesn't work on 1.8
         // It barely works on 1.9+
-        if (XMaterial.getVersion() > 8) {
+        if (XMaterial.supports(9)) {
             PacketEvents.get().registerListener(new PacketPlayerTeleport());
         }
 
