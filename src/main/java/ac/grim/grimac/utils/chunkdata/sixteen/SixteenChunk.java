@@ -118,7 +118,6 @@ public class SixteenChunk implements BaseChunk {
         for (int i = 0; i < 4096; ++i) {
             this.storage.set(i, this.palette.stateToId(oldPalette.idToState(oldData.get(i))));
         }
-
     }
 
     public int getBlockCount() {

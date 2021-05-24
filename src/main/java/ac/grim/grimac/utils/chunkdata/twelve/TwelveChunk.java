@@ -13,15 +13,15 @@ import java.util.List;
 
 public class TwelveChunk implements BaseChunk {
     private static final MagicBlockState AIR = new MagicBlockState(0, 0);
-    private static final List<MagicBlockState> emptyStatesWithAir = Collections.singletonList(AIR);
-    private final List<MagicBlockState> states = new ArrayList<>(emptyStatesWithAir);
-    private int bitsPerEntry = 4;
-    private LegacyFlexibleStorage storage = new LegacyFlexibleStorage(this.bitsPerEntry, 4096);
+    private final List<MagicBlockState> states;
+    private int bitsPerEntry;
+    private LegacyFlexibleStorage storage;
 
 
     public TwelveChunk(NetInput in) throws IOException {
         this.bitsPerEntry = in.readUnsignedByte();
 
+        this.states = new ArrayList<>();
         int stateCount = in.readVarInt();
         for (int i = 0; i < stateCount; i++) {
             this.states.add(readBlockState(in));
@@ -30,19 +30,13 @@ public class TwelveChunk implements BaseChunk {
         this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, in.readLongs(in.readVarInt()));
     }
 
-    // There has to be a better way than an empty constructor
     public TwelveChunk() {
+        this.bitsPerEntry = 4;
 
-    }
+        this.states = new ArrayList<>();
+        this.states.add(AIR);
 
-    public void eightChunkReader(NetInput in) throws IOException {
-        for (int y = 0; y < 16; y++) {
-            for (int z = 0; z < 16; z++) {
-                for (int x = 0; x < 16; x++) {
-                    set(x, y, z, in.readShort());
-                }
-            }
-        }
+        this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, 4096);
     }
 
     private static int index(int x, int y, int z) {
@@ -60,6 +54,16 @@ public class TwelveChunk implements BaseChunk {
 
     public static void writeBlockState(NetOutput out, MagicBlockState blockState) throws IOException {
         out.writeVarInt((blockState.getId() << 4) | (blockState.getData() & 0xF));
+    }
+
+    public void eightChunkReader(NetInput in) throws IOException {
+        for (int y = 0; y < 16; y++) {
+            for (int z = 0; z < 16; z++) {
+                for (int x = 0; x < 16; x++) {
+                    set(x, y, z, in.readShort());
+                }
+            }
+        }
     }
 
     public MagicBlockState get(int x, int y, int z) {
