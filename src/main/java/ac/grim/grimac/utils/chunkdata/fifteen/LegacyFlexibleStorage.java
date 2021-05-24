@@ -44,10 +44,6 @@ public class LegacyFlexibleStorage {
     }
 
     public int get(int index) {
-        if (index < 0 || index > this.size - 1) {
-            throw new IndexOutOfBoundsException();
-        }
-
         int bitIndex = index * this.bitsPerEntry;
         int startIndex = bitIndex / 64;
         int endIndex = ((index + 1) * this.bitsPerEntry - 1) / 64;
@@ -61,14 +57,6 @@ public class LegacyFlexibleStorage {
     }
 
     public void set(int index, int value) {
-        if (index < 0 || index > this.size - 1) {
-            throw new IndexOutOfBoundsException();
-        }
-
-        if (value < 0 || value > this.maxEntryValue) {
-            throw new IllegalArgumentException("Value cannot be outside of accepted range.");
-        }
-
         int bitIndex = index * this.bitsPerEntry;
         int startIndex = bitIndex / 64;
         int endIndex = ((index + 1) * this.bitsPerEntry - 1) / 64;
