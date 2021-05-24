@@ -39,6 +39,16 @@ public class MagicBlockState implements BaseBlockState {
         return air;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MagicBlockState)) return false;
+
+        MagicBlockState that = (MagicBlockState) o;
+        return this.id == that.getId() &&
+                this.data == that.getData();
+    }
+
     public int getBlockData() {
         return data;
     }
