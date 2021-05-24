@@ -22,12 +22,6 @@
  */
 package ac.grim.grimac.utils.nmsImplementations;
 
-import com.google.common.base.Enums;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
@@ -37,9 +31,6 @@ import org.bukkit.inventory.ItemStack;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 
 /**
  * <b>XMaterial</b> - Data Values/Pre-flattening<br>
@@ -1240,46 +1231,12 @@ public enum XMaterial {
      */
     public static final XMaterial[] VALUES = values();
 
-    /**
-     * We don't want to use {@link Enums#getIfPresent(Class, String)} to avoid a few checks.
-     *
-     * @since 5.1.0
-     */
     private static final Map<String, XMaterial> NAMES = new HashMap<>();
 
-    /**
-     * Guava (Google Core Libraries for Java)'s cache for performance and timed caches.
-     * For strings that match a certain XMaterial. Mostly cached for configs.
-     *
-     * @since 1.0.0
-     */
-    private static final Cache<String, XMaterial> NAME_CACHE = CacheBuilder.newBuilder()
-            .expireAfterAccess(1, TimeUnit.HOURS)
-            .build();
-
-    /**
-     * This is used for {@link #isOneOf(Collection)}
-     *
-     * @since 3.4.0
-     */
-    private static final LoadingCache<String, Pattern> CACHED_REGEX = CacheBuilder.newBuilder()
-            .expireAfterAccess(3, TimeUnit.HOURS)
-            .build(new CacheLoader<String, Pattern>() {
-                @Override
-                public Pattern load(@Nonnull String str) {
-                    try {
-                        return Pattern.compile(str);
-                    } catch (PatternSyntaxException ex) {
-                        ex.printStackTrace();
-                        return null;
-                    }
-                }
-            });
     /**
      * The maximum data value in the pre-flattening update which belongs to {@link #VILLAGER_SPAWN_EGG}<br>
      * https://minecraftitemids.com/types/spawn-egg
      *
-     * @see #matchXMaterialWithData(String)
      * @since 8.0.0
      */
     private static final byte MAX_DATA_VALUE = 120;
@@ -1449,153 +1406,6 @@ public enum XMaterial {
     }
 
     /**
-     * When using newer versions of Minecraft ({@link #isNewVersion()}), helps
-     * to find the old material name with its data value using a cached search for optimization.
-     *
-     * @see #matchDefinedXMaterial(String, byte)
-     * @since 1.0.0
-     */
-    @Nullable
-    private static XMaterial requestOldXMaterial(@Nonnull String name, byte data) {
-        String holder = name + data;
-        XMaterial cache = NAME_CACHE.getIfPresent(holder);
-        if (cache != null) return cache;
-
-        for (XMaterial material : VALUES) {
-            // Not using material.name().equals(name) check is intended.
-            if ((data == UNKNOWN_DATA_VALUE || data == material.data) && material.anyMatchLegacy(name)) {
-                NAME_CACHE.put(holder, material);
-                return material;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Parses the given material name as an XMaterial with a given data
-     * value in the string if attached. Check {@link #matchXMaterialWithData(String)} for more info.
-     *
-     * @see #matchXMaterialWithData(String)
-     * @see #matchDefinedXMaterial(String, byte)
-     * @since 2.0.0
-     */
-    @Nonnull
-    public static Optional<XMaterial> matchXMaterial(@Nonnull String name) {
-        Validate.notEmpty(name, "Cannot match a material with null or empty material name");
-        Optional<XMaterial> oldMatch = matchXMaterialWithData(name);
-        return oldMatch.isPresent() ? oldMatch : matchDefinedXMaterial(format(name), UNKNOWN_DATA_VALUE);
-    }
-
-    /**
-     * Parses material name and data value from the specified string.
-     * The separator for the material name and its data value is {@code :}
-     * Spaces are allowed. Mostly used when getting materials from config for old school minecrafters.
-     * <p>
-     * <b>Examples</b>
-     * <p><pre>
-     *     {@code INK_SACK:1 -> RED_DYE}
-     *     {@code WOOL: 14  -> RED_WOOL}
-     * </pre>
-     *
-     * @param name the material string that consists of the material name, data and separator character.
-     * @return the parsed XMaterial.
-     * @see #matchXMaterial(String)
-     * @since 3.0.0
-     */
-    @Nonnull
-    private static Optional<XMaterial> matchXMaterialWithData(@Nonnull String name) {
-        int index = name.indexOf(':');
-        if (index != -1) {
-            String mat = format(name.substring(0, index));
-            try {
-                // We don't use Byte.parseByte because we have our own range check.
-                byte data = (byte) Integer.parseInt(StringUtils.deleteWhitespace(name.substring(index + 1)));
-                return data >= 0 && data < MAX_DATA_VALUE ? matchDefinedXMaterial(mat, data) : matchDefinedXMaterial(mat, UNKNOWN_DATA_VALUE);
-            } catch (NumberFormatException ignored) {
-                return matchDefinedXMaterial(mat, UNKNOWN_DATA_VALUE);
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    /**
-     * Parses the given material as an XMaterial.
-     *
-     * @throws IllegalArgumentException may be thrown as an unexpected exception.
-     * @see #matchDefinedXMaterial(String, byte)
-     * @see #matchXMaterial(ItemStack)
-     * @since 2.0.0
-     */
-    @Nonnull
-    public static XMaterial matchXMaterial(@Nonnull Material material) {
-        Objects.requireNonNull(material, "Cannot match null material");
-        return matchDefinedXMaterial(material.name(), UNKNOWN_DATA_VALUE)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported material with no data value: " + material.name()));
-    }
-
-    /**
-     * Parses the given item as an XMaterial using its material and data value (durability)
-     * if not a damageable item {@link ItemStack#getDurability()}.
-     *
-     * @param item the ItemStack to match.
-     * @return an XMaterial if matched any.
-     * @throws IllegalArgumentException may be thrown as an unexpected exception.
-     * @see #matchXMaterial(Material)
-     * @since 2.0.0
-     */
-    @Nonnull
-    @SuppressWarnings("deprecation")
-    public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
-        Objects.requireNonNull(item, "Cannot match null ItemStack");
-        String material = item.getType().name();
-        byte data = (byte) (Data.ISFLAT || item.getType().getMaxDurability() > 0 ? 0 : item.getDurability());
-
-        // Check FILLED_MAP enum for more info.
-        //if (!Data.ISFLAT && item.hasItemMeta() && item.getItemMeta() instanceof org.bukkit.inventory.meta.MapMeta) return FILLED_MAP;
-
-        return matchDefinedXMaterial(material, data)
-                .orElseThrow(() -> new IllegalArgumentException("Unsupported material from item: " + material + " (" + data + ')'));
-    }
-
-    /**
-     * The main method that parses the given material name and data value as an XMaterial.
-     * All the values passed to this method will not be null or empty and are formatted correctly.
-     *
-     * @param name the formatted name of the material.
-     * @param data the data value of the material. Is always 0 or {@link #UNKNOWN_DATA_VALUE} when {@link Data#ISFLAT}
-     * @return an XMaterial (with the same data value if specified)
-     * @see #matchXMaterial(Material)
-     * @see #matchXMaterial(int, byte)
-     * @see #matchXMaterial(ItemStack)
-     * @since 3.0.0
-     */
-    @Nonnull
-    protected static Optional<XMaterial> matchDefinedXMaterial(@Nonnull String name, byte data) {
-        // if (!Boolean.valueOf(Boolean.getBoolean(Boolean.TRUE.toString())).equals(Boolean.FALSE.booleanValue())) return null;
-        Boolean duplicated = null;
-        boolean isAMap = name.equalsIgnoreCase("MAP");
-
-        // Do basic number and boolean checks before accessing more complex enum stuff.
-        if (Data.ISFLAT || (!isAMap && data <= 0 && !(duplicated = isDuplicated(name)))) {
-            Optional<XMaterial> xMaterial = getIfPresent(name);
-            if (xMaterial.isPresent()) return xMaterial;
-        }
-        // Usually flat versions wouldn't pass this point, but some special materials do.
-
-        XMaterial oldXMaterial = requestOldXMaterial(name, data);
-        if (oldXMaterial == null) {
-            // Special case. Refer to FILLED_MAP for more info.
-            return (data >= 0 && isAMap) ? Optional.of(FILLED_MAP) : Optional.empty();
-        }
-
-        if (!Data.ISFLAT && oldXMaterial.isPlural() && (duplicated == null ? isDuplicated(name) : duplicated))
-            return getIfPresent(name);
-        return Optional.of(oldXMaterial);
-    }
-
-    /**
      * <b>XMaterial Paradox (Duplication Check)</b>
      * Checks if the material has any duplicates.
      * <p>
@@ -1618,7 +1428,6 @@ public enum XMaterial {
      * @param id   the ID (Magic value) of the material.
      * @param data the data value of the material.
      * @return a parsed XMaterial with the same ID and data value.
-     * @see #matchXMaterial(ItemStack)
      * @since 2.0.0
      * @deprecated this method loops through all the available materials and matches their ID using {@link #getId()}
      * which takes a really long time. Plugins should no longer support IDs. If you want, you can make a {@link Map} cache yourself.
@@ -1742,67 +1551,6 @@ public enum XMaterial {
         return this == CARROTS || this == POTATOES;
     }
 
-    /**
-     * Checks if the list of given material names matches the given base material.
-     * Mostly used for configs.
-     * <p>
-     * Supports {@link String#contains} {@code CONTAINS:NAME} and Regular Expression {@code REGEX:PATTERN} formats.
-     * <p>
-     * <b>Example:</b>
-     * <blockquote><pre>
-     *     XMaterial material = {@link #matchXMaterial(ItemStack)};
-     *     if (material.isOneOf(plugin.getConfig().getStringList("disabled-items")) return;
-     * </pre></blockquote>
-     * <br>
-     * <b>{@code CONTAINS} Examples:</b>
-     * <pre>
-     *     {@code "CONTAINS:CHEST" -> CHEST, ENDERCHEST, TRAPPED_CHEST -> true}
-     *     {@code "cOnTaINS:dYe" -> GREEN_DYE, YELLOW_DYE, BLUE_DYE, INK_SACK -> true}
-     * </pre>
-     * <p>
-     * <b>{@code REGEX} Examples</b>
-     * <pre>
-     *     {@code "REGEX:^.+_.+_.+$" -> Every Material with 3 underlines or more: SHULKER_SPAWN_EGG, SILVERFISH_SPAWN_EGG, SKELETON_HORSE_SPAWN_EGG}
-     *     {@code "REGEX:^.{1,3}$" -> Material names that have 3 letters only: BED, MAP, AIR}
-     * </pre>
-     * <p>
-     * The reason that there are tags for {@code CONTAINS} and {@code REGEX} is for the performance.
-     * Although RegEx patterns are cached in this method,
-     * please avoid using the {@code REGEX} tag if you can use the {@code CONTAINS} tag instead.
-     * It'll have a huge impact on performance.
-     * Please avoid using {@code (capturing groups)} there's no use for them in this case.
-     * If you want to use groups, use {@code (?: non-capturing groups)}. It's faster.
-     * <p>
-     * Want to learn RegEx? You can mess around in <a href="https://regexr.com/">RegExr</a> website.
-     *
-     * @param materials the material names to check base material on.
-     * @return true if one of the given material names is similar to the base material.
-     * @since 3.1.1
-     */
-    public boolean isOneOf(@Nullable Collection<String> materials) {
-        if (materials == null || materials.isEmpty()) return false;
-        String name = this.name();
-
-        for (String comp : materials) {
-            String checker = comp.toUpperCase(Locale.ENGLISH);
-            if (checker.startsWith("CONTAINS:")) {
-                comp = format(checker.substring(9));
-                if (name.contains(comp)) return true;
-                continue;
-            }
-            if (checker.startsWith("REGEX:")) {
-                comp = comp.substring(6);
-                Pattern pattern = CACHED_REGEX.getUnchecked(comp);
-                if (pattern != null && pattern.matcher(name).matches()) return true;
-                continue;
-            }
-
-            // Direct Object Equals
-            Optional<XMaterial> xMat = matchXMaterial(comp);
-            if (xMat.isPresent() && xMat.get() == this) return true;
-        }
-        return false;
-    }
 
     /**
      * Sets the {@link Material} (and data value on older versions) of an item.
