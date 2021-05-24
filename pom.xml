@@ -35,7 +35,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <minimizeJar>false</minimizeJar>
+                            <minimizeJar>true</minimizeJar>
                             <relocations>
                                 <relocation>
                                     <pattern>io.github.retrooper.packetevents</pattern>
