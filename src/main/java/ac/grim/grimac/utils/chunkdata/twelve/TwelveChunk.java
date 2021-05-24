@@ -60,7 +60,7 @@ public class TwelveChunk implements BaseChunk {
         for (int y = 0; y < 16; y++) {
             for (int z = 0; z < 16; z++) {
                 for (int x = 0; x < 16; x++) {
-                    set(x, y, z, in.readShort());
+                    set(x, y, z, new MagicBlockState(in.readByte(), in.readByte()));
                 }
             }
         }
@@ -73,6 +73,8 @@ public class TwelveChunk implements BaseChunk {
 
 
     public void set(int x, int y, int z, int combinedID) {
+        MagicBlockState blockState = new MagicBlockState(combinedID);
+        //Bukkit.broadcastMessage("Setting " + x + " " + y + " " + z + " to " + blockState.getMaterial());
         set(x, y, z, new MagicBlockState(combinedID));
     }
 

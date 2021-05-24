@@ -122,9 +122,6 @@ public class PacketWorldReader extends PacketListenerDynamic {
                         if ((availableSectionsInt & 1 << index) != 0) {
                             chunks[index] = new TwelveChunk();
                             ((TwelveChunk) chunks[index]).eightChunkReader(dataIn);
-
-                            // Advance the data past the blocklight and skylight bytes
-                            dataIn.readBytes(4096);
                         }
                     }
                 }

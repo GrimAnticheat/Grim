@@ -35,7 +35,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <minimizeJar>true</minimizeJar>
+                            <minimizeJar>false</minimizeJar>
                             <relocations>
                                 <relocation>
                                     <pattern>io.github.retrooper.packetevents</pattern>
@@ -84,7 +84,7 @@
         <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents</artifactId>
-            <version>68dae87</version>
+            <version>43eaa08</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
