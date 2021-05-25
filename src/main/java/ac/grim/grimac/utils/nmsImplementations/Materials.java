@@ -59,7 +59,6 @@ public class Materials {
 
         // fix some types where isSolid() returns the wrong value
         markAs(XMaterial.SLIME_BLOCK, SOLID);
-        markAs(XMaterial.COMPARATOR, SOLID);
         markAs(XMaterial.REPEATER, SOLID);
         markAs(XMaterial.SNOW, SOLID);
         markAs(XMaterial.ANVIL, SOLID);
@@ -126,6 +125,7 @@ public class Materials {
                 MATERIAL_FLAGS[mat.ordinal()] |= TRAPDOOR;
             if (mat.name().contains("LEAVES")) MATERIAL_FLAGS[mat.ordinal()] |= LEAVES;
             if (mat.name().contains("DIODE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
+            if (mat.name().contains("COMPARATOR")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("_DOOR")) MATERIAL_FLAGS[mat.ordinal()] |= DOOR;
             if (mat.name().contains("SHULKER_BOX")) MATERIAL_FLAGS[mat.ordinal()] |= SHULKER;
             if (mat.name().contains("GLASS") && !mat.name().contains("PANE"))
