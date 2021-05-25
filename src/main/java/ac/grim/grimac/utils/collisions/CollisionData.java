@@ -530,8 +530,8 @@ public enum CollisionData {
     }, XMaterial.LILY_PAD.parseMaterial()),
 
     BED(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.5625, 1.0F),
-            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("BED") && !mat.name().contains("ROCK"))
-                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BED") && !mat.name().contains("ROCK"))
+                    .toArray(Material[]::new)),
 
     TRAPDOOR(new TrapDoorHandler(), Arrays.stream(Material.values())
             .filter(mat -> mat.name().contains("TRAP_DOOR") || mat.name().contains("TRAPDOOR")).toArray(Material[]::new)),
