@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 
 public class PacketWorldReader extends PacketListenerDynamic {
     public static Method getByCombinedID;
@@ -65,7 +66,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                 byte[] chunkData;
                 int availableSectionsInt;
 
-                if (XMaterial.getVersion() > 8) {
+                if (XMaterial.getVersion() != 8) {
                     chunkData = packet.readByteArray(0);
                     availableSectionsInt = packet.readInt(2);
                 } else {
@@ -178,7 +179,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
 
             try {
                 // Section Position or Chunk Section - depending on version
-                Object position = packet.readAnyObject(0);
+                Object position = packet.readAnyObject(XMaterial.getVersion() == 7 ? 1 : 0);
 
                 // In 1.16, chunk sections are used.  The have X, Y, and Z
                 if (XMaterial.getVersion() > 15) {
@@ -206,8 +207,9 @@ public class PacketWorldReader extends PacketListenerDynamic {
                         player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
 
                     }
-                } else {
-                    Object[] blockInformation = (Object[]) packet.readAnyObject(1);
+                } else if (XMaterial.getVersion() > 7) {
+                    Object[] blockInformation;
+                    blockInformation = (Object[]) packet.readAnyObject(1);
 
                     // This shouldn't be possible
                     if (blockInformation.length == 0) return;
@@ -230,6 +232,37 @@ public class PacketWorldReader extends PacketListenerDynamic {
                         int blockZ = pos >> 8 & 15;
 
                         player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), chunkX + blockX, blockY, chunkZ + blockZ, blockID));
+                    }
+                } else {
+                    // 1.7 multi block change format:
+                    // https://wiki.vg/index.php?title=Protocol&oldid=6003#Chunk_Data
+                    // Object 1 - ChunkCoordIntPair
+                    // Object 5 - Blocks array using integers
+                    // 00 00 00 0F - block metadata
+                    // 00 00 FF F0 - block ID
+                    // 00 FF 00 00 - Y coordinate
+                    // 0F 00 00 00 - Z coordinate relative to chunk
+                    // F0 00 00 00 - X coordinate relative to chunk
+                    Object coordinates = packet.readAnyObject(1);
+                    int chunkX = coordinates.getClass().getDeclaredField("x").getInt(coordinates) << 4;
+                    int chunkZ = coordinates.getClass().getDeclaredField("z").getInt(coordinates) << 4;
+
+                    byte[] blockData = (byte[]) packet.readAnyObject(2);
+
+                    ByteBuffer buffer = ByteBuffer.wrap(blockData);
+
+                    while (buffer.hasRemaining()) {
+                        short positionData = buffer.getShort();
+                        short block = buffer.getShort();
+
+                        int relativeX = positionData >> 12 & 15;
+                        int relativeZ = positionData >> 8 & 15;
+                        int relativeY = positionData & 255;
+
+                        int blockID = block >> 4 & 255;
+                        int blockMagicValue = block & 15;
+
+                        player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), chunkX + relativeX, relativeY, chunkZ + relativeZ, blockID | blockMagicValue << 12));
                     }
                 }
 
