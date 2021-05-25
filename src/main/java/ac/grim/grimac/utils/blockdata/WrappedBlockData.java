@@ -199,7 +199,7 @@ public enum WrappedBlockData {
         }
 
         public void getWrappedData(MagicBlockState data) {
-            setOpen((data.getBlockData() & 0x4) == 0);
+            setOpen((data.getBlockData() & 0x4) != 0);
             switch (data.getBlockData() & (1 << 2) - 1) {
                 case 0:
                     setDirection(BlockFace.NORTH);
