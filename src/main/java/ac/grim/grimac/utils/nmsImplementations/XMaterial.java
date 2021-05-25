@@ -1088,11 +1088,9 @@ public enum XMaterial {
     STRIPPED_WARPED_HYPHAE(16),
     STRIPPED_WARPED_STEM(16),
     STRUCTURE_BLOCK,
-    /**
-     * Originally developers used barrier blocks for its purpose.
-     * So technically this isn't really considered as a suggested material.
-     */
-    STRUCTURE_VOID(10, "BARRIER"),
+    // Update note - XMaterial has this incorrect for 1.8 and 1.9 servers!
+    // STRUCTURE_VOID(10, "BARRIER"),
+    STRUCTURE_VOID(8),
     SUGAR,
     /**
      * Sugar Cane is a known material in pre-1.13
