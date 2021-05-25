@@ -17,10 +17,14 @@ import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
+import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.block.Block;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -57,73 +61,88 @@ public class PacketWorldReader extends PacketListenerDynamic {
         byte packetID = event.getPacketId();
 
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
-            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+            WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
-                int chunkX = packet.readInt(0);
-                int chunkZ = packet.readInt(1);
-                byte[] chunkData;
-                int availableSectionsInt;
+                int chunkX = packet.getChunkX();
+                int chunkZ = packet.getChunkZ();
 
-                if (XMaterial.getVersion() != 8) {
-                    chunkData = packet.readByteArray(0);
-                    availableSectionsInt = packet.readInt(2);
-                } else {
-                    // 1.8 hides chunk data behind a ChunkMap class
-                    Object chunkMap = packet.readAnyObject(2);
-                    Field byteArray = chunkMap.getClass().getDeclaredField("a");
-                    Field sections = chunkMap.getClass().getDeclaredField("b");
-
-                    chunkData = (byte[]) byteArray.get(chunkMap);
-                    availableSectionsInt = sections.getInt(chunkMap);
-                    boolean isContinuous = packet.readBoolean(0);
-
-                    // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
-                    if (availableSectionsInt == 0 && isContinuous) {
-                        player.compensatedWorld.removeChunk(chunkX, chunkZ);
-                        return;
-                    }
-                }
-
-                NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
                 BaseChunk[] chunks;
-                if (XMaterial.getVersion() > 15) {
-                    chunks = new SixteenChunk[16];
-                    for (int index = 0; index < chunks.length; ++index) {
-                        if ((availableSectionsInt & 1 << index) != 0) {
-                            chunks[index] = SixteenChunk.read(dataIn);
-                        }
-                    }
-                } else if (XMaterial.isNewVersion()) {
-                    chunks = new FifteenChunk[16];
-                    for (int index = 0; index < chunks.length; ++index) {
-                        if ((availableSectionsInt & 1 << index) != 0) {
-                            chunks[index] = FifteenChunk.read(dataIn);
+                if (XMaterial.getVersion() > 8) {
+                    byte[] chunkData = packet.getCompressedData();
+                    int availableSectionsInt = packet.getPrimaryBitMap();
+                    NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
-                            // Advance the data past the blocklight and skylight bytes
-                            if (XMaterial.getVersion() == 13) {
+                    if (XMaterial.getVersion() > 15) {
+                        chunks = new SixteenChunk[16];
+                        for (int index = 0; index < chunks.length; ++index) {
+                            if ((availableSectionsInt & 1 << index) != 0) {
+                                chunks[index] = SixteenChunk.read(dataIn);
+                            }
+                        }
+                    } else if (XMaterial.isNewVersion()) {
+                        chunks = new FifteenChunk[16];
+                        for (int index = 0; index < chunks.length; ++index) {
+                            if ((availableSectionsInt & 1 << index) != 0) {
+                                chunks[index] = FifteenChunk.read(dataIn);
+
+                                // Advance the data past the blocklight and skylight bytes
+                                if (XMaterial.getVersion() == 13) {
+                                    dataIn.readBytes(4096);
+                                }
+                            }
+                        }
+                    } else {
+                        chunks = new TwelveChunk[16];
+                        for (int index = 0; index < chunks.length; ++index) {
+                            if ((availableSectionsInt & 1 << index) != 0) {
+                                chunks[index] = new TwelveChunk(dataIn);
+
+                                // Advance the data past the blocklight and skylight bytes
                                 dataIn.readBytes(4096);
                             }
                         }
                     }
-                } else if (XMaterial.getVersion() > 8) {
-                    chunks = new TwelveChunk[16];
-                    for (int index = 0; index < chunks.length; ++index) {
-                        if ((availableSectionsInt & 1 << index) != 0) {
-                            chunks[index] = new TwelveChunk(dataIn);
-
-                            // Advance the data past the blocklight and skylight bytes
-                            dataIn.readBytes(4096);
+                } else {
+                    // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
+                    if (XMaterial.getVersion() == 8) {
+                        Object chunkMap = packet.readAnyObject(2);
+                        if (chunkMap.getClass().getDeclaredField("b").getInt(chunkMap) == 0 && packet.isGroundUpContinuous()) {
+                            player.compensatedWorld.removeChunk(chunkX, chunkZ);
+                            return;
+                        }
+                    } else {
+                        if (packet.readInt(5) == 0 && packet.isGroundUpContinuous()) {
+                            player.compensatedWorld.removeChunk(chunkX, chunkZ);
+                            return;
                         }
                     }
-                } else {
+
+
+                    // This isn't really async safe, but even vanilla does this when sending chunks!
                     chunks = new TwelveChunk[16];
-                    for (int index = 0; index < chunks.length; ++index) {
-                        if ((availableSectionsInt & 1 << index) != 0) {
-                            chunks[index] = new TwelveChunk();
-                            ((TwelveChunk) chunks[index]).eightChunkReader(dataIn);
+                    if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                        Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+
+                        for (int y = 0; y < 255; y++) {
+                            for (int z = 0; z < 16; z++) {
+                                for (int x = 0; x < 16; x++) {
+                                    Block block = sentChunk.getBlock(x, y, z);
+                                    int typeID = block.getType().getId();
+
+                                    if (typeID != 0) {
+                                        if (chunks[y >> 4] == null) {
+                                            chunks[y >> 4] = new TwelveChunk();
+                                        }
+
+                                        chunks[y >> 4].set(x, y & 15, z, typeID | block.getData() << 12);
+                                    }
+                                }
+                            }
                         }
+                    } else {
+                        Bukkit.broadcastMessage("Chunk not loaded!");
                     }
                 }
 
@@ -135,9 +154,47 @@ public class PacketWorldReader extends PacketListenerDynamic {
             }
         }
 
+        // Exists on 1.7 and 1.8 only
+        if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+
+            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+            int[] chunkXArray = (int[]) packet.readAnyObject(0);
+            int[] chunkZArray = (int[]) packet.readAnyObject(1);
+
+            for (int i = 0; i < chunkXArray.length; i++) {
+                int chunkX = chunkXArray[i];
+                int chunkZ = chunkZArray[i];
+                TwelveChunk[] chunks = new TwelveChunk[16];
+
+                if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                    Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+
+                    for (int y = 0; y < 255; y++) {
+                        for (int z = 0; z < 16; z++) {
+                            for (int x = 0; x < 16; x++) {
+                                Block block = sentChunk.getBlock(x, y, z);
+                                int typeID = block.getType().getId();
+
+                                if (typeID != 0) {
+                                    if (chunks[y >> 4] == null) {
+                                        chunks[y >> 4] = new TwelveChunk();
+                                    }
+
+                                    chunks[y >> 4].set(x, y & 15, z, typeID | block.getData() << 12);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Column column = new Column(chunkX, chunkZ, chunks);
+                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+            }
+        }
+
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
             WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
             try {
@@ -159,7 +216,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
                     Field block = Reflection.getField(event.getNMSPacket().getRawNMSPacket().getClass(), "block");
                     Object blockNMS = block.get(event.getNMSPacket().getRawNMSPacket());
 
-                    int materialID = (int) ancientGetById.invoke(blockNMS);
+                    int materialID = (int) ancientGetById.invoke(null, blockNMS);
 
                     combinedID = materialID + (blockData << 12);
                 }

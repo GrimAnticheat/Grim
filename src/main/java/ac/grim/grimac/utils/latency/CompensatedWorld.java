@@ -110,6 +110,10 @@ public class CompensatedWorld {
         return globalPaletteToBlockData.indexOf(blockData);
     }
 
+    public static long chunkPositionToLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
+    }
+
     public void tickUpdates(int minimumTickRequiredToContinue, int lastTransactionReceived) {
         while (true) {
             ChangeBlockData changeBlockData = changeBlockQueue.peek();
@@ -178,10 +182,6 @@ public class CompensatedWorld {
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
     }
 
-    public static long chunkPositionToLong(int x, int z) {
-        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
-    }
-
     public boolean isChunkLoaded(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
 
@@ -235,13 +235,9 @@ public class CompensatedWorld {
 
         if (column == null || y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return airData;
 
-        try {
-            BaseChunk chunk = column.getChunks()[y >> 4];
-            if (chunk != null) {
-                return chunk.get(x & 0xF, y & 0xF, z & 0xF);
-            }
-        } catch (Exception e) {
-            GrimAC.plugin.getLogger().warning("Unable to get block data from chunk x " + (x >> 4) + " z " + (z >> 4));
+        BaseChunk chunk = column.getChunks()[y >> 4];
+        if (chunk != null) {
+            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
 
         return airData;

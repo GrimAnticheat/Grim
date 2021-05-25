@@ -56,39 +56,6 @@ public class TwelveChunk implements BaseChunk {
         out.writeVarInt((blockState.getId() << 4) | (blockState.getData() & 0xF));
     }
 
-    public void eightChunkReader(NetInput in) throws IOException {
-        for (int y = 0; y < 16; y++) {
-            for (int z = 0; z < 16; z++) {
-                for (int x = 0; x < 16; x++) {
-                    byte material = in.readByte();
-                    byte dataType = in.readByte();
-                    byte materialRev = 0;
-                    byte dataRev = 0;
-
-                    while (material > 0) {
-                        materialRev <<= 1;
-
-                        if ((material & 1) == 1)
-                            materialRev ^= 1;
-
-                        material >>= 1;
-                    }
-
-                    while (dataType > 0) {
-                        dataRev <<= 1;
-
-                        if ((dataType & 1) == 1)
-                            dataRev ^= 1;
-
-                        dataType >>= 1;
-                    }
-
-                    set(x, y, z, new MagicBlockState(materialRev, dataRev));
-                }
-            }
-        }
-    }
-
     public MagicBlockState get(int x, int y, int z) {
         int id = this.storage.get(index(x, y, z));
         return this.bitsPerEntry <= 8 ? (id >= 0 && id < this.states.size() ? this.states.get(id) : AIR) : rawToState(id);
