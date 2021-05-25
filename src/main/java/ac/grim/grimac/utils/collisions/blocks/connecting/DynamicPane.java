@@ -40,6 +40,11 @@ public class DynamicPane extends DynamicConnecting implements CollisionFactory {
             west = connectsTo(player, version, x, y, z, BlockFace.WEST);
         }
 
+        // On 1.7 and 1.8 clients, and 1.13+ clients on 1.7 and 1.8 servers, the glass pane is + instead of |
+        if (!north && !south && !east && !west && (version.isOlderThanOrEquals(ClientVersion.v_1_8) || (XMaterial.getVersion() <= 8 && version.isNewerThanOrEquals(ClientVersion.v_1_13)))) {
+            north = south = east = west = true;
+        }
+
         return COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy();
     }
 
