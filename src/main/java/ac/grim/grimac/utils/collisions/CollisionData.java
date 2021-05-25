@@ -151,10 +151,6 @@ public enum CollisionData {
         // 1.12 has double slabs as a separate block, no block data to differentiate it
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_SLAB") && !mat.name().contains("DOUBLE")).toArray(Material[]::new)),
 
-    /*SKULL(new SimpleCollisionBox(0.25, 0, 0.25, 0.75, 0.5, 0.75), XMaterial.SKELETON_SKULL.parseMaterial(), XMaterial.WITHER_SKELETON_SKULL.parseMaterial(),
-            XMaterial.CREEPER_HEAD.parseMaterial(), XMaterial.DRAGON_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
-            XMaterial.PLAYER_HEAD.parseMaterial(), XMaterial.ZOMBIE_HEAD.parseMaterial()),*/
-
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
     WALL_SKULL((player, version, data, x, y, z) -> {
         switch (((WrappedDirectional) data).getDirection()) {
