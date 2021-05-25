@@ -434,15 +434,13 @@ public class Collisions {
         }
     }
 
-    // Just a test
-    // player will be used eventually to get blocks from the player's cache
     public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
         List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
 
-        // Not the fastest way to iterate but everything is broken anyways
-        for (int x = (int) Math.floor(wantedBB.minX - 0.25 - COLLISION_EPSILON); x < Math.ceil(wantedBB.maxX + 0.25 + COLLISION_EPSILON); x++) {
-            for (int y = (int) Math.floor(wantedBB.minY - 0.5 - COLLISION_EPSILON); y < Math.ceil(wantedBB.maxY + 0.25 + COLLISION_EPSILON); y++) {
-                for (int z = (int) Math.floor(wantedBB.minZ - 0.25 - COLLISION_EPSILON) - 1; z < Math.ceil(wantedBB.maxZ + 0.25 + COLLISION_EPSILON); z++) {
+        // Blocks are stored in YZX order
+        for (int y = (int) Math.floor(wantedBB.minY - 0.51); y < Math.ceil(wantedBB.maxY + 0.26); y++) {
+            for (int z = (int) Math.floor(wantedBB.minZ - 0.26) - 1; z < Math.ceil(wantedBB.maxZ + 0.26); z++) {
+                for (int x = (int) Math.floor(wantedBB.minX - 0.26); x < Math.ceil(wantedBB.maxX + 0.26); x++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
                     CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
                 }

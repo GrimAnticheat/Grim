@@ -134,10 +134,9 @@ public enum CollisionData {
     }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
 
 
-    WALL(new DynamicWall(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("WALL")
+    WALL(new DynamicWall(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL")
             && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER")
             && !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
-            .map(XMaterial::parseMaterial)
             .toArray(Material[]::new)),
 
 
@@ -151,8 +150,8 @@ public enum CollisionData {
         return new SimpleCollisionBox(0, 0.5, 0, 1, 1, 1);
         // 1.13 can handle double slabs as it's in the block data
         // 1.12 has double slabs as a separate block, no block data to differentiate it
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_SLAB"))
-            .map(XMaterial::parseMaterial).filter(Objects::nonNull).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_SLAB"))
+            .filter(Objects::nonNull).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
 
     WALL_SKULL((player, version, data, x, y, z) -> {
         switch (((WrappedDirectional) data).getDirection()) {
@@ -178,8 +177,8 @@ public enum CollisionData {
             XMaterial.PLAYER_HEAD.parseMaterial(), XMaterial.ZOMBIE_HEAD.parseMaterial()),
 
 
-    DOOR(new DoorHandler(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_DOOR"))
-            .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+    DOOR(new DoorHandler(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_DOOR"))
+            .toArray(Material[]::new)),
 
     HOPPER((player, version, data, x, y, z) -> {
         double height = 0.125 * 5;
@@ -463,18 +462,16 @@ public enum CollisionData {
         // This code is unreachable but the compiler does not know this
         return NoCollisionBox.INSTANCE;
 
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
-            .map(XMaterial::parseMaterial)
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
             .toArray(Material[]::new)),
 
 
-    FENCE(new DynamicFence(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE"))
-            .map(XMaterial::parseMaterial)
+    FENCE(new DynamicFence(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE"))
             .toArray(Material[]::new)),
 
 
-    PANE(new DynamicPane(), Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().equals("IRON_BARS"))
-            .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+    PANE(new DynamicPane(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().equals("IRON_BARS"))
+            .toArray(Material[]::new)),
 
 
     SNOW((player, version, data, x, y, z) -> {
@@ -488,8 +485,8 @@ public enum CollisionData {
 
 
     STAIR(new DynamicStair(),
-            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("STAIRS"))
-                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("STAIRS"))
+                    .toArray(Material[]::new)),
 
 
     CHEST(new DynamicChest(), XMaterial.CHEST.parseMaterial(), XMaterial.TRAPPED_CHEST.parseMaterial()),
@@ -518,8 +515,8 @@ public enum CollisionData {
     }, XMaterial.END_PORTAL_FRAME.parseMaterial()),
 
     CARPET(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F),
-            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("CARPET"))
-                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("CARPET"))
+                    .toArray(Material[]::new)),
 
     DAYLIGHT(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F),
             XMaterial.DAYLIGHT_DETECTOR.parseMaterial()),
@@ -655,8 +652,8 @@ public enum CollisionData {
 
     // The nether signes map to sign post and other regular sign
     SIGN(new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75),
-            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("SIGN") && !mat.name().contains("WALL"))
-                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("SIGN") && !mat.name().contains("WALL"))
+                    .toArray(Material[]::new)),
 
 
     BUTTON((player, version, data, x, y, z) -> {
@@ -746,8 +743,8 @@ public enum CollisionData {
             XMaterial.TRIPWIRE.parseMaterial(), XMaterial.TRIPWIRE_HOOK.parseMaterial()),
 
     NONE2(NoCollisionBox.INSTANCE,
-            Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_PLATE"))
-                    .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_PLATE"))
+                    .toArray(Material[]::new)),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1),
             XMaterial.STONE.parseMaterial());
