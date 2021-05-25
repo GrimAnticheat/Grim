@@ -19,6 +19,7 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.FaceAttachable;
 import org.bukkit.block.data.type.*;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
@@ -411,16 +412,25 @@ public enum CollisionData {
     CHAIN_BLOCK((player, version, data, x, y, z) -> {
         Chain chain = (Chain) ((WrappedFlatBlock) data).getBlockData();
 
-        switch (chain.getAxis()) {
-            case X:
-                return new HexCollisionBox(0.0D, 6.5D, 6.5D, 16.0D, 9.5D, 9.5D);
-            case Y:
-                return new HexCollisionBox(6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
-            default:
-            case Z:
-                return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
+        try {
+            // getAxis fails and causes an initialization error on older versions
+            // There probably is a better way but this works.
+            Enum axis = (Enum) chain.getClass().getDeclaredMethod("getAxis").invoke(chain);
+
+            switch (axis.ordinal()) {
+                case 0: // X
+                    return new HexCollisionBox(0.0D, 6.5D, 6.5D, 16.0D, 9.5D, 9.5D);
+                case 1: // Y
+                    return new HexCollisionBox(6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
+                default:
+                case 2: // Z
+                    return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
+            }
+        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
+            e.printStackTrace();
         }
 
+        return NoCollisionBox.INSTANCE;
     }, XMaterial.CHAIN.parseMaterial()),
 
     SWEET_BERRY((player, version, data, x, y, z) -> {

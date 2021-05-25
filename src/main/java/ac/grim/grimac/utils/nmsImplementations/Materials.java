@@ -69,6 +69,7 @@ public class Materials {
         markAs(XMaterial.TURTLE_EGG, SOLID);
         markAs(XMaterial.CHORUS_FLOWER, SOLID);
         markAs(XMaterial.CHORUS_PLANT, SOLID);
+        markAs(XMaterial.LADDER, SOLID);
 
         markAs(XMaterial.WATER, WATER);
 
