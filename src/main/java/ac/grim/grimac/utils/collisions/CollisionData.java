@@ -506,11 +506,10 @@ public enum CollisionData {
     }, XMaterial.END_PORTAL_FRAME.parseMaterial()),
 
     CARPET(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F),
-            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("CARPET"))
-                    .toArray(Material[]::new)),
+            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("CARPET")).toArray(Material[]::new)),
 
     DAYLIGHT(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F),
-            XMaterial.DAYLIGHT_DETECTOR.parseMaterial()),
+            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("DAYLIGHT")).toArray(Material[]::new)),
 
     FARMLAND((player, version, data, x, y, z) -> {
         // This will be wrong if a player uses 1.10.0 or 1.10.1, not sure if I can fix this as protocol version is same
