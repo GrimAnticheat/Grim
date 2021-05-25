@@ -635,16 +635,20 @@ public enum WrappedBlockData {
             setOpen((magic & 0x4) == 4);
             setBottom((magic & 0x8) == 0);
 
-            // Magic values 2 to 5 are ascending
-            switch (magic & 7) {
+            // Note that 1.12 and 1.13 swap direction, we use 1.13 values and account for that here
+            switch (magic & 0b11) {
                 case 0:
-                    setDirection(BlockFace.SOUTH);
-                case 1:
                     setDirection(BlockFace.NORTH);
+                    break;
+                case 1:
+                    setDirection(BlockFace.SOUTH);
+                    break;
                 case 2:
-                    setDirection(BlockFace.EAST);
-                case 3:
                     setDirection(BlockFace.WEST);
+                    break;
+                case 3:
+                    setDirection(BlockFace.EAST);
+                    break;
             }
         }
     }, Arrays.stream(Material.values())
