@@ -89,8 +89,8 @@ public enum WrappedBlockData {
         }
         // 1.13 can handle double slabs as it's in the block data
         // 1.12 has double slabs as a separate block, no block data to differentiate it
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_SLAB"))
-            .map(XMaterial::parseMaterial).filter(Objects::nonNull).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_SLAB"))
+            .filter(Objects::nonNull).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
 
     WALL_SKULL(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
@@ -215,8 +215,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
-            .map(XMaterial::parseMaterial)
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about fences, 1.13+ does
@@ -229,8 +228,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
 
         }
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE"))
-            .map(XMaterial::parseMaterial)
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE"))
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about panes, 1.13+ does
@@ -243,8 +241,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
 
         }
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("GLASS_PANE"))
-            .map(XMaterial::parseMaterial)
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE"))
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about panes, 1.13+ does
@@ -257,8 +254,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
 
         }
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("IRON_BARS"))
-            .map(XMaterial::parseMaterial)
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("IRON_BARS"))
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about walls, 1.13+ does
@@ -271,9 +267,8 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
 
         }
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
             !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
-            .map(XMaterial::parseMaterial)
             .toArray(Material[]::new)),
 
     STAIRS(new WrappedStairs() {
@@ -302,8 +297,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().endsWith("_STAIRS"))
-            .map(XMaterial::parseMaterial)
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("_STAIRS"))
             .toArray(Material[]::new)),
 
     SNOW(new WrappedSnow() {
@@ -621,8 +615,8 @@ public enum WrappedBlockData {
 
             setOpen((magic & 0b100) != 0);
         }
-    }, Arrays.stream(XMaterial.values()).filter(mat -> mat.name().contains("_DOOR"))
-            .map(XMaterial::parseMaterial).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_DOOR"))
+            .toArray(Material[]::new)),
 
     TRAPDOOR(new WrappedTrapdoor() {
         public void getWrappedData(FlatBlockState data) {
