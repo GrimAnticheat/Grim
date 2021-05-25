@@ -33,8 +33,6 @@ public class Collisions {
     private static final Material SWEET_BERRY_BUSH = XMaterial.SWEET_BERRY_BUSH.parseMaterial();
 
     private static final Material LADDER = XMaterial.LADDER.parseMaterial();
-    private static final Material VINE = XMaterial.VINE.parseMaterial();
-    private static final Material SCAFFOLDING = XMaterial.SCAFFOLDING.parseMaterial();
 
     // Entity line 686
     // This MUST return a new vector!!!
@@ -121,7 +119,6 @@ public class Collisions {
         if (player.getMaxUpStep() > 0.0F && movingIntoGround && (clonedX != xWithCollision || clonedZ != zWithCollision)) {
             double stepUpHeight = player.getMaxUpStep();
             // Undo the offsets done above, but keep the result in justAfterCollisionBB
-            SimpleCollisionBox justAfterCollisionBB = setBB.copy();
             setBB = currentPosBB.copy();
 
 
@@ -138,9 +135,6 @@ public class Collisions {
             }
 
 
-            // TODO: We could probably return normal collision if stepMaxClone == 0 - as we aren't stepping on anything
-            // Check some 1.8 jar for it - TacoSpigot would be the best bet for any optimizations here
-            // I do need to debug that though. Not sure.
             SimpleCollisionBox yCollisionStepUpBB = currentPosBB.copy();
             double xSetYCol = 0;
             double ySetYCol = 0;

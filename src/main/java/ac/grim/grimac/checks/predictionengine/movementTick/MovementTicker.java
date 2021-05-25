@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.*;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -116,7 +117,7 @@ public class MovementTicker {
         }
 
         if (inputVel.getY() != collide.getY()) {
-            if (onBlock == slime) {
+            if (onBlock == slime && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
                 if (player.isSneaking) { // Slime blocks use shifting instead of sneaking
                     player.clientVelocity.setY(0);
                 } else {
@@ -124,7 +125,7 @@ public class MovementTicker {
                         player.clientVelocity.setY(-player.clientVelocity.getY() * (player.inVehicle ? 0.8 : 1.0));
                     }
                 }
-            } else if (Materials.checkFlag(onBlock, Materials.BED)) {
+            } else if (Materials.checkFlag(onBlock, Materials.BED) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12)) {
                 if (player.clientVelocity.getY() < 0.0) {
                     player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 * (player.inVehicle ? 0.8 : 1.0));
                 }
@@ -134,7 +135,7 @@ public class MovementTicker {
         }
 
         // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
-        if (onBlock == slime) {
+        if (onBlock == slime && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
             if ((player.inVehicle || player.onGround) && !player.isSneaking) {
                 double absVelocityY = Math.abs(player.clientVelocity.getY());
                 if (absVelocityY < 0.1) {
