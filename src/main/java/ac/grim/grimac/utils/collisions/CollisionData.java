@@ -564,7 +564,7 @@ public enum CollisionData {
     CAULDRON((player, version, data, x, y, z) -> {
         double height = 0.25;
 
-        if (version.isNewerThanOrEquals(ClientVersion.v_1_13))
+        if (version.isOlderThan(ClientVersion.v_1_13))
             height = 0.3125;
 
         return new ComplexCollisionBox(
