@@ -727,10 +727,11 @@ public enum CollisionData {
 
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("RAIL")).toArray(Material[]::new)),
 
+    // Known as block 36 - has no collision box
+    TECHNICAL_MOVING_PISTON(NoCollisionBox.INSTANCE, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("MOVING")).toArray(Material[]::new)),
 
     // TODO: Some of these blocks have a collision box, fix them for the interact check
-    NONE(NoCollisionBox.INSTANCE,
-            XMaterial.REDSTONE_WIRE.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial(),
+    NONE(NoCollisionBox.INSTANCE, XMaterial.REDSTONE_WIRE.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial(),
             XMaterial.RAIL.parseMaterial(), XMaterial.ACTIVATOR_RAIL.parseMaterial(), XMaterial.DETECTOR_RAIL.parseMaterial(), XMaterial.AIR.parseMaterial(), XMaterial.TALL_GRASS.parseMaterial(),
             XMaterial.TRIPWIRE.parseMaterial(), XMaterial.TRIPWIRE_HOOK.parseMaterial()),
 
