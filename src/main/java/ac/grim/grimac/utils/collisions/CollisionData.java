@@ -22,7 +22,6 @@ import org.bukkit.block.data.type.*;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
 
 import static ac.grim.grimac.utils.nmsImplementations.Materials.matchLegacy;
@@ -150,9 +149,13 @@ public enum CollisionData {
         return new SimpleCollisionBox(0, 0.5, 0, 1, 1, 1);
         // 1.13 can handle double slabs as it's in the block data
         // 1.12 has double slabs as a separate block, no block data to differentiate it
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_SLAB"))
-            .filter(Objects::nonNull).filter(m -> !m.name().contains("DOUBLE")).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_SLAB") && !mat.name().contains("DOUBLE")).toArray(Material[]::new)),
 
+    /*SKULL(new SimpleCollisionBox(0.25, 0, 0.25, 0.75, 0.5, 0.75), XMaterial.SKELETON_SKULL.parseMaterial(), XMaterial.WITHER_SKELETON_SKULL.parseMaterial(),
+            XMaterial.CREEPER_HEAD.parseMaterial(), XMaterial.DRAGON_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
+            XMaterial.PLAYER_HEAD.parseMaterial(), XMaterial.ZOMBIE_HEAD.parseMaterial()),*/
+
+    // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
     WALL_SKULL((player, version, data, x, y, z) -> {
         switch (((WrappedDirectional) data).getDirection()) {
             case DOWN:
@@ -167,15 +170,7 @@ public enum CollisionData {
             case EAST:
                 return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F);
         }
-    }, XMaterial.SKELETON_WALL_SKULL.parseMaterial(), XMaterial.WITHER_SKELETON_WALL_SKULL.parseMaterial(),
-            XMaterial.CREEPER_WALL_HEAD.parseMaterial(), XMaterial.DRAGON_WALL_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
-            XMaterial.PLAYER_WALL_HEAD.parseMaterial(), XMaterial.ZOMBIE_WALL_HEAD.parseMaterial()),
-
-
-    SKULL(new SimpleCollisionBox(0.25, 0, 0.25, 0.75, 0.5, 0.75), XMaterial.SKELETON_SKULL.parseMaterial(), XMaterial.WITHER_SKELETON_SKULL.parseMaterial(),
-            XMaterial.CREEPER_HEAD.parseMaterial(), XMaterial.DRAGON_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
-            XMaterial.PLAYER_HEAD.parseMaterial(), XMaterial.ZOMBIE_HEAD.parseMaterial()),
-
+    }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("HEAD") || mat.name().contains("SKULL")) && !mat.name().contains("PISTON")).toArray(Material[]::new)),
 
     DOOR(new DoorHandler(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_DOOR"))
             .toArray(Material[]::new)),

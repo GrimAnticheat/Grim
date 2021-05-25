@@ -94,6 +94,12 @@ public enum WrappedBlockData {
 
     WALL_SKULL(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
+            // Heads on the floor are not directional
+            if (!(data.getBlockData() instanceof Directional)) {
+                setDirection(BlockFace.DOWN);
+                return;
+            }
+
             setDirection(((Directional) data.getBlockData()).getFacing());
         }
 
@@ -117,9 +123,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, XMaterial.SKELETON_WALL_SKULL.parseMaterial(), XMaterial.WITHER_SKELETON_WALL_SKULL.parseMaterial(),
-            XMaterial.CREEPER_WALL_HEAD.parseMaterial(), XMaterial.DRAGON_WALL_HEAD.parseMaterial(), // Yes, the dragon head has the same collision box as regular heads
-            XMaterial.PLAYER_WALL_HEAD.parseMaterial(), XMaterial.ZOMBIE_WALL_HEAD.parseMaterial()),
+    }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("HEAD") || mat.name().contains("SKULL")) && !mat.name().contains("PISTON")).toArray(Material[]::new)),
 
     CHEST(new WrappedChest() {
 

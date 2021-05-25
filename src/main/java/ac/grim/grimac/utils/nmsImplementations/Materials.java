@@ -132,6 +132,8 @@ public class Materials {
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_BLOCK;
             if (mat.name().contains("GLASS") && mat.name().contains("PANE"))
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_PANE;
+            if (mat.name().contains("SKULL") || mat.name().contains("HEAD"))
+                MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
         }
     }
 
