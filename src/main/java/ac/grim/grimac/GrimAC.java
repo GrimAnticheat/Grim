@@ -30,6 +30,10 @@ public final class GrimAC extends JavaPlugin {
     private static int currentTick = 0;
     private ScheduledExecutorService transactionSender;
 
+    public static int getCurrentTick() {
+        return currentTick;
+    }
+
     @Override
     public void onLoad() {
         PacketEvents.create(this);
@@ -42,10 +46,6 @@ public final class GrimAC extends JavaPlugin {
     public void onDisable() {
         transactionSender.shutdownNow();
         PacketEvents.get().terminate();
-    }
-
-    public static int getCurrentTick() {
-        return currentTick;
     }
 
     public void registerEvents() {
@@ -97,9 +97,6 @@ public final class GrimAC extends JavaPlugin {
 
         PacketEvents.get().registerListener(new PacketFireworkListener());
 
-        // TODO: Fix this teleport class
-        // It doesn't work on 1.8
-        // It barely works on 1.9+
         if (XMaterial.supports(9)) {
             PacketEvents.get().registerListener(new PacketPlayerTeleport());
         }

@@ -33,7 +33,7 @@ public class MovementTicker {
     public void livingEntityAIStep() {
         // Living Entity line 2153
         double minimumMovement = 0.003D;
-        if (player.clientVersion < 48)
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             minimumMovement = 0.005D;
 
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {

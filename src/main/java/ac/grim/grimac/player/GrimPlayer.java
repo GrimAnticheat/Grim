@@ -7,12 +7,12 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -30,8 +30,6 @@ public class GrimPlayer {
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Player bukkitPlayer;
     public int entityID;
-    // This is set on bukkit's player join - give PacketEvents time to determine player version
-    public short clientVersion = (short) 16;
 
     public AtomicInteger taskNumber = new AtomicInteger(0);
 
@@ -116,11 +114,7 @@ public class GrimPlayer {
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
 
-    public HashMap<Integer, Vector3d> teleports = new HashMap<>();
-    public HashMap<Integer, Byte> relative = new HashMap<>();
-
-    public Vector packetLastTeleport;
-    public Vector lastTeleport;
+    public ConcurrentLinkedQueue<Vector3d> teleports = new ConcurrentLinkedQueue<>();
 
     // Set after checks
     public double lastX;
@@ -133,15 +127,6 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean lastClimbing;
     public boolean couldSkipTick = false;
-    public boolean isJustTeleported = false;
-
-    // Avoid setting stuff directly before
-    public double packetTeleportX = Double.NaN;
-    public double packetTeleportY = Double.NaN;
-    public double packetTeleportZ = Double.NaN;
-    public boolean packetTeleportXRelative;
-    public boolean packetTeleportYRelative;
-    public boolean packetTeleportZRelative;
 
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
@@ -275,6 +260,7 @@ public class GrimPlayer {
     }
 
     public void baseTickSetX(double x) {
+        Bukkit.broadcastMessage("Setting X to 0!");
         baseTickSet.setX(x);
         clientVelocity.setX(x);
 
@@ -313,15 +299,6 @@ public class GrimPlayer {
 
     public boolean isEyeInFluid(FluidTag tag) {
         return this.fluidOnEyes == tag;
-    }
-
-    public boolean isSetVelocityToZeroOnRelativeTeleport() {
-        // 1.7 clients set their velocity to 0 on relative teleport
-        // 1.8 clients don't, but they do on ViaRewind (?)
-        // This is due to 1.7/1.8 clients having no teleport confirm packet
-        // Meaning that ViaVersion converts the packets to non-relative so that it can forge a confirm packet
-        // 1.9+ clients don't seem to set their velocity to 0 on relative teleport
-        return getClientVersion().isOlderThan(ClientVersion.v_1_8) || XMaterial.getVersion() > 8 && getClientVersion() == ClientVersion.v_1_8;
     }
 
     public ClientVersion getClientVersion() {

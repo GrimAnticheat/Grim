@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Strider;
@@ -75,13 +76,13 @@ public class GetBoundingBox {
     }
 
     // TODO: This should probably just be done in the player's pose
-    public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, short clientVersion) {
+    public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, ClientVersion clientVersion) {
         if (isGliding || isSwimming) {
             return 0.4;
         } else if (isSleeping) {
             // I'm not sure if this is correct.  I'm guessing based on some code.  It doesn't matter.
             return 0.17;
-        } else if (isShifting && clientVersion >= 466) {
+        } else if (isShifting && clientVersion.isNewerThanOrEquals(ClientVersion.v_1_14)) {
             return 1.27;
         } else if (isShifting) {
             return 1.54;

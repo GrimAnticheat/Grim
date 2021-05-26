@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.AbstractHorse;
@@ -92,41 +93,20 @@ public class MovementCheckRunner {
             player.playerWorld = data.playerWorld;
             player.fallDistance = data.fallDistance;
 
-            if (!Double.isNaN(data.teleportX)) {
-                player.lastZ = data.playerZ;
+            boolean justTeleported = false;
+            // Support teleports without teleport confirmations
+            Vector3d teleportPos = player.teleports.peek();
+            if (teleportPos != null && teleportPos.getX() == player.x && teleportPos.getY() == player.y && teleportPos.getZ() == player.z) {
+                player.lastX = teleportPos.getX();
+                player.lastY = teleportPos.getY();
+                player.lastZ = teleportPos.getZ();
 
-                if (player.packetTeleportXRelative) {
-                    player.lastX += data.teleportX;
+                player.baseTickSetX(0);
+                player.baseTickSetY(0);
+                player.baseTickSetZ(0);
 
-                    if (player.isSetVelocityToZeroOnRelativeTeleport()) {
-                        player.baseTickSetX(0);
-                    }
-                } else {
-                    player.lastX = data.teleportX;
-                    player.baseTickSetX(0);
-                }
-
-                if (player.packetTeleportYRelative) {
-                    player.lastY += data.teleportY;
-
-                    if (player.isSetVelocityToZeroOnRelativeTeleport()) {
-                        player.baseTickSetY(0);
-                    }
-                } else {
-                    player.lastY = data.teleportY;
-                    player.baseTickSetY(0);
-                }
-
-                if (player.packetTeleportZRelative) {
-                    player.lastZ += data.teleportZ;
-
-                    if (player.isSetVelocityToZeroOnRelativeTeleport()) {
-                        player.baseTickSetZ(0);
-                    }
-                } else {
-                    player.lastZ = data.teleportZ;
-                    player.baseTickSetZ(0);
-                }
+                player.teleports.poll();
+                justTeleported = true;
             }
 
             player.movementSpeed = data.movementSpeed;
@@ -141,8 +121,6 @@ public class MovementCheckRunner {
             player.firstBreadKB = data.firstBreadKB;
             player.possibleKB = data.requiredKB;
 
-            player.lastTeleport = data.lastTeleport;
-
             player.firstBreadExplosion = data.firstBreadExplosion;
             player.possibleExplosion = data.possibleExplosion;
 
@@ -155,52 +133,45 @@ public class MovementCheckRunner {
                 player.possibleKB = null;
             }
 
-            Vector beforeMovementVelocity = player.clientVelocity.clone();
+            // Don't let the player move if they just teleported
+            if (!justTeleported) {
+                if (!player.inVehicle) {
+                    player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
 
-            if (!player.inVehicle) {
-                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+                    // This is not affected by any movement
+                    new PlayerBaseTick(player).doBaseTick();
 
-                // This is not affected by any movement
-                new PlayerBaseTick(player).doBaseTick();
+                    // baseTick occurs before this
+                    new MovementTickerPlayer(player).livingEntityAIStep();
 
-                // baseTick occurs before this
-                new MovementTickerPlayer(player).livingEntityAIStep();
+                    //handleSkippedTicks(player);
+                } else if (player.playerVehicle instanceof Boat) {
 
-                //handleSkippedTicks(player);
-            } else if (player.playerVehicle instanceof Boat) {
+                    // TODO: We will have to handle teleports (occurs multiple times a second due to vanilla glitchyness)
+                    player.boundingBox = GetBoundingBox.getBoatBoundingBox(player.lastX, player.lastY, player.lastZ);
 
-                // TODO: We will have to handle teleports (occurs multiple times a second due to vanilla glitchyness)
-                player.boundingBox = GetBoundingBox.getBoatBoundingBox(player.lastX, player.lastY, player.lastZ);
+                    BoatMovement.doBoatMovement(player);
 
-                BoatMovement.doBoatMovement(player);
+                } else if (player.playerVehicle instanceof AbstractHorse) {
 
-            } else if (player.playerVehicle instanceof AbstractHorse) {
+                    player.boundingBox = GetBoundingBox.getHorseBoundingBox(player.lastX, player.lastY, player.lastZ, (AbstractHorse) player.playerVehicle);
 
-                player.boundingBox = GetBoundingBox.getHorseBoundingBox(player.lastX, player.lastY, player.lastZ, (AbstractHorse) player.playerVehicle);
+                    new PlayerBaseTick(player).doBaseTick();
+                    new MovementTickerHorse(player).livingEntityTravel();
 
-                new PlayerBaseTick(player).doBaseTick();
-                new MovementTickerHorse(player).livingEntityTravel();
+                } else if (player.playerVehicle instanceof Pig) {
 
-            } else if (player.playerVehicle instanceof Pig) {
+                    player.boundingBox = GetBoundingBox.getPigBoundingBox(player.lastX, player.lastY, player.lastZ, (Pig) player.playerVehicle);
 
-                player.boundingBox = GetBoundingBox.getPigBoundingBox(player.lastX, player.lastY, player.lastZ, (Pig) player.playerVehicle);
+                    new PlayerBaseTick(player).doBaseTick();
+                    new MovementTickerPig(player).livingEntityTravel();
+                } else if (player.playerVehicle instanceof Strider) {
 
-                new PlayerBaseTick(player).doBaseTick();
-                new MovementTickerPig(player).livingEntityTravel();
-            } else if (player.playerVehicle instanceof Strider) {
+                    player.boundingBox = GetBoundingBox.getStriderBoundingBox(player.lastX, player.lastY, player.lastZ, (Strider) player.playerVehicle);
 
-                player.boundingBox = GetBoundingBox.getStriderBoundingBox(player.lastX, player.lastY, player.lastZ, (Strider) player.playerVehicle);
-
-                new PlayerBaseTick(player).doBaseTick();
-                new MovementTickerStrider(player).livingEntityTravel();
-            }
-
-            // Teleporting overwrites all movements
-            if (player.isJustTeleported) {
-                player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
-                player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-
-                player.clientVelocity = beforeMovementVelocity;
+                    new PlayerBaseTick(player).doBaseTick();
+                    new MovementTickerStrider(player).livingEntityTravel();
+                }
             }
 
             ChatColor color;
@@ -236,9 +207,6 @@ public class MovementCheckRunner {
             GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
 
-
-            //Bukkit.broadcastMessage("O: " + color + (player.predictedVelocity.getX() - +player.actualMovement.getX()) + " " + (player.predictedVelocity.getY() - player.actualMovement.getY()) + " " + (player.predictedVelocity.getZ() - player.actualMovement.getZ()));
-
         } catch (Exception e) {
             e.printStackTrace();
 
@@ -253,7 +221,6 @@ public class MovementCheckRunner {
         player.lastYRot = player.yRot;
         player.lastOnGround = player.onGround;
         player.lastClimbing = player.isClimbing;
-        player.isJustTeleported = false;
 
         if (player.lastTransactionBeforeLastMovement != player.packetLastTransactionReceived) {
             player.lastLastTransactionBeforeLastMovement = player.lastTransactionBeforeLastMovement;

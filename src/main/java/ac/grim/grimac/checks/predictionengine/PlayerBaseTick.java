@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.*;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Boat;
@@ -109,7 +110,7 @@ public class PlayerBaseTick {
     private void updateFluidOnEyes() {
         player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
         player.fluidOnEyes = null;
-        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, XMaterial.supports(9) && player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.clientVersion) - 0.1111111119389534D;
+        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, XMaterial.supports(9) && player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.getClientVersion()) - 0.1111111119389534D;
 
         if (player.playerVehicle instanceof Boat && !player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
@@ -257,7 +258,7 @@ public class PlayerBaseTick {
             }
 
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
-            if (tag != FluidTag.LAVA || player.clientVersion > 700) {
+            if (tag != FluidTag.LAVA || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16)) {
                 player.baseTickAddVector(new Vector(vec3.getX(), vec3.getY(), vec3.getZ()));
             }
         }
