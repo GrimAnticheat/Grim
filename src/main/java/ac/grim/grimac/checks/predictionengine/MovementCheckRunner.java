@@ -101,9 +101,8 @@ public class MovementCheckRunner {
                 player.lastY = teleportPos.getY();
                 player.lastZ = teleportPos.getZ();
 
-                player.baseTickSetX(0);
-                player.baseTickSetY(0);
-                player.baseTickSetZ(0);
+                player.clientVelocity = new Vector();
+                player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
 
                 player.teleports.poll();
                 justTeleported = true;
