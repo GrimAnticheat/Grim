@@ -109,7 +109,7 @@ public class FifteenChunk implements BaseChunk {
                 LegacyFlexibleStorage oldStorage = this.storage;
                 this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, this.storage.getSize());
                 for (int index = 0; index < this.storage.getSize(); index++) {
-                    this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : oldStates.get(index).getId());
+                    this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : oldStates.get(oldStorage.get(index)).getId());
                 }
             }
 
