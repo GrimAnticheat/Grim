@@ -69,7 +69,7 @@ public class BlockProperties {
         }
 
         if (player.specialFlying) {
-            return player.flySpeed * 20 * (player.isSprinting ? 0.1f : 0.05f);
+            return player.flySpeed * 20 * (player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8) ? 0.1f : 0.05f);
 
         } else {
             if (player.isSprinting) {
