@@ -31,7 +31,7 @@ public class PredictionData {
             if (XMaterial.getVersion() == 8) {
                 // 1.8 mappings
                 movementSpeedAttribute = NMSUtils.getNMSClass("GenericAttributes").getDeclaredField("MOVEMENT_SPEED").get(null);
-            } else {
+            } else if (XMaterial.getVersion() < 8) {
                 // 1.7 mappings
                 movementSpeedAttribute = NMSUtils.getNMSClass("GenericAttributes").getDeclaredField("d").get(null);
             }
