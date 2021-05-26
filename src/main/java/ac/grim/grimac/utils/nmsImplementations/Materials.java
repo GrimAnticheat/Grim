@@ -7,6 +7,7 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.type.Lantern;
 
 import java.util.Arrays;
 
@@ -178,6 +179,9 @@ public class Materials {
 
         FlatBlockState flat = (FlatBlockState) state;
         BlockData blockData = flat.getBlockData();
+
+        // Waterlogged lanterns were added in 1.16.2
+        if (clientVersion.isOlderThan(ClientVersion.v_1_16_2) && blockData instanceof Lantern) return false;
 
         return blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged();
     }
