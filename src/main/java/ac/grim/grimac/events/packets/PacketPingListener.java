@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -25,7 +26,9 @@ public class PacketPingListener extends PacketListenerDynamic {
 
             // Vanilla always uses an ID starting from 1
             if (id < 0) {
-                GrimAC.playerGrimHashMap.get(event.getPlayer()).addTransactionResponse(id);
+                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                if (player == null) return;
+                player.addTransactionResponse(id);
                 event.setCancelled(true);
             }
         }

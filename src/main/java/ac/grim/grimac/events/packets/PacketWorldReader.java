@@ -63,6 +63,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
             WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             try {
                 int chunkX = packet.getChunkX();
@@ -157,6 +158,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
         // Exists on 1.7 and 1.8 only
         if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
             int[] chunkXArray = (int[]) packet.readAnyObject(0);
@@ -196,6 +198,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
             WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             try {
                 int combinedID = 0;
@@ -233,6 +236,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
             WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             try {
                 // Section Position or Chunk Section - depending on version
@@ -331,6 +335,7 @@ public class PacketWorldReader extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.UNLOAD_CHUNK) {
             WrappedPacketOutUnloadChunk unloadChunk = new WrappedPacketOutUnloadChunk(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             player.compensatedWorld.removeChunk(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
         }

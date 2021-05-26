@@ -24,6 +24,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Client.POSITION) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot, position.isOnGround()));
         }
@@ -31,6 +32,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
@@ -38,6 +40,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Client.LOOK) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             // TODO: This isn't async safe
             if (player.bukkitPlayer.getVehicle() != null) return;
@@ -48,6 +51,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Client.FLYING) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, player.x, player.y, player.z, player.xRot, player.yRot, position.isOnGround()));
         }
@@ -55,6 +59,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Client.STEER_VEHICLE) {
             WrappedPacketInSteerVehicle steer = new WrappedPacketInSteerVehicle(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
             player.packetVehicleForward = steer.getForwardValue();
             player.packetVehicleHorizontal = steer.getSideValue();
 
@@ -64,6 +69,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
             WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, move.getX(), move.getY(), move.getZ(), move.getYaw(), move.getPitch()));
             //Bukkit.broadcastMessage("Move " + move.getX() + " " + move.getY() + " " + move.getZ());

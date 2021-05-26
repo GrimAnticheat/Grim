@@ -57,7 +57,6 @@ public class PacketFireworkListener extends PacketListenerDynamic {
                     grimPlayer.compensatedFireworks.removeFirework(entity);
                 }
             }
-
         }
     }
 }

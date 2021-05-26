@@ -15,13 +15,14 @@ public class MagicPlayerBlockBreakPlace implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        if (player == null) return;
         Block block = event.getBlock();
         int materialID = block.getType().getId();
         int blockData = block.getData();
 
         int combinedID = materialID + (blockData << 12);
 
-        ChangeBlockData data = new ChangeBlockData(GrimAC.currentTick.get(), block.getX(), block.getY(), block.getZ(), combinedID);
+        ChangeBlockData data = new ChangeBlockData(GrimAC.getCurrentTick(), block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.changeBlockQueue.add(data);
 
     }
@@ -29,13 +30,14 @@ public class MagicPlayerBlockBreakPlace implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockBreakEvent(BlockBreakEvent event) {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        if (player == null) return;
         Block block = event.getBlock();
         int materialID = block.getType().getId();
         int blockData = block.getData();
 
         int combinedID = materialID + (blockData << 12);
 
-        ChangeBlockData data = new ChangeBlockData(GrimAC.currentTick.get(), block.getX(), block.getY(), block.getZ(), combinedID);
+        ChangeBlockData data = new ChangeBlockData(GrimAC.getCurrentTick(), block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 }

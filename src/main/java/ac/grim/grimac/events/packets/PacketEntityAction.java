@@ -16,6 +16,8 @@ public class PacketEntityAction extends PacketListenerDynamic {
             WrappedPacketInEntityAction action = new WrappedPacketInEntityAction(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 
+            if (player == null) return;
+
             switch (action.getAction()) {
                 case START_SPRINTING:
                     player.isPacketSprinting = true;

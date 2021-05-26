@@ -16,6 +16,7 @@ public class PacketPlayerAbilities extends PacketListenerDynamic {
         if (event.getPacketId() == PacketType.Play.Client.ABILITIES) {
             WrappedPacketInAbilities action = new WrappedPacketInAbilities(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
             player.packetFlyingDanger = action.isFlying();
         }

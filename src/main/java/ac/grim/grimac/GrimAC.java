@@ -19,15 +19,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.concurrent.*;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public final class GrimAC extends JavaPlugin {
     public static ConcurrentHashMap<Player, GrimPlayer> playerGrimHashMap = new ConcurrentHashMap<>();
     public static Plugin plugin;
-    public static AtomicInteger currentTick = new AtomicInteger(0);
-    public static Long lastReload = 0L;
-    ScheduledExecutorService transactionSender;
+    private static int currentTick = 0;
+    private ScheduledExecutorService transactionSender;
 
     @Override
     public void onLoad() {
@@ -43,31 +44,8 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().terminate();
     }
 
-    @Override
-    public void onEnable() {
-        plugin = this;
-
-        registerEvents();
-        registerPackets();
-        registerChecks();
-        scheduleTransactionPacketSend();
-        handleReload();
-
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            currentTick.getAndIncrement();
-
-            while (true) {
-                PredictionData data = MovementCheckRunner.waitingOnServerQueue.poll();
-
-                if (data == null) break;
-
-                MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
-            }
-
-            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                player.playerFlyingQueue.add(new PlayerFlyingData(currentTick.get(), player.bukkitPlayer.isFlying()));
-            }
-        }, 0, 1);
+    public static int getCurrentTick() {
+        return currentTick;
     }
 
     public void registerEvents() {
@@ -80,6 +58,33 @@ public final class GrimAC extends JavaPlugin {
         }
 
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
+    }
+
+    // Don't add online players - exempt the players on reload due to chunk caching system
+    @Override
+    public void onEnable() {
+        plugin = this;
+
+        registerEvents();
+        registerPackets();
+        registerChecks();
+        scheduleTransactionPacketSend();
+
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            currentTick++;
+
+            while (true) {
+                PredictionData data = MovementCheckRunner.waitingOnServerQueue.poll();
+
+                if (data == null) break;
+
+                MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
+            }
+
+            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                player.playerFlyingQueue.add(new PlayerFlyingData(currentTick, player.bukkitPlayer.isFlying()));
+            }
+        }, 0, 1);
     }
 
     public void registerPackets() {
@@ -118,42 +123,6 @@ public final class GrimAC extends JavaPlugin {
         //GenericMovementCheck.registerCheck(new Timer());
     }
 
-    public void handleReload() {
-        if (Bukkit.getOnlinePlayers().size() == 0) return;
-
-        lastReload = System.currentTimeMillis();
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            playerGrimHashMap.put(player, new GrimPlayer(player));
-            MovementCheckRunner.queuedPredictions.put(player.getUniqueId(), new ConcurrentLinkedQueue<>());
-        }
-
-        // TODO: Remove this hack
-        /*World world = Bukkit.getWorlds().get(0);
-        WorldServer craftWorld = ((CraftWorld) world).getHandle();
-
-        for (Chunk chunk : world.getLoadedChunks()) {
-            com.github.steveice10.mc.protocol.data.game.chunk.Chunk[] chunks = new com.github.steveice10.mc.protocol.data.game.chunk.Chunk[16];
-            Column section = new Column(chunk.getX(), chunk.getZ(), chunks);
-
-            for (int x = 0; x < 16; x++) {
-                for (int z = 0; z < 16; z++) {
-                    for (int y = 0; y < 256; y++) {
-                        int columnNum = Math.floorDiv(y, 16);
-                        IBlockData blockID = craftWorld.getType(new BlockPosition(chunk.getX() << 4 + x, y, chunk.getZ() << 4 + z));
-                        if (blockID.getBlock() instanceof BlockAir) continue;
-
-                        if (chunks[columnNum] == null)
-                            chunks[columnNum] = new com.github.steveice10.mc.protocol.data.game.chunk.Chunk();
-
-                        chunks[columnNum].set(x, y % 16, z, Block.getCombinedId(blockID));
-                    }
-                }
-            }
-
-            ChunkCache.addToCache(section, chunk.getX(), chunk.getZ());
-        }*/
-    }
 
     // We are doing this on another thread to try and stop any desync
     // Garbage collection can still affect this, although gc shouldn't be more than 100 ms.

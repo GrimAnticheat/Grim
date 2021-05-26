@@ -62,7 +62,7 @@ public class MovementCheckRunner {
     public static void check(PredictionData data) {
         GrimPlayer player = data.player;
 
-        if (data.minimumTickRequiredToContinue > GrimAC.currentTick.get()) {
+        if (data.minimumTickRequiredToContinue > GrimAC.getCurrentTick()) {
             waitingOnServerQueue.add(data);
             return;
         }

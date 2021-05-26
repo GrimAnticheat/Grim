@@ -19,6 +19,8 @@ public class PacketEntityReplication extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY) {
             WrappedPacketOutEntity packetOutEntity = new WrappedPacketOutEntity(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
             Entity entity = packetOutEntity.getEntity();
 
             // The entity must have been immediately despawned
@@ -30,6 +32,7 @@ public class PacketEntityReplication extends PacketListenerDynamic {
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
             WrappedPacketOutEntityDestroy destroy = new WrappedPacketOutEntityDestroy(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
             int[] destroyEntityIds = destroy.getEntityIds();
 
             player.compensatedEntities.removeEntity(destroyEntityIds);

@@ -31,6 +31,7 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
                     Vector playerVelocity = new Vector(velX, velY, velZ);
 
                     GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                    if (player == null) return;
 
                     player.originalPacket = !player.originalPacket;
 
@@ -53,6 +54,7 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
             if (x != 0 || y != 0 || z != 0) {
 
                 GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                if (player == null) return;
                 player.originalPacket = !player.originalPacket;
 
                 if (!player.originalPacket) {

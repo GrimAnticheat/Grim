@@ -262,10 +262,14 @@ public enum WrappedBlockData {
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about walls, 1.13+ does
+    // 1.16 has the Wall data type, 1.13-1.15 uses MultipleFacing
     WALL(new WrappedMultipleFacing() {
         public void getWrappedData(FlatBlockState data) {
+            /*if (XMaterial.supports(16)) {
+
+            }
             Wall wall = (Wall) data.getBlockData();
-            wall.getHeight(BlockFace.NORTH);
+            wall.getHeight(BlockFace.NORTH);*/
         }
 
         public void getWrappedData(MagicBlockState data) {

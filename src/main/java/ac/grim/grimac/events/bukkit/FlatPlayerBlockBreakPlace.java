@@ -19,16 +19,18 @@ public class FlatPlayerBlockBreakPlace implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        if (player == null) return;
         Block block = event.getBlock();
-        ChangeBlockData data = new ChangeBlockData(GrimAC.currentTick.get(), block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(block.getBlockData()));
+        ChangeBlockData data = new ChangeBlockData(GrimAC.getCurrentTick(), block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(block.getBlockData()));
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockBreakEvent(BlockBreakEvent event) {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        if (player == null) return;
         Block block = event.getBlock();
-        ChangeBlockData data = new ChangeBlockData(GrimAC.currentTick.get(), block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(airBlockData));
+        ChangeBlockData data = new ChangeBlockData(GrimAC.getCurrentTick(), block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(airBlockData));
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 }
