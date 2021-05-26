@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -65,7 +66,7 @@ public class Collisions {
             setY += yWithCollision;
         }
 
-        if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && player.clientVersion >= 477) {
+        if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
             if (zWithCollision != 0.0D) {
                 for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
                     zWithCollision = bb.collideZ(setBB, zWithCollision);
@@ -145,7 +146,7 @@ public class Collisions {
 
             double clonedClonedX;
             double clonedClonedZ;
-            if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && player.clientVersion >= 477) {
+            if (Math.abs(zWithCollision) > Math.abs(xWithCollision)) {
                 // Calculate Z offset
                 clonedClonedZ = clonedZ;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
@@ -192,9 +193,10 @@ public class Collisions {
             alwaysStepUpBB.offset(0.0D, stepUpHeightCloned, 0.0D);
             yAlways += stepUpHeightCloned;
 
-            double zWithCollisionClonedOnceAgain;
-            double xWithCollisionClonedOnceAgain;
-            if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && player.clientVersion >= 477) {
+            double zWithCollisionClonedOnceAgain = 0;
+            double xWithCollisionClonedOnceAgain = 0;
+
+            if (Math.abs(zWithCollision) > Math.abs(xWithCollision) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
                 // Calculate Z offset
                 zWithCollisionClonedOnceAgain = clonedZ;
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
@@ -238,7 +240,7 @@ public class Collisions {
             double originalSetY = setY;
             double originalSetZ = setZ;
 
-            if (d23 > d9) {
+            if (d23 > d9 && player.getClientVersion().isNewerThan(ClientVersion.v_1_7_10)) {
                 x = clonedClonedX;
                 y = -stepMaxClone;
                 z = clonedClonedZ;
