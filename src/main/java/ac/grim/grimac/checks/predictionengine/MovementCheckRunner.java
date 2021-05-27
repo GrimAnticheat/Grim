@@ -9,14 +9,18 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Pig;
 import org.bukkit.entity.Strider;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -136,6 +140,12 @@ public class MovementCheckRunner {
             if (!justTeleported) {
                 if (!player.inVehicle) {
                     player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+
+                    // Depth strider was added in 1.8
+                    ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
+                    if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
+                        player.depthStriderLevel = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
+                    }
 
                     // This is not affected by any movement
                     new PlayerBaseTick(player).doBaseTick();
