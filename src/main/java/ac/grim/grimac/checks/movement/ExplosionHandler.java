@@ -1,6 +1,7 @@
-package ac.grim.grimac.utils.latency;
+package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
@@ -11,7 +12,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CompensatedExplosion {
+public class ExplosionHandler {
     Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
     GrimPlayer player;
 
@@ -21,26 +22,20 @@ public class CompensatedExplosion {
     boolean lastListHadFirstBreadKnockback = false;
     int breadValue = 0;
 
-    public CompensatedExplosion(GrimPlayer player) {
+    public ExplosionHandler(GrimPlayer player) {
         this.player = player;
     }
 
-    public boolean handleTransactionPacket(int transactionID) {
+    public void handleTransactionPacket(int transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
             firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(firstBreadMap.get(transactionID));
             breadValue = transactionID + 1;
-
-            return true;
         }
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
             firstBreadAddedExplosion = null;
             lastExplosionsKnownTaken.add(firstBreadMap.remove(transactionID + 1));
-
-            return true;
         }
-
-        return false;
     }
 
     public void addPlayerExplosion(WrappedPacketOutExplosion explosion) {
@@ -77,13 +72,9 @@ public class CompensatedExplosion {
         // So just set it to null and be sad :(
         //
         // Hack to remove first bread data from an unknown number of next predictions
-        Vector markRemoved = player.firstBreadKB;
+        VelocityData markRemoved = player.firstBreadExplosion;
 
-        if (knockback.equals(markRemoved)) {
-            markRemoved.setX(129326);
-            markRemoved.setY(741979);
-            markRemoved.setZ(916042);
-        }
+        // TODO: Remove this explosion if it is applied
     }
 
     // This will be called if there is kb taken but it isn't applied to the player
@@ -111,7 +102,8 @@ public class CompensatedExplosion {
         return knockbackList;
     }
 
-    public Vector getFirstBreadAddedExplosion() {
-        return firstBreadAddedExplosion;
+    // TODO: Fix this, less strict implementation than velocity
+    public VelocityData getFirstBreadAddedExplosion() {
+        return new VelocityData(new Vector());
     }
 }

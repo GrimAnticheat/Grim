@@ -1,12 +1,18 @@
 package ac.grim.grimac.player;
 
+import ac.grim.grimac.checks.movement.ExplosionHandler;
+import ac.grim.grimac.checks.movement.KnockbackHandler;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.PlayerFlyingData;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.latency.*;
+import ac.grim.grimac.utils.latency.CompensatedEntities;
+import ac.grim.grimac.utils.latency.CompensatedFireworks;
+import ac.grim.grimac.utils.latency.CompensatedFlying;
+import ac.grim.grimac.utils.latency.CompensatedWorld;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -119,8 +125,8 @@ public class GrimPlayer {
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
-    public CompensatedKnockback compensatedKnockback;
-    public CompensatedExplosion compensatedExplosion;
+    public KnockbackHandler compensatedKnockback;
+    public ExplosionHandler explosionHandler;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
     // Keep track of basetick stuff
@@ -143,10 +149,10 @@ public class GrimPlayer {
     // This sucks, but it's the only "real" option
     // Either we have to do the work of the server async to figure out whether a block placed, or we wait for the server to do it
     public ConcurrentLinkedQueue<PlayerFlyingData> playerFlyingQueue = new ConcurrentLinkedQueue<>();
-    public Vector firstBreadKB = null;
-    public Vector possibleKB = null;
-    public Vector firstBreadExplosion = null;
-    public List<Vector> possibleExplosion = new ArrayList<>();
+    public VelocityData firstBreadKB = null;
+    public VelocityData possibleKB = null;
+    public VelocityData firstBreadExplosion = null;
+    public List<Vector> knownExplosionsTaken = new ArrayList<>();
     private int transactionPing = 0;
 
     public GrimPlayer(Player player) {
@@ -165,8 +171,8 @@ public class GrimPlayer {
 
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
-        compensatedKnockback = new CompensatedKnockback(this);
-        compensatedExplosion = new CompensatedExplosion(this);
+        compensatedKnockback = new KnockbackHandler(this);
+        explosionHandler = new ExplosionHandler(this);
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
     }
@@ -175,17 +181,14 @@ public class GrimPlayer {
         Set<VectorData> set = new HashSet<>();
 
         if (firstBreadKB != null) {
-            set.add(new VectorData(firstBreadKB.clone().add(baseTickAddition), VectorData.VectorType.PossibleKB));
+            set.add(new VectorData(firstBreadKB.vector.clone().add(baseTickAddition), VectorData.VectorType.PossibleKB));
         }
 
         if (possibleKB != null) {
-            // Allow water pushing to affect knockback
-            set.add(new VectorData(possibleKB.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
-        } else {
-            set.addAll(getPossibleVelocitiesMinusKnockback());
-            return set;
+            set.add(new VectorData(possibleKB.vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
         }
 
+        set.addAll(getPossibleVelocitiesMinusKnockback());
         return set;
     }
 
@@ -222,7 +225,7 @@ public class GrimPlayer {
         if (data != null) {
             transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
             compensatedKnockback.handleTransactionPacket(data.getFirst());
-            compensatedExplosion.handleTransactionPacket(data.getFirst());
+            explosionHandler.handleTransactionPacket(data.getFirst());
         }
     }
 

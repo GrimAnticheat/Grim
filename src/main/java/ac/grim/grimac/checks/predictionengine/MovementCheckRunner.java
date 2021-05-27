@@ -125,16 +125,10 @@ public class MovementCheckRunner {
             player.possibleKB = data.requiredKB;
 
             player.firstBreadExplosion = data.firstBreadExplosion;
-            player.possibleExplosion = data.possibleExplosion;
+            player.knownExplosionsTaken = data.possibleExplosion;
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-
-            // Hack to remove knockback that were already applied to the player
-            // Required due to the async nature of the anticheat, and this thread being in sync with the knockback application thread
-            if (player.possibleKB != null && player.possibleKB.getX() == 129326 && player.possibleKB.getY() == 741979 && player.possibleKB.getZ() == 916042) {
-                player.possibleKB = null;
-            }
 
             // Don't let the player move if they just teleported
             if (!justTeleported) {
@@ -196,16 +190,7 @@ public class MovementCheckRunner {
 
             double offset = player.predictedVelocity.vector.distance(player.actualMovement);
 
-            // Handle first bread being applied to the player
-            if (player.predictedVelocity.lastVector != null && player.predictedVelocity.lastVector.vectorType == VectorData.VectorType.PossibleKB) {
-                player.compensatedKnockback.setPlayerKnockbackApplied(player.predictedVelocity.lastVector.vector);
-                GrimAC.plugin.getLogger().info("Original type: " + color + player.predictedVelocity.lastVector.vectorType);
-            }
-
-            // TODO: Run second tick through the same thing
-            if (player.possibleKB != null && offset > 0.01) {
-                player.compensatedKnockback.handlePlayerIgnoredKB();
-            }
+            player.compensatedKnockback.handlePlayerKb(offset);
 
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());

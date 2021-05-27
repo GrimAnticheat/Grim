@@ -58,7 +58,7 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
                 player.originalPacket = !player.originalPacket;
 
                 if (!player.originalPacket) {
-                    player.compensatedExplosion.addPlayerExplosion(explosion);
+                    player.explosionHandler.addPlayerExplosion(explosion);
                     event.setCancelled(true);
                 }
             }

@@ -167,9 +167,6 @@ public abstract class PredictionEngine {
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        // TODO: Make sure the player is actually on the ground
-        // TODO: Add check to stop players from jumping more than once every 10 ticks
-
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             Vector clonedVector = vector.vector.clone();
             doJump(player, vector.vector);
@@ -180,7 +177,7 @@ public abstract class PredictionEngine {
     public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             // TODO: Add only the stuff the player has received
-            for (Vector explosion : player.possibleExplosion) {
+            for (Vector explosion : player.knownExplosionsTaken) {
                 Vector clonedVector = vector.vector.clone();
                 clonedVector.add(explosion);
                 existingVelocities.add(new VectorData(clonedVector, vector));

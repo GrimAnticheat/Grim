@@ -69,9 +69,9 @@ public class PredictionData {
     public float vehicleForward;
     public boolean isSprintingChange;
     public boolean isSneakingChange;
-    public Vector firstBreadKB = null;
-    public Vector requiredKB = null;
-    public Vector firstBreadExplosion = null;
+    public VelocityData firstBreadKB = null;
+    public VelocityData requiredKB = null;
+    public VelocityData firstBreadExplosion = null;
     public List<Vector> possibleExplosion = new ArrayList<>();
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
@@ -134,8 +134,8 @@ public class PredictionData {
         firstBreadKB = player.compensatedKnockback.getFirstBreadOnlyKnockback();
         requiredKB = player.compensatedKnockback.getRequiredKB();
 
-        firstBreadExplosion = player.compensatedExplosion.getFirstBreadAddedExplosion();
-        possibleExplosion = player.compensatedExplosion.getPossibleExplosions();
+        firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
+        possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 1;
         lastTransaction = player.packetLastTransactionReceived;
