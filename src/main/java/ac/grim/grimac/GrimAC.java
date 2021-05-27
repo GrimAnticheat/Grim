@@ -10,7 +10,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PlayerFlyingData;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
@@ -20,15 +19,11 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 public final class GrimAC extends JavaPlugin {
     public static ConcurrentHashMap<Player, GrimPlayer> playerGrimHashMap = new ConcurrentHashMap<>();
     public static Plugin plugin;
     private static int currentTick = 0;
-    private ScheduledExecutorService transactionSender;
 
     public static int getCurrentTick() {
         return currentTick;
@@ -44,7 +39,6 @@ public final class GrimAC extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        transactionSender.shutdownNow();
         PacketEvents.get().terminate();
     }
 
@@ -68,7 +62,6 @@ public final class GrimAC extends JavaPlugin {
         registerEvents();
         registerPackets();
         registerChecks();
-        scheduleTransactionPacketSend();
 
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             currentTick++;
@@ -83,8 +76,19 @@ public final class GrimAC extends JavaPlugin {
 
             for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
                 player.playerFlyingQueue.add(new PlayerFlyingData(currentTick, player.bukkitPlayer.isFlying()));
+                sendTransaction(player.getNextTransactionID(), player);
             }
+
         }, 0, 1);
+    }
+
+    // Shouldn't error, but be on the same side as this is networking stuff
+    private void sendTransaction(short transactionID, GrimPlayer player) {
+        try {
+            PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     public void registerPackets() {
@@ -115,28 +119,5 @@ public final class GrimAC extends JavaPlugin {
     public void registerChecks() {
         //GenericMovementCheck.registerCheck(new MovementVelocityCheck());
         //GenericMovementCheck.registerCheck(new Timer());
-    }
-
-
-    // We are doing this on another thread to try and stop any desync
-    // Garbage collection can still affect this, although gc shouldn't be more than 100 ms.
-    // On my own server, the average gc is 80.95 ms, without any old gen
-    // Probably "close enough" if we average the 5 most recent transactions
-    // Even at 10 tps, we still will send 20 times a second
-    public void scheduleTransactionPacketSend() {
-        transactionSender = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder().setDaemon(true).build());
-        transactionSender.scheduleAtFixedRate(() -> {
-
-            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                short packetID = player.getNextTransactionID();
-                try {
-                    PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, packetID, false));
-                    // Get current time for every player just in cause of pauses
-                    player.transactionsSent.put(packetID, System.currentTimeMillis());
-                } catch (Exception e) {
-                    GrimAC.plugin.getLogger().warning("Error sending transaction packet, did the player log out?");
-                }
-            }
-        }, 50, 50, TimeUnit.MILLISECONDS);
     }
 }

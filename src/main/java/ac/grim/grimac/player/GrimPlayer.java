@@ -8,11 +8,11 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import io.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -20,33 +20,30 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class GrimPlayer {
     public final UUID playerUUID;
+    // Determining player ping
+    // The difference between keepalive and transactions is that keepalive is async while transactions are sync
+    private final ConcurrentLinkedQueue<Pair<Integer, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Player bukkitPlayer;
     public int entityID;
-
     public AtomicInteger taskNumber = new AtomicInteger(0);
-
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
-
     public VectorData predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Normal);
     public Vector actualMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
     public Vector blockSpeedMultiplier = new Vector(1, 1, 1);
     public Vector lastStuckSpeedMultiplier = new Vector(1, 1, 1);
-
     public double gravity;
     public float friction;
     public float speed;
-
     // Set from packet
     public double x;
     public double y;
@@ -58,14 +55,12 @@ public class GrimPlayer {
     public boolean isPacketSprinting;
     public boolean isPacketSneakingChange;
     public boolean isPacketSprintingChange;
-
     // Set from the time that the movement packet was received, to be thread safe
     public boolean isSneaking;
     public boolean wasSneaking;
     public boolean isCrouching;
     public boolean isSprinting;
     public boolean lastSprinting;
-
     public boolean bukkitFlying;
     public boolean packetFlyingDanger;
     public boolean isFlying;
@@ -88,7 +83,6 @@ public class GrimPlayer {
     public World playerWorld;
     // Manage sandwiching packets with transactions
     public boolean originalPacket = true;
-
     public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;
@@ -96,7 +90,6 @@ public class GrimPlayer {
     public float dolphinsGraceAmplifier;
     public float depthStriderLevel;
     public float flySpeed;
-
     public boolean inVehicle;
     public Entity playerVehicle;
     public float packetVehicleHorizontal;
@@ -104,18 +97,14 @@ public class GrimPlayer {
     public float vehicleHorizontal;
     public float vehicleForward;
     public BoatData boatData = new BoatData();
-
     // We determine this
     public boolean isActuallyOnGround;
-
     // Set from base tick
     public Object2DoubleMap<FluidTag> fluidHeight = new Object2DoubleArrayMap<>(2);
     public boolean wasTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
-
     public ConcurrentLinkedQueue<Vector3d> teleports = new ConcurrentLinkedQueue<>();
-
     // Set after checks
     public double lastX;
     public double lastY;
@@ -127,7 +116,6 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean lastClimbing;
     public boolean couldSkipTick = false;
-
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
@@ -135,7 +123,6 @@ public class GrimPlayer {
     public CompensatedExplosion compensatedExplosion;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
-
     // Keep track of basetick stuff
     public Vector baseTickSet = new Vector();
     public Vector baseTickAddition = new Vector();
@@ -152,21 +139,15 @@ public class GrimPlayer {
     public int timerTransaction = Integer.MIN_VALUE;
     // For speed checks under 0.03 precision
     public int movementTransaction = Integer.MIN_VALUE;
-
-
     // Sync together block placing/breaking by waiting for the main thread
     // This sucks, but it's the only "real" option
     // Either we have to do the work of the server async to figure out whether a block placed, or we wait for the server to do it
     public ConcurrentLinkedQueue<PlayerFlyingData> playerFlyingQueue = new ConcurrentLinkedQueue<>();
-
-    // Determining player ping
-    public ConcurrentHashMap<Short, Long> transactionsSent = new ConcurrentHashMap<>();
-
     public Vector firstBreadKB = null;
     public Vector possibleKB = null;
-
     public Vector firstBreadExplosion = null;
     public List<Vector> possibleExplosion = new ArrayList<>();
+    private int transactionPing = 0;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -223,23 +204,25 @@ public class GrimPlayer {
         return possibleMovements;
     }
 
-    public void addTransactionResponse(short transactionID) {
-        checkTransactionValid(transactionID);
-        packetLastTransactionReceived++;
-
-        if (!compensatedKnockback.handleTransactionPacket(transactionID) &&
-                !compensatedExplosion.handleTransactionPacket(transactionID)) {
-
-        }
+    public void addTransactionSend(int id) {
+        transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
     }
 
-    // Tested to 20k packets per second per player and couldn't false
-    //
-    // Nevermind, something can go wrong
-    public void checkTransactionValid(short transactionID) {
-        //Bukkit.broadcastMessage("Checking transaction " + transactionID + " versus " + packetLastTransactionReceived);
-        if (transactionID != ((((packetLastTransactionReceived % 32767) * -1) - 1))) {
-            //Bukkit.broadcastMessage("Not a valid transaction!");
+    // Players can get 0 ping by repeatedly sending invalid transaction packets, but that will only hurt them
+    // The design is allowing players to miss transaction packets, which shouldn't be possible
+    // But if some error made a client miss a packet, then it won't hurt them too bad.
+    public void addTransactionResponse(int id) {
+        Pair<Integer, Long> data;
+        do {
+            data = transactionsSent.poll();
+            if (data != null)
+                packetLastTransactionReceived++;
+        } while (data != null && data.getFirst() != id);
+
+        if (data != null) {
+            transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
+            compensatedKnockback.handleTransactionPacket(data.getFirst());
+            compensatedExplosion.handleTransactionPacket(data.getFirst());
         }
     }
 
@@ -260,7 +243,6 @@ public class GrimPlayer {
     }
 
     public void baseTickSetX(double x) {
-        Bukkit.broadcastMessage("Setting X to 0!");
         baseTickSet.setX(x);
         clientVelocity.setX(x);
 
@@ -303,5 +285,13 @@ public class GrimPlayer {
 
     public ClientVersion getClientVersion() {
         return PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
+    }
+
+    public int getKeepAlivePing() {
+        return PacketEvents.get().getPlayerUtils().getPing(playerUUID);
+    }
+
+    public int getTransactionPing() {
+        return transactionPing;
     }
 }
