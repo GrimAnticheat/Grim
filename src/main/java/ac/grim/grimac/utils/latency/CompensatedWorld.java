@@ -211,8 +211,7 @@ public class CompensatedWorld {
             }
 
             chunk.set(x & 0xF, y & 0xF, z & 0xF, combinedID);
-        } catch (Exception e) {
-            GrimAC.plugin.getLogger().warning("Unable to set block data for chunk x " + (x >> 4) + " z " + (z >> 4));
+        } catch (Exception ignored) {
         }
     }
 

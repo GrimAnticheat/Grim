@@ -52,7 +52,6 @@ public class VectorData {
         Swimhop,
         Ladder,
         Knockback,
-        PossibleKB,
         Hackyladder,
         Teleport,
         SkippedTicks

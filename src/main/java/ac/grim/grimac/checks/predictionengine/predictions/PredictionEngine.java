@@ -110,6 +110,8 @@ public abstract class PredictionEngine {
 
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a.vector, b.vector, player));
+        possibleVelocities.sort(this::putVelocitiesFirst);
+
 
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
         player.couldSkipTick = false;
@@ -164,6 +166,18 @@ public abstract class PredictionEngine {
             return 0;
         }
         return -1;
+    }
+
+    public int putVelocitiesFirst(VectorData a, VectorData b) {
+        if (a.vectorType == VectorData.VectorType.Knockback) {
+            return 1;
+        }
+
+        if (b.vectorType == VectorData.VectorType.Knockback) {
+            return -1;
+        }
+
+        return 0;
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {

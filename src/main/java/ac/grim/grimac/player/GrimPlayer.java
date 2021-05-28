@@ -181,10 +181,11 @@ public class GrimPlayer {
         Set<VectorData> set = new HashSet<>();
 
         if (firstBreadKB != null) {
-            set.add(new VectorData(firstBreadKB.vector.clone().add(baseTickAddition), VectorData.VectorType.PossibleKB));
+            set.add(new VectorData(firstBreadKB.vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
         }
 
         if (possibleKB != null) {
+            // Allow water pushing to affect knockback
             set.add(new VectorData(possibleKB.vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
         }
 
