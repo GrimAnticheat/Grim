@@ -2,18 +2,19 @@ package ac.grim.grimac.checks.predictionengine;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.checks.movement.TimerCheck;
-import ac.grim.grimac.checks.predictionengine.movementTick.*;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerHorse;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPig;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerPlayer;
+import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.AbstractHorse;
@@ -273,110 +274,6 @@ public class MovementCheckRunner {
             PredictionData finalNextData = nextData;
             executor.submit(() -> check(finalNextData));
         }
-    }
-
-    // Transaction is from server -> client -> server
-    //  Despite the addition of server -> client latency, there is a guarantee:
-    //  The needed movement packets should not surpass the ID of latest transaction packet sent
-    //
-    // For speed checks under 0.03:
-    // - We keep track of the transaction ID we just got
-    // - We add the number of ticks required to get that movement.
-    // This is calculated by looping water/lava tick additions and multipliers found in the player base tick for each tick.
-    // We then the wanted movement vector normalized to 1 as the inputs.  If we haven't gotten to the actual movement, keep on ticking.
-    //
-    // When the player has stopped moving, despite not knowing how long the player has stopped moving, we still have guarantees:
-    // - Any amount of movement still increments the transaction ID by one.
-    // To stop lag compensation from being too lenient, don’t let movement id fall behind the last transaction ID received
-    // - If a delta movement of 0, 0, 0 has been sent, increment movement id by 20
-    //
-    // What this accomplishes is a perfect lag compensation system:
-    // - We will never give more lenience than we have to
-    // - We still allow bursts of packets
-    //
-    // This assumes the following:
-    // - Collision will never allow for faster movement, which they shouldn't
-    // - Base tick additions and multipliers don't change between client ticks between the two movements.
-    //
-    // The latter assumption isn't true but with 0.03 movement it isn't enough to break the checks.
-    //
-    // Here is an example:
-    // Let's say the player moved 0.03 blocks in lava
-    // Our prediction is that they moved 0.005 blocks in lava
-    // A naive programmer may simply divide 0.03 / 0.005 but that doesn't work
-    //
-    //
-    // tl;dr: I made a perfectly lag compensated speed check
-    public static void handleSkippedTicks(GrimPlayer player) {
-        Vector wantedMovement = player.actualMovement.clone();
-        Vector theoreticalOutput = player.predictedVelocity.vector.clone();
-
-        int x = 0;
-
-        // < 0.03 we don't care about checking flying - people flying go fast enough it doesn't matter.
-        // As flying players aren't affected by lava speed or cobwebs
-        if (player.isFlying) return;
-
-        // Double check that the player didn't toggle fly
-        PredictionData nextData = queuedPredictions.get(player.playerUUID).peek();
-        if (nextData != null) {
-            if (nextData.isFlying) return;
-        } else {
-            // Update to the latest and check if flying
-            // Flight can't be rapidly toggled so we don't need to check off -> on -> off
-            player.lastTransactionSent.set(player.packetLastTransactionReceived);
-            if (player.packetFlyingDanger && player.compensatedFlying.getCanPlayerFlyLagCompensated(player.lastTransactionBeforeLastMovement)) {
-                return;
-            }
-        }
-
-        // Give the most optimistic scenario for movement speed
-        if (player.isPacketSprintingChange) player.isSprinting = true;
-        if (player.isPacketSneakingChange) player.isSneaking = false;
-
-        boolean optimisticCrouching = !player.specialFlying && !player.isSwimming && PlayerBaseTick.canEnterPose(player, Pose.CROUCHING, player.x, player.y, player.z)
-                && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !PlayerBaseTick.canEnterPose(player, Pose.STANDING, player.x, player.y, player.z));
-
-        Vector optimisticStuckSpeed = player.lastStuckSpeedMultiplier;
-        if (player.stuckSpeedMultiplier.lengthSquared() > player.lastStuckSpeedMultiplier.lengthSquared()) {
-            optimisticStuckSpeed = player.stuckSpeedMultiplier;
-        }
-
-        // TODO: Exempt/fix if speed/potions change between movement ticks
-
-        if (player.couldSkipTick && wantedMovement.lengthSquared() > theoreticalOutput.lengthSquared() * 1.25) {
-            for (x = 0; x < 19; x++) {
-                // Set to detect 1% speed increase < 0.03 such as in lava
-
-                if (wantedMovement.length() / theoreticalOutput.length() < 1.01) {
-                    break;
-                }
-
-                new PlayerBaseTick(player).doBaseTick();
-                new MovementTickerSlow(player, optimisticCrouching, optimisticStuckSpeed, wantedMovement, theoreticalOutput).playerEntityTravel();
-                theoreticalOutput.add(player.predictedVelocity.vector);
-
-                Bukkit.broadcastMessage("Adding " + player.predictedVelocity);
-            }
-        }
-
-        Bukkit.broadcastMessage("Skipped ticks " + x + " last move " + player.movementTransaction + " recent " + player.lastTransactionBeforeLastMovement);
-        Bukkit.broadcastMessage("Predicted velocity " + theoreticalOutput);
-        Bukkit.broadcastMessage("Actual velocity " + player.actualMovement);
-        player.movementTransaction += x + 1;
-
-        // This is going to lead to some bypasses
-        // For example, noclip would be able to abuse this
-        // Oh well, I'll just say it's a "proof of concept" then it's fine
-        if (x > 0) {
-            player.predictedVelocity = new VectorData(theoreticalOutput, VectorData.VectorType.SkippedTicks);
-        }
-
-        if (player.movementTransaction > player.lastTransactionSent.get()) {
-            Bukkit.broadcastMessage(ChatColor.RED + "Player has speed!");
-        }
-
-        player.movementTransaction = Math.max(player.movementTransaction, player.lastTransactionBeforeLastMovement);
     }
 
     public static Vector getBestContinuousInput(boolean isCrouching, Vector theoreticalInput) {
