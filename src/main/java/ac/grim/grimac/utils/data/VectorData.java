@@ -31,6 +31,10 @@ public class VectorData {
         this.vectorType = vectorType;
     }
 
+    public VectorData setVector(Vector newVec, VectorType type) {
+        return new VectorData(newVec, this, type);
+    }
+
     public boolean hasVectorType(VectorType type) {
         VectorData last = lastVector;
 
@@ -50,11 +54,13 @@ public class VectorData {
     public enum VectorType {
         Normal,
         Swimhop,
-        Ladder,
+        Climbable,
         Knockback,
-        Hackyladder,
+        HackyClimbable,
         Teleport,
         SkippedTicks,
-        Explosion
+        Explosion,
+        InputResult,
+        StuckMultiplier
     }
 }

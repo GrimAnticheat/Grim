@@ -54,7 +54,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         if (player.isClimbing) {
             Vector hackyClimbVector = player.clientVelocity.clone().setY(0.2);
             staticVectorEndOfTick(player, hackyClimbVector);
-            regularInputs.add(new VectorData(hackyClimbVector, VectorData.VectorType.Hackyladder));
+            regularInputs.add(new VectorData(hackyClimbVector, VectorData.VectorType.HackyClimbable));
         }
 
         return regularInputs;

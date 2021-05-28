@@ -20,7 +20,7 @@ import java.util.Set;
 
 public abstract class PredictionEngine {
 
-    public static Vector getBestPossiblePlayerInput(GrimPlayer player, Vector theoreticalInput) {
+    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
         float bestPossibleX;
         float bestPossibleZ;
 
@@ -221,7 +221,10 @@ public abstract class PredictionEngine {
         for (VectorData possibleLastTickOutput : possibleVectors) {
             for (int x = -1; x <= 1; x++) {
                 for (int z = zMin; z <= 1; z++) {
-                    returnVectors.add(new VectorData(handleOnClimbable(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(getBestPossiblePlayerInput(player, new Vector(x, 0, z)), speed, player.xRot)).multiply(player.stuckSpeedMultiplier), player), possibleLastTickOutput));
+                    VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), VectorData.VectorType.InputResult);
+                    result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
+                    result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                    returnVectors.add(result);
                 }
             }
         }

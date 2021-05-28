@@ -199,11 +199,30 @@ public class MovementCheckRunner {
 
             VectorData last = player.predictedVelocity;
             StringBuilder traceback = new StringBuilder("Traceback: ");
-            while (last != null) {
-                traceback.append(last.vectorType);
-                traceback.append(last.vector);
 
+            List<Vector> velocities = new ArrayList<>();
+            List<VectorData.VectorType> types = new ArrayList<>();
+
+            // Find the very last vector
+            while (last.lastVector != null) {
+                velocities.add(last.vector);
+                types.add(last.vectorType);
                 last = last.lastVector;
+            }
+
+            Vector lastAppendedVector = null;
+            for (int i = velocities.size(); i-- > 0; ) {
+                Vector currentVector = velocities.get(i);
+                VectorData.VectorType type = types.get(i);
+
+                if (currentVector.equals(lastAppendedVector)) {
+                    continue;
+                }
+
+                traceback.append(type).append(": ");
+                traceback.append(currentVector).append(" > ");
+
+                lastAppendedVector = last.vector;
             }
 
             GrimAC.plugin.getLogger().info(traceback.toString());

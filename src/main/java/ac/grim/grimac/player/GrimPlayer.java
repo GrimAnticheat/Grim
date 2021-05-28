@@ -200,7 +200,7 @@ public class GrimPlayer {
         possibleMovements.add(new VectorData(clientVelocity, VectorData.VectorType.Normal));
 
         if (clientVelocityOnLadder != null) {
-            possibleMovements.add(new VectorData(clientVelocityOnLadder, VectorData.VectorType.Ladder));
+            possibleMovements.add(new VectorData(clientVelocityOnLadder, VectorData.VectorType.Climbable));
         }
 
         if (clientVelocitySwimHop != null) {
