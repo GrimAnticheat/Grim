@@ -36,7 +36,7 @@ public class PacketPlayerVelocity extends PacketListenerDynamic {
                     player.originalPacket = !player.originalPacket;
 
                     if (!player.originalPacket) {
-                        player.compensatedKnockback.addPlayerKnockback(playerVelocity);
+                        player.knockbackHandler.addPlayerKnockback(playerVelocity);
                         event.setCancelled(true);
                     }
                 }

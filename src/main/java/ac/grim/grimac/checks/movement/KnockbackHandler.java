@@ -45,7 +45,7 @@ public class KnockbackHandler {
         // Subtracting 1 results in -32768, in the range of short
         int reservedID = (-1 * (player.lastTransactionSent.getAndAdd(2) % 32768));
         short breadOne = (short) reservedID;
-        short breadTwo = (short) ((short) reservedID - 1);
+        short breadTwo = (short) (reservedID - 1);
 
         PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadOne, false));
         PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutEntityVelocity(player.entityID, knockback.getX(), knockback.getY(), knockback.getZ()));

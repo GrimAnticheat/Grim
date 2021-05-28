@@ -125,7 +125,7 @@ public class MovementCheckRunner {
             player.possibleKB = data.requiredKB;
 
             player.firstBreadExplosion = data.firstBreadExplosion;
-            player.knownExplosionsTaken = data.possibleExplosion;
+            player.knownExplosion = data.possibleExplosion;
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
@@ -190,12 +190,42 @@ public class MovementCheckRunner {
 
             double offset = player.predictedVelocity.vector.distance(player.actualMovement);
 
-            player.compensatedKnockback.handlePlayerKb(offset);
+            player.knockbackHandler.handlePlayerKb(offset);
+            player.explosionHandler.handlePlayerExplosion(offset);
 
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
             player.bukkitPlayer.sendMessage("O:" + color + offset);
 
+            VectorData last = player.predictedVelocity;
+            StringBuilder traceback = new StringBuilder("Traceback: ");
+
+            List<Vector> velocities = new ArrayList<>();
+            List<VectorData.VectorType> types = new ArrayList<>();
+
+            // Find the very last vector
+            while (last.lastVector != null) {
+                velocities.add(last.vector);
+                types.add(last.vectorType);
+                last = last.lastVector;
+            }
+
+            Vector lastAppendedVector = null;
+            for (int i = velocities.size(); i-- > 0; ) {
+                Vector currentVector = velocities.get(i);
+                VectorData.VectorType type = types.get(i);
+
+                if (currentVector.equals(lastAppendedVector)) {
+                    continue;
+                }
+
+                traceback.append(type).append(": ");
+                traceback.append(currentVector).append(" > ");
+
+                lastAppendedVector = last.vector;
+            }
+
+            GrimAC.plugin.getLogger().info(traceback.toString());
             GrimAC.plugin.getLogger().info(player.x + " " + player.y + " " + player.z);
             GrimAC.plugin.getLogger().info(player.lastX + " " + player.lastY + " " + player.lastZ);
             GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());

@@ -14,12 +14,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 public class PredictionData {
     private static final Method onePointEightAttribute;
@@ -72,7 +69,7 @@ public class PredictionData {
     public VelocityData firstBreadKB = null;
     public VelocityData requiredKB = null;
     public VelocityData firstBreadExplosion = null;
-    public List<Vector> possibleExplosion = new ArrayList<>();
+    public VelocityData possibleExplosion = null;
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
 
@@ -131,8 +128,8 @@ public class PredictionData {
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
         this.playerVehicle = player.bukkitPlayer.getVehicle();
 
-        firstBreadKB = player.compensatedKnockback.getFirstBreadOnlyKnockback();
-        requiredKB = player.compensatedKnockback.getRequiredKB();
+        firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
+        requiredKB = player.knockbackHandler.getRequiredKB();
 
         firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
