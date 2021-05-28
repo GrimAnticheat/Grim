@@ -107,16 +107,14 @@ public class PredictionData {
 
         this.isFlying = player.compensatedFlying.somewhatLagCompensatedIsPlayerFlying() && player.compensatedFlying.getCanPlayerFlyLagCompensated(player.lastTransactionBeforeLastMovement);
 
-
         this.isClimbing = Collisions.onClimbable(player);
         this.isFallFlying = XMaterial.getVersion() > 8 && player.bukkitPlayer.isGliding();
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
 
-        // When a player punches a mob, bukkit thinks the player isn't sprinting (?)
-        // But they are, so we need to multiply by sprinting speed boost until I just get the player's attributes from packets
-        if (isSprinting && !player.bukkitPlayer.isSprinting()) this.movementSpeed *= 1.3;
+        // When a player punches a mob, bukkit thinks the player isn't sprinting
+        if (isSprinting && !player.bukkitPlayer.isSprinting()) this.movementSpeed *= 1.3D;
 
         Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
 

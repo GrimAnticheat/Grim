@@ -9,7 +9,6 @@ import ac.grim.grimac.checks.predictionengine.movementTick.MovementTickerStrider
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -274,35 +273,5 @@ public class MovementCheckRunner {
             PredictionData finalNextData = nextData;
             executor.submit(() -> check(finalNextData));
         }
-    }
-
-    public static Vector getBestContinuousInput(boolean isCrouching, Vector theoreticalInput) {
-        double bestPossibleX;
-        double bestPossibleZ;
-
-        if (isCrouching) {
-            bestPossibleX = Math.min(Math.max(-0.294, theoreticalInput.getX()), 0.294);
-            bestPossibleZ = Math.min(Math.max(-0.294, theoreticalInput.getZ()), 0.294);
-        } else {
-            bestPossibleX = Math.min(Math.max(-0.98, theoreticalInput.getX()), 0.98);
-            bestPossibleZ = Math.min(Math.max(-0.98, theoreticalInput.getZ()), 0.98);
-        }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-
-        if (inputVector.lengthSquared() > 1) inputVector.normalize();
-
-        return inputVector;
-    }
-
-    // These math equations are based off of the vanilla equations, made impossible to divide by 0
-    public static Vector getBestTheoreticalPlayerInput(Vector wantedMovement, float f, float f2) {
-        float f3 = Mth.sin(f2 * 0.017453292f);
-        float f4 = Mth.cos(f2 * 0.017453292f);
-
-        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
-        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
-
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 }

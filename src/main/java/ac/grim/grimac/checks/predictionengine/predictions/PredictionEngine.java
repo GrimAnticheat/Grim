@@ -53,6 +53,17 @@ public abstract class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
+    // These math equations are based off of the vanilla equations, made impossible to divide by 0
+    public static Vector getBestTheoreticalPlayerInput(Vector wantedMovement, float f, float f2) {
+        float f3 = Mth.sin(f2 * 0.017453292f);
+        float f4 = Mth.cos(f2 * 0.017453292f);
+
+        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
+        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
+
+        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
+    }
+
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
         double bestInput = Double.MAX_VALUE;
@@ -133,6 +144,7 @@ public abstract class PredictionEngine {
                 bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput);
 
                 // Optimization - Close enough, other inputs won't get closer
+                // This works as velocity is ran first
                 if (resultAccuracy < 0.01) break;
             }
         }
@@ -213,10 +225,28 @@ public abstract class PredictionEngine {
     }
 
     public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        // Stop omni-sprint
-        // Optimization - Also cuts down needed possible inputs by 2/3
-        int zMin = player.isSprinting ? 1 : -1;
         List<VectorData> returnVectors = new ArrayList<>();
+        loopVectors(player, possibleVectors, speed, returnVectors);
+
+        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
+        // It mostly occurs when the player takes damage.
+        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
+        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
+        // If a player in this glitched state lets go of moving forward, then become un-glitched
+        if (player.isSprinting) {
+            player.isSprinting = false;
+            speed /= 1.3D;
+            loopVectors(player, possibleVectors, speed, returnVectors);
+            player.isSprinting = true;
+        }
+
+        return returnVectors;
+    }
+
+    private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
+        // Stop omni-sprint
+        // Optimization - Also cuts down scenarios by 2/3
+        int zMin = player.isSprinting ? 1 : -1;
 
         for (VectorData possibleLastTickOutput : possibleVectors) {
             for (int x = -1; x <= 1; x++) {
@@ -228,8 +258,6 @@ public abstract class PredictionEngine {
                 }
             }
         }
-
-        return returnVectors;
     }
 
     public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
