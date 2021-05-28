@@ -1,13 +1,12 @@
 Note: There currently is no stable branch, the majority of stuff is currently disabled and broken in the master branch
 while doing major refactors.
 
-A free and open source anticheat for 1.7-1.16. Everything that can be promised is promised, and is
-about 40% complete. Should release late summer or early fall 2021. We are a prediction based anticheat meaning that we
-use client code directly in order to see whether a movement is possible. This gives us a huge advantage over traditional
-anticheats. In addition, the open source nature should allow it to server as a base to other anticheats, who are free to
-integrate our prediction system as long as they follow the GPL license. Yes, I am serious about the license, don't break
-it. You should be following GPL anyways as a bukkit plugin.
-
+A free and open source anticheat for 1.16. Everything that can be promised is promised, and is about 40% complete.
+Should release late summer or early fall 2021. We are a prediction based anticheat meaning that we use client code
+directly in order to see whether a movement is possible. This gives us a huge advantage over traditional anticheats. In
+addition, the open source nature should allow it to server as a base to other anticheats, who are free to integrate our
+prediction system as long as they follow the GPL license. Yes, I am serious about the license, don't break it. You
+should be following GPL anyways as a bukkit plugin.
 
 **What has been done so far?**
 
