@@ -60,12 +60,14 @@ public class KnockbackHandler {
             return;
         }
 
+        if (!player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback))
+            return;
+
         ChatColor color = ChatColor.GREEN;
 
         // Unsure knockback was taken
         if (player.firstBreadKB != null) {
-            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback))
-                player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
+            player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
         }
 
         // 100% known kb was taken

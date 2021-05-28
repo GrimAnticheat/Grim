@@ -60,10 +60,12 @@ public class ExplosionHandler {
 
         ChatColor color = ChatColor.GREEN;
 
+        if (!player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion))
+            return;
+
         // Unsure knockback was taken
         if (player.firstBreadExplosion != null) {
-            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback))
-                player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
+            player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
         }
 
         // 100% known kb was taken
