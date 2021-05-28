@@ -1,7 +1,7 @@
-package ac.grim.grimac.checks.predictionengine;
+package ac.grim.grimac.predictionengine;
 
-import ac.grim.grimac.checks.predictionengine.movementTick.MovementTicker;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.movementTick.MovementTicker;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;

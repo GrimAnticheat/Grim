@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.predictionengine.predictions;
+package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;

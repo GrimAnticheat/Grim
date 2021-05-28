@@ -1,8 +1,8 @@
 package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
-import ac.grim.grimac.checks.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

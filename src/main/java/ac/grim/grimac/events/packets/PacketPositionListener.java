@@ -1,8 +1,9 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
-import ac.grim.grimac.checks.predictionengine.MovementCheckRunner;
+import ac.grim.grimac.checks.packets.OnGroundCorrector;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
 import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -26,6 +27,8 @@ public class PacketPositionListener extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
+            OnGroundCorrector.correctMovement(position);
+
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot, position.isOnGround()));
         }
 
@@ -34,6 +37,8 @@ public class PacketPositionListener extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
+            OnGroundCorrector.correctMovement(position);
+
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
@@ -41,6 +46,8 @@ public class PacketPositionListener extends PacketListenerDynamic {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
+
+            OnGroundCorrector.correctMovement(position);
 
             // TODO: This isn't async safe
             if (player.bukkitPlayer.getVehicle() != null) return;
@@ -52,6 +59,8 @@ public class PacketPositionListener extends PacketListenerDynamic {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
+
+            OnGroundCorrector.correctMovement(position);
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, player.x, player.y, player.z, player.xRot, player.yRot, position.isOnGround()));
         }

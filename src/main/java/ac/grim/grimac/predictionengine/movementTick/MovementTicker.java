@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.predictionengine.movementTick;
+package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;

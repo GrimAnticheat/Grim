@@ -1,9 +1,9 @@
-package ac.grim.grimac.checks.predictionengine.movementTick;
+package ac.grim.grimac.predictionengine.movementTick;
 
-import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngineLava;
-import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngineNormal;
-import ac.grim.grimac.checks.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngineLava;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 
 public class MovementTickerPlayer extends MovementTicker {
