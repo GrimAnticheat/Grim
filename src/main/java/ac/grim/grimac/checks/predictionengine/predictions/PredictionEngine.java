@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.Mth;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
@@ -249,17 +248,13 @@ public abstract class PredictionEngine {
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
         player.clientVelocitySwimHop = null;
-        if (canSwimHop(player, player.clientVelocity)) {
+        if (canSwimHop(player)) {
             player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
         }
     }
 
-    public boolean canSwimHop(GrimPlayer player, Vector vector) {
+    public boolean canSwimHop(GrimPlayer player) {
         boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.1, -0.01, 0.1));
-
-        SimpleCollisionBox isFreeBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).offset(vector.getX(), vector.getY() + 0.6 - player.y + player.lastY, vector.getZ());
-
-        boolean isFree = Collisions.isEmpty(player, isFreeBox);
         boolean inWater = player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
 
         // Vanilla system ->
@@ -269,9 +264,15 @@ public abstract class PredictionEngine {
 
         // Our system ->
         // Requirement 1 - The player must be within 0.1 blocks of water or lava (which is why this is base and not PredictionEngineWater/Lava)
-        // Requirement 2 - The player must have their bounding box plus X movement, Y movement + 0.6, Z movement minus 0.1 blocks have no collision
-        // Requirement 3 - The player must have something to collide with within 0.1 blocks
+        // Requirement 2 - The player must have something to collide with within 0.1 blocks
 
-        return canCollideHorizontally && isFree && inWater;
+        // Why remove the empty check?  The real movement is hidden due to the horizontal collision
+        // For example, a 1.14+ player can have a velocity of (10000, 0, 0) and if they are against a wall,
+        // We only see the (0,0,0) velocity.
+        // This means it is impossible to accurately create the requirement of no collision.
+        // Oh well, I guess this could allow some Jesus bypasses next to a wall that has multiple blocks
+        // But it's faster to swim anyways on 1.13+, and faster to just go on land in 1.12-
+
+        return canCollideHorizontally && inWater;
     }
 }
