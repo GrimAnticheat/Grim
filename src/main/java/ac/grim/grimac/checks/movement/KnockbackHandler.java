@@ -1,6 +1,7 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
@@ -63,9 +64,8 @@ public class KnockbackHandler {
 
         // Unsure knockback was taken
         if (player.firstBreadKB != null) {
-            // Set bread's offset to the current offset
-            // Use math.min because previous ticks could have set this before us, although unlikely
-            player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, player.firstBreadKB.vector.clone().add(player.baseTickAddition).distanceSquared(player.actualMovement));
+            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback))
+                player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
         }
 
         // 100% known kb was taken

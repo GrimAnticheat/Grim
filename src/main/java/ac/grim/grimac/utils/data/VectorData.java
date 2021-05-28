@@ -31,6 +31,19 @@ public class VectorData {
         this.vectorType = vectorType;
     }
 
+    public boolean hasVectorType(VectorType type) {
+        VectorData last = lastVector;
+
+        while (last != null) {
+            if (last.vectorType == type)
+                return true;
+
+            last = last.lastVector;
+        }
+
+        return false;
+    }
+
     // TODO: For debugging everything should have it's own type!
     // Would make false positives really easy to fix
     // But seriously, we could trace the code to find the mistake
