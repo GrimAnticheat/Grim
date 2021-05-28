@@ -1,26 +1,23 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ExplosionHandler {
     Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
     GrimPlayer player;
 
-    Vector lastExplosionsKnownTaken = new Vector();
-    Vector firstBreadAddedExplosion = null;
-
-    boolean lastListHadFirstBreadKnockback = false;
-    int breadValue = 0;
+    VelocityData lastExplosionsKnownTaken = new VelocityData(new Vector());
+    VelocityData firstBreadAddedExplosion = null;
 
     public ExplosionHandler(GrimPlayer player) {
         this.player = player;
@@ -28,13 +25,12 @@ public class ExplosionHandler {
 
     public void handleTransactionPacket(int transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
-            firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(firstBreadMap.get(transactionID));
-            breadValue = transactionID + 1;
+            firstBreadAddedExplosion = new VelocityData(lastExplosionsKnownTaken.vector.clone().add(firstBreadMap.get(transactionID)));
         }
 
         if (firstBreadMap.containsKey(transactionID + 1)) {
             firstBreadAddedExplosion = null;
-            lastExplosionsKnownTaken.add(firstBreadMap.remove(transactionID + 1));
+            lastExplosionsKnownTaken.vector.add(firstBreadMap.remove(transactionID + 1));
         }
     }
 
@@ -46,7 +42,7 @@ public class ExplosionHandler {
         // Subtracting 1 results in -32768, in the range of short
         int reservedID = (-1 * (player.lastTransactionSent.getAndAdd(2) % 32768));
         short breadOne = (short) reservedID;
-        short breadTwo = (short) ((short) reservedID - 1);
+        short breadTwo = (short) (reservedID - 1);
 
         PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadOne, false));
         PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutExplosion(explosion.getX(), explosion.getY(), explosion.getZ(), explosion.getStrength(), explosion.getRecords(), explosion.getPlayerMotionX(), explosion.getPlayerMotionY(), explosion.getPlayerMotionZ()));
@@ -57,53 +53,43 @@ public class ExplosionHandler {
         }
     }
 
-    public void setExplosionApplied(Vector knockback) {
-        // How to be a legit client and flag this check:
-        // First you must take multiple knockback values combined to arrive before the same movement packet
-        // This is unlikely
-        // Next, the last velocity must have the first bread arrive and the velocity not arrive
-        // This is unlikely
-        //
-        // As velocity checks will be much more strict than regular movement checks, this flags movement and not velocity
-        //
-        // There is a fix for this, but it would allow cheaters to take knockback twice 100% of the time, which is worse IMO
-        // One of the few cases where false positives are better than lenience
-        //
-        // So just set it to null and be sad :(
-        //
-        // Hack to remove first bread data from an unknown number of next predictions
-        VelocityData markRemoved = player.firstBreadExplosion;
-
-        // TODO: Remove this explosion if it is applied
-    }
-
-    // This will be called if there is kb taken but it isn't applied to the player
-    public void handlePlayerIgnoredExplosion() {
-        /*if (player.possibleKB.size() != 1 || player.firstBreadKB == null) {
-            Bukkit.broadcastMessage(ChatColor.RED + "Ignored kb " + player.possibleKB.get(0));
-            Bukkit.broadcastMessage(ChatColor.RED + "PLAYER IS CHEATING! Knockback ignored");
-        }*/
-    }
-
-    public List<Vector> getPossibleExplosions() {
-        List<Vector> knockbackList = new ArrayList<>();
-        lastListHadFirstBreadKnockback = false;
-
-        if (firstBreadAddedExplosion != null) {
-            knockbackList.add(firstBreadAddedExplosion);
-            lastListHadFirstBreadKnockback = true;
+    public void handlePlayerExplosion(double offset) {
+        if (player.knownExplosion == null && player.firstBreadExplosion == null) {
+            return;
         }
 
-        if (lastExplosionsKnownTaken.getX() != 0 || lastExplosionsKnownTaken.getY() != 0 || lastExplosionsKnownTaken.getZ() != 0) {
-            knockbackList.add(lastExplosionsKnownTaken);
-            lastExplosionsKnownTaken = new Vector();
+        ChatColor color = ChatColor.GREEN;
+
+        // Unsure knockback was taken
+        if (player.firstBreadExplosion != null) {
+            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback))
+                player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
         }
 
-        return knockbackList;
+        // 100% known kb was taken
+        if (player.knownExplosion != null) {
+            offset = Math.min(player.knownExplosion.offset, offset);
+
+            if (offset > 0.05) {
+                color = ChatColor.RED;
+            }
+
+            // Add offset to violations
+            Bukkit.broadcastMessage(color + "Explosion offset is " + offset);
+        }
     }
 
-    // TODO: Fix this, less strict implementation than velocity
+    public VelocityData getPossibleExplosions() {
+        if (lastExplosionsKnownTaken.vector.lengthSquared() < 1e-5)
+            return null;
+
+        VelocityData returnLastExplosion = lastExplosionsKnownTaken;
+        lastExplosionsKnownTaken = new VelocityData(new Vector());
+
+        return returnLastExplosion;
+    }
+
     public VelocityData getFirstBreadAddedExplosion() {
-        return new VelocityData(new Vector());
+        return firstBreadAddedExplosion;
     }
 }

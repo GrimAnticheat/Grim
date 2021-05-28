@@ -109,7 +109,7 @@ public abstract class PredictionEngine {
 
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a.vector, b.vector, player));
-        possibleVelocities.sort(this::putVelocitiesFirst);
+        possibleVelocities.sort(this::putVelocityExplosionsFirst);
 
 
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
@@ -123,7 +123,6 @@ public abstract class PredictionEngine {
         VectorData bestCollisionVel = null;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
-            // TODO: Player inputs should most likely be done before maybeBackOffOfEdge
             Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, MoverType.SELF, player);
             Vector outputVel = Collisions.collide(player, backOff.getX(), backOff.getY(), backOff.getZ());
             double resultAccuracy = outputVel.distance(player.actualMovement);
@@ -143,13 +142,6 @@ public abstract class PredictionEngine {
         endOfTick(player, player.gravity, player.friction);
     }
 
-    public List<Vector> getPossiblePlayerLocations(GrimPlayer player) {
-        List<Vector> locations = new ArrayList<>();
-        locations.add(new Vector(0, 0, 0));
-
-        return locations;
-    }
-
     public int compareDistanceToActualMovement(Vector a, Vector b, GrimPlayer player) {
         double x = player.actualMovement.getX();
         double y = player.actualMovement.getY();
@@ -159,24 +151,27 @@ public abstract class PredictionEngine {
         double distance1 = Math.pow(a.getX() - x, 2) + Math.pow(a.getY() - y, 2) * 5 + Math.pow(a.getZ() - z, 2);
         double distance2 = Math.pow(b.getX() - x, 2) + Math.pow(b.getY() - y, 2) * 5 + Math.pow(b.getZ() - z, 2);
 
-        if (distance1 > distance2) {
-            return 1;
-        } else if (distance1 == distance2) {
-            return 0;
-        }
-        return -1;
+        return Double.compare(distance1, distance2);
     }
 
-    public int putVelocitiesFirst(VectorData a, VectorData b) {
-        if (a.vectorType == VectorData.VectorType.Knockback) {
+    public int putVelocityExplosionsFirst(VectorData a, VectorData b) {
+        /*int aScore = 0;
+        int bScore = 0;*/
+        if (a.hasVectorType(VectorData.VectorType.Explosion))
             return 1;
-        }
 
-        if (b.vectorType == VectorData.VectorType.Knockback) {
+        /*if (a.hasVectorType(VectorData.VectorType.Knockback))
+            aScore++;*/
+
+        if (b.hasVectorType(VectorData.VectorType.Explosion))
             return -1;
-        }
 
         return 0;
+
+        /*if (b.hasVectorType(VectorData.VectorType.Knockback))
+            bScore++;*/
+
+        //return Integer.compare(aScore, bScore);
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
@@ -189,11 +184,12 @@ public abstract class PredictionEngine {
 
     public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
-            // TODO: Add only the stuff the player has received
-            for (Vector explosion : player.knownExplosionsTaken) {
-                Vector clonedVector = vector.vector.clone();
-                clonedVector.add(explosion);
-                existingVelocities.add(new VectorData(clonedVector, vector));
+            if (player.knownExplosion != null) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.knownExplosion.vector), vector, VectorData.VectorType.Explosion));
+            }
+
+            if (player.firstBreadExplosion != null) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
             }
         }
     }

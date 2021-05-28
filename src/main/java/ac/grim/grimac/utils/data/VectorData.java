@@ -54,6 +54,7 @@ public class VectorData {
         Knockback,
         Hackyladder,
         Teleport,
-        SkippedTicks
+        SkippedTicks,
+        Explosion
     }
 }

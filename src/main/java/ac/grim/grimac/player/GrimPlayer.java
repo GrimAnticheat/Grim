@@ -25,7 +25,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -125,7 +127,7 @@ public class GrimPlayer {
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
-    public KnockbackHandler compensatedKnockback;
+    public KnockbackHandler knockbackHandler;
     public ExplosionHandler explosionHandler;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
@@ -152,7 +154,7 @@ public class GrimPlayer {
     public VelocityData firstBreadKB = null;
     public VelocityData possibleKB = null;
     public VelocityData firstBreadExplosion = null;
-    public List<Vector> knownExplosionsTaken = new ArrayList<>();
+    public VelocityData knownExplosion = null;
     private int transactionPing = 0;
 
     public GrimPlayer(Player player) {
@@ -171,7 +173,7 @@ public class GrimPlayer {
 
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
-        compensatedKnockback = new KnockbackHandler(this);
+        knockbackHandler = new KnockbackHandler(this);
         explosionHandler = new ExplosionHandler(this);
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
@@ -225,7 +227,7 @@ public class GrimPlayer {
 
         if (data != null) {
             transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
-            compensatedKnockback.handleTransactionPacket(data.getFirst());
+            knockbackHandler.handleTransactionPacket(data.getFirst());
             explosionHandler.handleTransactionPacket(data.getFirst());
         }
     }
