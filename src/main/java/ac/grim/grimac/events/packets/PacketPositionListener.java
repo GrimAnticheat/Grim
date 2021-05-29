@@ -27,7 +27,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            OnGroundCorrector.correctMovement(position);
+            OnGroundCorrector.correctMovement(position, position.getY());
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot, position.isOnGround()));
         }
@@ -37,7 +37,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            OnGroundCorrector.correctMovement(position);
+            OnGroundCorrector.correctMovement(position, position.getY());
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
@@ -47,7 +47,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            OnGroundCorrector.correctMovement(position);
+            OnGroundCorrector.correctMovement(position, player.y);
 
             // TODO: This isn't async safe
             if (player.bukkitPlayer.getVehicle() != null) return;
@@ -60,7 +60,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            OnGroundCorrector.correctMovement(position);
+            OnGroundCorrector.correctMovement(position, player.y);
 
             MovementCheckRunner.addQueuedPrediction(new PredictionData(player, player.x, player.y, player.z, player.xRot, player.yRot, position.isOnGround()));
         }

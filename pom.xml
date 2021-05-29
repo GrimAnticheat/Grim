@@ -72,6 +72,10 @@
             <id>dmulloy2-repo</id>
             <url>https://repo.dmulloy2.net/repository/public/</url>
         </repository>
+        <repository>
+            <id>opencollab-snapshot</id>
+            <url>https://repo.opencollab.dev/maven-snapshots/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -103,6 +107,18 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.20</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc.floodgate</groupId>
+            <artifactId>api</artifactId>
+            <version>2.0-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.geysermc</groupId>
+            <artifactId>floodgate-bukkit</artifactId>
+            <version>1.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>

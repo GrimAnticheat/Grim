@@ -9,6 +9,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.geysermc.floodgate.FloodgateAPI;
+import org.geysermc.floodgate.api.FloodgateApi;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -18,6 +20,22 @@ public class PlayerJoinQuitListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player bukkitPlayer = event.getPlayer();
+
+        // Exempt geyser players
+        // Floodgate 2.0
+        try {
+            if (FloodgateApi.getInstance().isFloodgatePlayer(bukkitPlayer.getUniqueId()))
+                return;
+        } catch (NoClassDefFoundError ignored) {
+        }
+
+        // Floodgate 1.0
+        try {
+            if (FloodgateAPI.isBedrockPlayer(bukkitPlayer))
+                return;
+        } catch (NoClassDefFoundError ignored) {
+        }
+
         GrimPlayer player = new GrimPlayer(bukkitPlayer);
         player.lastX = bukkitPlayer.getLocation().getX();
         player.lastY = bukkitPlayer.getLocation().getY();
