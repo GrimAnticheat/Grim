@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
+import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.math.VanillaMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
@@ -99,7 +100,7 @@ public class MovementTicker {
         // This is where vanilla moves the bounding box and sets it
         player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
 
-        player.horizontalCollision = !VanillaMath.equal(inputVel.getX(), collide.getX()) || !VanillaMath.equal(inputVel.getZ(), collide.getZ());
+        player.horizontalCollision = !GrimMathHelper.equal(inputVel.getX(), collide.getX()) || !GrimMathHelper.equal(inputVel.getZ(), collide.getZ());
         player.verticalCollision = inputVel.getY() != collide.getY();
         player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
 

@@ -13,6 +13,7 @@ import ac.grim.grimac.utils.latency.CompensatedEntities;
 import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedFlying;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.math.TrigHandler;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -129,6 +130,7 @@ public class GrimPlayer {
     public ExplosionHandler explosionHandler;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
+    public TrigHandler trigHandler;
     // Keep track of basetick stuff
     public Vector baseTickSet = new Vector();
     public Vector baseTickAddition = new Vector();
@@ -178,6 +180,7 @@ public class GrimPlayer {
         explosionHandler = new ExplosionHandler(this);
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
+        trigHandler = new TrigHandler(this);
     }
 
     public Set<VectorData> getPossibleVelocities() {

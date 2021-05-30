@@ -2,7 +2,7 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.math.VanillaMath;
+import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
@@ -31,8 +31,8 @@ public class PredictionEngineNormal extends PredictionEngine {
     @Override
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
         if (player.isClimbing) {
-            vector.setX(VanillaMath.clamp(vector.getX(), -0.15, 0.15));
-            vector.setZ(VanillaMath.clamp(vector.getZ(), -0.15, 0.15));
+            vector.setX(GrimMathHelper.clamp(vector.getX(), -0.15, 0.15));
+            vector.setZ(GrimMathHelper.clamp(vector.getZ(), -0.15, 0.15));
             vector.setY(Math.max(vector.getY(), -0.15));
 
             // Yes, this uses shifting not crouching
