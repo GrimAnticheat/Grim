@@ -193,6 +193,7 @@ public class MovementCheckRunner {
 
             player.knockbackHandler.handlePlayerKb(offset);
             player.explosionHandler.handlePlayerExplosion(offset);
+            player.trigHandler.setOffset(offset);
 
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());

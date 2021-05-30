@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.GrimMathHelper;
-import ac.grim.grimac.utils.math.VanillaMath;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -106,7 +105,7 @@ public class BoatMovement {
             f -= 0.005F;
         }
 
-        player.clientVelocity.add(new Vector(VanillaMath.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (VanillaMath.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
+        player.clientVelocity.add(new Vector(player.trigHandler.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
     }
 
     private static BoatEntityStatus getStatus(GrimPlayer player) {

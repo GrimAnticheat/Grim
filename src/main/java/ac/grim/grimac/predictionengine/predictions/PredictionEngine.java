@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
-import ac.grim.grimac.utils.math.VanillaMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
@@ -43,9 +42,9 @@ public abstract class PredictionEngine {
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
     // We need it because of collision support when a player is using speed
-    public static Vector getMovementResultFromInput(Vector inputVector, float f, float f2) {
-        float f3 = VanillaMath.sin(f2 * 0.017453292f);
-        float f4 = VanillaMath.cos(f2 * 0.017453292f);
+    public static Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
+        float f3 = player.trigHandler.sin(f2 * 0.017453292f);
+        float f4 = player.trigHandler.cos(f2 * 0.017453292f);
 
         double xResult = inputVector.getX() * f4 - inputVector.getZ() * f3;
         double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
@@ -54,9 +53,9 @@ public abstract class PredictionEngine {
     }
 
     // These math equations are based off of the vanilla equations, made impossible to divide by 0
-    public static Vector getBestTheoreticalPlayerInput(Vector wantedMovement, float f, float f2) {
-        float f3 = VanillaMath.sin(f2 * 0.017453292f);
-        float f4 = VanillaMath.cos(f2 * 0.017453292f);
+    public static Vector getBestTheoreticalPlayerInput(GrimPlayer player, Vector wantedMovement, float f, float f2) {
+        float f3 = player.trigHandler.sin(f2 * 0.017453292f);
+        float f4 = player.trigHandler.cos(f2 * 0.017453292f);
 
         float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
         float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
@@ -251,7 +250,7 @@ public abstract class PredictionEngine {
         for (VectorData possibleLastTickOutput : possibleVectors) {
             for (int x = -1; x <= 1; x++) {
                 for (int z = zMin; z <= 1; z++) {
-                    VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), VectorData.VectorType.InputResult);
+                    VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), VectorData.VectorType.InputResult);
                     result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
                     result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
                     returnVectors.add(result);

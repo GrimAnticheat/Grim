@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.math.VanillaMath;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -22,7 +21,7 @@ public class JumpPower {
         // TODO: Use the stuff from the sprinting packet
         if (player.isSprinting) {
             float f2 = player.xRot * 0.017453292f;
-            vector.add(new Vector(-VanillaMath.sin(f2) * 0.2f, 0.0, VanillaMath.cos(f2) * 0.2f));
+            vector.add(new Vector(-player.trigHandler.sin(f2) * 0.2f, 0.0, player.trigHandler.cos(f2) * 0.2f));
         }
 
     }

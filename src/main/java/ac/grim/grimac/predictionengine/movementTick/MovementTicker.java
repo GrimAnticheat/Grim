@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
-import ac.grim.grimac.utils.math.VanillaMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
@@ -264,8 +263,8 @@ public class MovementTicker {
                 player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (XMaterial.supports(9) && bukkitPlayer.isGliding()) {
-                Vector currentLook = MovementVectorsCalc.getVectorForRotation(player.yRot, player.xRot);
-                Vector lastLook = MovementVectorsCalc.getVectorForRotation(player.lastYRot, player.lastXRot);
+                Vector currentLook = MovementVectorsCalc.getVectorForRotation(player, player.yRot, player.xRot);
+                Vector lastLook = MovementVectorsCalc.getVectorForRotation(player, player.lastYRot, player.lastXRot);
 
                 // Tick order of player movements vs firework isn't constant
                 int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
@@ -351,7 +350,7 @@ public class MovementTicker {
         double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double d3 = vector.clone().setY(0).length();
         double d4 = lookVector.length();
-        float f3 = VanillaMath.cos(yRotRadians);
+        float f3 = player.trigHandler.cos(yRotRadians);
         f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
         vector.add(new Vector(0.0D, player.gravity * (-1.0D + (double) f3 * 0.75D), 0.0D));
         double d5;
@@ -361,7 +360,7 @@ public class MovementTicker {
         }
 
         if (yRotRadians < 0.0F && d2 > 0.0D) {
-            d5 = d3 * (double) (-VanillaMath.sin(yRotRadians)) * 0.04D;
+            d5 = d3 * (double) (-player.trigHandler.sin(yRotRadians)) * 0.04D;
             vector.add(new Vector(-lookVector.getX() * d5 / d2, d5 * 3.2D, -lookVector.getZ() * d5 / d2));
         }
 
