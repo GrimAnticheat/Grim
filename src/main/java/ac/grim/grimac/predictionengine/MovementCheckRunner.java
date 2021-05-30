@@ -131,63 +131,55 @@ public class MovementCheckRunner {
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
-            // Don't let the player move if they just teleported
-            if (!justTeleported && !player.isFirstTick) {
-                if (player.bukkitPlayer.isDead()) {
-                    // Dead players can't cheat, if you find a way how they could, open an issue
-                    player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
-                    player.clientVelocity = new Vector();
-                } else if (XMaterial.getVersion() >= 8 && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
-                    // We could technically check spectator but what's the point...
-                    // Added complexity to analyze a gamemode used mainly by moderators
-                    player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
-                    player.clientVelocity = player.actualMovement.clone();
-                    player.gravity = 0;
-                    player.friction = 0.91f;
-                    PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
-                } else if (!player.inVehicle) {
-                    player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            if (justTeleported || player.isFirstTick) {
+                // Don't let the player move if they just teleported
+                player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
+                player.clientVelocity = new Vector();
+            } else if (player.bukkitPlayer.isDead()) {
+                // Dead players can't cheat, if you find a way how they could, open an issue
+                player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
+                player.clientVelocity = new Vector();
+            } else if (XMaterial.getVersion() >= 8 && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
+                // We could technically check spectator but what's the point...
+                // Added complexity to analyze a gamemode used mainly by moderators
+                player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
+                player.clientVelocity = player.actualMovement.clone();
+                player.gravity = 0;
+                player.friction = 0.91f;
+                PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
+            } else if (!player.inVehicle) {
+                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
 
-                    // Depth strider was added in 1.8
-                    ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
-                    if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
-                        player.depthStriderLevel = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
-                    }
-
-                    // This is not affected by any movement
-                    new PlayerBaseTick(player).doBaseTick();
-
-                    // baseTick occurs before this
-                    new MovementTickerPlayer(player).livingEntityAIStep();
-
-                    //handleSkippedTicks(player);
-                } else if (player.playerVehicle instanceof Boat) {
-
-                    // TODO: We will have to handle teleports (occurs multiple times a second due to vanilla glitchyness)
-                    player.boundingBox = GetBoundingBox.getBoatBoundingBox(player.lastX, player.lastY, player.lastZ);
-
-                    BoatMovement.doBoatMovement(player);
-
-                } else if (player.playerVehicle instanceof AbstractHorse) {
-
-                    player.boundingBox = GetBoundingBox.getHorseBoundingBox(player.lastX, player.lastY, player.lastZ, (AbstractHorse) player.playerVehicle);
-
-                    new PlayerBaseTick(player).doBaseTick();
-                    new MovementTickerHorse(player).livingEntityTravel();
-
-                } else if (player.playerVehicle instanceof Pig) {
-
-                    player.boundingBox = GetBoundingBox.getPigBoundingBox(player.lastX, player.lastY, player.lastZ, (Pig) player.playerVehicle);
-
-                    new PlayerBaseTick(player).doBaseTick();
-                    new MovementTickerPig(player).livingEntityTravel();
-                } else if (player.playerVehicle instanceof Strider) {
-
-                    player.boundingBox = GetBoundingBox.getStriderBoundingBox(player.lastX, player.lastY, player.lastZ, (Strider) player.playerVehicle);
-
-                    new PlayerBaseTick(player).doBaseTick();
-                    new MovementTickerStrider(player).livingEntityTravel();
+                // Depth strider was added in 1.8
+                ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
+                if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
+                    player.depthStriderLevel = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
                 }
+
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerPlayer(player).livingEntityAIStep();
+
+            } else if (player.playerVehicle instanceof Boat) {
+                player.boundingBox = GetBoundingBox.getBoatBoundingBox(player.lastX, player.lastY, player.lastZ);
+
+                BoatMovement.doBoatMovement(player);
+
+            } else if (player.playerVehicle instanceof AbstractHorse) {
+                player.boundingBox = GetBoundingBox.getHorseBoundingBox(player.lastX, player.lastY, player.lastZ, (AbstractHorse) player.playerVehicle);
+
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerHorse(player).livingEntityTravel();
+
+            } else if (player.playerVehicle instanceof Pig) {
+                player.boundingBox = GetBoundingBox.getPigBoundingBox(player.lastX, player.lastY, player.lastZ, (Pig) player.playerVehicle);
+
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerPig(player).livingEntityTravel();
+            } else if (player.playerVehicle instanceof Strider) {
+                player.boundingBox = GetBoundingBox.getStriderBoundingBox(player.lastX, player.lastY, player.lastZ, (Strider) player.playerVehicle);
+
+                new PlayerBaseTick(player).doBaseTick();
+                new MovementTickerStrider(player).livingEntityTravel();
             }
 
             player.isFirstTick = false;
