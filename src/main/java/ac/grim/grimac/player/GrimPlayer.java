@@ -69,8 +69,6 @@ public class GrimPlayer {
     public boolean isCrouching;
     public boolean isSprinting;
     public boolean lastSprinting;
-    public boolean bukkitFlying;
-    public boolean packetFlyingDanger;
     public boolean isFlying;
     public boolean wasFlying;
     // If a player collides with the ground, their flying will be set false after their movement
@@ -147,6 +145,10 @@ public class GrimPlayer {
     public int timerTransaction = Integer.MIN_VALUE;
     // For speed checks under 0.03 precision
     public int movementTransaction = Integer.MIN_VALUE;
+    // For syncing the player's full swing in 1.9+
+    public int movementPackets = 0;
+    // For setting the player as teleporting on their first tick
+    public boolean isFirstTick = true;
     // Sync together block placing/breaking by waiting for the main thread
     // This sucks, but it's the only "real" option
     // Either we have to do the work of the server async to figure out whether a block placed, or we wait for the server to do it
@@ -167,7 +169,6 @@ public class GrimPlayer {
         lastY = loginLocation.getY();
         lastZ = loginLocation.getZ();
 
-        packetFlyingDanger = bukkitPlayer.isFlying();
         isFlying = bukkitPlayer.isFlying();
         wasFlying = bukkitPlayer.isFlying();
 

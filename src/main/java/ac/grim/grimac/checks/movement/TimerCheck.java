@@ -12,6 +12,7 @@ public class TimerCheck extends Check {
         int lastTransactionSent = player.lastTransactionSent.get();
 
         player.timerTransaction++;
+        player.movementPackets++;
 
         if (player.timerTransaction > lastTransactionSent + 1) {
             //Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");

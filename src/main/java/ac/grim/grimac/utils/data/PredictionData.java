@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.WorldBorder;
 import org.bukkit.attribute.Attribute;
@@ -94,18 +93,7 @@ public class PredictionData {
         player.isPacketSprintingChange = false;
         player.isPacketSneakingChange = false;
 
-        // Flying status is just really. really. complicated.  You shouldn't need to touch this, but if you do -
-        // Don't let the player fly with packets
-        // Accept even if bukkit says the player can't fly lag might allow them to
-        // Accept that the server can change the player's packets without an update response from the player
-        // Accept that the player's flying status lies when landing on the ground
-        //
-        // This isn't perfect but I'm not doubling required scenarios because of flying...
-        if (XMaterial.supports(8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
-            player.packetFlyingDanger = true;
-        }
-
-        this.isFlying = player.compensatedFlying.somewhatLagCompensatedIsPlayerFlying() && player.compensatedFlying.getCanPlayerFlyLagCompensated(player.lastTransactionBeforeLastMovement);
+        this.isFlying = player.compensatedFlying.canFlyLagCompensated();
 
         this.isClimbing = Collisions.onClimbable(player);
         this.isFallFlying = XMaterial.getVersion() > 8 && player.bukkitPlayer.isGliding();

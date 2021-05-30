@@ -48,9 +48,6 @@ public class PlayerJoinQuitListener implements Listener {
         player.xRot = bukkitPlayer.getLocation().getYaw();
         player.yRot = bukkitPlayer.getLocation().getPitch();
 
-        // Set because sometimes abilities packet is sent before player login event
-        player.compensatedFlying.setCanPlayerFly(bukkitPlayer.getAllowFlight());
-
         GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
 
         MovementCheckRunner.queuedPredictions.put(event.getPlayer().getUniqueId(), new ConcurrentLinkedQueue<>());

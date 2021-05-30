@@ -75,7 +75,6 @@ public class MovementCheckRunner {
         player.lastTransactionReceived = data.lastTransaction;
         player.compensatedWorld.tickUpdates(data.minimumTickRequiredToContinue, data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
-        player.compensatedFlying.tickUpdates(data.minimumTickRequiredToContinue);
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
         try {
@@ -131,7 +130,7 @@ public class MovementCheckRunner {
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
             // Don't let the player move if they just teleported
-            if (!justTeleported) {
+            if (!justTeleported && !player.isFirstTick) {
                 if (!player.inVehicle) {
                     player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
 
@@ -176,6 +175,8 @@ public class MovementCheckRunner {
                     new MovementTickerStrider(player).livingEntityTravel();
                 }
             }
+
+            player.isFirstTick = false;
 
             ChatColor color;
             double diff = player.predictedVelocity.vector.distance(player.actualMovement);
