@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.enums.MoverType;
-import ac.grim.grimac.utils.math.Mth;
+import ac.grim.grimac.utils.math.VanillaMath;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -105,7 +105,7 @@ public class BoatMovement {
             f -= 0.005F;
         }
 
-        player.clientVelocity.add(new Vector(Mth.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (Mth.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
+        player.clientVelocity.add(new Vector(VanillaMath.sin(-player.xRot * ((float) Math.PI / 180F)) * f, 0, (double) (VanillaMath.cos(player.xRot * ((float) Math.PI / 180F)) * f)));
     }
 
     private static BoatEntityStatus getStatus(GrimPlayer player) {
@@ -162,12 +162,12 @@ public class BoatMovement {
     private static BoatEntityStatus isUnderwater(GrimPlayer player) {
         SimpleCollisionBox axisalignedbb = player.boundingBox;
         double d0 = axisalignedbb.maxY + 0.001D;
-        int i = Mth.floor(axisalignedbb.minX);
-        int j = Mth.ceil(axisalignedbb.maxX);
-        int k = Mth.floor(axisalignedbb.maxY);
-        int l = Mth.ceil(d0);
-        int i1 = Mth.floor(axisalignedbb.minZ);
-        int j1 = Mth.ceil(axisalignedbb.maxZ);
+        int i = VanillaMath.floor(axisalignedbb.minX);
+        int j = VanillaMath.ceil(axisalignedbb.maxX);
+        int k = VanillaMath.floor(axisalignedbb.maxY);
+        int l = VanillaMath.ceil(d0);
+        int i1 = VanillaMath.floor(axisalignedbb.minZ);
+        int j1 = VanillaMath.ceil(axisalignedbb.maxZ);
         boolean flag = false;
 
         for (int k1 = i; k1 < j; ++k1) {
@@ -190,12 +190,12 @@ public class BoatMovement {
 
     private static boolean checkInWater(GrimPlayer grimPlayer) {
         SimpleCollisionBox axisalignedbb = grimPlayer.boundingBox;
-        int i = Mth.floor(axisalignedbb.minX);
-        int j = Mth.ceil(axisalignedbb.maxX);
-        int k = Mth.floor(axisalignedbb.minY);
-        int l = Mth.ceil(axisalignedbb.minY + 0.001D);
-        int i1 = Mth.floor(axisalignedbb.minZ);
-        int j1 = Mth.ceil(axisalignedbb.maxZ);
+        int i = VanillaMath.floor(axisalignedbb.minX);
+        int j = VanillaMath.ceil(axisalignedbb.maxX);
+        int k = VanillaMath.floor(axisalignedbb.minY);
+        int l = VanillaMath.ceil(axisalignedbb.minY + 0.001D);
+        int i1 = VanillaMath.floor(axisalignedbb.minZ);
+        int j1 = VanillaMath.ceil(axisalignedbb.maxZ);
         boolean flag = false;
         grimPlayer.boatData.waterLevel = Double.MIN_VALUE;
 

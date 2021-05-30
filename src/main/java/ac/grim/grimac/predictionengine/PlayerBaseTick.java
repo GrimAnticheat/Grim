@@ -4,7 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.math.Mth;
+import ac.grim.grimac.utils.math.VanillaMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.World;
@@ -197,12 +197,12 @@ public class PlayerBaseTick {
 
     public boolean updateFluidHeightAndDoFluidPushing(FluidTag tag, double d) {
         SimpleCollisionBox aABB = player.boundingBox.copy().expand(-0.001);
-        int n2 = Mth.floor(aABB.minX);
-        int n3 = Mth.ceil(aABB.maxX);
-        int n4 = Mth.floor(aABB.minY);
-        int n5 = Mth.ceil(aABB.maxY);
-        int n6 = Mth.floor(aABB.minZ);
-        int n = Mth.ceil(aABB.maxZ);
+        int n2 = VanillaMath.floor(aABB.minX);
+        int n3 = VanillaMath.ceil(aABB.maxX);
+        int n4 = VanillaMath.floor(aABB.minY);
+        int n5 = VanillaMath.ceil(aABB.maxY);
+        int n6 = VanillaMath.floor(aABB.minZ);
+        int n = VanillaMath.ceil(aABB.maxZ);
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, n2, n4, n6, n3, n5, n)) {
             return false;
         }

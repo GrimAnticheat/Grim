@@ -5,7 +5,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
-import ac.grim.grimac.utils.math.Mth;
+import ac.grim.grimac.utils.math.VanillaMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
@@ -99,7 +99,7 @@ public class MovementTicker {
         // This is where vanilla moves the bounding box and sets it
         player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
 
-        player.horizontalCollision = !Mth.equal(inputVel.getX(), collide.getX()) || !Mth.equal(inputVel.getZ(), collide.getZ());
+        player.horizontalCollision = !VanillaMath.equal(inputVel.getX(), collide.getX()) || !VanillaMath.equal(inputVel.getZ(), collide.getZ());
         player.verticalCollision = inputVel.getY() != collide.getY();
         player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
 
@@ -350,7 +350,7 @@ public class MovementTicker {
         double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double d3 = vector.clone().setY(0).length();
         double d4 = lookVector.length();
-        float f3 = Mth.cos(yRotRadians);
+        float f3 = VanillaMath.cos(yRotRadians);
         f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
         vector.add(new Vector(0.0D, player.gravity * (-1.0D + (double) f3 * 0.75D), 0.0D));
         double d5;
@@ -360,7 +360,7 @@ public class MovementTicker {
         }
 
         if (yRotRadians < 0.0F && d2 > 0.0D) {
-            d5 = d3 * (double) (-Mth.sin(yRotRadians)) * 0.04D;
+            d5 = d3 * (double) (-VanillaMath.sin(yRotRadians)) * 0.04D;
             vector.add(new Vector(-lookVector.getX() * d5 / d2, d5 * 3.2D, -lookVector.getZ() * d5 / d2));
         }
 
