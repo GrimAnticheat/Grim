@@ -62,6 +62,7 @@ public class VectorData {
         Explosion,
         InputResult,
         StuckMultiplier,
-        Spectator
+        Spectator,
+        Dead
     }
 }

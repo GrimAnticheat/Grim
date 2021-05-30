@@ -133,9 +133,13 @@ public class MovementCheckRunner {
 
             // Don't let the player move if they just teleported
             if (!justTeleported && !player.isFirstTick) {
-                // We could technically check spectator but what's the point...
-                // Added complexity to analyze a gamemode used mainly by moderators
-                if (XMaterial.getVersion() >= 8 && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
+                if (player.bukkitPlayer.isDead()) {
+                    // Dead players can't cheat, if you find a way how they could, open an issue
+                    player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
+                    player.clientVelocity = new Vector();
+                } else if (XMaterial.getVersion() >= 8 && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
+                    // We could technically check spectator but what's the point...
+                    // Added complexity to analyze a gamemode used mainly by moderators
                     player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
                     player.clientVelocity = player.actualMovement.clone();
                     player.gravity = 0;
