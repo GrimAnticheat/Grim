@@ -61,6 +61,7 @@ public class VectorData {
         SkippedTicks,
         Explosion,
         InputResult,
-        StuckMultiplier
+        StuckMultiplier,
+        Spectator
     }
 }

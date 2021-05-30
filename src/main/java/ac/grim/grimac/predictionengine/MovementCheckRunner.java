@@ -7,6 +7,7 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerHorse;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPig;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
@@ -15,6 +16,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Boat;
@@ -131,7 +133,15 @@ public class MovementCheckRunner {
 
             // Don't let the player move if they just teleported
             if (!justTeleported && !player.isFirstTick) {
-                if (!player.inVehicle) {
+                // We could technically check spectator but what's the point...
+                // Added complexity to analyze a gamemode used mainly by moderators
+                if (XMaterial.getVersion() >= 8 && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
+                    player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
+                    player.clientVelocity = player.actualMovement.clone();
+                    player.gravity = 0;
+                    player.friction = 0.91f;
+                    PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
+                } else if (!player.inVehicle) {
                     player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
 
                     // Depth strider was added in 1.8
