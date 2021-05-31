@@ -2,25 +2,53 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 
 public class TimerCheck extends Check {
-    public static void processMovementPacket(GrimPlayer player) {
-        // TODO: If the packet is the position reminder, increment by 20 instead of 1
+    public long lastTransactionPing = Integer.MIN_VALUE;
+    public long transactionPing = Integer.MIN_VALUE;
+    GrimPlayer player;
+    double packetX = Double.MAX_VALUE;
+    double packetY = Double.MAX_VALUE;
+    double packetZ = Double.MAX_VALUE;
+    float packetXRot = Float.MAX_VALUE;
+    float packetYRot = Float.MAX_VALUE;
+    long timerTransaction = Integer.MIN_VALUE;
+    boolean isFirst = true;
 
-        // lastTransactionReceived should use real time but as a proof of concept this is easier
-        int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
-        int lastTransactionSent = player.lastTransactionSent.get();
+    public TimerCheck(GrimPlayer player) {
+        this.player = player;
+    }
 
-        player.timerTransaction++;
+    public void processMovementPacket(double playerX, double playerY, double playerZ, float xRot, float yRot) {
+        boolean isReminder = playerX == packetX && playerY == packetY && playerZ == packetZ && packetXRot == xRot && packetYRot == yRot && !isFirst;
+
+        // 1.8 clients spam movement packets every tick, even if they didn't move
+        if (isReminder && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) timerTransaction += 950;
+
+        timerTransaction += 50;
         player.movementPackets++;
 
-        if (player.timerTransaction > lastTransactionSent + 1) {
-            //Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");
+        if (timerTransaction > System.currentTimeMillis()) {
+            Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");
 
             // Reset violation for debugging purposes
-            player.timerTransaction = Math.min(player.timerTransaction, player.lastLastTransactionBeforeLastMovement);
+            timerTransaction = Math.min(timerTransaction, lastTransactionPing);
         }
 
-        player.timerTransaction = Math.max(player.timerTransaction, player.lastLastTransactionBeforeLastMovement);
+        timerTransaction = Math.max(timerTransaction, lastTransactionPing);
+
+        this.packetX = playerX;
+        this.packetY = playerY;
+        this.packetZ = playerZ;
+        this.packetXRot = xRot;
+        this.packetYRot = yRot;
+
+        this.lastTransactionPing = transactionPing;
+        this.transactionPing = System.currentTimeMillis() - player.getTransactionPing();
+
+        isFirst = false;
     }
 }

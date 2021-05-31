@@ -1,7 +1,6 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.GrimAC;
-import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerHorse;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPig;
@@ -57,7 +56,7 @@ public class MovementCheckRunner {
     public static void addQueuedPrediction(PredictionData data) {
         // TODO: This is a hack that should be fixed - maybe
         // This allows animal movement packets to also go through this system
-        TimerCheck.processMovementPacket(data.player);
+        data.player.timerCheck.processMovementPacket(data.playerX, data.playerY, data.playerZ, data.xRot, data.yRot);
 
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
             executor.submit(() -> check(data));
@@ -253,10 +252,6 @@ public class MovementCheckRunner {
         player.lastYRot = player.yRot;
         player.lastOnGround = player.onGround;
         player.lastClimbing = player.isClimbing;
-
-        if (player.lastTransactionBeforeLastMovement != player.packetLastTransactionReceived) {
-            player.lastLastTransactionBeforeLastMovement = player.lastTransactionBeforeLastMovement;
-        }
 
         player.lastTransactionBeforeLastMovement = player.packetLastTransactionReceived;
 

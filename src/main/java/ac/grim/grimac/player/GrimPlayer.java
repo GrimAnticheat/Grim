@@ -2,6 +2,7 @@ package ac.grim.grimac.player;
 
 import ac.grim.grimac.checks.movement.ExplosionHandler;
 import ac.grim.grimac.checks.movement.KnockbackHandler;
+import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.PlayerFlyingData;
@@ -139,12 +140,8 @@ public class GrimPlayer {
     public int packetLastTransactionReceived = 0;
     // Async safe
     public int lastTransactionReceived = 0;
-    // For timer checks
+    // For timer checks and fireworks
     public int lastTransactionBeforeLastMovement = 0;
-    // Also for timer checks
-    public int lastLastTransactionBeforeLastMovement = 0;
-    // For timer checks
-    public int timerTransaction = Integer.MIN_VALUE;
     // For speed checks under 0.03 precision
     public int movementTransaction = Integer.MIN_VALUE;
     // For syncing the player's full swing in 1.9+
@@ -160,6 +157,7 @@ public class GrimPlayer {
     public VelocityData firstBreadExplosion = null;
     public VelocityData knownExplosion = null;
     private int transactionPing = 0;
+    public TimerCheck timerCheck;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -181,6 +179,8 @@ public class GrimPlayer {
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
         trigHandler = new TrigHandler(this);
+
+        timerCheck = new TimerCheck(this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
