@@ -16,17 +16,22 @@ public class TimerCheck extends Check {
     float packetXRot = Float.MAX_VALUE;
     float packetYRot = Float.MAX_VALUE;
     long timerTransaction = Integer.MIN_VALUE;
-    boolean isFirst = true;
+    int lastTeleport = 5;
 
     public TimerCheck(GrimPlayer player) {
         this.player = player;
     }
 
     public void processMovementPacket(double playerX, double playerY, double playerZ, float xRot, float yRot) {
-        boolean isReminder = playerX == packetX && playerY == packetY && playerZ == packetZ && packetXRot == xRot && packetYRot == yRot && !isFirst;
+        if (!player.teleports.isEmpty()) lastTeleport = 5;
+
+        // Teleports isn't async safe but that only works out in the benefit of the player
+        boolean isReminder = lastTeleport-- == 0 && playerX == packetX && playerY == packetY && playerZ == packetZ && packetXRot == xRot && packetYRot == yRot;
 
         // 1.8 clients spam movement packets every tick, even if they didn't move
-        if (isReminder && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) timerTransaction += 950;
+        if (isReminder && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+            timerTransaction += 950;
+        }
 
         timerTransaction += 50;
         player.movementPackets++;
@@ -39,6 +44,7 @@ public class TimerCheck extends Check {
         }
 
         timerTransaction = Math.max(timerTransaction, lastTransactionPing);
+        lastTeleport = Math.max(lastTeleport, 0);
 
         this.packetX = playerX;
         this.packetY = playerY;
@@ -48,7 +54,5 @@ public class TimerCheck extends Check {
 
         this.lastTransactionPing = transactionPing;
         this.transactionPing = System.currentTimeMillis() - player.getTransactionPing();
-
-        isFirst = false;
     }
 }
