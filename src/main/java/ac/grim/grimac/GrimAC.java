@@ -18,11 +18,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 public final class GrimAC extends JavaPlugin {
     public static ConcurrentHashMap<Player, GrimPlayer> playerGrimHashMap = new ConcurrentHashMap<>();
-    public static Plugin plugin;
+    private static Plugin plugin;
+    // For syncing together the anticheat and main thread
     private static int currentTick = 0;
 
     public static int getCurrentTick() {
@@ -54,41 +57,12 @@ public final class GrimAC extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
     }
 
-    // Don't add online players - exempt the players on reload due to chunk caching system
-    @Override
-    public void onEnable() {
-        plugin = this;
-
-        registerEvents();
-        registerPackets();
-        registerChecks();
-
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            currentTick++;
-
-            while (true) {
-                PredictionData data = MovementCheckRunner.waitingOnServerQueue.poll();
-
-                if (data == null) break;
-
-                MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
-            }
-
-            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                player.playerFlyingQueue.add(new PlayerFlyingData(currentTick, player.bukkitPlayer.isFlying()));
-                sendTransaction(player.getNextTransactionID(), player);
-            }
-
-        }, 0, 1);
+    public static InputStream staticGetResource(String resourceName) {
+        return plugin.getResource(resourceName);
     }
 
-    // Shouldn't error, but be on the same side as this is networking stuff
-    private void sendTransaction(short transactionID, GrimPlayer player) {
-        try {
-            PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
+    public static Logger staticGetLogger() {
+        return plugin.getLogger();
     }
 
     public void registerPackets() {
@@ -117,8 +91,39 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().init();
     }
 
-    public void registerChecks() {
-        //GenericMovementCheck.registerCheck(new MovementVelocityCheck());
-        //GenericMovementCheck.registerCheck(new Timer());
+    // Don't add online players - exempt the players on reload by not adding them to hashmap due to chunk caching system
+    @Override
+    public void onEnable() {
+        plugin = this;
+
+        registerEvents();
+        registerPackets();
+
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            currentTick++;
+
+            while (true) {
+                PredictionData data = MovementCheckRunner.waitingOnServerQueue.poll();
+
+                if (data == null) break;
+
+                MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
+            }
+
+            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                player.playerFlyingQueue.add(new PlayerFlyingData(currentTick, player.bukkitPlayer.isFlying()));
+                sendTransaction(player.getNextTransactionID(), player);
+            }
+
+        }, 0, 1);
+    }
+
+    // Shouldn't error, but be on the safe side as this is networking stuff
+    private void sendTransaction(short transactionID, GrimPlayer player) {
+        try {
+            PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 }

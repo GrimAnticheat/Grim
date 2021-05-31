@@ -232,11 +232,11 @@ public class MovementCheckRunner {
                 lastAppendedVector = last.vector;
             }
 
-            GrimAC.plugin.getLogger().info(traceback.toString());
-            GrimAC.plugin.getLogger().info(player.x + " " + player.y + " " + player.z);
-            GrimAC.plugin.getLogger().info(player.lastX + " " + player.lastY + " " + player.lastZ);
-            GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
-            GrimAC.plugin.getLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
+            GrimAC.staticGetLogger().info(traceback.toString());
+            GrimAC.staticGetLogger().info(player.x + " " + player.y + " " + player.z);
+            GrimAC.staticGetLogger().info(player.lastX + " " + player.lastY + " " + player.lastZ);
+            GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
+            GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
 
         } catch (Exception e) {
             e.printStackTrace();

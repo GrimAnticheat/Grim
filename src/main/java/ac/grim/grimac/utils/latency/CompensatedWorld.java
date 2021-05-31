@@ -58,10 +58,10 @@ public class CompensatedWorld {
         if (XMaterial.isNewVersion()) {
             getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
 
-            BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
+            BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.staticGetResource(XMaterial.getVersion() + ".txt"))));
             int paletteSize = (int) paletteReader.lines().count();
             // Reset the reader after counting
-            paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.plugin.getResource(XMaterial.getVersion() + ".txt"))));
+            paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.staticGetResource(XMaterial.getVersion() + ".txt"))));
 
             globalPaletteToBlockData = new ArrayList<>(paletteSize);
 
