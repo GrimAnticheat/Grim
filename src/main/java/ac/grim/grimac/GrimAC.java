@@ -32,6 +32,14 @@ public final class GrimAC extends JavaPlugin {
         return currentTick;
     }
 
+    public static InputStream staticGetResource(String resourceName) {
+        return plugin.getResource(resourceName);
+    }
+
+    public static Logger staticGetLogger() {
+        return plugin.getLogger();
+    }
+
     @Override
     public void onLoad() {
         PacketEvents.create(this);
@@ -55,14 +63,6 @@ public final class GrimAC extends JavaPlugin {
         }
 
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
-    }
-
-    public static InputStream staticGetResource(String resourceName) {
-        return plugin.getResource(resourceName);
-    }
-
-    public static Logger staticGetLogger() {
-        return plugin.getLogger();
     }
 
     public void registerPackets() {
@@ -114,8 +114,18 @@ public final class GrimAC extends JavaPlugin {
                 player.playerFlyingQueue.add(new PlayerFlyingData(currentTick, player.bukkitPlayer.isFlying()));
                 sendTransaction(player.getNextTransactionID(), player);
             }
-
         }, 0, 1);
+
+        // Scale number of threads for the anticheat every second
+        // Could be higher but a large number of players joining at once could be bad
+        // And anyways, it doesn't consume much performance
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            // Set number of threads one per every 20 players, rounded up
+            int targetThreads = (Bukkit.getOnlinePlayers().size() / 20) + 1;
+            if (MovementCheckRunner.executor.getPoolSize() != targetThreads) {
+                MovementCheckRunner.executor.setMaximumPoolSize(targetThreads);
+            }
+        }, 20, 20);
     }
 
     // Shouldn't error, but be on the safe side as this is networking stuff

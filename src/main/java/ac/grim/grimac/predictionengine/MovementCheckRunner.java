@@ -47,8 +47,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 // If stage 1 - Add the data to the queue and add one
 public class MovementCheckRunner {
     public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
-    // I actually don't know how many threads is good, more testing is needed!
-    public static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(8, new ThreadFactoryBuilder().setDaemon(true).build());
+    public static ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1, new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
     // List instead of Set for consistency in debug output
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
