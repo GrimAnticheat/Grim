@@ -29,7 +29,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
 
             OnGroundCorrector.correctMovement(position, position.getY());
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot, position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, position.getX(), position.getY(), position.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
@@ -52,7 +52,9 @@ public class PacketPositionListener extends PacketListenerDynamic {
             // TODO: This isn't async safe
             if (player.bukkitPlayer.getVehicle() != null) return;
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, player.x, player.y, player.z, position.getYaw(), position.getPitch(), position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
+                    player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,
+                    position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.FLYING) {
@@ -62,7 +64,9 @@ public class PacketPositionListener extends PacketListenerDynamic {
 
             OnGroundCorrector.correctMovement(position, player.y);
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, player.x, player.y, player.z, player.xRot, player.yRot, position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
+                    player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,
+                    player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.STEER_VEHICLE) {
@@ -71,8 +75,6 @@ public class PacketPositionListener extends PacketListenerDynamic {
             if (player == null) return;
             player.packetStateData.packetVehicleForward = steer.getForwardValue();
             player.packetStateData.packetVehicleHorizontal = steer.getSideValue();
-
-            //Bukkit.broadcastMessage("Steer vehicle " + steer.getSideValue() + " and " + steer.getForwardValue());
         }
 
         if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
@@ -81,7 +83,6 @@ public class PacketPositionListener extends PacketListenerDynamic {
             if (player == null) return;
 
             MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, move.getX(), move.getY(), move.getZ(), move.getYaw(), move.getPitch()));
-            //Bukkit.broadcastMessage("Move " + move.getX() + " " + move.getY() + " " + move.getZ());
         }
     }
 }

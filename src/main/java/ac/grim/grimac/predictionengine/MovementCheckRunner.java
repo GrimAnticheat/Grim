@@ -53,6 +53,12 @@ public class MovementCheckRunner {
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
     public static void processAndCheckMovementPacket(PredictionData data) {
+        data.player.packetStateData.packetPlayerX = data.playerX;
+        data.player.packetStateData.packetPlayerY = data.playerY;
+        data.player.packetStateData.packetPlayerZ = data.playerZ;
+        data.player.packetStateData.packetPlayerXRot = data.xRot;
+        data.player.packetStateData.packetPlayerYRot = data.yRot;
+
         // Support teleports without teleport confirmations
         Vector3d teleportPos = data.player.teleports.peek();
         if (teleportPos != null && teleportPos.getX() == data.playerX && teleportPos.getY() == data.playerY && teleportPos.getZ() == data.playerZ) {
