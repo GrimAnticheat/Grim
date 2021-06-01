@@ -6,13 +6,13 @@ import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 public class ExplosionHandler {
-    Int2ObjectLinkedOpenHashMap<Vector> firstBreadMap = new Int2ObjectLinkedOpenHashMap<>();
+    Short2ObjectOpenHashMap<Vector> firstBreadMap = new Short2ObjectOpenHashMap<>();
     GrimPlayer player;
 
     VelocityData lastExplosionsKnownTaken = new VelocityData(new Vector());
@@ -22,14 +22,14 @@ public class ExplosionHandler {
         this.player = player;
     }
 
-    public void handleTransactionPacket(int transactionID) {
+    public void handleTransactionPacket(short transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
             firstBreadAddedExplosion = new VelocityData(lastExplosionsKnownTaken.vector.clone().add(firstBreadMap.get(transactionID)));
         }
 
-        if (firstBreadMap.containsKey(transactionID + 1)) {
+        if (firstBreadMap.containsKey((short) (transactionID + 1))) {
             firstBreadAddedExplosion = null;
-            lastExplosionsKnownTaken.vector.add(firstBreadMap.remove(transactionID + 1));
+            lastExplosionsKnownTaken.vector.add(firstBreadMap.remove((short) (transactionID + 1)));
         }
     }
 

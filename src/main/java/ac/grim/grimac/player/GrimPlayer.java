@@ -37,7 +37,7 @@ public class GrimPlayer {
     public final UUID playerUUID;
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
-    private final ConcurrentLinkedQueue<Pair<Integer, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Player bukkitPlayer;
@@ -215,27 +215,26 @@ public class GrimPlayer {
         return possibleMovements;
     }
 
-    public void addTransactionSend(int id) {
+    public void addTransactionSend(short id) {
         transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
     }
 
     // Players can get 0 ping by repeatedly sending invalid transaction packets, but that will only hurt them
     // The design is allowing players to miss transaction packets, which shouldn't be possible
     // But if some error made a client miss a packet, then it won't hurt them too bad.
-    public void addTransactionResponse(int id) {
-        Pair<Integer, Long> data;
+    // Also it forces players to take knockback
+    public void addTransactionResponse(short id) {
+        Pair<Short, Long> data;
         do {
             data = transactionsSent.poll();
-            if (data != null)
+            if (data != null) {
                 packetLastTransactionReceived++;
+                transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
+                playerClockAtLeast = System.currentTimeMillis() - transactionPing;
+                knockbackHandler.handleTransactionPacket(data.getFirst());
+                explosionHandler.handleTransactionPacket(data.getFirst());
+            }
         } while (data != null && data.getFirst() != id);
-
-        if (data != null) {
-            transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
-            playerClockAtLeast = System.currentTimeMillis() - transactionPing;
-            knockbackHandler.handleTransactionPacket(data.getFirst());
-            explosionHandler.handleTransactionPacket(data.getFirst());
-        }
     }
 
     public short getNextTransactionID() {
