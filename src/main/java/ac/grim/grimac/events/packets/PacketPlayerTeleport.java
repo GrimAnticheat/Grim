@@ -21,6 +21,8 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
 
             byte relative = teleport.getRelativeFlagsMask();
             Vector3d pos = teleport.getPosition();
+            float pitch = teleport.getPitch();
+            float yaw = teleport.getYaw();
 
             // Convert relative teleports to normal teleports
             // We have to do this because 1.8 players on 1.9+ get teleports changed by ViaVersion
@@ -35,7 +37,19 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             if ((relative >> 2 & 1) == 1)
                 pos = pos.add(new Vector3d(0, 0, player.z));
 
+            if ((relative >> 3 & 1) == 1)
+                yaw += player.xRot;
+
+            if ((relative >> 3 & 1) == 1)
+                pitch += player.yRot;
+
+            // Stop bad packets false by sending angles over 360
+            yaw %= 360;
+            pitch %= 360;
+
             teleport.setPosition(pos);
+            teleport.setYaw(yaw);
+            teleport.setPitch(pitch);
             teleport.setRelativeFlagsMask((byte) 0);
 
             player.teleports.add(pos);
