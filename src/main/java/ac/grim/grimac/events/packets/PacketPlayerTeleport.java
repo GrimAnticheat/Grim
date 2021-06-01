@@ -29,19 +29,19 @@ public class PacketPlayerTeleport extends PacketListenerDynamic {
             // Additionally, velocity is kept after relative teleports making predictions difficult
             // The added complexity isn't worth a feature that I have never seen used
             if ((relative & 1) == 1)
-                pos = pos.add(new Vector3d(player.x, 0, 0));
+                pos = pos.add(new Vector3d(player.packetStateData.packetPlayerX, 0, 0));
 
             if ((relative >> 1 & 1) == 1)
-                pos = pos.add(new Vector3d(0, player.y, 0));
+                pos = pos.add(new Vector3d(0, player.packetStateData.packetPlayerY, 0));
 
             if ((relative >> 2 & 1) == 1)
-                pos = pos.add(new Vector3d(0, 0, player.z));
+                pos = pos.add(new Vector3d(0, 0, player.packetStateData.packetPlayerZ));
 
             if ((relative >> 3 & 1) == 1)
-                yaw += player.xRot;
+                yaw += player.packetStateData.packetPlayerXRot;
 
             if ((relative >> 3 & 1) == 1)
-                pitch += player.yRot;
+                pitch += player.packetStateData.packetPlayerYRot;
 
             // Stop bad packets false by sending angles over 360
             yaw %= 360;
