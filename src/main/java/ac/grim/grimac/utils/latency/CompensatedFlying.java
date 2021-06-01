@@ -42,7 +42,7 @@ public class CompensatedFlying {
         if (!getBestValue(lagCompensatedCanFlyMap, player.lastTransactionReceived))
             return false;
 
-        return getBestValue(lagCompensatedIsFlyingMap, player.packetLastTransactionReceived);
+        return getBestValue(lagCompensatedIsFlyingMap, player.packetStateData.packetLastTransactionReceived);
     }
 
     private boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {

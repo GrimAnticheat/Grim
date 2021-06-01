@@ -6,8 +6,6 @@ import io.github.retrooper.packetevents.event.PacketListenerDynamic;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.entityaction.WrappedPacketInEntityAction;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 
 public class PacketEntityAction extends PacketListenerDynamic {
     @Override
@@ -20,22 +18,16 @@ public class PacketEntityAction extends PacketListenerDynamic {
 
             switch (action.getAction()) {
                 case START_SPRINTING:
-                    player.isPacketSprinting = true;
-                    player.isPacketSprintingChange = true;
-                    Bukkit.broadcastMessage(ChatColor.DARK_PURPLE + "START SPRINTING");
+                    player.packetStateData.isPacketSprinting = true;
                     break;
                 case STOP_SPRINTING:
-                    player.isPacketSprinting = false;
-                    player.isPacketSprintingChange = true;
-                    Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "STOP SPRINTING");
+                    player.packetStateData.isPacketSprinting = false;
                     break;
                 case START_SNEAKING:
-                    player.isPacketSneaking = true;
-                    player.isPacketSneakingChange = true;
+                    player.packetStateData.isPacketSneaking = true;
                     break;
                 case STOP_SNEAKING:
-                    player.isPacketSneaking = false;
-                    player.isPacketSneakingChange = true;
+                    player.packetStateData.isPacketSneaking = false;
                     break;
             }
         }

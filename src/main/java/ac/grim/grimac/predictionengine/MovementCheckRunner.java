@@ -249,7 +249,7 @@ public class MovementCheckRunner {
         player.lastOnGround = player.onGround;
         player.lastClimbing = player.isClimbing;
 
-        player.lastTransactionBeforeLastMovement = player.packetLastTransactionReceived;
+        player.lastTransactionBeforeLastMovement = player.packetStateData.packetLastTransactionReceived;
 
 
         player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));

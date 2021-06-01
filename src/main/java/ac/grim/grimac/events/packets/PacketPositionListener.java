@@ -69,8 +69,8 @@ public class PacketPositionListener extends PacketListenerDynamic {
             WrappedPacketInSteerVehicle steer = new WrappedPacketInSteerVehicle(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
-            player.packetVehicleForward = steer.getForwardValue();
-            player.packetVehicleHorizontal = steer.getSideValue();
+            player.packetStateData.packetVehicleForward = steer.getForwardValue();
+            player.packetStateData.packetVehicleHorizontal = steer.getSideValue();
 
             //Bukkit.broadcastMessage("Steer vehicle " + steer.getSideValue() + " and " + steer.getForwardValue());
         }

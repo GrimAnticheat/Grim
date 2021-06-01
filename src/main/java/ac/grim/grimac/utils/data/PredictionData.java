@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import org.bukkit.World;
-import org.bukkit.WorldBorder;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -49,7 +48,6 @@ public class PredictionData {
     public boolean isClimbing;
     public boolean isFallFlying;
     public World playerWorld;
-    public WorldBorder playerWorldBorder;
     public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;
@@ -57,14 +55,10 @@ public class PredictionData {
     public float dolphinsGraceAmplifier;
     public float flySpeed;
     public double fallDistance;
-    // Debug, does nothing.
-    public int number;
     public boolean inVehicle;
     public Entity playerVehicle;
     public float vehicleHorizontal;
     public float vehicleForward;
-    public boolean isSprintingChange;
-    public boolean isSneakingChange;
     public boolean isJustTeleported = false;
     public VelocityData firstBreadKB = null;
     public VelocityData requiredKB = null;
@@ -84,15 +78,8 @@ public class PredictionData {
         this.onGround = onGround;
         this.inVehicle = player.playerVehicle != null;
 
-        this.number = player.taskNumber.getAndIncrement();
-
-        this.isSprinting = player.isPacketSprinting;
-        this.isSneaking = player.isPacketSneaking;
-
-        this.isSprintingChange = player.isPacketSprintingChange;
-        this.isSneakingChange = player.isPacketSneakingChange;
-        player.isPacketSprintingChange = false;
-        player.isPacketSneakingChange = false;
+        this.isSprinting = player.packetStateData.isPacketSprinting;
+        this.isSneaking = player.packetStateData.isPacketSneaking;
 
         this.isFlying = player.compensatedFlying.canFlyLagCompensated();
 
@@ -122,7 +109,7 @@ public class PredictionData {
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 1;
-        lastTransaction = player.packetLastTransactionReceived;
+        lastTransaction = player.packetStateData.packetLastTransactionReceived;
     }
 
     // For boat movement
@@ -134,8 +121,8 @@ public class PredictionData {
         this.xRot = xRot;
         this.yRot = yRot;
         this.playerVehicle = player.bukkitPlayer.getVehicle();
-        this.vehicleForward = player.packetVehicleForward;
-        this.vehicleHorizontal = player.packetVehicleHorizontal;
+        this.vehicleForward = player.packetStateData.packetVehicleForward;
+        this.vehicleHorizontal = player.packetStateData.packetVehicleHorizontal;
 
         this.inVehicle = true;
 
@@ -147,7 +134,7 @@ public class PredictionData {
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
 
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 1;
-        lastTransaction = player.packetLastTransactionReceived;
+        lastTransaction = player.packetStateData.packetLastTransactionReceived;
     }
 
     private double getMovementSpeedAttribute(Player player) {

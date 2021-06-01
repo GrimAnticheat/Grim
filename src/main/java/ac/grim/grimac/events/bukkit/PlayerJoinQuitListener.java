@@ -48,6 +48,12 @@ public class PlayerJoinQuitListener implements Listener {
         player.xRot = bukkitPlayer.getLocation().getYaw();
         player.yRot = bukkitPlayer.getLocation().getPitch();
 
+        player.packetStateData.packetPlayerX = bukkitPlayer.getLocation().getX();
+        player.packetStateData.packetPlayerY = bukkitPlayer.getLocation().getY();
+        player.packetStateData.packetPlayerZ = bukkitPlayer.getLocation().getZ();
+        player.packetStateData.packetPlayerXRot = bukkitPlayer.getLocation().getYaw();
+        player.packetStateData.packetPlayerYRot = bukkitPlayer.getLocation().getPitch();
+
         GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
 
         MovementCheckRunner.queuedPredictions.put(event.getPlayer().getUniqueId(), new ConcurrentLinkedQueue<>());

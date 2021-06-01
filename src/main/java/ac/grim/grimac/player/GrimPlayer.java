@@ -4,10 +4,7 @@ import ac.grim.grimac.checks.movement.ExplosionHandler;
 import ac.grim.grimac.checks.movement.KnockbackHandler;
 import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.BoatData;
-import ac.grim.grimac.utils.data.PlayerFlyingData;
-import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.data.VelocityData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.CompensatedEntities;
@@ -33,16 +30,19 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
+// Everything in this class should be sync'd to the anticheat thread.
+// Put variables sync'd to the netty thread in PacketStateData
+// Variables that need lag compensation should have their own class
+// Soon there will be a generic class for lag compensation
 public class GrimPlayer {
     public final UUID playerUUID;
+    public final int entityID;
+    public final Player bukkitPlayer;
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
     private final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
-    public Player bukkitPlayer;
-    public int entityID;
-    public AtomicInteger taskNumber = new AtomicInteger(0);
     public Vector clientVelocity = new Vector();
     public Vector clientVelocityOnLadder = new Vector();
     public Vector clientVelocitySwimHop = new Vector();
@@ -54,17 +54,13 @@ public class GrimPlayer {
     public double gravity;
     public float friction;
     public float speed;
-    // Set from packet
+    // Set from prediction data
     public double x;
     public double y;
     public double z;
     public float xRot;
     public float yRot;
     public boolean onGround;
-    public boolean isPacketSneaking;
-    public boolean isPacketSprinting;
-    public boolean isPacketSneakingChange;
-    public boolean isPacketSprintingChange;
     // Set from the time that the movement packet was received, to be thread safe
     public boolean isSneaking;
     public boolean wasSneaking;
@@ -86,7 +82,7 @@ public class GrimPlayer {
     public double fallDistance;
     public SimpleCollisionBox boundingBox;
     public Pose pose = Pose.STANDING;
-    // This has to be done before pose is updated
+    // Determining slow movement has to be done before pose is updated
     public boolean isSlowMovement = false;
     public World playerWorld;
     // Manage sandwiching packets with transactions
@@ -100,8 +96,6 @@ public class GrimPlayer {
     public float flySpeed;
     public boolean inVehicle;
     public Entity playerVehicle;
-    public float packetVehicleHorizontal;
-    public float packetVehicleForward;
     public float vehicleHorizontal;
     public float vehicleForward;
     public BoatData boatData = new BoatData();
@@ -132,18 +126,15 @@ public class GrimPlayer {
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
     public TrigHandler trigHandler;
+    public PacketStateData packetStateData;
     // Keep track of basetick stuff
     public Vector baseTickSet = new Vector();
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
-    // Async unsafe
-    public int packetLastTransactionReceived = 0;
     // Async safe
     public int lastTransactionReceived = 0;
     // For timer checks and fireworks
     public int lastTransactionBeforeLastMovement = 0;
-    // For speed checks under 0.03 precision
-    public int movementTransaction = Integer.MIN_VALUE;
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
     // For setting the player as teleporting on their first tick
@@ -156,9 +147,9 @@ public class GrimPlayer {
     public VelocityData possibleKB = null;
     public VelocityData firstBreadExplosion = null;
     public VelocityData knownExplosion = null;
+    public TimerCheck timerCheck;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
-    public TimerCheck timerCheck;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -180,6 +171,7 @@ public class GrimPlayer {
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
         trigHandler = new TrigHandler(this);
+        packetStateData = new PacketStateData();
 
         timerCheck = new TimerCheck(this);
     }
@@ -228,7 +220,7 @@ public class GrimPlayer {
         do {
             data = transactionsSent.poll();
             if (data != null) {
-                packetLastTransactionReceived++;
+                packetStateData.packetLastTransactionReceived++;
                 transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
                 playerClockAtLeast = System.currentTimeMillis() - transactionPing;
                 knockbackHandler.handleTransactionPacket(data.getFirst());

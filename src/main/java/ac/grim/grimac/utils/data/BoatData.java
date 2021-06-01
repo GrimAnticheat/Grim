@@ -10,7 +10,6 @@ public class BoatData {
     public BoatEntityStatus status;
     public BoatEntityStatus oldStatus;
     public double waterLevel;
-    public double boatVelocity;
     public float deltaRotation;
 
     public BoatData() {
