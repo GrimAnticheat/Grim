@@ -6,15 +6,14 @@ import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 public class KnockbackHandler {
-    Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
+    Int2ObjectLinkedOpenHashMap<Vector> firstBreadMap = new Int2ObjectLinkedOpenHashMap<>();
     GrimPlayer player;
 
     VelocityData lastKnockbackKnownTaken = null;

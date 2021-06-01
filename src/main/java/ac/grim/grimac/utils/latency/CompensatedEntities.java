@@ -1,12 +1,11 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.entity.Entity;
 
 public class CompensatedEntities {
-    private final Long2ObjectMap<Entity> entityMap = new Long2ObjectOpenHashMap<>();
+    private final Int2ObjectLinkedOpenHashMap<Entity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
     GrimPlayer player;
 
     public CompensatedEntities(GrimPlayer player) {

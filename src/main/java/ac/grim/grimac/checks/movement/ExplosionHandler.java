@@ -6,14 +6,13 @@ import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 public class ExplosionHandler {
-    Long2ObjectMap<Vector> firstBreadMap = new Long2ObjectOpenHashMap<>();
+    Int2ObjectLinkedOpenHashMap<Vector> firstBreadMap = new Int2ObjectLinkedOpenHashMap<>();
     GrimPlayer player;
 
     VelocityData lastExplosionsKnownTaken = new VelocityData(new Vector());
