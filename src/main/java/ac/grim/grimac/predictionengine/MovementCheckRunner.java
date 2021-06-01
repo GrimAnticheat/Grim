@@ -52,9 +52,15 @@ public class MovementCheckRunner {
     // List instead of Set for consistency in debug output
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
-    public static void addQueuedPrediction(PredictionData data) {
-        // TODO: This is a hack that should be fixed - maybe
-        // This allows animal movement packets to also go through this system
+    public static void processAndCheckMovementPacket(PredictionData data) {
+        // Support teleports without teleport confirmations
+        Vector3d teleportPos = data.player.teleports.peek();
+        if (teleportPos != null && teleportPos.getX() == data.playerX && teleportPos.getY() == data.playerY && teleportPos.getZ() == data.playerZ) {
+            data.player.teleports.poll();
+            data.isJustTeleported = true;
+            data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
+        }
+
         data.player.timerCheck.processMovementPacket(data.playerX, data.playerY, data.playerZ, data.xRot, data.yRot);
 
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
@@ -96,19 +102,10 @@ public class MovementCheckRunner {
             player.playerWorld = data.playerWorld;
             player.fallDistance = data.fallDistance;
 
-            boolean justTeleported = false;
-            // Support teleports without teleport confirmations
-            Vector3d teleportPos = player.teleports.peek();
-            if (teleportPos != null && teleportPos.getX() == player.x && teleportPos.getY() == player.y && teleportPos.getZ() == player.z) {
-                player.lastX = teleportPos.getX();
-                player.lastY = teleportPos.getY();
-                player.lastZ = teleportPos.getZ();
-
-                player.clientVelocity = new Vector();
-                player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
-
-                player.teleports.poll();
-                justTeleported = true;
+            if (data.isJustTeleported) {
+                player.lastX = player.x;
+                player.lastY = player.y;
+                player.lastZ = player.z;
             }
 
             player.movementSpeed = data.movementSpeed;
@@ -129,7 +126,7 @@ public class MovementCheckRunner {
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
-            if (justTeleported || player.isFirstTick) {
+            if (data.isJustTeleported || player.isFirstTick) {
                 // Don't let the player move if they just teleported
                 player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
                 player.clientVelocity = new Vector();

@@ -65,6 +65,7 @@ public class PredictionData {
     public float vehicleForward;
     public boolean isSprintingChange;
     public boolean isSneakingChange;
+    public boolean isJustTeleported = false;
     public VelocityData firstBreadKB = null;
     public VelocityData requiredKB = null;
     public VelocityData firstBreadExplosion = null;

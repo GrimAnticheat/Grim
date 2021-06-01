@@ -157,6 +157,7 @@ public class GrimPlayer {
     public VelocityData firstBreadExplosion = null;
     public VelocityData knownExplosion = null;
     private int transactionPing = 0;
+    private long playerClockAtLeast = 0;
     public TimerCheck timerCheck;
 
     public GrimPlayer(Player player) {
@@ -231,6 +232,7 @@ public class GrimPlayer {
 
         if (data != null) {
             transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
+            playerClockAtLeast = System.currentTimeMillis() - transactionPing;
             knockbackHandler.handleTransactionPacket(data.getFirst());
             explosionHandler.handleTransactionPacket(data.getFirst());
         }
@@ -303,5 +305,9 @@ public class GrimPlayer {
 
     public int getTransactionPing() {
         return transactionPing;
+    }
+
+    public long getPlayerClockAtLeast() {
+        return playerClockAtLeast;
     }
 }

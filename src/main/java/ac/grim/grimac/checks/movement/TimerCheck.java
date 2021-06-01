@@ -7,52 +7,55 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 public class TimerCheck extends Check {
-    public long lastTransactionPing = Integer.MIN_VALUE;
-    public long transactionPing = Integer.MIN_VALUE;
+    public int exempt = 400; // Exempt for 20 seconds on login
     GrimPlayer player;
     double packetX = Double.MAX_VALUE;
     double packetY = Double.MAX_VALUE;
     double packetZ = Double.MAX_VALUE;
     float packetXRot = Float.MAX_VALUE;
     float packetYRot = Float.MAX_VALUE;
-    long timerTransaction = Integer.MIN_VALUE;
-    int lastTeleport = 5;
+    long timerMillis = Integer.MIN_VALUE;
 
     public TimerCheck(GrimPlayer player) {
         this.player = player;
     }
 
     public void processMovementPacket(double playerX, double playerY, double playerZ, float xRot, float yRot) {
-        if (!player.teleports.isEmpty()) lastTeleport = 5;
 
-        // Teleports isn't async safe but that only works out in the benefit of the player
-        boolean isReminder = lastTeleport-- == 0 && playerX == packetX && playerY == packetY && playerZ == packetZ && packetXRot == xRot && packetYRot == yRot;
-
-        // 1.8 clients spam movement packets every tick, even if they didn't move
-        if (isReminder && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
-            timerTransaction += 950;
+        // Teleporting sends it's own packet
+        if (exempt-- > 0) {
+            timerMillis = Math.max(timerMillis, player.getPlayerClockAtLeast());
+            return;
         }
 
-        timerTransaction += 50;
-        player.movementPackets++;
+        // Teleports send their own packet and mess up reminder packet status
+        // Exempting reminder packets for 5 movement packets for teleports is fine.
+        // 1.8 clients spam movement packets every tick, even if they didn't move
+        boolean isReminder = playerX == packetX && playerY == packetY && playerZ == packetZ && packetXRot == xRot && packetYRot == yRot && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
 
-        if (timerTransaction > System.currentTimeMillis()) {
+        // Note that players are exempt by the current structure of the check until they respond to a transaction
+        if (isReminder) {
+            timerMillis += 950;
+        }
+
+        if (timerMillis > System.currentTimeMillis()) {
             Bukkit.broadcastMessage(ChatColor.RED + player.bukkitPlayer.getName() + " is using timer!");
 
-            // Reset violation for debugging purposes
-            timerTransaction = Math.min(timerTransaction, lastTransactionPing);
+            // This seems like the best way to reset violations
+            timerMillis -= 50;
         }
 
-        timerTransaction = Math.max(timerTransaction, lastTransactionPing);
-        lastTeleport = Math.max(lastTeleport, 0);
+        timerMillis += 50;
+
+        // Don't let the player's movement millis value fall behind the known base from transaction ping
+        timerMillis = Math.max(timerMillis, player.getPlayerClockAtLeast());
+
+        player.movementPackets++;
 
         this.packetX = playerX;
         this.packetY = playerY;
         this.packetZ = playerZ;
         this.packetXRot = xRot;
         this.packetYRot = yRot;
-
-        this.lastTransactionPing = transactionPing;
-        this.transactionPing = System.currentTimeMillis() - player.getTransactionPing();
     }
 }

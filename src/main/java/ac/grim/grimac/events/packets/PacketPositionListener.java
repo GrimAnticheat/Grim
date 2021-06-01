@@ -29,7 +29,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
 
             OnGroundCorrector.correctMovement(position, position.getY());
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot, position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot, position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
@@ -39,7 +39,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
 
             OnGroundCorrector.correctMovement(position, position.getY());
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(player, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.LOOK) {
@@ -52,7 +52,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
             // TODO: This isn't async safe
             if (player.bukkitPlayer.getVehicle() != null) return;
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(player, player.x, player.y, player.z, position.getYaw(), position.getPitch(), position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, player.x, player.y, player.z, position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.FLYING) {
@@ -62,7 +62,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
 
             OnGroundCorrector.correctMovement(position, player.y);
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(player, player.x, player.y, player.z, player.xRot, player.yRot, position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, player.x, player.y, player.z, player.xRot, player.yRot, position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.STEER_VEHICLE) {
@@ -80,7 +80,7 @@ public class PacketPositionListener extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            MovementCheckRunner.addQueuedPrediction(new PredictionData(player, move.getX(), move.getY(), move.getZ(), move.getYaw(), move.getPitch()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, move.getX(), move.getY(), move.getZ(), move.getYaw(), move.getPitch()));
             //Bukkit.broadcastMessage("Move " + move.getX() + " " + move.getY() + " " + move.getZ());
         }
     }
