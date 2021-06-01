@@ -1,44 +1,58 @@
-Note: There currently is no stable branch, the majority of stuff is currently disabled and broken in the master branch
-while doing major refactors.
+# GrimAC
 
-A free and open source anticheat for 1.16. Everything that can be promised is promised, and is about 40% complete.
-Should release late summer or early fall 2021. We are a prediction based anticheat meaning that we use client code
-directly in order to see whether a movement is possible. This gives us a huge advantage over traditional anticheats. In
-addition, the open source nature should allow it to server as a base to other anticheats, who are free to integrate our
-prediction system as long as they follow the GPL license. Yes, I am serious about the license, don't break it. You
-should be following GPL anyways as a bukkit plugin.
+GrimAC is an open source anticheat designed for 1.16 and supporting 1.7-1.16. It will be sold for $15 on SpigotMC and
+other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats. It is
+planning to release either June or July 2021.
 
-**What has been done so far?**
+**Discord:** https://discord.gg/FNRrcGAybJ
 
-- A semi-decent prediction system for 1.16 movement that is accurate for most movement such as swimming, running, water pushing, jumping, shifting, fireworks, lava movement, water movement, knockback, cobwebs, bubble columns, and using an elytra. Most of the work so far has been spent on the prediction engine, as it is the main feature of this anticheat.
-- The framework for allowing async and multithreaded checks
-- Half-working boat support
-- A half finished way to get block bounding boxes independently of server version
-- A fast collision system that is based on 1.12 and works for all client versions.
+## Grim supremacy
 
-**What is not done?**
+Here are the main cores that make grim stand out against other anticheats
 
-- The combat checks to this anticheat
-- Handling lower precision on 1.9+ clients
-- Porting the chunk caching system back to 1.7-1.12
-- Grabbing movement packets before ViaVersion, as ViaVersion messes up the packets
-- The logic for utilizing the prediction engine in the anticheat
-- Punishment system
-- Handling ping and other latency
+### Prediction Engine
 
-**What will be left out in release**
+* We have a 1:1 replication of the player's possible movements
+* This covers everything from basic walking, swimming, knockback, cobwebs, to bubble columns
+* It even covers riding entities from boats to pigs to striders
+* Built upon convering edge cases to confirm accuracy
+* 1.13+ clients on 1.13+ servers, 1.12- clients on 1.13+ servers, 1.13+ clients on 1.12- servers, and 1.12- clients on
+  1.12- servers are all supported regardless of the large technical changes between these versions.
+* Order of collisions depends on client version and is correct
+* Accounts for minor bounding box differences between versions, for example:
+    * Single glass panes will be a + shape for 1.7-1.8 players and * for 1.9+ players
+    * 1.13+ clients on 1.8 servers see the + glass pane hitbox due to ViaVersion
+    * Many other blocks have this extreme attention to detail.
+    * Waterlogged blocks do not exist for 1.12 or below players
+    * Blocks that do not exist in the client's version use ViaVersion's replacement block
+    * Block data that cannot be translated to previous versions is replaced correctly
+    * All vanilla collision boxes have been implemented
 
-- Actual geyser support. Not sure how geyser support will be done, but for release we will just exempt Geyser players as normal.
-- Artificial intelligence combat checks. Seems fun and I should be able to get enough data if I include some optional telemetry in this anticheat.
+### Fully asynchronous and multithreaded design
 
+* All movement checks are run off the main thread and netty thread
+* The anticheat can scale to many hundreds of players, if not more
+* Thread safety is carefully thought out
+* The next core allows for this design
 
-**License (We are GPL, this is a summary not legal advice. If you use my code you must use this or a compatible
-license):**
+### Full world replication
 
-- All people who have access to the program should be able to request and access source code, no exceptions or tiers
-  without source code.
-- All people who have access to the program are able to redistribute this program freely, and are allowed to remove
-  limitations such as DRM.
-- All people who have access to the program can redistribute modified versions of the program.
-- All software that uses GPL code, such as in dependies such as Bukkit or from this project itself, is also GPL and must
-  follow this license.
+* The anticheat keeps a replica of the world for each player
+* The replica is created by listening to chunk data packets and block changes
+* On all versions, chunks are compressed to 16-64 kb per chunk using palettes
+* Using this cache, the anticheat can safety access the world state
+* Per player cache allows for multithreaded design
+* Sending players fake blocks with packets is safe and does not lead to falses
+* The world is recreated for each player to allow lag compensation
+
+### Latency compensation
+
+* World changes are queue'd until they reach the player
+* This means breaking blocks under a player does not false the anticheat
+* Everything from flying status to movement speed will be latency compensated
+
+### Secure by design, not obscurity
+
+* All systems are designed to be highly secure and mathematically impossible to bypass
+* For example, the prediction engine knows all possible movements and cannot be bypassed
+* Shortcuts have not been taken and all possible scenarios are implemented without exemptions.
