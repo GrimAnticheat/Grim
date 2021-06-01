@@ -140,7 +140,7 @@ public abstract class PredictionEngine {
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
                 player.clientVelocity = backOff.clone();
-                bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput);
+                bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput, VectorData.VectorType.BestVelPicked);
 
                 // Optimization - Close enough, other inputs won't get closer
                 // This works as velocity is ran first
@@ -189,7 +189,7 @@ public abstract class PredictionEngine {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             Vector clonedVector = vector.vector.clone();
             doJump(player, vector.vector);
-            existingVelocities.add(new VectorData(clonedVector, vector));
+            existingVelocities.add(new VectorData(clonedVector, vector, VectorData.VectorType.Jump));
         }
     }
 
@@ -250,7 +250,7 @@ public abstract class PredictionEngine {
         for (VectorData possibleLastTickOutput : possibleVectors) {
             for (int x = -1; x <= 1; x++) {
                 for (int z = zMin; z <= 1; z++) {
-                    VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), VectorData.VectorType.InputResult);
+                    VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
                     result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
                     result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
                     returnVectors.add(result);

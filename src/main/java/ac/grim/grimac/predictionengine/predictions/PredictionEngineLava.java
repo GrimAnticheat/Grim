@@ -8,23 +8,13 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PredictionEngineLava extends PredictionEngine {
-
-    // Let shifting and holding space not be a false positive by allowing sneaking to override this
-    // TODO: Do we have to apply this to other velocities
-
-
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-
         for (VectorData vector : new HashSet<>(existingVelocities)) {
-            // I don't believe you can ascend and jump regularly
-            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector));
+            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector, VectorData.VectorType.Jump));
             Vector withJump = vector.vector.clone();
             super.doJump(player, withJump);
-            existingVelocities.add(new VectorData(withJump, vector));
+            existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
         }
-
-        //handleSwimJump(grimPlayer, grimPlayer.clientVelocity);
-        //super.addJumpIfNeeded(grimPlayer);
     }
 }

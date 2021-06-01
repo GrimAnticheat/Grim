@@ -7,17 +7,6 @@ public class VectorData {
     public VectorData lastVector;
     public Vector vector;
 
-    public VectorData(Vector vector, VectorData lastVector) {
-        this.vector = vector;
-        this.lastVector = lastVector;
-        this.vectorType = lastVector.vectorType;
-    }
-
-    public VectorData(double x, double y, double z, VectorType vectorType) {
-        this.vector = new Vector(x, y, z);
-        this.vectorType = vectorType;
-    }
-
     // For handling replacing the type of vector it is while keeping data
     // Not currently used as this system isn't complete
     public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
@@ -63,6 +52,10 @@ public class VectorData {
         InputResult,
         StuckMultiplier,
         Spectator,
-        Dead
+        Dead,
+        Jump,
+        SurfaceSwimming,
+        SwimmingSpace,
+        BestVelPicked
     }
 }

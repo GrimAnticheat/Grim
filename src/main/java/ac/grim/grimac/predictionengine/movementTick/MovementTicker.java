@@ -26,6 +26,43 @@ public class MovementTicker {
         this.bukkitPlayer = player.bukkitPlayer;
     }
 
+    public static Vector cutVectorsToPlayerMovement(Vector vectorToCutTo, Vector vectorOne, Vector vectorTwo) {
+        double xMin = Math.min(vectorOne.getX(), vectorTwo.getX());
+        double xMax = Math.max(vectorOne.getX(), vectorTwo.getX());
+        double yMin = Math.min(vectorOne.getY(), vectorTwo.getY());
+        double yMax = Math.max(vectorOne.getY(), vectorTwo.getY());
+        double zMin = Math.min(vectorOne.getZ(), vectorTwo.getZ());
+        double zMax = Math.max(vectorOne.getZ(), vectorTwo.getZ());
+
+        Vector cutCloned = vectorToCutTo.clone();
+
+        if (xMin > vectorToCutTo.getX() || xMax < vectorToCutTo.getX()) {
+            if (Math.abs(vectorToCutTo.getX() - xMin) < Math.abs(vectorToCutTo.getX() - xMax)) {
+                cutCloned.setX(xMin);
+            } else {
+                cutCloned.setX(xMax);
+            }
+        }
+
+        if (yMin > vectorToCutTo.getY() || yMax < vectorToCutTo.getY()) {
+            if (Math.abs(vectorToCutTo.getY() - yMin) < Math.abs(vectorToCutTo.getY() - yMax)) {
+                cutCloned.setY(yMin);
+            } else {
+                cutCloned.setY(yMax);
+            }
+        }
+
+        if (zMin > vectorToCutTo.getZ() || zMax < vectorToCutTo.getZ()) {
+            if (Math.abs(vectorToCutTo.getZ() - zMin) < Math.abs(vectorToCutTo.getZ() - zMax)) {
+                cutCloned.setZ(zMin);
+            } else {
+                cutCloned.setZ(zMax);
+            }
+        }
+
+        return cutCloned;
+    }
+
     public void move(MoverType moverType, Vector inputVel) {
         move(moverType, inputVel.multiply(player.stuckSpeedMultiplier), inputVel.multiply(player.stuckSpeedMultiplier));
     }
@@ -60,9 +97,10 @@ public class MovementTicker {
             double oldYJumping = oldY + player.flySpeed * 3;
             livingEntityTravel();
 
-            if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
+            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback)) {
+                player.baseTickSetY(player.actualMovement.getY() * 0.6);
+            } else if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
                 player.baseTickSetY(oldY * 0.6);
-
             } else {
                 player.baseTickSetY(oldYJumping * 0.6);
             }
@@ -166,43 +204,6 @@ public class MovementTicker {
     }
 
     public void doNormalMove(float blockFriction) {
-    }
-
-    public static Vector cutVectorsToPlayerMovement(Vector vectorToCutTo, Vector vectorOne, Vector vectorTwo) {
-        double xMin = Math.min(vectorOne.getX(), vectorTwo.getX());
-        double xMax = Math.max(vectorOne.getX(), vectorTwo.getX());
-        double yMin = Math.min(vectorOne.getY(), vectorTwo.getY());
-        double yMax = Math.max(vectorOne.getY(), vectorTwo.getY());
-        double zMin = Math.min(vectorOne.getZ(), vectorTwo.getZ());
-        double zMax = Math.max(vectorOne.getZ(), vectorTwo.getZ());
-
-        Vector cutCloned = vectorToCutTo.clone();
-
-        if (xMin > vectorToCutTo.getX() || xMax < vectorToCutTo.getX()) {
-            if (Math.abs(vectorToCutTo.getX() - xMin) < Math.abs(vectorToCutTo.getX() - xMax)) {
-                cutCloned.setX(xMin);
-            } else {
-                cutCloned.setX(xMax);
-            }
-        }
-
-        if (yMin > vectorToCutTo.getY() || yMax < vectorToCutTo.getY()) {
-            if (Math.abs(vectorToCutTo.getY() - yMin) < Math.abs(vectorToCutTo.getY() - yMax)) {
-                cutCloned.setY(yMin);
-            } else {
-                cutCloned.setY(yMax);
-            }
-        }
-
-        if (zMin > vectorToCutTo.getZ() || zMax < vectorToCutTo.getZ()) {
-            if (Math.abs(vectorToCutTo.getZ() - zMin) < Math.abs(vectorToCutTo.getZ() - zMax)) {
-                cutCloned.setZ(zMin);
-            } else {
-                cutCloned.setZ(zMax);
-            }
-        }
-
-        return cutCloned;
     }
 
     // LivingEntity line 1741

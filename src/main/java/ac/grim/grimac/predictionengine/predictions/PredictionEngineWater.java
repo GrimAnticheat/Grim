@@ -36,10 +36,10 @@ public class PredictionEngineWater extends PredictionEngine {
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
-            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector));
+            existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector, VectorData.VectorType.Jump));
             Vector withJump = vector.vector.clone();
             super.doJump(player, withJump);
-            existingVelocities.add(new VectorData(withJump, vector));
+            existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
         }
     }
 
@@ -54,11 +54,11 @@ public class PredictionEngineWater extends PredictionEngine {
                 double d5 = d < -0.2 ? 0.085 : 0.06;
 
                 // The player can always press jump and activate this
-                swimmingVelocities.add(new VectorData(vector.vector.getX(), vector.vector.getY() + ((d - vector.vector.getY()) * d5), vector.vector.getZ(), vector.vectorType));
+                swimmingVelocities.add(new VectorData(new Vector(vector.vector.getX(), vector.vector.getY() + ((d - vector.vector.getY()) * d5), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
 
                 // This scenario will occur if the player does not press jump and the other conditions are met
                 if (d > 0.0 && player.compensatedWorld.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
-                    swimmingVelocities.add(new VectorData(vector.vector, vector));
+                    swimmingVelocities.add(new VectorData(vector.vector, vector, VectorData.VectorType.SurfaceSwimming));
                 }
             }
 
