@@ -4,7 +4,10 @@ import ac.grim.grimac.checks.movement.ExplosionHandler;
 import ac.grim.grimac.checks.movement.KnockbackHandler;
 import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.BoatData;
+import ac.grim.grimac.utils.data.PacketStateData;
+import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
@@ -140,7 +143,6 @@ public class GrimPlayer {
     // Sync together block placing/breaking by waiting for the main thread
     // This sucks, but it's the only "real" option
     // Either we have to do the work of the server async to figure out whether a block placed, or we wait for the server to do it
-    public ConcurrentLinkedQueue<PlayerFlyingData> playerFlyingQueue = new ConcurrentLinkedQueue<>();
     public VelocityData firstBreadKB = null;
     public VelocityData possibleKB = null;
     public VelocityData firstBreadExplosion = null;

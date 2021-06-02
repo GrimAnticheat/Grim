@@ -4,7 +4,6 @@ import ac.grim.grimac.events.bukkit.*;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
-import ac.grim.grimac.utils.data.PlayerFlyingData;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
@@ -111,23 +110,25 @@ public final class GrimAC extends JavaPlugin {
 
                 MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
             }
-
-            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                player.playerFlyingQueue.add(new PlayerFlyingData(currentTick, player.bukkitPlayer.isFlying()));
-                sendTransaction(player.getNextTransactionID(), player);
-            }
         }, 0, 1);
 
         // Scale number of threads for the anticheat every second
         // Could be higher but a large number of players joining at once could be bad
         // And anyways, it doesn't consume much performance
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             // Set number of threads one per every 20 players, rounded up
             int targetThreads = (Bukkit.getOnlinePlayers().size() / 20) + 1;
             if (MovementCheckRunner.executor.getPoolSize() != targetThreads) {
                 MovementCheckRunner.executor.setMaximumPoolSize(targetThreads);
             }
         }, 20, 20);
+
+        // Writing packets takes more time than it appears
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                sendTransaction(player.getNextTransactionID(), player);
+            }
+        }, 1, 1);
     }
 
     // Shouldn't error, but be on the safe side as this is networking stuff
