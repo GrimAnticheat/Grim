@@ -194,7 +194,6 @@ public class PlayerBaseTick {
 
     // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
-        this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014);
         player.lastTouchingWater = player.wasTouchingWater;
         player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle instanceof Boat);
     }
