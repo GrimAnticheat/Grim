@@ -153,23 +153,21 @@ public abstract class PredictionEngine {
     }
 
     public int putVelocityExplosionsFirst(VectorData a, VectorData b) {
-        /*int aScore = 0;
-        int bScore = 0;*/
+        int aScore = 0;
+        int bScore = 0;
         if (a.hasVectorType(VectorData.VectorType.Explosion))
-            return 1;
+            aScore++;
 
-        /*if (a.hasVectorType(VectorData.VectorType.Knockback))
-            aScore++;*/
+        if (a.hasVectorType(VectorData.VectorType.Knockback))
+            aScore++;
 
         if (b.hasVectorType(VectorData.VectorType.Explosion))
-            return -1;
+            bScore++;
 
-        return 0;
+        if (b.hasVectorType(VectorData.VectorType.Knockback))
+            bScore++;
 
-        /*if (b.hasVectorType(VectorData.VectorType.Knockback))
-            bScore++;*/
-
-        //return Integer.compare(aScore, bScore);
+        return Integer.compare(aScore, bScore);
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
