@@ -5,10 +5,8 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
-import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
@@ -50,17 +48,6 @@ public abstract class PredictionEngine {
         double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
 
         return new Vector(xResult * f, 0, zResult * f);
-    }
-
-    // These math equations are based off of the vanilla equations, made impossible to divide by 0
-    public static Vector getBestTheoreticalPlayerInput(GrimPlayer player, Vector wantedMovement, float f, float f2) {
-        float f3 = player.trigHandler.sin(f2 * 0.017453292f);
-        float f4 = player.trigHandler.cos(f2 * 0.017453292f);
-
-        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
-        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
-
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
     public void guessBestMovement(float speed, GrimPlayer player) {
@@ -186,11 +173,7 @@ public abstract class PredictionEngine {
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        for (VectorData vector : new HashSet<>(existingVelocities)) {
-            Vector clonedVector = vector.vector.clone();
-            doJump(player, vector.vector);
-            existingVelocities.add(new VectorData(clonedVector, vector, VectorData.VectorType.Jump));
-        }
+
     }
 
     public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {
@@ -202,24 +185,6 @@ public abstract class PredictionEngine {
             if (player.firstBreadExplosion != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
             }
-        }
-    }
-
-    public void doJump(GrimPlayer player, Vector vector) {
-        double d7 = player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 ? player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) : player.fluidHeight.getOrDefault(FluidTag.WATER, 0);
-        boolean bl = player.fluidHeight.getOrDefault(FluidTag.WATER, 0) > 0 && d7 > 0.0;
-        double d8 = 0.4D;
-
-        if (!player.specialFlying) {
-            if (bl && (!player.lastOnGround || d7 > d8)) {
-                vector.add(new Vector(0, 0.4, 0));
-            } else if (player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && (!player.lastOnGround || d7 > d8)) {
-                vector.add(new Vector(0, 0.4, 0));
-            } else if ((player.lastOnGround || bl && d7 <= d8) /*&& this.noJumpDelay == 0*/) {
-                JumpPower.jumpFromGround(player, vector);
-            }
-        } else {
-            vector.add(new Vector(0, player.flySpeed * 3, 0));
         }
     }
 

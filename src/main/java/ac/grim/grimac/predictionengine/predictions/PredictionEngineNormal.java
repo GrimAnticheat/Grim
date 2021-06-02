@@ -3,14 +3,31 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
+import java.util.HashSet;
 import java.util.Set;
 
 public class PredictionEngineNormal extends PredictionEngine {
     public static final Material scaffolding = XMaterial.SCAFFOLDING.parseMaterial();
+
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        for (VectorData vector : new HashSet<>(existingVelocities)) {
+            Vector jump = vector.vector.clone();
+
+            if (!player.specialFlying) {
+                JumpPower.jumpFromGround(player, jump);
+            } else {
+                jump.add(new Vector(0, player.flySpeed * 3, 0));
+            }
+
+            existingVelocities.add(new VectorData(jump, VectorData.VectorType.Jump));
+        }
+    }
+
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();

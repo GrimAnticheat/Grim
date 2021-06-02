@@ -220,7 +220,7 @@ public class MovementTicker {
 
         float swimFriction;
 
-        if (player.wasTouchingWater && !player.specialFlying) {
+        if (player.fluidHeight.getOrDefault(FluidTag.WATER, 0) > player.getFluidHeightToRegister() && !player.specialFlying) {
             // 0.8F seems hardcoded in
             swimFriction = player.isSprinting ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
@@ -250,7 +250,7 @@ public class MovementTicker {
             }
 
         } else {
-            if (player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > 0 && !player.specialFlying && !canStandOnLava()) {
+            if (player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > player.getFluidHeightToRegister() && !player.specialFlying && !canStandOnLava()) {
 
                 doLavaMove();
 

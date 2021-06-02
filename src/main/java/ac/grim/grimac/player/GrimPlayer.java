@@ -283,6 +283,10 @@ public class GrimPlayer {
         return inVehicle ? 0f : 0.6f;
     }
 
+    public double getFluidHeightToRegister() {
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? 0 : 0.4001;
+    }
+
     public boolean isEyeInFluid(FluidTag tag) {
         return this.fluidOnEyes == tag;
     }
