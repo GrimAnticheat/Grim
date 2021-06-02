@@ -157,6 +157,8 @@ public class MovementCheckRunner {
                 ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
                 if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
                     player.depthStriderLevel = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
+                } else {
+                    player.depthStriderLevel = 0;
                 }
 
                 new PlayerBaseTick(player).doBaseTick();

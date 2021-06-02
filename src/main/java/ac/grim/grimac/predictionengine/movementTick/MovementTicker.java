@@ -221,13 +221,8 @@ public class MovementTicker {
 
         if (player.wasTouchingWater && !player.specialFlying) {
             // 0.8F seems hardcoded in
-            swimFriction = player.isSprinting ? 0.9F : 0.8F;
+            swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
-
-            // The sprinting attribute doesn't apply in water or something for 1.12 players
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2) && player.isSprinting) {
-                player.movementSpeed /= 1.3;
-            }
 
             if (player.depthStriderLevel > 3.0F) {
                 player.depthStriderLevel = 3.0F;

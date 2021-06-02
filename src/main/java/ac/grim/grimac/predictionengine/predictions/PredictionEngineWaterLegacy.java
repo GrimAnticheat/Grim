@@ -14,19 +14,11 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
     float swimmingFriction;
     double lastY;
 
-    public static void staticVectorEndOfTick(Vector vector) {
-        // Friction
-        vector.multiply(new Vector(0.8F, 0.8F, 0.8F));
-
-        // Gravity
-        vector.setY(vector.getY() - 0.02D);
-    }
-
     public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
         this.isFalling = isFalling;
         this.playerGravity = playerGravity;
         this.swimmingSpeed = swimmingSpeed;
-        this.swimmingFriction = 0.8F; // Hardcoded in 1.12
+        this.swimmingFriction = swimmingFriction;
         this.lastY = lastY;
         super.guessBestMovement(swimmingSpeed, player);
     }
@@ -66,7 +58,10 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
     @Override
     public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(vector.vector);
+            vector.vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
+
+            // Gravity
+            vector.vector.setY(vector.vector.getY() - 0.02D);
         }
 
         super.endOfTick(player, playerGravity, friction);
