@@ -16,8 +16,6 @@ import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import it.unimi.dsi.fastutil.objects.Object2DoubleArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -102,11 +100,11 @@ public class GrimPlayer {
     // We determine this
     public boolean isActuallyOnGround;
     // Set from base tick
-    public Object2DoubleMap<FluidTag> fluidHeight = new Object2DoubleArrayMap<>(2);
     public boolean lastTouchingWater = false;
     public boolean lastTouchingLava = false;
     public boolean wasTouchingWater = false;
     public boolean wasTouchingLava = false;
+    public boolean slightlyTouchingLava = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
     public ConcurrentLinkedQueue<Vector3d> teleports = new ConcurrentLinkedQueue<>();

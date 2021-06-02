@@ -101,7 +101,6 @@ public class PlayerBaseTick {
 
     // Entity line 937
     public void updateInWaterStateAndDoFluidPushing() {
-        player.fluidHeight.clear();
         updateInWaterStateAndDoWaterCurrentPushing();
         double d = player.playerWorld.getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
         player.lastTouchingLava = player.wasTouchingLava;
@@ -251,7 +250,6 @@ public class PlayerBaseTick {
             player.baseTickAddVector(vec3);
         }
 
-        player.fluidHeight.put(tag, d2);
         return hasPushed;
     }
 
@@ -268,7 +266,7 @@ public class PlayerBaseTick {
             return false;
         }
         double d2 = 0.0;
-        boolean hasPushed = false;
+        boolean hasTouched = false;
         Vector vec3 = new Vector();
         int n7 = 0;
 
@@ -287,7 +285,7 @@ public class PlayerBaseTick {
                     if (fluidHeight == 0 || (d3 = (float) j + fluidHeight) < aABB.minY)
                         continue;
 
-                    hasPushed = true;
+                    hasTouched = true;
                     d2 = Math.max(d3 - aABB.minY, d2);
 
                     if (!player.specialFlying) {
@@ -323,8 +321,12 @@ public class PlayerBaseTick {
                 player.baseTickAddVector(new Vector(vec3.getX(), vec3.getY(), vec3.getZ()));
             }
         }
-        player.fluidHeight.put(tag, d2);
-        return hasPushed;
+
+        if (tag == FluidTag.LAVA) {
+            player.slightlyTouchingLava = hasTouched && d2 <= 0.4D;
+        }
+
+        return hasTouched;
     }
 
     private boolean suffocatesAt(int x, int z) {

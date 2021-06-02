@@ -2,7 +2,6 @@ package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.math.MovementVectorsCalc;
@@ -255,7 +254,7 @@ public class MovementTicker {
                 doLavaMove();
 
                 // Unsure which client version that lava movement changed but it's most likely 1.13
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.slightlyTouchingLava) {
                     player.clientVelocity = player.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
                     player.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity);
                 } else {
