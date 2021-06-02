@@ -132,8 +132,7 @@ public class PlayerBaseTick {
         // This doesn't seem like the right place for determining swimming, but it's fine for now
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
             player.isSwimming = false;
-        }
-        if (player.isFlying) {
+        } else if (player.isFlying) {
             player.isSwimming = false;
         } else {
             if (player.inVehicle) {
