@@ -244,7 +244,8 @@ public class MovementTicker {
 
             doWaterMove(swimSpeed, isFalling, swimFriction);
 
-            if (player.isClimbing) {
+            // 1.12 and below players can't climb ladders while touching water
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isClimbing) {
                 player.clientVelocityOnLadder = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.16));
             }
 

@@ -42,7 +42,7 @@ public abstract class PredictionEngine {
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
     // We need it because of collision support when a player is using speed
-    public static Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
+    public Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
         float f3 = player.trigHandler.sin(f2 * 0.017453292f);
         float f4 = player.trigHandler.cos(f2 * 0.017453292f);
 

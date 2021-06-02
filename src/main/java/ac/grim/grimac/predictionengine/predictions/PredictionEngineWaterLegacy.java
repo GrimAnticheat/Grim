@@ -2,14 +2,13 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public class PredictionEngineWater extends PredictionEngine {
+public class PredictionEngineWaterLegacy extends PredictionEngine {
     boolean isFalling;
     double playerGravity;
     float swimmingSpeed;
@@ -28,10 +27,35 @@ public class PredictionEngineWater extends PredictionEngine {
         this.isFalling = isFalling;
         this.playerGravity = playerGravity;
         this.swimmingSpeed = swimmingSpeed;
-        this.swimmingFriction = swimmingFriction;
+        this.swimmingFriction = 0.8F; // Hardcoded in 1.8
         this.lastY = lastY;
         super.guessBestMovement(swimmingSpeed, player);
     }
+
+    // This is just the vanilla equation for legacy water movement
+    @Override
+    public Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
+        float lengthSquared = (float) inputVector.lengthSquared();
+
+        if (lengthSquared >= 1.0E-4F) {
+            lengthSquared = (float) Math.sqrt(lengthSquared);
+
+            if (lengthSquared < 1.0F) {
+                lengthSquared = 1.0F;
+            }
+
+            lengthSquared = swimmingSpeed / lengthSquared;
+            inputVector.multiply(lengthSquared);
+            float sinResult = player.trigHandler.sin(player.xRot * 0.017453292F);
+            float cosResult = player.trigHandler.cos(player.xRot * 0.017453292F);
+
+            return new Vector(inputVector.getX() * cosResult - inputVector.getZ() * sinResult,
+                    inputVector.getY(), inputVector.getZ() * cosResult + inputVector.getX() * sinResult);
+        }
+
+        return new Vector();
+    }
+
 
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
@@ -41,31 +65,6 @@ public class PredictionEngineWater extends PredictionEngine {
             super.doJump(player, withJump);
             existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
         }
-    }
-
-    @Override
-    public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
-        Set<VectorData> baseVelocities = super.fetchPossibleInputs(player);
-        Set<VectorData> swimmingVelocities = new HashSet<>();
-
-        if (player.isSwimming && player.playerVehicle == null) {
-            for (VectorData vector : baseVelocities) {
-                double d = MovementVectorsCalc.getLookAngle(player).getY();
-                double d5 = d < -0.2 ? 0.085 : 0.06;
-
-                // The player can always press jump and activate this
-                swimmingVelocities.add(new VectorData(new Vector(vector.vector.getX(), vector.vector.getY() + ((d - vector.vector.getY()) * d5), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
-
-                // This scenario will occur if the player does not press jump and the other conditions are met
-                if (d > 0.0 && player.compensatedWorld.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
-                    swimmingVelocities.add(new VectorData(vector.vector, vector, VectorData.VectorType.SurfaceSwimming));
-                }
-            }
-
-            return swimmingVelocities;
-        }
-
-        return baseVelocities;
     }
 
     @Override

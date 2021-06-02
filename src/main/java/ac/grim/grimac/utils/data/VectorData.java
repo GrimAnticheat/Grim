@@ -56,6 +56,7 @@ public class VectorData {
         Jump,
         SurfaceSwimming,
         SwimmingSpace,
-        BestVelPicked
+        BestVelPicked,
+        LegacySwimming
     }
 }

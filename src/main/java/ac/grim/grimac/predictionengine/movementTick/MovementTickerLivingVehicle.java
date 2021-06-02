@@ -6,8 +6,6 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.enums.MoverType;
 import org.bukkit.util.Vector;
 
-import static ac.grim.grimac.predictionengine.predictions.PredictionEngine.getMovementResultFromInput;
-
 public class MovementTickerLivingVehicle extends MovementTicker {
     Vector movementInput;
 
@@ -19,7 +17,7 @@ public class MovementTickerLivingVehicle extends MovementTicker {
 
     @Override
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
-        Vector movementInputResult = getMovementResultFromInput(player, movementInput, swimSpeed, player.xRot);
+        Vector movementInputResult = new PredictionEngineNormal().getMovementResultFromInput(player, movementInput, swimSpeed, player.xRot);
         addAndMove(MoverType.SELF, movementInputResult);
 
         PredictionEngineWater.staticVectorEndOfTick(player, player.clientVelocity, swimFriction, player.gravity, isFalling);
@@ -27,7 +25,7 @@ public class MovementTickerLivingVehicle extends MovementTicker {
 
     @Override
     public void doLavaMove() {
-        Vector movementInputResult = getMovementResultFromInput(player, movementInput, 0.02F, player.xRot);
+        Vector movementInputResult = new PredictionEngineNormal().getMovementResultFromInput(player, movementInput, 0.02F, player.xRot);
         addAndMove(MoverType.SELF, movementInputResult);
 
         // Lava doesn't have an end of tick thing?
@@ -40,7 +38,7 @@ public class MovementTickerLivingVehicle extends MovementTicker {
         // TODO: Different friction if horse is in the air
         player.friction = blockFriction * 0.91f;
 
-        Vector movementInputResult = getMovementResultFromInput(player, movementInput, player.speed, player.xRot);
+        Vector movementInputResult = new PredictionEngineNormal().getMovementResultFromInput(player, movementInput, player.speed, player.xRot);
 
         addAndMove(MoverType.SELF, movementInputResult);
 
