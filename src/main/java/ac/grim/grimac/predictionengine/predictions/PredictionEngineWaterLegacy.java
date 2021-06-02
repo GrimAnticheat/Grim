@@ -26,7 +26,7 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
         this.isFalling = isFalling;
         this.playerGravity = playerGravity;
         this.swimmingSpeed = swimmingSpeed;
-        this.swimmingFriction = 0.8F; // Hardcoded in 1.8
+        this.swimmingFriction = 0.8F; // Hardcoded in 1.12
         this.lastY = lastY;
         super.guessBestMovement(swimmingSpeed, player);
     }

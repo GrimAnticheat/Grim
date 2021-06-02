@@ -16,6 +16,7 @@ import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -39,6 +40,7 @@ public class GrimPlayer {
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
     private final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
+    private final ClientVersion clientVersion;
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Vector clientVelocity = new Vector();
@@ -165,6 +167,8 @@ public class GrimPlayer {
         isFlying = bukkitPlayer.isFlying();
         wasFlying = bukkitPlayer.isFlying();
 
+        clientVersion = ClientVersion.getClientVersion(VersionLookupUtils.getProtocolVersion(bukkitPlayer));
+
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedElytra = new CompensatedElytra(this);
@@ -289,7 +293,7 @@ public class GrimPlayer {
     }
 
     public ClientVersion getClientVersion() {
-        return PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
+        return clientVersion;
     }
 
     public int getKeepAlivePing() {

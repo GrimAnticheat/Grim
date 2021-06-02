@@ -130,6 +130,9 @@ public class PlayerBaseTick {
 
     public void updateSwimming() {
         // This doesn't seem like the right place for determining swimming, but it's fine for now
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
+            player.isSwimming = false;
+        }
         if (player.isFlying) {
             player.isSwimming = false;
         } else {
@@ -217,7 +220,7 @@ public class PlayerBaseTick {
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
-        double d2 = 0.0;
+
         boolean hasPushed = false;
         Vector vec3 = new Vector();
 
@@ -244,7 +247,7 @@ public class PlayerBaseTick {
             }
         }
 
-        if (vec3.lengthSquared() > 0.0) { // distance
+        if (vec3.lengthSquared() > 0.0) {
             vec3.normalize();
             vec3.multiply(multiplier);
             player.baseTickAddVector(vec3);
@@ -300,20 +303,20 @@ public class PlayerBaseTick {
                 }
             }
         }
-        if (vec3.lengthSquared() > 0.0) { // distance
+        if (vec3.lengthSquared() > 0.0) {
             if (n7 > 0) {
-                vec3 = vec3.multiply(1.0 / (double) n7); // multiply
+                vec3 = vec3.multiply(1.0 / (double) n7);
             }
 
             if (player.inVehicle) {
                 // This is a boat, normalize it for some reason.
-                vec3 = vec3.normalize(); // normalize
+                vec3 = vec3.normalize();
             }
 
             Vector vec33 = player.clientVelocity.clone();
-            vec3 = vec3.multiply(multiplier); // multiply
+            vec3 = vec3.multiply(multiplier);
             if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
-                vec3 = vec3.normalize().multiply(0.0045000000000000005); // normalize then multiply
+                vec3 = vec3.normalize().multiply(0.0045000000000000005);
             }
 
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
