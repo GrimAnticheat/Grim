@@ -29,6 +29,9 @@ public class PacketEntityAction extends PacketListenerDynamic {
                 case STOP_SNEAKING:
                     player.packetStateData.isPacketSneaking = false;
                     break;
+                case START_FALL_FLYING:
+                    player.compensatedElytra.playerToggledElytra = true;
+                    break;
             }
         }
     }

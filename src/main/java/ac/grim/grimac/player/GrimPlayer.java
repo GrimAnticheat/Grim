@@ -7,10 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.latency.CompensatedEntities;
-import ac.grim.grimac.utils.latency.CompensatedFireworks;
-import ac.grim.grimac.utils.latency.CompensatedFlying;
-import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.pair.Pair;
@@ -78,7 +75,7 @@ public class GrimPlayer {
     public boolean specialFlying;
     public boolean isSwimming;
     public boolean isClimbing;
-    public boolean isFallFlying;
+    public boolean isGliding;
     public double fallDistance;
     public SimpleCollisionBox boundingBox;
     public Pose pose = Pose.STANDING;
@@ -121,6 +118,7 @@ public class GrimPlayer {
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
+    public CompensatedElytra compensatedElytra;
     public KnockbackHandler knockbackHandler;
     public ExplosionHandler explosionHandler;
     public CompensatedWorld compensatedWorld;
@@ -166,6 +164,7 @@ public class GrimPlayer {
 
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
+        compensatedElytra = new CompensatedElytra(this);
         knockbackHandler = new KnockbackHandler(this);
         explosionHandler = new ExplosionHandler(this);
         compensatedWorld = new CompensatedWorld(this);

@@ -73,7 +73,7 @@ public class PlayerBaseTick {
     protected void updatePlayerPose() {
         if (canEnterPose(player, Pose.SWIMMING, player.x, player.y, player.z)) {
             Pose pose;
-            if (player.isFallFlying) {
+            if (player.isGliding) {
                 pose = Pose.FALL_FLYING;
             } else if (player.bukkitPlayer.isSleeping()) {
                 pose = Pose.SLEEPING;
@@ -110,7 +110,7 @@ public class PlayerBaseTick {
     private void updateFluidOnEyes() {
         player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
         player.fluidOnEyes = null;
-        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, XMaterial.supports(9) && player.bukkitPlayer.isGliding(), player.isSwimming, player.bukkitPlayer.isSleeping(), player.getClientVersion()) - 0.1111111119389534D;
+        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.bukkitPlayer.isSleeping(), player.getClientVersion()) - 0.1111111119389534D;
 
         if (player.playerVehicle instanceof Boat && !player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;

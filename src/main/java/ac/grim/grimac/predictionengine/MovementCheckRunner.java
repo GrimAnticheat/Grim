@@ -59,6 +59,8 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerXRot = data.xRot;
         data.player.packetStateData.packetPlayerYRot = data.yRot;
 
+        data.player.compensatedElytra.playerToggledElytra = false;
+
         // Support teleports without teleport confirmations
         Vector3d teleportPos = data.player.teleports.peek();
         if (teleportPos != null && teleportPos.getX() == data.playerX && teleportPos.getY() == data.playerY && teleportPos.getZ() == data.playerZ) {
@@ -104,7 +106,7 @@ public class MovementCheckRunner {
             player.specialFlying = player.onGround && !data.isFlying && player.isFlying || data.isFlying;
             player.isFlying = data.isFlying;
             player.isClimbing = data.isClimbing;
-            player.isFallFlying = data.isFallFlying;
+            player.isGliding = data.isGliding;
             player.playerWorld = data.playerWorld;
             player.fallDistance = data.fallDistance;
 

@@ -263,7 +263,7 @@ public class MovementTicker {
                 // Removed reference to gravity
                 player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
-            } else if (XMaterial.supports(9) && bukkitPlayer.isGliding()) {
+            } else if (player.isGliding) {
                 Vector currentLook = MovementVectorsCalc.getVectorForRotation(player, player.yRot, player.xRot);
                 Vector lastLook = MovementVectorsCalc.getVectorForRotation(player, player.lastYRot, player.lastXRot);
 

@@ -46,7 +46,7 @@ public class PredictionData {
     public boolean isSneaking;
     public boolean isFlying;
     public boolean isClimbing;
-    public boolean isFallFlying;
+    public boolean isGliding;
     public World playerWorld;
     public double movementSpeed;
     public float jumpAmplifier;
@@ -84,7 +84,7 @@ public class PredictionData {
         this.isFlying = player.compensatedFlying.canFlyLagCompensated();
 
         this.isClimbing = Collisions.onClimbable(player);
-        this.isFallFlying = XMaterial.getVersion() > 8 && player.bukkitPlayer.isGliding();
+        this.isGliding = player.compensatedElytra.isGlidingLagCompensated();
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
@@ -128,7 +128,7 @@ public class PredictionData {
 
         this.isFlying = false;
         this.isClimbing = false;
-        this.isFallFlying = false;
+        this.isGliding = false;
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);

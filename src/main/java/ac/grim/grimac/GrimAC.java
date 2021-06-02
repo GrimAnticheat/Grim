@@ -1,9 +1,6 @@
 package ac.grim.grimac;
 
-import ac.grim.grimac.events.bukkit.FlatPlayerBlockBreakPlace;
-import ac.grim.grimac.events.bukkit.MagicPlayerBlockBreakPlace;
-import ac.grim.grimac.events.bukkit.PistonEvent;
-import ac.grim.grimac.events.bukkit.PlayerJoinQuitListener;
+import ac.grim.grimac.events.bukkit.*;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
@@ -62,6 +59,10 @@ public final class GrimAC extends JavaPlugin {
             Bukkit.getPluginManager().registerEvents(new MagicPlayerBlockBreakPlace(), this);
         }
 
+        if (XMaterial.supports(9)) {
+            Bukkit.getPluginManager().registerEvents(new PlayerToggleElytra(), this);
+        }
+
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
     }
 
@@ -75,6 +76,7 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PacketEntityReplication());
 
         PacketEvents.get().registerListener(new PacketFireworkListener());
+        PacketEvents.get().registerListener(new PacketElytraListener());
         PacketEvents.get().registerListener(new PacketPlayerTeleport());
 
         PacketEvents.get().registerListener(new PacketMountVehicle());

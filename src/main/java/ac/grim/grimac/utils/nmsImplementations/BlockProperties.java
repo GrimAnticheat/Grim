@@ -32,7 +32,7 @@ public class BlockProperties {
     }
 
     public static float getBlockFrictionUnderPlayer(GrimPlayer player) {
-        if (XMaterial.getVersion() > 8 && (player.bukkitPlayer.isGliding() || player.specialFlying)) return 1.0f;
+        if (player.isGliding || player.specialFlying) return 1.0f;
 
         double searchBelowAmount = 0.5000001;
 
@@ -97,7 +97,7 @@ public class BlockProperties {
 
     // Entity line 637
     public static float getBlockSpeedFactor(GrimPlayer player) {
-        if (XMaterial.getVersion() > 8 && (player.bukkitPlayer.isGliding() || player.specialFlying)) return 1.0f;
+        if (player.isGliding || player.specialFlying) return 1.0f;
 
         Material block = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
 
