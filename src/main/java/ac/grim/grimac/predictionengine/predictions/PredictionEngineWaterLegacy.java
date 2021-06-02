@@ -2,7 +2,6 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -15,12 +14,12 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
     float swimmingFriction;
     double lastY;
 
-    public static void staticVectorEndOfTick(GrimPlayer player, Vector vector, float swimmingFriction, double playerGravity, boolean isFalling) {
-        vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
-        Vector fluidVector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, vector);
-        vector.setX(fluidVector.getX());
-        vector.setY(fluidVector.getY());
-        vector.setZ(fluidVector.getZ());
+    public static void staticVectorEndOfTick(Vector vector) {
+        // Friction
+        vector.multiply(new Vector(0.8F, 0.8F, 0.8F));
+
+        // Gravity
+        vector.setY(vector.getY() - 0.02D);
     }
 
     public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
@@ -61,16 +60,13 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector, VectorData.VectorType.Jump));
-            Vector withJump = vector.vector.clone();
-            super.doJump(player, withJump);
-            existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
         }
     }
 
     @Override
     public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(player, vector.vector, swimmingFriction, playerGravity, isFalling);
+            staticVectorEndOfTick(vector.vector);
         }
 
         super.endOfTick(player, playerGravity, friction);
