@@ -86,7 +86,6 @@ public class MovementCheckRunner {
             return;
         }
 
-        player.lastTransactionReceived = data.lastTransaction;
         player.compensatedWorld.tickUpdates(data.minimumTickRequiredToContinue, data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
 

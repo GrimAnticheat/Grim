@@ -39,7 +39,7 @@ public class CompensatedFlying {
             return player.bukkitPlayer.isFlying();
 
         // Prevent players messing with abilities packets to bypass anticheat
-        if (!getBestValue(lagCompensatedCanFlyMap, player.lastTransactionReceived))
+        if (!getBestValue(lagCompensatedCanFlyMap, player.packetStateData.packetLastTransactionReceived))
             return false;
 
         return getBestValue(lagCompensatedIsFlyingMap, player.packetStateData.packetLastTransactionReceived);

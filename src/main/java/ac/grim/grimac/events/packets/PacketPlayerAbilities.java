@@ -20,7 +20,7 @@ public class PacketPlayerAbilities extends PacketListenerDynamic {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionReceived, abilities.isFlying());
+            player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived, abilities.isFlying());
         }
     }
 

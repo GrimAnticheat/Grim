@@ -135,8 +135,6 @@ public class GrimPlayer {
     public Vector baseTickSet = new Vector();
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
-    // Async safe
-    public int lastTransactionReceived = 0;
     // For timer checks and fireworks
     public int lastTransactionBeforeLastMovement = 0;
     // For syncing the player's full swing in 1.9+
