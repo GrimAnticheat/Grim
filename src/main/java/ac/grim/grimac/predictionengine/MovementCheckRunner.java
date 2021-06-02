@@ -9,6 +9,7 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -102,10 +103,20 @@ public class MovementCheckRunner {
             player.isSprinting = data.isSprinting;
             player.wasSneaking = player.isSneaking;
             player.isSneaking = data.isSneaking;
-            player.specialFlying = player.onGround && !data.isFlying && player.isFlying || data.isFlying;
-            player.isFlying = data.isFlying;
-            player.isClimbing = data.isClimbing;
-            player.isGliding = data.isGliding;
+
+            player.isFlying = player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
+            player.isClimbing = Collisions.onClimbable(player);
+            player.isGliding = player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction);
+            player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
+
+            // Stop stuff like clients using elytra in a vehicle...
+            if (player.inVehicle) {
+                player.isFlying = false;
+                player.isClimbing = false;
+                player.isGliding = false;
+                player.specialFlying = false;
+            }
+
             player.playerWorld = data.playerWorld;
             player.fallDistance = data.fallDistance;
 

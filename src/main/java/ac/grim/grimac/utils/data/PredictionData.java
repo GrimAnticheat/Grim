@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
@@ -44,9 +43,6 @@ public class PredictionData {
     public boolean onGround;
     public boolean isSprinting;
     public boolean isSneaking;
-    public boolean isFlying;
-    public boolean isClimbing;
-    public boolean isGliding;
     public World playerWorld;
     public double movementSpeed;
     public float jumpAmplifier;
@@ -80,11 +76,6 @@ public class PredictionData {
 
         this.isSprinting = player.packetStateData.isPacketSprinting;
         this.isSneaking = player.packetStateData.isPacketSneaking;
-
-        this.isFlying = player.compensatedFlying.canFlyLagCompensated();
-
-        this.isClimbing = Collisions.onClimbable(player);
-        this.isGliding = player.compensatedElytra.isGlidingLagCompensated();
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
@@ -126,9 +117,6 @@ public class PredictionData {
 
         this.inVehicle = true;
 
-        this.isFlying = false;
-        this.isClimbing = false;
-        this.isGliding = false;
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);

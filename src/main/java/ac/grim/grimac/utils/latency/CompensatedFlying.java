@@ -29,7 +29,7 @@ public class CompensatedFlying {
         lagCompensatedCanFlyMap.put(player.lastTransactionSent.get(), canFly);
     }
 
-    public boolean canFlyLagCompensated() {
+    public boolean canFlyLagCompensated(int lastTransaction) {
         // Looking one in the future is generally more accurate
         // We have to calculate our own values because bukkit isn't lag compensated
 
@@ -39,10 +39,10 @@ public class CompensatedFlying {
             return player.bukkitPlayer.isFlying();
 
         // Prevent players messing with abilities packets to bypass anticheat
-        if (!getBestValue(lagCompensatedCanFlyMap, player.packetStateData.packetLastTransactionReceived))
+        if (!getBestValue(lagCompensatedCanFlyMap, lastTransaction))
             return false;
 
-        return getBestValue(lagCompensatedIsFlyingMap, player.packetStateData.packetLastTransactionReceived);
+        return getBestValue(lagCompensatedIsFlyingMap, lastTransaction);
     }
 
     private boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {

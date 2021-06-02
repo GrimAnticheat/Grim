@@ -17,8 +17,8 @@ public class CompensatedElytra {
         this.lagCompensatedIsGlidingMap.put((int) Short.MIN_VALUE, player.bukkitPlayer.isGliding());
     }
 
-    public boolean isGlidingLagCompensated() {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && getBestValue(lagCompensatedIsGlidingMap, player.packetStateData.packetLastTransactionReceived);
+    public boolean isGlidingLagCompensated(int lastTransaction) {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && getBestValue(lagCompensatedIsGlidingMap, lastTransaction);
     }
 
     private boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {
