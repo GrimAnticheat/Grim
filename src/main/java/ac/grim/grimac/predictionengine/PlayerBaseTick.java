@@ -104,7 +104,8 @@ public class PlayerBaseTick {
         player.fluidHeight.clear();
         updateInWaterStateAndDoWaterCurrentPushing();
         double d = player.playerWorld.getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
-        this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
+        player.lastTouchingLava = player.wasTouchingLava;
+        player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
     }
 
     private void updateFluidOnEyes() {
@@ -192,28 +193,88 @@ public class PlayerBaseTick {
 
     // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
+        this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014);
+        player.lastTouchingWater = player.wasTouchingWater;
         player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle instanceof Boat);
     }
 
-    public boolean updateFluidHeightAndDoFluidPushing(FluidTag tag, double d) {
-        SimpleCollisionBox aABB = player.boundingBox.copy().expand(-0.001);
-        int n2 = GrimMathHelper.floor(aABB.minX);
-        int n3 = GrimMathHelper.ceil(aABB.maxX);
-        int n4 = GrimMathHelper.floor(aABB.minY);
-        int n5 = GrimMathHelper.ceil(aABB.maxY);
-        int n6 = GrimMathHelper.floor(aABB.minZ);
-        int n = GrimMathHelper.ceil(aABB.maxZ);
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, n2, n4, n6, n3, n5, n)) {
+    public boolean updateFluidHeightAndDoFluidPushing(FluidTag tag, double multiplier) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+            return updateFluidHeightAndDoFluidPushingModern(tag, multiplier);
+        }
+
+        return updateFluidHeightAndDoFluidPushingLegacy(tag, multiplier);
+    }
+
+    public boolean updateFluidHeightAndDoFluidPushingLegacy(FluidTag tag, double multiplier) {
+        SimpleCollisionBox aABB = player.boundingBox.copy().expand(0, -0.4, 0).expand(-0.001);
+
+        int floorX = GrimMathHelper.floor(aABB.minX);
+        int ceilX = GrimMathHelper.ceil(aABB.maxX);
+        int floorY = GrimMathHelper.floor(aABB.minY);
+        int ceilY = GrimMathHelper.ceil(aABB.maxY);
+        int floorZ = GrimMathHelper.floor(aABB.minZ);
+        int ceilZ = GrimMathHelper.ceil(aABB.maxZ);
+        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
         double d2 = 0.0;
-        boolean bl2 = false;
+        boolean hasPushed = false;
+        Vector vec3 = new Vector();
+
+        for (int x = floorX; x < ceilX; ++x) {
+            for (int y = floorY; y < ceilY; ++y) {
+                for (int z = floorZ; z < ceilZ; ++z) {
+                    double fluidHeight;
+                    if (tag == FluidTag.WATER) {
+                        fluidHeight = player.compensatedWorld.getWaterFluidLevelAt(x, y, z);
+                    } else {
+                        fluidHeight = player.compensatedWorld.getLavaFluidLevelAt(x, y, z);
+                    }
+
+                    if (fluidHeight == 0)
+                        continue;
+
+                    double d0 = (float) (y + 1) - fluidHeight;
+
+                    if (!player.specialFlying && ceilY >= d0) {
+                        hasPushed = true;
+                        vec3.add(FluidTypeFlowing.getFlow(player, x, y, z));
+                    }
+                }
+            }
+        }
+
+        if (vec3.lengthSquared() > 0.0) { // distance
+            vec3.normalize();
+            vec3.multiply(multiplier);
+            player.baseTickAddVector(vec3);
+        }
+
+        player.fluidHeight.put(tag, d2);
+        return hasPushed;
+    }
+
+    public boolean updateFluidHeightAndDoFluidPushingModern(FluidTag tag, double multiplier) {
+        SimpleCollisionBox aABB = player.boundingBox.copy().expand(-0.001);
+
+        int floorX = GrimMathHelper.floor(aABB.minX);
+        int ceilX = GrimMathHelper.ceil(aABB.maxX);
+        int floorY = GrimMathHelper.floor(aABB.minY);
+        int ceilY = GrimMathHelper.ceil(aABB.maxY);
+        int floorZ = GrimMathHelper.floor(aABB.minZ);
+        int ceilZ = GrimMathHelper.ceil(aABB.maxZ);
+        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
+            return false;
+        }
+        double d2 = 0.0;
+        boolean hasPushed = false;
         Vector vec3 = new Vector();
         int n7 = 0;
 
-        for (int i = n2; i < n3; ++i) {
-            for (int j = n4; j < n5; ++j) {
-                for (int k = n6; k < n; ++k) {
+        for (int i = floorX; i < ceilX; ++i) {
+            for (int j = floorY; j < ceilY; ++j) {
+                for (int k = floorZ; k < ceilZ; ++k) {
                     double d3;
 
                     double fluidHeight;
@@ -226,7 +287,7 @@ public class PlayerBaseTick {
                     if (fluidHeight == 0 || (d3 = (float) j + fluidHeight) < aABB.minY)
                         continue;
 
-                    bl2 = true;
+                    hasPushed = true;
                     d2 = Math.max(d3 - aABB.minY, d2);
 
                     if (!player.specialFlying) {
@@ -252,7 +313,7 @@ public class PlayerBaseTick {
             }
 
             Vector vec33 = player.clientVelocity.clone();
-            vec3 = vec3.multiply(d); // multiply
+            vec3 = vec3.multiply(multiplier); // multiply
             if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
                 vec3 = vec3.normalize().multiply(0.0045000000000000005); // normalize then multiply
             }
@@ -263,7 +324,7 @@ public class PlayerBaseTick {
             }
         }
         player.fluidHeight.put(tag, d2);
-        return bl2;
+        return hasPushed;
     }
 
     private boolean suffocatesAt(int x, int z) {

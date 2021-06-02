@@ -241,6 +241,9 @@ public class MovementCheckRunner {
             GrimAC.staticGetLogger().info(player.lastX + " " + player.lastY + " " + player.lastZ);
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
+            GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "O: " + color + offset);
+            GrimAC.staticGetLogger().info("Water " + player.lastTouchingWater);
+
 
         } catch (Exception e) {
             e.printStackTrace();

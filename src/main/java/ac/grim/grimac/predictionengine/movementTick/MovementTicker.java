@@ -220,7 +220,7 @@ public class MovementTicker {
 
         float swimFriction;
 
-        if (player.fluidHeight.getOrDefault(FluidTag.WATER, 0) > player.getFluidHeightToRegister() && !player.specialFlying) {
+        if (player.wasTouchingWater && !player.specialFlying) {
             // 0.8F seems hardcoded in
             swimFriction = player.isSprinting ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
@@ -250,11 +250,12 @@ public class MovementTicker {
             }
 
         } else {
-            if (player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) > player.getFluidHeightToRegister() && !player.specialFlying && !canStandOnLava()) {
+            if (player.wasTouchingLava && !player.specialFlying && !canStandOnLava()) {
 
                 doLavaMove();
 
-                if (player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
+                // Unsure which client version that lava movement changed but it's most likely 1.13
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.fluidHeight.getOrDefault(FluidTag.LAVA, 0) <= 0.4D) {
                     player.clientVelocity = player.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
                     player.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity);
                 } else {

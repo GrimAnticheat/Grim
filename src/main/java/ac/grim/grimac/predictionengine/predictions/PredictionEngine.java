@@ -171,7 +171,11 @@ public abstract class PredictionEngine {
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-
+        if (player.lastTouchingWater || player.lastTouchingLava) {
+            for (VectorData vector : new HashSet<>(existingVelocities)) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0, 0.04, 0)), vector, VectorData.VectorType.Jump));
+            }
+        }
     }
 
     public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {

@@ -103,7 +103,10 @@ public class GrimPlayer {
     public boolean isActuallyOnGround;
     // Set from base tick
     public Object2DoubleMap<FluidTag> fluidHeight = new Object2DoubleArrayMap<>(2);
+    public boolean lastTouchingWater = false;
+    public boolean lastTouchingLava = false;
     public boolean wasTouchingWater = false;
+    public boolean wasTouchingLava = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
     public ConcurrentLinkedQueue<Vector3d> teleports = new ConcurrentLinkedQueue<>();
@@ -281,10 +284,6 @@ public class GrimPlayer {
 
     public float getMaxUpStep() {
         return inVehicle ? 0f : 0.6f;
-    }
-
-    public double getFluidHeightToRegister() {
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? 0 : 0.4001;
     }
 
     public boolean isEyeInFluid(FluidTag tag) {
