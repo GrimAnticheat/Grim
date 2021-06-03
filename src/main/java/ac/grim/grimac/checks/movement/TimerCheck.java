@@ -2,7 +2,6 @@ package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
@@ -26,16 +25,6 @@ public class TimerCheck extends Check {
         if (exempt-- > 0) {
             timerMillis = Math.max(timerMillis, player.getPlayerClockAtLeast());
             return;
-        }
-
-        // Teleports send their own packet and mess up reminder packet status
-        // Exempting reminder packets for 5 movement packets for teleports is fine.
-        // 1.8 clients spam movement packets every tick, even if they didn't move
-        boolean isReminder = playerX == packetX && playerY == packetY && playerZ == packetZ && packetXRot == xRot && packetYRot == yRot && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
-
-        // Note that players are exempt by the current structure of the check until they respond to a transaction
-        if (isReminder) {
-            timerMillis += 950;
         }
 
         if (timerMillis > System.currentTimeMillis()) {
