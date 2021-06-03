@@ -187,6 +187,31 @@ public abstract class PredictionEngine {
             if (player.firstBreadExplosion != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
             }
+
+            // Tick order of player movements vs fireworks isn't constant
+            int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible();
+
+            if (maxFireworks > 0) {
+                Vector boostOne = vector.vector.clone();
+                Vector boostTwo = vector.vector.clone();
+
+                Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
+                Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
+
+
+                for (int i = 0; i < maxFireworks; i++) {
+                    boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
+                    boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
+                }
+
+                SimpleCollisionBox uncertainty = new SimpleCollisionBox(Math.min(boostOne.getX(), boostTwo.getX()), Math.min(boostOne.getY(), boostTwo.getY()),
+                        Math.min(boostOne.getZ(), boostTwo.getZ()), Math.max(boostOne.getX(), boostTwo.getX()),
+                        Math.max(boostOne.getY(), boostTwo.getY()), Math.max(boostOne.getZ(), boostTwo.getZ()));
+                
+                boostOne.add(boostOne).multiply(0.5);
+
+                existingVelocities.add(vector.setVector(boostOne, VectorData.VectorType.Firework));
+            }
         }
     }
 
