@@ -21,6 +21,7 @@ public class PacketPlayerAbilities extends PacketListenerDynamic {
             if (player == null) return;
 
             player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived, abilities.isFlying());
+            player.compensatedElytra.elytraToggleFlyingTransaction = player.packetStateData.packetLastTransactionReceived;
         }
     }
 

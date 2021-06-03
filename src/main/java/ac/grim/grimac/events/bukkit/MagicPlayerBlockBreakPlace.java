@@ -22,7 +22,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         int combinedID = materialID + (blockData << 12);
 
-        ChangeBlockData data = new ChangeBlockData(GrimAC.getCurrentTick(), block.getX(), block.getY(), block.getZ(), combinedID);
+        ChangeBlockData data = new ChangeBlockData(player.packetStateData.packetLastTransactionReceived, block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.changeBlockQueue.add(data);
 
     }
@@ -32,12 +32,10 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
         if (player == null) return;
         Block block = event.getBlock();
-        int materialID = block.getType().getId();
-        int blockData = block.getData();
 
-        int combinedID = materialID + (blockData << 12);
-
-        ChangeBlockData data = new ChangeBlockData(GrimAC.getCurrentTick(), block.getX(), block.getY(), block.getZ(), combinedID);
+        // Even when breaking waterlogged stuff, the client assumes it will turn into air (?)
+        // So in 1.12 everything probably turns into air when broken
+        ChangeBlockData data = new ChangeBlockData(player.packetStateData.packetLastTransactionReceived, block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 }
