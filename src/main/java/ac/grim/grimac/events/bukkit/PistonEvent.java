@@ -12,7 +12,7 @@ public class PistonEvent implements Listener {
     public void onPistonPushEvent(BlockPistonExtendEvent event) {
         GrimAC.playerGrimHashMap.values().forEach(player -> {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                player.compensatedWorld.pistonData.add(new PistonData(player, event.getDirection(), event.getBlock(), event.getBlocks(), true, player.lastTransactionSent.get()));
+                player.compensatedWorld.pistonData.add(new PistonData(player, event.getDirection(), event.getBlock(), event.getBlocks(), true, player.lastTransactionAtStartOfTick));
             }
         });
     }
@@ -21,7 +21,7 @@ public class PistonEvent implements Listener {
     public void onPistonRetractEvent(BlockPistonRetractEvent event) {
         GrimAC.playerGrimHashMap.values().forEach(player -> {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                player.compensatedWorld.pistonData.add(new PistonData(player, event.getDirection(), event.getBlock(), event.getBlocks(), false, player.lastTransactionSent.get()));
+                player.compensatedWorld.pistonData.add(new PistonData(player, event.getDirection(), event.getBlock(), event.getBlocks(), false, player.lastTransactionAtStartOfTick));
             }
         });
     }

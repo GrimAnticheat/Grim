@@ -305,14 +305,9 @@ public class MovementTicker {
                         possibleVelocities.add(cutCombined);
 
                     } else {
-                        Vector noFireworksOne = getElytraMovement(possibleVelocity.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-                        Vector noFireworksTwo = getElytraMovement(possibleVelocity.vector.clone(), lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                        Vector noFireworks = getElytraMovement(possibleVelocity.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
 
-                        if (noFireworksOne.distanceSquared(player.actualMovement) < noFireworksTwo.distanceSquared(player.actualMovement)) {
-                            possibleVelocities.add(noFireworksOne);
-                        } else {
-                            possibleVelocities.add(noFireworksTwo);
-                        }
+                        possibleVelocities.add(noFireworks);
                     }
                 }
 
