@@ -1,11 +1,11 @@
 package ac.grim.grimac.events.packets;
 
-import io.github.retrooper.packetevents.event.PacketListenerDynamic;
+import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mount.WrappedPacketOutMount;
 
-public class PacketMountVehicle extends PacketListenerDynamic {
+public class PacketMountVehicle extends PacketListenerAbstract {
 
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {

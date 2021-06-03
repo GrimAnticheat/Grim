@@ -6,8 +6,8 @@ import org.bukkit.util.Vector;
 import java.util.List;
 
 public class SimpleCollisionBox implements CollisionBox {
-    public double minX, minY, minZ, maxX, maxY, maxZ;
     public static final double COLLISION_EPSILON = 1.0E-7;
+    public double minX, minY, minZ, maxX, maxY, maxZ;
     boolean isFullBlock = false;
 
     public SimpleCollisionBox() {

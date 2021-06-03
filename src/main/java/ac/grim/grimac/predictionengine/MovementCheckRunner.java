@@ -199,18 +199,18 @@ public class MovementCheckRunner {
 
             player.isFirstTick = false;
 
-            ChatColor color;
-            double diff = player.predictedVelocity.vector.distance(player.actualMovement);
+            Vector offsetVector = player.predictedVelocity.vector.clone().subtract(player.actualMovement);
+            double offset = offsetVector.length();
 
-            if (diff < 0.01) {
+            ChatColor color;
+
+            if (offset < 0.01) {
                 color = ChatColor.GREEN;
-            } else if (diff < 0.1) {
+            } else if (offset < 0.1) {
                 color = ChatColor.YELLOW;
             } else {
                 color = ChatColor.RED;
             }
-
-            double offset = player.predictedVelocity.vector.distance(player.actualMovement);
 
             player.knockbackHandler.handlePlayerKb(offset);
             player.explosionHandler.handlePlayerExplosion(offset);

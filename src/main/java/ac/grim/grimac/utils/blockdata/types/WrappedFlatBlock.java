@@ -6,13 +6,14 @@ import org.bukkit.block.data.BlockData;
 
 public class WrappedFlatBlock extends WrappedBlockDataValue {
     private static BlockData AIR = null;
-    BlockData blockData = AIR;
 
     static {
         if (XMaterial.isNewVersion()) {
             AIR = Material.AIR.createBlockData();
         }
     }
+
+    BlockData blockData = AIR;
 
     public BlockData getBlockData() {
         return blockData;

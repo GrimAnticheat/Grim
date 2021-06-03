@@ -9,8 +9,8 @@ import java.util.List;
 public class DynamicCollisionBox implements CollisionBox {
 
     private final GrimPlayer player;
-    private ClientVersion version;
     private final CollisionFactory box;
+    private ClientVersion version;
     private WrappedBlockDataValue block;
     private int x, y, z;
 

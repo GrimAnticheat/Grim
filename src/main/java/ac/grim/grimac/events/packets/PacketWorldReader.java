@@ -11,7 +11,7 @@ import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
-import io.github.retrooper.packetevents.event.PacketListenerDynamic;
+import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -33,7 +33,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
-public class PacketWorldReader extends PacketListenerDynamic {
+public class PacketWorldReader extends PacketListenerAbstract {
     public static Method getByCombinedID;
     public static Method ancientGetById;
 

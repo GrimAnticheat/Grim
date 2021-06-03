@@ -13,11 +13,11 @@ public class WrappedSlab extends WrappedBlockDataValue {
         this.isDouble = isDouble;
     }
 
-    public void setBottom(boolean isBottom) {
-        this.isBottom = isBottom;
-    }
-
     public boolean isBottom() {
         return isBottom;
+    }
+
+    public void setBottom(boolean isBottom) {
+        this.isBottom = isBottom;
     }
 }

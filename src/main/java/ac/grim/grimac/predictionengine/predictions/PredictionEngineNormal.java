@@ -14,23 +14,6 @@ import java.util.Set;
 public class PredictionEngineNormal extends PredictionEngine {
     public static final Material scaffolding = XMaterial.SCAFFOLDING.parseMaterial();
 
-    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        for (VectorData vector : new HashSet<>(existingVelocities)) {
-            Vector jump = vector.vector.clone();
-
-            if (!player.specialFlying) {
-                JumpPower.jumpFromGround(player, jump);
-            } else {
-                jump.add(new Vector(0, player.flySpeed * 3, 0));
-            }
-
-            existingVelocities.add(new VectorData(jump, VectorData.VectorType.Jump));
-        }
-
-        super.addJumpsToPossibilities(player, existingVelocities);
-    }
-
-
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();
         if (player.levitationAmplifier > 0) {
@@ -45,6 +28,22 @@ public class PredictionEngineNormal extends PredictionEngine {
         vector.setX(vector.getX() * player.friction);
         vector.setY(d9 * 0.9800000190734863);
         vector.setZ(vector.getZ() * player.friction);
+    }
+
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        for (VectorData vector : new HashSet<>(existingVelocities)) {
+            Vector jump = vector.vector.clone();
+
+            if (!player.specialFlying) {
+                JumpPower.jumpFromGround(player, jump);
+            } else {
+                jump.add(new Vector(0, player.flySpeed * 3, 0));
+            }
+
+            existingVelocities.add(new VectorData(jump, VectorData.VectorType.Jump));
+        }
+
+        super.addJumpsToPossibilities(player, existingVelocities);
     }
 
     @Override

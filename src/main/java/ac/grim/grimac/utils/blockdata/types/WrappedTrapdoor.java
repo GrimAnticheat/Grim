@@ -8,12 +8,12 @@ public class WrappedTrapdoor extends WrappedDirectional {
         return isOpen;
     }
 
-    public boolean isBottom() {
-        return isBottom;
-    }
-
     public void setOpen(boolean isOpen) {
         this.isOpen = isOpen;
+    }
+
+    public boolean isBottom() {
+        return isBottom;
     }
 
     public void setBottom(boolean isBottom) {

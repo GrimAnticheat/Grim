@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.event.PacketListenerDynamic;
+import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -15,7 +15,7 @@ import java.util.HashSet;
 import java.util.OptionalInt;
 import java.util.Set;
 
-public class PacketFireworkListener extends PacketListenerDynamic {
+public class PacketFireworkListener extends PacketListenerAbstract {
     Set<Integer> fireworks = new HashSet<>();
 
     public PacketFireworkListener() {

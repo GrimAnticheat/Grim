@@ -260,6 +260,34 @@ public abstract class PredictionEngine {
         }
     }
 
+    private void handleFireworkOffset(GrimPlayer player, Set<VectorData> possibleVectors) {
+        for (VectorData data : possibleVectors) {
+            Vector offsetVector = player.actualMovement.clone().subtract(data.vector);
+
+            boolean xPositive = offsetVector.getX() > 0;
+            boolean yPositive = offsetVector.getY() > 0;
+            boolean zPositive = offsetVector.getZ() > 0;
+
+            double xOffset = Math.abs(offsetVector.getX());
+            double yOffset = Math.abs(offsetVector.getY());
+            double zOffset = Math.abs(offsetVector.getZ());
+
+            xOffset -= player.uncertaintyHandler.fireworksX;
+            yOffset -= player.uncertaintyHandler.fireworksY;
+            zOffset -= player.uncertaintyHandler.fireworksZ;
+
+            xOffset = Math.abs(Math.max(xOffset, 0));
+            yOffset = Math.abs(Math.max(yOffset, 0));
+            zOffset = Math.abs(Math.max(zOffset, 0));
+
+            offsetVector.subtract(new Vector(xOffset * (xPositive ? 1 : -1),
+                    yOffset * (yPositive ? 1 : -1),
+                    zOffset * (zPositive ? 1 : -1)));
+
+            data.setVector(data.vector.add(offsetVector), VectorData.VectorType.Elytra);
+        }
+    }
+
     public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
         Set<VectorData> velocities = player.getPossibleVelocities();
 

@@ -23,6 +23,20 @@ public class PredictionEngineWater extends PredictionEngine {
         vector.setZ(fluidVector.getZ());
     }
 
+    public static Vector getLookAngle(GrimPlayer player) {
+        return calculateViewVector(player, player.yRot, player.xRot);
+    }
+
+    public static Vector calculateViewVector(GrimPlayer player, float f, float f2) {
+        float f3 = f * 0.017453292f;
+        float f4 = -f2 * 0.017453292f;
+        float f5 = player.trigHandler.cos(f4);
+        float f6 = player.trigHandler.sin(f4);
+        float f7 = player.trigHandler.cos(f3);
+        float f8 = player.trigHandler.sin(f3);
+        return new Vector(f6 * f7, -f8, f5 * f7);
+    }
+
     public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
         this.isFalling = isFalling;
         this.playerGravity = playerGravity;
@@ -39,10 +53,6 @@ public class PredictionEngineWater extends PredictionEngine {
         }
     }
 
-    public static Vector getLookAngle(GrimPlayer player) {
-        return calculateViewVector(player, player.yRot, player.xRot);
-    }
-
     @Override
     public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
@@ -50,16 +60,6 @@ public class PredictionEngineWater extends PredictionEngine {
         }
 
         super.endOfTick(player, playerGravity, friction);
-    }
-
-    public static Vector calculateViewVector(GrimPlayer player, float f, float f2) {
-        float f3 = f * 0.017453292f;
-        float f4 = -f2 * 0.017453292f;
-        float f5 = player.trigHandler.cos(f4);
-        float f6 = player.trigHandler.sin(f4);
-        float f7 = player.trigHandler.cos(f3);
-        float f8 = player.trigHandler.sin(f3);
-        return new Vector(f6 * f7, -f8, f5 * f7);
     }
 
     @Override

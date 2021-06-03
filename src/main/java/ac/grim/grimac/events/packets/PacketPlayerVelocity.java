@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.event.PacketListenerDynamic;
+import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -11,7 +11,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.Wrappe
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-public class PacketPlayerVelocity extends PacketListenerDynamic {
+public class PacketPlayerVelocity extends PacketListenerAbstract {
     public PacketPlayerVelocity() {
         super(PacketEventPriority.HIGHEST);
     }

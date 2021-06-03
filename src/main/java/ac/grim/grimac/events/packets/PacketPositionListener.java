@@ -5,7 +5,7 @@ import ac.grim.grimac.checks.packets.OnGroundCorrector;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
-import io.github.retrooper.packetevents.event.PacketListenerDynamic;
+import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -13,7 +13,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPac
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
 
-public class PacketPositionListener extends PacketListenerDynamic {
+public class PacketPositionListener extends PacketListenerAbstract {
     public PacketPositionListener() {
         super(PacketEventPriority.MONITOR);
     }

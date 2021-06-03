@@ -1,4 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-public class PacketPlayerDigging {
+import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+
+public class PacketPlayerDigging extends PacketListenerAbstract {
 }
