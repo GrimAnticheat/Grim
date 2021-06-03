@@ -100,10 +100,20 @@ public final class GrimAC extends JavaPlugin {
         registerEvents();
         registerPackets();
 
-        // Place tasks that were waiting on the server tick to "catch up" back into the queue
+        // Try and sync together the main thread with packet threads - this is really difficult without a good solution
+        // This works as schedulers run at the beginning of the tick
+        // Sync to make sure we loop all players before any events and because this is very fast.
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             currentTick++;
 
+            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                player.lastTransactionAtStartOfTick = player.packetStateData.packetLastTransactionReceived;
+            }
+        }, 0, 1);
+
+        // Place tasks that were waiting on the server tick to "catch up" back into the queue
+        // Async because there is no reason to do this sync
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             while (true) {
                 PredictionData data = MovementCheckRunner.waitingOnServerQueue.poll();
 
@@ -113,16 +123,7 @@ public final class GrimAC extends JavaPlugin {
             }
         }, 0, 1);
 
-        // Try and sync together the main thread with packet threads - this is really difficult without a good solution
-        // This works as schedulers run at the beginning of the tick
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                player.lastTransactionAtStartOfTick = player.packetStateData.packetLastTransactionReceived;
-            }
-        }, 0, 1);
-
         // Scale number of threads for the anticheat every second
-        // Could be higher but a large number of players joining at once could be bad
         // And anyways, it doesn't consume much performance
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             // Set number of threads one per every 20 players, rounded up
@@ -130,7 +131,7 @@ public final class GrimAC extends JavaPlugin {
             if (MovementCheckRunner.executor.getPoolSize() != targetThreads) {
                 MovementCheckRunner.executor.setMaximumPoolSize(targetThreads);
             }
-        }, 20, 20);
+        }, 20, 100);
 
         // Writing packets takes more time than it appears
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
