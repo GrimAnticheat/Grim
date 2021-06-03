@@ -1,19 +1,16 @@
 package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngineElytra;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.GrimMathHelper;
-import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public class MovementTicker {
     private static final Material slime = XMaterial.SLIME_BLOCK.parseMaterial();
@@ -265,72 +262,8 @@ public class MovementTicker {
                 player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (player.isGliding) {
-                Vector currentLook = MovementVectorsCalc.getVectorForRotation(player, player.yRot, player.xRot);
-                Vector lastLook = MovementVectorsCalc.getVectorForRotation(player, player.lastYRot, player.lastXRot);
 
-                // Tick order of player movements vs firework isn't constant
-                int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
-
-                Set<Vector> possibleVelocities = new HashSet<>();
-
-                // Vector 1: All possible fireworks * 2 on the past look vector
-                // Vector 2: All possible fireworks * 2 on the next look vector
-                // Vector 3: No fireworks at all for the first look vector
-                // Vector 4: No fireworks at all for the second look vector
-                //
-                // The client's velocity clone is then forced to be between vector 1 and 3
-                // The client's velocity clone is then forced to be between vector 2 and 4
-                //
-                // The closest of these two vector clones are the predicted velocity.
-                for (VectorData possibleVelocity : player.getPossibleVelocities()) {
-                    if (maxFireworks > 0) {
-                        Vector boostOne = possibleVelocity.vector.clone();
-                        Vector boostTwo = possibleVelocity.vector.clone();
-
-                        Vector noFireworksOne = getElytraMovement(boostOne.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-                        Vector noFireworksTwo = getElytraMovement(boostTwo.clone(), lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-
-                        for (int i = 0; i < maxFireworks; i++) {
-                            boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
-                            boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
-                        }
-
-                        getElytraMovement(boostOne, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-                        getElytraMovement(boostTwo, lastLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-
-                        Vector cutOne = cutVectorsToPlayerMovement(player.actualMovement, boostOne, noFireworksTwo);
-                        Vector cutTwo = cutVectorsToPlayerMovement(player.actualMovement, boostTwo, noFireworksOne);
-                        Vector cutCombined = cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
-
-                        possibleVelocities.add(cutCombined);
-
-                    } else {
-                        Vector noFireworks = getElytraMovement(possibleVelocity.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-
-                        possibleVelocities.add(noFireworks);
-                    }
-                }
-
-
-                double bestInput = Double.MAX_VALUE;
-                Vector bestCollisionVel = null;
-
-                for (Vector clientVelAfterInput : possibleVelocities) {
-                    Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput, MoverType.SELF, player);
-                    Vector outputVel = Collisions.collide(player, backOff.getX(), backOff.getY(), backOff.getZ());
-                    double resultAccuracy = outputVel.distance(player.actualMovement);
-
-                    if (resultAccuracy < bestInput) {
-                        bestInput = resultAccuracy;
-                        player.clientVelocity = backOff.clone();
-                        bestCollisionVel = outputVel.clone();
-
-                        // Optimization - Close enough, other inputs won't get closer
-                        if (resultAccuracy < 0.01) break;
-                    }
-                }
-
-                new MovementTickerPlayer(player).move(MoverType.SELF, player.clientVelocity, bestCollisionVel);
+                new PredictionEngineElytra().guessBestMovement(0, player);
 
             } else {
                 float blockFriction = BlockProperties.getBlockFrictionUnderPlayer(player);
@@ -340,32 +273,6 @@ public class MovementTicker {
             }
         }
 
-    }
-
-    public Vector getElytraMovement(Vector vector, Vector lookVector) {
-        float yRotRadians = player.yRot * 0.017453292F;
-        double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
-        double d3 = vector.clone().setY(0).length();
-        double d4 = lookVector.length();
-        float f3 = player.trigHandler.cos(yRotRadians);
-        f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
-        vector.add(new Vector(0.0D, player.gravity * (-1.0D + (double) f3 * 0.75D), 0.0D));
-        double d5;
-        if (vector.getY() < 0.0D && d2 > 0.0D) {
-            d5 = vector.getY() * -0.1D * (double) f3;
-            vector.add(new Vector(lookVector.getX() * d5 / d2, d5, lookVector.getZ() * d5 / d2));
-        }
-
-        if (yRotRadians < 0.0F && d2 > 0.0D) {
-            d5 = d3 * (double) (-player.trigHandler.sin(yRotRadians)) * 0.04D;
-            vector.add(new Vector(-lookVector.getX() * d5 / d2, d5 * 3.2D, -lookVector.getZ() * d5 / d2));
-        }
-
-        if (d2 > 0) {
-            vector.add(new Vector((lookVector.getX() / d2 * d3 - vector.getX()) * 0.1D, 0.0D, (lookVector.getZ() / d2 * d3 - vector.getZ()) * 0.1D));
-        }
-
-        return vector;
     }
 
     public boolean canStandOnLava() {

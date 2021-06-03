@@ -2,7 +2,6 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.math.MovementVectorsCalc;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
 import org.bukkit.util.Vector;
 
@@ -40,6 +39,29 @@ public class PredictionEngineWater extends PredictionEngine {
         }
     }
 
+    public static Vector getLookAngle(GrimPlayer player) {
+        return calculateViewVector(player, player.yRot, player.xRot);
+    }
+
+    @Override
+    public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
+        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
+            staticVectorEndOfTick(player, vector.vector, swimmingFriction, playerGravity, isFalling);
+        }
+
+        super.endOfTick(player, playerGravity, friction);
+    }
+
+    public static Vector calculateViewVector(GrimPlayer player, float f, float f2) {
+        float f3 = f * 0.017453292f;
+        float f4 = -f2 * 0.017453292f;
+        float f5 = player.trigHandler.cos(f4);
+        float f6 = player.trigHandler.sin(f4);
+        float f7 = player.trigHandler.cos(f3);
+        float f8 = player.trigHandler.sin(f3);
+        return new Vector(f6 * f7, -f8, f5 * f7);
+    }
+
     @Override
     public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
         Set<VectorData> baseVelocities = super.fetchPossibleInputs(player);
@@ -47,7 +69,7 @@ public class PredictionEngineWater extends PredictionEngine {
 
         if (player.isSwimming && player.playerVehicle == null) {
             for (VectorData vector : baseVelocities) {
-                double d = MovementVectorsCalc.getLookAngle(player).getY();
+                double d = getLookAngle(player).getY();
                 double d5 = d < -0.2 ? 0.085 : 0.06;
 
                 // The player can always press jump and activate this
@@ -63,14 +85,5 @@ public class PredictionEngineWater extends PredictionEngine {
         }
 
         return baseVelocities;
-    }
-
-    @Override
-    public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
-        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(player, vector.vector, swimmingFriction, playerGravity, isFalling);
-        }
-
-        super.endOfTick(player, playerGravity, friction);
     }
 }

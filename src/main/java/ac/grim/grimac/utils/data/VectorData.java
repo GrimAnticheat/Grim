@@ -57,6 +57,7 @@ public class VectorData {
         SurfaceSwimming,
         SwimmingSpace,
         BestVelPicked,
-        LegacySwimming
+        LegacySwimming,
+        Elytra
     }
 }
