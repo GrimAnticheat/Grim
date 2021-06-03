@@ -189,7 +189,8 @@ public abstract class PredictionEngine {
             }
 
             // Tick order of player movements vs fireworks isn't constant
-            int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible();
+            // Meaning 2x the number of fireworks can fire at once
+            int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
 
             if (maxFireworks > 0) {
                 Vector boostOne = vector.vector.clone();
@@ -197,7 +198,6 @@ public abstract class PredictionEngine {
 
                 Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
                 Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
-
 
                 for (int i = 0; i < maxFireworks; i++) {
                     boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
@@ -207,10 +207,19 @@ public abstract class PredictionEngine {
                 SimpleCollisionBox uncertainty = new SimpleCollisionBox(Math.min(boostOne.getX(), boostTwo.getX()), Math.min(boostOne.getY(), boostTwo.getY()),
                         Math.min(boostOne.getZ(), boostTwo.getZ()), Math.max(boostOne.getX(), boostTwo.getX()),
                         Math.max(boostOne.getY(), boostTwo.getY()), Math.max(boostOne.getZ(), boostTwo.getZ()));
-                
-                boostOne.add(boostOne).multiply(0.5);
 
-                existingVelocities.add(vector.setVector(boostOne, VectorData.VectorType.Firework));
+                // There is also the possibility that no fireworks were fired as tick order isn't constant
+                uncertainty.expandToCoordinate(vector.vector.getX(), vector.vector.getY(), vector.vector.getZ());
+
+                // Calculate distance from center point to edges of uncertainty box
+                player.uncertaintyHandler.fireworksX = (uncertainty.maxX - uncertainty.minX) / 2;
+                player.uncertaintyHandler.fireworksY = (uncertainty.maxY - uncertainty.minY) / 2;
+                player.uncertaintyHandler.fireworksZ = (uncertainty.maxZ - uncertainty.minZ) / 2;
+
+                // Calculate the center point
+                Vector mid = new Vector(uncertainty.maxX - uncertainty.minX, uncertainty.maxY - uncertainty.minY, uncertainty.maxZ - uncertainty.minZ);
+
+                existingVelocities.add(vector.setVector(mid, VectorData.VectorType.Firework));
             }
         }
     }

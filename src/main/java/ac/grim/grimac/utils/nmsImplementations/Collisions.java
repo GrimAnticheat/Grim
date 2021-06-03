@@ -457,10 +457,10 @@ public class Collisions {
     public static boolean suffocatesAt(GrimPlayer player, SimpleCollisionBox playerBB) {
         List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
 
-        // Not the fasted way to iterate but everything is broken anyways
-        for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
-            for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
-                for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
+        // Blocks are stored in YZX order
+        for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
+            for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
+                for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
 
                     if (!data.getMaterial().isOccluding()) continue;

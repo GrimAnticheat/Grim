@@ -3,6 +3,7 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.checks.movement.ExplosionHandler;
 import ac.grim.grimac.checks.movement.KnockbackHandler;
 import ac.grim.grimac.checks.movement.TimerCheck;
+import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.PacketStateData;
@@ -51,6 +52,7 @@ public class GrimPlayer {
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
     public Vector blockSpeedMultiplier = new Vector(1, 1, 1);
     public Vector lastStuckSpeedMultiplier = new Vector(1, 1, 1);
+    public UncertaintyHandler uncertaintyHandler = new UncertaintyHandler();
     public double gravity;
     public float friction;
     public float speed;
