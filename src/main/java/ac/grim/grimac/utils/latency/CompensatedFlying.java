@@ -30,19 +30,14 @@ public class CompensatedFlying {
     }
 
     public boolean canFlyLagCompensated(int lastTransaction) {
-        // Looking one in the future is generally more accurate
-        // We have to calculate our own values because bukkit isn't lag compensated
-
-        // Bukkit is all caught up, use it's value in case of desync
-        // I can't figure out how it would desync but just to be safe...
-        if (lagCompensatedIsFlyingMap.size() == 1 && lagCompensatedCanFlyMap.size() == 1)
-            return player.bukkitPlayer.isFlying();
+        boolean canFly = getBestValue(lagCompensatedCanFlyMap, lastTransaction);
+        boolean isFlying = getBestValue(lagCompensatedIsFlyingMap, lastTransaction);
 
         // Prevent players messing with abilities packets to bypass anticheat
-        if (!getBestValue(lagCompensatedCanFlyMap, lastTransaction))
+        if (!canFly)
             return false;
 
-        return getBestValue(lagCompensatedIsFlyingMap, lastTransaction);
+        return isFlying;
     }
 
     private boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {

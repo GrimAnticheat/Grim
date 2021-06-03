@@ -106,7 +106,7 @@ public class MovementCheckRunner {
 
             player.isFlying = player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
             player.isClimbing = Collisions.onClimbable(player);
-            player.isGliding = player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction);
+            player.isGliding = player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction) && !player.isFlying;
             player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
 
             // Stop stuff like clients using elytra in a vehicle...
@@ -254,8 +254,6 @@ public class MovementCheckRunner {
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "O: " + color + offset);
-            GrimAC.staticGetLogger().info("Water " + player.lastTouchingWater);
-
 
         } catch (Exception e) {
             e.printStackTrace();
