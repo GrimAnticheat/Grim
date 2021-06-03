@@ -11,8 +11,6 @@ public class CompensatedElytra {
     public final ConcurrentHashMap<Integer, Boolean> lagCompensatedIsGlidingMap = new ConcurrentHashMap<>();
     private final GrimPlayer player;
     public boolean playerToggledElytra = false;
-    public int elytraOnTransaction = 0;
-    public int elytraToggleFlyingTransaction = 0;
 
     public CompensatedElytra(GrimPlayer player) {
         this.player = player;

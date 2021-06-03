@@ -100,6 +100,7 @@ public final class GrimAC extends JavaPlugin {
         registerEvents();
         registerPackets();
 
+        // Place tasks that were waiting on the server tick to "catch up" back into the queue
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             currentTick++;
 
@@ -109,6 +110,14 @@ public final class GrimAC extends JavaPlugin {
                 if (data == null) break;
 
                 MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
+            }
+        }, 0, 1);
+
+        // Try and sync together the main thread with packet threads - this is really difficult without a good solution
+        // This works as schedulers run at the beginning of the tick
+        Bukkit.getScheduler().runTaskTimer(this, () -> {
+            for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                player.lastTransactionAtStartOfTick = player.packetStateData.packetLastTransactionReceived;
             }
         }, 0, 1);
 

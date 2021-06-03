@@ -18,7 +18,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
         if (player == null) return;
         Block block = event.getBlock();
-        ChangeBlockData data = new ChangeBlockData(player.packetStateData.packetLastTransactionReceived, block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(block.getBlockData()));
+        ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(block.getBlockData()));
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 
@@ -29,7 +29,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         Block block = event.getBlock();
 
         // Even when breaking waterlogged stuff, the client assumes it will turn into air (?)
-        ChangeBlockData data = new ChangeBlockData(player.packetStateData.packetLastTransactionReceived, block.getX(), block.getY(), block.getZ(), 0);
+        ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 }

@@ -20,13 +20,12 @@ public class PlayerToggleElytra implements Listener {
         if (player == null) return;
 
         if (player.compensatedElytra.playerToggledElytra && event.isGliding()) {
-            player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.compensatedElytra.elytraOnTransaction, true);
+            player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.lastTransactionAtStartOfTick, true);
         }
 
         // Support the player ending flight themselves by beginning to fly
         if (((Player) event.getEntity()).isFlying() && !event.isGliding()) {
-            player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.compensatedElytra.elytraToggleFlyingTransaction, false);
-            player.compensatedElytra.elytraToggleFlyingTransaction = Short.MIN_VALUE - 1;
+            player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.lastTransactionAtStartOfTick, false);
         }
     }
 }
