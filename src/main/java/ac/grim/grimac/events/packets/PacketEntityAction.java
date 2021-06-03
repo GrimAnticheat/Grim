@@ -31,6 +31,7 @@ public class PacketEntityAction extends PacketListenerDynamic {
                     break;
                 case START_FALL_FLYING:
                     player.compensatedElytra.playerToggledElytra = true;
+                    player.compensatedElytra.elytraOnTransaction = player.packetStateData.packetLastTransactionReceived;
                     break;
             }
         }

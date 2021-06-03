@@ -20,7 +20,7 @@ public class PlayerToggleElytra implements Listener {
         if (player == null) return;
 
         if (player.compensatedElytra.playerToggledElytra && event.isGliding()) {
-            player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.packetStateData.packetLastTransactionReceived, true);
+            player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.compensatedElytra.elytraOnTransaction, true);
         }
     }
 }
