@@ -35,12 +35,12 @@ public class Materials {
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_SIGN")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_BANNER")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("CORAL") && !xMaterial.name().contains("BLOCK")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("POTTED")).forEach(material -> markAs(material, SOLID));
-        Arrays.stream(XMaterial.values()).sequential().filter(xMaterial -> xMaterial.name().contains("HEAD") || xMaterial.name().contains("SKULL")).forEach(material -> markAs(material, SOLID));
+        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).forEach(Materials::markAsNotSolid);
+        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_SIGN")).forEach(Materials::markAsNotSolid);
+        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_BANNER")).forEach(Materials::markAsNotSolid);
+        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("CORAL") && !xMaterial.name().contains("BLOCK")).forEach(Materials::markAsNotSolid);
+        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("POTTED")).forEach(Materials::markAsSolid);
+        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("HEAD") || xMaterial.name().contains("SKULL")).forEach(Materials::markAsSolid);
 
         for (int i = 0; i < MATERIAL_FLAGS.length; i++) {
             Material material = Material.values()[i];
@@ -136,14 +136,15 @@ public class Materials {
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_PANE;
             if (mat.name().contains("SKULL") || mat.name().contains("HEAD"))
                 MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
+            if (mat.name().contains("_SIGN")) markAsNotSolid(mat);
         }
     }
 
-    private static void markAsNotSolid(XMaterial material) {
+    private static void markAsNotSolid(Material material) {
         // Set the flag only if the version has the material
-        if (material.parseMaterial() != null) {
-            MATERIAL_FLAGS[material.parseMaterial().ordinal()] = 0;
-        }
+        int currentFlag = MATERIAL_FLAGS[material.ordinal()];
+        // Remove the least significant bit
+        MATERIAL_FLAGS[material.ordinal()] = currentFlag >> 1 << 1;
     }
 
     private static void markAs(XMaterial material, int flag) {
@@ -152,6 +153,12 @@ public class Materials {
             MATERIAL_FLAGS[material.parseMaterial().ordinal()] |= flag;
         }
     }
+
+    private static void markAsSolid(Material material) {
+        // Set the flag only if the version has the material
+        MATERIAL_FLAGS[material.ordinal()] |= Materials.SOLID;
+    }
+
 
     public static int getBitmask(Material material) {
         return MATERIAL_FLAGS[material.ordinal()];
