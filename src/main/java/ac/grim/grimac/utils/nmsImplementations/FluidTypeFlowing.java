@@ -69,7 +69,7 @@ public class FluidTypeFlowing {
     }
 
     private static boolean affectsFlow(GrimPlayer player, int originalX, int originalY, int originalZ, int x2, int y2, int z2) {
-        return isEmpty(player, originalX, originalY, originalZ) || isSame(player, originalX, originalY, originalZ, x2, y2, z2);
+        return isEmpty(player, x2, y2, z2) || isSame(player, originalX, originalY, originalZ, x2, y2, z2);
     }
 
     public static boolean isEmpty(GrimPlayer player, int x, int y, int z) {
