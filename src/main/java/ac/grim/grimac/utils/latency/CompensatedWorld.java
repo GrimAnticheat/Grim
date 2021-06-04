@@ -358,8 +358,13 @@ public class CompensatedWorld {
 
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
-        if (bukkitBlock instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
-            return ((Levelled) bukkitBlock).getLevel() == 0;
+
+        if (bukkitBlock instanceof MagicBlockState) {
+            return ((MagicBlockState) bukkitBlock).getData() == 0;
+        }
+
+        if (bukkitBlock instanceof FlatBlockState && ((FlatBlockState) bukkitBlock).getBlockData() instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
+            return ((Levelled) ((FlatBlockState) bukkitBlock).getBlockData()).getLevel() == 0;
         }
 
         // These blocks are also considered source blocks
