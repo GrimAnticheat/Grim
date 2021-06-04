@@ -18,6 +18,7 @@ import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.FaceAttachable;
 import org.bukkit.block.data.type.*;
+import org.bukkit.entity.Boat;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -525,6 +526,10 @@ public enum CollisionData {
     }, XMaterial.FARMLAND.parseMaterial()),
 
     LILYPAD((player, version, data, x, y, z) -> {
+        // Boats break lilypads client sided on 1.12- clients.
+        if (player.playerVehicle instanceof Boat && version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
+            return NoCollisionBox.INSTANCE;
+
         if (version.isOlderThan(ClientVersion.v_1_9))
             return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f);
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
