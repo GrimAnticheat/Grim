@@ -30,6 +30,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         vector.setZ(vector.getZ() * player.friction);
     }
 
+    @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             Vector jump = vector.vector.clone();

@@ -2,13 +2,14 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-// Strangely, a player can jump while using an elytra
 public class PredictionEngineElytra extends PredictionEngine {
 
     public static Vector getVectorForRotation(GrimPlayer player, float pitch, float yaw) {
@@ -115,5 +116,21 @@ public class PredictionEngineElytra extends PredictionEngine {
         }
 
         return results;
+    }
+
+    // Yes... you can jump while using an elytra as long as you are on the ground
+    @Override
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        for (VectorData vector : new HashSet<>(existingVelocities)) {
+            Vector jump = vector.vector.clone();
+
+            if (!player.specialFlying) {
+                JumpPower.jumpFromGround(player, jump);
+            } else {
+                jump.add(new Vector(0, player.flySpeed * 3, 0));
+            }
+
+            existingVelocities.add(new VectorData(jump, VectorData.VectorType.Jump));
+        }
     }
 }
