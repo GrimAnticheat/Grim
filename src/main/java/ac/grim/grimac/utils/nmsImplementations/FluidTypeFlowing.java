@@ -23,24 +23,8 @@ public class FluidTypeFlowing {
         double d0 = 0.0D;
         double d1 = 0.0D;
         for (BlockFace enumdirection : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
-            int modifiedX = originalX;
-            int modifiedZ = originalZ;
-
-            switch (enumdirection) {
-                case EAST:
-                    modifiedX += 1;
-                    break;
-                case WEST:
-                    modifiedX -= 1;
-                    break;
-                case NORTH:
-                    modifiedZ -= 1;
-                    break;
-                default:
-                case SOUTH:
-                    modifiedZ += 1;
-                    break;
-            }
+            int modifiedX = originalX + enumdirection.getModX();
+            int modifiedZ = originalZ + enumdirection.getModZ();
 
             if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ)) {
                 float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
@@ -71,24 +55,8 @@ public class FluidTypeFlowing {
         // Fluid level 8-15 is for falling fluids
         if (player.compensatedWorld.isFluidFalling(originalX, originalY, originalZ)) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
-                int modifiedX = originalX;
-                int modifiedZ = originalZ;
-
-                switch (enumdirection) {
-                    case EAST:
-                        modifiedX += 1;
-                        break;
-                    case WEST:
-                        modifiedX -= 1;
-                        break;
-                    case NORTH:
-                        modifiedZ -= 1;
-                        break;
-                    default:
-                    case SOUTH:
-                        modifiedZ += 1;
-                        break;
-                }
+                int modifiedX = originalX + enumdirection.getModX();
+                int modifiedZ = originalZ + enumdirection.getModZ();
 
                 if (isSolidFace(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ) || isSolidFace(player, originalX, originalY, originalZ, modifiedX, originalY + 1, modifiedZ)) {
                     vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector(0.0D, -6.0D, 0.0D));
