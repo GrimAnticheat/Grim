@@ -104,8 +104,6 @@ public class GrimPlayer {
     // We determine this
     public boolean isActuallyOnGround;
     // Set from base tick
-    public boolean lastTouchingWater = false;
-    public boolean lastTouchingLava = false;
     public boolean wasTouchingWater = false;
     public boolean wasTouchingLava = false;
     public boolean slightlyTouchingLava = false;

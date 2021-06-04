@@ -42,8 +42,6 @@ public class PredictionEngineNormal extends PredictionEngine {
 
             existingVelocities.add(new VectorData(jump, VectorData.VectorType.Jump));
         }
-
-        super.addJumpsToPossibilities(player, existingVelocities);
     }
 
     @Override
