@@ -271,26 +271,26 @@ public class PlayerBaseTick {
         Vector vec3 = new Vector();
         int n7 = 0;
 
-        for (int i = floorX; i < ceilX; ++i) {
-            for (int j = floorY; j < ceilY; ++j) {
-                for (int k = floorZ; k < ceilZ; ++k) {
-                    double d3;
+        for (int x = floorX; x < ceilX; ++x) {
+            for (int y = floorY; y < ceilY; ++y) {
+                for (int z = floorZ; z < ceilZ; ++z) {
+                    double fluidHeightToWorld;
 
                     double fluidHeight;
                     if (tag == FluidTag.WATER) {
-                        fluidHeight = player.compensatedWorld.getWaterFluidLevelAt(i, j, k);
+                        fluidHeight = player.compensatedWorld.getWaterFluidLevelAt(x, y, z);
                     } else {
-                        fluidHeight = player.compensatedWorld.getLavaFluidLevelAt(i, j, k);
+                        fluidHeight = player.compensatedWorld.getLavaFluidLevelAt(x, y, z);
                     }
 
-                    if (fluidHeight == 0 || (d3 = (float) j + fluidHeight) < aABB.minY)
+                    if (fluidHeight == 0 || (fluidHeightToWorld = (float) y + fluidHeight) < aABB.minY)
                         continue;
 
                     hasTouched = true;
-                    d2 = Math.max(d3 - aABB.minY, d2);
+                    d2 = Math.max(fluidHeightToWorld - aABB.minY, d2);
 
                     if (!player.specialFlying) {
-                        Vector vec32 = FluidTypeFlowing.getFlow(player, i, j, k);
+                        Vector vec32 = FluidTypeFlowing.getFlow(player, x, y, z);
                         if (d2 < 0.4) {
                             vec32 = vec32.multiply(d2);
                         }

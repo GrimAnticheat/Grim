@@ -16,7 +16,7 @@ public class FluidTypeFlowing {
     private static final Material SNOW = XMaterial.SNOW.parseMaterial();
 
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
-        float fluidLevel = (float) player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ);
+        float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
 
         if (fluidLevel == 0) return new Vector();
 
@@ -43,12 +43,12 @@ public class FluidTypeFlowing {
             }
 
             if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ)) {
-                float f = (float) player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ);
+                float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
                 float f1 = 0.0F;
                 if (f == 0.0F) {
                     if (!Materials.checkFlag(player.compensatedWorld.getBukkitMaterialAt(modifiedX, originalY, modifiedZ), Materials.SOLID)) {
                         if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
-                            f = (float) player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ);
+                            f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
                             if (f > 0.0F) {
                                 f1 = fluidLevel - (f - 0.8888889F);
                             }

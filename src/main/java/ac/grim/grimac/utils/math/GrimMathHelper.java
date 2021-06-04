@@ -2,13 +2,11 @@ package ac.grim.grimac.utils.math;
 
 public class GrimMathHelper {
     public static int floor(double d) {
-        int n = (int) d;
-        return d < (double) n ? n - 1 : n;
+        return (int) Math.floor(d);
     }
 
     public static int ceil(double d) {
-        int n = (int) d;
-        return d > (double) n ? n + 1 : n;
+        return (int) Math.ceil(d);
     }
 
     public static double clamp(double d, double d2, double d3) {
