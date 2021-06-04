@@ -16,6 +16,7 @@ import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -36,12 +37,6 @@ public class CompensatedWorld {
     public static final int JAVA_AIR_ID = 0;
     private static final int MIN_WORLD_HEIGHT = 0;
     private static final int MAX_WORLD_HEIGHT = 255;
-    private static final Material flattenedLava = XMaterial.LAVA.parseMaterial();
-    private static final Material SEAGRASS = XMaterial.SEAGRASS.parseMaterial();
-    private static final Material TALL_SEAGRASS = XMaterial.TALL_SEAGRASS.parseMaterial();
-    private static final Material KELP = XMaterial.KELP.parseMaterial();
-    private static final Material KELP_PLANT = XMaterial.KELP_PLANT.parseMaterial();
-    private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
     private static final Material WATER = XMaterial.WATER.parseMaterial();
     private static final BaseBlockState airData;
     public static List<BlockData> globalPaletteToBlockData;
@@ -368,9 +363,8 @@ public class CompensatedWorld {
         }
 
         // These blocks are also considered source blocks
-        return bukkitBlock.getMaterial() == SEAGRASS || bukkitBlock.getMaterial() == TALL_SEAGRASS
-                || bukkitBlock.getMaterial() == KELP || bukkitBlock.getMaterial() == KELP_PLANT ||
-                bukkitBlock.getMaterial() == BUBBLE_COLUMN;
+
+        return Materials.checkFlag(bukkitBlock.getMaterial(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? Materials.WATER_SOURCE : Materials.WATER_SOURCE_LEGACY);
     }
 
     public boolean containsLiquid(SimpleCollisionBox var0) {

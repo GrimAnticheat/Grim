@@ -32,6 +32,8 @@ public class Materials {
     public static final int SHULKER = 0b00000000000100000000000000000;
     public static final int GLASS_BLOCK = 0b00000000001000000000000000000;
     public static final int GLASS_PANE = 0b00000000010000000000000000000;
+    public static final int WATER_LEGACY = 0b00000000100000000000000000000;
+    public static final int WATER_SOURCE_LEGACY = 0b00000001000000000000000000000;
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
@@ -74,6 +76,7 @@ public class Materials {
 
         markAs(XMaterial.WATER, WATER);
 
+
         markAs(XMaterial.SEAGRASS, WATER);
         markAs(XMaterial.SEAGRASS, WATER_SOURCE);
 
@@ -88,6 +91,10 @@ public class Materials {
 
         markAs(XMaterial.BUBBLE_COLUMN, WATER);
         markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE);
+
+        markAs(XMaterial.WATER, WATER_LEGACY);
+        markAs(XMaterial.BUBBLE_COLUMN, WATER_LEGACY);
+        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);
 
         markAs(XMaterial.LAVA, LAVA);
 
@@ -177,7 +184,7 @@ public class Materials {
     }
 
     public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
-        return checkFlag(state.getMaterial(), WATER) || isWaterlogged(clientVersion, state);
+        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
     }
 
     public static boolean isWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
