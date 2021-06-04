@@ -216,6 +216,10 @@ public abstract class PredictionEngine {
                 player.uncertaintyHandler.fireworksY = (uncertainty.maxY - uncertainty.minY) / 2;
                 player.uncertaintyHandler.fireworksZ = (uncertainty.maxZ - uncertainty.minZ) / 2;
 
+                player.uncertaintyHandler.fireworksX = 100;
+                player.uncertaintyHandler.fireworksY = 100;
+                player.uncertaintyHandler.fireworksZ = 100;
+
                 // Calculate the center point
                 Vector mid = new Vector(uncertainty.maxX - uncertainty.minX, uncertainty.maxY - uncertainty.minY, uncertainty.maxZ - uncertainty.minZ);
 
@@ -260,32 +264,31 @@ public abstract class PredictionEngine {
         }
     }
 
-    private void handleFireworkOffset(GrimPlayer player, Set<VectorData> possibleVectors) {
-        for (VectorData data : possibleVectors) {
-            Vector offsetVector = player.actualMovement.clone().subtract(data.vector);
+    public Vector handleFireworkOffset(GrimPlayer player, Vector vector) {
+        Vector target = player.actualMovement.clone().divide(player.stuckSpeedMultiplier).divide(new Vector(0.99, 0.98, 0.99));
+        Vector offsetVector = vector.clone().subtract(target);
 
-            boolean xPositive = offsetVector.getX() > 0;
-            boolean yPositive = offsetVector.getY() > 0;
-            boolean zPositive = offsetVector.getZ() > 0;
+        boolean xPositive = offsetVector.getX() > 0;
+        boolean yPositive = offsetVector.getY() > 0;
+        boolean zPositive = offsetVector.getZ() > 0;
 
-            double xOffset = Math.abs(offsetVector.getX());
-            double yOffset = Math.abs(offsetVector.getY());
-            double zOffset = Math.abs(offsetVector.getZ());
+        double xOffset = Math.abs(offsetVector.getX());
+        double yOffset = Math.abs(offsetVector.getY());
+        double zOffset = Math.abs(offsetVector.getZ());
 
-            xOffset -= player.uncertaintyHandler.fireworksX;
-            yOffset -= player.uncertaintyHandler.fireworksY;
-            zOffset -= player.uncertaintyHandler.fireworksZ;
+        xOffset -= player.uncertaintyHandler.fireworksX;
+        yOffset -= player.uncertaintyHandler.fireworksY;
+        zOffset -= player.uncertaintyHandler.fireworksZ;
 
-            xOffset = Math.abs(Math.max(xOffset, 0));
-            yOffset = Math.abs(Math.max(yOffset, 0));
-            zOffset = Math.abs(Math.max(zOffset, 0));
+        xOffset = Math.abs(Math.max(xOffset, 0));
+        yOffset = Math.abs(Math.max(yOffset, 0));
+        zOffset = Math.abs(Math.max(zOffset, 0));
 
-            offsetVector.subtract(new Vector(xOffset * (xPositive ? 1 : -1),
-                    yOffset * (yPositive ? 1 : -1),
-                    zOffset * (zPositive ? 1 : -1)));
+        xOffset *= xPositive ? 1 : -1;
+        yOffset *= yPositive ? 1 : -1;
+        zOffset *= zPositive ? 1 : -1;
 
-            data.setVector(data.vector.add(offsetVector), VectorData.VectorType.Elytra);
-        }
+        return target.subtract(new Vector(xOffset, yOffset, zOffset));
     }
 
     public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {

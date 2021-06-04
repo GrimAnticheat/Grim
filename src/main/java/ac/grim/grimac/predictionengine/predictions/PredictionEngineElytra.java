@@ -21,14 +21,16 @@ public class PredictionEngineElytra extends PredictionEngine {
         return new Vector(f3 * f4, -f5, (double) (f2 * f4));
     }
 
-    // Movement has no effect on movement
+    // Inputs have no effect on movement
     @Override
     public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> results = new ArrayList<>();
         Vector currentLook = getVectorForRotation(player, player.yRot, player.xRot);
 
         for (VectorData data : possibleVectors) {
-            results.add(new VectorData(getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99)), data, VectorData.VectorType.Elytra));
+            data = data.setVector(handleFireworkOffset(player, data.vector.clone()), VectorData.VectorType.Firework);
+            VectorData resultMovement = new VectorData(getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99)), data, VectorData.VectorType.Elytra);
+            results.add(resultMovement);
         }
 
         return results;
