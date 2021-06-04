@@ -21,19 +21,41 @@ public class PredictionEngineElytra extends PredictionEngine {
         return new Vector(f3 * f4, -f5, (double) (f2 * f4));
     }
 
-    // Inputs have no effect on movement
-    @Override
-    public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> results = new ArrayList<>();
-        Vector currentLook = getVectorForRotation(player, player.yRot, player.xRot);
+    public static Vector cutVectorsToPlayerMovement(Vector vectorToCutTo, Vector vectorOne, Vector vectorTwo) {
+        double xMin = Math.min(vectorOne.getX(), vectorTwo.getX());
+        double xMax = Math.max(vectorOne.getX(), vectorTwo.getX());
+        double yMin = Math.min(vectorOne.getY(), vectorTwo.getY());
+        double yMax = Math.max(vectorOne.getY(), vectorTwo.getY());
+        double zMin = Math.min(vectorOne.getZ(), vectorTwo.getZ());
+        double zMax = Math.max(vectorOne.getZ(), vectorTwo.getZ());
 
-        for (VectorData data : possibleVectors) {
-            data = data.setVector(handleFireworkOffset(player, data.vector.clone()), VectorData.VectorType.Firework);
-            VectorData resultMovement = new VectorData(getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99)), data, VectorData.VectorType.Elytra);
-            results.add(resultMovement);
+        Vector cutCloned = vectorToCutTo.clone();
+
+        if (xMin > vectorToCutTo.getX() || xMax < vectorToCutTo.getX()) {
+            if (Math.abs(vectorToCutTo.getX() - xMin) < Math.abs(vectorToCutTo.getX() - xMax)) {
+                cutCloned.setX(xMin);
+            } else {
+                cutCloned.setX(xMax);
+            }
         }
 
-        return results;
+        if (yMin > vectorToCutTo.getY() || yMax < vectorToCutTo.getY()) {
+            if (Math.abs(vectorToCutTo.getY() - yMin) < Math.abs(vectorToCutTo.getY() - yMax)) {
+                cutCloned.setY(yMin);
+            } else {
+                cutCloned.setY(yMax);
+            }
+        }
+
+        if (zMin > vectorToCutTo.getZ() || zMax < vectorToCutTo.getZ()) {
+            if (Math.abs(vectorToCutTo.getZ() - zMin) < Math.abs(vectorToCutTo.getZ() - zMax)) {
+                cutCloned.setZ(zMin);
+            } else {
+                cutCloned.setZ(zMax);
+            }
+        }
+
+        return cutCloned;
     }
 
     public Vector getElytraMovement(GrimPlayer player, Vector vector, Vector lookVector) {
@@ -62,4 +84,36 @@ public class PredictionEngineElytra extends PredictionEngine {
         return vector;
     }
 
+    // Inputs have no effect on movement
+    @Override
+    public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+        List<VectorData> results = new ArrayList<>();
+        Vector currentLook = getVectorForRotation(player, player.yRot, player.xRot);
+        Vector lastLook = getVectorForRotation(player, player.lastYRot, player.lastXRot);
+
+        int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
+
+        for (VectorData data : possibleVectors) {
+            Vector boostOne = data.vector.clone();
+            Vector boostTwo = data.vector.clone();
+
+            Vector fireworksResult = getElytraMovement(player, boostOne.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+
+            if (maxFireworks > 0) {
+                for (int i = 0; i < maxFireworks; i++) {
+                    boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
+                    boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
+                }
+
+                Vector cutOne = cutVectorsToPlayerMovement(player.actualMovement, boostOne, fireworksResult);
+                Vector cutTwo = cutVectorsToPlayerMovement(player.actualMovement, boostTwo, fireworksResult);
+                fireworksResult = cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
+            }
+
+            data = data.setVector(fireworksResult, VectorData.VectorType.Elytra);
+            results.add(data);
+        }
+
+        return results;
+    }
 }
