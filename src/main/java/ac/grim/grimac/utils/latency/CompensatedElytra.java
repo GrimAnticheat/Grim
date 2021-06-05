@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 
 import java.util.Iterator;
 import java.util.Map;
@@ -48,6 +49,8 @@ public class CompensatedElytra {
     }
 
     public void tryAddStatus(int transaction, boolean isGliding) {
+        Bukkit.broadcastMessage(ChatColor.GOLD + "Changed status for " + transaction + " to " + isGliding);
+        new Exception().printStackTrace();
         lagCompensatedIsGlidingMap.put(transaction, isGliding);
     }
 }

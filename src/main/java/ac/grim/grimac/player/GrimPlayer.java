@@ -16,6 +16,7 @@ import ac.grim.grimac.utils.math.TrigHandler;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
 import org.bukkit.Bukkit;
@@ -168,7 +169,11 @@ public class GrimPlayer {
         isFlying = bukkitPlayer.isFlying();
         wasFlying = bukkitPlayer.isFlying();
 
-        clientVersion = ClientVersion.getClientVersion(VersionLookupUtils.getProtocolVersion(bukkitPlayer));
+        // If the server runs 1.7.10 (which has 1.7/1.8 client support)
+        // Get the client protocol version, or get the server's protocol version
+        clientVersion = PacketEvents.get().getServerUtils().getVersion() == ServerVersion.v_1_7_10 ||
+                VersionLookupUtils.isDependencyAvailable() ? PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer) :
+                ClientVersion.getClientVersion(PacketEvents.get().getServerUtils().getVersion().getProtocolVersion());
 
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
