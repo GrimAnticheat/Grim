@@ -63,8 +63,6 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerXRot = data.xRot;
         data.player.packetStateData.packetPlayerYRot = data.yRot;
 
-        Bukkit.broadcastMessage("New movement " + data.playerX + " " + data.playerY + " " + data.playerZ + " transaction " + data.lastTransaction);
-
         // Support teleports without teleport confirmations
         Vector3d teleportPos = data.player.teleports.peek();
         if (teleportPos != null && teleportPos.getX() == data.playerX && teleportPos.getY() == data.playerY && teleportPos.getZ() == data.playerZ) {

@@ -29,13 +29,13 @@ public class PacketElytraListener extends PacketListenerAbstract {
 
                 // It looks like this field is the only one that uses a byte, should be safe
                 if (zeroBitField instanceof Byte) {
-                    byte field = (byte) zeroBitField;
+                    // For some reason, you have to add 1, unsure why.
+                    int field = (byte) zeroBitField + 1;
                     boolean isGliding = (field >> 7 & 1) == 1 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
 
                     int transactionSent = player.lastTransactionSent.get();
                     PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, player.getNextTransactionID(), false));
                     player.compensatedElytra.tryAddStatus(transactionSent, isGliding);
-                    Bukkit.broadcastMessage("True " + transactionSent);
                 }
             }
         }

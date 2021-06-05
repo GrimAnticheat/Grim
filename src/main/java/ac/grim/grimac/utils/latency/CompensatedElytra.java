@@ -20,37 +20,10 @@ public class CompensatedElytra {
     }
 
     public boolean isGlidingLagCompensated(int lastTransaction) {
-        return getBestValue(lagCompensatedIsGlidingMap, lastTransaction) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
-    }
-
-    private boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {
-        int bestKey = Integer.MIN_VALUE;
-        // This value is always set because one value is always left in the maps
-        boolean bestValue = false;
-
-        Iterator<Map.Entry<Integer, Boolean>> iterator = hashMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, Boolean> flightStatus = iterator.next();
-
-            Bukkit.broadcastMessage("Status is " + flightStatus.getKey() + " " + flightStatus.getValue());
-
-            if (flightStatus.getKey() > lastTransactionReceived) continue;
-
-            if (flightStatus.getKey() < bestKey) {
-                iterator.remove();
-                continue;
-            }
-
-            bestKey = flightStatus.getKey();
-            bestValue = flightStatus.getValue();
-        }
-
-        return bestValue;
+        return LatencyUtils.getBestValue(lagCompensatedIsGlidingMap, lastTransaction) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
     }
 
     public void tryAddStatus(int transaction, boolean isGliding) {
-        Bukkit.broadcastMessage(ChatColor.GOLD + "Changed status for " + transaction + " to " + isGliding);
-        new Exception().printStackTrace();
         lagCompensatedIsGlidingMap.put(transaction, isGliding);
     }
 }

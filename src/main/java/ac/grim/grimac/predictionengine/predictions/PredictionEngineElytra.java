@@ -3,6 +3,8 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
