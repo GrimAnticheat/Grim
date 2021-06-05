@@ -32,9 +32,10 @@ public class PacketElytraListener extends PacketListenerAbstract {
                     byte field = (byte) zeroBitField;
                     boolean isGliding = (field >> 7 & 1) == 1 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
 
+                    int transactionSent = player.lastTransactionSent.get();
                     PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, player.getNextTransactionID(), false));
-                    player.compensatedElytra.tryAddStatus(player.lastTransactionSent.get(), isGliding);
-                    Bukkit.broadcastMessage("True " + (player.lastTransactionSent.get()));
+                    player.compensatedElytra.tryAddStatus(transactionSent, isGliding);
+                    Bukkit.broadcastMessage("True " + transactionSent);
                 }
             }
         }
