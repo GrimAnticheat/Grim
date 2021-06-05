@@ -99,7 +99,7 @@ public class PredictionData {
         firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 1;
+        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
     }
 
@@ -121,7 +121,7 @@ public class PredictionData {
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
 
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 1;
+        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
     }
 

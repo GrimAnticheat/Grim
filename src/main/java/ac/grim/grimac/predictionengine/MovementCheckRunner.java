@@ -53,6 +53,8 @@ public class MovementCheckRunner {
     // List instead of Set for consistency in debug output
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
 
+    static int temp = 0;
+
     public static void processAndCheckMovementPacket(PredictionData data) {
         data.player.packetStateData.packetPlayerX = data.playerX;
         data.player.packetStateData.packetPlayerY = data.playerY;
@@ -108,6 +110,8 @@ public class MovementCheckRunner {
             player.isClimbing = Collisions.onClimbable(player);
             player.isGliding = player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction) && !player.isFlying;
             player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
+
+            temp = data.lastTransaction;
 
             // Stop stuff like clients using elytra in a vehicle...
             if (player.inVehicle) {
@@ -254,7 +258,7 @@ public class MovementCheckRunner {
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "O: " + color + offset);
-            GrimAC.staticGetLogger().info("Gliding " + player.isGliding);
+            GrimAC.staticGetLogger().info("Gliding " + player.isGliding + " trans " + temp);
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -2,6 +2,8 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,13 +21,15 @@ public class PlayerToggleElytra implements Listener {
 
         if (player == null) return;
 
-        if (player.compensatedElytra.playerToggledElytra && event.isGliding()) {
-            player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.lastTransactionAtStartOfTick, true);
+        if (event.isGliding()) {
+            Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "True " + player.lastTransactionAtStartOfTick);
+            player.compensatedElytra.tryAddStatus(player.lastTransactionAtStartOfTick, true);
         }
 
         // Support the player ending flight themselves by beginning to fly
         if (((Player) event.getEntity()).isFlying() && !event.isGliding()) {
-            player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.lastTransactionAtStartOfTick, false);
+            Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "False " + player.packetStateData.packetLastTransactionReceived);
+            player.compensatedElytra.tryAddStatus(player.lastTransactionAtStartOfTick, false);
         }
     }
 }

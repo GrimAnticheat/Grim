@@ -10,6 +10,7 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import org.bukkit.Bukkit;
 
 public class PacketElytraListener extends PacketListenerAbstract {
     public PacketElytraListener() {
@@ -32,8 +33,8 @@ public class PacketElytraListener extends PacketListenerAbstract {
                     boolean isGliding = (field >> 7 & 1) == 1 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
 
                     PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, player.getNextTransactionID(), false));
-
-                    player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.lastTransactionSent.get(), isGliding);
+                    player.compensatedElytra.tryAddStatus(player.lastTransactionSent.get() + 1, isGliding);
+                    Bukkit.broadcastMessage("True " + (player.lastTransactionSent.get() + 1));
                 }
             }
         }

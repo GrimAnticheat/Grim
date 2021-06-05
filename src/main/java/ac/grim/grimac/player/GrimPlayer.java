@@ -18,6 +18,7 @@ import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -229,6 +230,9 @@ public class GrimPlayer {
                 packetStateData.packetLastTransactionReceived++;
                 transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
                 playerClockAtLeast = System.currentTimeMillis() - transactionPing;
+
+                Bukkit.broadcastMessage("Ping is " + transactionPing);
+
                 knockbackHandler.handleTransactionPacket(data.getFirst());
                 explosionHandler.handleTransactionPacket(data.getFirst());
             }

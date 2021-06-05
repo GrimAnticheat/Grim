@@ -62,6 +62,7 @@
             </resource>
         </resources>
     </build>
+
     <repositories>
         <repository>
             <id>papermc-repo</id>
@@ -80,6 +81,7 @@
             <url>https://repo.opencollab.dev/maven-snapshots/</url>
         </repository>
     </repositories>
+
     <dependencies>
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
