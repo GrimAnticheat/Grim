@@ -23,7 +23,7 @@ public class PlayerToggleElytra implements Listener {
 
         if (event.isGliding()) {
             Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "True " + player.lastTransactionAtStartOfTick);
-            player.compensatedElytra.tryAddStatus(player.lastTransactionAtStartOfTick, true);
+            player.compensatedElytra.tryAddStatus(player.compensatedElytra.lastToggleElytra, true);
         }
 
         // Support the player ending flight themselves by beginning to fly

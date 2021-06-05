@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class CompensatedElytra {
     private final ConcurrentHashMap<Integer, Boolean> lagCompensatedIsGlidingMap = new ConcurrentHashMap<>();
     private final GrimPlayer player;
-    public boolean playerToggledElytra = false;
+    public int lastToggleElytra = 1;
 
     public CompensatedElytra(GrimPlayer player) {
         this.player = player;

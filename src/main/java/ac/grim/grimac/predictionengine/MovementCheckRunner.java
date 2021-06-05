@@ -15,6 +15,7 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.enchantments.Enchantment;
@@ -62,7 +63,7 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerXRot = data.xRot;
         data.player.packetStateData.packetPlayerYRot = data.yRot;
 
-        data.player.compensatedElytra.playerToggledElytra = false;
+        Bukkit.broadcastMessage("New movement " + data.playerX + " " + data.playerY + " " + data.playerZ + " transaction " + data.lastTransaction);
 
         // Support teleports without teleport confirmations
         Vector3d teleportPos = data.player.teleports.peek();

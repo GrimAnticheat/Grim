@@ -31,8 +31,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     player.packetStateData.isPacketSneaking = false;
                     break;
                 case START_FALL_FLYING:
-                    player.compensatedElytra.playerToggledElytra = true;
-                    Bukkit.broadcastMessage("Toggle elytra trans " + player.packetStateData.packetLastTransactionReceived);
+                    player.compensatedElytra.lastToggleElytra = player.packetStateData.packetLastTransactionReceived;
                     break;
             }
         }

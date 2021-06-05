@@ -236,8 +236,6 @@ public class GrimPlayer {
                 transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
                 playerClockAtLeast = System.currentTimeMillis() - transactionPing;
 
-                Bukkit.broadcastMessage("Ping is " + transactionPing);
-
                 knockbackHandler.handleTransactionPacket(data.getFirst());
                 explosionHandler.handleTransactionPacket(data.getFirst());
             }
