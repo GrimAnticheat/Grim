@@ -3,11 +3,11 @@
          xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.abyssmc</groupId>
-    <artifactId>grim.ac</artifactId>
+    <groupId>ac.grim.grimac</groupId>
+    <artifactId>grimac</artifactId>
     <version>0.0.1-indev</version>
     <packaging>jar</packaging>
-    <name>ReaperAC</name>
+    <name>GrimAC</name>
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -56,9 +56,12 @@
                 <directory>src/main/resources</directory>
                 <filtering>false</filtering>
             </resource>
+            <resource>
+                <directory>src/main/java</directory>
+                <filtering>false</filtering>
+            </resource>
         </resources>
     </build>
-
     <repositories>
         <repository>
             <id>papermc-repo</id>
@@ -77,7 +80,6 @@
             <url>https://repo.opencollab.dev/maven-snapshots/</url>
         </repository>
     </repositories>
-
     <dependencies>
         <dependency>
             <groupId>com.destroystokyo.paper</groupId>
@@ -88,7 +90,7 @@
         <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents</artifactId>
-            <version>d141674</version>
+            <version>026c0aa</version>
             <scope>compile</scope>
         </dependency>
         <dependency>

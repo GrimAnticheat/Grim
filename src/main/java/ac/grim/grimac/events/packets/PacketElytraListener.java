@@ -31,10 +31,9 @@ public class PacketElytraListener extends PacketListenerAbstract {
                     byte field = (byte) zeroBitField;
                     boolean isGliding = (field >> 7 & 1) == 1 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
 
-                    player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.lastTransactionSent.get(), isGliding);
-
-                    // Send transaction then this packet, doesn't matter which order too much if not sandwiching
                     PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, player.getNextTransactionID(), false));
+
+                    player.compensatedElytra.lagCompensatedIsGlidingMap.put(player.lastTransactionSent.get(), isGliding);
                 }
             }
         }
