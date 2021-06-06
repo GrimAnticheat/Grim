@@ -50,8 +50,10 @@ public class PlayerBaseTick {
         // LocalPlayer:aiStep determining crouching
         // Tick order is entityBaseTick and then the aiStep stuff
         // This code is in the wrong place, I'll fix it later
-        player.isCrouching = !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
-                && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ));
+
+        player.isCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
+                && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
+                : player.isSneaking; // Sneaking on 1.7-1.13 is just the status the player sends us.  Nothing complicated.
         player.isSlowMovement = player.isCrouching || (player.pose == Pose.SWIMMING && !player.wasTouchingWater);
 
 
@@ -81,13 +83,16 @@ public class PlayerBaseTick {
                 pose = Pose.SWIMMING;
             } else if (XMaterial.supports(13) && player.bukkitPlayer.isRiptiding()) {
                 pose = Pose.SPIN_ATTACK;
-            } else if (player.isSneaking && !player.specialFlying) {
+            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.isSneaking && !player.specialFlying) {
                 pose = Pose.CROUCHING;
             } else {
                 pose = Pose.STANDING;
             }
 
-            if (!player.inVehicle && !canEnterPose(player, pose, player.x, player.y, player.z)) {
+            // I'm not too sure about this code, but it appears like this is only a 1.14+ feature
+            // In my testing this seems good but still don't have full confidence for versions like 1.13
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
+                    !player.inVehicle && !canEnterPose(player, pose, player.x, player.y, player.z)) {
                 if (canEnterPose(player, Pose.CROUCHING, player.x, player.y, player.z)) {
                     pose = Pose.CROUCHING;
                 } else {
