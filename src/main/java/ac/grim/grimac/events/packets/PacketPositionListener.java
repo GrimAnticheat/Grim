@@ -77,12 +77,6 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.packetStateData.packetVehicleHorizontal = steer.getSideValue();
         }
 
-        if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
-            WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            if (player == null) return;
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, move.getX(), move.getY(), move.getZ(), move.getYaw(), move.getPitch()));
-        }
     }
 }

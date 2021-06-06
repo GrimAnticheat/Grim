@@ -155,9 +155,12 @@ public class MovementCheckRunner {
                 // Dead players can't cheat, if you find a way how they could, open an issue
                 player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
                 player.clientVelocity = new Vector();
-            } else if (XMaterial.getVersion() >= 8 && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
+            } else if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.isFlying ||
+                    (XMaterial.getVersion() >= 8 && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)) {
                 // We could technically check spectator but what's the point...
                 // Added complexity to analyze a gamemode used mainly by moderators
+                // ViaVersion plays with 1.7 player flying speed, don't bother checking them
+                // We don't know what ViaVersion is doing as their packet listener is in front of ours
                 player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
                 player.clientVelocity = player.actualMovement.clone();
                 player.gravity = 0;
