@@ -20,10 +20,10 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
 import io.github.retrooper.packetevents.utils.versionlookup.v_1_7_10.SpigotVersionLookup_1_7;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -295,7 +295,14 @@ public class GrimPlayer {
     }
 
     public float getMaxUpStep() {
-        return inVehicle ? 0f : 0.6f;
+        if (playerVehicle == null) return 0.6f;
+
+        if (playerVehicle.getType() == EntityType.BOAT) {
+            return 0f;
+        }
+
+        // Pigs, horses, striders, and other vehicles all have 1 stepping height
+        return 1.0f;
     }
 
     public boolean isEyeInFluid(FluidTag tag) {
