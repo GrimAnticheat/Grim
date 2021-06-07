@@ -3,14 +3,13 @@ package ac.grim.grimac.events.bukkit;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
+import io.github.retrooper.packetevents.PacketEvents;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.geysermc.floodgate.FloodgateAPI;
-import org.geysermc.floodgate.api.FloodgateApi;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -21,20 +20,7 @@ public class PlayerJoinQuitListener implements Listener {
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player bukkitPlayer = event.getPlayer();
 
-        // Exempt geyser players
-        // Floodgate 2.0
-        try {
-            if (FloodgateApi.getInstance().isFloodgatePlayer(bukkitPlayer.getUniqueId()))
-                return;
-        } catch (NoClassDefFoundError ignored) {
-        }
-
-        // Floodgate 1.0
-        try {
-            if (FloodgateAPI.isBedrockPlayer(bukkitPlayer))
-                return;
-        } catch (NoClassDefFoundError ignored) {
-        }
+        if (PacketEvents.get().getPlayerUtils().isGeyserPlayer(bukkitPlayer)) return;
 
         GrimPlayer player = new GrimPlayer(bukkitPlayer);
         player.lastX = bukkitPlayer.getLocation().getX();

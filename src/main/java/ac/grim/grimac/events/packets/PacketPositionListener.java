@@ -12,6 +12,7 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 public class PacketPositionListener extends PacketListenerAbstract {
     public PacketPositionListener() {
@@ -27,9 +28,10 @@ public class PacketPositionListener extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            OnGroundCorrector.correctMovement(position, position.getY());
+            Vector3d pos = position.getPosition();
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, position.getX(), position.getY(), position.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
+            OnGroundCorrector.correctMovement(position, pos.getY());
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
@@ -37,9 +39,10 @@ public class PacketPositionListener extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            OnGroundCorrector.correctMovement(position, position.getY());
+            Vector3d pos = position.getPosition();
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, position.getX(), position.getY(), position.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
+            OnGroundCorrector.correctMovement(position, pos.getY());
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
         }
 
         if (packetID == PacketType.Play.Client.LOOK) {
@@ -47,11 +50,10 @@ public class PacketPositionListener extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            OnGroundCorrector.correctMovement(position, player.y);
-
             // TODO: This isn't async safe
             if (player.bukkitPlayer.getVehicle() != null) return;
 
+            OnGroundCorrector.correctMovement(position, player.y);
             MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
                     player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,
                     position.getYaw(), position.getPitch(), position.isOnGround()));
@@ -63,7 +65,6 @@ public class PacketPositionListener extends PacketListenerAbstract {
             if (player == null) return;
 
             OnGroundCorrector.correctMovement(position, player.y);
-
             MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
                     player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,
                     player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
@@ -76,7 +77,5 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.packetStateData.packetVehicleForward = steer.getForwardValue();
             player.packetStateData.packetVehicleHorizontal = steer.getSideValue();
         }
-
-
     }
 }
