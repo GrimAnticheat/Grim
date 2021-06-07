@@ -8,6 +8,7 @@ import org.bukkit.util.Vector;
 public class MovementTickerPig extends MovementTickerRideable {
     public MovementTickerPig(GrimPlayer player) {
         super(player);
+        player.movementSpeed = 0.05625f;
 
         movementInput = new Vector(0, 0, 1);
     }

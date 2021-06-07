@@ -46,9 +46,9 @@ public class PredictionData {
     public World playerWorld;
     public double movementSpeed;
     public float jumpAmplifier;
-    public float levitationAmplifier;
-    public float slowFallingAmplifier;
-    public float dolphinsGraceAmplifier;
+    public float levitationAmplifier = 0;
+    public float slowFallingAmplifier = 0;
+    public float dolphinsGraceAmplifier = 0;
     public float flySpeed;
     public double fallDistance;
     public boolean inVehicle;
@@ -111,9 +111,17 @@ public class PredictionData {
         this.playerZ = boatZ;
         this.xRot = xRot;
         this.yRot = yRot;
+        this.onGround = true;
+        this.isSprinting = false;
+        this.isSneaking = false;
         this.playerVehicle = player.bukkitPlayer.getVehicle();
         this.vehicleForward = player.packetStateData.packetVehicleForward;
         this.vehicleHorizontal = player.packetStateData.packetVehicleHorizontal;
+
+        Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
+
+        this.levitationAmplifier = getHighestPotionEffect(playerPotionEffects, "LEVITATION", 9);
+        this.slowFallingAmplifier = getHighestPotionEffect(playerPotionEffects, "SLOW_FALLING", 13);
 
         this.inVehicle = true;
 

@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.enums.MoverType;
+import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import org.bukkit.util.Vector;
 
 public class MovementTickerLivingVehicle extends MovementTicker {
@@ -36,9 +37,8 @@ public class MovementTickerLivingVehicle extends MovementTicker {
     public void doNormalMove(float blockFriction) {
         // We don't know if the horse is on the ground
         // TODO: Different friction if horse is in the air
-        player.friction = blockFriction * 0.91f;
-
-        Vector movementInputResult = new PredictionEngineNormal().getMovementResultFromInput(player, movementInput, player.speed, player.xRot);
+        Vector movementInputResult = new PredictionEngineNormal().getMovementResultFromInput(player, movementInput,
+                BlockProperties.getFrictionInfluencedSpeed(blockFriction, player), player.xRot);
 
         addAndMove(MoverType.SELF, movementInputResult);
 

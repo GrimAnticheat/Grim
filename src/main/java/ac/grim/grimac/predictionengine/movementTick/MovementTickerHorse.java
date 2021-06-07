@@ -12,6 +12,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
         AbstractHorse horse = (AbstractHorse) player.playerVehicle;
         player.speed = (float) horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+        player.movementSpeed = player.speed;
 
         // LivingEntity AIStep
         //player.clientVelocity.multiply(0.98);
