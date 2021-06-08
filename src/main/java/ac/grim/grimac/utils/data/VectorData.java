@@ -37,6 +37,21 @@ public class VectorData {
         return false;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof VectorData)) {
+            return false;
+        } else {
+            return vector.equals(((VectorData) obj).vector);
+        }
+    }
+
+    // Don't allow duplicate vectors in list - good optimization
+    @Override
+    public int hashCode() {
+        return vector.hashCode();
+    }
+
     // TODO: For debugging everything should have it's own type!
     // Would make false positives really easy to fix
     // But seriously, we could trace the code to find the mistake
@@ -60,6 +75,8 @@ public class VectorData {
         LegacySwimming,
         Elytra,
         Firework,
-        Lenience
+        Lenience,
+        TridentJump,
+        Trident
     }
 }
