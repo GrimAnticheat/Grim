@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 public abstract class PredictionEngine {
+    boolean canRiptide = false;
 
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
@@ -65,9 +66,6 @@ public abstract class PredictionEngine {
                             stageTwo = Math.max(0, stageTwo);
                             break;
                     }
-
-                    Bukkit.broadcastMessage("X is " + stageOne + " and " + stageTwo);
-
                 }
 
                 break;
@@ -88,15 +86,18 @@ public abstract class PredictionEngine {
         }
 
         VectorData bestCollisionVel = null;
+        Vector beforeCollisionMovement = null;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, MoverType.SELF, player);
-            Vector outputVel = Collisions.collide(player, backOff.getX(), backOff.getY(), backOff.getZ());
+            Vector additionalPushMovement = handlePushMovement(player, backOff);
+            Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
             double resultAccuracy = outputVel.distance(player.actualMovement);
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
                 player.clientVelocity = backOff.clone();
+                beforeCollisionMovement = additionalPushMovement;
                 bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput, VectorData.VectorType.BestVelPicked);
 
                 // Optimization - Close enough, other inputs won't get closer
@@ -105,9 +106,19 @@ public abstract class PredictionEngine {
             }
         }
 
-        new MovementTickerPlayer(player).move(MoverType.SELF, player.clientVelocity, bestCollisionVel.vector);
+        new MovementTickerPlayer(player).move(MoverType.SELF, beforeCollisionMovement, bestCollisionVel.vector);
         player.predictedVelocity = bestCollisionVel;
         endOfTick(player, player.gravity, player.friction);
+    }
+
+    public Vector handlePushMovement(GrimPlayer player, Vector vector) {
+        if (!canRiptide || !player.lastOnGround) return vector;
+
+        SimpleCollisionBox box = new SimpleCollisionBox(vector, vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)));
+
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                new Vector(box.minX, box.minY, box.minZ),
+                new Vector(box.maxX, box.maxY, box.maxZ));
     }
 
     public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
@@ -194,7 +205,6 @@ public abstract class PredictionEngine {
     }
 
     public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {
-        boolean canRiptide = false;
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             if (player.knownExplosion != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.knownExplosion.vector), vector, VectorData.VectorType.Explosion));
@@ -217,6 +227,8 @@ public abstract class PredictionEngine {
                     return;
                 }
 
+                canRiptide = true;
+
                 float f7 = player.xRot;
                 float f = player.yRot;
                 float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
@@ -231,13 +243,6 @@ public abstract class PredictionEngine {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(f1, f2, f3)), VectorData.VectorType.Trident));
             }
         }
-
-        // Handle riptiding while on ground (Moving directly not adding)
-        /*if (canRiptide && player.lastOnGround) {
-            for (VectorData vector : new HashSet<>(existingVelocities)) {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)), VectorData.VectorType.TridentJump));
-            }
-        }*/
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
