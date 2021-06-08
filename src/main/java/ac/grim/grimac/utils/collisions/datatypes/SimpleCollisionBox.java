@@ -166,19 +166,19 @@ public class SimpleCollisionBox implements CollisionBox {
     public SimpleCollisionBox expandToCoordinate(double x, double y, double z) {
         if (x < 0.0D) {
             minX += x;
-        } else if (x > 0.0D) {
+        } else {
             maxX += x;
         }
 
         if (y < 0.0D) {
             minY += y;
-        } else if (y > 0.0D) {
+        } else {
             maxY += y;
         }
 
         if (z < 0.0D) {
             minZ += z;
-        } else if (z > 0.0D) {
+        } else {
             maxZ += z;
         }
 
@@ -196,7 +196,6 @@ public class SimpleCollisionBox implements CollisionBox {
                     && box.maxZ >= this.minZ && box.minZ <= this.maxZ;
         } else {
             return other.isCollided(this);
-            // throw new IllegalStateException("Attempted to check collision with " + other.getClass().getSimpleName());
         }
     }
 

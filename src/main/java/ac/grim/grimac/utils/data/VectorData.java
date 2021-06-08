@@ -59,6 +59,7 @@ public class VectorData {
         BestVelPicked,
         LegacySwimming,
         Elytra,
-        Firework
+        Firework,
+        Lenience
     }
 }

@@ -17,39 +17,6 @@ import java.util.Set;
 
 public abstract class PredictionEngine {
 
-    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
-
-        // We save the slow movement status as it's easier and takes less CPU than recalculating it with newly stored old values
-        if (player.isSlowMovement) {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
-        } else {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
-        }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98);
-
-        if (inputVector.lengthSquared() > 1) inputVector.normalize();
-
-        return inputVector;
-    }
-
-    // This is just the vanilla equation, which accepts invalid inputs greater than 1
-    // We need it because of collision support when a player is using speed
-    public Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
-        float f3 = player.trigHandler.sin(f2 * 0.017453292f);
-        float f4 = player.trigHandler.cos(f2 * 0.017453292f);
-
-        double xResult = inputVector.getX() * f4 - inputVector.getZ() * f3;
-        double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
-
-        return new Vector(xResult * f, 0, zResult * f);
-    }
-
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
         double bestInput = Double.MAX_VALUE;
@@ -140,6 +107,34 @@ public abstract class PredictionEngine {
         endOfTick(player, player.gravity, player.friction);
     }
 
+    public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+        List<VectorData> returnVectors = new ArrayList<>();
+        loopVectors(player, possibleVectors, speed, returnVectors);
+
+        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
+        // It mostly occurs when the player takes damage.
+        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
+        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
+        // If a player in this glitched state lets go of moving forward, then become un-glitched
+        if (player.isSprinting) {
+            player.isSprinting = false;
+            speed /= 1.3D;
+            loopVectors(player, possibleVectors, speed, returnVectors);
+            player.isSprinting = true;
+        }
+
+        return returnVectors;
+    }
+
+    public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
+        Set<VectorData> velocities = player.getPossibleVelocities();
+
+        addAdditionToPossibleVectors(player, velocities);
+        addJumpsToPossibilities(player, velocities);
+
+        return velocities;
+    }
+
     public int compareDistanceToActualMovement(Vector a, Vector b, GrimPlayer player) {
         double x = player.actualMovement.getX();
         double y = player.actualMovement.getY();
@@ -170,7 +165,29 @@ public abstract class PredictionEngine {
         return Integer.compare(aScore, bScore);
     }
 
-    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+    public void endOfTick(GrimPlayer player, double d, float friction) {
+        player.clientVelocitySwimHop = null;
+        if (canSwimHop(player)) {
+            player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
+        }
+    }
+
+    private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
+        // Stop omni-sprint
+        // Optimization - Also cuts down scenarios by 2/3
+        int zMin = player.isSprinting ? 1 : -1;
+
+        for (VectorData possibleLastTickOutput : possibleVectors) {
+            for (int x = -1; x <= 1; x++) {
+                for (int z = zMin; z <= 1; z++) {
+                    VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
+                    result = result.setVector(handleMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
+                    result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
+                    result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                    returnVectors.add(result);
+                }
+            }
+        }
     }
 
     public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {
@@ -223,87 +240,7 @@ public abstract class PredictionEngine {
         }
     }
 
-    public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> returnVectors = new ArrayList<>();
-        loopVectors(player, possibleVectors, speed, returnVectors);
-
-        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
-        // It mostly occurs when the player takes damage.
-        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
-        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
-        // If a player in this glitched state lets go of moving forward, then become un-glitched
-        if (player.isSprinting) {
-            player.isSprinting = false;
-            speed /= 1.3D;
-            loopVectors(player, possibleVectors, speed, returnVectors);
-            player.isSprinting = true;
-        }
-
-        return returnVectors;
-    }
-
-    private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
-        // Stop omni-sprint
-        // Optimization - Also cuts down scenarios by 2/3
-        int zMin = player.isSprinting ? 1 : -1;
-
-        for (VectorData possibleLastTickOutput : possibleVectors) {
-            for (int x = -1; x <= 1; x++) {
-                for (int z = zMin; z <= 1; z++) {
-                    VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-                    result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
-                    result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
-                    returnVectors.add(result);
-                }
-            }
-        }
-    }
-
-    public Vector handleFireworkOffset(GrimPlayer player, Vector vector) {
-        Vector target = player.actualMovement.clone().divide(player.stuckSpeedMultiplier).divide(new Vector(0.99, 0.98, 0.99));
-        Vector offsetVector = vector.clone().subtract(target);
-
-        boolean xPositive = offsetVector.getX() > 0;
-        boolean yPositive = offsetVector.getY() > 0;
-        boolean zPositive = offsetVector.getZ() > 0;
-
-        double xOffset = Math.abs(offsetVector.getX());
-        double yOffset = Math.abs(offsetVector.getY());
-        double zOffset = Math.abs(offsetVector.getZ());
-
-        xOffset -= player.uncertaintyHandler.fireworksX;
-        yOffset -= player.uncertaintyHandler.fireworksY;
-        zOffset -= player.uncertaintyHandler.fireworksZ;
-
-        xOffset = Math.abs(Math.max(xOffset, 0));
-        yOffset = Math.abs(Math.max(yOffset, 0));
-        zOffset = Math.abs(Math.max(zOffset, 0));
-
-        xOffset *= xPositive ? 1 : -1;
-        yOffset *= yPositive ? 1 : -1;
-        zOffset *= zPositive ? 1 : -1;
-
-        return target.subtract(new Vector(xOffset, yOffset, zOffset));
-    }
-
-    public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
-        Set<VectorData> velocities = player.getPossibleVelocities();
-
-        addAdditionToPossibleVectors(player, velocities);
-        addJumpsToPossibilities(player, velocities);
-
-        return velocities;
-    }
-
-    public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
-        return vector;
-    }
-
-    public void endOfTick(GrimPlayer player, double d, float friction) {
-        player.clientVelocitySwimHop = null;
-        if (canSwimHop(player)) {
-            player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
-        }
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
     }
 
     public boolean canSwimHop(GrimPlayer player) {
@@ -327,5 +264,84 @@ public abstract class PredictionEngine {
         // But it's faster to swim anyways on 1.13+, and faster to just go on land in 1.12-
 
         return canCollideHorizontally && inWater;
+    }
+
+    // This is just the vanilla equation, which accepts invalid inputs greater than 1
+    // We need it because of collision support when a player is using speed
+    public Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
+        float f3 = player.trigHandler.sin(f2 * 0.017453292f);
+        float f4 = player.trigHandler.cos(f2 * 0.017453292f);
+
+        double xResult = inputVector.getX() * f4 - inputVector.getZ() * f3;
+        double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
+
+        return new Vector(xResult * f, 0, zResult * f);
+    }
+
+    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
+
+        // We save the slow movement status as it's easier and takes less CPU than recalculating it with newly stored old values
+        if (player.isSlowMovement) {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
+        } else {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
+        }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98);
+
+        if (inputVector.lengthSquared() > 1) inputVector.normalize();
+
+        return inputVector;
+    }
+
+    private Vector handleMovementLenience(GrimPlayer player, Vector vector) {
+        int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
+
+        if (maxFireworks <= 0) return vector;
+        if (!player.isGliding) return vector;
+
+        Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
+        Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
+
+        Vector boostOne = vector.clone();
+        Vector boostTwo = vector.clone();
+
+        for (int i = 0; i < maxFireworks; i++) {
+            boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
+            boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
+        }
+
+        SimpleCollisionBox box = new SimpleCollisionBox(boostOne, boostTwo);
+
+        if (box.minX > vector.getX()) {
+            box.minX = vector.getX();
+        } else if (box.maxX < vector.getX()) {
+            box.maxX = vector.getX();
+        }
+
+        if (box.minY > vector.getY()) {
+            box.minY = vector.getY();
+        } else if (box.maxY < vector.getY()) {
+            box.maxY = vector.getY();
+        }
+
+        if (box.minZ > vector.getZ()) {
+            box.minZ = vector.getZ();
+        } else if (box.maxZ < vector.getZ()) {
+            box.maxZ = vector.getZ();
+        }
+
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                new Vector(box.minX, box.minY, box.minZ),
+                new Vector(box.maxX, box.maxY, box.maxZ));
+    }
+
+    public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
+        return vector;
     }
 }
