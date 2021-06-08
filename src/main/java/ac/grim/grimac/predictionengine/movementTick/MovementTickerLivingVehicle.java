@@ -28,9 +28,6 @@ public class MovementTickerLivingVehicle extends MovementTicker {
     public void doLavaMove() {
         Vector movementInputResult = new PredictionEngineNormal().getMovementResultFromInput(player, movementInput, 0.02F, player.xRot);
         addAndMove(MoverType.SELF, movementInputResult);
-
-        // Lava doesn't have an end of tick thing?
-        //vectorEndOfTick(grimPlayer, grimPlayer.clientVelocity);
     }
 
     @Override

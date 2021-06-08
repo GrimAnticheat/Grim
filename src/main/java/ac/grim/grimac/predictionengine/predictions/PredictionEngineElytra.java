@@ -108,6 +108,9 @@ public class PredictionEngineElytra extends PredictionEngine {
                     boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
                 }
 
+                getElytraMovement(player, boostOne, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+                getElytraMovement(player, boostTwo, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+
                 Vector cutOne = cutVectorsToPlayerMovement(player.actualMovement, boostOne, fireworksResult);
                 Vector cutTwo = cutVectorsToPlayerMovement(player.actualMovement, boostTwo, fireworksResult);
                 fireworksResult = cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
