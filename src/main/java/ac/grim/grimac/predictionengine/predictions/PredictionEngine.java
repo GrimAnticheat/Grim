@@ -8,6 +8,9 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -191,6 +194,7 @@ public abstract class PredictionEngine {
     }
 
     public void addAdditionToPossibleVectors(GrimPlayer player, Set<VectorData> existingVelocities) {
+        boolean canRiptide = false;
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             if (player.knownExplosion != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.knownExplosion.vector), vector, VectorData.VectorType.Explosion));
@@ -200,44 +204,40 @@ public abstract class PredictionEngine {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
             }
 
-            // Tick order of player movements vs fireworks isn't constant
-            // Meaning 2x the number of fireworks can fire at once
-            int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
+            if (player.compensatedRiptide.getCanRiptide(player.lastTransactionBeforeLastMovement)) {
+                ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
+                ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
-            if (maxFireworks > 0) {
-                Vector boostOne = vector.vector.clone();
-                Vector boostTwo = vector.vector.clone();
-
-                Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
-                Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
-
-                for (int i = 0; i < maxFireworks; i++) {
-                    boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
-                    boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
+                int j;
+                if (main.getType() == Material.TRIDENT) {
+                    j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
+                } else if (off.getType() == Material.TRIDENT) {
+                    j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
+                } else {
+                    return;
                 }
 
-                SimpleCollisionBox uncertainty = new SimpleCollisionBox(Math.min(boostOne.getX(), boostTwo.getX()), Math.min(boostOne.getY(), boostTwo.getY()),
-                        Math.min(boostOne.getZ(), boostTwo.getZ()), Math.max(boostOne.getX(), boostTwo.getX()),
-                        Math.max(boostOne.getY(), boostTwo.getY()), Math.max(boostOne.getZ(), boostTwo.getZ()));
+                float f7 = player.xRot;
+                float f = player.yRot;
+                float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
+                float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
+                float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
+                float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
+                float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
+                f1 = f1 * (f5 / f4);
+                f2 = f2 * (f5 / f4);
+                f3 = f3 * (f5 / f4);
 
-                // There is also the possibility that no fireworks were fired as tick order isn't constant
-                uncertainty.expandToCoordinate(vector.vector.getX(), vector.vector.getY(), vector.vector.getZ());
-
-                // Calculate distance from center point to edges of uncertainty box
-                player.uncertaintyHandler.fireworksX = (uncertainty.maxX - uncertainty.minX) / 2;
-                player.uncertaintyHandler.fireworksY = (uncertainty.maxY - uncertainty.minY) / 2;
-                player.uncertaintyHandler.fireworksZ = (uncertainty.maxZ - uncertainty.minZ) / 2;
-
-                player.uncertaintyHandler.fireworksX = 100;
-                player.uncertaintyHandler.fireworksY = 100;
-                player.uncertaintyHandler.fireworksZ = 100;
-
-                // Calculate the center point
-                Vector mid = new Vector(uncertainty.maxX - uncertainty.minX, uncertainty.maxY - uncertainty.minY, uncertainty.maxZ - uncertainty.minZ);
-
-                existingVelocities.add(vector.setVector(mid, VectorData.VectorType.Firework));
+                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(f1, f2, f3)), VectorData.VectorType.Trident));
             }
         }
+
+        // Handle riptiding while on ground (Moving directly not adding)
+        /*if (canRiptide && player.lastOnGround) {
+            for (VectorData vector : new HashSet<>(existingVelocities)) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)), VectorData.VectorType.TridentJump));
+            }
+        }*/
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {

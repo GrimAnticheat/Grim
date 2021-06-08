@@ -2,8 +2,7 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -21,14 +20,13 @@ public class PlayerToggleElytra implements Listener {
 
         if (player == null) return;
 
-        if (event.isGliding()) {
-            Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "True " + player.lastTransactionAtStartOfTick);
+        // 1.15+ clients have client sided elytra start
+        if (event.isGliding() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15)) {
             player.compensatedElytra.tryAddStatus(player.compensatedElytra.lastToggleElytra, true);
         }
 
         // Support the player ending flight themselves by beginning to fly
         if (((Player) event.getEntity()).isFlying() && !event.isGliding()) {
-            Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "False " + player.packetStateData.packetLastTransactionReceived);
             player.compensatedElytra.tryAddStatus(player.lastTransactionAtStartOfTick, false);
         }
     }

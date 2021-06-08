@@ -62,6 +62,10 @@ public final class GrimAC extends JavaPlugin {
             Bukkit.getPluginManager().registerEvents(new PlayerToggleElytra(), this);
         }
 
+        if (XMaterial.supports(13)) {
+            Bukkit.getPluginManager().registerEvents(new RiptideEvent(), this);
+        }
+
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
     }
 

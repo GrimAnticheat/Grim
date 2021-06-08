@@ -127,6 +127,7 @@ public class GrimPlayer {
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
+    public CompensatedRiptide compensatedRiptide;
     public CompensatedElytra compensatedElytra;
     public KnockbackHandler knockbackHandler;
     public ExplosionHandler explosionHandler;
@@ -180,6 +181,7 @@ public class GrimPlayer {
 
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
+        compensatedRiptide = new CompensatedRiptide(this);
         compensatedElytra = new CompensatedElytra(this);
         knockbackHandler = new KnockbackHandler(this);
         explosionHandler = new ExplosionHandler(this);
