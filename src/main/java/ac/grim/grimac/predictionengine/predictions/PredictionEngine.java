@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -110,16 +111,6 @@ public abstract class PredictionEngine {
         endOfTick(player, player.gravity, player.friction);
     }
 
-    public Vector handlePushMovement(GrimPlayer player, Vector vector) {
-        if (!player.canGroundRiptide) return vector;
-
-        SimpleCollisionBox box = new SimpleCollisionBox(vector, vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)));
-
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                new Vector(box.minX, box.minY, box.minZ),
-                new Vector(box.maxX, box.maxY, box.maxZ));
-    }
-
     public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
         loopVectors(player, possibleVectors, speed, returnVectors);
@@ -176,6 +167,16 @@ public abstract class PredictionEngine {
             bScore++;
 
         return Integer.compare(aScore, bScore);
+    }
+
+    public Vector handlePushMovement(GrimPlayer player, Vector vector) {
+        if (!player.canGroundRiptide) return vector;
+
+        SimpleCollisionBox box = new SimpleCollisionBox(vector, vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)));
+
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                new Vector(box.minX, box.minY, box.minZ),
+                new Vector(box.maxX, box.maxY, box.maxZ));
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
@@ -347,5 +348,9 @@ public abstract class PredictionEngine {
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
         return vector;
+    }
+
+    public void doJump(GrimPlayer player, Vector vector) {
+        JumpPower.jumpFromGround(player, vector);
     }
 }

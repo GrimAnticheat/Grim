@@ -330,6 +330,10 @@ public class PlayerBaseTick {
             player.slightlyTouchingLava = hasTouched && d2 <= 0.4D;
         }
 
+        if (tag == FluidTag.WATER) {
+            player.slightlyTouchingWater = hasTouched && d2 <= 0.4D;
+        }
+
         return hasTouched;
     }
 

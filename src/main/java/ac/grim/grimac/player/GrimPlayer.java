@@ -109,7 +109,10 @@ public class GrimPlayer {
     // Set from base tick
     public boolean wasTouchingWater = false;
     public boolean wasTouchingLava = false;
+    // For slightly reduced vertical lava friction and jumping
     public boolean slightlyTouchingLava = false;
+    // For jumping
+    public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
     public ConcurrentLinkedQueue<Vector3d> teleports = new ConcurrentLinkedQueue<>();
