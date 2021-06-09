@@ -28,6 +28,9 @@ public class PacketElytraListener extends PacketListenerAbstract {
                 WrappedWatchableObject watchable = entityMetadata.getWatchableObjects().get(0);
                 Object zeroBitField = watchable.getRawValue();
 
+                if (player == null)
+                    return;
+
                 if (zeroBitField instanceof Byte && watchable.getIndex() == 0) {
                     byte field = (byte) zeroBitField;
                     boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
