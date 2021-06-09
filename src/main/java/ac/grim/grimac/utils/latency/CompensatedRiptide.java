@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VectorData;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -18,6 +19,11 @@ public class CompensatedRiptide {
 
     public void addRiptide() {
         lagCompensatedRiptide.add(player.packetStateData.packetLastTransactionReceived);
+    }
+
+    public void handleRemoveRiptide() {
+        if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))
+            lagCompensatedRiptide.poll();
     }
 
     public boolean getCanRiptide() {
@@ -40,6 +46,6 @@ public class CompensatedRiptide {
 
             // Riptide possibility hasn't expired or been used
             return true;
-        } while(true);
+        } while (true);
     }
 }
