@@ -65,31 +65,13 @@ public class MagicPlayerBlockBreakPlace implements Listener {
             WrappedBlockDataValue wrappedData = WrappedBlockData.getMaterialData(new MagicBlockState(block.getType().getId(), block.getData()));
             wrappedData.getWrappedData(new MagicBlockState(block.getType().getId(), block.getData()));
 
-            if (wrappedData instanceof WrappedDoor) {
-                if (!((WrappedDoor) wrappedData).isBottom()) {
-                    // The block below this has the data to show if it is open
-                    Block belowBlock = event.getClickedBlock().getRelative(BlockFace.DOWN);
-                    ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, belowBlock.getX(), belowBlock.getY(), belowBlock.getZ(),
-                            new MagicBlockState(belowBlock.getType().getId(), belowBlock.getData() ^ 0x4).getCombinedId());
-                    player.compensatedWorld.changeBlockQueue.add(data);
-                } else {
-                    // If there isn't a bottom door, then it's impossible for the player to open the door
-                    // If a 1.13 player is on a 1.12 server, we literally cannot store the data
-                    // It's an almost unfixable false positive due to chunk storage limitations
-                    //
-                    // On 1.12 a door's data automatically combines with the one above or below it
-                    // It just doesn't have the data required to store everything in one block
-                    // Doors, trapdoors, and fence gates all use this bit to represent being open
-                    // So use an xor bit operator to flip it.
-                    ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY() + (((WrappedDoor) wrappedData).isBottom() ? 1 : -1), block.getZ(),
-                            new MagicBlockState(block.getType().getId(), block.getData() ^ 0x4).getCombinedId());
-                    player.compensatedWorld.changeBlockQueue.add(data);
-
-                }
-            }
-
-            if (wrappedData instanceof WrappedFenceGate || wrappedData instanceof WrappedTrapdoor) {
-                // See previous comment
+            if (wrappedData instanceof WrappedDoor && !((WrappedDoor) wrappedData).isBottom()) {
+                // The block below this has the data to show if it is open
+                Block belowBlock = event.getClickedBlock().getRelative(BlockFace.DOWN);
+                ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, belowBlock.getX(), belowBlock.getY(), belowBlock.getZ(),
+                        new MagicBlockState(belowBlock.getType().getId(), belowBlock.getData() ^ 0x4).getCombinedId());
+                player.compensatedWorld.changeBlockQueue.add(data);
+            } else if (wrappedData instanceof WrappedFenceGate || wrappedData instanceof WrappedTrapdoor || wrappedData instanceof WrappedDoor) {
                 int newData = block.getData() ^ 0x4;
 
                 ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(),
