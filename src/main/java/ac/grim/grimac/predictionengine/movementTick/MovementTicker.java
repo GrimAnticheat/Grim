@@ -56,7 +56,7 @@ public class MovementTicker {
             double oldYJumping = oldY + player.flySpeed * 3;
             livingEntityTravel();
 
-            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback)) {
+            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) || player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident)) {
                 player.baseTickSetY(player.actualMovement.getY() * 0.6);
             } else if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
                 player.baseTickSetY(oldY * 0.6);
