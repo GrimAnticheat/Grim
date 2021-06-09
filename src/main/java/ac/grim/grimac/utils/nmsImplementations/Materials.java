@@ -34,6 +34,8 @@ public class Materials {
     public static final int GLASS_PANE = 0b00000000010000000000000000000;
     public static final int WATER_LEGACY = 0b00000000100000000000000000000;
     public static final int WATER_SOURCE_LEGACY = 0b00000001000000000000000000000;
+    public static final int CLIENT_SIDE_INTERACTABLE = 0b00000010000000000000000000000;
+
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
@@ -120,7 +122,11 @@ public class Materials {
             if (!mat.isBlock()) continue;
             if (mat.name().contains("FENCE")) {
                 if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
-                else MATERIAL_FLAGS[mat.ordinal()] |= GATE;
+                else {
+                    MATERIAL_FLAGS[mat.ordinal()] |= GATE;
+                    // Client side changes gate immediately
+                    MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+                }
             }
             if (mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
                     !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
@@ -130,12 +136,17 @@ public class Materials {
             if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] |= GATE;
             if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= AIR;
-            if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR"))
+            if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR")) {
                 MATERIAL_FLAGS[mat.ordinal()] |= TRAPDOOR;
+                if (!mat.name().contains("IRON"))
+                    MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+            }
+
             if (mat.name().contains("LEAVES")) MATERIAL_FLAGS[mat.ordinal()] |= LEAVES;
             if (mat.name().contains("DIODE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("COMPARATOR")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("_DOOR")) MATERIAL_FLAGS[mat.ordinal()] |= DOOR;
+            if (mat.name().contains("_DOOR") && !mat.name().contains("IRON")) MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
             if (mat.name().contains("SHULKER_BOX")) MATERIAL_FLAGS[mat.ordinal()] |= SHULKER;
             if (mat.name().contains("GLASS") && !mat.name().contains("PANE"))
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_BLOCK;
@@ -171,10 +182,6 @@ public class Materials {
         return MATERIAL_FLAGS[material.ordinal()];
     }
 
-    public static boolean checkFlag(Material material, int flag) {
-        return (MATERIAL_FLAGS[material.ordinal()] & flag) == flag;
-    }
-
     public static boolean isUsable(Material material) {
         String nameLower = material.name().toLowerCase();
         return material.isEdible()
@@ -185,6 +192,10 @@ public class Materials {
 
     public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
         return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
+    }
+
+    public static boolean checkFlag(Material material, int flag) {
+        return (MATERIAL_FLAGS[material.ordinal()] & flag) == flag;
     }
 
     public static boolean isWaterlogged(ClientVersion clientVersion, BaseBlockState state) {

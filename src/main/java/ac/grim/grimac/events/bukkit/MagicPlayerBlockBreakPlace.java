@@ -2,13 +2,27 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.blockdata.WrappedBlockData;
+import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
+import ac.grim.grimac.utils.blockdata.types.WrappedDoor;
+import ac.grim.grimac.utils.blockdata.types.WrappedFenceGate;
+import ac.grim.grimac.utils.blockdata.types.WrappedTrapdoor;
+import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.data.ChangeBlockData;
+import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Openable;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+
+import java.util.BitSet;
 
 public class MagicPlayerBlockBreakPlace implements Listener {
 
@@ -37,5 +51,52 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         // So in 1.12 everything probably turns into air when broken
         ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.changeBlockQueue.add(data);
+    }
+
+    // This doesn't work perfectly, but is an attempt to support the client changing blocks from interacting with blocks
+    // Improvements could be made by porting this back to 1.12, and adding 1.12 client behavior to 1.13+ servers
+    // It also suffers the same issues as other listeners in this class, where the lastTransactionAtStartOfTick
+    // doesn't actually represent when the block was applied.
+    //
+    // It's much better than nothing though, and works sort of fine.
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onBlockInteractEvent(PlayerInteractEvent event) {
+        if (event.getClickedBlock() == null) return;
+
+        Block block = event.getClickedBlock();
+        if (block != null && Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
+            WrappedBlockDataValue wrappedData = WrappedBlockData.getMaterialData(new MagicBlockState(block.getType().getId(), block.getData()));
+
+            if (wrappedData instanceof WrappedDoor) {
+                Block otherDoor = block.getRelative(((WrappedDoor) wrappedData).isBottom() ? BlockFace.UP : BlockFace.DOWN);
+
+                WrappedBlockDataValue wrappedOtherDoor = WrappedBlockData.getMaterialData(new MagicBlockState(otherDoor.getType().getId(), otherDoor.getData()));
+
+                if (wrappedOtherDoor instanceof WrappedDoor) {
+                    // On 1.12 a door's data automatically combines with the one above or below it
+                    // It just doesn't have the data required to store everything in one block
+                    // Doors, trapdoors, and fence gates all use this bit to represent being open
+                    // So use an xor bit operator to flip it.
+                    int newData = otherDoor.getData() ^ 0b10;
+
+                    ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY() + (((WrappedDoor) wrappedData).isBottom() ? 1 : -1), block.getZ(),
+                            new MagicBlockState(otherDoor.getType().getId(), newData).getCombinedId());
+                    player.compensatedWorld.changeBlockQueue.add(data);
+
+                }
+            }
+
+            if (wrappedData instanceof WrappedFenceGate || wrappedData instanceof WrappedTrapdoor) {
+                // See previous comment
+                int newData = block.getData() ^ 0b10;
+
+                ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(),
+                        new MagicBlockState(block.getType().getId(), newData).getCombinedId());
+                player.compensatedWorld.changeBlockQueue.add(data);
+            }
+        }
     }
 }
