@@ -192,9 +192,10 @@ public class GrimPlayer {
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
         trigHandler = new TrigHandler(this);
-        packetStateData = new PacketStateData();
-
         timerCheck = new TimerCheck(this);
+
+        packetStateData = new PacketStateData();
+        packetStateData.lastSlotSelected = bukkitPlayer.getInventory().getHeldItemSlot();
     }
 
     public Set<VectorData> getPossibleVelocities() {

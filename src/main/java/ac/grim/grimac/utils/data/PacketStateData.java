@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.data;
 
+import io.github.retrooper.packetevents.utils.player.Hand;
+
 // This is to keep all the packet data out of the main player class
 // Helps clean up the player class and makes devs aware they are sync'd to the netty thread
 public class PacketStateData {
@@ -13,4 +15,6 @@ public class PacketStateData {
     public double packetPlayerZ;
     public float packetPlayerXRot;
     public float packetPlayerYRot;
+    public int lastSlotSelected;
+    public Hand eatingHand = Hand.MAIN_HAND;
 }

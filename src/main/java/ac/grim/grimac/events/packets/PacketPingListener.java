@@ -11,23 +11,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.transaction.Wrapp
 public class PacketPingListener extends PacketListenerAbstract {
 
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Server.TRANSACTION) {
-            WrappedPacketInTransaction transaction = new WrappedPacketInTransaction(event.getNMSPacket());
-            short id = transaction.getActionNumber();
-
-            // Vanilla always uses an ID starting from 1
-            if (id < 0) {
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-                if (player == null) return;
-                player.addTransactionSend(id);
-            }
-        }
-    }
-
-    @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         byte packetID = event.getPacketId();
 
@@ -41,6 +24,23 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player == null) return;
                 player.addTransactionResponse(id);
                 event.setCancelled(true);
+            }
+        }
+    }
+
+    @Override
+    public void onPacketPlaySend(PacketPlaySendEvent event) {
+        byte packetID = event.getPacketId();
+
+        if (packetID == PacketType.Play.Server.TRANSACTION) {
+            WrappedPacketInTransaction transaction = new WrappedPacketInTransaction(event.getNMSPacket());
+            short id = transaction.getActionNumber();
+
+            // Vanilla always uses an ID starting from 1
+            if (id < 0) {
+                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                if (player == null) return;
+                player.addTransactionSend(id);
             }
         }
     }
