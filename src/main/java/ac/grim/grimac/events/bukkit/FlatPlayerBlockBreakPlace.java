@@ -15,6 +15,7 @@ import org.bukkit.block.data.type.Door;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -49,6 +50,8 @@ public class FlatPlayerBlockBreakPlace implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockInteractEvent(PlayerInteractEvent event) {
         if (event.getClickedBlock() == null) return;
+        if (event.isBlockInHand()) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Block block = event.getClickedBlock();
         if (block != null && Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {

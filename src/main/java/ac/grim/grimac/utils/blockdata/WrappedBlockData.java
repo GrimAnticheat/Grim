@@ -598,10 +598,10 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
             int magic = data.getData();
 
-            setBottom((magic & 0b1000) == 0);
+            setBottom((magic & 0x8) == 0);
 
             if (isBottom()) {
-                setOpen((magic & 0b10) != 0);
+                setOpen((magic & 0x4) != 0);
 
                 switch (magic & 0b11) {
                     case 0:
@@ -618,10 +618,8 @@ public enum WrappedBlockData {
                         break;
                 }
             } else {
-                setRightHinge((magic & 0b1) == 0);
+                setRightHinge((magic & 0x1) != 0);
             }
-
-            setOpen((magic & 0b100) != 0);
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_DOOR"))
             .toArray(Material[]::new)),
