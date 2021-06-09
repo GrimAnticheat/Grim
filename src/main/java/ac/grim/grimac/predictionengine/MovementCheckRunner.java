@@ -15,7 +15,6 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.enchantments.Enchantment;
@@ -175,6 +174,13 @@ public class MovementCheckRunner {
                     player.depthStriderLevel = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
                 } else {
                     player.depthStriderLevel = 0;
+                }
+
+                if (player.canGroundRiptide = (player.lastOnGround && player.compensatedRiptide.getCanRiptide())) {
+                    double addedY = Math.min(player.actualMovement.getY(), 1.1999999F);
+                    player.lastOnGround = false;
+
+                    player.boundingBox.offset(0, addedY, 0);
                 }
 
                 new PlayerBaseTick(player).doBaseTick();

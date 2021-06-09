@@ -20,7 +20,7 @@ public class CompensatedRiptide {
         lagCompensatedRiptide.add(player.packetStateData.packetLastTransactionReceived);
     }
 
-    public boolean getCanRiptide(int lastTransaction) {
+    public boolean getCanRiptide() {
         int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
 
         do {

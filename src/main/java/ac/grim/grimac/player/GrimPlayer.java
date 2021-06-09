@@ -124,6 +124,7 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean lastClimbing;
     public boolean couldSkipTick = false;
+    public boolean canGroundRiptide = false;
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;

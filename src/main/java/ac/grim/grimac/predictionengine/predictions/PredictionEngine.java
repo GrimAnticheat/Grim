@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -112,7 +111,7 @@ public abstract class PredictionEngine {
     }
 
     public Vector handlePushMovement(GrimPlayer player, Vector vector) {
-        if (!canRiptide || !player.lastOnGround) return vector;
+        if (!player.canGroundRiptide) return vector;
 
         SimpleCollisionBox box = new SimpleCollisionBox(vector, vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)));
 
@@ -214,7 +213,7 @@ public abstract class PredictionEngine {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
             }
 
-            if (player.compensatedRiptide.getCanRiptide(player.lastTransactionBeforeLastMovement)) {
+            if (player.compensatedRiptide.getCanRiptide()) {
                 ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
                 ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
