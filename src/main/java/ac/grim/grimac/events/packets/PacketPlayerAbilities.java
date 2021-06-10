@@ -39,9 +39,6 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
             // Send a transaction packet immediately after this packet
             event.setPostTask(() -> PacketEvents.get().getPlayerUtils().sendPacket(event.getPlayer(),
                     new WrappedPacketOutTransaction(0, player.getNextTransactionID(), false)));
-
-            // Do this last in case of errors, sending multiple abilities packets accidentally is fine
-            event.setCancelled(true);
         }
     }
 }
