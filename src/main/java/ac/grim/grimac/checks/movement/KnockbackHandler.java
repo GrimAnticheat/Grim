@@ -36,20 +36,7 @@ public class KnockbackHandler {
         }
     }
 
-    public void addPlayerKnockback(Vector knockback) {
-        // Would this overflow if we got 32768?  no.
-        // The limit returned by this would be 32767
-        // We then keep this as an integer
-        // Multiplying by 1 results in -32767
-        // Subtracting 1 results in -32768, in the range of short
-        int reservedID = (-1 * (player.lastTransactionSent.getAndAdd(2) % 32768));
-        short breadOne = (short) reservedID;
-        short breadTwo = (short) (reservedID - 1);
-
-        PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadOne, false));
-        PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutEntityVelocity(player.entityID, knockback.getX(), knockback.getY(), knockback.getZ()));
-        PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadTwo, false));
-
+    public void addPlayerKnockback(short breadOne, Vector knockback) {
         firstBreadMap.put(breadOne, knockback);
     }
 

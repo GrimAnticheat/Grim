@@ -33,23 +33,8 @@ public class ExplosionHandler {
         }
     }
 
-    public void addPlayerExplosion(WrappedPacketOutExplosion explosion) {
-        // Would this overflow if we got 32768?  no.
-        // The limit returned by this would be 32767
-        // We then keep this as an integer
-        // Multiplying by 1 results in -32767
-        // Subtracting 1 results in -32768, in the range of short
-        int reservedID = (-1 * (player.lastTransactionSent.getAndAdd(2) % 32768));
-        short breadOne = (short) reservedID;
-        short breadTwo = (short) (reservedID - 1);
-
-        PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadOne, false));
-        PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutExplosion(explosion.getX(), explosion.getY(), explosion.getZ(), explosion.getStrength(), explosion.getRecords(), explosion.getPlayerMotionX(), explosion.getPlayerMotionY(), explosion.getPlayerMotionZ()));
-        PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadTwo, false));
-
-        if (!firstBreadMap.containsKey(breadOne)) {
-            firstBreadMap.put(breadOne, new Vector(explosion.getPlayerMotionX(), explosion.getPlayerMotionY(), explosion.getPlayerMotionZ()));
-        }
+    public void addPlayerExplosion(short breadOne, WrappedPacketOutExplosion explosion) {
+        firstBreadMap.put(breadOne, new Vector(explosion.getPlayerMotionX(), explosion.getPlayerMotionY(), explosion.getPlayerMotionZ()));
     }
 
     public void handlePlayerExplosion(double offset) {

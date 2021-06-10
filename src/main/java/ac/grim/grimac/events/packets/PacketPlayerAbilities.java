@@ -33,24 +33,15 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
             // Occurs on login - we set if the player can fly on PlayerJoinEvent
             if (player == null) return;
 
-            player.originalPacket = !player.originalPacket;
+            player.compensatedFlying.setCanPlayerFly(abilities.isFlightAllowed());
+            player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionSent.get(), abilities.isFlying());
 
-            if (!player.originalPacket) {
-                player.compensatedFlying.setCanPlayerFly(abilities.isFlightAllowed());
-                player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionSent.get(), abilities.isFlying());
+            // Send a transaction packet immediately after this packet
+            event.setPostTask(() -> PacketEvents.get().getPlayerUtils().sendPacket(event.getPlayer(),
+                    new WrappedPacketOutTransaction(0, player.getNextTransactionID(), false)));
 
-                // Send a transaction packet immediately after this packet
-                PacketEvents.get().getPlayerUtils().sendPacket(event.getPlayer(),
-                        new WrappedPacketOutAbilities(abilities.isVulnerable(), abilities.isFlying(),
-                                abilities.isFlightAllowed(), abilities.canBuildInstantly(),
-                                abilities.getFlySpeed(), abilities.getWalkSpeed()));
-                PacketEvents.get().getPlayerUtils().sendPacket(event.getPlayer(),
-                        new WrappedPacketOutTransaction(0, player.getNextTransactionID(), false));
-
-                // Do this last in case of errors, sending multiple abilities packets accidentally is fine
-                event.setCancelled(true);
-            }
-
+            // Do this last in case of errors, sending multiple abilities packets accidentally is fine
+            event.setCancelled(true);
         }
     }
 }

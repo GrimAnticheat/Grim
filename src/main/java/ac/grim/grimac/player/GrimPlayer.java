@@ -90,8 +90,6 @@ public class GrimPlayer {
     // Determining slow movement has to be done before pose is updated
     public boolean isSlowMovement = false;
     public World playerWorld;
-    // Manage sandwiching packets with transactions
-    public boolean originalPacket = true;
     public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;
