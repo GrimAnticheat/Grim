@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -27,55 +28,9 @@ public abstract class PredictionEngine {
 
         List<VectorData> possibleVelocities = multiplyPossibilitiesByInputs(player, fetchPossibleInputs(player), speed);
 
-        // Run pistons before sorting as an optimization
-        // We will calculate the distance to actual movement after each piston
-        // Each piston does have to run in order
-        for (PistonData data : player.compensatedWorld.pushingPistons) {
-            if (data.thisTickPushingPlayer) {
-                for (SimpleCollisionBox box : data.boxes) {
-                    double stageOne = 0;
-                    double stageTwo = 0;
-
-                    switch (data.direction) {
-                        case EAST:
-                            stageOne = box.maxX - 0.49 - player.boundingBox.minX;
-                            stageOne = Math.max(0, stageOne);
-
-                            stageTwo = box.maxX + 0.01 - player.boundingBox.minX;
-                            stageTwo = Math.max(0, stageTwo);
-                            break;
-                        case WEST:
-                            stageOne = box.maxX + 0.49 - player.boundingBox.minX;
-                            stageOne = Math.max(0, stageOne);
-
-                            stageTwo = box.minX - 0.01 - player.boundingBox.maxX;
-                            stageTwo = Math.min(0, stageTwo);
-                            break;
-                        case NORTH:
-                            stageOne = box.maxX + 0.49 - player.boundingBox.minX;
-                            stageOne = Math.max(0, stageOne);
-
-                            stageTwo = box.minZ - 0.01 - player.boundingBox.maxZ;
-                            stageTwo = Math.min(0, stageTwo);
-                            break;
-                        case SOUTH:
-                            stageOne = box.maxX - 0.49 - player.boundingBox.minX;
-                            stageOne = Math.max(0, stageOne);
-
-                            stageTwo = box.maxZ + 0.01 - player.boundingBox.minZ;
-                            stageTwo = Math.max(0, stageTwo);
-                            break;
-                    }
-                }
-
-                break;
-            }
-        }
-
         // This is an optimization - sort the inputs by the most likely first to stop running unneeded collisions
         possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a.vector, b.vector, player));
         possibleVelocities.sort(this::putVelocityExplosionsFirst);
-
 
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
         player.couldSkipTick = false;
@@ -169,14 +124,78 @@ public abstract class PredictionEngine {
         return Integer.compare(aScore, bScore);
     }
 
+
+    // Currently, we cannot handle player being pushed by pistons while starting riptides while on the ground
+    // I'll be very surprised if someone actually manages to accomplish this
     public Vector handlePushMovement(GrimPlayer player, Vector vector) {
-        if (!player.canGroundRiptide) return vector;
+        // Run pistons before sorting as an optimization
+        // We will calculate the distance to actual movement after each piston
+        // Each piston does have to run in order
+        double xPushingPositive = 0;
+        double xPushingNegative = 0;
+        double yPushingPositive = 0;
+        double yPushingNegative = 0;
+        double zPushingPositive = 0;
+        double zPushingNegative = 0;
 
-        SimpleCollisionBox box = new SimpleCollisionBox(vector, vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)));
+        // Calculate uncertainty in the player's movements from pistons pushing the player
+        // This is wrong and we should move the player's bounding box BEFORE base tick...
+        // But because 1.9+ we have no clue what stage the piston is in on the client
+        //
+        // For reference this only checks pistons that intersect with the player's bounding box
+        // Main thread should die from pistons much faster than the anticheat will
+        //
+        // Minus 1 thing for flipping the direction of the pushing and therefore flipping the side that is "pushing" the player
+        // It's an okay hack, not good, not bad, existing as we are being very cautious with pistons
+        for (PistonData data : player.compensatedWorld.pushingPistons) {
+            for (SimpleCollisionBox box : data.boxes) {
+                switch (data.direction) {
+                    case EAST: // Positive X
+                        xPushingPositive = Math.max(0, Math.max(box.maxX + 0.01 - player.boundingBox.minX - (data.isPush ? 0 : 1), xPushingPositive));
+                        break;
+                    case WEST: // Negative X
+                        xPushingNegative = Math.min(0, Math.min(box.minX - 0.01 - player.boundingBox.maxX + (data.isPush ? 0 : 1), xPushingNegative));
+                        break;
+                    case SOUTH: // Positive Z
+                        zPushingPositive = Math.max(0, Math.max(box.maxZ + 0.01 - player.boundingBox.minZ - (data.isPush ? 0 : 1), zPushingPositive));
+                        break;
+                    case NORTH: // Negative Z
+                        zPushingNegative = Math.min(0, Math.min(box.minZ - 0.01 - player.boundingBox.maxZ + (data.isPush ? 0 : 1), zPushingNegative));
+                        break;
+                    case UP: // Positive Y
+                        yPushingPositive = Math.max(0, Math.max(box.maxY + 0.01 - player.boundingBox.minY - (data.isPush ? 0 : 1), yPushingPositive));
+                        yPushingPositive = Math.max(0, Math.max(box.maxY + 0.01 - player.boundingBox.maxY - (data.isPush ? 0 : 1), yPushingPositive));
+                        break;
+                    case DOWN: // Negative Y
+                        yPushingNegative = Math.min(0, Math.min(box.minY - 0.01 - player.boundingBox.minY + (data.isPush ? 0 : 1), yPushingNegative));
+                        yPushingNegative = Math.min(0, Math.min(box.minY - 0.01 - player.boundingBox.maxY + (data.isPush ? 0 : 1), yPushingNegative));
+                        break;
+                }
+            }
+        }
 
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                new Vector(box.minX, box.minY, box.minZ),
-                new Vector(box.maxX, box.maxY, box.maxZ));
+        if (xPushingNegative != 0 || yPushingNegative != 0 || zPushingNegative != 0
+                || xPushingPositive != 0 || yPushingPositive != 0 || zPushingPositive != 0) {
+            Bukkit.broadcastMessage(xPushingNegative + " " + yPushingNegative + " " + zPushingNegative + " "
+                    + xPushingPositive + " " + yPushingPositive + " " + zPushingPositive);
+            SimpleCollisionBox box = new SimpleCollisionBox(
+                    vector.clone().add(new Vector(xPushingNegative, yPushingNegative, zPushingNegative)),
+                    vector.clone().add(new Vector(xPushingPositive, yPushingPositive, zPushingPositive)));
+
+            return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                    new Vector(box.minX, box.minY, box.minZ),
+                    new Vector(box.maxX, box.maxY, box.maxZ));
+        }
+
+        if (!player.canGroundRiptide) {
+            SimpleCollisionBox box = new SimpleCollisionBox(vector, vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)));
+
+            return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                    new Vector(box.minX, box.minY, box.minZ),
+                    new Vector(box.maxX, box.maxY, box.maxZ));
+        }
+
+        return vector;
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
