@@ -154,7 +154,7 @@ public class CompensatedWorld {
 
         for (PistonData data : activePistons) {
             for (SimpleCollisionBox box : data.boxes) {
-                if (player.boundingBox.isCollided(box)) {
+                if (player.boundingBox.copy().expand(0.03).isCollided(box)) {
                     pushingPistons.add(data);
                 }
             }

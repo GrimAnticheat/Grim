@@ -18,6 +18,10 @@ public class PistonEvent implements Listener {
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         for (Block block : event.getBlocks()) {
             boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
+                    .offset(block.getX(),
+                            block.getY(),
+                            block.getZ()));
+            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
                     .offset(block.getX() + event.getDirection().getModX(),
                             block.getY() + event.getDirection().getModY(),
                             block.getZ() + event.getDirection().getModZ()));
@@ -66,7 +70,9 @@ public class PistonEvent implements Listener {
 
         for (Block block : event.getBlocks()) {
             boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
-                    .offset(block.getX() + face.getModX(), block.getY() + face.getModX(), block.getZ() + face.getModX()));
+                    .offset(block.getX(), block.getY(), block.getZ()));
+            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
+                    .offset(block.getX() + face.getModX(), block.getY() + face.getModY(), block.getZ() + face.getModZ()));
         }
 
         GrimAC.playerGrimHashMap.values().forEach(player -> {

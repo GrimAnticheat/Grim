@@ -149,27 +149,29 @@ public abstract class PredictionEngine {
         // It's an okay hack, not good, not bad, existing as we are being very cautious with pistons
         for (PistonData data : player.compensatedWorld.pushingPistons) {
             for (SimpleCollisionBox box : data.boxes) {
-                switch (data.direction) {
-                    case EAST: // Positive X
-                        xPushingPositive = Math.max(0, Math.max(box.maxX + 0.01 - player.boundingBox.minX - (data.isPush ? 0 : 1), xPushingPositive));
-                        break;
-                    case WEST: // Negative X
-                        xPushingNegative = Math.min(0, Math.min(box.minX - 0.01 - player.boundingBox.maxX + (data.isPush ? 0 : 1), xPushingNegative));
-                        break;
-                    case SOUTH: // Positive Z
-                        zPushingPositive = Math.max(0, Math.max(box.maxZ + 0.01 - player.boundingBox.minZ - (data.isPush ? 0 : 1), zPushingPositive));
-                        break;
-                    case NORTH: // Negative Z
-                        zPushingNegative = Math.min(0, Math.min(box.minZ - 0.01 - player.boundingBox.maxZ + (data.isPush ? 0 : 1), zPushingNegative));
-                        break;
-                    case UP: // Positive Y
-                        yPushingPositive = Math.max(0, Math.max(box.maxY + 0.01 - player.boundingBox.minY - (data.isPush ? 0 : 1), yPushingPositive));
-                        yPushingPositive = Math.max(0, Math.max(box.maxY + 0.01 - player.boundingBox.maxY - (data.isPush ? 0 : 1), yPushingPositive));
-                        break;
-                    case DOWN: // Negative Y
-                        yPushingNegative = Math.min(0, Math.min(box.minY - 0.01 - player.boundingBox.minY + (data.isPush ? 0 : 1), yPushingNegative));
-                        yPushingNegative = Math.min(0, Math.min(box.minY - 0.01 - player.boundingBox.maxY + (data.isPush ? 0 : 1), yPushingNegative));
-                        break;
+                if (player.boundingBox.copy().expand(0.03).isCollided(box)) {
+                    switch (data.direction) {
+                        case EAST: // Positive X
+                            xPushingPositive = Math.max(0, Math.max(box.maxX + 0.01 - player.boundingBox.minX - (data.isPush ? 0 : 1), xPushingPositive));
+                            break;
+                        case WEST: // Negative X
+                            xPushingNegative = Math.min(0, Math.min(box.minX - 0.01 - player.boundingBox.maxX + (data.isPush ? 0 : 1), xPushingNegative));
+                            break;
+                        case SOUTH: // Positive Z
+                            zPushingPositive = Math.max(0, Math.max(box.maxZ + 0.01 - player.boundingBox.minZ - (data.isPush ? 0 : 1), zPushingPositive));
+                            break;
+                        case NORTH: // Negative Z
+                            zPushingNegative = Math.min(0, Math.min(box.minZ - 0.01 - player.boundingBox.maxZ + (data.isPush ? 0 : 1), zPushingNegative));
+                            break;
+                        case UP: // Positive Y
+                            yPushingPositive = Math.max(0, Math.max(box.maxY + 0.01 - player.boundingBox.minY - (data.isPush ? 0 : 1), yPushingPositive));
+                            yPushingPositive = Math.max(0, Math.max(box.maxY + 0.01 - player.boundingBox.maxY - (data.isPush ? 0 : 1), yPushingPositive));
+                            break;
+                        case DOWN: // Negative Y
+                            yPushingNegative = Math.min(0, Math.min(box.minY - 0.01 - player.boundingBox.minY + (data.isPush ? 0 : 1), yPushingNegative));
+                            yPushingNegative = Math.min(0, Math.min(box.minY - 0.01 - player.boundingBox.maxY + (data.isPush ? 0 : 1), yPushingNegative));
+                            break;
+                    }
                 }
             }
         }
