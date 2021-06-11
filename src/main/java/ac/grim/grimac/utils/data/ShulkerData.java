@@ -5,7 +5,7 @@ import io.github.retrooper.packetevents.utils.vector.Vector3i;
 public class ShulkerData {
     public final int lastTransactionSent;
     public final Vector3i position;
-    public boolean isClosing = false;
+    public boolean isClosing;
 
     // Calculate if the player has no-push, and when to end the possibility of applying piston
     public int ticksOfOpeningClosing = 0;
