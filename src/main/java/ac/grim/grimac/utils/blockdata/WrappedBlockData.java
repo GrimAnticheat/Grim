@@ -361,6 +361,39 @@ public enum WrappedBlockData {
         }
     }, XMaterial.END_ROD.parseMaterial()),
 
+
+    SHULKER_BOX(new WrappedDirectional() {
+        public void getWrappedData(FlatBlockState data) {
+            Directional rod = (Directional) data.getBlockData();
+            setDirection(rod.getFacing());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            switch (data.getBlockData()) {
+                case 0:
+                    setDirection(BlockFace.DOWN);
+                    break;
+                case 1:
+                default:
+                    setDirection(BlockFace.UP);
+                    break;
+                case 2:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 4:
+                    setDirection(BlockFace.WEST);
+                    break;
+                case 5:
+                    setDirection(BlockFace.EAST);
+                    break;
+            }
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("SHULKER_BOX"))
+            .toArray(Material[]::new)),
+
     WALL_SIGN(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
             Directional rod = (Directional) data.getBlockData();

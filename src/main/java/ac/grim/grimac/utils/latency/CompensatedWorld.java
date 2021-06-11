@@ -2,6 +2,9 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.blockdata.WrappedBlockData;
+import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
+import ac.grim.grimac.utils.blockdata.types.WrappedDirectional;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
@@ -13,6 +16,7 @@ import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -22,6 +26,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 
@@ -30,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
@@ -95,6 +101,7 @@ public class CompensatedWorld {
 
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<PistonData> pushingPistons = new HashSet<>();
+    public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -102,10 +109,6 @@ public class CompensatedWorld {
 
     public static int getFlattenedGlobalID(BlockData blockData) {
         return globalPaletteToBlockData.indexOf(blockData);
-    }
-
-    public static long chunkPositionToLong(int x, int z) {
-        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
 
     public void tickUpdates(int lastTransactionReceived) {
@@ -149,6 +152,42 @@ public class CompensatedWorld {
         }
     }
 
+    public void updateBlock(int x, int y, int z, int combinedID) {
+        Column column = getChunk(x >> 4, z >> 4);
+
+        try {
+            BaseChunk chunk = column.getChunks()[y >> 4];
+            if (chunk == null) {
+                if (XMaterial.getVersion() > 15) {
+                    column.getChunks()[y >> 4] = new SixteenChunk();
+                } else if (XMaterial.isNewVersion()) {
+                    column.getChunks()[y >> 4] = new FifteenChunk();
+                } else {
+                    column.getChunks()[y >> 4] = new TwelveChunk();
+                }
+
+                chunk = column.getChunks()[y >> 4];
+
+                // Sets entire chunk to air
+                // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
+                // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
+                chunk.set(0, 0, 0, 0);
+            }
+
+            chunk.set(x & 0xF, y & 0xF, z & 0xF, combinedID);
+        } catch (Exception ignored) {
+        }
+    }
+
+    public Column getChunk(int chunkX, int chunkZ) {
+        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
+        return chunks.get(chunkPosition);
+    }
+
+    public static long chunkPositionToLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
+    }
+
     public void tickPlayerInPistonPushingArea() {
         pushingPistons.clear();
         player.uncertaintyHandler.reset();
@@ -180,7 +219,44 @@ public class CompensatedWorld {
             player.uncertaintyHandler.pistonZ = Math.max(modZ, player.uncertaintyHandler.pistonZ);
         }
 
-        if (activePistons.isEmpty()) {
+        for (ShulkerData data : openShulkerBoxes) {
+            double modX = 0;
+            double modY = 0;
+            double modZ = 0;
+
+            SimpleCollisionBox shulkerCollision = new SimpleCollisionBox(data.position.getX(), data.position.getY(), data.position.getZ(),
+                    data.position.getX() + 1, data.position.getY() + 1, data.position.getZ() + 1);
+
+            BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(data.position.getX(), data.position.getY(), data.position.getZ());
+            WrappedBlockDataValue value = WrappedBlockData.getMaterialData(state);
+
+            // Block change hasn't arrived to the player, most likely
+            if (!(value instanceof WrappedDirectional)) continue;
+
+            BlockFace direction = ((WrappedDirectional) value).getDirection();
+
+            // Change negative corner in expansion as the direction is negative
+            if (direction.getModX() == -1 || direction.getModY() == -1 || direction.getModZ() == -1) {
+                shulkerCollision.expandMin(direction.getModX() * 0.51, direction.getModY() * 0.51, direction.getModZ() * 0.51);
+            } else {
+                shulkerCollision.expandMax(direction.getModZ() * 0.51, direction.getModY() * 0.51, direction.getModZ() * 0.51);
+            }
+
+            if (playerBox.isCollided(shulkerCollision)) {
+                modX = Math.abs(direction.getModX()) * 0.51D;
+                modY = Math.abs(direction.getModY()) * 0.51D;
+                modZ = Math.abs(direction.getModZ()) * 0.51D;
+
+                playerBox.expandMax(modX * 0.51, modY * 0.51, modZ * 0.51);
+                playerBox.expandMin(modX * -0.51, modY * -0.51, modZ * -0.51);
+            }
+
+            player.uncertaintyHandler.pistonX = Math.max(modX, player.uncertaintyHandler.pistonX);
+            player.uncertaintyHandler.pistonY = Math.max(modY, player.uncertaintyHandler.pistonY);
+            player.uncertaintyHandler.pistonZ = Math.max(modZ, player.uncertaintyHandler.pistonZ);
+        }
+
+        if (activePistons.isEmpty() && openShulkerBoxes.isEmpty()) {
             player.uncertaintyHandler.pistonX = 0;
             player.uncertaintyHandler.pistonY = 0;
             player.uncertaintyHandler.pistonZ = 0;
@@ -188,39 +264,26 @@ public class CompensatedWorld {
 
         // Tick the pistons and remove them if they can no longer exist
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
+        openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
+    }
+
+    public BaseBlockState getWrappedBlockStateAt(int x, int y, int z) {
+        Column column = getChunk(x >> 4, z >> 4);
+
+        if (column == null || y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return airData;
+
+        BaseChunk chunk = column.getChunks()[y >> 4];
+        if (chunk != null) {
+            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+        }
+
+        return airData;
     }
 
     public boolean isChunkLoaded(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
 
         return chunks.containsKey(chunkPosition);
-    }
-
-    public void updateBlock(int x, int y, int z, int combinedID) {
-        Column column = getChunk(x >> 4, z >> 4);
-
-        try {
-            BaseChunk chunk = column.getChunks()[y >> 4];
-            if (chunk == null) {
-                if (XMaterial.getVersion() > 15) {
-                    column.getChunks()[y >> 4] = new SixteenChunk();
-                } else if (XMaterial.isNewVersion()) {
-                    column.getChunks()[y >> 4] = new FifteenChunk();
-                } else {
-                    column.getChunks()[y >> 4] = new TwelveChunk();
-                }
-
-                chunk = column.getChunks()[y >> 4];
-
-                // Sets entire chunk to air
-                // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
-                // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
-                chunk.set(0, 0, 0, 0);
-            }
-
-            chunk.set(x & 0xF, y & 0xF, z & 0xF, combinedID);
-        } catch (Exception ignored) {
-        }
     }
 
     public void addToCache(Column chunk, int chunkX, int chunkZ) {
@@ -235,19 +298,6 @@ public class CompensatedWorld {
 
     public BaseBlockState getWrappedBlockStateAt(double x, double y, double z) {
         return getWrappedBlockStateAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
-    }
-
-    public BaseBlockState getWrappedBlockStateAt(int x, int y, int z) {
-        Column column = getChunk(x >> 4, z >> 4);
-
-        if (column == null || y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return airData;
-
-        BaseChunk chunk = column.getChunks()[y >> 4];
-        if (chunk != null) {
-            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
-        }
-
-        return airData;
     }
 
     public double getFluidLevelAt(double x, double y, double z) {
@@ -359,11 +409,6 @@ public class CompensatedWorld {
         return 0;
     }
 
-    public Column getChunk(int chunkX, int chunkZ) {
-        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        return chunks.get(chunkPosition);
-    }
-
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
 
@@ -402,5 +447,7 @@ public class CompensatedWorld {
     public void removeChunk(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         chunks.remove(chunkPosition);
+
+        openShulkerBoxes.removeIf(data -> data.position.getX() >> 4 == chunkX && data.position.getZ() >> 4 == chunkZ);
     }
 }
