@@ -151,13 +151,39 @@ public class CompensatedWorld {
 
     public void tickPlayerInPistonPushingArea() {
         pushingPistons.clear();
+        player.uncertaintyHandler.reset();
+        // Occurs on player login
+        if (player.boundingBox == null) return;
+        SimpleCollisionBox playerBox = player.boundingBox.copy().expand(0.03);
 
         for (PistonData data : activePistons) {
+            double modX = 0;
+            double modY = 0;
+            double modZ = 0;
+
             for (SimpleCollisionBox box : data.boxes) {
-                if (player.boundingBox.copy().expand(0.03).isCollided(box)) {
+                if (playerBox.isCollided(box)) {
+                    modX = Math.abs(data.direction.getModX()) * 1.01D;
+                    modY = Math.abs(data.direction.getModY()) * 1.01D;
+                    modZ = Math.abs(data.direction.getModZ()) * 1.01D;
+
+                    playerBox.expandMax(modX, modY, modZ);
+                    playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
                     pushingPistons.add(data);
+
+                    break;
                 }
             }
+
+            player.uncertaintyHandler.pistonX = Math.max(modX, player.uncertaintyHandler.pistonX);
+            player.uncertaintyHandler.pistonY = Math.max(modY, player.uncertaintyHandler.pistonY);
+            player.uncertaintyHandler.pistonZ = Math.max(modZ, player.uncertaintyHandler.pistonZ);
+        }
+
+        if (activePistons.isEmpty()) {
+            player.uncertaintyHandler.pistonX = 0;
+            player.uncertaintyHandler.pistonY = 0;
+            player.uncertaintyHandler.pistonZ = 0;
         }
 
         // Tick the pistons and remove them if they can no longer exist

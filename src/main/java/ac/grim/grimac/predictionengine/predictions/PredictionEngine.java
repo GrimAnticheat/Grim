@@ -3,7 +3,6 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
@@ -128,65 +127,18 @@ public abstract class PredictionEngine {
     // Currently, we cannot handle player being pushed by pistons while starting riptides while on the ground
     // I'll be very surprised if someone actually manages to accomplish this
     public Vector handlePushMovement(GrimPlayer player, Vector vector) {
-        // Run pistons before sorting as an optimization
-        // We will calculate the distance to actual movement after each piston
-        // Each piston does have to run in order
-        double xPushingPositive = 0;
-        double xPushingNegative = 0;
-        double yPushingPositive = 0;
-        double yPushingNegative = 0;
-        double zPushingPositive = 0;
-        double zPushingNegative = 0;
-
-        // Calculate uncertainty in the player's movements from pistons pushing the player
-        // This is wrong and we should move the player's bounding box BEFORE base tick...
-        // But because 1.9+ we have no clue what stage the piston is in on the client
-        //
-        // For reference this only checks pistons that intersect with the player's bounding box
-        // Main thread should die from pistons much faster than the anticheat will
-        //
-        // Minus 1 thing for flipping the direction of the pushing and therefore flipping the side that is "pushing" the player
-        // It's an okay hack, not good, not bad, existing as we are being very cautious with pistons
-        for (PistonData data : player.compensatedWorld.pushingPistons) {
-            for (SimpleCollisionBox box : data.boxes) {
-                if (player.boundingBox.copy().expand(0.03).isCollided(box)) {
-                    switch (data.direction) {
-                        case EAST: // Positive X
-                            xPushingPositive = Math.max(0, Math.max(box.maxX + 0.01 - player.boundingBox.minX - (data.isPush ? 0 : 1), xPushingPositive));
-                            break;
-                        case WEST: // Negative X
-                            xPushingNegative = Math.min(0, Math.min(box.minX - 0.01 - player.boundingBox.maxX + (data.isPush ? 0 : 1), xPushingNegative));
-                            break;
-                        case SOUTH: // Positive Z
-                            zPushingPositive = Math.max(0, Math.max(box.maxZ + 0.01 - player.boundingBox.minZ - (data.isPush ? 0 : 1), zPushingPositive));
-                            break;
-                        case NORTH: // Negative Z
-                            zPushingNegative = Math.min(0, Math.min(box.minZ - 0.01 - player.boundingBox.maxZ + (data.isPush ? 0 : 1), zPushingNegative));
-                            break;
-                        case UP: // Positive Y
-                            yPushingPositive = Math.max(0, Math.max(box.maxY + 0.01 - player.boundingBox.minY - (data.isPush ? 0 : 1), yPushingPositive));
-                            yPushingPositive = Math.max(0, Math.max(box.maxY + 0.01 - player.boundingBox.maxY - (data.isPush ? 0 : 1), yPushingPositive));
-                            break;
-                        case DOWN: // Negative Y
-                            yPushingNegative = Math.min(0, Math.min(box.minY - 0.01 - player.boundingBox.minY + (data.isPush ? 0 : 1), yPushingNegative));
-                            yPushingNegative = Math.min(0, Math.min(box.minY - 0.01 - player.boundingBox.maxY + (data.isPush ? 0 : 1), yPushingNegative));
-                            break;
-                    }
-                }
+        if (!player.compensatedWorld.pushingPistons.isEmpty()) {
+            // Fixes issue occuring when pushed upwards and standing on piston
+            // Subtracting gravity allows the player's y vel to be set to 0
+            //
+            // 0.03 for < 0.03 movement thing, 0.01 for pistons pushing past 0.01, 0.01 extra for rounding or something
+            if (player.uncertaintyHandler.pistonY != 0 && Math.abs(player.y - player.lastY) < 0.05) {
+                player.uncertaintyHandler.pistonGravityHack = true;
             }
-        }
-
-        if (xPushingNegative != 0 || yPushingNegative != 0 || zPushingNegative != 0
-                || xPushingPositive != 0 || yPushingPositive != 0 || zPushingPositive != 0) {
-            Bukkit.broadcastMessage(xPushingNegative + " " + yPushingNegative + " " + zPushingNegative + " "
-                    + xPushingPositive + " " + yPushingPositive + " " + zPushingPositive);
-            SimpleCollisionBox box = new SimpleCollisionBox(
-                    vector.clone().add(new Vector(xPushingNegative, yPushingNegative, zPushingNegative)),
-                    vector.clone().add(new Vector(xPushingPositive, yPushingPositive, zPushingPositive)));
 
             return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                    new Vector(box.minX, box.minY, box.minZ),
-                    new Vector(box.maxX, box.maxY, box.maxZ));
+                    vector.clone().add(new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ).multiply(-1)),
+                    vector.clone().add(new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ)));
         }
 
         if (!player.canGroundRiptide) {

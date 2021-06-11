@@ -131,6 +131,12 @@ public class MovementTicker {
             }
         }
 
+        if (player.uncertaintyHandler.pistonGravityHack) {
+            player.clientVelocity.setY(0);
+        }
+
+        player.uncertaintyHandler.pistonGravityHack = false;
+
         // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
         if (onBlock == slime && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
             if ((player.inVehicle || player.onGround) && !player.isSneaking) {

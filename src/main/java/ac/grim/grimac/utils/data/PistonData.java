@@ -27,7 +27,8 @@ public class PistonData {
 
     // We don't know when the piston has applied, or what stage of pushing it is on
     // Therefore, we need to use what we have - the number of movement packets.
+    // 10 is a very cautious number
     public boolean tickIfGuaranteedFinished() {
-        return ++ticksOfPistonBeingAlive >= 3;
+        return ++ticksOfPistonBeingAlive >= 10;
     }
 }

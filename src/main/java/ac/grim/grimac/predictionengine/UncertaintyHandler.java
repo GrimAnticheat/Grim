@@ -1,17 +1,18 @@
 package ac.grim.grimac.predictionengine;
 
 public class UncertaintyHandler {
-    public double fireworksX;
-    public double fireworksY;
-    public double fireworksZ;
+    public double pistonX;
+    public double pistonY;
+    public double pistonZ;
+    public boolean pistonGravityHack = false;
 
     public UncertaintyHandler() {
         reset();
     }
 
     public void reset() {
-        fireworksX = 0;
-        fireworksY = 0;
-        fireworksZ = 0;
+        pistonX = 0;
+        pistonY = 0;
+        pistonZ = 0;
     }
 }
