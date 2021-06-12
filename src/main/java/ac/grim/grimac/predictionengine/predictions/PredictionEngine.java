@@ -141,7 +141,7 @@ public abstract class PredictionEngine {
                     vector.clone().add(new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ)));
         }
 
-        if (!player.canGroundRiptide) {
+        if (player.canGroundRiptide) {
             SimpleCollisionBox box = new SimpleCollisionBox(vector, vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)));
 
             return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
