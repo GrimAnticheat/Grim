@@ -2,8 +2,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
-import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.types.WrappedSnow;
+import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -16,6 +15,15 @@ public class FluidTypeFlowing {
     private static final Material ICE = XMaterial.ICE.parseMaterial();
     private static final Material SNOW = XMaterial.SNOW.parseMaterial();
     private static final Material COMPOSTER = XMaterial.COMPOSTER.parseMaterial();
+    private static final Material STICKY_PISTON = XMaterial.STICKY_PISTON.parseMaterial();
+    private static final Material PISTON = XMaterial.PISTON.parseMaterial();
+    private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
+
+    private static final Material BEACON = XMaterial.BEACON.parseMaterial();
+    private static final Material CAULDRON = XMaterial.CAULDRON.parseMaterial();
+    private static final Material GLOWSTONE = XMaterial.GLOWSTONE.parseMaterial();
+    private static final Material SEA_LANTERN = XMaterial.SEA_LANTERN.parseMaterial();
+    private static final Material CONDUIT = XMaterial.CONDUIT.parseMaterial();
 
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
@@ -57,10 +65,7 @@ public class FluidTypeFlowing {
         // Fluid level 8-15 is for falling fluids
         if (player.compensatedWorld.isFluidFalling(originalX, originalY, originalZ)) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
-                int modifiedX = originalX + enumdirection.getModX();
-                int modifiedZ = originalZ + enumdirection.getModZ();
-
-                if (isSolidFace(player, originalX, originalY, originalZ, modifiedX, originalY, modifiedZ) || isSolidFace(player, originalX, originalY, originalZ, modifiedX, originalY + 1, modifiedZ)) {
+                if (isSolidFace(player, originalX, originalY, originalZ, enumdirection)) {
                     vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector(0.0D, -6.0D, 0.0D));
                     break;
                 }
@@ -74,6 +79,106 @@ public class FluidTypeFlowing {
         return isEmpty(player, x2, y2, z2) || isSame(player, originalX, originalY, originalZ, x2, y2, z2);
     }
 
+    // TODO: Stairs might be broken, can't be sure until I finish the dynamic bounding boxes
+    protected static boolean isSolidFace(GrimPlayer player, int originalX, int originalY, int originalZ, BlockFace direction) {
+        int x = originalX + direction.getModX();
+        int z = originalZ + direction.getModZ();
+
+        boolean isSolid = false;
+
+        for (int modifyY = 0; modifyY <= 1; modifyY++) {
+            int y = originalY + modifyY;
+            BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+            Material blockMaterial = blockState.getMaterial();
+
+            if (!isSame(player, x, y, z, originalX, originalY, originalZ)) {
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
+                    // 1.13 exempts stairs, pistons, sticky pistons, and piston heads.
+                    // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
+                    if (Materials.checkFlag(blockMaterial, Materials.STAIRS) || Materials.checkFlag(blockMaterial, Materials.LEAVES)
+                            || Materials.checkFlag(blockMaterial, Materials.SHULKER) || Materials.checkFlag(blockMaterial, Materials.GLASS_BLOCK)
+                            || Materials.checkFlag(blockMaterial, Materials.TRAPDOOR))
+                        continue;
+
+                    if (blockMaterial == BEACON || blockMaterial == CAULDRON || blockMaterial == GLOWSTONE
+                            || blockMaterial == SEA_LANTERN || blockMaterial == CONDUIT || blockMaterial == ICE)
+                        continue;
+
+                    if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON || blockMaterial == PISTON_HEAD)
+                        continue;
+
+                    isSolid = CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
+
+                } else if (blockMaterial == SNOW) {
+                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+
+                    WrappedSnow snow = (WrappedSnow) dataValue;
+
+                    isSolid = snow.getLayers() == 8;
+                } else if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
+                    // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
+                    isSolid = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2);
+                } else if (Materials.checkFlag(blockMaterial, Materials.STAIRS)) {
+                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+                    WrappedStairs stairs = (WrappedStairs) dataValue;
+                    isSolid = stairs.getDirection() == direction;
+                } else if (Materials.checkFlag(blockMaterial, Materials.DOOR)) {
+                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+                    WrappedDoor door = (WrappedDoor) dataValue;
+                    BlockFace realBBDirection;
+
+                    // Thankfully we only have to do this for 1.13+ clients
+                    // Meaning we don't have to grab the data below the door for 1.12- players
+                    // as 1.12- players do not run this code
+                    boolean flag = !door.getOpen();
+                    boolean flag1 = door.isRightHinge();
+                    switch (door.getDirection()) {
+                        case EAST:
+                        default:
+                            realBBDirection = flag ? BlockFace.EAST : (flag1 ? BlockFace.NORTH : BlockFace.SOUTH);
+                            break;
+                        case SOUTH:
+                            realBBDirection = flag ? BlockFace.SOUTH : (flag1 ? BlockFace.EAST : BlockFace.WEST);
+                            break;
+                        case WEST:
+                            realBBDirection = flag ? BlockFace.WEST : (flag1 ? BlockFace.SOUTH : BlockFace.NORTH);
+                            break;
+                        case NORTH:
+                            realBBDirection = flag ? BlockFace.NORTH : (flag1 ? BlockFace.WEST : BlockFace.EAST);
+                            break;
+                    }
+
+                    isSolid = realBBDirection.getOppositeFace() == direction;
+                } else if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON) {
+                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+                    WrappedPistonBase pistonBase = (WrappedPistonBase) dataValue;
+                    isSolid = pistonBase.getDirection().getOppositeFace() == direction ||
+                            CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
+                } else if (blockMaterial == PISTON_HEAD) {
+                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+                    WrappedPiston pistonHead = (WrappedPiston) dataValue;
+                    isSolid = pistonHead.getDirection() == direction;
+                } else if (blockMaterial == COMPOSTER) {
+                    isSolid = true;
+                } else if (blockMaterial == SOUL_SAND || blockMaterial == ICE) {
+                    isSolid = false;
+                } else {
+                    isSolid = CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
+                }
+            }
+
+            if (isSolid)
+                return true;
+        }
+
+        return false;
+    }
+
+    private static Vector normalizeVectorWithoutNaN(Vector vector) {
+        double var0 = vector.length();
+        return var0 < 1.0E-4 ? new Vector() : vector.multiply(1 / var0);
+    }
+
     public static boolean isEmpty(GrimPlayer player, int x, int y, int z) {
         return player.compensatedWorld.getFluidLevelAt(x, y, z) == 0;
     }
@@ -85,44 +190,5 @@ public class FluidTypeFlowing {
                 player.compensatedWorld.getWaterFluidLevelAt(x2, y2, z2) > 0 ||
                 player.compensatedWorld.getLavaFluidLevelAt(x1, y1, z1) > 0 &&
                         player.compensatedWorld.getLavaFluidLevelAt(x2, y2, z2) > 0;
-    }
-
-    // TODO: Stairs might be broken, can't be sure until I finish the dynamic bounding boxes
-    protected static boolean isSolidFace(GrimPlayer player, int originalX, int originalY, int originalZ, int x, int y, int z) {
-        BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-        Material blockMaterial = blockState.getMaterial();
-
-        // Removed a check for enumdirection of up, as that is impossible for the code we use
-        if (isSame(player, x, y, z, originalX, originalY, originalZ)) {
-            return false;
-        } else {
-            // Short circuit out getting block collision for shulker boxes, as they read the world sync
-            // Soul sand is always true
-            // Leaves are always false despite a full bounding box
-            // Snow uses different bounding box getters than collisions
-            if (blockMaterial == SNOW) {
-                WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
-
-                WrappedSnow snow = (WrappedSnow) dataValue;
-
-                return snow.getLayers() == 8;
-            }
-
-            // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
-            if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
-                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2);
-            }
-
-            // Composters have full faces on all sidex
-            if (blockMaterial == COMPOSTER)
-                return true;
-
-            return (blockMaterial == SOUL_SAND || blockMaterial != ICE && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock());
-        }
-    }
-
-    private static Vector normalizeVectorWithoutNaN(Vector vector) {
-        double var0 = vector.length();
-        return var0 < 1.0E-4 ? new Vector() : vector.multiply(1 / var0);
     }
 }
