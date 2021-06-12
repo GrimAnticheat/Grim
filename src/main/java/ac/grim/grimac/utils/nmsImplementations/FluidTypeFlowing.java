@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedSnow;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
@@ -14,6 +15,7 @@ public class FluidTypeFlowing {
     private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
     private static final Material ICE = XMaterial.ICE.parseMaterial();
     private static final Material SNOW = XMaterial.SNOW.parseMaterial();
+    private static final Material COMPOSTER = XMaterial.COMPOSTER.parseMaterial();
 
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
@@ -106,7 +108,16 @@ public class FluidTypeFlowing {
                 return snow.getLayers() == 8;
             }
 
-            return !Materials.checkFlag(blockMaterial, Materials.LEAVES) && (blockMaterial == SOUL_SAND || blockMaterial != ICE && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock());
+            // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
+            if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
+                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2);
+            }
+
+            // Composters have full faces on all sidex
+            if (blockMaterial == COMPOSTER)
+                return true;
+
+            return (blockMaterial == SOUL_SAND || blockMaterial != ICE && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock());
         }
     }
 

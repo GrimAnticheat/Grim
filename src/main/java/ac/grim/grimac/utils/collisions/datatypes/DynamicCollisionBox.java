@@ -56,7 +56,7 @@ public class DynamicCollisionBox implements CollisionBox {
 
     @Override
     public boolean isFullBlock() {
-        return false;
+        return box.fetch(player, version, block, x, y, z).offset(x, y, z).isFullBlock();
     }
 
     public void setBlock(WrappedBlockDataValue block) {
