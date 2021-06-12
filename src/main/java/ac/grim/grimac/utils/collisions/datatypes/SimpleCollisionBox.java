@@ -59,25 +59,6 @@ public class SimpleCollisionBox implements CollisionBox {
         this(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
     }
 
-    public void sort() {
-        double temp = 0;
-        if (minX >= maxX) {
-            temp = minX;
-            this.minX = maxX;
-            this.maxX = temp;
-        }
-        if (minY >= maxY) {
-            temp = minY;
-            this.minY = maxY;
-            this.maxY = temp;
-        }
-        if (minZ >= maxZ) {
-            temp = minZ;
-            this.minZ = maxZ;
-            this.maxZ = temp;
-        }
-    }
-
     public SimpleCollisionBox copy() {
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
@@ -142,7 +123,6 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     public Vector[] corners() {
-        sort();
         Vector[] vectors = new Vector[8];
         vectors[0] = new Vector(minX, minY, minZ);
         vectors[1] = new Vector(minX, minY, maxZ);
@@ -189,8 +169,6 @@ public class SimpleCollisionBox implements CollisionBox {
     public boolean isCollided(CollisionBox other) {
         if (other instanceof SimpleCollisionBox) {
             SimpleCollisionBox box = ((SimpleCollisionBox) other);
-            box.sort();
-            sort();
             return box.maxX >= this.minX && box.minX <= this.maxX
                     && box.maxY >= this.minY && box.minY <= this.maxY
                     && box.maxZ >= this.minZ && box.minZ <= this.maxZ;
@@ -203,8 +181,6 @@ public class SimpleCollisionBox implements CollisionBox {
     public boolean isIntersected(CollisionBox other) {
         if (other instanceof SimpleCollisionBox) {
             SimpleCollisionBox box = (SimpleCollisionBox) other;
-            box.sort();
-            sort();
             return box.maxX > this.minX && box.minX < this.maxX
                     && box.maxY > this.minY && box.minY < this.maxY
                     && box.maxZ > this.minZ && box.minZ < this.maxZ;
