@@ -9,9 +9,11 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.WrappedPacketOutEntityDestroy;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
+import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import org.bukkit.entity.Firework;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.Set;
 
@@ -37,7 +39,10 @@ public class PacketFireworkListener extends PacketListenerAbstract {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
 
             if (fireworks.remove(entityMetadata.getEntityId())) {
-                OptionalInt attachedEntityID = (OptionalInt) entityMetadata.getWatchableObjects().get(4).getRawValue();
+                Optional<WrappedWatchableObject> object = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 8).findFirst();
+                if (!object.isPresent()) return;
+
+                OptionalInt attachedEntityID = (OptionalInt) object.get().getRawValue();
 
                 if (attachedEntityID.isPresent()) {
                     for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
