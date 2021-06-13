@@ -22,12 +22,12 @@ public class DynamicCollisionBox implements CollisionBox {
     }
 
     @Override
-    public boolean isCollided(CollisionBox other) {
+    public boolean isCollided(SimpleCollisionBox other) {
         return box.fetch(player, version, block, x, y, z).offset(x, y, z).isCollided(other);
     }
 
     @Override
-    public boolean isIntersected(CollisionBox other) {
+    public boolean isIntersected(SimpleCollisionBox other) {
         return box.fetch(player, version, block, x, y, z).offset(x, y, z).isIntersected(other);
     }
 

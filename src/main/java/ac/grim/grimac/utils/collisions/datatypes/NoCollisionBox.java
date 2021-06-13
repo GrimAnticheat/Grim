@@ -10,12 +10,12 @@ public class NoCollisionBox implements CollisionBox {
     }
 
     @Override
-    public boolean isCollided(CollisionBox other) {
+    public boolean isCollided(SimpleCollisionBox other) {
         return false;
     }
 
     @Override
-    public boolean isIntersected(CollisionBox other) {
+    public boolean isIntersected(SimpleCollisionBox other) {
         return false;
     }
 

@@ -3,9 +3,9 @@ package ac.grim.grimac.utils.collisions.datatypes;
 import java.util.List;
 
 public interface CollisionBox {
-    boolean isCollided(CollisionBox other);
+    boolean isCollided(SimpleCollisionBox other);
 
-    boolean isIntersected(CollisionBox other);
+    boolean isIntersected(SimpleCollisionBox other);
 
     CollisionBox copy();
 

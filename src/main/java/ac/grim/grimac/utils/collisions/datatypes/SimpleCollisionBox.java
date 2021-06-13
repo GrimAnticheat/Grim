@@ -55,37 +55,18 @@ public class SimpleCollisionBox implements CollisionBox {
         maxY += height;
     }
 
-    public SimpleCollisionBox(BoundingBox box) {
-        this(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
-    }
-
-    public SimpleCollisionBox copy() {
-        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
-    }
-
-    public SimpleCollisionBox offset(double x, double y, double z) {
-        this.minX += x;
-        this.minY += y;
-        this.minZ += z;
+    public SimpleCollisionBox expand(double x, double y, double z) {
+        this.minX -= x;
+        this.minY -= y;
+        this.minZ -= z;
         this.maxX += x;
         this.maxY += y;
         this.maxZ += z;
         return this;
     }
 
-    @Override
-    public void downCast(List<SimpleCollisionBox> list) {
-        list.add(this);
-    }
-
-    @Override
-    public boolean isNull() {
-        return false;
-    }
-
-    @Override
-    public boolean isFullBlock() {
-        return isFullBlock;
+    public SimpleCollisionBox(BoundingBox box) {
+        this(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
     }
 
     public SimpleCollisionBox expandMin(double x, double y, double z) {
@@ -96,16 +77,6 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     public SimpleCollisionBox expandMax(double x, double y, double z) {
-        this.maxX += x;
-        this.maxY += y;
-        this.maxZ += z;
-        return this;
-    }
-
-    public SimpleCollisionBox expand(double x, double y, double z) {
-        this.minX -= x;
-        this.minY -= y;
-        this.minZ -= z;
         this.maxX += x;
         this.maxY += y;
         this.maxZ += z;
@@ -166,27 +137,46 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     @Override
-    public boolean isCollided(CollisionBox other) {
-        if (other instanceof SimpleCollisionBox) {
-            SimpleCollisionBox box = ((SimpleCollisionBox) other);
-            return box.maxX >= this.minX && box.minX <= this.maxX
-                    && box.maxY >= this.minY && box.minY <= this.maxY
-                    && box.maxZ >= this.minZ && box.minZ <= this.maxZ;
-        } else {
-            return other.isCollided(this);
-        }
+    public boolean isCollided(SimpleCollisionBox other) {
+        return other.maxX >= this.minX && other.minX <= this.maxX
+                && other.maxY >= this.minY && other.minY <= this.maxY
+                && other.maxZ >= this.minZ && other.minZ <= this.maxZ;
     }
 
     @Override
-    public boolean isIntersected(CollisionBox other) {
-        if (other instanceof SimpleCollisionBox) {
-            SimpleCollisionBox box = (SimpleCollisionBox) other;
-            return box.maxX > this.minX && box.minX < this.maxX
-                    && box.maxY > this.minY && box.minY < this.maxY
-                    && box.maxZ > this.minZ && box.minZ < this.maxZ;
-        } else {
-            return other.isIntersected(this);
-        }
+    public boolean isIntersected(SimpleCollisionBox other) {
+        return other.maxX > this.minX && other.minX < this.maxX
+                && other.maxY > this.minY && other.minY < this.maxY
+                && other.maxZ > this.minZ && other.minZ < this.maxZ;
+    }
+
+    public SimpleCollisionBox copy() {
+        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
+    public SimpleCollisionBox offset(double x, double y, double z) {
+        this.minX += x;
+        this.minY += y;
+        this.minZ += z;
+        this.maxX += x;
+        this.maxY += y;
+        this.maxZ += z;
+        return this;
+    }
+
+    @Override
+    public void downCast(List<SimpleCollisionBox> list) {
+        list.add(this);
+    }
+
+    @Override
+    public boolean isNull() {
+        return false;
+    }
+
+    @Override
+    public boolean isFullBlock() {
+        return isFullBlock;
     }
 
     /**
