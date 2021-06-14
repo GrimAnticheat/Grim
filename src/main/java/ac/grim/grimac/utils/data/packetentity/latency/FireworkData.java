@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.data;
+package ac.grim.grimac.utils.data.packetentity.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
 

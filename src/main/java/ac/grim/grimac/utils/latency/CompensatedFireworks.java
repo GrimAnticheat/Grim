@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.FireworkData;
+import ac.grim.grimac.utils.data.packetentity.latency.FireworkData;
 
 import java.util.Iterator;
 import java.util.Map;

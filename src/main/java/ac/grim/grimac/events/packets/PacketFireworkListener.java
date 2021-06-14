@@ -39,10 +39,10 @@ public class PacketFireworkListener extends PacketListenerAbstract {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
 
             if (fireworks.remove(entityMetadata.getEntityId())) {
-                Optional<WrappedWatchableObject> object = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 8).findFirst();
-                if (!object.isPresent()) return;
+                Optional<WrappedWatchableObject> fireworkWatchableObject = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 8).findFirst();
+                if (!fireworkWatchableObject.isPresent()) return;
 
-                OptionalInt attachedEntityID = (OptionalInt) object.get().getRawValue();
+                OptionalInt attachedEntityID = (OptionalInt) fireworkWatchableObject.get().getRawValue();
 
                 if (attachedEntityID.isPresent()) {
                     for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
