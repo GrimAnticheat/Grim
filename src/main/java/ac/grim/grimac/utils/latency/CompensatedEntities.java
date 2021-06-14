@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
@@ -34,7 +34,7 @@ public class CompensatedEntities {
             if (spawnEntity.lastTransactionSent >= lastTransactionReceived) break;
             spawnEntityQueue.poll();
 
-            player.compensatedEntities.addGenericEntity(spawnEntity.entity, spawnEntity.position);
+            addEntity(spawnEntity.entity, spawnEntity.position);
         }
 
         while (true) {
@@ -44,7 +44,7 @@ public class CompensatedEntities {
             if (changeBlockData.lastTransactionSent > lastTransactionReceived) break;
             moveEntityQueue.poll();
 
-            PacketEntity entity = player.compensatedEntities.getEntity(changeBlockData.entityID);
+            PacketEntity entity = getEntity(changeBlockData.entityID);
 
             // This is impossible without the server sending bad packets, but just to be safe...
             if (entity == null) continue;
@@ -56,7 +56,6 @@ public class CompensatedEntities {
             EntityMetadataData data = importantMetadataQueue.peek();
             if (data == null) break;
 
-            // The player hasn't gotten this update yet
             if (data.lastTransactionSent > lastTransactionReceived) break;
             importantMetadataQueue.poll();
 
@@ -76,17 +75,37 @@ public class CompensatedEntities {
         }
     }
 
-    public void addGenericEntity(Entity entity, Vector3d position) {
-        entityMap.put(entity.getEntityId(), new PacketEntity(entity, position));
+    private void addEntity(Entity entity, Vector3d position) {
+        PacketEntity packetEntity;
+
+        // Uses strings instead of enum for version compatibility
+        switch (entity.getType().name()) {
+            case "Pig":
+                packetEntity = new PacketEntityRideable(entity, position);
+                break;
+            case "Shulker":
+                packetEntity = new PacketEntityShulker(entity, position);
+                break;
+            case "Strider":
+                packetEntity = new PacketEntityStrider(entity, position);
+                break;
+            case "Donkey":
+            case "Horse":
+            case "Llama":
+            case "Mule":
+            case "SkeletonHorse":
+            case "ZombieHorse":
+            case "TraderLlama":
+                packetEntity = new PacketEntityHorse(entity, position);
+                break;
+            default:
+                packetEntity = new PacketEntity(entity, position);
+        }
+
+        entityMap.put(entity.getEntityId(), packetEntity);
     }
 
     public PacketEntity getEntity(int entityID) {
         return entityMap.get(entityID);
-    }
-
-    public void removeEntity(int[] removedEntities) {
-        for (int i : removedEntities) {
-            entityMap.remove(i);
-        }
     }
 }
