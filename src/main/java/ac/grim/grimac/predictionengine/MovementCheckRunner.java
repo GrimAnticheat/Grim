@@ -91,6 +91,7 @@ public class MovementCheckRunner {
         }
 
         player.compensatedWorld.tickUpdates(data.lastTransaction);
+        player.compensatedEntities.tickUpdates(data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor

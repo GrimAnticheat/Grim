@@ -15,6 +15,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.Wr
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
+import it.unimi.dsi.fastutil.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -47,9 +48,20 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
+            int lastTransactionSent = player.lastTransactionSent.get();
             int[] destroyEntityIds = destroy.getEntityIds();
 
-            player.compensatedEntities.removeEntity(destroyEntityIds);
+            player.compensatedEntities.destroyEntityQueue.add(new Pair<Integer, int[]>() {
+                @Override
+                public Integer left() {
+                    return lastTransactionSent;
+                }
+
+                @Override
+                public int[] right() {
+                    return destroyEntityIds;
+                }
+            });
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
