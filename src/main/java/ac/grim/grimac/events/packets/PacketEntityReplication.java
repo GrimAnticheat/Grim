@@ -2,10 +2,8 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
+import ac.grim.grimac.utils.data.packetentity.*;
+import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
 import ac.grim.grimac.utils.enums.Pose;
@@ -21,8 +19,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Pig;
-import org.bukkit.entity.Shulker;
 
 import java.util.Optional;
 
@@ -79,6 +75,8 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 Pose pose = Pose.valueOf(poseObject.get().getRawValue().toString().toUpperCase());
 
                 Bukkit.broadcastMessage("Pose is " + pose);
+                player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), () ->
+                        entity.pose = pose, player.lastTransactionSent.get()));
             }
 
             if (entity instanceof PacketEntityShulker) {
@@ -88,11 +86,17 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                     BlockFace face = BlockFace.valueOf(shulkerAttached.get().getRawValue().toString().toUpperCase());
 
                     Bukkit.broadcastMessage("Shulker blockface is " + face);
+                    player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(),
+                            () -> ((PacketEntityShulker) entity).facing = face, player.lastTransactionSent.get()));
                 }
 
                 Optional<WrappedWatchableObject> height = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 17).findFirst();
                 if (height.isPresent()) {
                     Bukkit.broadcastMessage("Shulker has opened it's shell! " + height.get().getRawValue());
+                    player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), () -> {
+                        ((PacketEntityShulker) entity).wantedShieldHeight = (byte) height.get().getRawValue();
+                        ((PacketEntityShulker) entity).lastShieldChange = System.currentTimeMillis();
+                    }, player.lastTransactionSent.get()));
                 }
             }
 
@@ -102,30 +106,45 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                     if (pigSaddle.isPresent()) {
                         // Set saddle code
                         Bukkit.broadcastMessage("Pig saddled " + pigSaddle.get().getRawValue());
+                        player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(),
+                                () -> ((PacketEntityRideable) entity).hasSaddle = (boolean) pigSaddle.get().getRawValue(), player.lastTransactionSent.get()));
                     }
 
                     Optional<WrappedWatchableObject> pigBoost = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 17).findFirst();
                     if (pigBoost.isPresent()) {
                         // Set pig boost code
                         Bukkit.broadcastMessage("Pig boost " + pigBoost.get().getRawValue());
+                        player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), () -> {
+                            ((PacketEntityRideable) entity).boostTimeMax = (int) pigBoost.get().getRawValue();
+                            ((PacketEntityRideable) entity).currentBoostTime = 0;
+                        }, player.lastTransactionSent.get()));
                     }
-                } else { // Strider
+                } else if (entity instanceof PacketEntityStrider) { // Strider
                     Optional<WrappedWatchableObject> striderBoost = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 16).findFirst();
                     if (striderBoost.isPresent()) {
                         // Set strider boost code
                         Bukkit.broadcastMessage("Strider boost " + striderBoost.get().getRawValue());
+                        player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), () -> {
+                            ((PacketEntityRideable) entity).boostTimeMax = (int) striderBoost.get().getRawValue();
+                            ((PacketEntityRideable) entity).currentBoostTime = 0;
+                        }, player.lastTransactionSent.get()));
                     }
 
                     Optional<WrappedWatchableObject> striderShaking = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 17).findFirst();
                     if (striderShaking.isPresent()) {
                         // Set strider shaking code
                         Bukkit.broadcastMessage("Strider shaking " + striderShaking.get().getRawValue());
+                        player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(),
+                                () -> ((PacketEntityStrider) entity).isShaking = (boolean) striderShaking.get().getRawValue(), player.lastTransactionSent.get()));
                     }
 
                     Optional<WrappedWatchableObject> striderSaddle = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 18).findFirst();
                     if (striderSaddle.isPresent()) {
                         // Set saddle code
-                        Bukkit.broadcastMessage("Strider saddle " + striderSaddle.get().getRawValue());
+                        Bukkit.broadcastMessage("Strider saddled " + striderSaddle.get().getRawValue());
+                        player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), () -> {
+                            ((PacketEntityRideable) entity).hasSaddle = (boolean) striderSaddle.get().getRawValue();
+                        }, player.lastTransactionSent.get()));
                     }
                 }
             }
@@ -135,15 +154,11 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 if (horseByte.isPresent()) {
                     byte info = (byte) horseByte.get().getRawValue();
 
-                    // Saddle
-                    if ((info & 0x04) != 0) {
-                        Bukkit.broadcastMessage("Horse saddled " + (info & 0x04));
-                    }
-
-                    // Rearing
-                    if ((info & 0x20) != 0) {
-                        Bukkit.broadcastMessage("Pig rearing " + (info & 0x20));
-                    }
+                    Bukkit.broadcastMessage("Horse " + (info & 0x04) + " " + (info & 0x20));
+                    player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), () -> {
+                        ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
+                        ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
+                    }, player.lastTransactionSent.get()));
                 }
             }
         }

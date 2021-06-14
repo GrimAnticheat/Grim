@@ -1,15 +1,17 @@
 package ac.grim.grimac.utils.data.packetentity.latency;
 
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-
 public class EntityMoveData {
-    int entityID;
-    Vector3d relativeMove;
-    int lastTransactionSent;
+    public final int entityID;
+    public final double deltaX;
+    public final double deltaY;
+    public final double deltaZ;
+    public final int lastTransactionSent;
 
     public EntityMoveData(int entityID, double deltaX, double deltaY, double deltaZ, int lastTransactionSent) {
         this.entityID = entityID;
-        this.relativeMove = relativeMove;
+        this.deltaX = deltaX;
+        this.deltaY = deltaY;
+        this.deltaZ = deltaZ;
         this.lastTransactionSent = lastTransactionSent;
     }
 }

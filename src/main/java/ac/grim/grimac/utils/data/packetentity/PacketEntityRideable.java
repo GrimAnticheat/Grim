@@ -1,14 +1,15 @@
 package ac.grim.grimac.utils.data.packetentity;
 
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.entity.Entity;
 
 public class PacketEntityRideable extends PacketEntity {
 
-    boolean hasSaddle = false;
-    int boostTimeMax = 0;
-    int currentBoostTime = 0;
+    public boolean hasSaddle = false;
+    public int boostTimeMax = 0;
+    public int currentBoostTime = 0;
 
-    public PacketEntityRideable(Entity entity) {
-        super(entity);
+    public PacketEntityRideable(Entity entity, Vector3d vector3d) {
+        super(entity, vector3d);
     }
 }
