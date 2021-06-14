@@ -29,6 +29,10 @@ public class CompensatedEntities {
         entityMap.put(entity.getEntityId(), new PacketEntity(entity));
     }
 
+    public PacketEntity getEntity(int entityID) {
+        return entityMap.get(entityID);
+    }
+
     public void removeEntity(int[] removedEntities) {
         for (int i : removedEntities) {
             entityMap.remove(i);

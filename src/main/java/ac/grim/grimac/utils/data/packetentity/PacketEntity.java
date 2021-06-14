@@ -4,7 +4,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import org.bukkit.entity.Entity;
 
 public class PacketEntity {
-    Entity entity;
+    public Entity entity;
     Pose pose = Pose.STANDING;
 
     public PacketEntity(Entity entity) {
