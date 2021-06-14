@@ -233,9 +233,9 @@ public class MovementCheckRunner {
             player.trigHandler.setOffset(offset);
             player.compensatedRiptide.handleRemoveRiptide();
 
-            //player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
-            //player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            //player.bukkitPlayer.sendMessage("O:" + color + offset);
+            player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
+            player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
+            player.bukkitPlayer.sendMessage("O:" + color + offset);
 
             VectorData last = player.predictedVelocity;
             StringBuilder traceback = new StringBuilder("Traceback: ");
