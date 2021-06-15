@@ -434,11 +434,14 @@ public class Collisions {
 
     public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
         List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
+        SimpleCollisionBox expandedBB = wantedBB.copy()
+                .expandMin(-0.26, -0.51, -0.26)
+                .expandMax(0.26, 0.26, 0.26);
 
         // Blocks are stored in YZX order
-        for (int y = (int) Math.floor(wantedBB.minY - 0.51); y < Math.ceil(wantedBB.maxY + 0.26); y++) {
-            for (int z = (int) Math.floor(wantedBB.minZ - 0.26) - 1; z < Math.ceil(wantedBB.maxZ + 0.26); z++) {
-                for (int x = (int) Math.floor(wantedBB.minX - 0.26); x < Math.ceil(wantedBB.maxX + 0.26); x++) {
+        for (int y = (int) Math.floor(expandedBB.minY); y < Math.ceil(expandedBB.maxY); y++) {
+            for (int z = (int) Math.floor(expandedBB.minZ) - 1; z < Math.ceil(expandedBB.maxZ); z++) {
+                for (int x = (int) Math.floor(expandedBB.minX); x < Math.ceil(expandedBB.maxX); x++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
                     CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
                 }
@@ -448,14 +451,14 @@ public class Collisions {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
             if (entity.type == EntityType.BOAT) {
                 SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-                if (box.isIntersected(wantedBB)) {
+                if (box.isIntersected(expandedBB)) {
                     listOfBlocks.add(box);
                 }
             }
 
             if (entity.type == EntityType.SHULKER) {
                 SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
-                if (box.isIntersected(wantedBB)) {
+                if (box.isIntersected(expandedBB)) {
                     listOfBlocks.add(box);
                 }
             }
