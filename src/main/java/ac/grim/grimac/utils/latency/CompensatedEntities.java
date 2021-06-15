@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -13,9 +14,9 @@ import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -59,7 +60,7 @@ public class CompensatedEntities {
             // This is impossible without the server sending bad packets, but just to be safe...
             if (entity == null) continue;
 
-            entity.lastTickPosition = entity.position.clone();
+            entity.lastTickPosition = new Vector3d(entity.position.getX(), entity.position.getY(), entity.position.getZ());
             if (moveEntity.isRelative) {
                 entity.position.add(new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z));
             } else {
@@ -112,6 +113,8 @@ public class CompensatedEntities {
 
                 passenger.riding = vehicle;
             }
+
+            vehicle.passengers = mountVehicle.passengers;
         }
 
         // Remove entities when the client despawns them
@@ -130,36 +133,42 @@ public class CompensatedEntities {
             }
         }
 
-        // Update riding positions
+        // Update riding positions - server should send teleport after dismount
         for (PacketEntity entity : entityMap.values()) {
+            if (entity.riding == null)
+                continue;
+
             if (entity.riding.isDead) {
                 entity.riding = null;
                 continue;
             }
+
+            entity.lastTickPosition = new Vector3d(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+            entity.position = entity.riding.position.clone();
         }
     }
 
     private void addEntity(Entity entity, Vector3d position) {
         PacketEntity packetEntity;
+        EntityType type = EntityType.valueOf(entity.getType().toString().toUpperCase(Locale.ROOT));
 
-        // Uses strings instead of enum for version compatibility
-        switch (entity.getType().toString().toUpperCase()) {
-            case "PIG":
+        switch (type) {
+            case PIG:
                 packetEntity = new PacketEntityRideable(entity, position);
                 break;
-            case "SHULKER":
+            case SHULKER:
                 packetEntity = new PacketEntityShulker(entity, position);
                 break;
-            case "STRIDER":
+            case STRIDER:
                 packetEntity = new PacketEntityStrider(entity, position);
                 break;
-            case "DONKEY":
-            case "HORSE":
-            case "LLAMA":
-            case "MULE":
-            case "SKELETON_HORSE":
-            case "ZOMBIE_HORSE":
-            case "TRADER_LLAMA":
+            case DONKEY:
+            case HORSE:
+            case LLAMA:
+            case MULE:
+            case SKELETON_HORSE:
+            case ZOMBIE_HORSE:
+            case TRADER_LLAMA:
                 packetEntity = new PacketEntityHorse(entity, position);
                 break;
             default:
@@ -190,7 +199,7 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityRideable) {
-            if (entity.entity.getType() == EntityType.PIG) {
+            if (entity.type == EntityType.PIG) {
                 Optional<WrappedWatchableObject> pigSaddle = watchableObjects.stream().filter(o -> o.getIndex() == 16).findFirst();
                 pigSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
 

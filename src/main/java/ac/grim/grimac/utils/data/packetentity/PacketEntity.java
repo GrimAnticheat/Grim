@@ -1,11 +1,15 @@
 package ac.grim.grimac.utils.data.packetentity;
 
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.entity.Entity;
 
+import java.util.Locale;
+
 public class PacketEntity {
     public Entity entity;
+    public EntityType type;
     public Pose pose = Pose.STANDING;
     public Vector3d lastTickPosition;
     public Vector3d position;
@@ -17,5 +21,6 @@ public class PacketEntity {
         this.entity = entity;
         this.position = position;
         this.lastTickPosition = position;
+        this.type = EntityType.valueOf(entity.getType().toString().toUpperCase(Locale.ROOT));
     }
 }

@@ -19,6 +19,16 @@ public class GetBoundingBox {
         return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
     }
 
+    private static SimpleCollisionBox getBoundingBoxFromPosAndSize(double centerX, double minY, double centerZ, double width, double height) {
+        double minX = centerX - (width / 2);
+        double maxX = centerX + (width / 2);
+        double maxY = minY + height;
+        double minZ = centerZ - (width / 2);
+        double maxZ = centerZ + (width / 2);
+
+        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+    }
+
     public static SimpleCollisionBox getBoatBoundingBox(double centerX, double minY, double centerZ) {
         double width = 1.375;
         double height = 0.5625;
@@ -63,16 +73,6 @@ public class GetBoundingBox {
         }
 
         return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
-    }
-
-    private static SimpleCollisionBox getBoundingBoxFromPosAndSize(double centerX, double minY, double centerZ, double width, double height) {
-        double minX = centerX - (width / 2);
-        double maxX = centerX + (width / 2);
-        double maxY = minY + height;
-        double minZ = centerZ - (width / 2);
-        double maxZ = centerZ + (width / 2);
-
-        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     // TODO: This should probably just be done in the player's pose
