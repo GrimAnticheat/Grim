@@ -85,15 +85,12 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PacketElytraListener());
         PacketEvents.get().registerListener(new PacketPlayerTeleport());
 
-        PacketEvents.get().registerListener(new PacketMountVehicle());
-
         try {
             PacketEvents.get().registerListener(new PacketWorldReader());
         } catch (ClassNotFoundException | NoSuchMethodException exception) {
             getLogger().severe("The async world reader has broke! Panic and report this error!");
             exception.printStackTrace();
         }
-
 
         PacketEvents.get().init();
     }

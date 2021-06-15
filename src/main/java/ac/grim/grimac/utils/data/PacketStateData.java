@@ -17,4 +17,5 @@ public class PacketStateData {
     public float packetPlayerYRot;
     public int lastSlotSelected;
     public Hand eatingHand = Hand.MAIN_HAND;
+    public Integer vehicle = null;
 }

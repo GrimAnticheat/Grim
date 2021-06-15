@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
+import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
 import ac.grim.grimac.utils.enums.Pose;
@@ -10,7 +11,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.W
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -26,6 +26,7 @@ public class CompensatedEntities {
     public ConcurrentLinkedQueue<Pair<Integer, int[]>> destroyEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMoveData> moveEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<EntityMountData> mountVehicleQueue = new ConcurrentLinkedQueue<>();
 
     GrimPlayer player;
 
@@ -34,6 +35,7 @@ public class CompensatedEntities {
     }
 
     public void tickUpdates(int lastTransactionReceived) {
+        // Spawn entities first, as metadata is often in the same tick
         while (true) {
             SpawnEntityData spawnEntity = spawnEntityQueue.peek();
             if (spawnEntity == null) break;
@@ -44,6 +46,7 @@ public class CompensatedEntities {
             addEntity(spawnEntity.entity, spawnEntity.position);
         }
 
+        // Move entities + teleport (combined to prevent teleport + move position desync)
         while (true) {
             EntityMoveData moveEntity = moveEntityQueue.peek();
             if (moveEntity == null) break;
@@ -56,9 +59,15 @@ public class CompensatedEntities {
             // This is impossible without the server sending bad packets, but just to be safe...
             if (entity == null) continue;
 
-            entity.position.add(new Vector3d(moveEntity.deltaX, moveEntity.deltaY, moveEntity.deltaZ));
+            entity.lastTickPosition = entity.position.clone();
+            if (moveEntity.isRelative) {
+                entity.position.add(new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z));
+            } else {
+                entity.position = new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z);
+            }
         }
 
+        // Update entity metadata such as whether a horse has a saddle
         while (true) {
             EntityMetadataData metaData = importantMetadataQueue.peek();
             if (metaData == null) break;
@@ -74,6 +83,38 @@ public class CompensatedEntities {
             updateEntityMetadata(entity, metaData.objects);
         }
 
+        // Update what entities are riding what (needed to keep track of position accurately)
+        while (true) {
+            EntityMountData mountVehicle = mountVehicleQueue.peek();
+            if (mountVehicle == null) break;
+
+            if (mountVehicle.lastTransaction >= lastTransactionReceived) break;
+            mountVehicleQueue.poll();
+
+            PacketEntity vehicle = getEntity(mountVehicle.vehicleID);
+            if (vehicle == null)
+                continue;
+
+            // Eject existing passengers for this vehicle
+            for (int entityID : vehicle.passengers) {
+                PacketEntity passenger = getEntity(entityID);
+                if (passenger == null)
+                    continue;
+
+                passenger.riding = null;
+            }
+
+            // Add the entities as vehicles
+            for (int entityID : mountVehicle.passengers) {
+                PacketEntity passenger = getEntity(entityID);
+                if (passenger == null)
+                    continue;
+
+                passenger.riding = vehicle;
+            }
+        }
+
+        // Remove entities when the client despawns them
         while (true) {
             Pair<Integer, int[]> spawnEntity = destroyEntityQueue.peek();
             if (spawnEntity == null) break;
@@ -82,7 +123,18 @@ public class CompensatedEntities {
             destroyEntityQueue.poll();
 
             for (int entityID : spawnEntity.right()) {
+                PacketEntity deadEntity = getEntity(entityID);
+                if (deadEntity != null)
+                    deadEntity.isDead = true;
                 entityMap.remove(entityID);
+            }
+        }
+
+        // Update riding positions
+        for (PacketEntity entity : entityMap.values()) {
+            if (entity.riding.isDead) {
+                entity.riding = null;
+                continue;
             }
         }
     }
@@ -123,26 +175,15 @@ public class CompensatedEntities {
 
     private void updateEntityMetadata(PacketEntity entity, List<WrappedWatchableObject> watchableObjects) {
         Optional<WrappedWatchableObject> poseObject = watchableObjects.stream().filter(o -> o.getIndex() == 6).findFirst();
-        if (poseObject.isPresent()) {
-            Pose pose = Pose.valueOf(poseObject.get().getRawValue().toString().toUpperCase());
-
-            Bukkit.broadcastMessage("Pose is " + pose);
-            entity.pose = pose;
-        }
+        poseObject.ifPresent(wrappedWatchableObject -> entity.pose = Pose.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
 
         if (entity instanceof PacketEntityShulker) {
             Optional<WrappedWatchableObject> shulkerAttached = watchableObjects.stream().filter(o -> o.getIndex() == 15).findFirst();
-            if (shulkerAttached.isPresent()) {
-                // This NMS -> Bukkit conversion is great and works in all 11 versions.
-                BlockFace face = BlockFace.valueOf(shulkerAttached.get().getRawValue().toString().toUpperCase());
-
-                Bukkit.broadcastMessage("Shulker blockface is " + face);
-                ((PacketEntityShulker) entity).facing = face;
-            }
+            // This NMS -> Bukkit conversion is great and works in all 11 versions.
+            shulkerAttached.ifPresent(wrappedWatchableObject -> ((PacketEntityShulker) entity).facing = BlockFace.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
 
             Optional<WrappedWatchableObject> height = watchableObjects.stream().filter(o -> o.getIndex() == 17).findFirst();
             if (height.isPresent()) {
-                Bukkit.broadcastMessage("Shulker has opened it's shell! " + height.get().getRawValue());
                 ((PacketEntityShulker) entity).wantedShieldHeight = (byte) height.get().getRawValue();
                 ((PacketEntityShulker) entity).lastShieldChange = System.currentTimeMillis();
             }
@@ -151,41 +192,25 @@ public class CompensatedEntities {
         if (entity instanceof PacketEntityRideable) {
             if (entity.entity.getType() == EntityType.PIG) {
                 Optional<WrappedWatchableObject> pigSaddle = watchableObjects.stream().filter(o -> o.getIndex() == 16).findFirst();
-                if (pigSaddle.isPresent()) {
-                    // Set saddle code
-                    Bukkit.broadcastMessage("Pig saddled " + pigSaddle.get().getRawValue());
-                    ((PacketEntityRideable) entity).hasSaddle = (boolean) pigSaddle.get().getRawValue();
-                }
+                pigSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
 
                 Optional<WrappedWatchableObject> pigBoost = watchableObjects.stream().filter(o -> o.getIndex() == 17).findFirst();
                 if (pigBoost.isPresent()) {
-                    // Set pig boost code
-                    Bukkit.broadcastMessage("Pig boost " + pigBoost.get().getRawValue());
                     ((PacketEntityRideable) entity).boostTimeMax = (int) pigBoost.get().getRawValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 0;
                 }
             } else if (entity instanceof PacketEntityStrider) {
                 Optional<WrappedWatchableObject> striderBoost = watchableObjects.stream().filter(o -> o.getIndex() == 16).findFirst();
                 if (striderBoost.isPresent()) {
-                    // Set strider boost code
-                    Bukkit.broadcastMessage("Strider boost " + striderBoost.get().getRawValue());
                     ((PacketEntityRideable) entity).boostTimeMax = (int) striderBoost.get().getRawValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 0;
                 }
 
                 Optional<WrappedWatchableObject> striderShaking = watchableObjects.stream().filter(o -> o.getIndex() == 17).findFirst();
-                if (striderShaking.isPresent()) {
-                    // Set strider shaking code
-                    Bukkit.broadcastMessage("Strider shaking " + striderShaking.get().getRawValue());
-                    ((PacketEntityStrider) entity).isShaking = (boolean) striderShaking.get().getRawValue();
-                }
+                striderShaking.ifPresent(wrappedWatchableObject -> ((PacketEntityStrider) entity).isShaking = (boolean) wrappedWatchableObject.getRawValue());
 
                 Optional<WrappedWatchableObject> striderSaddle = watchableObjects.stream().filter(o -> o.getIndex() == 18).findFirst();
-                if (striderSaddle.isPresent()) {
-                    // Set saddle code
-                    Bukkit.broadcastMessage("Strider saddled " + striderSaddle.get().getRawValue());
-                    ((PacketEntityRideable) entity).hasSaddle = (boolean) striderSaddle.get().getRawValue();
-                }
+                striderSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
             }
         }
 
@@ -194,7 +219,6 @@ public class CompensatedEntities {
             if (horseByte.isPresent()) {
                 byte info = (byte) horseByte.get().getRawValue();
 
-                Bukkit.broadcastMessage("Horse " + (info & 0x04) + " " + (info & 0x20));
                 ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
                 ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
             }
