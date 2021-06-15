@@ -11,6 +11,8 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.MoverType;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
@@ -439,6 +441,22 @@ public class Collisions {
                 for (int x = (int) Math.floor(wantedBB.minX - 0.26); x < Math.ceil(wantedBB.maxX + 0.26); x++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
                     CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+                }
+            }
+        }
+
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.type == EntityType.BOAT) {
+                SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                if (box.isIntersected(wantedBB)) {
+                    listOfBlocks.add(box);
+                }
+            }
+
+            if (entity.type == EntityType.SHULKER) {
+                SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
+                if (box.isIntersected(wantedBB)) {
+                    listOfBlocks.add(box);
                 }
             }
         }

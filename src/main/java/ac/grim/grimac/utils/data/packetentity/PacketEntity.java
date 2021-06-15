@@ -14,7 +14,7 @@ public class PacketEntity {
     public Vector3d lastTickPosition;
     public Vector3d position;
     public PacketEntity riding;
-    public int[] passengers;
+    public int[] passengers = new int[0];
     public boolean isDead = false;
 
     public PacketEntity(Entity entity, Vector3d position) {

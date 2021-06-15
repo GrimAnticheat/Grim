@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class CompensatedEntities {
-    private final Int2ObjectLinkedOpenHashMap<PacketEntity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
+    public final Int2ObjectLinkedOpenHashMap<PacketEntity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
 
     public ConcurrentLinkedQueue<SpawnEntityData> spawnEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<Pair<Integer, int[]>> destroyEntityQueue = new ConcurrentLinkedQueue<>();
@@ -97,12 +97,14 @@ public class CompensatedEntities {
                 continue;
 
             // Eject existing passengers for this vehicle
-            for (int entityID : vehicle.passengers) {
-                PacketEntity passenger = getEntity(entityID);
-                if (passenger == null)
-                    continue;
+            if (vehicle.passengers != null) {
+                for (int entityID : vehicle.passengers) {
+                    PacketEntity passenger = getEntity(entityID);
+                    if (passenger == null)
+                        continue;
 
-                passenger.riding = null;
+                    passenger.riding = null;
+                }
             }
 
             // Add the entities as vehicles
@@ -144,7 +146,7 @@ public class CompensatedEntities {
             }
 
             entity.lastTickPosition = new Vector3d(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-            entity.position = entity.riding.position.clone();
+            entity.position = entity.riding.position;
         }
     }
 

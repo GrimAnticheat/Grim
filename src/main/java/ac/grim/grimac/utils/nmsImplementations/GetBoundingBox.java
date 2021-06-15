@@ -19,7 +19,7 @@ public class GetBoundingBox {
         return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
     }
 
-    private static SimpleCollisionBox getBoundingBoxFromPosAndSize(double centerX, double minY, double centerZ, double width, double height) {
+    public static SimpleCollisionBox getBoundingBoxFromPosAndSize(double centerX, double minY, double centerZ, double width, double height) {
         double minX = centerX - (width / 2);
         double maxX = centerX + (width / 2);
         double maxY = minY + height;
