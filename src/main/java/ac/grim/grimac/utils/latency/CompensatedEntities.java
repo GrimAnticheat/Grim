@@ -62,7 +62,7 @@ public class CompensatedEntities {
 
             entity.lastTickPosition = new Vector3d(entity.position.getX(), entity.position.getY(), entity.position.getZ());
             if (moveEntity.isRelative) {
-                entity.position.add(new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z));
+                entity.position = entity.position.add(new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z));
             } else {
                 entity.position = new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z);
             }

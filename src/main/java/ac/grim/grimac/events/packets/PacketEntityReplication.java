@@ -43,8 +43,9 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(move.getEntityId(),
-                    move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), player.lastTransactionSent.get(), true));
+            if (move.getDeltaX() != 0 || move.getDeltaY() != 0 || move.getDeltaZ() != 0)
+                player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(move.getEntityId(),
+                        move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), player.lastTransactionSent.get(), true));
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
@@ -90,7 +91,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (player == null) return;
 
             int lastTransactionSent = player.lastTransactionSent.get();
-            int[] destroyEntityIds = destroy.getEntityIds();
+            int[] destroyEntityIds = destroy.getEntityIds().isPresent() ? destroy.getEntityIds().get() : null;
 
             player.compensatedEntities.destroyEntityQueue.add(new Pair<Integer, int[]>() {
                 @Override

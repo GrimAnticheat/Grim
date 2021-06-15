@@ -280,6 +280,43 @@ public class Collisions {
         //return new Vector(setBB.minX - currentPosBB.minX, setBB.minY - currentPosBB.minY, setBB.minZ - currentPosBB.minZ);
     }
 
+    public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
+        List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
+        SimpleCollisionBox expandedBB = wantedBB.copy()
+                .expandMin(-0.26, -0.51, -0.26)
+                .expandMax(0.26, 0.26, 0.26);
+
+        // Blocks are stored in YZX order
+        for (int y = (int) Math.floor(expandedBB.minY); y < Math.ceil(expandedBB.maxY); y++) {
+            for (int z = (int) Math.floor(expandedBB.minZ) - 1; z < Math.ceil(expandedBB.maxZ); z++) {
+                for (int x = (int) Math.floor(expandedBB.minX); x < Math.ceil(expandedBB.maxX); x++) {
+                    BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+                }
+            }
+        }
+
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.type == EntityType.BOAT) {
+                SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                if (box.isIntersected(expandedBB)) {
+                    listOfBlocks.add(box);
+                    player.uncertaintyHandler.collidingWithBoat = true;
+                }
+            }
+
+            if (entity.type == EntityType.SHULKER) {
+                SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
+                if (box.isIntersected(expandedBB)) {
+                    listOfBlocks.add(box);
+                    player.uncertaintyHandler.collidingWithShulker = true;
+                }
+            }
+        }
+
+        return listOfBlocks;
+    }
+
     // MCP mappings PlayerEntity 959
     // Mojang mappings 911
     public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer player) {
@@ -430,41 +467,6 @@ public class Collisions {
             double d2 = 0.4375D + ((player.pose.width) / 2.0F);
             return d0 + 1.0E-7D > d2 || d1 + 1.0E-7D > d2;
         }
-    }
-
-    public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
-        List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
-        SimpleCollisionBox expandedBB = wantedBB.copy()
-                .expandMin(-0.26, -0.51, -0.26)
-                .expandMax(0.26, 0.26, 0.26);
-
-        // Blocks are stored in YZX order
-        for (int y = (int) Math.floor(expandedBB.minY); y < Math.ceil(expandedBB.maxY); y++) {
-            for (int z = (int) Math.floor(expandedBB.minZ) - 1; z < Math.ceil(expandedBB.maxZ); z++) {
-                for (int x = (int) Math.floor(expandedBB.minX); x < Math.ceil(expandedBB.maxX); x++) {
-                    BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
-                }
-            }
-        }
-
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.type == EntityType.BOAT) {
-                SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-                if (box.isIntersected(expandedBB)) {
-                    listOfBlocks.add(box);
-                }
-            }
-
-            if (entity.type == EntityType.SHULKER) {
-                SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
-                if (box.isIntersected(expandedBB)) {
-                    listOfBlocks.add(box);
-                }
-            }
-        }
-
-        return listOfBlocks;
     }
 
     public static boolean isEmpty(GrimPlayer player, SimpleCollisionBox playerBB) {

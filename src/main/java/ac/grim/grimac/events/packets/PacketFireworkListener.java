@@ -57,9 +57,11 @@ public class PacketFireworkListener extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
             WrappedPacketOutEntityDestroy destroy = new WrappedPacketOutEntityDestroy(event.getNMSPacket());
 
-            for (int entity : destroy.getEntityIds()) {
-                for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
-                    grimPlayer.compensatedFireworks.removeFirework(entity);
+            if (destroy.getEntityIds().isPresent()) {
+                for (int entity : destroy.getEntityIds().get()) {
+                    for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
+                        grimPlayer.compensatedFireworks.removeFirework(entity);
+                    }
                 }
             }
         }

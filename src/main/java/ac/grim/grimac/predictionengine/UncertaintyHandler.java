@@ -5,6 +5,8 @@ public class UncertaintyHandler {
     public double pistonY;
     public double pistonZ;
     public boolean pistonGravityHack = false;
+    public boolean collidingWithBoat = false;
+    public boolean collidingWithShulker = false;
 
     public UncertaintyHandler() {
         reset();
