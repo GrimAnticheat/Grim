@@ -130,14 +130,14 @@ public class PredictionData {
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
     }
 
-    public static double getMovementSpeedAttribute(LivingEntity player) {
+    public static double getMovementSpeedAttribute(LivingEntity entity) {
         if (XMaterial.getVersion() > 8) {
-            return player.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+            return entity.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
         }
 
         try {
-            Method handle = Reflection.getMethod(player.getClass(), "getHandle", 0);
-            Object attribute = onePointEightAttribute.invoke(handle.invoke(player), movementSpeedAttribute);
+            Method handle = Reflection.getMethod(entity.getClass(), "getHandle", 0);
+            Object attribute = onePointEightAttribute.invoke(handle.invoke(entity), movementSpeedAttribute);
             Method valueField = attribute.getClass().getMethod("getValue");
             return (double) valueField.invoke(attribute);
         } catch (Exception e) {

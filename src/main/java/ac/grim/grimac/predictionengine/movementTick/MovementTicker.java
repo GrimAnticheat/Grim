@@ -131,11 +131,11 @@ public class MovementTicker {
             }
         }
 
-        if (player.uncertaintyHandler.pistonGravityHack) {
+        if (player.uncertaintyHandler.trustClientOnGroundHack) {
             player.clientVelocity.setY(0);
         }
 
-        player.uncertaintyHandler.pistonGravityHack = false;
+        player.uncertaintyHandler.trustClientOnGroundHack = false;
 
         // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
         if (onBlock == slime && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
@@ -241,7 +241,6 @@ public class MovementTicker {
                 doNormalMove(blockFriction);
             }
         }
-
     }
 
     public boolean canStandOnLava() {

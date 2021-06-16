@@ -132,7 +132,7 @@ public abstract class PredictionEngine {
             //
             // 0.03 for < 0.03 movement thing, 0.01 for pistons pushing past 0.01, 0.01 extra for rounding or something
             if (player.uncertaintyHandler.pistonY != 0 && Math.abs(player.y - player.lastY) < 0.05) {
-                player.uncertaintyHandler.pistonGravityHack = true;
+                player.uncertaintyHandler.trustClientOnGroundHack = true;
             }
 
             return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,

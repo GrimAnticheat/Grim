@@ -4,7 +4,7 @@ public class UncertaintyHandler {
     public double pistonX;
     public double pistonY;
     public double pistonZ;
-    public boolean pistonGravityHack = false;
+    public boolean trustClientOnGroundHack = false;
     public boolean collidingWithBoat = false;
     public boolean collidingWithShulker = false;
 

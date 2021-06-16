@@ -19,7 +19,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         if (player.levitationAmplifier > 0) {
             d9 += (0.05 * (double) (player.levitationAmplifier + 1) - vector.getY()) * 0.2;
         } else if (player.compensatedWorld.getChunk((int) player.x >> 4, (int) player.z >> 4) != null) {
-            // Commenting out hasGravity check because playesr always have gravity
+            // Commenting out hasGravity check because players always have gravity
             d9 -= player.gravity;
         } else {
             d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
