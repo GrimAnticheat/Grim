@@ -15,9 +15,13 @@ public class MovementTickerPig extends MovementTickerRideable {
         movementInput = new Vector(0, 0, 1);
     }
 
-    // Pig and Strider should implement this
-    public float getSteeringSpeed() { // Idk why the * 0.225 is needed lmao, send help
+    public float getSteeringSpeed() { // Not sure why the * 0.225 is needed
         Entity pig = player.playerVehicle.entity;
         return (float) PredictionData.getMovementSpeedAttribute((LivingEntity) pig) * 0.225f;
+    }
+
+    @Override
+    public boolean isPig() {
+        return true;
     }
 }

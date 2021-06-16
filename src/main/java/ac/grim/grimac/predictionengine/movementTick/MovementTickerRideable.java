@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
+import org.apache.commons.lang.NotImplementedException;
 
 public class MovementTickerRideable extends MovementTickerLivingVehicle {
 
@@ -19,11 +20,17 @@ public class MovementTickerRideable extends MovementTickerLivingVehicle {
         }
 
         player.speed = f;
-        player.movementSpeed = f;
+        if (isPig()) {
+            player.movementSpeed = f;
+        }
     }
 
     // Pig and Strider should implement this
     public float getSteeringSpeed() {
-        return -1f;
+        throw new NotImplementedException();
+    }
+
+    public boolean isPig() {
+        return false;
     }
 }

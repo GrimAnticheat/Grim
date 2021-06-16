@@ -36,7 +36,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     type == WrappedPacketInBlockDig.PlayerDigType.DROP_ITEM) &&
                     player.packetStateData.eatingHand == Hand.MAIN_HAND) ||
                     type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM ||
-                    type == WrappedPacketInBlockDig.PlayerDigType.SWAP_HELD_ITEMS) {
+                    type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND) {
                 Bukkit.broadcastMessage(ChatColor.RED + "Stopped using " + type);
             }
         }

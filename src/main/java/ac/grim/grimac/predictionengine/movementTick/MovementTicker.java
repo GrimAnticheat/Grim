@@ -104,7 +104,7 @@ public class MovementTicker {
         player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
 
         if (player.inVehicle)
-            player.onGround = player.isActuallyOnGround;
+            player.onGround = player.isActuallyOnGround || player.uncertaintyHandler.striderOnGround;
 
         Material onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
 

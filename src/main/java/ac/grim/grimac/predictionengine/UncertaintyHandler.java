@@ -7,6 +7,7 @@ public class UncertaintyHandler {
     public boolean trustClientOnGroundHack = false;
     public boolean collidingWithBoat = false;
     public boolean collidingWithShulker = false;
+    public boolean striderOnGround = false;
 
     public UncertaintyHandler() {
         reset();
@@ -16,5 +17,8 @@ public class UncertaintyHandler {
         pistonX = 0;
         pistonY = 0;
         pistonZ = 0;
+        trustClientOnGroundHack = false;
+        collidingWithBoat = false;
+        collidingWithShulker = false;
     }
 }
