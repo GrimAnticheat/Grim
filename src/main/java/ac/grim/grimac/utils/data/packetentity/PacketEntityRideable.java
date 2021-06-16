@@ -12,4 +12,6 @@ public class PacketEntityRideable extends PacketEntity {
     public PacketEntityRideable(Entity entity, Vector3d vector3d) {
         super(entity, vector3d);
     }
+
+
 }

@@ -1,6 +1,8 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.enums.EntityType;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -66,6 +68,13 @@ public class BlockProperties {
         // Well, more async safe, still isn't 100% safe.
         if (player.lastOnGround) {
             return (float) (player.movementSpeed * (0.21600002f / (f * f * f)));
+        }
+
+        // The game uses values known as flyingSpeed for some vehicles in the air
+        if (player.playerVehicle != null) {
+            if (player.playerVehicle.type == EntityType.PIG || player.playerVehicle instanceof PacketEntityHorse) {
+                return player.speed * 0.1F;
+            }
         }
 
         if (player.specialFlying) {

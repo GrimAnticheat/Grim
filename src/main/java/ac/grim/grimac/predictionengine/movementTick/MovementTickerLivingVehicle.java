@@ -33,7 +33,6 @@ public class MovementTickerLivingVehicle extends MovementTicker {
     @Override
     public void doNormalMove(float blockFriction) {
         // We don't know if the horse is on the ground
-        // TODO: Different friction if horse is in the air
         Vector movementInputResult = new PredictionEngineNormal().getMovementResultFromInput(player, movementInput,
                 BlockProperties.getFrictionInfluencedSpeed(blockFriction, player), player.xRot);
 

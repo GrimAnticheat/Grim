@@ -74,7 +74,6 @@ public class MovementTicker {
     }
 
     // Entity line 527
-    // TODO: Entity piston and entity shulker (want to) call this method too.
     public void move(MoverType moverType, Vector inputVel, Vector collide) {
         // Something about noClip
         // Piston movement exemption
@@ -103,6 +102,9 @@ public class MovementTicker {
         player.horizontalCollision = !GrimMathHelper.equal(inputVel.getX(), collide.getX()) || !GrimMathHelper.equal(inputVel.getZ(), collide.getZ());
         player.verticalCollision = inputVel.getY() != collide.getY();
         player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
+
+        if (player.inVehicle)
+            player.onGround = player.isActuallyOnGround;
 
         Material onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
 
