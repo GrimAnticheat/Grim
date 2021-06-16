@@ -46,7 +46,11 @@ public class MovementTicker {
             }
         }
 
-        playerEntityTravel();
+        if (player.playerVehicle == null) {
+            playerEntityTravel();
+        } else {
+            livingEntityTravel();
+        }
     }
 
     // Player line 1208

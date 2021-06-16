@@ -195,13 +195,13 @@ public class MovementCheckRunner {
                 BoatMovement.doBoatMovement(player);
             } else if (player.playerVehicle instanceof PacketEntityHorse) {
                 new PlayerBaseTick(player).doBaseTick();
-                new MovementTickerHorse(player).livingEntityTravel();
+                new MovementTickerHorse(player).livingEntityAIStep();
             } else if (player.playerVehicle.type == EntityType.PIG) {
                 new PlayerBaseTick(player).doBaseTick();
-                new MovementTickerPig(player).livingEntityTravel();
+                new MovementTickerPig(player).livingEntityAIStep();
             } else if (player.playerVehicle.type == EntityType.STRIDER) {
                 new PlayerBaseTick(player).doBaseTick();
-                new MovementTickerStrider(player).livingEntityTravel();
+                new MovementTickerStrider(player).livingEntityAIStep();
             } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
             player.isFirstTick = false;

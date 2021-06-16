@@ -92,7 +92,7 @@
         <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents</artifactId>
-            <version>bd0d9cc</version>
+            <version>bb195f2</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
