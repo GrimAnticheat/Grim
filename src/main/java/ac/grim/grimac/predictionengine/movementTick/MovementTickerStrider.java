@@ -4,8 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PredictionData;
-import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
+import ac.grim.grimac.utils.enums.Pose;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
@@ -14,6 +14,11 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public MovementTickerStrider(GrimPlayer player) {
         super(player);
+
+        if (player.playerVehicle.pose == Pose.DYING) {
+            player.clientVelocity = new Vector();
+            return;
+        }
 
         movementInput = new Vector(0, 0, player.speed);
     }
@@ -24,6 +29,13 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
         // Idk why you have to multiply by 10... I blame bukkit.
         return (float) PredictionData.getMovementSpeedAttribute((LivingEntity) strider.entity) * 10 * (strider.isShaking ? 0.23F : 0.55F);
+    }
+
+    @Override
+    public void livingEntityTravel() {
+        super.livingEntityTravel();
+
+        floatStrider();
     }
 
     private void floatStrider() {
@@ -41,15 +53,8 @@ public class MovementTickerStrider extends MovementTickerRideable {
         }
     }
 
-    @Override
-    public void livingEntityTravel() {
-        super.livingEntityTravel();
-
-        floatStrider();
-    }
-
     public boolean isAbove(SimpleCollisionBox box) {
-        return player.lastY > (int)player.lastY + box.maxY - (double)1.0E-5F;
+        return player.lastY > (int) player.lastY + box.maxY - (double) 1.0E-5F;
     }
 
     @Override

@@ -2,15 +2,19 @@ package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
-import org.bukkit.attribute.Attribute;
+import ac.grim.grimac.utils.enums.Pose;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Pig;
 import org.bukkit.util.Vector;
 
 public class MovementTickerPig extends MovementTickerRideable {
     public MovementTickerPig(GrimPlayer player) {
         super(player);
+
+        if (player.playerVehicle.pose == Pose.DYING) {
+            player.clientVelocity = new Vector();
+            return;
+        }
 
         movementInput = new Vector(0, 0, 1);
     }

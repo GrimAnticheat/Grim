@@ -2,8 +2,7 @@ package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.AbstractHorse;
+import ac.grim.grimac.utils.enums.Pose;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
@@ -20,6 +19,11 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         // Setup player inputs
         float f = player.vehicleHorizontal * 0.5F;
         float f1 = player.vehicleForward;
+
+        if (player.playerVehicle.pose == Pose.DYING) {
+            player.clientVelocity = new Vector();
+            return;
+        }
 
         // TODO: This takes away control of the player when the horse is standing
 

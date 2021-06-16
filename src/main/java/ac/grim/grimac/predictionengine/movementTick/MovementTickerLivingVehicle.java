@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import org.bukkit.util.Vector;
 
 public class MovementTickerLivingVehicle extends MovementTicker {
-    Vector movementInput;
+    Vector movementInput = new Vector();
 
     public MovementTickerLivingVehicle(GrimPlayer player) {
         super(player);
