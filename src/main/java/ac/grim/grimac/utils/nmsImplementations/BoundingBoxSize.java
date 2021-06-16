@@ -1,14 +1,14 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.enums.EntityType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.MagmaCube;
 import org.bukkit.entity.Slime;
 
 public class BoundingBoxSize {
-    public double getWidth(PacketEntity packetEntity, Entity entity, EntityType type) {
-        switch (type) {
+    public static double getWidth(PacketEntity packetEntity) {
+        Entity entity = packetEntity.entity;
+        switch (packetEntity.type) {
             case AXOLOTL:
             case PANDA:
                 return 1.3;
@@ -121,8 +121,9 @@ public class BoundingBoxSize {
         }
     }
 
-    public double getHeight(PacketEntity packetEntity, Entity entity, EntityType type) {
-        switch (type) {
+    public static double getHeight(PacketEntity packetEntity) {
+        Entity entity = packetEntity.entity;
+        switch (packetEntity.type) {
             case AXOLOTL:
             case BEE:
             case DOLPHIN:

@@ -1,7 +1,11 @@
 package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Strider;
 import org.bukkit.util.Vector;
 
@@ -10,14 +14,13 @@ public class MovementTickerStrider extends MovementTickerRideable {
         super(player);
 
         movementInput = new Vector(0, 0, 1);
-
     }
 
     public float getSteeringSpeed() {
-        Strider strider = (Strider) player.playerVehicle;
+        PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
+        float speed =  (float) PredictionData.getMovementSpeedAttribute((LivingEntity) strider.entity);
 
-        // TODO: Lag compensate/listen to packets for suffocating.
-        return (float) strider.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * (strider.isShivering() ? 0.23F : 0.55F); // shivering -> suffocating
+        return speed * (strider.isShaking ? 0.66F : 1.0F);
     }
 
     @Override

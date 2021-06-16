@@ -371,14 +371,7 @@ public class Collisions {
 
     public static void handleInsideBlocks(GrimPlayer player) {
         // Use the bounding box for after the player's movement is applied
-
-        // This is a terrible hack :(
-        SimpleCollisionBox aABB;
-        if (player.playerVehicle instanceof Boat) {
-            aABB = GetBoundingBox.getBoatBoundingBox(player.x, player.y, player.z);
-        } else {
-            aABB = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
-        }
+        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
 
         Location blockPos = new Location(player.playerWorld, aABB.minX + 0.001D, aABB.minY + 0.001D, aABB.minZ + 0.001D);
         Location blockPos2 = new Location(player.playerWorld, aABB.maxX - 0.001D, aABB.maxY - 0.001D, aABB.maxZ - 0.001D);
@@ -405,7 +398,7 @@ public class Collisions {
                         BlockData bubbleData = ((FlatBlockState) block).getBlockData();
                         BubbleColumn bubbleColumn = (BubbleColumn) bubbleData;
 
-                        if (player.playerVehicle instanceof Boat) {
+                        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
                             if (!Materials.checkFlag(blockAbove.getMaterial(), Materials.AIR)) {
                                 if (bubbleColumn.isDrag()) {
                                     player.clientVelocity.setY(Math.max(-0.3D, player.clientVelocity.getY() - 0.03D));

@@ -9,6 +9,8 @@ import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.PacketStateData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
@@ -23,7 +25,6 @@ import io.github.retrooper.packetevents.utils.versionlookup.v_1_7_10.SpigotVersi
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -98,7 +99,7 @@ public class GrimPlayer {
     public float depthStriderLevel;
     public float flySpeed;
     public boolean inVehicle;
-    public Entity playerVehicle;
+    public PacketEntity playerVehicle;
     public float vehicleHorizontal;
     public float vehicleForward;
     public BoatData boatData = new BoatData();
@@ -302,7 +303,7 @@ public class GrimPlayer {
     public float getMaxUpStep() {
         if (playerVehicle == null) return 0.6f;
 
-        if (playerVehicle.getType() == EntityType.BOAT) {
+        if (playerVehicle.type == EntityType.BOAT) {
             return 0f;
         }
 

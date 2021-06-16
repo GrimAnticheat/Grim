@@ -51,7 +51,7 @@ public class MovementTicker {
 
     // Player line 1208
     public void playerEntityTravel() {
-        if (player.specialFlying && player.bukkitPlayer.getVehicle() == null) {
+        if (player.specialFlying && player.playerVehicle == null) {
             double oldY = player.clientVelocity.getY();
             double oldYJumping = oldY + player.flySpeed * 3;
             livingEntityTravel();

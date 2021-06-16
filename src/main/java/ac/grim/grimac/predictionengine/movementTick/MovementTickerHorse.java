@@ -1,8 +1,11 @@
 package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.PredictionData;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
 public class MovementTickerHorse extends MovementTickerLivingVehicle {
@@ -10,8 +13,8 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
     public MovementTickerHorse(GrimPlayer player) {
         super(player);
 
-        AbstractHorse horse = (AbstractHorse) player.playerVehicle;
-        player.speed = (float) horse.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
+        Entity horse = player.playerVehicle.entity;
+        player.speed = (float) PredictionData.getMovementSpeedAttribute((LivingEntity) horse);
         player.movementSpeed = player.speed;
 
         // Setup player inputs

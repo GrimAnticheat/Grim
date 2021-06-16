@@ -9,6 +9,8 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -138,8 +140,8 @@ public class MovementCheckRunner {
             player.slowFallingAmplifier = data.slowFallingAmplifier;
             player.dolphinsGraceAmplifier = data.dolphinsGraceAmplifier;
             player.flySpeed = data.flySpeed;
-            player.inVehicle = data.inVehicle;
-            player.playerVehicle = data.playerVehicle;
+            player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
+            player.inVehicle = player.playerVehicle != null;
 
             player.firstBreadKB = data.firstBreadKB;
             player.possibleKB = data.requiredKB;
@@ -149,6 +151,7 @@ public class MovementCheckRunner {
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
 
             if (data.isJustTeleported || player.isFirstTick) {
                 // Don't let the player move if they just teleported
@@ -169,9 +172,7 @@ public class MovementCheckRunner {
                 player.gravity = 0;
                 player.friction = 0.91f;
                 PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
-            } else if (!player.inVehicle) {
-                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
-
+            } else if (player.playerVehicle == null) {
                 // Depth strider was added in 1.8
                 ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
                 if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
@@ -190,28 +191,18 @@ public class MovementCheckRunner {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerPlayer(player).livingEntityAIStep();
 
-            } else if (player.playerVehicle instanceof Boat) {
-                player.boundingBox = GetBoundingBox.getBoatBoundingBox(player.lastX, player.lastY, player.lastZ);
-
+            } else if (player.playerVehicle.type == EntityType.BOAT) {
                 BoatMovement.doBoatMovement(player);
-
-            } else if (player.playerVehicle instanceof AbstractHorse) {
-                player.boundingBox = GetBoundingBox.getHorseBoundingBox(player.lastX, player.lastY, player.lastZ, (AbstractHorse) player.playerVehicle);
-
+            } else if (player.playerVehicle instanceof PacketEntityHorse) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerHorse(player).livingEntityTravel();
-
-            } else if (player.playerVehicle instanceof Pig) {
-                player.boundingBox = GetBoundingBox.getPigBoundingBox(player.lastX, player.lastY, player.lastZ, (Pig) player.playerVehicle);
-
+            } else if (player.playerVehicle.type == EntityType.PIG) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerPig(player).livingEntityTravel();
-            } else if (player.playerVehicle instanceof Strider) {
-                player.boundingBox = GetBoundingBox.getStriderBoundingBox(player.lastX, player.lastY, player.lastZ, (Strider) player.playerVehicle);
-
+            } else if (player.playerVehicle.type == EntityType.STRIDER) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerStrider(player).livingEntityTravel();
-            }
+            } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
             player.isFirstTick = false;
 

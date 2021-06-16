@@ -99,7 +99,12 @@ public class CompensatedEntities {
             // Eject existing passengers for this vehicle
             if (vehicle.passengers != null) {
                 for (int entityID : vehicle.passengers) {
+                    if (player.entityID == entityID) {
+                        player.packetStateData.vehicle = null;
+                    }
+
                     PacketEntity passenger = getEntity(entityID);
+
                     if (passenger == null)
                         continue;
 
@@ -109,6 +114,10 @@ public class CompensatedEntities {
 
             // Add the entities as vehicles
             for (int entityID : mountVehicle.passengers) {
+                if (player.entityID == entityID) {
+                    player.packetStateData.vehicle = mountVehicle.vehicleID;
+                }
+
                 PacketEntity passenger = getEntity(entityID);
                 if (passenger == null)
                     continue;

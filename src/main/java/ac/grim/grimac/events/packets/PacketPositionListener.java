@@ -46,8 +46,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            // TODO: This isn't async safe
-            if (player.bukkitPlayer.getVehicle() != null) return;
+            if (player.packetStateData.vehicle != null) return;
 
             MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
                     player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,

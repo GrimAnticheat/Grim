@@ -1,7 +1,10 @@
 package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.PredictionData;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Pig;
 import org.bukkit.util.Vector;
 
@@ -15,7 +18,7 @@ public class MovementTickerPig extends MovementTickerRideable {
 
     // Pig and Strider should implement this
     public float getSteeringSpeed() {
-        Pig pig = (Pig) player.playerVehicle;
-        return (float) (pig.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue() * 0.225F);
+        Entity pig = player.playerVehicle.entity;
+        return (float) PredictionData.getMovementSpeedAttribute((LivingEntity) pig);
     }
 }

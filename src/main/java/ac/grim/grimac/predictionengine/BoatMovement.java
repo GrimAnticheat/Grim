@@ -37,8 +37,7 @@ public class BoatMovement {
     }
 
     private static void floatBoat(GrimPlayer player) {
-        double d0 = -0.04F;
-        double d1 = player.playerVehicle.hasGravity() ? (double) -0.04F : 0.0D;
+        double d1 = player.playerVehicle.entity.hasGravity() ? (double) -0.04F : 0.0D;
         double d2 = 0.0D;
         float invFriction = 0.05F;
         if (player.boatData.oldStatus == BoatEntityStatus.IN_AIR && player.boatData.status != BoatEntityStatus.IN_AIR && player.boatData.status != BoatEntityStatus.ON_LAND) {

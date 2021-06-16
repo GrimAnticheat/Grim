@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMathHelper;
@@ -116,7 +117,7 @@ public class PlayerBaseTick {
         player.fluidOnEyes = null;
         double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.bukkitPlayer.isSleeping(), player.getClientVersion()) - 0.1111111119389534D;
 
-        if (player.playerVehicle instanceof Boat && !player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT && !player.boatData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
@@ -198,7 +199,7 @@ public class PlayerBaseTick {
 
     // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
-        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle instanceof Boat);
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT);
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(FluidTag tag, double multiplier) {
