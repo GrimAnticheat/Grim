@@ -28,6 +28,11 @@ public class PredictionEngineRideableNormal extends PredictionEngineNormal {
     }
 
     @Override
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+
+    }
+
+    @Override
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
 
