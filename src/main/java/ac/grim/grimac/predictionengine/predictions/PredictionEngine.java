@@ -241,6 +241,9 @@ public abstract class PredictionEngine {
         // Oh well, I guess this could allow some Jesus bypasses next to a wall that has multiple blocks
         // But it's faster to swim anyways on 1.13+, and faster to just go on land in 1.12-
 
+        // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
+        // Just give a high lenience to this... not worth the risk of falses
+
         return canCollideHorizontally && inWater;
     }
 
