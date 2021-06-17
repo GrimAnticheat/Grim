@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
 
 public class PlayerBaseTick {

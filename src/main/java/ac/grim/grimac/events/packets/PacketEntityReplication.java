@@ -75,12 +75,6 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            for (int passengers : mount.getPassengerIds()) {
-                if (player.entityID == passengers) {
-                    player.packetStateData.vehicle = mount.getEntityId();
-                }
-            }
-
             player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(mount.getEntityId(), mount.getPassengerIds(), player.lastTransactionSent.get()));
         }
 

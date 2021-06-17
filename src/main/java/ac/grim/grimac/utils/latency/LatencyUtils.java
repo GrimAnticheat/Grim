@@ -1,7 +1,5 @@
 package ac.grim.grimac.utils.latency;
 
-import org.bukkit.Bukkit;
-
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

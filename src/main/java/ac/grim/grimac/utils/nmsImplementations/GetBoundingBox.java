@@ -4,9 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import org.bukkit.entity.AbstractHorse;
-import org.bukkit.entity.Pig;
-import org.bukkit.entity.Strider;
 
 public class GetBoundingBox {
     // Size regular: 0.6 width 1.8 height

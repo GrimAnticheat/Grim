@@ -146,7 +146,8 @@ public class Materials {
             if (mat.name().contains("DIODE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("COMPARATOR")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("_DOOR")) MATERIAL_FLAGS[mat.ordinal()] |= DOOR;
-            if (mat.name().contains("_DOOR") && !mat.name().contains("IRON")) MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+            if (mat.name().contains("_DOOR") && !mat.name().contains("IRON"))
+                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
             if (mat.name().contains("SHULKER_BOX")) MATERIAL_FLAGS[mat.ordinal()] |= SHULKER;
             if (mat.name().contains("GLASS") && !mat.name().contains("PANE"))
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_BLOCK;

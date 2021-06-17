@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.data.packetentity.latency;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 
 public class EntityRunnable implements Runnable {
-    private PacketEntity entity;
+    private final PacketEntity entity;
 
     public EntityRunnable(PacketEntity entity) {
         this.entity = entity;
@@ -11,6 +11,6 @@ public class EntityRunnable implements Runnable {
 
     @Override
     public void run() {
-        
+
     }
 }

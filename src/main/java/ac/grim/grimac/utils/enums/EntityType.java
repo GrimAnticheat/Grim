@@ -113,5 +113,5 @@ public enum EntityType {
     ZOMBIE,
     ZOMBIE_HORSE,
     ZOMBIE_VILLAGER,
-    ZOMBIFIED_PIGLIN;
+    ZOMBIFIED_PIGLIN
 }

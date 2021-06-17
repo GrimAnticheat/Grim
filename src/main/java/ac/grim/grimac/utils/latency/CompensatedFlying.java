@@ -2,8 +2,6 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
 
-import java.util.Iterator;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Flying status is just really. really. complicated.  You shouldn't need to touch this, but if you do -

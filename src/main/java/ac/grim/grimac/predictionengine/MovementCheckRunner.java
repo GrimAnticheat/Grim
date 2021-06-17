@@ -21,10 +21,6 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.AbstractHorse;
-import org.bukkit.entity.Boat;
-import org.bukkit.entity.Pig;
-import org.bukkit.entity.Strider;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 

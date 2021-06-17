@@ -19,7 +19,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.BubbleColumn;
-import org.bukkit.entity.Boat;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
