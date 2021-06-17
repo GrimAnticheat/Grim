@@ -17,7 +17,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class PredictionEngine {
+public class PredictionEngine {
     boolean canRiptide = false;
 
     public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
