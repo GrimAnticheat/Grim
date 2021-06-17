@@ -87,7 +87,7 @@ public class PredictionEngineElytra extends PredictionEngine {
 
     // Inputs have no effect on movement
     @Override
-    public List<VectorData> multiplyPossibilitiesByInputs(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> results = new ArrayList<>();
         Vector currentLook = getVectorForRotation(player, player.yRot, player.xRot);
         Vector lastLook = getVectorForRotation(player, player.lastYRot, player.lastXRot);

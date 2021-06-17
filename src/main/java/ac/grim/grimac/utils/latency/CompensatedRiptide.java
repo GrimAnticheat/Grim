@@ -29,6 +29,9 @@ public class CompensatedRiptide {
     public boolean getCanRiptide() {
         int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
 
+        if (player.inVehicle)
+            return false;
+
         do {
             Integer integer = lagCompensatedRiptide.peek();
 

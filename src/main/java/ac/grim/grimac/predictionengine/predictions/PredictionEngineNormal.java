@@ -62,8 +62,8 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public Set<VectorData> fetchPossibleInputs(GrimPlayer player) {
-        Set<VectorData> regularInputs = super.fetchPossibleInputs(player);
+    public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
+        Set<VectorData> regularInputs = super.fetchPossibleStartTickVectors(player);
 
         // This is WRONG! Vanilla has this system at the end
         // However, due to 1.9 reduced movement precision, we aren't informed that the player could have this velocity

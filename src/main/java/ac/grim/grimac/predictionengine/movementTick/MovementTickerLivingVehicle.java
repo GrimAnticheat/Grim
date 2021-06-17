@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.movementTick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
+import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableNormal;
 import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import org.bukkit.util.Vector;
@@ -12,8 +13,6 @@ public class MovementTickerLivingVehicle extends MovementTicker {
 
     public MovementTickerLivingVehicle(GrimPlayer player) {
         super(player);
-
-        player.clientVelocity.multiply(0.98);
     }
 
     @Override
@@ -32,13 +31,7 @@ public class MovementTickerLivingVehicle extends MovementTicker {
 
     @Override
     public void doNormalMove(float blockFriction) {
-        // We don't know if the horse is on the ground
-        Vector movementInputResult = new PredictionEngineNormal().getMovementResultFromInput(player, movementInput,
-                BlockProperties.getFrictionInfluencedSpeed(blockFriction, player), player.xRot);
-
-        addAndMove(MoverType.SELF, movementInputResult);
-
-        PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
+        new PredictionEngineRideableNormal(movementInput).guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, player), player);
     }
 
     public void addAndMove(MoverType moverType, Vector movementResult) {

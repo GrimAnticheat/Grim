@@ -114,11 +114,15 @@ public class MovementCheckRunner {
             temp = data.lastTransaction;
 
             // Stop stuff like clients using elytra in a vehicle...
+            // Interesting, on a pig or strider, a player can climb a ladder
             if (player.inVehicle) {
                 player.isFlying = false;
-                player.isClimbing = false;
                 player.isGliding = false;
                 player.specialFlying = false;
+
+                if (player.playerVehicle.type != EntityType.PIG && player.playerVehicle.type != EntityType.STRIDER) {
+                    player.isClimbing = false;
+                }
             }
 
             player.playerWorld = data.playerWorld;
