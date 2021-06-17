@@ -222,7 +222,7 @@ public abstract class PredictionEngine {
 
     public boolean canSwimHop(GrimPlayer player) {
         boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.1, -0.01, 0.1));
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
         boolean inWater = player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
 
         // Vanilla system ->
