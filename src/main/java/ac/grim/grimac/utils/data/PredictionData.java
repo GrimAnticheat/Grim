@@ -124,6 +124,9 @@ public class PredictionData {
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
 
+        firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
+        requiredKB = player.knockbackHandler.getRequiredKB();
+
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
     }

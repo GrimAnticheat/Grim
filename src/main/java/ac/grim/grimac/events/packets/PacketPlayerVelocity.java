@@ -10,7 +10,6 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
-import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 public class PacketPlayerVelocity extends PacketListenerAbstract {
@@ -21,29 +20,29 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
+
         if (packetID == PacketType.Play.Server.ENTITY_VELOCITY) {
             WrappedPacketOutEntityVelocity velocity = new WrappedPacketOutEntityVelocity(event.getNMSPacket());
-            Entity entity = velocity.getEntity();
-            if (entity != null) {
-                if (entity.equals(event.getPlayer())) {
-                    double velX = velocity.getVelocityX();
-                    double velY = velocity.getVelocityY();
-                    double velZ = velocity.getVelocityZ();
+            int entityId = velocity.getEntityId();
 
-                    Vector playerVelocity = new Vector(velX, velY, velZ);
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
 
-                    GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-                    if (player == null) return;
+            if (entityId == player.entityID || (player.packetStateData.vehicle != null && player.packetStateData.vehicle == entityId)) {
+                double velX = velocity.getVelocityX();
+                double velY = velocity.getVelocityY();
+                double velZ = velocity.getVelocityZ();
 
-                    int reservedID = (-1 * (player.lastTransactionSent.getAndAdd(2) % 32768));
-                    short breadOne = (short) reservedID;
-                    short breadTwo = (short) (reservedID - 1);
+                Vector playerVelocity = new Vector(velX, velY, velZ);
 
-                    // Wrap velocity between two transactions
-                    PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadOne, false));
-                    player.knockbackHandler.addPlayerKnockback(breadOne, playerVelocity);
-                    event.setPostTask(() -> PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadTwo, false)));
-                }
+                int reservedID = (-1 * (player.lastTransactionSent.getAndAdd(2) % 32768));
+                short breadOne = (short) reservedID;
+                short breadTwo = (short) (reservedID - 1);
+
+                // Wrap velocity between two transactions
+                PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadOne, false));
+                player.knockbackHandler.addPlayerKnockback(breadOne, playerVelocity);
+                event.setPostTask(() -> PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadTwo, false)));
             }
         }
 
