@@ -2,12 +2,15 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
+import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -42,6 +45,7 @@ public class PredictionData {
     public boolean onGround;
     public boolean isSprinting;
     public boolean isSneaking;
+    public boolean isUsingItem = false;
     public World playerWorld;
     public double movementSpeed;
     public float jumpAmplifier;
@@ -73,6 +77,23 @@ public class PredictionData {
 
         this.isSprinting = player.packetStateData.isPacketSprinting;
         this.isSneaking = player.packetStateData.isPacketSneaking;
+
+        // Handle the player dropping food to stop eating
+        if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
+            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
+            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
+                player.packetStateData.isEating = false;
+            }
+        } else {
+            ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
+            // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
+            if (offHand == null || !Materials.isUsable(offHand.getType())) {
+                player.packetStateData.isEating = false;
+            }
+        }
+
+        this.isUsingItem = player.packetStateData.isEating;
+
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
         this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);

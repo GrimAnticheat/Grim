@@ -71,6 +71,7 @@ public class GrimPlayer {
     public boolean wasSneaking;
     public boolean isCrouching;
     public boolean isSprinting;
+    public boolean isUsingItem;
     public boolean lastSprinting;
     public boolean isFlying;
     public boolean wasFlying;

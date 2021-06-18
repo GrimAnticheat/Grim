@@ -33,6 +33,11 @@ public class PredictionEngine {
             bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
         }
 
+        if (player.isUsingItem) {
+            bestPossibleX *= 0.2F;
+            bestPossibleZ *= 0.2F;
+        }
+
         Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
         inputVector.multiply(0.98);
 
@@ -80,7 +85,7 @@ public class PredictionEngine {
                 //
                 // Note that sometimes the first and closest velocity isn't the closest because collisions
                 // The player may only be able to move a slight amount compared to what the initial vector shows
-                if (resultAccuracy < 0.001) break;
+                if (resultAccuracy < 1e-6) break;
             }
         }
 

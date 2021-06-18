@@ -11,8 +11,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedP
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
 import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.WrappedPacketInHeldItemSlot;
 import io.github.retrooper.packetevents.utils.player.Hand;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CrossbowMeta;
@@ -32,12 +30,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
 
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
-            if (((type == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS ||
-                    type == WrappedPacketInBlockDig.PlayerDigType.DROP_ITEM) &&
-                    player.packetStateData.eatingHand == Hand.MAIN_HAND) ||
+            if ((type == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS && player.packetStateData.eatingHand == Hand.MAIN_HAND) ||
                     type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM ||
                     type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND) {
-                Bukkit.broadcastMessage(ChatColor.RED + "Stopped using " + type);
+                player.packetStateData.isEating = false;
             }
         }
 
@@ -51,6 +47,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (slot.getCurrentSelectedSlot() > 8) return;
 
             player.packetStateData.lastSlotSelected = slot.getCurrentSelectedSlot();
+
+            if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
+                player.packetStateData.isEating = false;
+            }
         }
 
         if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
@@ -72,11 +72,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 // Avoid releasing crossbow as being seen as slowing player
                 if (itemStack.getType() == crossbow) {
                     CrossbowMeta crossbowMeta = (CrossbowMeta) itemStack.getItemMeta();
-                    if (crossbowMeta.hasChargedProjectiles())
+                    if (crossbowMeta != null && crossbowMeta.hasChargedProjectiles())
                         return;
                 }
 
-                Bukkit.broadcastMessage(ChatColor.GOLD + "PLAYER IS USING AN ITEM!");
+                player.packetStateData.isEating = true;
             }
         }
     }

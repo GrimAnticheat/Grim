@@ -106,6 +106,7 @@ public class MovementCheckRunner {
             player.isSprinting = data.isSprinting;
             player.wasSneaking = player.isSneaking;
             player.isSneaking = data.isSneaking;
+            player.isUsingItem = data.isUsingItem;
 
             player.isFlying = player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
             player.isClimbing = Collisions.onClimbable(player);
