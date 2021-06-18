@@ -181,7 +181,7 @@ public class MovementTicker {
     public void livingEntityTravel() {
         double playerGravity = 0.08;
 
-        boolean isFalling = player.clientVelocity.getY() <= 0.0;
+        boolean isFalling = player.actualMovement.getY() <= 0.0;
         if (isFalling && player.slowFallingAmplifier > 0) {
             playerGravity = 0.01;
             //this.fallDistance = 0.0f;
