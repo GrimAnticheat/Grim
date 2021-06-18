@@ -7,6 +7,7 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerPig;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
+import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -192,7 +193,9 @@ public class MovementCheckRunner {
                 new MovementTickerPlayer(player).livingEntityAIStep();
 
             } else if (player.playerVehicle.type == EntityType.BOAT) {
-                BoatMovement.doBoatMovement(player);
+                new PlayerBaseTick(player).doBaseTick();
+                // Speed doesn't affect anything with boat movement
+                new BoatPredictionEngine(player).guessBestMovement(0, player);
             } else if (player.playerVehicle instanceof PacketEntityHorse) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerHorse(player).livingEntityAIStep();

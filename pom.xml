@@ -81,7 +81,6 @@
             <url>https://repo.opencollab.dev/maven-snapshots/</url>
         </repository>
     </repositories>
-
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
