@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
@@ -145,6 +146,7 @@ public class BoatPredictionEngine extends PredictionEngine {
 
         for (VectorData data : possibleVectors) {
             controlBoat(player, data.vector);
+            data.vector.multiply(player.stuckSpeedMultiplier);
             vectors.add(data);
         }
 
@@ -165,6 +167,7 @@ public class BoatPredictionEngine extends PredictionEngine {
     // Technically should be per vector but shouldn't matter as it's a boat
     // Only times there are two vectors is when the player's boat takes knockback, such as in bubble columns
     // It's push-like movement because it doesn't affect subsequent client velocity
+    @Override
     public Vector handlePushMovement(GrimPlayer player, Vector vector) {
 
         vector = vector.clone().add(new Vector(0, player.boatData.midTickY, 0));
@@ -175,7 +178,7 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     @Override
     public void endOfTick(GrimPlayer player, double d, float friction) {
-
+        Collisions.handleInsideBlocks(player);
     }
 
     @Override

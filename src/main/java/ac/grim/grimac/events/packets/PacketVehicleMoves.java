@@ -19,6 +19,20 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
     }
 
     @Override
+    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
+        byte packetID = event.getPacketId();
+
+        if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
+            WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
+            Vector3d pos = move.getPosition();
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch()));
+        }
+    }
+
+    @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
 
@@ -32,20 +46,6 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             if (player == null) return;
 
             player.teleports.add(new Vector3d(x, y, z));
-        }
-    }
-
-    @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
-            WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            if (player == null) return;
-
-            Vector3d pos = move.getPosition();
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch()));
         }
     }
 }
