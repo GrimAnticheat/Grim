@@ -290,6 +290,18 @@ public enum CollisionData {
 
     }, XMaterial.BELL.parseMaterial()),
 
+    SCAFFOLDING((player, version, data, x, y, z) -> {
+        Scaffolding scaffolding = (Scaffolding) ((WrappedFlatBlock) data).getBlockData();
+
+        if (player.lastY > y + 1 - 1.0E-5F && !player.isSneaking) {
+            return new HexCollisionBox(0.0D, 14.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+        }
+
+        return scaffolding.getDistance() != 0 && scaffolding.isBottom() && player.lastY > y + (1D / 16D) - (double) 1.0E-5F ?
+                new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D) :
+                NoCollisionBox.INSTANCE;
+    }, XMaterial.SCAFFOLDING.parseMaterial()),
+
     LADDER((player, version, data, x, y, z) -> {
         int width = 3;
         if (version.isOlderThanOrEquals(ClientVersion.v_1_8))

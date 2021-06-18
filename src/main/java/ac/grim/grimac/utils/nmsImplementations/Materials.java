@@ -75,6 +75,7 @@ public class Materials {
         markAs(XMaterial.CHORUS_PLANT, SOLID);
         markAs(XMaterial.LADDER, SOLID);
         markAs(XMaterial.END_ROD, SOLID);
+        markAs(XMaterial.SCAFFOLDING, SOLID);
 
         markAs(XMaterial.WATER, WATER);
 
