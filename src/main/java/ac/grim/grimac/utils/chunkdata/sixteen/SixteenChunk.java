@@ -82,7 +82,7 @@ public class SixteenChunk implements BaseChunk {
         return new FlatBlockState(this.palette.idToState(id));
     }
 
-    public void set(int x, int y, int z, @NonNull int state) {
+    public void set(int x, int y, int z, int state) {
         int id = this.palette.stateToId(state);
         if (id == -1) {
             this.resizePalette();

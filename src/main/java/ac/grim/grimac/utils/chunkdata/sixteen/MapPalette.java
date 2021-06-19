@@ -13,7 +13,7 @@ public class MapPalette implements Palette {
     private int nextId;
 
     public MapPalette(int bitsPerEntry) {
-        this.stateToId = new IntObjectHashMap();
+        this.stateToId = new IntObjectHashMap<>();
         this.nextId = 0;
         this.maxId = (1 << bitsPerEntry) - 1;
         this.idToState = new int[this.maxId + 1];

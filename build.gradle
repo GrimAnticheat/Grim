@@ -1,0 +1,59 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id "com.github.johnrengelman.shadow" version "7.0.0"
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = uri('https://papermc.io/repo/repository/maven-public/')
+    }
+
+    maven {
+        url = uri('https://jitpack.io/')
+    }
+
+    maven {
+        url = uri('https://repo.dmulloy2.net/repository/public/')
+    }
+
+    maven {
+        url = uri('https://repo.opencollab.dev/maven-snapshots/')
+    }
+
+    maven {
+        url = uri('https://repo.maven.apache.org/maven2/')
+    }
+}
+
+dependencies {
+    implementation 'com.github.retrooper:packetevents:de3988c'
+    implementation 'com.github.steveice10:packetlib:2.0'
+    implementation 'it.unimi.dsi:fastutil:8.5.4'
+    compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
+
+    compileOnly 'org.projectlombok:lombok:1.18.20'
+    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.20'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+}
+
+group = 'ac.grim.grimac'
+version = '0.0.1-indev'
+description = 'GrimAC'
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.targetCompatibility = JavaVersion.VERSION_1_8
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+shadowJar {
+    minimize()
+    relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.packetevents'
+    relocate 'it.unimi.dsi.fastutil', 'ac.grim.grimac.shaded.fastutil'
+    relocate 'com.github.steveice10.packetlib', 'ac.grim.grimac.shaded.packetlib'
+}
+
