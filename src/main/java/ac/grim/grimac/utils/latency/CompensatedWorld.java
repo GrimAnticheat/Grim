@@ -17,6 +17,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.ShulkerData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -227,28 +228,35 @@ public class CompensatedWorld {
             SimpleCollisionBox shulkerCollision = new SimpleCollisionBox(data.position.getX(), data.position.getY(), data.position.getZ(),
                     data.position.getX() + 1, data.position.getY() + 1, data.position.getZ() + 1);
 
-            BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(data.position.getX(), data.position.getY(), data.position.getZ());
-            WrappedBlockDataValue value = WrappedBlockData.getMaterialData(state);
+            BlockFace direction;
+            if (data.entity == null) {
+                BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(data.position.getX(), data.position.getY(), data.position.getZ());
+                WrappedBlockDataValue value = WrappedBlockData.getMaterialData(state);
 
-            // Block change hasn't arrived to the player, most likely
-            if (!(value instanceof WrappedDirectional)) continue;
+                // This is impossible but I'm not willing to take the risk
+                if (!(value instanceof WrappedDirectional)) continue;
 
-            BlockFace direction = ((WrappedDirectional) value).getDirection();
+                direction = ((WrappedDirectional) value).getDirection();
+            } else {
+                direction = ((PacketEntityShulker) data.entity).facing.getOppositeFace();
+            }
 
             // Change negative corner in expansion as the direction is negative
+            // We don't bother differentiating shulker entities and shulker boxes
+            // I guess players can cheat to get an extra 0.49 of Y height on shulker boxes, I don't care.
             if (direction.getModX() == -1 || direction.getModY() == -1 || direction.getModZ() == -1) {
-                shulkerCollision.expandMin(direction.getModX() * 0.51, direction.getModY() * 0.51, direction.getModZ() * 0.51);
+                shulkerCollision.expandMin(direction.getModX(), direction.getModY(), direction.getModZ());
             } else {
-                shulkerCollision.expandMax(direction.getModZ() * 0.51, direction.getModY() * 0.51, direction.getModZ() * 0.51);
+                shulkerCollision.expandMax(direction.getModZ(), direction.getModY(), direction.getModZ());
             }
 
             if (playerBox.isCollided(shulkerCollision)) {
-                modX = Math.abs(direction.getModX()) * 0.51D;
-                modY = Math.abs(direction.getModY()) * 0.51D;
-                modZ = Math.abs(direction.getModZ()) * 0.51D;
+                modX = Math.abs(direction.getModX());
+                modY = Math.abs(direction.getModY());
+                modZ = Math.abs(direction.getModZ());
 
-                playerBox.expandMax(modX * 0.51, modY * 0.51, modZ * 0.51);
-                playerBox.expandMin(modX * -0.51, modY * -0.51, modZ * -0.51);
+                playerBox.expandMax(modX, modY, modZ);
+                playerBox.expandMin(modX, modY, modZ);
             }
 
             player.uncertaintyHandler.pistonX = Math.max(modX, player.uncertaintyHandler.pistonX);

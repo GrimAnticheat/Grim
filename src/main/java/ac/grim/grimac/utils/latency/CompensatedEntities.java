@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
@@ -10,6 +11,7 @@ import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.block.BlockFace;
@@ -208,8 +210,17 @@ public class CompensatedEntities {
 
             Optional<WrappedWatchableObject> height = watchableObjects.stream().filter(o -> o.getIndex() == 17).findFirst();
             if (height.isPresent()) {
-                ((PacketEntityShulker) entity).wantedShieldHeight = (byte) height.get().getRawValue();
-                ((PacketEntityShulker) entity).lastShieldChange = System.currentTimeMillis();
+                if ((byte) height.get().getRawValue() == 0) {
+                    Vector3i position = new Vector3i((int) Math.floor(entity.position.getX()), (int) Math.floor(entity.position.getY()), (int) Math.floor(entity.position.getZ()));
+                    ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), true);
+                    player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
+                    player.compensatedWorld.openShulkerBoxes.add(data);
+                } else {
+                    Vector3i position = new Vector3i((int) Math.floor(entity.position.getX()), (int) Math.floor(entity.position.getY()), (int) Math.floor(entity.position.getZ()));
+                    ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), false);
+                    player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
+                    player.compensatedWorld.openShulkerBoxes.add(data);
+                }
             }
         }
 

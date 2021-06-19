@@ -38,10 +38,14 @@ public class PacketBlockAction extends PacketListenerAbstract {
                 // Param is the number of viewers of the shulker box.
                 // Hashset with .equals() set to be position
                 if (blockAction.getActionParam() >= 1) {
-                    player.compensatedWorld.openShulkerBoxes.add(new ShulkerData(position, player.lastTransactionSent.get(), false));
+                    ShulkerData data = new ShulkerData(position, player.lastTransactionSent.get(), false);
+                    player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
+                    player.compensatedWorld.openShulkerBoxes.add(data);
                 } else {
                     // The shulker box is closing
-                    player.compensatedWorld.openShulkerBoxes.add(new ShulkerData(position, player.lastTransactionSent.get(), true));
+                    ShulkerData data = new ShulkerData(position, player.lastTransactionSent.get(), true);
+                    player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
+                    player.compensatedWorld.openShulkerBoxes.add(data);
                 }
             }
         }
