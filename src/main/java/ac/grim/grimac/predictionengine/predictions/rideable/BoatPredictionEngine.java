@@ -20,7 +20,6 @@ import java.util.Set;
 
 public class BoatPredictionEngine extends PredictionEngine {
     private static final Material LILY_PAD = XMaterial.LILY_PAD.parseMaterial();
-    private final SimpleCollisionBox originalPlayerBox;
 
     public BoatPredictionEngine(GrimPlayer player) {
         player.boatData.midTickY = 0;
@@ -28,7 +27,6 @@ public class BoatPredictionEngine extends PredictionEngine {
         // This does stuff like getting the boat's movement on the water
         player.boatData.oldStatus = player.boatData.status;
         player.boatData.status = getStatus(player);
-        originalPlayerBox = player.boundingBox.copy();
     }
 
     private static BoatEntityStatus getStatus(GrimPlayer player) {
@@ -169,9 +167,7 @@ public class BoatPredictionEngine extends PredictionEngine {
     // It's push-like movement because it doesn't affect subsequent client velocity
     @Override
     public Vector handlePushMovement(GrimPlayer player, Vector vector) {
-
         vector = vector.clone().add(new Vector(0, player.boatData.midTickY, 0));
-        player.boundingBox = originalPlayerBox.copy().offset(0, player.boatData.midTickY, 0);
 
         return vector;
     }
@@ -191,13 +187,11 @@ public class BoatPredictionEngine extends PredictionEngine {
         double d2 = 0.0D;
         float invFriction = 0.05F;
 
-        SimpleCollisionBox playerBox = player.boundingBox.copy();
-
         if (player.boatData.oldStatus == BoatEntityStatus.IN_AIR && player.boatData.status != BoatEntityStatus.IN_AIR && player.boatData.status != BoatEntityStatus.ON_LAND) {
-            player.boatData.waterLevel = player.lastY + playerBox.maxY - playerBox.minY;
+            player.boatData.waterLevel = player.lastY + player.boundingBox.maxY - player.boundingBox.minY;
 
-            player.boatData.midTickY = getWaterLevelAbove(player) - playerBox.maxY - playerBox.minY + 0.101D + playerBox.minY;
-            playerBox.offset(0, player.boatData.midTickY, 0);
+            player.boatData.midTickY = getWaterLevelAbove(player) - player.boundingBox.maxY - player.boundingBox.minY + 0.101D + player.boundingBox.minY;
+            player.boundingBox.offset(0, player.boatData.midTickY, 0);
 
             vector.setY(0);
 
@@ -205,7 +199,7 @@ public class BoatPredictionEngine extends PredictionEngine {
             player.boatData.status = BoatEntityStatus.IN_WATER;
         } else {
             if (player.boatData.status == BoatEntityStatus.IN_WATER) {
-                d2 = (player.boatData.waterLevel - player.lastY) / (playerBox.maxY - playerBox.minY);
+                d2 = (player.boatData.waterLevel - player.lastY) / (player.boundingBox.maxY - player.boundingBox.minY);
                 invFriction = 0.9F;
             } else if (player.boatData.status == BoatEntityStatus.UNDER_FLOWING_WATER) {
                 d1 = -7.0E-4D;
