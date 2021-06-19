@@ -192,7 +192,7 @@ public enum WrappedBlockData {
 
             setAge(data.getBlockData() >> 2 & (1 << 2) - 1);
         }
-    }, XMaterial.COCOA_BEANS.parseMaterial()),
+    }, XMaterial.COCOA.parseMaterial()),
 
     GATE(new WrappedFenceGate() {
         public void getWrappedData(FlatBlockState data) {
