@@ -150,7 +150,8 @@ public enum CollisionData {
         return new SimpleCollisionBox(0, 0.5, 0, 1, 1, 1);
         // 1.13 can handle double slabs as it's in the block data
         // 1.12 has double slabs as a separate block, no block data to differentiate it
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_SLAB") && !mat.name().contains("DOUBLE")).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("_SLAB") || mat.name().contains("STEP"))
+            && !mat.name().contains("DOUBLE")).toArray(Material[]::new)),
 
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
     WALL_SKULL((player, version, data, x, y, z) -> {

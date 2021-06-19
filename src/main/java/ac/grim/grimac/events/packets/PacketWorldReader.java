@@ -72,7 +72,7 @@ public class PacketWorldReader extends PacketListenerAbstract {
                 BaseChunk[] chunks;
                 if (XMaterial.getVersion() > 8) {
                     byte[] chunkData = packet.getCompressedData();
-                    int availableSectionsInt = packet.getPrimaryBitMap();
+                    int availableSectionsInt = packet.getPrimaryBitMap().isPresent() ? packet.getPrimaryBitMap().get() : 0;
                     NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
                     if (XMaterial.getVersion() > 15) {
@@ -107,14 +107,15 @@ public class PacketWorldReader extends PacketListenerAbstract {
                     }
                 } else {
                     // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
+                    // Optional is only empty on 1.17 and above
                     if (XMaterial.getVersion() == 8) {
                         Object chunkMap = packet.readAnyObject(2);
-                        if (chunkMap.getClass().getDeclaredField("b").getInt(chunkMap) == 0 && packet.isGroundUpContinuous()) {
+                        if (chunkMap.getClass().getDeclaredField("b").getInt(chunkMap) == 0 && packet.isGroundUpContinuous().get()) {
                             player.compensatedWorld.removeChunk(chunkX, chunkZ);
                             return;
                         }
                     } else {
-                        if (packet.readInt(5) == 0 && packet.isGroundUpContinuous()) {
+                        if (packet.readInt(5) == 0 && packet.isGroundUpContinuous().get()) {
                             player.compensatedWorld.removeChunk(chunkX, chunkZ);
                             return;
                         }
