@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Material;
@@ -69,7 +68,7 @@ public class PredictionEngine {
         Vector beforeCollisionMovement = null;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, MoverType.SELF, player);
+            Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, player);
             Vector additionalPushMovement = handlePushMovement(player, backOff);
             Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
             double resultAccuracy = outputVel.distanceSquared(player.actualMovement);
@@ -91,7 +90,7 @@ public class PredictionEngine {
 
         // The player always has at least one velocity - clientVelocity
         assert bestCollisionVel != null;
-        new MovementTickerPlayer(player).move(MoverType.SELF, beforeCollisionMovement, bestCollisionVel.vector);
+        new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
         player.predictedVelocity = bestCollisionVel;
         endOfTick(player, player.gravity, player.friction);
     }

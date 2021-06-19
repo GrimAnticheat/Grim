@@ -3,7 +3,6 @@ package ac.grim.grimac.predictionengine.movementTick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineElytra;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.enums.MoverType;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -22,59 +21,12 @@ public class MovementTicker {
         this.bukkitPlayer = player.bukkitPlayer;
     }
 
-    public void move(MoverType moverType, Vector inputVel) {
-        move(moverType, inputVel.multiply(player.stuckSpeedMultiplier), inputVel.multiply(player.stuckSpeedMultiplier));
-    }
-
-    public void livingEntityAIStep() {
-        // Living Entity line 2153
-        double minimumMovement = 0.003D;
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
-            minimumMovement = 0.005D;
-
-        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            if (Math.abs(vector.vector.getX()) < minimumMovement) {
-                vector.vector.setX(0D);
-            }
-
-            if (Math.abs(vector.vector.getY()) < minimumMovement) {
-                vector.vector.setY(0D);
-            }
-
-            if (Math.abs(vector.vector.getZ()) < minimumMovement) {
-                vector.vector.setZ(0D);
-            }
-        }
-
-        if (player.playerVehicle == null) {
-            playerEntityTravel();
-        } else {
-            livingEntityTravel();
-        }
-    }
-
-    // Player line 1208
-    public void playerEntityTravel() {
-        if (player.specialFlying && player.playerVehicle == null) {
-            double oldY = player.clientVelocity.getY();
-            double oldYJumping = oldY + player.flySpeed * 3;
-            livingEntityTravel();
-
-            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) || player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident)) {
-                player.baseTickSetY(player.actualMovement.getY() * 0.6);
-            } else if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
-                player.baseTickSetY(oldY * 0.6);
-            } else {
-                player.baseTickSetY(oldYJumping * 0.6);
-            }
-
-        } else {
-            livingEntityTravel();
-        }
+    public void move(Vector inputVel) {
+        move(inputVel.multiply(player.stuckSpeedMultiplier), inputVel.multiply(player.stuckSpeedMultiplier));
     }
 
     // Entity line 527
-    public void move(MoverType moverType, Vector inputVel, Vector collide) {
+    public void move(Vector inputVel, Vector collide) {
         // Something about noClip
         // Piston movement exemption
         // What is a motion multiplier?
@@ -90,7 +42,7 @@ public class MovementTicker {
         if (inputVel == collide) {
             // This is when client velocity is no longer referenced by inputVel
             if (!player.inVehicle) {
-                inputVel = Collisions.maybeBackOffFromEdge(inputVel, moverType, player);
+                inputVel = Collisions.maybeBackOffFromEdge(inputVel, player);
             }
 
             collide = Collisions.collide(player, inputVel.getX(), inputVel.getY(), inputVel.getZ());
@@ -165,6 +117,53 @@ public class MovementTicker {
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.specialFlying) {
             player.stuckSpeedMultiplier = new Vector(1, 1, 1);
+        }
+    }
+
+    public void livingEntityAIStep() {
+        // Living Entity line 2153
+        double minimumMovement = 0.003D;
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
+            minimumMovement = 0.005D;
+
+        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
+            if (Math.abs(vector.vector.getX()) < minimumMovement) {
+                vector.vector.setX(0D);
+            }
+
+            if (Math.abs(vector.vector.getY()) < minimumMovement) {
+                vector.vector.setY(0D);
+            }
+
+            if (Math.abs(vector.vector.getZ()) < minimumMovement) {
+                vector.vector.setZ(0D);
+            }
+        }
+
+        if (player.playerVehicle == null) {
+            playerEntityTravel();
+        } else {
+            livingEntityTravel();
+        }
+    }
+
+    // Player line 1208
+    public void playerEntityTravel() {
+        if (player.specialFlying && player.playerVehicle == null) {
+            double oldY = player.clientVelocity.getY();
+            double oldYJumping = oldY + player.flySpeed * 3;
+            livingEntityTravel();
+
+            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) || player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident)) {
+                player.baseTickSetY(player.actualMovement.getY() * 0.6);
+            } else if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
+                player.baseTickSetY(oldY * 0.6);
+            } else {
+                player.baseTickSetY(oldYJumping * 0.6);
+            }
+
+        } else {
+            livingEntityTravel();
         }
     }
 

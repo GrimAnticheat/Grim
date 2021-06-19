@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.EntityType;
-import ac.grim.grimac.utils.enums.MoverType;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -338,8 +337,8 @@ public class Collisions {
 
     // MCP mappings PlayerEntity 959
     // Mojang mappings 911
-    public static Vector maybeBackOffFromEdge(Vector vec3, MoverType moverType, GrimPlayer player) {
-        if (!player.specialFlying && (moverType == MoverType.SELF || moverType == MoverType.PLAYER) && player.isSneaking && isAboveGround(player)) {
+    public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player) {
+        if (!player.specialFlying && player.isSneaking && isAboveGround(player)) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
             while (d != 0.0 && isEmpty(player, player.boundingBox.copy().offset(d, -maxUpStep, 0.0))) {
