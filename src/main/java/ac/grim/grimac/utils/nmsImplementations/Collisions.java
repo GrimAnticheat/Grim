@@ -285,23 +285,26 @@ public class Collisions {
                 .expandMin(-0.26, -0.51, -0.26)
                 .expandMax(0.26, 0.26, 0.26);
 
-        WorldBorder border = player.playerWorld.getWorldBorder();
-        double centerX = border.getCenter().getX();
-        double centerZ = border.getCenter().getZ();
-        // For some reason, the game limits the border to 29999984 blocks wide
-        double size = Math.min(border.getSize() / 2, 29999984);
+        // Worldborders were added in 1.8
+        if (XMaterial.supports(8)) {
+            WorldBorder border = player.playerWorld.getWorldBorder();
+            double centerX = border.getCenter().getX();
+            double centerZ = border.getCenter().getZ();
+            // For some reason, the game limits the border to 29999984 blocks wide
+            double size = Math.min(border.getSize() / 2, 29999984);
 
-        // If the player is fully within the worldborder
-        if (player.boundingBox.minX > centerX - size - 1.0E-7D && player.boundingBox.maxX < centerX + size + 1.0E-7D
-                && player.boundingBox.minZ > centerZ - size - 1.0E-7D && player.boundingBox.maxZ < centerZ + size + 1.0E-7D) {
-            // South border
-            listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ + size, centerX + size, 1e33, centerZ + size));
-            // North border
-            listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ - size, centerX + size, 1e33, centerZ - size));
-            // East border
-            listOfBlocks.add(new SimpleCollisionBox(centerX + size, -1e33, centerZ - size, centerX + size, 1e33, centerZ + size));
-            // West border
-            listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ - size, centerX - size, 1e33, centerZ + size));
+            // If the player is fully within the worldborder
+            if (player.boundingBox.minX > centerX - size - 1.0E-7D && player.boundingBox.maxX < centerX + size + 1.0E-7D
+                    && player.boundingBox.minZ > centerZ - size - 1.0E-7D && player.boundingBox.maxZ < centerZ + size + 1.0E-7D) {
+                // South border
+                listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ + size, centerX + size, 1e33, centerZ + size));
+                // North border
+                listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ - size, centerX + size, 1e33, centerZ - size));
+                // East border
+                listOfBlocks.add(new SimpleCollisionBox(centerX + size, -1e33, centerZ - size, centerX + size, 1e33, centerZ + size));
+                // West border
+                listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ - size, centerX - size, 1e33, centerZ + size));
+            }
         }
 
         // Blocks are stored in YZX order

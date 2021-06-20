@@ -5,6 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.eight.EightChunk;
 import ac.grim.grimac.utils.chunkdata.fifteen.FifteenChunk;
+import ac.grim.grimac.utils.chunkdata.seven.SevenChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
@@ -25,6 +26,8 @@ import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
+import org.bukkit.block.Block;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -50,11 +53,14 @@ public class PacketWorldReader extends PacketListenerAbstract {
         byte packetID = event.getPacketId();
 
         // Time to dump chunk data for 1.9+ - 0.07 ms
-        // Time to dump chunk data for 1.7/1.8 - 0.02 ms
+        // Time to dump chunk data for 1.8 - 0.02 ms
+        // Time to dump chunk data for 1.7 - 1 ms
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
             WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
+
+            long time = System.nanoTime();
 
             try {
                 int chunkX = packet.getChunkX();
@@ -112,35 +118,65 @@ public class PacketWorldReader extends PacketListenerAbstract {
                         }
                     }
 
-                    // This isn't really async safe, but I've seen much worse on 1.7/1.8
-                    chunks = new EightChunk[16];
-                    if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
-                        Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+                    if (XMaterial.getVersion() == 8) {
+                        // This isn't really async safe, but I've seen much worse on 1.8
+                        chunks = new EightChunk[16];
+                        if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                            Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
 
-                        Method handle = Reflection.getMethod(sentChunk.getClass(), "getHandle", 0);
-                        Object nmsChunk = handle.invoke(sentChunk);
-                        Method sections = Reflection.getMethod(nmsChunk.getClass(), "getSections", 0);
-                        Object sectionsArray = sections.invoke(nmsChunk);
+                            Method handle = Reflection.getMethod(sentChunk.getClass(), "getHandle", 0);
+                            Object nmsChunk = handle.invoke(sentChunk);
+                            Method sections = Reflection.getMethod(nmsChunk.getClass(), "getSections", 0);
+                            Object sectionsArray = sections.invoke(nmsChunk);
 
-                        int arrayLength = Array.getLength(sectionsArray);
+                            int arrayLength = Array.getLength(sectionsArray);
 
-                        if (arrayLength == 0)
-                            return;
+                            if (arrayLength == 0)
+                                return;
 
-                        Method getIds = Reflection.getMethod(Array.get(sectionsArray, 0).getClass(), "getIdArray", 0);
+                            Method getIds = Reflection.getMethod(Array.get(sectionsArray, 0).getClass(), "getIdArray", 0);
 
-                        for (int x = 0; x < arrayLength; x++) {
-                            Object section = Array.get(sectionsArray, x);
+                            for (int x = 0; x < arrayLength; x++) {
+                                Object section = Array.get(sectionsArray, x);
 
-                            if (section == null) break;
+                                if (section == null) break;
 
-                            chunks[x] = new EightChunk((char[]) getIds.invoke(section));
+                                chunks[x] = new EightChunk((char[]) getIds.invoke(section));
+                            }
+                        }
+                    } else {
+                        chunks = new SevenChunk[16];
+                        if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                            Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+                            ChunkSnapshot snapshot = sentChunk.getChunkSnapshot();
+
+                            int highestBlock = 0;
+
+                            for (int z = 0; z < 16; z++) {
+                                for (int x = 0; x < 16; x++) {
+                                    highestBlock = Math.max(highestBlock, snapshot.getHighestBlockYAt(x, z));
+                                }
+                            }
+
+                            Field ids = Reflection.getField(snapshot.getClass(), "blockids");
+                            Field data = Reflection.getField(snapshot.getClass(), "blockdata");
+
+                            short[][] blockids = (short[][]) ids.get(snapshot);
+                            byte[][] blockdata = (byte[][]) data.get(snapshot);
+
+                            for (int x = 0; x < 16; x++) {
+                                if (!snapshot.isSectionEmpty(x)) {
+                                    chunks[x] = new SevenChunk(blockids[x], blockdata[x]);
+                                }
+                            }
                         }
                     }
                 }
 
                 Column column = new Column(chunkX, chunkZ, chunks);
                 player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+
+                Bukkit.broadcastMessage("Took " + (System.nanoTime() - time));
 
             } catch (IOException | NoSuchFieldException | IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
@@ -160,29 +196,59 @@ public class PacketWorldReader extends PacketListenerAbstract {
                 for (int i = 0; i < chunkXArray.length; i++) {
                     int chunkX = chunkXArray[i];
                     int chunkZ = chunkZArray[i];
-                    EightChunk[] chunks = new EightChunk[16];
 
-                    if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
-                        Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+                    if (XMaterial.getVersion() == 8) {
+                        EightChunk[] chunks = new EightChunk[16];
 
-                        Method handle = Reflection.getMethod(sentChunk.getClass(), "getHandle", 0);
-                        Object nmsChunk = handle.invoke(sentChunk);
-                        Method sections = Reflection.getMethod(nmsChunk.getClass(), "getSections", 0);
-                        Object sectionsArray = sections.invoke(nmsChunk);
+                        if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                            Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
 
-                        int arrayLength = Array.getLength(sectionsArray);
+                            Method handle = Reflection.getMethod(sentChunk.getClass(), "getHandle", 0);
+                            Object nmsChunk = handle.invoke(sentChunk);
+                            Method sections = Reflection.getMethod(nmsChunk.getClass(), "getSections", 0);
+                            Object sectionsArray = sections.invoke(nmsChunk);
 
-                        if (arrayLength == 0)
-                            return;
+                            int arrayLength = Array.getLength(sectionsArray);
 
-                        Method getIds = Reflection.getMethod(Array.get(sectionsArray, 0).getClass(), "getIdArray", 0);
+                            if (arrayLength == 0)
+                                return;
 
-                        for (int x = 0; x < arrayLength; x++) {
-                            Object section = Array.get(sectionsArray, x);
+                            Method getIds = Reflection.getMethod(Array.get(sectionsArray, 0).getClass(), "getIdArray", 0);
 
-                            if (section == null) break;
+                            for (int x = 0; x < arrayLength; x++) {
+                                Object section = Array.get(sectionsArray, x);
 
-                            chunks[x] = new EightChunk((char[]) getIds.invoke(section));
+                                if (section == null) break;
+
+                                chunks[x] = new EightChunk((char[]) getIds.invoke(section));
+                            }
+
+                            Column column = new Column(chunkX, chunkZ, chunks);
+                            player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+                        }
+                    } else {
+                        // This isn't the most efficient 1.7 support but it works.
+                        TwelveChunk[] chunks = new TwelveChunk[16];
+
+                        if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                            Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+
+                            for (int y = 0; y < 255; y++) {
+                                for (int z = 0; z < 16; z++) {
+                                    for (int x = 0; x < 16; x++) {
+                                        Block block = sentChunk.getBlock(x, y, z);
+                                        int typeID = block.getType().getId();
+
+                                        if (typeID != 0) {
+                                            if (chunks[y >> 4] == null) {
+                                                chunks[y >> 4] = new TwelveChunk();
+                                            }
+
+                                            chunks[y >> 4].set(x, y & 15, z, typeID | block.getData() << 12);
+                                        }
+                                    }
+                                }
+                            }
                         }
 
                         Column column = new Column(chunkX, chunkZ, chunks);
