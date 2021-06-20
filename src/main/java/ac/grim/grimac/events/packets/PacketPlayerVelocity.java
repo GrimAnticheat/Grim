@@ -28,7 +28,9 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            if (entityId == player.entityID || (player.packetStateData.vehicle != null && player.packetStateData.vehicle == entityId)) {
+            // If the player isn't in a vehicle and the ID is for the player, the player will take kb
+            // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
+            if ((player.packetStateData.vehicle == null && entityId == player.entityID) || (player.packetStateData.vehicle != null && player.packetStateData.vehicle == entityId)) {
                 double velX = velocity.getVelocityX();
                 double velY = velocity.getVelocityY();
                 double velZ = velocity.getVelocityZ();
