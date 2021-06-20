@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -200,8 +201,11 @@ public class CompensatedEntities {
     }
 
     private void updateEntityMetadata(PacketEntity entity, List<WrappedWatchableObject> watchableObjects) {
-        Optional<WrappedWatchableObject> poseObject = watchableObjects.stream().filter(o -> o.getIndex() == 6).findFirst();
-        poseObject.ifPresent(wrappedWatchableObject -> entity.pose = Pose.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
+        // Poses only exist in 1.14+ with the new shifting mechanics
+        if (XMaterial.supports(14)) {
+            Optional<WrappedWatchableObject> poseObject = watchableObjects.stream().filter(o -> o.getIndex() == 6).findFirst();
+            poseObject.ifPresent(wrappedWatchableObject -> entity.pose = Pose.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
+        }
 
         if (entity instanceof PacketEntityShulker) {
             Optional<WrappedWatchableObject> shulkerAttached = watchableObjects.stream().filter(o -> o.getIndex() == 15).findFirst();

@@ -2,6 +2,7 @@ package ac.grim.grimac;
 
 import ac.grim.grimac.events.bukkit.*;
 import ac.grim.grimac.events.packets.*;
+import ac.grim.grimac.events.packets.worldreader.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
@@ -47,52 +48,6 @@ public final class GrimAC extends JavaPlugin {
     @Override
     public void onDisable() {
         PacketEvents.get().terminate();
-    }
-
-    public void registerEvents() {
-        Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), this);
-
-        if (XMaterial.isNewVersion()) {
-            Bukkit.getPluginManager().registerEvents(new FlatPlayerBlockBreakPlace(), this);
-        } else {
-            Bukkit.getPluginManager().registerEvents(new MagicPlayerBlockBreakPlace(), this);
-        }
-
-        if (XMaterial.supports(9)) {
-            Bukkit.getPluginManager().registerEvents(new PlayerToggleElytra(), this);
-        }
-
-        if (XMaterial.supports(13)) {
-            Bukkit.getPluginManager().registerEvents(new RiptideEvent(), this);
-        }
-
-        Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
-    }
-
-    public void registerPackets() {
-        PacketEvents.get().registerListener(new PacketPositionListener());
-        PacketEvents.get().registerListener(new PacketVehicleMoves());
-        PacketEvents.get().registerListener(new PacketPlayerAbilities());
-        PacketEvents.get().registerListener(new PacketPlayerVelocity());
-        PacketEvents.get().registerListener(new PacketPingListener());
-        PacketEvents.get().registerListener(new PacketPlayerDigging());
-        PacketEvents.get().registerListener(new PacketPlayerAttack());
-        PacketEvents.get().registerListener(new PacketEntityAction());
-        PacketEvents.get().registerListener(new PacketEntityReplication());
-        PacketEvents.get().registerListener(new PacketBlockAction());
-
-        PacketEvents.get().registerListener(new PacketFireworkListener());
-        PacketEvents.get().registerListener(new PacketElytraListener());
-        PacketEvents.get().registerListener(new PacketPlayerTeleport());
-
-        try {
-            PacketEvents.get().registerListener(new PacketWorldReader());
-        } catch (ClassNotFoundException | NoSuchMethodException exception) {
-            getLogger().severe("The async world reader has broke! Panic and report this error!");
-            exception.printStackTrace();
-        }
-
-        PacketEvents.get().init();
     }
 
     // Don't add online players - exempt the players on reload by not adding them to hashmap due to chunk caching system
@@ -142,6 +97,57 @@ public final class GrimAC extends JavaPlugin {
                 sendTransaction(player.getNextTransactionID(), player);
             }
         }, 1, 1);
+    }
+
+    public void registerEvents() {
+        Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), this);
+
+        if (XMaterial.isNewVersion()) {
+            Bukkit.getPluginManager().registerEvents(new FlatPlayerBlockBreakPlace(), this);
+        } else {
+            Bukkit.getPluginManager().registerEvents(new MagicPlayerBlockBreakPlace(), this);
+        }
+
+        if (XMaterial.supports(9)) {
+            Bukkit.getPluginManager().registerEvents(new PlayerToggleElytra(), this);
+        }
+
+        if (XMaterial.supports(13)) {
+            Bukkit.getPluginManager().registerEvents(new RiptideEvent(), this);
+        }
+
+        Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
+    }
+
+    public void registerPackets() {
+        PacketEvents.get().registerListener(new PacketPositionListener());
+        PacketEvents.get().registerListener(new PacketVehicleMoves());
+        PacketEvents.get().registerListener(new PacketPlayerAbilities());
+        PacketEvents.get().registerListener(new PacketPlayerVelocity());
+        PacketEvents.get().registerListener(new PacketPingListener());
+        PacketEvents.get().registerListener(new PacketPlayerDigging());
+        PacketEvents.get().registerListener(new PacketPlayerAttack());
+        PacketEvents.get().registerListener(new PacketEntityAction());
+        PacketEvents.get().registerListener(new PacketEntityReplication());
+        PacketEvents.get().registerListener(new PacketBlockAction());
+
+        PacketEvents.get().registerListener(new PacketFireworkListener());
+        PacketEvents.get().registerListener(new PacketElytraListener());
+        PacketEvents.get().registerListener(new PacketPlayerTeleport());
+
+        if (XMaterial.getVersion() >= 16) {
+            PacketEvents.get().registerListener(new PacketWorldReaderSixteen());
+        } else if (XMaterial.isNewVersion()) {
+            PacketEvents.get().registerListener(new PacketWorldReaderThirteen());
+        } else if (XMaterial.getVersion() > 8) {
+            PacketEvents.get().registerListener(new PacketWorldReaderNine());
+        } else if (XMaterial.getVersion() == 8) {
+            PacketEvents.get().registerListener(new PacketWorldReaderEight());
+        } else {
+            PacketEvents.get().registerListener(new PacketWorldReaderSeven());
+        }
+
+        PacketEvents.get().init();
     }
 
     // Shouldn't error, but be on the safe side as this is networking stuff
