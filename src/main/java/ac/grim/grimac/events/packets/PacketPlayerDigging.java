@@ -17,6 +17,7 @@ import org.bukkit.inventory.meta.CrossbowMeta;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
     Material crossbow = XMaterial.CROSSBOW.parseMaterial();
+    Material trident = XMaterial.TRIDENT.parseMaterial();
 
     @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {

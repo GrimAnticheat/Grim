@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
+import ac.grim.grimac.utils.chunkdata.eight.EightChunk;
 import ac.grim.grimac.utils.chunkdata.fifteen.FifteenChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
@@ -163,8 +164,10 @@ public class CompensatedWorld {
                     column.getChunks()[y >> 4] = new SixteenChunk();
                 } else if (XMaterial.isNewVersion()) {
                     column.getChunks()[y >> 4] = new FifteenChunk();
-                } else {
+                } else if (XMaterial.getVersion() > 8) {
                     column.getChunks()[y >> 4] = new TwelveChunk();
+                } else {
+                    column.getChunks()[y >> 4] = new EightChunk(new char[4096]);
                 }
 
                 chunk = column.getChunks()[y >> 4];
