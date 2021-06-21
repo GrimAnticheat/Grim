@@ -104,6 +104,7 @@ public class Materials {
         Material legacyStationaryWater = matchLegacy("STATIONARY_WATER");
         if (legacyStationaryWater != null) {
             MATERIAL_FLAGS[legacyStationaryWater.ordinal()] = WATER;
+            MATERIAL_FLAGS[legacyStationaryWater.ordinal()] = WATER_LEGACY;
         }
 
         Material legacyStationaryLava = matchLegacy("STATIONARY_LAVA");
