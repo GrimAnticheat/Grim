@@ -19,4 +19,5 @@ public class PacketStateData {
     public Hand eatingHand = Hand.MAIN_HAND;
     public boolean isEating = false;
     public Integer vehicle = null;
+    public boolean receivedVehicleMove = false;
 }

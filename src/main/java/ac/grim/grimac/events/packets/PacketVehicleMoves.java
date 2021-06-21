@@ -27,8 +27,10 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
+            player.packetStateData.receivedVehicleMove = true;
+
             Vector3d pos = move.getPosition();
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch()), false);
         }
     }
 

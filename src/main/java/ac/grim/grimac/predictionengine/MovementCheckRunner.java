@@ -10,6 +10,7 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
@@ -21,6 +22,7 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -47,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 // If stage 0 - Add one and add the data to the workers
 // If stage 1 - Add the data to the queue and add one
 public class MovementCheckRunner {
+    private static final Material CARROT_ON_STICK = XMaterial.CARROT_ON_A_STICK.parseMaterial();
+    private static final Material FUNGUS_ON_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
     public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
     public static CustomThreadPoolExecutor executor =
             new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
@@ -54,10 +58,9 @@ public class MovementCheckRunner {
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
     // List instead of Set for consistency in debug output
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
-
     static int temp = 0;
 
-    public static void processAndCheckMovementPacket(PredictionData data) {
+    public static void processAndCheckMovementPacket(PredictionData data, boolean isDummy) {
         data.player.packetStateData.packetPlayerX = data.playerX;
         data.player.packetStateData.packetPlayerY = data.playerY;
         data.player.packetStateData.packetPlayerZ = data.playerZ;
@@ -72,7 +75,9 @@ public class MovementCheckRunner {
             data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
         }
 
-        data.player.timerCheck.processMovementPacket(data.playerX, data.playerY, data.playerZ, data.xRot, data.yRot);
+        if (!isDummy) {
+            data.player.timerCheck.processMovementPacket(data.playerX, data.playerY, data.playerZ, data.xRot, data.yRot);
+        }
 
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
             executor.submit(() -> check(data));
@@ -92,6 +97,38 @@ public class MovementCheckRunner {
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedEntities.tickUpdates(data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
+
+        // Set position now to support "dummy" riding without control
+        if (data.isDummy) {
+            ItemStack heldItem = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
+            ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
+            PacketEntity entity = data.playerVehicle != null ? player.compensatedEntities.getEntity(data.playerVehicle) : null;
+
+            if (entity != null &&
+                    ((entity.type == EntityType.PIG && (heldItem != null && heldItem.getType() != CARROT_ON_STICK) && (offHand != null && offHand.getType() != CARROT_ON_STICK))
+                    || (entity.type == EntityType.STRIDER && (heldItem != null && heldItem.getType() != FUNGUS_ON_STICK) && (offHand != null && offHand.getType() != FUNGUS_ON_STICK))
+                    || (entity instanceof PacketEntityHorse && !((PacketEntityHorse) entity).hasSaddle))) {
+                player.lastX = player.x;
+                player.lastY = player.y;
+                player.lastZ = player.z;
+
+                player.x = data.playerX;
+                player.y = data.playerY;
+                player.z = data.playerZ;
+
+                // This really sucks, but without control, the player isn't responsible for applying vehicle knockback
+                player.knockbackHandler.handlePlayerKb(0);
+                player.explosionHandler.handlePlayerExplosion(0);
+
+                // Yes, even vanilla players can somewhat float in the air with a pig by spamming carrot on stick and another item
+                player.baseTickSetX(0);
+                player.baseTickSetY(0);
+                player.baseTickSetZ(0);
+            }
+
+            queueNext(player);
+            return;
+        }
 
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
         try {
@@ -289,6 +326,10 @@ public class MovementCheckRunner {
         player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
         player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
 
+        queueNext(player);
+    }
+
+    private static void queueNext(GrimPlayer player) {
         if (player.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;
 
@@ -300,7 +341,7 @@ public class MovementCheckRunner {
             // In reality this should never occur, and if it does it should only happen once.
             // In theory it's good to design an asynchronous system that can never break
             do {
-                nextData = queuedPredictions.get(data.player.playerUUID).poll();
+                nextData = queuedPredictions.get(player.playerUUID).poll();
             } while (nextData == null);
 
             PredictionData finalNextData = nextData;

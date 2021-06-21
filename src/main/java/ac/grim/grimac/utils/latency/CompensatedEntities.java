@@ -153,16 +153,34 @@ public class CompensatedEntities {
 
         // Update riding positions - server should send teleport after dismount
         for (PacketEntity entity : entityMap.values()) {
-            if (entity.riding == null)
+            // The entity will be "ticked" by tickPassenger
+            if (entity.riding != null)
                 continue;
 
-            if (entity.riding.isDead) {
-                entity.riding = null;
-                continue;
+            for (int passengerID : entity.passengers) {
+                PacketEntity passengerPassenger = player.compensatedEntities.getEntity(passengerID);
+                tickPassenger(entity, passengerPassenger);
             }
+        }
+    }
 
-            entity.lastTickPosition = new Vector3d(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-            entity.position = entity.riding.position;
+    private void tickPassenger(PacketEntity riding, PacketEntity passenger) {
+        if (riding == null || passenger == null) {
+            return;
+        }
+
+        if (riding.isDead && passenger.riding == riding) {
+            passenger.riding = null;
+        } else {
+            passenger.lastTickPosition = passenger.position;
+
+            // TODO: Calculate offset
+            passenger.position = riding.position;
+
+            for (int entity : riding.passengers) {
+                PacketEntity passengerPassenger = player.compensatedEntities.getEntity(entity);
+                tickPassenger(passenger, passengerPassenger);
+            }
         }
     }
 

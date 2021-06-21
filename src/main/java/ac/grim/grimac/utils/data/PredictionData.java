@@ -2,11 +2,13 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
@@ -64,6 +66,9 @@ public class PredictionData {
     public VelocityData possibleExplosion = null;
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
+    public int itemHeld;
+
+    public boolean isDummy = false;
 
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
@@ -119,37 +124,8 @@ public class PredictionData {
 
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
-    }
 
-    // For boat movement
-    public PredictionData(GrimPlayer player, double boatX, double boatY, double boatZ, float xRot, float yRot) {
-        this.player = player;
-        this.playerX = boatX;
-        this.playerY = boatY;
-        this.playerZ = boatZ;
-        this.xRot = xRot;
-        this.yRot = yRot;
-        this.onGround = true;
-        this.isSprinting = false;
-        this.isSneaking = false;
-        this.playerVehicle = player.packetStateData.vehicle;
-        this.vehicleForward = player.packetStateData.packetVehicleForward;
-        this.vehicleHorizontal = player.packetStateData.packetVehicleHorizontal;
-
-        Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
-
-        this.levitationAmplifier = getHighestPotionEffect(playerPotionEffects, "LEVITATION", 9);
-        this.slowFallingAmplifier = getHighestPotionEffect(playerPotionEffects, "SLOW_FALLING", 13);
-
-        this.playerWorld = player.bukkitPlayer.getWorld();
-        this.fallDistance = player.bukkitPlayer.getFallDistance();
-        this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
-
-        firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
-        requiredKB = player.knockbackHandler.getRequiredKB();
-
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
-        lastTransaction = player.packetStateData.packetLastTransactionReceived;
+        itemHeld = player.packetStateData.lastSlotSelected;
     }
 
     public static double getMovementSpeedAttribute(LivingEntity entity) {
@@ -181,5 +157,58 @@ public class PredictionData {
         }
 
         return highestEffect;
+    }
+
+    // For boat movement
+    public PredictionData(GrimPlayer player, double boatX, double boatY, double boatZ, float xRot, float yRot) {
+        this.player = player;
+        this.playerX = boatX;
+        this.playerY = boatY;
+        this.playerZ = boatZ;
+        this.xRot = xRot;
+        this.yRot = yRot;
+        this.onGround = true;
+        this.isSprinting = false;
+        this.isSneaking = false;
+        this.playerVehicle = player.packetStateData.vehicle;
+        this.vehicleForward = player.packetStateData.packetVehicleForward;
+        this.vehicleHorizontal = player.packetStateData.packetVehicleHorizontal;
+
+        Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
+
+        this.levitationAmplifier = getHighestPotionEffect(playerPotionEffects, "LEVITATION", 9);
+        this.slowFallingAmplifier = getHighestPotionEffect(playerPotionEffects, "SLOW_FALLING", 13);
+
+        this.playerWorld = player.bukkitPlayer.getWorld();
+        this.fallDistance = player.bukkitPlayer.getFallDistance();
+        this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
+
+        firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
+        requiredKB = player.knockbackHandler.getRequiredKB();
+
+        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
+        lastTransaction = player.packetStateData.packetLastTransactionReceived;
+
+        itemHeld = player.packetStateData.lastSlotSelected;
+    }
+
+    public PredictionData(GrimPlayer player) {
+        PacketEntity vehicle = player.compensatedEntities.getEntity(player.packetStateData.vehicle);
+        this.player = player;
+        this.playerVehicle = player.packetStateData.vehicle;
+
+        this.playerX = vehicle.position.getX();
+        this.playerY = vehicle.position.getY();
+        this.playerZ = vehicle.position.getZ();
+
+        firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
+        requiredKB = player.knockbackHandler.getRequiredKB();
+
+        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
+        lastTransaction = player.packetStateData.packetLastTransactionReceived;
+
+        itemHeld = player.packetStateData.lastSlotSelected;
+
+        isDummy = true;
     }
 }

@@ -61,9 +61,6 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
                 }
 
                 addChunkToCache(player, chunkX, chunkZ);
-
-                Bukkit.broadcastMessage("Took " + (System.nanoTime() - time));
-
             } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException e) {
                 e.printStackTrace();
             }

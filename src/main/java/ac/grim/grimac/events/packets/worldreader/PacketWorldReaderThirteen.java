@@ -75,8 +75,6 @@ public class PacketWorldReaderThirteen extends PacketListenerAbstract {
                 Column column = new Column(chunkX, chunkZ, chunks);
                 player.compensatedWorld.addToCache(column, chunkX, chunkZ);
 
-                Bukkit.broadcastMessage("Took " + (System.nanoTime() - time));
-
             } catch (IOException e) {
                 e.printStackTrace();
             }

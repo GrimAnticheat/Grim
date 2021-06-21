@@ -28,7 +28,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Vector3d pos = position.getPosition();
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()), false);
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
@@ -38,7 +38,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Vector3d pos = position.getPosition();
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()), false);
         }
 
         if (packetID == PacketType.Play.Client.LOOK) {
@@ -46,11 +46,19 @@ public class PacketPositionListener extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            if (player.packetStateData.vehicle != null) return;
+            // Prevent memory leaks from players continually staying in vehicles that they can't ride - also updates player position
+            if (player.packetStateData.vehicle != null && player.compensatedEntities.entityMap.containsKey(player.packetStateData.vehicle)) {
+                if (!player.packetStateData.receivedVehicleMove) {
+                    MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player), true);
+                    player.packetStateData.receivedVehicleMove = false;
+                }
+
+                return;
+            }
 
             MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
                     player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,
-                    position.getYaw(), position.getPitch(), position.isOnGround()));
+                    position.getYaw(), position.getPitch(), position.isOnGround()), false);
         }
 
         if (packetID == PacketType.Play.Client.FLYING) {
@@ -60,7 +68,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
                     player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,
-                    player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
+                    player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()), false);
         }
 
         if (packetID == PacketType.Play.Client.STEER_VEHICLE) {
