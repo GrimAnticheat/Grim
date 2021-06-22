@@ -21,31 +21,14 @@ public class MovementTicker {
         this.bukkitPlayer = player.bukkitPlayer;
     }
 
-    public void move(Vector inputVel) {
-        move(inputVel.multiply(player.stuckSpeedMultiplier), inputVel.multiply(player.stuckSpeedMultiplier));
-    }
-
     // Entity line 527
     public void move(Vector inputVel, Vector collide) {
-        // Something about noClip
-        // Piston movement exemption
-        // What is a motion multiplier?
 
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.baseTickSetX(0);
             player.baseTickSetY(0);
             player.baseTickSetZ(0);
             player.clientVelocity = new Vector();
-        }
-
-        // Optimization - we run collisions before this occasionally so don't repeat them
-        if (inputVel == collide) {
-            // This is when client velocity is no longer referenced by inputVel
-            if (!player.inVehicle) {
-                inputVel = Collisions.maybeBackOffFromEdge(inputVel, player);
-            }
-
-            collide = Collisions.collide(player, inputVel.getX(), inputVel.getY(), inputVel.getZ());
         }
 
         // This is where vanilla moves the bounding box and sets it
