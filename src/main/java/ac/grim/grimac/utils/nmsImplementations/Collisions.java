@@ -99,7 +99,14 @@ public class Collisions {
             }
         }
 
+        // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
         boolean movingIntoGround = player.lastOnGround || clonedY != yWithCollision && clonedY < 0.0D;
+
+        // This fixes an issue where stepping from water onto land with an animal sees itself as "swim hopping"
+        // and therefore not on the ground.
+        // Not very pretty but it works...
+        if (player.wasTouchingWater && player.inVehicle)
+            movingIntoGround = clonedY != yWithCollision && clonedY < 0.0D;
 
         // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
         // If not, just return the collisions without stepping up that we calculated earlier
