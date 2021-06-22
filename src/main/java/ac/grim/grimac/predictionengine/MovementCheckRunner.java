@@ -280,6 +280,11 @@ public class MovementCheckRunner {
                 color = ChatColor.RED;
             }
 
+            if (player.lastVehicleSwitch < 3) {
+                color = ChatColor.GRAY;
+                offset = 0;
+            }
+
             player.knockbackHandler.handlePlayerKb(offset);
             player.explosionHandler.handlePlayerExplosion(offset);
             player.trigHandler.setOffset(offset);
