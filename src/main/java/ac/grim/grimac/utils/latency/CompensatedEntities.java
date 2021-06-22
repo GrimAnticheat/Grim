@@ -102,14 +102,6 @@ public class CompensatedEntities {
             // Eject existing passengers for this vehicle
             if (vehicle.passengers != null) {
                 for (int entityID : vehicle.passengers) {
-                    // Handle scenario transferring from entity to entity with the following packet order:
-                    // Player boards the new entity and a packet is sent for that
-                    // Player is removed from the old entity
-                    // Without the second check the player wouldn't be riding anything
-                    if (player.entityID == entityID && player.packetStateData.vehicle == mountVehicle.vehicleID) {
-                        player.packetStateData.vehicle = null;
-                    }
-
                     PacketEntity passenger = getEntity(entityID);
 
                     if (passenger == null)
@@ -121,10 +113,6 @@ public class CompensatedEntities {
 
             // Add the entities as vehicles
             for (int entityID : mountVehicle.passengers) {
-                if (player.entityID == entityID) {
-                    player.packetStateData.vehicle = mountVehicle.vehicleID;
-                }
-
                 PacketEntity passenger = getEntity(entityID);
                 if (passenger == null)
                     continue;

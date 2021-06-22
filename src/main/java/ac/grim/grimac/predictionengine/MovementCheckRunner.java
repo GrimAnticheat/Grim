@@ -90,10 +90,10 @@ public class MovementCheckRunner {
     public static void check(PredictionData data) {
         GrimPlayer player = data.player;
 
-        /*if (data.minimumTickRequiredToContinue > GrimAC.getCurrentTick()) {
+        if (data.minimumTickRequiredToContinue > GrimAC.getCurrentTick()) {
             waitingOnServerQueue.add(data);
             return;
-        }*/
+        }
 
         player.lastVehicle = player.playerVehicle;
         player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);

@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
@@ -75,7 +76,27 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(mount.getEntityId(), mount.getPassengerIds(), player.lastTransactionSent.get()));
+            int vehicleID = mount.getEntityId();
+
+            if (player.packetStateData.vehicle != null && player.packetStateData.vehicle == vehicleID)
+                player.packetStateData.vehicle = null;
+
+            int[] passengers = mount.getPassengerIds();
+
+            if (passengers != null) {
+                for (int entityID : passengers) {
+                    // Handle scenario transferring from entity to entity with the following packet order:
+                    // Player boards the new entity and a packet is sent for that
+                    // Player is removed from the old entity
+                    // Without the second check the player wouldn't be riding anything
+                    if (player.entityID == entityID) {
+                        player.packetStateData.vehicle = vehicleID;
+                        break;
+                    }
+                }
+            }
+
+            player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(vehicleID, passengers, player.lastTransactionSent.get()));
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
