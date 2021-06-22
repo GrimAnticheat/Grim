@@ -65,7 +65,7 @@ public class Collisions {
             setY += yWithCollision;
         }
 
-        boolean doZFirst = Math.abs(xWithCollision) > Math.abs(zWithCollision) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
+        boolean doZFirst = Math.abs(xWithCollision) < Math.abs(zWithCollision) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
         if (doZFirst && zWithCollision != 0.0D) {
             for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
                 zWithCollision = bb.collideZ(setBB, zWithCollision);
@@ -116,7 +116,7 @@ public class Collisions {
             SimpleCollisionBox expandedToCoordinateBB = setBB.copy().expandToCoordinate(clonedX, 0.0D, clonedZ);
             double stepMaxClone = stepUpHeight;
             // See how far upwards we go in the Y axis with coordinate expanded collision
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
+            for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
                 stepMaxClone = bb.collideY(expandedToCoordinateBB, stepMaxClone);
             }
 
@@ -131,7 +131,7 @@ public class Collisions {
             double clonedClonedX = clonedX;
             double clonedClonedZ = clonedZ;
 
-            doZFirst = Math.abs(zWithCollision) > Math.abs(xWithCollision) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
+            doZFirst = Math.abs(zWithCollision) < Math.abs(xWithCollision) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
             if (doZFirst) {
                 // Calculate Z offset
                 for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
