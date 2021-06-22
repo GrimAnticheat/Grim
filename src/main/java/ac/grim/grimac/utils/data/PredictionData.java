@@ -204,6 +204,9 @@ public class PredictionData {
         firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
         requiredKB = player.knockbackHandler.getRequiredKB();
 
+        firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
+        possibleExplosion = player.explosionHandler.getPossibleExplosions();
+
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
 

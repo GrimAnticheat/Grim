@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -140,6 +141,16 @@ public class PredictionEngine {
     // Currently, we cannot handle player being pushed by pistons while starting riptides while on the ground
     // I'll be very surprised if someone actually manages to accomplish this
     public Vector handlePushMovement(GrimPlayer player, Vector vector) {
+        if (player.lastVehicleSwitch < 3 && player.lastVehiclePersistent != null) {
+            Vector3d pos = player.lastVehiclePersistent.position;
+            Vector3d lastPos = player.lastVehiclePersistent.lastTickPosition;
+            Vector3d diff = pos.subtract(lastPos);
+
+            return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                    vector.clone().add(new Vector(Math.max(0, diff.getX()), Math.max(0, diff.getY()), Math.max(0, diff.getZ()))),
+                    vector.clone().add(new Vector(Math.min(0, diff.getX()), Math.min(0, diff.getY()), Math.min(0, diff.getZ()))));
+        }
+
         if (player.uncertaintyHandler.pistonX != 0 || player.uncertaintyHandler.pistonY != 0 || player.uncertaintyHandler.pistonZ != 0) {
             // Fixes issue occuring when pushed upwards and standing on piston
             // Subtracting gravity allows the player's y vel to be set to 0

@@ -50,8 +50,9 @@ public class PacketPositionListener extends PacketListenerAbstract {
             if (player.packetStateData.vehicle != null && player.compensatedEntities.entityMap.containsKey(player.packetStateData.vehicle)) {
                 if (!player.packetStateData.receivedVehicleMove) {
                     MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player), true);
-                    player.packetStateData.receivedVehicleMove = false;
                 }
+
+                player.packetStateData.receivedVehicleMove = false;
 
                 return;
             }

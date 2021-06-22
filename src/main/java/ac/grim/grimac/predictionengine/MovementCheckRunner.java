@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -89,25 +90,57 @@ public class MovementCheckRunner {
     public static void check(PredictionData data) {
         GrimPlayer player = data.player;
 
-        if (data.minimumTickRequiredToContinue > GrimAC.getCurrentTick()) {
+        /*if (data.minimumTickRequiredToContinue > GrimAC.getCurrentTick()) {
             waitingOnServerQueue.add(data);
             return;
+        }*/
+
+        player.lastVehicle = player.playerVehicle;
+        player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
+        player.inVehicle = player.playerVehicle != null;
+
+        player.firstBreadKB = data.firstBreadKB;
+        player.possibleKB = data.requiredKB;
+
+        player.firstBreadExplosion = data.firstBreadExplosion;
+        player.knownExplosion = data.possibleExplosion;
+
+        player.lastVehicleSwitch++;
+        if (player.lastVehicle != player.playerVehicle) {
+            if (player.playerVehicle == null) {
+                player.lastVehiclePersistent = player.lastVehicle;
+            } else {
+                player.lastVehiclePersistent = player.playerVehicle;
+            }
+
+            player.lastVehicleSwitch = 0;
+        }
+
+        // Stop desync where vehicle kb -> player leaves vehicle same tick
+        if (player.lastVehicleSwitch < 3) {
+            player.knockbackHandler.handlePlayerKb(0);
+            player.explosionHandler.handlePlayerExplosion(0);
         }
 
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedEntities.tickUpdates(data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
 
+        if (data.isDummy != player.lastDummy) {
+            player.lastVehicleSwitch = 0;
+        }
+        player.lastDummy = data.isDummy;
+
         // Set position now to support "dummy" riding without control
+        // Warning - on pigs and striders players, can turn into dummies independent of whether they have
+        // control of the vehicle or not (which could be abused to set velocity to 0 repeatedly and kind
+        // of float in the air, although what's the point inside a vehicle?)
         if (data.isDummy) {
-            ItemStack heldItem = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
-            ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
             PacketEntity entity = data.playerVehicle != null ? player.compensatedEntities.getEntity(data.playerVehicle) : null;
 
-            if (entity != null &&
-                    ((entity.type == EntityType.PIG && (heldItem != null && heldItem.getType() != CARROT_ON_STICK) && (offHand != null && offHand.getType() != CARROT_ON_STICK))
-                    || (entity.type == EntityType.STRIDER && (heldItem != null && heldItem.getType() != FUNGUS_ON_STICK) && (offHand != null && offHand.getType() != FUNGUS_ON_STICK))
-                    || (entity instanceof PacketEntityHorse && !((PacketEntityHorse) entity).hasSaddle))) {
+            // Players on horses that have saddles or players inside boats cannot be dummies
+            if (entity == null || (entity instanceof PacketEntityHorse && !((PacketEntityHorse) entity).hasSaddle)
+                    || entity.type != EntityType.BOAT) {
                 player.lastX = player.x;
                 player.lastY = player.y;
                 player.lastZ = player.z;
@@ -162,6 +195,10 @@ public class MovementCheckRunner {
                 if (player.playerVehicle.type != EntityType.PIG && player.playerVehicle.type != EntityType.STRIDER) {
                     player.isClimbing = false;
                 }
+
+                // Player is control of the vehicle
+                player.playerVehicle.lastTickPosition = player.playerVehicle.position;
+                player.playerVehicle.position = new Vector3d(player.x, player.y, player.z);
             }
 
             player.playerWorld = data.playerWorld;
@@ -179,14 +216,6 @@ public class MovementCheckRunner {
             player.slowFallingAmplifier = data.slowFallingAmplifier;
             player.dolphinsGraceAmplifier = data.dolphinsGraceAmplifier;
             player.flySpeed = data.flySpeed;
-            player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
-            player.inVehicle = player.playerVehicle != null;
-
-            player.firstBreadKB = data.firstBreadKB;
-            player.possibleKB = data.requiredKB;
-
-            player.firstBreadExplosion = data.firstBreadExplosion;
-            player.knownExplosion = data.possibleExplosion;
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
@@ -298,12 +327,9 @@ public class MovementCheckRunner {
             }
 
             GrimAC.staticGetLogger().info(traceback.toString());
-            GrimAC.staticGetLogger().info(player.x + " " + player.y + " " + player.z);
-            GrimAC.staticGetLogger().info(player.lastX + " " + player.lastY + " " + player.lastZ);
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
             GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + "O: " + color + offset);
-            GrimAC.staticGetLogger().info("Gliding " + player.isGliding + " trans " + temp);
 
         } catch (Exception e) {
             e.printStackTrace();

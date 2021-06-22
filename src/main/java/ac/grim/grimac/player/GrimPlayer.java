@@ -22,6 +22,7 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
 import io.github.retrooper.packetevents.utils.versionlookup.v_1_7_10.SpigotVersionLookup_1_7;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
@@ -100,6 +101,10 @@ public class GrimPlayer {
     public float flySpeed;
     public boolean inVehicle;
     public PacketEntity playerVehicle;
+    public PacketEntity lastVehicle;
+    public PacketEntity lastVehiclePersistent = null;
+    public int lastVehicleSwitch = 1000;
+    public boolean lastDummy = false;
     public float vehicleHorizontal;
     public float vehicleForward;
     public BoatData boatData = new BoatData();
