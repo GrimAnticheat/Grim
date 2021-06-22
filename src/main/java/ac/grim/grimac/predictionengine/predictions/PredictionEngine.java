@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -19,32 +20,6 @@ import java.util.Set;
 
 public class PredictionEngine {
     boolean canRiptide = false;
-
-    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
-
-        // Slow movement was determined by the previous pose
-        if (player.isSlowMovement) {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
-        } else {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
-        }
-
-        if (player.isUsingItem) {
-            bestPossibleX *= 0.2F;
-            bestPossibleZ *= 0.2F;
-        }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98);
-
-        if (inputVector.lengthSquared() > 1) inputVector.normalize();
-
-        return inputVector;
-    }
 
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
@@ -137,6 +112,24 @@ public class PredictionEngine {
         return Double.compare(distance1, distance2);
     }
 
+    // Try to solve any falses from small velocity amounts not being shown in movement
+    public int putVelocityExplosionsFirst(VectorData a, VectorData b) {
+        int aScore = 0;
+        int bScore = 0;
+        if (a.hasVectorType(VectorData.VectorType.Explosion))
+            aScore++;
+
+        if (a.hasVectorType(VectorData.VectorType.Knockback))
+            aScore++;
+
+        if (b.hasVectorType(VectorData.VectorType.Explosion))
+            bScore++;
+
+        if (b.hasVectorType(VectorData.VectorType.Knockback))
+            bScore++;
+
+        return Integer.compare(aScore, bScore);
+    }
 
     // Currently, we cannot handle player being pushed by pistons while starting riptides while on the ground
     // I'll be very surprised if someone actually manages to accomplish this
@@ -147,8 +140,8 @@ public class PredictionEngine {
             Vector3d diff = pos.subtract(lastPos);
 
             return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                    vector.clone().add(new Vector(Math.max(0, diff.getX()), Math.max(0, diff.getY()), Math.max(0, diff.getZ()))),
-                    vector.clone().add(new Vector(Math.min(0, diff.getX()), Math.min(0, diff.getY()), Math.min(0, diff.getZ()))));
+                    vector.clone().add(new Vector(Math.min(0, diff.getX()), Math.min(0, diff.getY()), Math.min(0, diff.getZ()))),
+                    vector.clone().add(new Vector(Math.max(0, diff.getX()), Math.max(0, diff.getY()), Math.max(0, diff.getZ()))));
         }
 
         if (player.uncertaintyHandler.pistonX != 0 || player.uncertaintyHandler.pistonY != 0 || player.uncertaintyHandler.pistonZ != 0) {
@@ -201,23 +194,45 @@ public class PredictionEngine {
         }
     }
 
-    // Try to solve any falses from small velocity amounts not being shown in movement
-    public int putVelocityExplosionsFirst(VectorData a, VectorData b) {
-        int aScore = 0;
-        int bScore = 0;
-        if (a.hasVectorType(VectorData.VectorType.Explosion))
-            aScore++;
+    public void addExplosionRiptideToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        for (VectorData vector : new HashSet<>(existingVelocities)) {
+            if (player.knownExplosion != null) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.knownExplosion.vector), vector, VectorData.VectorType.Explosion));
+            }
 
-        if (a.hasVectorType(VectorData.VectorType.Knockback))
-            aScore++;
+            if (player.firstBreadExplosion != null) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
+            }
 
-        if (b.hasVectorType(VectorData.VectorType.Explosion))
-            bScore++;
+            if (player.compensatedRiptide.getCanRiptide()) {
+                ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
+                ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
-        if (b.hasVectorType(VectorData.VectorType.Knockback))
-            bScore++;
+                int j;
+                if (main.getType() == Material.TRIDENT) {
+                    j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
+                } else if (off.getType() == Material.TRIDENT) {
+                    j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
+                } else {
+                    return;
+                }
 
-        return Integer.compare(aScore, bScore);
+                canRiptide = true;
+
+                float f7 = player.xRot;
+                float f = player.yRot;
+                float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
+                float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
+                float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
+                float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
+                float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
+                f1 = f1 * (f5 / f4);
+                f2 = f2 * (f5 / f4);
+                f3 = f3 * (f5 / f4);
+
+                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(f1, f2, f3)), VectorData.VectorType.Trident));
+            }
+        }
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
@@ -262,45 +277,30 @@ public class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    public void addExplosionRiptideToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        for (VectorData vector : new HashSet<>(existingVelocities)) {
-            if (player.knownExplosion != null) {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(player.knownExplosion.vector), vector, VectorData.VectorType.Explosion));
-            }
+    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
 
-            if (player.firstBreadExplosion != null) {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
-            }
-
-            if (player.compensatedRiptide.getCanRiptide()) {
-                ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
-                ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
-
-                int j;
-                if (main.getType() == Material.TRIDENT) {
-                    j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
-                } else if (off.getType() == Material.TRIDENT) {
-                    j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
-                } else {
-                    return;
-                }
-
-                canRiptide = true;
-
-                float f7 = player.xRot;
-                float f = player.yRot;
-                float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
-                float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
-                float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
-                float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
-                float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
-                f1 = f1 * (f5 / f4);
-                f2 = f2 * (f5 / f4);
-                f3 = f3 * (f5 / f4);
-
-                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(f1, f2, f3)), VectorData.VectorType.Trident));
-            }
+        // Slow movement was determined by the previous pose
+        if (player.isSlowMovement) {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
+        } else {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
         }
+
+        if (player.isUsingItem) {
+            bestPossibleX *= 0.2F;
+            bestPossibleZ *= 0.2F;
+        }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98);
+
+        if (inputVector.lengthSquared() > 1) inputVector.normalize();
+
+        return inputVector;
     }
 
     private Vector handleMovementLenience(GrimPlayer player, Vector vector) {

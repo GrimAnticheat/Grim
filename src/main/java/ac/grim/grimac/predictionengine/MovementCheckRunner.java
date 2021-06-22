@@ -152,11 +152,6 @@ public class MovementCheckRunner {
                 // This really sucks, but without control, the player isn't responsible for applying vehicle knockback
                 player.knockbackHandler.handlePlayerKb(0);
                 player.explosionHandler.handlePlayerExplosion(0);
-
-                // Yes, even vanilla players can somewhat float in the air with a pig by spamming carrot on stick and another item
-                player.baseTickSetX(0);
-                player.baseTickSetY(0);
-                player.baseTickSetZ(0);
             }
 
             queueNext(player);
@@ -195,10 +190,6 @@ public class MovementCheckRunner {
                 if (player.playerVehicle.type != EntityType.PIG && player.playerVehicle.type != EntityType.STRIDER) {
                     player.isClimbing = false;
                 }
-
-                // Player is control of the vehicle
-                player.playerVehicle.lastTickPosition = player.playerVehicle.position;
-                player.playerVehicle.position = new Vector3d(player.x, player.y, player.z);
             }
 
             player.playerWorld = data.playerWorld;
