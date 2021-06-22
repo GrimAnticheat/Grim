@@ -124,6 +124,9 @@ public class PredictionEngineElytra extends PredictionEngine {
     // Yes... you can jump while using an elytra as long as you are on the ground
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        if (!player.lastOnGround)
+            return;
+
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             Vector jump = vector.vector.clone();
 

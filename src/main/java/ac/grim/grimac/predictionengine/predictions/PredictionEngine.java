@@ -6,8 +6,6 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -341,6 +339,9 @@ public class PredictionEngine {
     }
 
     public void doJump(GrimPlayer player, Vector vector) {
+        if (!player.lastOnGround)
+            return;
+
         JumpPower.jumpFromGround(player, vector);
     }
 }
