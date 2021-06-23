@@ -1,9 +1,8 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.MagmaCube;
-import org.bukkit.entity.Slime;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import org.bukkit.entity.*;
 
 public class BoundingBoxSize {
     public static double getWidth(PacketEntity packetEntity) {
@@ -221,7 +220,7 @@ public class BoundingBoxSize {
                 return 0.4;
             case SHEEP:
                 return 1.3;
-            case SHULKER: // TODO: Guess peek size
+            case SHULKER: // Could maybe guess peek size, although seems useless
                 return 1.0;
             case SILVERFISH:
                 return 0.3;
@@ -265,6 +264,81 @@ public class BoundingBoxSize {
                 return 1.95;
             default:
                 return entity.getHeight();
+        }
+    }
+
+    public static double getMyRidingOffset(PacketEntity packetEntity) {
+        Entity entity = packetEntity.entity;
+
+        switch (packetEntity.type) {
+            case PIGLIN:
+            case ZOMBIFIED_PIGLIN:
+                PiglinAbstract piglin = (PiglinAbstract) entity;
+                return piglin.isAdult() ? -0.45 : -0.05;
+            case SKELETON:
+                return -0.6;
+            case ENDERMITE:
+            case SILVERFISH:
+                return 0.1;
+            case EVOKER:
+            case ILLUSIONER:
+            case PILLAGER:
+            case RAVAGER:
+            case VINDICATOR:
+            case WITCH:
+                return -0.45;
+            case PLAYER:
+                return -0.35;
+            case ZOMBIE:
+                Zombie zombie = (Zombie) entity;
+                return zombie.isAdult() ? -0.45 : -0.05;
+        }
+
+        if (entity instanceof Animals) {
+            return 0.14;
+        }
+
+        return 0;
+    }
+
+    public static double getPassengerRidingOffset(PacketEntity packetEntity) {
+        Entity entity = packetEntity.entity;
+
+        if (packetEntity instanceof PacketEntityHorse)
+            return (getHeight(packetEntity) * 0.75) - 0.25;
+
+        switch (packetEntity.type) {
+            case MINECART:
+            case MINECART_CHEST:
+            case MINECART_COMMAND:
+            case MINECART_FURNACE:
+            case MINECART_HOPPER:
+            case MINECART_MOB_SPAWNER:
+            case MINECART_TNT:
+                return 0;
+            case BOAT:
+                return -0.1;
+            case HOGLIN:
+                Hoglin hoglin = (Hoglin) entity;
+                return hoglin.getHeight() - (hoglin.isAdult() ? 0.15 : 0.2);
+            case LLAMA:
+                return getHeight(packetEntity) * 0.67;
+            case PIGLIN:
+                return getHeight(packetEntity) * 0.92;
+            case RAVAGER:
+                return 2.1;
+            case SKELETON:
+                return (getHeight(packetEntity) * 0.75) - 0.1875;
+            case SPIDER:
+                return getHeight(packetEntity) * 0.5;
+            case STRIDER:
+                // depends on animation position, good luck getting it exactly, this is the best you can do though
+                return getHeight(packetEntity) - 0.19;
+            case ZOGLIN:
+                Zoglin zoglin = (Zoglin) entity;
+                return getHeight(packetEntity) - (zoglin.isAdult() ? 0.15 : 0.2);
+             default:
+                return getHeight(packetEntity) * 0.75;
         }
     }
 }

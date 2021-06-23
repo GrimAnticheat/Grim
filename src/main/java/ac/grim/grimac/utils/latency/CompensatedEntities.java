@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -162,8 +163,7 @@ public class CompensatedEntities {
         } else {
             passenger.lastTickPosition = passenger.position;
 
-            // TODO: Calculate offset
-            passenger.position = riding.position;
+            passenger.position = riding.position.add(new Vector3d(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(passenger), 0));
 
             for (int entity : riding.passengers) {
                 PacketEntity passengerPassenger = player.compensatedEntities.getEntity(entity);
