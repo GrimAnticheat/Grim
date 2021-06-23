@@ -40,16 +40,18 @@ public class PredictionEngine {
 
         VectorData bestCollisionVel = null;
         Vector beforeCollisionMovement = null;
+        Vector tempClientVelChosen = null;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, player);
-            Vector additionalPushMovement = handlePushMovement(player, backOff);
+            Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput.vector);
+            Vector backOff = Collisions.maybeBackOffFromEdge(primaryPushMovement, player);
+            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
             Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
             double resultAccuracy = outputVel.distanceSquared(player.actualMovement);
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
-                player.clientVelocity = backOff.clone();
+                tempClientVelChosen = backOff.clone();
                 beforeCollisionMovement = additionalPushMovement;
                 bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput, VectorData.VectorType.BestVelPicked);
 
@@ -64,9 +66,21 @@ public class PredictionEngine {
 
         // The player always has at least one velocity - clientVelocity
         assert bestCollisionVel != null;
+        player.clientVelocity = tempClientVelChosen;
         new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
         player.predictedVelocity = bestCollisionVel;
         endOfTick(player, player.gravity, player.friction);
+    }
+
+    private Vector handleStartingVelocityUncertainty(GrimPlayer player, Vector vector) {
+        if (player.uncertaintyHandler.collidingEntities == 0)
+            return vector;
+
+        Vector uncertainty = new Vector(player.uncertaintyHandler.collidingEntities * 0.1, 0, player.uncertaintyHandler.collidingEntities * 0.1);
+
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                vector.clone().add(uncertainty.clone().multiply(-1)),
+                vector.clone().add(uncertainty));
     }
 
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
@@ -129,7 +143,7 @@ public class PredictionEngine {
         return Integer.compare(aScore, bScore);
     }
 
-    public Vector handlePushMovement(GrimPlayer player, Vector vector) {
+    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
         // Handle entity pushing/piston movement/riptide onGround addition
         Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + player.uncertaintyHandler.collidingEntities * 0.1, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + player.uncertaintyHandler.collidingEntities * 0.1);
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,

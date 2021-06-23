@@ -22,7 +22,6 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
 import io.github.retrooper.packetevents.utils.versionlookup.v_1_7_10.SpigotVersionLookup_1_7;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -235,9 +234,6 @@ public class GrimPlayer {
                 uncertaintyHandler.xPushEntityNegative != 0 ||
                 uncertaintyHandler.zPushEntityPositive != 0 ||
                 uncertaintyHandler.zPushEntityNegative != 0;
-
-        Bukkit.broadcastMessage((uncertaintyHandler.xPushEntityPositive + uncertaintyHandler.xPushEntityNegative) + " and " +
-                (uncertaintyHandler.zPushEntityPositive + uncertaintyHandler.zPushEntityNegative));
 
         if (isPushedByEntity) {
             HashSet<VectorData> pushedMovements = new HashSet<>();

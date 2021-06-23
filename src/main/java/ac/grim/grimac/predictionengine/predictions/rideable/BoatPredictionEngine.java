@@ -166,7 +166,7 @@ public class BoatPredictionEngine extends PredictionEngine {
     // Only times there are two vectors is when the player's boat takes knockback, such as in bubble columns
     // It's push-like movement because it doesn't affect subsequent client velocity
     @Override
-    public Vector handlePushMovement(GrimPlayer player, Vector vector) {
+    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
         vector = vector.clone().add(new Vector(0, player.boatData.midTickY, 0));
 
         return vector;
