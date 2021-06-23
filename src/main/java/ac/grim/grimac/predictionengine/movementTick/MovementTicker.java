@@ -2,10 +2,13 @@ package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineElytra;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -126,6 +129,12 @@ public class MovementTicker {
         if (player.playerVehicle == null) {
             playerEntityTravel();
         } else {
+            player.uncertaintyHandler.xPushEntityPositive = 0;
+            player.uncertaintyHandler.zPushEntityPositive = 0;
+            player.uncertaintyHandler.xPushEntityNegative = 0;
+            player.uncertaintyHandler.zPushEntityNegative = 0;
+            player.uncertaintyHandler.collidingEntities = 0;
+
             livingEntityTravel();
         }
     }
@@ -146,6 +155,56 @@ public class MovementTicker {
 
         } else {
             livingEntityTravel();
+        }
+
+        player.uncertaintyHandler.xPushEntityPositive = 0;
+        player.uncertaintyHandler.zPushEntityPositive = 0;
+        player.uncertaintyHandler.xPushEntityNegative = 0;
+        player.uncertaintyHandler.zPushEntityNegative = 0;
+        player.uncertaintyHandler.collidingEntities = 0;
+
+        // Calculate the offset of the player to colliding other stuff
+        Vector3d playerPos = new Vector3d(player.x, player.y, player.z);
+        SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
+                double width = BoundingBoxSize.getWidth(entity);
+                double height = BoundingBoxSize.getHeight(entity);
+
+                if (!playerBox.isCollided(GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height)))
+                    continue;
+
+                double xDist = player.x - entity.position.x;
+                double zDist = player.z - entity.position.z;
+                double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
+                if (maxLength >= 0.01) {
+                    maxLength = Math.sqrt(maxLength);
+                    xDist /= maxLength;
+                    zDist /= maxLength;
+
+                    double d3 = 1.0D / maxLength;
+                    d3 = Math.min(d3, 1.0);
+
+                    xDist *= d3;
+                    zDist *= d3;
+                    xDist *= -0.05F;
+                    zDist *= -0.05F;
+
+                    player.uncertaintyHandler.collidingEntities++;
+
+                    if (xDist > 0) {
+                        player.uncertaintyHandler.xPushEntityPositive += xDist;
+                    } else {
+                        player.uncertaintyHandler.xPushEntityNegative += xDist;
+                    }
+
+                    if (zDist > 0) {
+                        player.uncertaintyHandler.zPushEntityPositive += zDist;
+                    } else {
+                        player.uncertaintyHandler.zPushEntityNegative += zDist;
+                    }
+                }
+            }
         }
     }
 

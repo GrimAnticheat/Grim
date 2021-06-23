@@ -4,12 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -133,56 +129,12 @@ public class PredictionEngine {
         return Integer.compare(aScore, bScore);
     }
 
-    // Currently, we cannot handle player being pushed by pistons while starting riptides while on the ground
-    // I'll be very surprised if someone actually manages to accomplish this
     public Vector handlePushMovement(GrimPlayer player, Vector vector) {
-        Vector3d playerPos = new Vector3d(player.lastX, player.lastY, player.lastZ);
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
-                double width = BoundingBoxSize.getWidth(entity);
-                double height = BoundingBoxSize.getHeight(entity);
-
-                if (!player.boundingBox.isCollided(GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height)))
-                    continue;
-
-                double xDist = player.lastX - entity.position.x;
-                double zDist = player.lastZ - entity.position.z;
-                double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
-                if (maxLength >= 0.01) {
-                    maxLength = Math.sqrt(maxLength);
-                    xDist /= maxLength;
-                    zDist /= maxLength;
-
-                    double d3 = 1.0D / maxLength;
-                    d3 = Math.min(d3, 1.0);
-
-                    xDist *= d3;
-                    zDist *= d3;
-                    xDist *= 0.05F;
-                    zDist *= 0.05F;
-
-                    return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                            vector.clone().add(new Vector(Math.min(xDist, 0), 0, Math.min(zDist, 0))),
-                            vector.clone().add(new Vector(Math.max(xDist, 0), 0, Math.max(zDist, 0))));
-                }
-            }
-        }
-
-        if (player.uncertaintyHandler.pistonX != 0 || player.uncertaintyHandler.pistonY != 0 || player.uncertaintyHandler.pistonZ != 0) {
-            return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                    vector.clone().add(new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ).multiply(-1)),
-                    vector.clone().add(new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ)));
-        }
-
-        if (player.canGroundRiptide) {
-            SimpleCollisionBox box = new SimpleCollisionBox(vector, vector.clone().add(new Vector(0.0D, 1.1999999F, 0.0D)));
-
-            return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                    new Vector(box.minX, box.minY, box.minZ),
-                    new Vector(box.maxX, box.maxY, box.maxZ));
-        }
-
-        return vector;
+        // Handle entity pushing/piston movement/riptide onGround addition
+        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + player.uncertaintyHandler.collidingEntities * 0.1, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + player.uncertaintyHandler.collidingEntities * 0.1);
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                vector.clone().add(uncertainty.clone().multiply(-1)),
+                vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {

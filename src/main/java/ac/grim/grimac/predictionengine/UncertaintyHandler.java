@@ -13,6 +13,12 @@ public class UncertaintyHandler {
     public boolean striderOnGround;
     public HashSet<BlockFace> slimePistonBounces;
 
+    public double xPushEntityPositive = 0;
+    public double zPushEntityPositive = 0;
+    public double xPushEntityNegative = 0;
+    public double zPushEntityNegative = 0;
+    public double collidingEntities = 0;
+
     public UncertaintyHandler() {
         reset();
     }

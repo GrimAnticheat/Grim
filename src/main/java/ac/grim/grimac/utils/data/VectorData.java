@@ -78,6 +78,7 @@ public class VectorData {
         Lenience,
         TridentJump,
         Trident,
-        SlimePistonBounce
+        SlimePistonBounce,
+        Entity_Pushing
     }
 }
