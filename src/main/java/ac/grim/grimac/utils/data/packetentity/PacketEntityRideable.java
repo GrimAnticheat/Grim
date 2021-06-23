@@ -7,7 +7,7 @@ public class PacketEntityRideable extends PacketEntity {
 
     public boolean hasSaddle = false;
     public int boostTimeMax = 0;
-    public int currentBoostTime = 0;
+    public int currentBoostTime = 1;
 
     public PacketEntityRideable(Entity entity, Vector3d vector3d) {
         super(entity, vector3d);
