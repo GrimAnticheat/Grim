@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -40,7 +39,7 @@ public class MovementTicker {
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
         // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them
         // The player's onGround status isn't given when riding a vehicle, so we don't have a choice in whether we calculate or not
-        if (player.inVehicle || (!player.uncertaintyHandler.trustClientOnGroundHack && player.clientVelocitySwimHop == null
+        if (player.inVehicle || (player.clientVelocitySwimHop == null
                 && player.uncertaintyHandler.pistonX == 0 && player.uncertaintyHandler.pistonY == 0 && player.uncertaintyHandler.pistonZ == 0
                 && player.uncertaintyHandler.slimePistonBounces.isEmpty()))
             player.onGround = player.isActuallyOnGround || player.uncertaintyHandler.striderOnGround;
@@ -76,11 +75,9 @@ public class MovementTicker {
             }
         }
 
-        if (player.uncertaintyHandler.trustClientOnGroundHack) {
+        if (Math.abs(player.y - player.lastY) < 0.05 && player.uncertaintyHandler.pistonY != 0) {
             player.clientVelocity.setY(0);
         }
-
-        player.uncertaintyHandler.trustClientOnGroundHack = false;
 
         // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
         if (onBlock == slime && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {

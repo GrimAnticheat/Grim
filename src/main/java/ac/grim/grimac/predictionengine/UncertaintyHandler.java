@@ -8,7 +8,6 @@ public class UncertaintyHandler {
     public double pistonX;
     public double pistonY;
     public double pistonZ;
-    public boolean trustClientOnGroundHack;
     public boolean collidingWithBoat;
     public boolean collidingWithShulker;
     public boolean striderOnGround;
@@ -22,7 +21,6 @@ public class UncertaintyHandler {
         pistonX = 0;
         pistonY = 0;
         pistonZ = 0;
-        trustClientOnGroundHack = false;
         collidingWithBoat = false;
         collidingWithShulker = false;
         striderOnGround = false;
