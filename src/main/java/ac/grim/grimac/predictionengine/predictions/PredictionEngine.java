@@ -132,16 +132,7 @@ public class PredictionEngine {
     // Currently, we cannot handle player being pushed by pistons while starting riptides while on the ground
     // I'll be very surprised if someone actually manages to accomplish this
     public Vector handlePushMovement(GrimPlayer player, Vector vector) {
-
         if (player.uncertaintyHandler.pistonX != 0 || player.uncertaintyHandler.pistonY != 0 || player.uncertaintyHandler.pistonZ != 0) {
-            // Fixes issue occuring when pushed upwards and standing on piston
-            // Subtracting gravity allows the player's y vel to be set to 0
-            //
-            // 0.03 for < 0.03 movement thing, 0.01 for pistons pushing past 0.01, 0.01 extra for rounding or something
-            if (player.uncertaintyHandler.pistonY != 0 && Math.abs(player.y - player.lastY) < 0.05) {
-                player.uncertaintyHandler.trustClientOnGroundHack = true;
-            }
-
             return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
                     vector.clone().add(new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ).multiply(-1)),
                     vector.clone().add(new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ)));

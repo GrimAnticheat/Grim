@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.util.Vector;
 
 public class FluidFallingAdjustedMovement {
-    // LivingEntity line 1882
     public static Vector getFluidFallingAdjustedMovement(GrimPlayer player, double d, boolean bl, Vector vec3) {
         // Removed gravity reference because players always have gravity
         if (!player.isSprinting) {

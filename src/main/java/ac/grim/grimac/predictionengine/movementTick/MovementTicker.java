@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,9 +22,7 @@ public class MovementTicker {
         this.bukkitPlayer = player.bukkitPlayer;
     }
 
-    // Entity line 527
     public void move(Vector inputVel, Vector collide) {
-
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.baseTickSetX(0);
             player.baseTickSetY(0);
@@ -109,7 +108,6 @@ public class MovementTicker {
     }
 
     public void livingEntityAIStep() {
-        // Living Entity line 2153
         double minimumMovement = 0.003D;
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             minimumMovement = 0.005D;
@@ -135,7 +133,6 @@ public class MovementTicker {
         }
     }
 
-    // Player line 1208
     public void playerEntityTravel() {
         if (player.specialFlying && player.playerVehicle == null) {
             double oldY = player.clientVelocity.getY();
@@ -164,7 +161,6 @@ public class MovementTicker {
     public void doNormalMove(float blockFriction) {
     }
 
-    // LivingEntity line 1741
     public void livingEntityTravel() {
         double playerGravity = 0.08;
 

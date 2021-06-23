@@ -34,7 +34,6 @@ public class PlayerBaseTick {
         player.baseTickAddition = new Vector(0, 0, 0);
 
         // You cannot crouch while flying, only shift - could be specific to 1.14?
-        // LocalPlayer:aiStep line 728
         if (player.wasTouchingWater && player.isSneaking && !player.specialFlying && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, -0.04, 0));
         }
@@ -57,7 +56,6 @@ public class PlayerBaseTick {
         player.isSlowMovement = player.isCrouching || (player.pose == Pose.SWIMMING && !player.wasTouchingWater);
 
 
-        // LocalPlayer:aiStep line 647
         // Players in boats don't care about being in blocks
         if (!player.inVehicle) {
             this.moveTowardsClosestSpace(player.lastX - (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ + (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
@@ -104,7 +102,6 @@ public class PlayerBaseTick {
         }
     }
 
-    // Entity line 937
     public void updateInWaterStateAndDoFluidPushing() {
         updateInWaterStateAndDoWaterCurrentPushing();
         double d = player.playerWorld.getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
@@ -196,7 +193,6 @@ public class PlayerBaseTick {
         }
     }
 
-    // Entity line 945
     void updateInWaterStateAndDoWaterCurrentPushing() {
         player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT);
     }

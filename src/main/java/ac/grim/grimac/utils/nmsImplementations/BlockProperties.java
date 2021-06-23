@@ -89,7 +89,6 @@ public class BlockProperties {
         }
     }
 
-    // Entity line 617
     public static Material getOnBlock(GrimPlayer player, Location getBlockLocation) {
         Material block1 = player.compensatedWorld.getBukkitMaterialAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - 0.2F), getBlockLocation.getBlockZ());
 
@@ -104,7 +103,6 @@ public class BlockProperties {
         return block1;
     }
 
-    // Entity line 637
     public static float getBlockSpeedFactor(GrimPlayer player) {
         if (player.isGliding || player.specialFlying) return 1.0f;
 

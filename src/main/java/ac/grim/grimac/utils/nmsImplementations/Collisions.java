@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Collisions {
-    public static final double COLLISION_EPSILON = SimpleCollisionBox.COLLISION_EPSILON;
-
     public static final double maxUpStep = 0.6f;
 
     private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
@@ -36,9 +34,6 @@ public class Collisions {
 
     private static final Material LADDER = XMaterial.LADDER.parseMaterial();
 
-    // Entity line 686
-    // This MUST return a new vector!!!
-    // If it does not the predicted velocity will be overridden
     public static Vector collide(GrimPlayer player, double xWithCollision, double yWithCollision, double zWithCollision) {
         if (xWithCollision == 0 && yWithCollision == 0 && zWithCollision == 0) return new Vector();
 
