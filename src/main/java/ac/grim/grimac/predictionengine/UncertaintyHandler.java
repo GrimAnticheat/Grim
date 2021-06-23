@@ -1,13 +1,18 @@
 package ac.grim.grimac.predictionengine;
 
+import org.bukkit.block.BlockFace;
+
+import java.util.HashSet;
+
 public class UncertaintyHandler {
     public double pistonX;
     public double pistonY;
     public double pistonZ;
-    public boolean trustClientOnGroundHack = false;
-    public boolean collidingWithBoat = false;
-    public boolean collidingWithShulker = false;
-    public boolean striderOnGround = false;
+    public boolean trustClientOnGroundHack;
+    public boolean collidingWithBoat;
+    public boolean collidingWithShulker;
+    public boolean striderOnGround;
+    public HashSet<BlockFace> slimePistonBounces;
 
     public UncertaintyHandler() {
         reset();
@@ -20,5 +25,7 @@ public class UncertaintyHandler {
         trustClientOnGroundHack = false;
         collidingWithBoat = false;
         collidingWithShulker = false;
+        striderOnGround = false;
+        slimePistonBounces = new HashSet<>();
     }
 }

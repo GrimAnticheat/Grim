@@ -22,9 +22,9 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
 import io.github.retrooper.packetevents.utils.versionlookup.v_1_7_10.SpigotVersionLookup_1_7;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -228,6 +228,20 @@ public class GrimPlayer {
 
         if (clientVelocitySwimHop != null) {
             possibleMovements.add(new VectorData(clientVelocitySwimHop, VectorData.VectorType.Swimhop));
+        }
+
+        // Knockback takes precedence over piston pushing in my testing
+        // It's very difficult to test precedence so if there's issues with this bouncy implementation let me know
+        for (VectorData data : new HashSet<>(possibleMovements)) {
+            for (BlockFace direction : uncertaintyHandler.slimePistonBounces) {
+                if (direction.getModX() != 0) {
+                    possibleMovements.add(data.setVector(data.vector.clone().setX(direction.getModX()), VectorData.VectorType.SlimePistonBounce));
+                } else if (direction.getModY() != 0) {
+                    possibleMovements.add(data.setVector(data.vector.clone().setY(direction.getModY()), VectorData.VectorType.SlimePistonBounce));
+                } else if (direction.getModZ() != 0) {
+                    possibleMovements.add(data.setVector(data.vector.clone().setZ(direction.getModZ()), VectorData.VectorType.SlimePistonBounce));
+                }
+            }
         }
 
         return possibleMovements;

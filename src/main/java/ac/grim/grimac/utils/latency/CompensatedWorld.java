@@ -103,7 +103,6 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
 
     public List<PistonData> activePistons = new ArrayList<>();
-    public Set<PistonData> pushingPistons = new HashSet<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
 
     public CompensatedWorld(GrimPlayer player) {
@@ -196,7 +195,6 @@ public class CompensatedWorld {
     }
 
     public void tickPlayerInPistonPushingArea() {
-        pushingPistons.clear();
         player.uncertaintyHandler.reset();
         // Occurs on player login
         if (player.boundingBox == null) return;
@@ -215,7 +213,8 @@ public class CompensatedWorld {
 
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
-                    pushingPistons.add(data);
+
+                    player.uncertaintyHandler.slimePistonBounces.add(data.direction);
 
                     break;
                 }

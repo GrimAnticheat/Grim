@@ -77,6 +77,7 @@ public class VectorData {
         Firework,
         Lenience,
         TridentJump,
-        Trident
+        Trident,
+        SlimePistonBounce
     }
 }

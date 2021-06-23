@@ -1,8 +1,11 @@
 package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
@@ -14,8 +17,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PistonEvent implements Listener {
+    Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
+
     @EventHandler
     public void onPistonPushEvent(BlockPistonExtendEvent event) {
+        boolean hasSlimeBlock = false;
+
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         for (Block block : event.getBlocks()) {
             boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
@@ -26,6 +33,10 @@ public class PistonEvent implements Listener {
                     .offset(block.getX() + event.getDirection().getModX(),
                             block.getY() + event.getDirection().getModY(),
                             block.getZ() + event.getDirection().getModZ()));
+
+            if (block.getType() == SLIME_BLOCK) {
+                hasSlimeBlock = true;
+            }
         }
 
         Block piston = event.getBlock();
@@ -36,11 +47,11 @@ public class PistonEvent implements Listener {
                         piston.getY() + event.getDirection().getModY(),
                         piston.getZ() + event.getDirection().getModZ()));
 
-        GrimAC.playerGrimHashMap.values().forEach(player -> {
+        for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                player.compensatedWorld.pistonData.add(new PistonData(event.getDirection(), boxes, player.lastTransactionAtStartOfTick, true));
+                player.compensatedWorld.pistonData.add(new PistonData(event.getDirection(), boxes, player.lastTransactionAtStartOfTick, true, hasSlimeBlock));
             }
-        });
+        }
     }
 
     // For some unknown reason, bukkit handles this stupidly
@@ -55,6 +66,8 @@ public class PistonEvent implements Listener {
     // Blocks outside the piston head give only as much lenience as needed
     @EventHandler
     public void onPistonRetractEvent(BlockPistonRetractEvent event) {
+        boolean hasSlimeBlock = false;
+
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         BlockFace face = event.getDirection();
 
@@ -74,12 +87,16 @@ public class PistonEvent implements Listener {
                     .offset(block.getX(), block.getY(), block.getZ()));
             boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
                     .offset(block.getX() + face.getModX(), block.getY() + face.getModY(), block.getZ() + face.getModZ()));
+
+            if (block.getType() == SLIME_BLOCK) {
+                hasSlimeBlock = true;
+            }
         }
 
-        GrimAC.playerGrimHashMap.values().forEach(player -> {
+        for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                player.compensatedWorld.pistonData.add(new PistonData(event.getBlocks().isEmpty() ? event.getDirection().getOppositeFace() : event.getDirection(), boxes, player.lastTransactionAtStartOfTick, false));
+                player.compensatedWorld.pistonData.add(new PistonData(event.getBlocks().isEmpty() ? event.getDirection().getOppositeFace() : event.getDirection(), boxes, player.lastTransactionAtStartOfTick, false, hasSlimeBlock));
             }
-        });
+        }
     }
 }
