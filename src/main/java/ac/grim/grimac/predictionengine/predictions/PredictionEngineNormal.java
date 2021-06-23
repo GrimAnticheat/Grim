@@ -3,8 +3,10 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -71,7 +73,10 @@ public class PredictionEngineNormal extends PredictionEngine {
         // This is WRONG! Vanilla has this system at the end
         // However, due to 1.9 reduced movement precision, we aren't informed that the player could have this velocity
         // We still do climbing at the end, as it uses a different client velocity
-        if (player.isClimbing) {
+        //
+        // Force 1.13.2 and below players to have something to collide with horizontally to climb
+        if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5)))) {
             Vector hackyClimbVector = player.clientVelocity.clone().setY(0.2);
             staticVectorEndOfTick(player, hackyClimbVector);
             regularInputs.add(new VectorData(hackyClimbVector, VectorData.VectorType.HackyClimbable));
@@ -84,7 +89,9 @@ public class PredictionEngineNormal extends PredictionEngine {
     public void endOfTick(GrimPlayer player, double d, float friction) {
         player.clientVelocityOnLadder = null;
 
-        if (player.isClimbing) {
+        // Force 1.13.2 and below players to have something to collide with horizontally to climb-
+        if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5)))) {
             player.clientVelocityOnLadder = player.clientVelocity.clone().setY(0.2);
         }
 
