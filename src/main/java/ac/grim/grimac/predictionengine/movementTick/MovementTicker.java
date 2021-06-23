@@ -39,8 +39,11 @@ public class MovementTicker {
         player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
+        // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them
         // The player's onGround status isn't given when riding a vehicle, so we don't have a choice in whether we calculate or not
-        if (player.inVehicle || (!player.uncertaintyHandler.trustClientOnGroundHack && player.clientVelocitySwimHop == null))
+        if (player.inVehicle || (!player.uncertaintyHandler.trustClientOnGroundHack && player.clientVelocitySwimHop == null
+                && player.uncertaintyHandler.pistonX == 0 && player.uncertaintyHandler.pistonY == 0 && player.uncertaintyHandler.pistonZ == 0
+                && player.uncertaintyHandler.slimePistonBounces.isEmpty()))
             player.onGround = player.isActuallyOnGround || player.uncertaintyHandler.striderOnGround;
 
         Material onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
