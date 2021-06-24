@@ -79,7 +79,8 @@ public class FlatPlayerBlockBreakPlace implements Listener {
 
             BlockData stateData = state.getBlockData();
             if (stateData instanceof Openable) {
-                ((Openable) stateData).setOpen(!((Openable) stateData).isOpen());
+                Openable openable = (Openable) stateData;
+                openable.setOpen(!openable.isOpen());
             }
 
             ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(stateData));
