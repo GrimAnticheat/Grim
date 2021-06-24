@@ -19,8 +19,8 @@ public class UncertaintyHandler {
     public double xPushEntityNegative = 0;
     public double zPushEntityNegative = 0;
 
-    public EvictingList<Integer> strictCollidingEntities = new EvictingList<>(5);
-    public EvictingList<Integer> collidingEntities = new EvictingList<>(5);
+    public EvictingList<Integer> strictCollidingEntities = new EvictingList<>(3);
+    public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
 
     public UncertaintyHandler() {
         reset();
