@@ -161,6 +161,10 @@ public class MovementTicker {
         player.uncertaintyHandler.xPushEntityNegative = 0;
         player.uncertaintyHandler.zPushEntityNegative = 0;
 
+        // 1.7 and 1.8 do not have player collision
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
+            return;
+
         // Calculate the offset of the player to colliding other stuff
         Vector3d playerPos = new Vector3d(player.x, player.y, player.z);
         SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);

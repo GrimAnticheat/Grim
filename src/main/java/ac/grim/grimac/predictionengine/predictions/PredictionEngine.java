@@ -139,20 +139,26 @@ public class PredictionEngine {
         if (avgColliding == 0)
             return vector;
 
-        // 0.05 was falsing when colliding with https://i.imgur.com/7obfxG6.png
-        // 0.1 seems like a safe without allowing any false positives
-        Vector uncertainty = new Vector(avgColliding * 0.1, 0, avgColliding * 0.1);
+        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
+        // 0.04 is safe from falses
+        // Set to 0.06 because this is a very stupid reason to allow falses
+        //
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
+        Vector min = new Vector(player.uncertaintyHandler.xPushEntityNegative, 0, player.uncertaintyHandler.zPushEntityNegative);
+        Vector max = new Vector(player.uncertaintyHandler.xPushEntityPositive, 0, player.uncertaintyHandler.zPushEntityPositive);
 
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(uncertainty.clone().multiply(-1)),
-                vector.clone().add(uncertainty));
+                vector.clone().add(min.subtract(uncertainty)),
+                vector.clone().add(max.add(uncertainty)));
     }
 
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
 
         // Handle entity pushing/piston movement/riptide onGround addition
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.1, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.1);
+        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.05, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.05);
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)),
                 vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
