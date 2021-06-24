@@ -207,9 +207,9 @@ public class CompensatedWorld {
 
             for (SimpleCollisionBox box : data.boxes) {
                 if (playerBox.isCollided(box)) {
-                    modX = Math.abs(data.direction.getModX()) * 1.01D;
-                    modY = Math.abs(data.direction.getModY()) * 1.01D;
-                    modZ = Math.abs(data.direction.getModZ()) * 1.01D;
+                    modX = Math.abs(data.direction.getModX()) * 0.51D;
+                    modY = Math.abs(data.direction.getModY()) * 0.51D;
+                    modZ = Math.abs(data.direction.getModZ()) * 0.51D;
 
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
