@@ -538,6 +538,14 @@ public enum CollisionData {
 
     }, XMaterial.FARMLAND.parseMaterial()),
 
+    GRASS_PATH((player, version, data, x, y, z) -> {
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_9))
+            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
+
+        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
+    }, XMaterial.GRASS_PATH.parseMaterial()),
+
     LILYPAD((player, version, data, x, y, z) -> {
         // Boats break lilypads client sided on 1.12- clients.
         if (player.playerVehicle instanceof Boat && version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
