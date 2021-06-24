@@ -251,11 +251,26 @@ public enum WrappedBlockData {
     // 1.16 has the Wall data type, 1.13-1.15 uses MultipleFacing
     WALL(new WrappedMultipleFacing() {
         public void getWrappedData(FlatBlockState data) {
-            /*if (XMaterial.supports(16)) {
+            if (XMaterial.supports(16)) {
+                Wall wall = (Wall) data.getBlockData();
+                Set<BlockFace> directions = new HashSet<>();
 
+                if (wall.getHeight(BlockFace.NORTH) != Wall.Height.NONE)
+                    directions.add(BlockFace.NORTH);
+                if (wall.getHeight(BlockFace.EAST) != Wall.Height.NONE)
+                    directions.add(BlockFace.EAST);
+                if (wall.getHeight(BlockFace.SOUTH) != Wall.Height.NONE)
+                    directions.add(BlockFace.SOUTH);
+                if (wall.getHeight(BlockFace.WEST) != Wall.Height.NONE)
+                    directions.add(BlockFace.WEST);
+                if (wall.isUp())
+                    directions.add(BlockFace.UP);
+
+                setDirections(directions);
+            } else {
+                MultipleFacing facing = (MultipleFacing) data.getBlockData();
+                setDirections(facing.getFaces());
             }
-            Wall wall = (Wall) data.getBlockData();
-            wall.getHeight(BlockFace.NORTH);*/
         }
 
         public void getWrappedData(MagicBlockState data) {

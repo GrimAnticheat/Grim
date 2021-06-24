@@ -20,7 +20,7 @@ public class DynamicFence extends DynamicConnecting implements CollisionFactory 
     // https://bugs.mojang.com/browse/MC-94016
 
     private static final Material NETHER_BRICK_FENCE = XMaterial.NETHER_BRICK_FENCE.parseMaterial();
-    private static final CollisionBox[] COLLISION_BOXES = makeShapes(2.0F, 2.0F, 24.0F, 0.0F, 24.0F);
+    private static final CollisionBox[] COLLISION_BOXES = makeShapes(2.0F, 2.0F, 24.0F, 0.0F, 24.0F, true);
 
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {

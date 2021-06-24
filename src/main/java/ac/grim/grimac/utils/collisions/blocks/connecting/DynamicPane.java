@@ -16,7 +16,7 @@ import org.bukkit.block.BlockFace;
 @SuppressWarnings("Duplicates")
 public class DynamicPane extends DynamicConnecting implements CollisionFactory {
 
-    private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F);
+    private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F, true);
 
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {

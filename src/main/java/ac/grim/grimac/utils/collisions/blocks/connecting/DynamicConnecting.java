@@ -28,12 +28,12 @@ public class DynamicConnecting {
     private static final Material STICKY_PISTON = XMaterial.STICKY_PISTON.parseMaterial();
     private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
 
-    public static CollisionBox[] makeShapes(float p_196408_1_, float p_196408_2_, float p_196408_3_, float p_196408_4_, float p_196408_5_) {
-        float f = 8.0F - p_196408_1_;
-        float f1 = 8.0F + p_196408_1_;
+    public static CollisionBox[] makeShapes(float p_196408_1_, float p_196408_2_, float p_196408_3_, float p_196408_4_, float p_196408_5_, boolean includeCenter) {
+        float middleMin = 8.0F - p_196408_1_;
+        float middleMax = 8.0F + p_196408_1_;
         float f2 = 8.0F - p_196408_2_;
         float f3 = 8.0F + p_196408_2_;
-        SimpleCollisionBox voxelshape = new HexCollisionBox(f, 0.0D, f, f1, p_196408_3_, f1);
+        SimpleCollisionBox up = new HexCollisionBox(middleMin, 0.0D, middleMin, middleMax, p_196408_3_, middleMax);
         SimpleCollisionBox voxelshape1 = new HexCollisionBox(f2, p_196408_4_, 0.0D, f3, p_196408_5_, f3);
         SimpleCollisionBox voxelshape2 = new HexCollisionBox(f2, p_196408_4_, f2, f3, p_196408_5_, 16.0D);
         SimpleCollisionBox voxelshape3 = new HexCollisionBox(0.0D, p_196408_4_, f2, f3, p_196408_5_, f3);
@@ -44,8 +44,10 @@ public class DynamicConnecting {
 
         CollisionBox[] avoxelshape = new CollisionBox[]{NoCollisionBox.INSTANCE, voxelshape2, voxelshape3, voxelshape6, voxelshape1, new ComplexCollisionBox(voxelshape2, voxelshape1), new ComplexCollisionBox(voxelshape3, voxelshape1), new ComplexCollisionBox(voxelshape6, voxelshape1), voxelshape4, new ComplexCollisionBox(voxelshape2, voxelshape4), new ComplexCollisionBox(voxelshape3, voxelshape4), new ComplexCollisionBox(voxelshape6, voxelshape4), voxelshape5, new ComplexCollisionBox(voxelshape2, voxelshape5), new ComplexCollisionBox(voxelshape3, voxelshape5), new ComplexCollisionBox(voxelshape6, voxelshape5)};
 
-        for (int i = 0; i < 16; ++i) {
-            avoxelshape[i] = new ComplexCollisionBox(voxelshape, avoxelshape[i]);
+        if (includeCenter) {
+            for (int i = 0; i < 16; ++i) {
+                avoxelshape[i] = new ComplexCollisionBox(up, avoxelshape[i]);
+            }
         }
 
         return avoxelshape;
