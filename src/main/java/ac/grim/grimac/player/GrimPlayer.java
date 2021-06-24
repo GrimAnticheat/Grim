@@ -230,20 +230,6 @@ public class GrimPlayer {
             possibleMovements.add(new VectorData(clientVelocitySwimHop, VectorData.VectorType.Swimhop));
         }
 
-        boolean isPushedByEntity = uncertaintyHandler.xPushEntityPositive != 0 ||
-                uncertaintyHandler.xPushEntityNegative != 0 ||
-                uncertaintyHandler.zPushEntityPositive != 0 ||
-                uncertaintyHandler.zPushEntityNegative != 0;
-
-        if (isPushedByEntity) {
-            HashSet<VectorData> pushedMovements = new HashSet<>();
-            for (VectorData data : possibleMovements) {
-                pushedMovements.add(data.setVector(data.vector.clone().add(new Vector(uncertaintyHandler.xPushEntityPositive + uncertaintyHandler.xPushEntityNegative,
-                        0, uncertaintyHandler.zPushEntityPositive + uncertaintyHandler.zPushEntityNegative)), VectorData.VectorType.Entity_Pushing));
-            }
-            possibleMovements = pushedMovements;
-        }
-
         // Knockback takes precedence over piston pushing in my testing
         // It's very difficult to test precedence so if there's issues with this bouncy implementation let me know
         for (VectorData data : new HashSet<>(possibleMovements)) {
