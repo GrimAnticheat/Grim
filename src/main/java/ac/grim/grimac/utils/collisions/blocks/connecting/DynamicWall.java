@@ -30,7 +30,6 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
             south = connectsTo(player, version, x, y, z, BlockFace.SOUTH);
             west = connectsTo(player, version, x, y, z, BlockFace.WEST);
             east = connectsTo(player, version, x, y, z, BlockFace.EAST);
-        } else {
         }
 
         double var7 = 0.25;
@@ -67,9 +66,6 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
 
     @Override
     public boolean checkCanConnect(GrimPlayer player, BaseBlockState state, Material one, Material two) {
-        if (Materials.checkFlag(one, Materials.WALL))
-            return true;
-        else
-            return CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isFullBlock();
+        return Materials.checkFlag(one, Materials.WALL) || CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isFullBlock();
     }
 }

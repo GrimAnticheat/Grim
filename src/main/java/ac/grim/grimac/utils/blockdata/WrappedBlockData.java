@@ -237,27 +237,14 @@ public enum WrappedBlockData {
     // 1.12 doesn't store any data about panes, 1.13+ does
     GLASS_PANE(new WrappedMultipleFacing() {
         public void getWrappedData(FlatBlockState data) {
-            GlassPane pane = (GlassPane) data.getBlockData();
+            MultipleFacing pane = (MultipleFacing) data.getBlockData();
             setDirections(pane.getFaces());
         }
 
         public void getWrappedData(MagicBlockState data) {
 
         }
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE"))
-            .toArray(Material[]::new)),
-
-    // 1.12 doesn't store any data about panes, 1.13+ does
-    IRON(new WrappedMultipleFacing() {
-        public void getWrappedData(FlatBlockState data) {
-            MultipleFacing bar = (MultipleFacing) data.getBlockData();
-            setDirections(bar.getFaces());
-        }
-
-        public void getWrappedData(MagicBlockState data) {
-
-        }
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("IRON_BARS"))
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().contains("IRON_BARS"))
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about walls, 1.13+ does
