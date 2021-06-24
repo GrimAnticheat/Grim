@@ -5,12 +5,15 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineElytra;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
@@ -175,6 +178,10 @@ public class MovementTicker {
 
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
             if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
+
+                if ((!(entity.entity instanceof LivingEntity) && entity.type != EntityType.BOAT && !(entity.entity instanceof Minecart)) || entity.type == EntityType.ARMOR_STAND)
+                    continue;
+
                 double width = BoundingBoxSize.getWidth(entity);
                 double height = BoundingBoxSize.getHeight(entity);
 
