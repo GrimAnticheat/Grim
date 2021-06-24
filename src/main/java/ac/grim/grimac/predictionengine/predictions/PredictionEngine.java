@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.Material;
@@ -72,17 +73,6 @@ public class PredictionEngine {
         endOfTick(player, player.gravity, player.friction);
     }
 
-    private Vector handleStartingVelocityUncertainty(GrimPlayer player, Vector vector) {
-        if (player.uncertaintyHandler.collidingEntities == 0)
-            return vector;
-
-        Vector uncertainty = new Vector(player.uncertaintyHandler.collidingEntities * 0.1, 0, player.uncertaintyHandler.collidingEntities * 0.1);
-
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(uncertainty.clone().multiply(-1)),
-                vector.clone().add(uncertainty));
-    }
-
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
         loopVectors(player, possibleVectors, speed, returnVectors);
@@ -143,9 +133,26 @@ public class PredictionEngine {
         return Integer.compare(aScore, bScore);
     }
 
+    private Vector handleStartingVelocityUncertainty(GrimPlayer player, Vector vector) {
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
+
+        if (avgColliding == 0)
+            return vector;
+
+        // 0.05 was falsing when colliding with https://i.imgur.com/7obfxG6.png
+        // 0.1 seems like a safe without allowing any false positives
+        Vector uncertainty = new Vector(avgColliding * 0.1, 0, avgColliding * 0.1);
+
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                vector.clone().add(uncertainty.clone().multiply(-1)),
+                vector.clone().add(uncertainty));
+    }
+
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
+
         // Handle entity pushing/piston movement/riptide onGround addition
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + player.uncertaintyHandler.collidingEntities * 0.1, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + player.uncertaintyHandler.collidingEntities * 0.1);
+        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.1, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.1);
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)),
                 vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));

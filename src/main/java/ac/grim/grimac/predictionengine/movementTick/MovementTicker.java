@@ -133,7 +133,6 @@ public class MovementTicker {
             player.uncertaintyHandler.zPushEntityPositive = 0;
             player.uncertaintyHandler.xPushEntityNegative = 0;
             player.uncertaintyHandler.zPushEntityNegative = 0;
-            player.uncertaintyHandler.collidingEntities = 0;
 
             livingEntityTravel();
         }
@@ -161,17 +160,26 @@ public class MovementTicker {
         player.uncertaintyHandler.zPushEntityPositive = 0;
         player.uncertaintyHandler.xPushEntityNegative = 0;
         player.uncertaintyHandler.zPushEntityNegative = 0;
-        player.uncertaintyHandler.collidingEntities = 0;
 
         // Calculate the offset of the player to colliding other stuff
         Vector3d playerPos = new Vector3d(player.x, player.y, player.z);
         SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+        SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(0.5);
+
+        int collidingEntities = 0;
+        int possibleCollidingEntities = 0;
+
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
             if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
                 double width = BoundingBoxSize.getWidth(entity);
                 double height = BoundingBoxSize.getHeight(entity);
 
-                if (!playerBox.isCollided(GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height)))
+                SimpleCollisionBox entityBox = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height);
+
+                if (expandedPlayerBox.isCollided(entityBox))
+                    possibleCollidingEntities++;
+
+                if (!playerBox.isCollided(entityBox))
                     continue;
 
                 double xDist = player.x - entity.position.x;
@@ -190,7 +198,7 @@ public class MovementTicker {
                     xDist *= -0.05F;
                     zDist *= -0.05F;
 
-                    player.uncertaintyHandler.collidingEntities++;
+                    collidingEntities++;
 
                     if (xDist > 0) {
                         player.uncertaintyHandler.xPushEntityPositive += xDist;
@@ -206,6 +214,9 @@ public class MovementTicker {
                 }
             }
         }
+
+        player.uncertaintyHandler.strictCollidingEntities.add(collidingEntities);
+        player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
     }
 
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
