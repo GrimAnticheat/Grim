@@ -5,7 +5,7 @@ public class VanillaMath {
 
     static {
         for (int i = 0; i < SIN.length; ++i) {
-            SIN[i] = (float) Math.sin((double) i * 3.141592653589793 * 2.0 / 65536.0);
+            SIN[i] = (float) StrictMath.sin((double) i * 3.141592653589793 * 2.0 / 65536.0);
         }
     }
 
