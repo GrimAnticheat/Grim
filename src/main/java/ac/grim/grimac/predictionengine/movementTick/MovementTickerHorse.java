@@ -19,9 +19,6 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
         if (!horsePacket.hasSaddle) return;
 
-        if (!horsePacket.isRearing)
-            player.allowStandSliding = false;
-
         player.speed = (float) PredictionData.getMovementSpeedAttribute((LivingEntity) horse);
         player.movementSpeed = player.speed;
 
@@ -36,8 +33,6 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         // If the player wants to jump on a horse
         // Listen to Entity Action -> start jump with horse, stop jump with horse
         if (player.horseJump > 0.0F && !player.horseJumping && player.lastOnGround) {
-            player.allowStandSliding = true;
-
             // Safe to use attributes as entity riding is server sided on 1.8
             double d0 = ((LivingEntity) horse).getAttribute(Attribute.HORSE_JUMP_STRENGTH).getValue() * player.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
@@ -59,11 +54,6 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
             }
 
             player.horseJump = 0.0F;
-        }
-
-        if (player.onGround && player.horseJump == 0.0F && horsePacket.isRearing && !player.allowStandSliding) {
-            f = 0.0F;
-            f1 = 0.0F;
         }
 
         // More jumping stuff
