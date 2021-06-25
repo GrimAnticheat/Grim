@@ -2,7 +2,9 @@ package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
-import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
@@ -12,7 +14,14 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
     public MovementTickerHorse(GrimPlayer player) {
         super(player);
 
-        Entity horse = player.playerVehicle.entity;
+        PacketEntityHorse horsePacket = (PacketEntityHorse) player.playerVehicle;
+        Entity horse = horsePacket.entity;
+
+        if (!horsePacket.hasSaddle) return;
+
+        if (!horsePacket.isRearing)
+            player.allowStandSliding = false;
+
         player.speed = (float) PredictionData.getMovementSpeedAttribute((LivingEntity) horse);
         player.movementSpeed = player.speed;
 
@@ -20,58 +29,47 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         float f = player.vehicleHorizontal * 0.5F;
         float f1 = player.vehicleForward;
 
-        if (player.playerVehicle.pose == Pose.DYING) {
-            player.clientVelocity = new Vector();
-            return;
+        if (f1 <= 0.0F) {
+            f1 *= 0.25F;
         }
 
-        // TODO: This takes away control of the player when the horse is standing
-
-        // If the did not jump this tick
-        // If the horse is standing and the player isn't jumping and the player isn't jumping last tick (flag 32)
-        /*if (player.onGround && this.playerJumpPendingScale == 0.0F && this.isStanding() && !this.allowStandSliding) {
-            f = 0.0F;
-            f1 = 0.0F;
-        }*/
-
-        // TODO: Handle jump
         // If the player wants to jump on a horse
         // Listen to Entity Action -> start jump with horse, stop jump with horse
-        /*if (this.playerJumpPendingScale > 0.0F && !this.isJumping() && this.onGround) {
-            double d0 = this.getCustomJump() * (double) this.playerJumpPendingScale * (double) this.getBlockJumpFactor();
+        if (player.horseJump > 0.0F && !player.horseJumping && player.lastOnGround) {
+            player.allowStandSliding = true;
+
+            // Safe to use attributes as entity riding is server sided on 1.8
+            double d0 = ((LivingEntity) horse).getAttribute(Attribute.HORSE_JUMP_STRENGTH).getValue() * player.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
-            if (this.hasEffect(Effects.JUMP)) {
-                d1 = d0 + (double) ((float) (this.getEffect(Effects.JUMP).getAmplifier() + 1) * 0.1F);
+
+            int jumpBoost = PredictionData.getHighestPotionEffect(((LivingEntity) horse).getActivePotionEffects(), "JUMP", 0);
+            if (jumpBoost > 0) {
+                d1 = d0 + (double) ((float) (jumpBoost + 1) * 0.1F);
             } else {
                 d1 = d0;
             }
 
-            Vector3d vector3d = this.getDeltaMovement();
-            this.setDeltaMovement(vector3d.x, d1, vector3d.z);
-            this.setIsJumping(true);
-            this.hasImpulse = true;
+            player.baseTickSetY(d1 / 0.98);
+            player.horseJumping = true;
+
             if (f1 > 0.0F) {
-                float f2 = MathHelper.sin(this.yRot * ((float) Math.PI / 180F));
-                float f3 = MathHelper.cos(this.yRot * ((float) Math.PI / 180F));
-                this.setDeltaMovement(this.getDeltaMovement().add((double) (-0.4F * f2 * this.playerJumpPendingScale), 0.0D, (double) (0.4F * f3 * this.playerJumpPendingScale)));
+                float f2 = player.trigHandler.sin(player.xRot * ((float) Math.PI / 180F));
+                float f3 = player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F));
+                player.baseTickAddVector(new Vector(-0.4F * f2 * player.horseJump, 0.0D, 0.4F * f3 * player.horseJump).multiply(1 / 0.98));
             }
 
-            this.playerJumpPendingScale = 0.0F;
-        }*/
+            player.horseJump = 0.0F;
+        }
+
+        if (player.onGround && player.horseJump == 0.0F && horsePacket.isRearing && !player.allowStandSliding) {
+            f = 0.0F;
+            f1 = 0.0F;
+        }
 
         // More jumping stuff
-        /*if (this.onGround) {
-            this.playerJumpPendingScale = 0.0F;
-            this.setIsJumping(false);
-        }*/
-        /*{ else {
-            this.flyingSpeed = 0.02F;
-            super.travel(inputMovement);
-        }*/
-
-
-        if (f1 <= 0.0F) {
-            f1 *= 0.25F;
+        if (player.lastOnGround) {
+            player.horseJump = 0.0F;
+            player.horseJumping = false;
         }
 
         this.movementInput = new Vector(f, 0, f1);

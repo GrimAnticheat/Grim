@@ -30,7 +30,7 @@ public class JumpPower {
         return 0.42f * getPlayerJumpFactor(player);
     }
 
-    private static float getPlayerJumpFactor(GrimPlayer player) {
+    public static float getPlayerJumpFactor(GrimPlayer player) {
         float f = getBlockJumpFactor(player, player.lastX, player.lastY, player.lastZ);
         float f2 = getBlockJumpFactor(player, player.lastX, player.lastY - 0.5000001, player.lastZ);
 

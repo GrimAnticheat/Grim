@@ -20,4 +20,5 @@ public class PacketStateData {
     public boolean isEating = false;
     public Integer vehicle = null;
     public boolean receivedVehicleMove = false;
+    public int horseJump = 0;
 }

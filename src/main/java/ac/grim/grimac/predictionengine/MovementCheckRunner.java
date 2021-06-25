@@ -344,9 +344,9 @@ public class MovementCheckRunner {
 
         player.lastTransactionBeforeLastMovement = player.packetStateData.packetLastTransactionReceived;
 
-
         player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
         player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
+        player.horseJump = data.horseJump;
 
         queueNext(player);
     }
