@@ -216,7 +216,7 @@ public class MovementCheckRunner {
                 // Don't let the player move if they just teleported
                 player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
                 player.clientVelocity = new Vector();
-            } else if (player.bukkitPlayer.isDead()) {
+            } else if (player.bukkitPlayer.isDead() || (player.playerVehicle != null && player.playerVehicle.entity.isDead())) {
                 // Dead players can't cheat, if you find a way how they could, open an issue
                 player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
                 player.clientVelocity = new Vector();
