@@ -34,6 +34,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         // Listen to Entity Action -> start jump with horse, stop jump with horse
         if (player.horseJump > 0.0F && !player.horseJumping && player.lastOnGround) {
             // Safe to use attributes as entity riding is server sided on 1.8
+            // Not using bukkit API getJumpStrength() because the API changes around 1.11
             double d0 = ((LivingEntity) horse).getAttribute(Attribute.HORSE_JUMP_STRENGTH).getValue() * player.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
 
