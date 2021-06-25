@@ -32,7 +32,6 @@ public class UncertaintyHandler {
         pistonZ = 0;
         collidingWithBoat = false;
         collidingWithShulker = false;
-        striderOnGround = false;
         slimePistonBounces = new HashSet<>();
     }
 }

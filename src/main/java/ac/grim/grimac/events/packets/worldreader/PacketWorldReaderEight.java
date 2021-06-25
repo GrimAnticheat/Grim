@@ -163,10 +163,11 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
 
             int arrayLength = Array.getLength(sectionsArray);
 
-            if (arrayLength == 0)
+            Object zeroElement = Array.get(sectionsArray, 0);
+            if (zeroElement == null)
                 return;
 
-            Method getIds = Reflection.getMethod(Array.get(sectionsArray, 0).getClass(), "getIdArray", 0);
+            Method getIds = Reflection.getMethod(zeroElement.getClass(), "getIdArray", 0);
 
             for (int x = 0; x < arrayLength; x++) {
                 Object section = Array.get(sectionsArray, x);
