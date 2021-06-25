@@ -60,13 +60,14 @@ public class PredictionData {
     public float vehicleHorizontal;
     public float vehicleForward;
     public boolean isJustTeleported = false;
-    public VelocityData firstBreadKB = null;
-    public VelocityData requiredKB = null;
+    public VelocityData firstBreadKB;
+    public VelocityData requiredKB;
     public VelocityData firstBreadExplosion = null;
     public VelocityData possibleExplosion = null;
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
     public int itemHeld;
+    public float horseJump = 0;
 
     public boolean isDummy = false;
 
@@ -126,6 +127,7 @@ public class PredictionData {
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
 
         itemHeld = player.packetStateData.lastSlotSelected;
+        player.packetStateData.horseJump = 0;
     }
 
     public static double getMovementSpeedAttribute(LivingEntity entity) {
@@ -145,12 +147,12 @@ public class PredictionData {
         return 0.1f;
     }
 
-    private float getHighestPotionEffect(Collection<PotionEffect> effects, String typeName, int minimumVersion) {
+    public static int getHighestPotionEffect(Collection<PotionEffect> effects, String typeName, int minimumVersion) {
         if (XMaterial.getVersion() < minimumVersion) return 0;
 
         PotionEffectType type = PotionEffectType.getByName(typeName);
 
-        float highestEffect = 0;
+        int highestEffect = 0;
         for (PotionEffect effect : effects) {
             if (effect.getType() == type && effect.getAmplifier() > highestEffect)
                 highestEffect = effect.getAmplifier();
@@ -159,7 +161,7 @@ public class PredictionData {
         return highestEffect;
     }
 
-    // For boat movement
+    // For riding entity movement while in control
     public PredictionData(GrimPlayer player, double boatX, double boatY, double boatZ, float xRot, float yRot) {
         this.player = player;
         this.playerX = boatX;
@@ -176,8 +178,10 @@ public class PredictionData {
 
         Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
 
+        this.jumpAmplifier = getHighestPotionEffect(playerPotionEffects, "JUMP", 0);
         this.levitationAmplifier = getHighestPotionEffect(playerPotionEffects, "LEVITATION", 9);
         this.slowFallingAmplifier = getHighestPotionEffect(playerPotionEffects, "SLOW_FALLING", 13);
+        this.dolphinsGraceAmplifier = getHighestPotionEffect(playerPotionEffects, "DOLPHINS_GRACE", 13);
 
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
@@ -190,6 +194,16 @@ public class PredictionData {
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
 
         itemHeld = player.packetStateData.lastSlotSelected;
+
+        if (player.packetStateData.horseJump > 0) {
+            if (player.packetStateData.horseJump >= 90) {
+                horseJump = 1.0F;
+            } else {
+                horseJump = 0.4F + 0.4F * player.packetStateData.horseJump / 90.0F;
+            }
+        }
+
+        player.packetStateData.horseJump = 0;
     }
 
     public PredictionData(GrimPlayer player) {
@@ -213,5 +227,6 @@ public class PredictionData {
         itemHeld = player.packetStateData.lastSlotSelected;
 
         isDummy = true;
+        player.packetStateData.horseJump = 0;
     }
 }

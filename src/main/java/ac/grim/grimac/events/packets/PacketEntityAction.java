@@ -32,6 +32,9 @@ public class PacketEntityAction extends PacketListenerAbstract {
                 case START_FALL_FLYING:
                     player.compensatedElytra.lastToggleElytra = player.packetStateData.packetLastTransactionReceived;
                     break;
+                case START_RIDING_JUMP:
+                    player.packetStateData.horseJump = action.getJumpBoost();
+                    break;
             }
         }
     }
