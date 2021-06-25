@@ -132,12 +132,95 @@ public class MovementTicker {
         if (player.playerVehicle == null) {
             playerEntityTravel();
         } else {
-            player.uncertaintyHandler.xPushEntityPositive = 0;
-            player.uncertaintyHandler.zPushEntityPositive = 0;
-            player.uncertaintyHandler.xPushEntityNegative = 0;
-            player.uncertaintyHandler.zPushEntityNegative = 0;
-
             livingEntityTravel();
+        }
+
+        player.uncertaintyHandler.xNegativeUncertainty = 0;
+        player.uncertaintyHandler.xPositiveUncertainty = 0;
+        player.uncertaintyHandler.zNegativeUncertainty = 0;
+        player.uncertaintyHandler.zPositiveUncertainty = 0;
+
+        // 1.7 and 1.8 do not have player collision
+        // Players in vehicles do not have collisions
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
+            return;
+
+        if (!player.inVehicle) {
+            // Calculate the offset of the player to colliding other stuff
+            Vector3d playerPos = new Vector3d(player.x, player.y, player.z);
+            SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+            SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(0.5);
+
+            int collidingEntities = 0;
+            int possibleCollidingEntities = 0;
+
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
+
+                    if ((!(entity.entity instanceof LivingEntity) && entity.type != EntityType.BOAT && !(entity.entity instanceof Minecart)) || entity.type == EntityType.ARMOR_STAND)
+                        continue;
+
+                    double width = BoundingBoxSize.getWidth(entity);
+                    double height = BoundingBoxSize.getHeight(entity);
+
+                    SimpleCollisionBox entityBox = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height);
+
+                    if (expandedPlayerBox.isCollided(entityBox))
+                        possibleCollidingEntities++;
+
+                    if (!playerBox.isCollided(entityBox))
+                        continue;
+
+                    double xDist = player.x - entity.position.x;
+                    double zDist = player.z - entity.position.z;
+                    double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
+                    if (maxLength >= 0.01) {
+                        maxLength = Math.sqrt(maxLength);
+                        xDist /= maxLength;
+                        zDist /= maxLength;
+
+                        double d3 = 1.0D / maxLength;
+                        d3 = Math.min(d3, 1.0);
+
+                        xDist *= d3;
+                        zDist *= d3;
+                        xDist *= -0.05F;
+                        zDist *= -0.05F;
+
+                        collidingEntities++;
+
+                        if (xDist > 0) {
+                            player.uncertaintyHandler.xNegativeUncertainty += xDist;
+                        } else {
+                            player.uncertaintyHandler.zNegativeUncertainty += xDist;
+                        }
+
+                        if (zDist > 0) {
+                            player.uncertaintyHandler.xPositiveUncertainty += zDist;
+                        } else {
+                            player.uncertaintyHandler.zPositiveUncertainty += zDist;
+                        }
+                    }
+                }
+            }
+
+            player.uncertaintyHandler.strictCollidingEntities.add(collidingEntities);
+            player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
+        }
+
+        // Work around a bug introduced in 1.14 where a player colliding with an X and Z wall maintains X momentum
+        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
+            return;
+
+        boolean xAxisPositiveCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMax(player.movementSpeed, 0, 0));
+        boolean xAxisNegativeCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMin(-player.movementSpeed, 0, 0));
+        boolean zAxisCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(-0.01, -0.01, player.movementSpeed));
+
+        if (zAxisCollision) {
+            if (xAxisPositiveCollision)
+                player.uncertaintyHandler.xNegativeUncertainty -= player.movementSpeed * 4;
+            if (xAxisNegativeCollision)
+                player.uncertaintyHandler.xPositiveUncertainty += player.movementSpeed * 4;
         }
     }
 
@@ -158,76 +241,6 @@ public class MovementTicker {
         } else {
             livingEntityTravel();
         }
-
-        player.uncertaintyHandler.xPushEntityPositive = 0;
-        player.uncertaintyHandler.zPushEntityPositive = 0;
-        player.uncertaintyHandler.xPushEntityNegative = 0;
-        player.uncertaintyHandler.zPushEntityNegative = 0;
-
-        // 1.7 and 1.8 do not have player collision
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
-            return;
-
-        // Calculate the offset of the player to colliding other stuff
-        Vector3d playerPos = new Vector3d(player.x, player.y, player.z);
-        SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-        SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(0.5);
-
-        int collidingEntities = 0;
-        int possibleCollidingEntities = 0;
-
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
-
-                if ((!(entity.entity instanceof LivingEntity) && entity.type != EntityType.BOAT && !(entity.entity instanceof Minecart)) || entity.type == EntityType.ARMOR_STAND)
-                    continue;
-
-                double width = BoundingBoxSize.getWidth(entity);
-                double height = BoundingBoxSize.getHeight(entity);
-
-                SimpleCollisionBox entityBox = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height);
-
-                if (expandedPlayerBox.isCollided(entityBox))
-                    possibleCollidingEntities++;
-
-                if (!playerBox.isCollided(entityBox))
-                    continue;
-
-                double xDist = player.x - entity.position.x;
-                double zDist = player.z - entity.position.z;
-                double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
-                if (maxLength >= 0.01) {
-                    maxLength = Math.sqrt(maxLength);
-                    xDist /= maxLength;
-                    zDist /= maxLength;
-
-                    double d3 = 1.0D / maxLength;
-                    d3 = Math.min(d3, 1.0);
-
-                    xDist *= d3;
-                    zDist *= d3;
-                    xDist *= -0.05F;
-                    zDist *= -0.05F;
-
-                    collidingEntities++;
-
-                    if (xDist > 0) {
-                        player.uncertaintyHandler.xPushEntityPositive += xDist;
-                    } else {
-                        player.uncertaintyHandler.xPushEntityNegative += xDist;
-                    }
-
-                    if (zDist > 0) {
-                        player.uncertaintyHandler.zPushEntityPositive += zDist;
-                    } else {
-                        player.uncertaintyHandler.zPushEntityNegative += zDist;
-                    }
-                }
-            }
-        }
-
-        player.uncertaintyHandler.strictCollidingEntities.add(collidingEntities);
-        player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
     }
 
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {

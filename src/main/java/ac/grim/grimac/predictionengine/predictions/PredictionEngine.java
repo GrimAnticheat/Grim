@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -136,7 +137,7 @@ public class PredictionEngine {
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, Vector vector) {
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
 
-        if (avgColliding == 0)
+        if (avgColliding == 0 && player.uncertaintyHandler.xNegativeUncertainty == 0 && player.uncertaintyHandler.xPositiveUncertainty == 0)
             return vector;
 
         // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
@@ -145,8 +146,8 @@ public class PredictionEngine {
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
-        Vector min = new Vector(player.uncertaintyHandler.xPushEntityNegative, 0, player.uncertaintyHandler.zPushEntityNegative);
-        Vector max = new Vector(player.uncertaintyHandler.xPushEntityPositive, 0, player.uncertaintyHandler.zPushEntityPositive);
+        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty, 0, player.uncertaintyHandler.zNegativeUncertainty);
+        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty, 0, player.uncertaintyHandler.zPositiveUncertainty);
 
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(min.subtract(uncertainty)),
@@ -180,7 +181,7 @@ public class PredictionEngine {
             for (int x = -1; x <= 1; x++) {
                 for (int z = zMin; z <= 1; z++) {
                     VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-                    result = result.setVector(handleMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
+                    result = result.setVector(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
                     result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
                     result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
                     returnVectors.add(result);
@@ -298,7 +299,7 @@ public class PredictionEngine {
         return inputVector;
     }
 
-    private Vector handleMovementLenience(GrimPlayer player, Vector vector) {
+    private Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
         int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
 
         if (maxFireworks <= 0) return vector;

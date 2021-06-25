@@ -14,10 +14,10 @@ public class UncertaintyHandler {
     public boolean striderOnGround;
     public HashSet<BlockFace> slimePistonBounces;
 
-    public double xPushEntityPositive = 0;
-    public double zPushEntityPositive = 0;
-    public double xPushEntityNegative = 0;
-    public double zPushEntityNegative = 0;
+    public double xNegativeUncertainty = 0;
+    public double xPositiveUncertainty = 0;
+    public double zNegativeUncertainty = 0;
+    public double zPositiveUncertainty = 0;
 
     public EvictingList<Integer> strictCollidingEntities = new EvictingList<>(3);
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
