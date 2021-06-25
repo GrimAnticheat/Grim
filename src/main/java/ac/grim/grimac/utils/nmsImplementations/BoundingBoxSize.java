@@ -273,8 +273,9 @@ public class BoundingBoxSize {
         switch (packetEntity.type) {
             case PIGLIN:
             case ZOMBIFIED_PIGLIN:
-                PiglinAbstract piglin = (PiglinAbstract) entity;
-                return piglin.isAdult() ? -0.45 : -0.05;
+            case ZOMBIE:
+                Ageable ageable = (Ageable) entity;
+                return ageable.isAdult() ? -0.45 : -0.05;
             case SKELETON:
                 return -0.6;
             case ENDERMITE:
@@ -289,9 +290,6 @@ public class BoundingBoxSize {
                 return -0.45;
             case PLAYER:
                 return -0.35;
-            case ZOMBIE:
-                Zombie zombie = (Zombie) entity;
-                return zombie.isAdult() ? -0.45 : -0.05;
         }
 
         if (entity instanceof Animals) {
