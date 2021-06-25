@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.LivingEntity;
@@ -41,6 +42,9 @@ public class MovementTicker {
         player.horizontalCollision = !GrimMathHelper.equal(inputVel.getX(), collide.getX()) || !GrimMathHelper.equal(inputVel.getZ(), collide.getZ());
         player.verticalCollision = inputVel.getY() != collide.getY();
         player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
+
+        if (player.isActuallyOnGround != player.onGround)
+            Bukkit.broadcastMessage("Desync " + player.onGround);
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
         // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them

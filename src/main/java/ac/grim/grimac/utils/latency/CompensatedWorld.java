@@ -110,7 +110,8 @@ public class CompensatedWorld {
     }
 
     public static int getFlattenedGlobalID(BlockData blockData) {
-        return globalPaletteToBlockData.indexOf(blockData);
+        int id = globalPaletteToBlockData.indexOf(blockData);
+        return id == -1 ? 0 : id;
     }
 
     public void tickUpdates(int lastTransactionReceived) {
