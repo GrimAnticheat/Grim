@@ -119,8 +119,8 @@ public class CompensatedWorld {
             ChangeBlockData changeBlockData = changeBlockQueue.peek();
 
             if (changeBlockData == null) break;
-            // The anticheat thread is behind, this event has not occurred yet
-            if (changeBlockData.transaction >= lastTransactionReceived) break;
+            // The player hasn't gotten this update yet
+            if (changeBlockData.transaction > lastTransactionReceived) break;
             changeBlockQueue.poll();
 
             player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.combinedID);

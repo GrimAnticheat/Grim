@@ -1,8 +1,6 @@
 package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
-import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.Pose;
@@ -10,7 +8,6 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
 public class MovementTickerStrider extends MovementTickerRideable {
-    SimpleCollisionBox STABLE_SHAPE = new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
 
     public MovementTickerStrider(GrimPlayer player) {
         super(player);
@@ -33,14 +30,15 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     @Override
     public void livingEntityTravel() {
-        super.livingEntityTravel();
-
         floatStrider();
+
+        super.livingEntityTravel();
     }
 
     private void floatStrider() {
         if (player.wasTouchingLava) {
-            if (isAbove(STABLE_SHAPE) && player.compensatedWorld.getFluidLevelAt(player.x, player.y + 1, player.z) == 0) {
+            if (isAbove() && player.compensatedWorld.
+                    getLavaFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(player.lastY + 1), (int) Math.floor(player.lastZ)) == 0) {
                 player.uncertaintyHandler.striderOnGround = true;
                 // This is a hack because I believe there is something wrong with order of collision stuff.
                 // that doesn't affect players but does affect things that artificially change onGround status
@@ -54,8 +52,8 @@ public class MovementTickerStrider extends MovementTickerRideable {
         }
     }
 
-    public boolean isAbove(SimpleCollisionBox box) {
-        return player.lastY > (int) player.lastY + box.maxY - (double) 1.0E-5F;
+    public boolean isAbove() {
+        return player.lastY > Math.floor(player.lastY) + 0.5 - (double) 1.0E-5F;
     }
 
     @Override

@@ -16,6 +16,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
 import io.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
@@ -331,6 +332,10 @@ public class GrimPlayer {
 
         // Pigs, horses, striders, and other vehicles all have 1 stepping height
         return 1.0f;
+    }
+
+    public void sendTransaction() {
+        PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutTransaction(0, getNextTransactionID(), false));
     }
 
     public boolean isEyeInFluid(FluidTag tag) {
