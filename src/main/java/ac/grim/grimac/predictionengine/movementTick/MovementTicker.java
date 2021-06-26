@@ -61,7 +61,7 @@ public class MovementTicker {
         // By running fluid pushing for the player
         if (!player.wasTouchingWater) {
             player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
-            new PlayerBaseTick(player).updateInWaterStateAndDoFluidPushing();
+            new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
         }
 
         double xBeforeZero = player.clientVelocity.getX();
