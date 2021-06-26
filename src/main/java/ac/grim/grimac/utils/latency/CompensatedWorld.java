@@ -119,7 +119,7 @@ public class CompensatedWorld {
             ChangeBlockData changeBlockData = changeBlockQueue.peek();
 
             if (changeBlockData == null) break;
-            // The player hasn't gotten this update yet
+            // The anticheat thread is behind, this event has not occurred yet
             if (changeBlockData.transaction > lastTransactionReceived) break;
             changeBlockQueue.poll();
 
