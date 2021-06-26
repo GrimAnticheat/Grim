@@ -33,11 +33,6 @@ public class PlayerBaseTick {
         player.baseTickSet = new Vector();
         player.baseTickAddition = new Vector(0, 0, 0);
 
-        // You cannot crouch while flying, only shift - could be specific to 1.14?
-        if (player.wasTouchingWater && player.isSneaking && !player.specialFlying && !player.inVehicle) {
-            player.baseTickAddVector(new Vector(0, -0.04, 0));
-        }
-
         if (player.specialFlying && player.isSneaking && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
         }
@@ -45,6 +40,12 @@ public class PlayerBaseTick {
         updateInWaterStateAndDoFluidPushing();
         updateFluidOnEyes();
         updateSwimming();
+
+
+        // You cannot crouch while flying, only shift - could be specific to 1.14?
+        if (player.wasTouchingWater && player.isSneaking && !player.specialFlying && !player.inVehicle) {
+            player.baseTickAddVector(new Vector(0, -0.04, 0));
+        }
 
         // LocalPlayer:aiStep determining crouching
         // Tick order is entityBaseTick and then the aiStep stuff
@@ -306,7 +307,7 @@ public class PlayerBaseTick {
             }
 
             if (player.inVehicle) {
-                // This is a boat, normalize it for some reason.
+                // This is a riding entity, normalize it for some reason.
                 vec3 = vec3.normalize();
             }
 
