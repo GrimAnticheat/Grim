@@ -194,7 +194,7 @@ public class PlayerBaseTick {
         }
     }
 
-    void updateInWaterStateAndDoWaterCurrentPushing() {
+    public void updateInWaterStateAndDoWaterCurrentPushing() {
         player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT);
     }
 

@@ -366,10 +366,10 @@ public class Collisions {
 
     public static void handleInsideBlocks(GrimPlayer player) {
         // Use the bounding box for after the player's movement is applied
-        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-0.001);
 
-        Location blockPos = new Location(player.playerWorld, aABB.minX + 0.001D, aABB.minY + 0.001D, aABB.minZ + 0.001D);
-        Location blockPos2 = new Location(player.playerWorld, aABB.maxX - 0.001D, aABB.maxY - 0.001D, aABB.maxZ - 0.001D);
+        Location blockPos = new Location(player.playerWorld, aABB.minX, aABB.minY, aABB.minZ);
+        Location blockPos2 = new Location(player.playerWorld, aABB.maxX, aABB.maxY, aABB.maxZ);
 
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
             return;
