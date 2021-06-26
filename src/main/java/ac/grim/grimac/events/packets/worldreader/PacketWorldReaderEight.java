@@ -105,6 +105,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
 
             Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
+            player.sendTransaction();
             player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
 
         }
@@ -133,6 +134,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
                 Field shortField = Reflection.getField(blockInformation[0].getClass(), 0);
                 Field blockDataField = Reflection.getField(blockInformation[0].getClass(), 1);
 
+                player.sendTransaction();
                 for (Object o : blockInformation) {
                     short pos = shortField.getShort(o);
                     int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(o));
