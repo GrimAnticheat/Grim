@@ -319,7 +319,7 @@ public class PlayerBaseTick {
 
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
             if (tag != FluidTag.LAVA || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16)) {
-                player.baseTickAddVector(new Vector(vec3.getX(), vec3.getY(), vec3.getZ()));
+                player.baseTickAddVector(vec3);
             }
         }
 

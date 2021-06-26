@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.PlayerBaseTick;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineElytra;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
@@ -55,6 +56,13 @@ public class MovementTicker {
             player.onGround = player.isActuallyOnGround || player.uncertaintyHandler.striderOnGround;
 
         Material onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
+
+        // This is how the player checks for fall damage
+        // By running fluid pushing for the player
+        if (!player.wasTouchingWater) {
+            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
+            new PlayerBaseTick(player).updateInWaterStateAndDoFluidPushing();
+        }
 
         double xBeforeZero = player.clientVelocity.getX();
         if (inputVel.getX() != collide.getX()) {
