@@ -174,7 +174,9 @@ public class PredictionEngine {
     private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
         // Stop omni-sprint
         // Optimization - Also cuts down scenarios by 2/3
-        int zMin = player.isSprinting ? 1 : -1;
+        // For some reason the player sprints while swimming no matter what
+        // Probably as a way to tell the server it is swimming
+        int zMin = player.isSprinting && !player.isSwimming ? 1 : -1;
 
         for (VectorData possibleLastTickOutput : possibleVectors) {
             for (int x = -1; x <= 1; x++) {
