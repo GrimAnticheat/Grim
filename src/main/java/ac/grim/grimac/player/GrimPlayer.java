@@ -15,7 +15,9 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.packetwrappers.play.out.ping.WrappedPacketOutPing;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -334,8 +336,21 @@ public class GrimPlayer {
         return 1.0f;
     }
 
-    public void sendTransaction() {
-        PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutTransaction(0, getNextTransactionID(), false));
+    public void sendTransactionOrPingPong() {
+        sendTransactionOrPingPong(getNextTransactionID());
+    }
+
+    // Shouldn't error, but be on the safe side as this is networking stuff
+    public void sendTransactionOrPingPong(short transactionID) {
+        try {
+            if (XMaterial.getVersion() >= 17) {
+                PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutPing(transactionID));
+            } else {
+                PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+        }
     }
 
     public boolean isEyeInFluid(FluidTag tag) {

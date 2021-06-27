@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.eight.EightChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
@@ -17,7 +16,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.Wrapped
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 
 import java.lang.reflect.Array;
@@ -105,7 +103,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
 
             Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
-            player.sendTransaction();
+            player.sendTransactionOrPingPong();
             player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
 
         }
@@ -134,7 +132,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
                 Field shortField = Reflection.getField(blockInformation[0].getClass(), 0);
                 Field blockDataField = Reflection.getField(blockInformation[0].getClass(), 1);
 
-                player.sendTransaction();
+                player.sendTransactionOrPingPong();
                 for (Object o : blockInformation) {
                     short pos = shortField.getShort(o);
                     int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(o));
