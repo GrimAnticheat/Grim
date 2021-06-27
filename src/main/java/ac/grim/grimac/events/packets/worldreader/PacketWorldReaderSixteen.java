@@ -87,7 +87,7 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
 
             Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
-            event.setPostTask(player::sendTransaction);
+            event.setPostTask(player::sendTransactionOrPingPong);
             player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
         }
 
@@ -113,7 +113,7 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
                 short[] blockPositions = packet.readShortArray(0);
                 Object[] blockDataArray = (Object[]) packet.readAnyObject(2);
 
-                event.setPostTask(player::sendTransaction);
+                event.setPostTask(player::sendTransactionOrPingPong);
                 for (int i = 0; i < blockPositions.length; i++) {
                     short blockPosition = blockPositions[i];
 

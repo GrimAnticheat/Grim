@@ -2,14 +2,12 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.abilities.WrappedPacketInAbilities;
 import io.github.retrooper.packetevents.packetwrappers.play.out.abilities.WrappedPacketOutAbilities;
-import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 
 public class PacketPlayerAbilities extends PacketListenerAbstract {
 
@@ -36,9 +34,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
             player.compensatedFlying.setCanPlayerFly(abilities.isFlightAllowed());
             player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionSent.get(), abilities.isFlying());
 
-            // Send a transaction packet immediately after this packet
-            event.setPostTask(() -> PacketEvents.get().getPlayerUtils().sendPacket(event.getPlayer(),
-                    new WrappedPacketOutTransaction(0, player.getNextTransactionID(), false)));
+            event.setPostTask(player::sendTransactionOrPingPong);
         }
     }
 }

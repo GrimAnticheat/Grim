@@ -28,7 +28,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.retrooper:packetevents:d1bf9a0'
+    implementation 'com.github.retrooper:packetevents:612a9c3'
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.4'
     compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'

@@ -2,14 +2,12 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
-import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import org.bukkit.util.Vector;
 
 public class PacketPlayerVelocity extends PacketListenerAbstract {
@@ -42,9 +40,9 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
                 short breadTwo = (short) (reservedID - 1);
 
                 // Wrap velocity between two transactions
-                PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadOne, false));
+                player.sendTransactionOrPingPong(breadOne);
                 player.knockbackHandler.addPlayerKnockback(breadOne, playerVelocity);
-                event.setPostTask(() -> PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadTwo, false)));
+                event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo));
             }
         }
 
@@ -65,9 +63,9 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
                 short breadOne = (short) reservedID;
                 short breadTwo = (short) (reservedID - 1);
 
-                PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadOne, false));
+                player.sendTransactionOrPingPong(breadOne);
                 player.explosionHandler.addPlayerExplosion(breadOne, explosion);
-                event.setPostTask(() -> PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, breadTwo, false)));
+                event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo));
             }
         }
     }

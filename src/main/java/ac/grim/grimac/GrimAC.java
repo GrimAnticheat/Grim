@@ -8,7 +8,6 @@ import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -94,7 +93,7 @@ public final class GrimAC extends JavaPlugin {
         // Writing packets takes more time than it appears
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                sendTransaction(player.getNextTransactionID(), player);
+                player.sendTransactionOrPingPong();
             }
         }, 1, 1);
     }
@@ -148,14 +147,5 @@ public final class GrimAC extends JavaPlugin {
         }
 
         PacketEvents.get().init();
-    }
-
-    // Shouldn't error, but be on the safe side as this is networking stuff
-    private void sendTransaction(short transactionID, GrimPlayer player) {
-        try {
-            PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));
-        } catch (Exception exception) {
-            exception.printStackTrace();
-        }
     }
 }
