@@ -18,12 +18,10 @@ public class JumpPower {
 
         vector.setY(f);
 
-        // TODO: Use the stuff from the sprinting packet
         if (player.isSprinting) {
             float f2 = player.xRot * ((float) Math.PI / 180F);
             vector.add(new Vector(-player.trigHandler.sin(f2) * 0.2f, 0.0, player.trigHandler.cos(f2) * 0.2f));
         }
-
     }
 
     public static float getJumpPower(GrimPlayer player) {
