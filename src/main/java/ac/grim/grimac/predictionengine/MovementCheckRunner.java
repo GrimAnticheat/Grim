@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -97,6 +98,8 @@ public class MovementCheckRunner {
         player.lastVehicle = player.playerVehicle;
         player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
         player.inVehicle = player.playerVehicle != null;
+
+        player.tryingToRiptide = data.isTryingToRiptide;
 
         player.firstBreadKB = data.firstBreadKB;
         player.possibleKB = data.requiredKB;
@@ -239,7 +242,7 @@ public class MovementCheckRunner {
                     player.depthStriderLevel = 0;
                 }
 
-                if (player.canGroundRiptide = (player.lastOnGround && player.compensatedRiptide.getCanRiptide())) {
+                if (player.canGroundRiptide = (player.lastOnGround && player.tryingToRiptide)) {
                     double addedY = Math.min(player.actualMovement.getY(), 1.1999999F);
                     player.lastOnGround = false;
                     player.lastY += addedY;
@@ -288,6 +291,12 @@ public class MovementCheckRunner {
                 color = ChatColor.GRAY;
                 offset = 0;
             }
+
+            // Vanilla can desync with riptide status
+            // This happens because of the < 0.03 thing
+            // It also happens at random, especially when close to exiting water (because minecraft netcode sucks)
+            if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() && player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))
+                Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "DESYNC IN RIPTIDE! // todo: setback and exempt player until setback");
 
             player.knockbackHandler.handlePlayerKb(offset);
             player.explosionHandler.handlePlayerExplosion(offset);

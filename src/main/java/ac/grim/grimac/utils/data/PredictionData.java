@@ -47,6 +47,7 @@ public class PredictionData {
     public boolean onGround;
     public boolean isSprinting;
     public boolean isSneaking;
+    public boolean isTryingToRiptide = false;
     public boolean isUsingItem = false;
     public World playerWorld;
     public double movementSpeed;
@@ -83,6 +84,8 @@ public class PredictionData {
 
         this.isSprinting = player.packetStateData.isPacketSprinting;
         this.isSneaking = player.packetStateData.isPacketSneaking;
+        this.isTryingToRiptide = player.packetStateData.tryingToRiptide;
+        player.packetStateData.tryingToRiptide = false;
 
         // Handle the player dropping food to stop eating
         if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
@@ -204,6 +207,7 @@ public class PredictionData {
         }
 
         player.packetStateData.horseJump = 0;
+        player.packetStateData.tryingToRiptide = false;
     }
 
     public PredictionData(GrimPlayer player) {
@@ -228,5 +232,6 @@ public class PredictionData {
 
         isDummy = true;
         player.packetStateData.horseJump = 0;
+        player.packetStateData.tryingToRiptide = false;
     }
 }

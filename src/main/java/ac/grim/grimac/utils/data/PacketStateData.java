@@ -21,4 +21,5 @@ public class PacketStateData {
     public Integer vehicle = null;
     public boolean receivedVehicleMove = false;
     public int horseJump = 0;
+    public boolean tryingToRiptide = false;
 }
