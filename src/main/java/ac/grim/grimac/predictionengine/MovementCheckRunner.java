@@ -242,6 +242,7 @@ public class MovementCheckRunner {
                 if (player.canGroundRiptide = (player.lastOnGround && player.compensatedRiptide.getCanRiptide())) {
                     double addedY = Math.min(player.actualMovement.getY(), 1.1999999F);
                     player.lastOnGround = false;
+                    player.lastY += addedY;
 
                     player.boundingBox.offset(0, addedY, 0);
                 }
@@ -275,9 +276,9 @@ public class MovementCheckRunner {
 
             ChatColor color;
 
-            if (offset < 0.01) {
+            if (offset < 0.0001) {
                 color = ChatColor.GREEN;
-            } else if (offset < 0.1) {
+            } else if (offset < 0.01) {
                 color = ChatColor.YELLOW;
             } else {
                 color = ChatColor.RED;
