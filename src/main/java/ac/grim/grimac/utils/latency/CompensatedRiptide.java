@@ -42,12 +42,11 @@ public class CompensatedRiptide {
             // If the movement's transaction is greater than the riptide's transaction
             // Remove the riptide possibility to prevent players from "storing" riptides
             // For example, a client could store riptides to activate in pvp
-            if (integer < lastTransactionReceived) {
+            if (integer + 20 < lastTransactionReceived) {
                 lagCompensatedRiptide.poll();
                 continue;
             }
 
-            // Riptide possibility hasn't expired or been used
             return true;
         } while (true);
     }

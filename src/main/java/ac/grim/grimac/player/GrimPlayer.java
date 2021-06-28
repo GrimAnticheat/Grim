@@ -169,8 +169,8 @@ public class GrimPlayer {
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
     public float horseJump = 0;
-    public boolean allowStandSliding = false;
     public boolean horseJumping = false;
+    public boolean tryingToRiptide = false;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;

@@ -8,7 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerRiptideEvent;
 
 public class RiptideEvent implements Listener {
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerRiptideEvent(PlayerRiptideEvent event) {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
 

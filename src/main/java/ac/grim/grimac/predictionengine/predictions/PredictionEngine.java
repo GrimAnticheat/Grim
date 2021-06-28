@@ -214,7 +214,7 @@ public class PredictionEngine {
             }
         }
 
-        if (player.compensatedRiptide.getCanRiptide()) {
+        if (player.tryingToRiptide) {
             ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
             ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
