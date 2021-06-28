@@ -295,7 +295,9 @@ public class MovementCheckRunner {
             // Vanilla can desync with riptide status
             // This happens because of the < 0.03 thing
             // It also happens at random, especially when close to exiting water (because minecraft netcode sucks)
-            if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() && player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))
+            //
+            // We can recover from the near water desync, but we cannot recover from the rain desync and must set the player back
+            if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() && player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident) && !player.compensatedWorld.containsWater(GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3)))
                 Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "DESYNC IN RIPTIDE! // todo: setback and exempt player until setback");
 
             player.knockbackHandler.handlePlayerKb(offset);
