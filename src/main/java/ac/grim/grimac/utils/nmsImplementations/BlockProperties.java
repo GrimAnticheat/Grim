@@ -81,7 +81,7 @@ public class BlockProperties {
             return player.flySpeed * 20 * (player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8) ? 0.1f : 0.05f);
 
         } else {
-            if (player.isSprinting) {
+            if (player.lastSprinting) {
                 return 0.026f;
             } else {
                 return 0.02f;
