@@ -26,9 +26,8 @@ public class PredictionEngine {
 
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
-        // This is an optimization - sort the inputs by the most likely first
-        possibleVelocities.sort((a, b) -> compareDistanceToActualMovement(a.vector, b.vector, player));
-        possibleVelocities.sort(this::putVelocityExplosionsFirst);
+        // Sorting is an optimization and a requirement
+        possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
         // If on ground ignore Y velocity because it will be -0.07 if the player has gravity
@@ -101,23 +100,22 @@ public class PredictionEngine {
         return velocities;
     }
 
-    public int compareDistanceToActualMovement(Vector a, Vector b, GrimPlayer player) {
-        double x = player.actualMovement.getX();
-        double y = player.actualMovement.getY();
-        double z = player.actualMovement.getZ();
-
-        // Weight y distance heavily to avoid jumping when we shouldn't be jumping, as it affects later ticks.
-        // Issue with this mainly occurs with < 0.03 movement in stuff such as cobwebs
-        double distance1 = Math.pow(a.getX() - x, 2) + Math.pow(a.getY() - y, 2) * 5 + Math.pow(a.getZ() - z, 2);
-        double distance2 = Math.pow(b.getX() - x, 2) + Math.pow(b.getY() - y, 2) * 5 + Math.pow(b.getZ() - z, 2);
-
-        return Double.compare(distance1, distance2);
-    }
-
-    // Try to solve any falses from small velocity amounts not being shown in movement
-    public int putVelocityExplosionsFirst(VectorData a, VectorData b) {
+    public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
         int aScore = 0;
         int bScore = 0;
+
+        // Fixes false using riptide under 2 blocks of water
+        boolean aTridentJump = a.hasVectorType(VectorData.VectorType.Trident) && !a.hasVectorType(VectorData.VectorType.Jump);
+        boolean bTridentJump = b.hasVectorType(VectorData.VectorType.Trident) && !b.hasVectorType(VectorData.VectorType.Jump);
+
+        if (aTridentJump && !bTridentJump)
+            return -1;
+
+        if (bTridentJump && !aTridentJump)
+            return 1;
+
+        // Put explosions and knockback first so they are applied to the player
+        // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
         if (a.hasVectorType(VectorData.VectorType.Explosion))
             aScore++;
 
@@ -130,7 +128,21 @@ public class PredictionEngine {
         if (b.hasVectorType(VectorData.VectorType.Knockback))
             bScore++;
 
-        return Integer.compare(aScore, bScore);
+        if (aScore != bScore)
+            return Integer.compare(aScore, bScore);
+
+        // If all else fails, just compare the distance and use the one closest to the player
+        // It's an optimization and isn't really required
+        double x = player.actualMovement.getX();
+        double y = player.actualMovement.getY();
+        double z = player.actualMovement.getZ();
+
+        // Weight y distance heavily to avoid jumping when we shouldn't be jumping, as it affects later ticks.
+        // Issue with this mainly occurs with < 0.03 movement in stuff such as cobwebs
+        double distance1 = Math.pow(a.vector.getX() - x, 2) + Math.pow(a.vector.getY() - y, 2) * 5 + Math.pow(a.vector.getZ() - z, 2);
+        double distance2 = Math.pow(b.vector.getX() - x, 2) + Math.pow(b.vector.getY() - y, 2) * 5 + Math.pow(b.vector.getZ() - z, 2);
+
+        return Double.compare(distance1, distance2);
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, Vector vector) {
@@ -200,35 +212,35 @@ public class PredictionEngine {
             if (player.firstBreadExplosion != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
             }
+        }
 
-            if (player.compensatedRiptide.getCanRiptide()) {
-                ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
-                ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
+        if (player.compensatedRiptide.getCanRiptide()) {
+            ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
+            ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
-                int j;
-                if (main.getType() == Material.TRIDENT) {
-                    j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
-                } else if (off.getType() == Material.TRIDENT) {
-                    j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
-                } else {
-                    return;
-                }
-
-                canRiptide = true;
-
-                float f7 = player.xRot;
-                float f = player.yRot;
-                float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
-                float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
-                float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
-                float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
-                float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
-                f1 = f1 * (f5 / f4);
-                f2 = f2 * (f5 / f4);
-                f3 = f3 * (f5 / f4);
-
-                existingVelocities.add(new VectorData(vector.vector.clone().add(new Vector(f1, f2, f3)), VectorData.VectorType.Trident));
+            int j;
+            if (main.getType() == Material.TRIDENT) {
+                j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
+            } else if (off.getType() == Material.TRIDENT) {
+                j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
+            } else {
+                return;
             }
+
+            canRiptide = true;
+
+            float f7 = player.xRot;
+            float f = player.yRot;
+            float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
+            float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
+            float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
+            float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
+            float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
+            f1 = f1 * (f5 / f4);
+            f2 = f2 * (f5 / f4);
+            f3 = f3 * (f5 / f4);
+
+            existingVelocities.add(new VectorData(player.clientVelocity.clone().add(new Vector(f1, f2, f3)), VectorData.VectorType.Trident));
         }
     }
 
@@ -300,7 +312,7 @@ public class PredictionEngine {
 
         if (inputVector.lengthSquared() > 1) {
             double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
-            inputVector =new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
+            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
         }
 
         return inputVector;
