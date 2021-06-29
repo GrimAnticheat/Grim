@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.movement.KnockbackHandler;
 import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.compat.ViaVersionCompat;
 import ac.grim.grimac.utils.data.BoatData;
 import ac.grim.grimac.utils.data.PacketStateData;
 import ac.grim.grimac.utils.data.VectorData;
@@ -16,6 +17,9 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import com.viaversion.viaversion.api.Via;
+import com.viaversion.viaversion.api.connection.UserConnection;
+import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.ping.WrappedPacketOutPing;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
@@ -171,6 +175,7 @@ public class GrimPlayer {
     public float horseJump = 0;
     public boolean horseJumping = false;
     public boolean tryingToRiptide = false;
+    public PacketTracker packetTracker;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -192,6 +197,11 @@ public class GrimPlayer {
                 PacketEvents.get().getServerUtils().getVersion() == ServerVersion.v_1_7_10 ?
                         ClientVersion.getClientVersion(SpigotVersionLookup_1_7.getProtocolVersion(player)) :
                         ClientVersion.getClientVersion(PacketEvents.get().getServerUtils().getVersion().getProtocolVersion());
+
+        if (ViaVersionCompat.hasViaVersion) {
+            UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
+            packetTracker = connection != null ? connection.getPacketTracker() : null;
+        }
 
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);

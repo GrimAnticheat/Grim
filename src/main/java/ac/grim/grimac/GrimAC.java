@@ -5,6 +5,7 @@ import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.events.packets.worldreader.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
+import ac.grim.grimac.utils.compat.ViaVersionCompat;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
@@ -96,6 +97,15 @@ public final class GrimAC extends JavaPlugin {
                 player.sendTransactionOrPingPong();
             }
         }, 1, 1);
+
+        // Disable ViaVersion packet limiter
+        if (ViaVersionCompat.hasViaVersion) {
+            Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+                for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                    player.packetTracker.setIntervalPackets(0);
+                }
+            }, 1, 1);
+        }
     }
 
     public void registerEvents() {
