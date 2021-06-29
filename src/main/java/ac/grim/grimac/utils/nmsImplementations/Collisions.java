@@ -106,6 +106,8 @@ public class Collisions {
         // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
         // If not, just return the collisions without stepping up that we calculated earlier
         if (player.getMaxUpStep() > 0.0F && movingIntoGround && (clonedX != xWithCollision || clonedZ != zWithCollision)) {
+            player.uncertaintyHandler.isStepMovement = true;
+
             double stepUpHeight = player.getMaxUpStep();
             // Undo the offsets done above, but keep the result in justAfterCollisionBB
             setBB = currentPosBB.copy();
