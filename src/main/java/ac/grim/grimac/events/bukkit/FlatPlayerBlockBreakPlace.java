@@ -3,8 +3,10 @@ package ac.grim.grimac.events.bukkit;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ChangeBlockData;
+import ac.grim.grimac.utils.data.PlayerChangeBlockData;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -22,12 +24,14 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 public class FlatPlayerBlockBreakPlace implements Listener {
 
+    BlockData air = Material.AIR.createBlockData();
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
         if (player == null) return;
         Block block = event.getBlock();
-        ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(block.getBlockData()));
+        PlayerChangeBlockData data = new PlayerChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), block.getBlockData());
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 
@@ -38,7 +42,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         Block block = event.getBlock();
 
         // Even when breaking waterlogged stuff, the client assumes it will turn into air (?)
-        ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), 0);
+        PlayerChangeBlockData data = new PlayerChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), air);
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 

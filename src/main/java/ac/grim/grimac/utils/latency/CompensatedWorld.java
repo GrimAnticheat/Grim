@@ -16,9 +16,7 @@ import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ChangeBlockData;
-import ac.grim.grimac.utils.data.PistonData;
-import ac.grim.grimac.utils.data.ShulkerData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -99,7 +97,7 @@ public class CompensatedWorld {
     private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
     private final GrimPlayer player;
     public ConcurrentLinkedQueue<ChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<ChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<BasePlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
 
     public List<PistonData> activePistons = new ArrayList<>();
@@ -116,14 +114,14 @@ public class CompensatedWorld {
 
     public void tickUpdates(int lastTransactionReceived) {
         while (true) {
-            ChangeBlockData changeBlockData = changeBlockQueue.peek();
+            BasePlayerChangeBlockData changeBlockData = changeBlockQueue.peek();
 
             if (changeBlockData == null) break;
             // The anticheat thread is behind, this event has not occurred yet
             if (changeBlockData.transaction > lastTransactionReceived) break;
             changeBlockQueue.poll();
 
-            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.combinedID);
+            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.getCombinedID());
         }
 
         while (true) {
