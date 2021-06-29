@@ -1,5 +1,7 @@
 name: GrimAC
 version: 0.0.1-indev
 main: ac.grim.grimac.GrimAC
+softdepend:
+  - ViaVersion
 api-version: 1.13
 load: POSTWORLD
