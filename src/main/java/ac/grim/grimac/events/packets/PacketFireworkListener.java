@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.entity.EntityUtils;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
@@ -30,7 +31,7 @@ public class PacketFireworkListener extends PacketListenerAbstract {
 
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY) {
             WrappedPacketOutEntity entity = new WrappedPacketOutEntity(event.getNMSPacket());
-            if (entity.getEntity() instanceof Firework) {
+            if (EntityUtils.getEntity(entity) instanceof Firework) {
                 fireworks.add(entity.getEntityId());
             }
         }

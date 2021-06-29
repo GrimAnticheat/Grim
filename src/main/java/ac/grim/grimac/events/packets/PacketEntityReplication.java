@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
+import ac.grim.grimac.utils.entity.EntityUtils;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -32,7 +33,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            Entity entity = packetOutEntity.getEntity();
+            Entity entity = EntityUtils.getEntity(packetOutEntity);
             if (entity == null) return;
 
             player.compensatedEntities.spawnEntityQueue.add(new SpawnEntityData(entity, packetOutEntity.getPosition(), player.lastTransactionSent.get()));
@@ -42,7 +43,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             WrappedPacketOutEntity.WrappedPacketOutRelEntityMove move = new WrappedPacketOutEntity.WrappedPacketOutRelEntityMove(event.getNMSPacket());
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            if (player == null) return;
+            if (player == null || EntityUtils.isSelfDisguise(move)) return;
 
             if (move.getDeltaX() != 0 || move.getDeltaY() != 0 || move.getDeltaZ() != 0)
                 player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(move.getEntityId(),
@@ -53,7 +54,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             WrappedPacketOutEntityTeleport teleport = new WrappedPacketOutEntityTeleport(event.getNMSPacket());
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            if (player == null) return;
+            if (player == null || EntityUtils.isSelfDisguise(teleport)) return;
 
             Vector3d position = teleport.getPosition();
 
@@ -65,7 +66,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            if (player == null) return;
+            if (player == null || EntityUtils.isSelfDisguise(entityMetadata)) return;
 
             player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects(), player.lastTransactionSent.get()));
         }
@@ -103,7 +104,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             WrappedPacketOutEntityDestroy destroy = new WrappedPacketOutEntityDestroy(event.getNMSPacket());
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            if (player == null) return;
+            if (player == null || EntityUtils.isSelfDisguise(destroy)) return;
 
             int lastTransactionSent = player.lastTransactionSent.get();
             int[] destroyEntityIds = destroy.getEntityIds().isPresent() ? destroy.getEntityIds().get() : null;

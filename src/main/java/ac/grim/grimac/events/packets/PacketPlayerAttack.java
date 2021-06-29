@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.entity.EntityUtils;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -21,7 +22,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             if (player == null) return;
 
             if (action.getAction() == WrappedPacketInUseEntity.EntityUseAction.ATTACK) {
-                Entity attackedEntity = action.getEntity();
+                Entity attackedEntity = EntityUtils.getEntity(action);
                 if (attackedEntity != null && (!(attackedEntity instanceof LivingEntity) || attackedEntity instanceof Player)) {
                     Bukkit.broadcastMessage("Player has been slowed!");
                 }
