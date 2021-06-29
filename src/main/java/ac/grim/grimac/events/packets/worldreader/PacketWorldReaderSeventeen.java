@@ -25,10 +25,10 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class PacketWorldReaderSixteen extends PacketListenerAbstract {
+public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
     public static Method getByCombinedID;
 
-    public PacketWorldReaderSixteen() {
+    public PacketWorldReaderSeventeen() {
         super(PacketEventPriority.MONITOR);
 
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
@@ -44,22 +44,22 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            long time = System.nanoTime();
-
             try {
-                int chunkX = packet.getChunkX();
-                int chunkZ = packet.getChunkZ();
+                // Waiting on PacketEvents to fix chunkX and chunkZ...
+                // For now, just bypass it
+                int chunkX = packet.readInt(1);
+                int chunkZ = packet.readInt(2);
 
                 BaseChunk[] chunks = new SixteenChunk[16];
 
                 byte[] chunkData = packet.getCompressedData();
-                int availableSectionsInt = packet.getPrimaryBitMap().isPresent() ? packet.getPrimaryBitMap().get() : 0;
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
                 for (int index = 0; index < chunks.length; ++index) {
-                    if ((availableSectionsInt & 1 << index) != 0) {
+                    // This is a hack until getting the sections length is available on 1.17
+                    // Waiting on PacketEvents...
+                    if (dataIn.available() > 0)
                         chunks[index] = SixteenChunk.read(dataIn);
-                    }
                 }
 
                 Column column = new Column(chunkX, chunkZ, chunks);
@@ -97,10 +97,8 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
             if (player == null) return;
 
             try {
-                // Section Position or Chunk Section - depending on version
-                Object position = packet.readAnyObject(0);
+                Object position = packet.readAnyObject(1);
 
-                // In 1.16, chunk sections are used.  The have X, Y, and Z
                 Method getX = Reflection.getMethod(position.getClass(), "getX", 0);
                 Method getZ = Reflection.getMethod(position.getClass(), "getZ", 0);
 
@@ -111,7 +109,7 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
                 int chunkY = (int) getY.invoke(position) << 4;
 
                 short[] blockPositions = packet.readShortArray(0);
-                Object[] blockDataArray = (Object[]) packet.readAnyObject(2);
+                Object[] blockDataArray = (Object[]) packet.readAnyObject(3);
 
                 event.setPostTask(player::sendTransactionOrPingPong);
                 for (int i = 0; i < blockPositions.length; i++) {
