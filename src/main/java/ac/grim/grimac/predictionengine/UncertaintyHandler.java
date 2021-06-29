@@ -12,6 +12,7 @@ public class UncertaintyHandler {
     public boolean collidingWithBoat;
     public boolean collidingWithShulker;
     public boolean striderOnGround;
+    public boolean isStepMovement;
     public HashSet<BlockFace> slimePistonBounces;
 
     public double xNegativeUncertainty = 0;
@@ -32,6 +33,7 @@ public class UncertaintyHandler {
         pistonZ = 0;
         collidingWithBoat = false;
         collidingWithShulker = false;
+        isStepMovement = false;
         slimePistonBounces = new HashSet<>();
     }
 }
