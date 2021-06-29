@@ -35,7 +35,7 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
 
                 Vector playerVelocity = new Vector(velX, velY, velZ);
 
-                int reservedID = (-1 * (player.lastTransactionSent.getAndAdd(2) % 32768));
+                int reservedID = player.getNextTransactionID(2);
                 short breadOne = (short) reservedID;
                 short breadTwo = (short) (reservedID - 1);
 
@@ -59,7 +59,7 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
                 // No matter what, the player cannot take explosion vector in a vehicle
                 if (player.packetStateData.vehicle != null) return;
 
-                int reservedID = (-1 * (player.lastTransactionSent.getAndAdd(2) % 32768));
+                int reservedID = player.getNextTransactionID(2);
                 short breadOne = (short) reservedID;
                 short breadTwo = (short) (reservedID - 1);
 
