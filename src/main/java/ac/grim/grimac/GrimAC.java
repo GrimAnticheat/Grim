@@ -5,11 +5,11 @@ import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.events.packets.worldreader.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
-import ac.grim.grimac.utils.compat.ViaVersionCompat;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -17,9 +17,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public final class GrimAC extends JavaPlugin {
@@ -27,7 +24,6 @@ public final class GrimAC extends JavaPlugin {
     private static Plugin plugin;
     // For syncing together the anticheat and main thread
     private static int currentTick = 0;
-    ScheduledExecutorService viaPacketLimiter = Executors.newScheduledThreadPool(1);
 
     public static int getCurrentTick() {
         return currentTick;
@@ -45,7 +41,7 @@ public final class GrimAC extends JavaPlugin {
     public void onLoad() {
         PacketEvents.create(this);
         PacketEventsSettings settings = PacketEvents.get().getSettings();
-        settings.checkForUpdates(false).bStats(true);
+        settings.fallbackServerVersion(ServerVersion.v_1_7_10).compatInjector(false).checkForUpdates(false).bStats(true);
         PacketEvents.get().loadAsyncNewThread();
     }
 
@@ -101,15 +97,6 @@ public final class GrimAC extends JavaPlugin {
                 player.sendTransactionOrPingPong();
             }
         }, 1, 1);
-
-        // Disable ViaVersion packet limiter
-        if (ViaVersionCompat.hasViaVersion) {
-            viaPacketLimiter.scheduleAtFixedRate(() -> {
-                for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                    player.packetTracker.setIntervalPackets(0);
-                }
-            }, 50, 50, TimeUnit.MILLISECONDS);
-        }
     }
 
     public void registerEvents() {

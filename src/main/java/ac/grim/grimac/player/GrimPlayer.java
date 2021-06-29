@@ -153,7 +153,7 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickSet = new Vector();
     public Vector baseTickAddition = new Vector();
-    public AtomicInteger lastTransactionSent = new AtomicInteger(0);
+    public AtomicInteger lastTransactionSent = new AtomicInteger(1);
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
     // For timer checks and fireworks
@@ -272,6 +272,11 @@ public class GrimPlayer {
     // But if some error made a client miss a packet, then it won't hurt them too bad.
     // Also it forces players to take knockback
     public void addTransactionResponse(short id) {
+        // Disable ViaVersion packet limiter
+        // Required as ViaVersion listens before us for version compatibility
+        if (packetTracker != null)
+            packetTracker.setIntervalPackets(0);
+
         Pair<Short, Long> data;
         do {
             data = transactionsSent.poll();
@@ -286,8 +291,12 @@ public class GrimPlayer {
         } while (data != null && data.getFirst() != id);
     }
 
-    public short getNextTransactionID() {
-        return (short) (-1 * (lastTransactionSent.getAndIncrement() % 32768));
+    public short getNextTransactionID(int add) {
+        // Take the 15 least significant bits, multiply by 1.
+        // Short range is -32768 to 32767
+        // We return a range of -32767 to 0
+        // Allowing a range of -32768 to 0 for velocity + explosions
+        return (short) (-1 * (lastTransactionSent.getAndAdd(add) & 0x7FFF));
     }
 
     public void baseTickAddVector(Vector vector) {
@@ -347,7 +356,7 @@ public class GrimPlayer {
     }
 
     public void sendTransactionOrPingPong() {
-        sendTransactionOrPingPong(getNextTransactionID());
+        sendTransactionOrPingPong(getNextTransactionID(1));
     }
 
     // Shouldn't error, but be on the safe side as this is networking stuff
