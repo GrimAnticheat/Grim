@@ -135,7 +135,9 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PacketElytraListener());
         PacketEvents.get().registerListener(new PacketPlayerTeleport());
 
-        if (XMaterial.getVersion() >= 16) {
+        if (XMaterial.getVersion() >= 17) {
+            PacketEvents.get().registerListener(new PacketWorldReaderSeventeen());
+        } else if (XMaterial.getVersion() == 16) {
             PacketEvents.get().registerListener(new PacketWorldReaderSixteen());
         } else if (XMaterial.isNewVersion()) {
             PacketEvents.get().registerListener(new PacketWorldReaderThirteen());
