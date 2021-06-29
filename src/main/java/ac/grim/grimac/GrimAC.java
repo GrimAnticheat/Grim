@@ -17,6 +17,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.InputStream;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 public final class GrimAC extends JavaPlugin {
@@ -24,6 +27,7 @@ public final class GrimAC extends JavaPlugin {
     private static Plugin plugin;
     // For syncing together the anticheat and main thread
     private static int currentTick = 0;
+    ScheduledExecutorService viaPacketLimiter = Executors.newScheduledThreadPool(1);
 
     public static int getCurrentTick() {
         return currentTick;
@@ -100,11 +104,11 @@ public final class GrimAC extends JavaPlugin {
 
         // Disable ViaVersion packet limiter
         if (ViaVersionCompat.hasViaVersion) {
-            Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            viaPacketLimiter.scheduleAtFixedRate(() -> {
                 for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
                     player.packetTracker.setIntervalPackets(0);
                 }
-            }, 1, 1);
+            }, 50, 50, TimeUnit.MILLISECONDS);
         }
     }
 
