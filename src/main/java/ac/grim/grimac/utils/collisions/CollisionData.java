@@ -544,7 +544,7 @@ public enum CollisionData {
 
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
 
-    }, XMaterial.GRASS_PATH.parseMaterial()),
+    }, XMaterial.DIRT_PATH.parseMaterial()),
 
     LILYPAD((player, version, data, x, y, z) -> {
         // Boats break lilypads client sided on 1.12- clients.
