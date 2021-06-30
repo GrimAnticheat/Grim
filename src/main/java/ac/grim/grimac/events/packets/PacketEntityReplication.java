@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
-import ac.grim.grimac.utils.entitytypes.Entity1_17Types;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -19,7 +18,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.mount.WrappedPac
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.Pair;
-import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Entity;
 
 public class PacketEntityReplication extends PacketListenerAbstract {
 
@@ -33,12 +32,10 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            // Temporary hack until PacketEvents fixes entity.getType()
-            String entityType = Entity1_17Types.getTypeFromId(packetOutEntity.readInt(1)).toString();
-            if (entityType.equalsIgnoreCase("ENTITY"))
-                return;
+            Entity entity = packetOutEntity.getEntity();
+            if (entity == null) return;
 
-            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), EntityType.valueOf(entityType), packetOutEntity.getPosition());
+            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity.getType(), packetOutEntity.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
