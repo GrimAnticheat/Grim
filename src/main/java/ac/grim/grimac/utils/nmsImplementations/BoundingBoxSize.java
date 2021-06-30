@@ -2,11 +2,11 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
-import org.bukkit.entity.*;
+import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
+import ac.grim.grimac.utils.enums.EntityType;
 
 public class BoundingBoxSize {
     public static double getWidth(PacketEntity packetEntity) {
-        Entity entity = packetEntity.entity;
         switch (packetEntity.type) {
             case AXOLOTL:
             case PANDA:
@@ -14,6 +14,8 @@ public class BoundingBoxSize {
             case BAT:
             case PARROT:
             case COD:
+            case EVOKER_FANGS:
+            case TROPICAL_FISH:
                 return 0.5;
             case BEE:
             case PUFFERFISH:
@@ -22,26 +24,19 @@ public class BoundingBoxSize {
             case WITHER_SKELETON:
             case CAVE_SPIDER:
                 return 0.7;
+            case WITHER_SKULL:
+            case SHULKER_BULLET:
+                return 0.3125;
             case BLAZE:
             case OCELOT:
             case STRAY:
-            case VINDICATOR:
-            case VILLAGER:
-            case WITCH:
-            case WOLF:
-            case ZOMBIE:
-            case ZOMBIE_VILLAGER:
-            case ZOMBIFIED_PIGLIN:
-            case SKELETON:
-            case CAT:
-            case CREEPER:
-            case DROWNED:
-            case ENDERMAN:
-            case EVOKER:
-            case FOX:
-            case HUSK:
-            case ILLUSIONER:
-                return 0.6;
+            case HOGLIN:
+            case SKELETON_HORSE:
+            case MULE:
+            case ZOMBIE_HORSE:
+            case HORSE:
+            case ZOGLIN:
+                return 1.39648;
             case BOAT:
                 return 1.375;
             case CHICKEN:
@@ -50,15 +45,20 @@ public class BoundingBoxSize {
             case SILVERFISH:
             case VEX:
                 return 0.4;
+            case STRIDER:
             case COW:
             case SHEEP:
             case MUSHROOM_COW:
-            case PHANTOM:
             case PIG:
             case LLAMA:
             case DOLPHIN:
             case WITHER:
+            case TRADER_LLAMA:
                 return 0.9;
+            case PHANTOM:
+                if (packetEntity instanceof PacketEntitySizeable) {
+                    return 0.9 + ((PacketEntitySizeable) packetEntity).size * 0.2;
+                }
             case DONKEY:
                 return 1.5;
             case ELDER_GUARDIAN:
@@ -75,13 +75,11 @@ public class BoundingBoxSize {
                 return 3.6;
             case GUARDIAN:
                 return 0.85;
-            case HORSE:
-                return 1.39648;
             case IRON_GOLEM:
                 return 1.4;
             case MAGMA_CUBE:
-                if (entity instanceof MagmaCube) {
-                    return 0.51000005 * ((MagmaCube) entity).getSize();
+                if (packetEntity instanceof PacketEntitySizeable) {
+                    return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
                 }
             case MINECART:
             case MINECART_CHEST:
@@ -91,8 +89,6 @@ public class BoundingBoxSize {
             case MINECART_MOB_SPAWNER:
             case MINECART_TNT:
                 return 0.98;
-            case MULE:
-                return 1.39648;
             case PLAYER:
                 return packetEntity.pose.width;
             case POLAR_BEAR:
@@ -101,11 +97,9 @@ public class BoundingBoxSize {
                 return 1.95;
             case SHULKER:
                 return 1.0;
-            case SKELETON_HORSE:
-                return 1.39648;
             case SLIME:
-                if (entity instanceof Slime) {
-                    return 0.51000005 * ((Slime) entity).getSize();
+                if (packetEntity instanceof PacketEntitySizeable) {
+                    return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
                 }
             case SMALL_FIREBALL:
                 return 0.3125;
@@ -113,15 +107,80 @@ public class BoundingBoxSize {
                 return 1.4;
             case SQUID:
                 return 0.8;
-            case ZOMBIE_HORSE:
-                return 1.39648;
+            case TURTLE:
+                return 1.2;
             default:
-                return entity.getWidth();
+                return 0.6;
+        }
+    }
+
+    public static double getMyRidingOffset(PacketEntity packetEntity) {
+        switch (packetEntity.type) {
+            case PIGLIN:
+            case ZOMBIFIED_PIGLIN:
+            case ZOMBIE:
+                return packetEntity.isBaby ? -0.05 : -0.45;
+            case SKELETON:
+                return -0.6;
+            case ENDERMITE:
+            case SILVERFISH:
+                return 0.1;
+            case EVOKER:
+            case ILLUSIONER:
+            case PILLAGER:
+            case RAVAGER:
+            case VINDICATOR:
+            case WITCH:
+                return -0.45;
+            case PLAYER:
+                return -0.35;
+        }
+
+        if (EntityType.isAnimal(packetEntity.bukkitEntityType)) {
+            return 0.14;
+        }
+
+        return 0;
+    }
+
+    public static double getPassengerRidingOffset(PacketEntity packetEntity) {
+
+        if (packetEntity instanceof PacketEntityHorse)
+            return (getHeight(packetEntity) * 0.75) - 0.25;
+
+        switch (packetEntity.type) {
+            case MINECART:
+            case MINECART_CHEST:
+            case MINECART_COMMAND:
+            case MINECART_FURNACE:
+            case MINECART_HOPPER:
+            case MINECART_MOB_SPAWNER:
+            case MINECART_TNT:
+                return 0;
+            case BOAT:
+                return -0.1;
+            case HOGLIN:
+            case ZOGLIN:
+                return getHeight(packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
+            case LLAMA:
+                return getHeight(packetEntity) * 0.67;
+            case PIGLIN:
+                return getHeight(packetEntity) * 0.92;
+            case RAVAGER:
+                return 2.1;
+            case SKELETON:
+                return (getHeight(packetEntity) * 0.75) - 0.1875;
+            case SPIDER:
+                return getHeight(packetEntity) * 0.5;
+            case STRIDER:
+                // depends on animation position, good luck getting it exactly, this is the best you can do though
+                return getHeight(packetEntity) - 0.19;
+            default:
+                return getHeight(packetEntity) * 0.75;
         }
     }
 
     public static double getHeight(PacketEntity packetEntity) {
-        Entity entity = packetEntity.entity;
         switch (packetEntity.type) {
             case AXOLOTL:
             case BEE:
@@ -130,8 +189,15 @@ public class BoundingBoxSize {
             case BAT:
             case PARROT:
             case PIG:
+            case EVOKER_FANGS:
+            case SQUID:
+            case VEX:
+                return 0.8;
             case SPIDER:
                 return 0.9;
+            case WITHER_SKULL:
+            case SHULKER_BULLET:
+                return 0.3125;
             case BLAZE:
                 return 1.8;
             case BOAT:
@@ -142,16 +208,18 @@ public class BoundingBoxSize {
                 return 0.5;
             case CHICKEN:
                 return 0.7;
+            case HOGLIN:
+            case ZOGLIN:
             case COD:
                 return 1.4;
             case COW:
+                return 1.7;
+            case STRIDER:
                 return 1.7;
             case CREEPER:
                 return 1.7;
             case DONKEY:
                 return 1.39648;
-            case DROWNED:
-                return 1.95;
             case ELDER_GUARDIAN:
                 return 1.9975;
             case ENDERMAN:
@@ -162,8 +230,6 @@ public class BoundingBoxSize {
                 return 2.0;
             case ENDER_DRAGON:
                 return 8.0;
-            case EVOKER:
-                return 1.95;
             case FIREBALL:
                 return 1;
             case FOX:
@@ -176,17 +242,16 @@ public class BoundingBoxSize {
                 return 0.85;
             case HORSE:
                 return 1.6;
-            case HUSK:
-                return 1.95;
-            case ILLUSIONER:
-                return 1.95;
             case IRON_GOLEM:
                 return 2.7;
             case LLAMA:
+            case TRADER_LLAMA:
                 return 1.87;
+            case TROPICAL_FISH:
+                return 0.4;
             case MAGMA_CUBE:
-                if (entity instanceof MagmaCube) {
-                    return 0.51000005 * ((MagmaCube) entity).getSize();
+                if (packetEntity instanceof PacketEntitySizeable) {
+                    return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
                 }
             case MINECART:
             case MINECART_CHEST:
@@ -205,7 +270,9 @@ public class BoundingBoxSize {
             case PANDA:
                 return 1.25;
             case PHANTOM:
-                return 0.5;
+                if (packetEntity instanceof PacketEntitySizeable) {
+                    return 0.5 + ((PacketEntitySizeable) packetEntity).size * 0.1;
+                }
             case PLAYER:
                 return packetEntity.pose.height;
             case POLAR_BEAR:
@@ -229,114 +296,27 @@ public class BoundingBoxSize {
             case SKELETON_HORSE:
                 return 1.6;
             case SLIME:
-                if (entity instanceof Slime) {
-                    return 0.51000005 * ((Slime) entity).getSize();
+                if (packetEntity instanceof PacketEntitySizeable) {
+                    return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
                 }
             case SMALL_FIREBALL:
                 return 0.3125;
             case SNOWMAN:
                 return 1.9;
-            case SQUID:
-                return 0.8;
             case STRAY:
                 return 1.99;
-            case VEX:
-                return 0.8;
-            case VILLAGER:
-                return 1.95;
-            case VINDICATOR:
-                return 1.95;
-            case WITCH:
-                return 1.95;
+            case TURTLE:
+                return 0.4;
             case WITHER:
                 return 3.5;
             case WITHER_SKELETON:
                 return 2.4;
             case WOLF:
                 return 0.85;
-            case ZOMBIE:
-                return 1.95;
             case ZOMBIE_HORSE:
                 return 1.6;
-            case ZOMBIE_VILLAGER:
-                return 1.95;
-            case ZOMBIFIED_PIGLIN:
-                return 1.95;
             default:
-                return entity.getHeight();
-        }
-    }
-
-    public static double getMyRidingOffset(PacketEntity packetEntity) {
-        Entity entity = packetEntity.entity;
-
-        switch (packetEntity.type) {
-            case PIGLIN:
-            case ZOMBIFIED_PIGLIN:
-            case ZOMBIE:
-                Ageable ageable = (Ageable) entity;
-                return ageable.isAdult() ? -0.45 : -0.05;
-            case SKELETON:
-                return -0.6;
-            case ENDERMITE:
-            case SILVERFISH:
-                return 0.1;
-            case EVOKER:
-            case ILLUSIONER:
-            case PILLAGER:
-            case RAVAGER:
-            case VINDICATOR:
-            case WITCH:
-                return -0.45;
-            case PLAYER:
-                return -0.35;
-        }
-
-        if (entity instanceof Animals) {
-            return 0.14;
-        }
-
-        return 0;
-    }
-
-    public static double getPassengerRidingOffset(PacketEntity packetEntity) {
-        Entity entity = packetEntity.entity;
-
-        if (packetEntity instanceof PacketEntityHorse)
-            return (getHeight(packetEntity) * 0.75) - 0.25;
-
-        switch (packetEntity.type) {
-            case MINECART:
-            case MINECART_CHEST:
-            case MINECART_COMMAND:
-            case MINECART_FURNACE:
-            case MINECART_HOPPER:
-            case MINECART_MOB_SPAWNER:
-            case MINECART_TNT:
-                return 0;
-            case BOAT:
-                return -0.1;
-            case HOGLIN:
-                Hoglin hoglin = (Hoglin) entity;
-                return hoglin.getHeight() - (hoglin.isAdult() ? 0.15 : 0.2);
-            case LLAMA:
-                return getHeight(packetEntity) * 0.67;
-            case PIGLIN:
-                return getHeight(packetEntity) * 0.92;
-            case RAVAGER:
-                return 2.1;
-            case SKELETON:
-                return (getHeight(packetEntity) * 0.75) - 0.1875;
-            case SPIDER:
-                return getHeight(packetEntity) * 0.5;
-            case STRIDER:
-                // depends on animation position, good luck getting it exactly, this is the best you can do though
-                return getHeight(packetEntity) - 0.19;
-            case ZOGLIN:
-                Zoglin zoglin = (Zoglin) entity;
-                return getHeight(packetEntity) - (zoglin.isAdult() ? 0.15 : 0.2);
-             default:
-                return getHeight(packetEntity) * 0.75;
+                return 1.95;
         }
     }
 }

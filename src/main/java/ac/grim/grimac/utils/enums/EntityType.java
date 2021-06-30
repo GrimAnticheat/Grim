@@ -1,5 +1,12 @@
 package ac.grim.grimac.utils.enums;
 
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import com.viaversion.viaversion.api.minecraft.entities.Entity1_17Types;
+import com.viaversion.viaversion.util.EntityTypeUtil;
+import org.bukkit.entity.Ageable;
+import org.bukkit.entity.Animals;
+import org.bukkit.entity.LivingEntity;
+
 public enum EntityType {
     AREA_EFFECT_CLOUD,
     ARMOR_STAND,
@@ -113,5 +120,54 @@ public enum EntityType {
     ZOMBIE,
     ZOMBIE_HORSE,
     ZOMBIE_VILLAGER,
-    ZOMBIFIED_PIGLIN
+    ZOMBIFIED_PIGLIN;
+
+    public static boolean isHorse(EntityType type) {
+        switch (type) {
+            case DONKEY:
+            case HORSE:
+            case LLAMA:
+            case MULE:
+            case SKELETON_HORSE:
+            case ZOMBIE_HORSE:
+            case TRADER_LLAMA:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static boolean isMinecart(EntityType type) {
+        switch (type) {
+            case MINECART:
+            case MINECART_CHEST:
+            case MINECART_COMMAND:
+            case MINECART_FURNACE:
+            case MINECART_HOPPER:
+            case MINECART_MOB_SPAWNER:
+            case MINECART_TNT:
+                return true;
+            default:
+                return false;
+        }
+    }
+
+    public static boolean isLivingEntity(org.bukkit.entity.EntityType type) {
+        return (type.getEntityClass() != null && LivingEntity.class.isAssignableFrom(type.getEntityClass()));
+    }
+
+    public static boolean isAgeableEntity(org.bukkit.entity.EntityType type) {
+        return (type.getEntityClass() != null && Ageable.class.isAssignableFrom(type.getEntityClass()));
+    }
+
+    public static boolean isAnimal(org.bukkit.entity.EntityType type) {
+        return (type.getEntityClass() != null && Animals.class.isAssignableFrom(type.getEntityClass()));
+    }
+
+    public static boolean isSize(org.bukkit.entity.EntityType type) {
+        if (XMaterial.getVersion() >= 13 && type == org.bukkit.entity.EntityType.PHANTOM)
+            return true;
+
+        return type == org.bukkit.entity.EntityType.SLIME || type == org.bukkit.entity.EntityType.MAGMA_CUBE;
+    }
 }

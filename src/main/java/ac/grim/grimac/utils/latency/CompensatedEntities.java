@@ -1,25 +1,21 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
-import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Entity;
 
 import java.util.List;
 import java.util.Locale;
@@ -29,7 +25,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class CompensatedEntities {
     public final Int2ObjectLinkedOpenHashMap<PacketEntity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
 
-    public ConcurrentLinkedQueue<SpawnEntityData> spawnEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<Pair<Integer, int[]>> destroyEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMoveData> moveEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
@@ -42,22 +37,6 @@ public class CompensatedEntities {
     }
 
     public void tickUpdates(int lastTransactionReceived) {
-        // Spawn entities first, as metadata is often in the same tick
-        while (true) {
-            SpawnEntityData spawnEntity = spawnEntityQueue.peek();
-            if (spawnEntity == null) break;
-
-            if (spawnEntity.lastTransactionSent >= lastTransactionReceived) break;
-            spawnEntityQueue.poll();
-
-            Entity entity = PacketEvents.get().getServerUtils().getEntityById(spawnEntity.entity);
-            if (entity == null) {
-                GrimAC.staticGetLogger().warning("Please don't report this issue.  Unable to get entity with ID " + spawnEntity.entity + " at position " + spawnEntity.position + " for player " + player.bukkitPlayer.getName());
-                return;
-            }
-
-            addEntity(entity, spawnEntity.position);
-        }
 
         // Move entities + teleport (combined to prevent teleport + move position desync)
         while (true) {
@@ -141,9 +120,6 @@ public class CompensatedEntities {
             destroyEntityQueue.poll();
 
             for (int entityID : spawnEntity.right()) {
-                PacketEntity deadEntity = getEntity(entityID);
-                if (deadEntity != null)
-                    deadEntity.isDead = true;
                 entityMap.remove(entityID);
             }
         }
@@ -180,34 +156,31 @@ public class CompensatedEntities {
         }
     }
 
-    private void addEntity(Entity entity, Vector3d position) {
+    public void addEntity(int entityID, org.bukkit.entity.EntityType entityType, Vector3d position) {
         PacketEntity packetEntity;
-        EntityType type = EntityType.valueOf(entity.getType().toString().toUpperCase(Locale.ROOT));
+        EntityType type = EntityType.valueOf(entityType.toString().toUpperCase(Locale.ROOT));
 
-        switch (type) {
-            case PIG:
-                packetEntity = new PacketEntityRideable(entity, position);
-                break;
-            case SHULKER:
-                packetEntity = new PacketEntityShulker(entity, position);
-                break;
-            case STRIDER:
-                packetEntity = new PacketEntityStrider(entity, position);
-                break;
-            case DONKEY:
-            case HORSE:
-            case LLAMA:
-            case MULE:
-            case SKELETON_HORSE:
-            case ZOMBIE_HORSE:
-            case TRADER_LLAMA:
-                packetEntity = new PacketEntityHorse(entity, position);
-                break;
-            default:
-                packetEntity = new PacketEntity(entity, position);
+        if (EntityType.isHorse(type)) {
+            packetEntity = new PacketEntityHorse(entityType, position);
+        } else if (EntityType.isSize(entityType)) {
+            packetEntity = new PacketEntitySizeable(entityType, position);
+        } else {
+            switch (type) {
+                case PIG:
+                    packetEntity = new PacketEntityRideable(entityType, position);
+                    break;
+                case SHULKER:
+                    packetEntity = new PacketEntityShulker(entityType, position);
+                    break;
+                case STRIDER:
+                    packetEntity = new PacketEntityStrider(entityType, position);
+                    break;
+                default:
+                    packetEntity = new PacketEntity(entityType, position);
+            }
         }
 
-        entityMap.put(entity.getEntityId(), packetEntity);
+        entityMap.put(entityID, packetEntity);
     }
 
     public PacketEntity getEntity(int entityID) {
@@ -219,6 +192,27 @@ public class CompensatedEntities {
         if (XMaterial.supports(14)) {
             Optional<WrappedWatchableObject> poseObject = watchableObjects.stream().filter(o -> o.getIndex() == 6).findFirst();
             poseObject.ifPresent(wrappedWatchableObject -> entity.pose = Pose.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
+        }
+
+        if (EntityType.isAgeableEntity(entity.bukkitEntityType)) {
+            Optional<WrappedWatchableObject> ageableObject = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 16 : 15)).findFirst();
+            if (ageableObject.isPresent()) {
+                Object value = ageableObject.get().getRawValue();
+                // Required because bukkit Ageable doesn't align with minecraft's ageable
+                if (value instanceof Boolean) {
+                    entity.isBaby = (boolean) value;
+                }
+            }
+        }
+
+        if (entity instanceof PacketEntitySizeable) {
+            Optional<WrappedWatchableObject> sizeObject = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 16 : 15)).findFirst();
+            if (sizeObject.isPresent()) {
+                Object value = sizeObject.get().getRawValue();
+                if (value instanceof Integer) {
+                    ((PacketEntitySizeable) entity).size = (int) value;
+                }
+            }
         }
 
         if (entity instanceof PacketEntityShulker) {
@@ -268,7 +262,7 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityHorse) {
-            Optional<WrappedWatchableObject> horseByte = watchableObjects.stream().filter(o -> o.getIndex() == 16).findFirst();
+            Optional<WrappedWatchableObject> horseByte = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 17 : 16)).findFirst();
             if (horseByte.isPresent()) {
                 byte info = (byte) horseByte.get().getRawValue();
 

@@ -14,6 +14,7 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
@@ -169,7 +170,7 @@ public class MovementTicker {
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                 if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
 
-                    if ((!(entity.entity instanceof LivingEntity) && entity.type != EntityType.BOAT && !(entity.entity instanceof Minecart)) || entity.type == EntityType.ARMOR_STAND)
+                    if ((!(EntityType.isLivingEntity(entity.bukkitEntityType)) && entity.type != EntityType.BOAT && !(EntityType.isMinecart(entity.type))) || entity.type == EntityType.ARMOR_STAND)
                         continue;
 
                     double width = BoundingBoxSize.getWidth(entity);
