@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
+import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.Pair;
@@ -156,12 +157,20 @@ public class CompensatedEntities {
         }
     }
 
-    public void addEntity(int entityID, org.bukkit.entity.EntityType entityType, Vector3d position) {
+    public void addEntity(WrappedPacketOutSpawnEntityLiving packet) {
+        int entityID = packet.getEntityId();
+        org.bukkit.entity.EntityType entityType = packet.getEntity().getType();
+        Vector3d position = packet.getPosition();
+
         PacketEntity packetEntity;
         EntityType type = EntityType.valueOf(entityType.toString().toUpperCase(Locale.ROOT));
 
         if (EntityType.isHorse(type)) {
-            packetEntity = new PacketEntityHorse(entityType, position);
+            try {
+                packetEntity = new PacketEntityHorse(packet.getEntity(), entityType, position);
+            } catch (Exception e) {
+                packetEntity = new PacketEntityHorse(null, entityType, position);
+            }
         } else if (EntityType.isSize(entityType)) {
             packetEntity = new PacketEntitySizeable(entityType, position);
         } else {
