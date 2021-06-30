@@ -15,6 +15,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         super(player);
 
         PacketEntityHorse horsePacket = (PacketEntityHorse) player.playerVehicle;
+        Entity horse = horsePacket.entity;
 
         if (!horsePacket.hasSaddle) return;
 
@@ -37,8 +38,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
             double d0 = horsePacket.jumpStrength * player.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
 
-            // TODO: Fix jump boost
-            int jumpBoost = 0;/*PredictionData.getHighestPotionEffect(((LivingEntity) horse).getActivePotionEffects(), "JUMP", 0);*/
+            int jumpBoost = horse != null ? PredictionData.getHighestPotionEffect(((LivingEntity) horse).getActivePotionEffects(), "JUMP", 0) : 0;
             if (jumpBoost > 0) {
                 d1 = d0 + (double) ((float) (jumpBoost + 1) * 0.1F);
             } else {
