@@ -47,8 +47,8 @@ public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
             try {
                 // Waiting on PacketEvents to fix chunkX and chunkZ...
                 // For now, just bypass it
-                int chunkX = packet.readInt(1);
-                int chunkZ = packet.readInt(2);
+                int chunkX = packet.getChunkX();
+                int chunkZ = packet.getChunkZ();
 
                 BaseChunk[] chunks = new SixteenChunk[16];
 

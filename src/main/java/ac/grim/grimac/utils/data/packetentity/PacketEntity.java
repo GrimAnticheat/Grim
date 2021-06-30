@@ -8,19 +8,20 @@ import org.bukkit.entity.Entity;
 import java.util.Locale;
 
 public class PacketEntity {
-    public Entity entity;
     public EntityType type;
+    public org.bukkit.entity.EntityType bukkitEntityType;
     public Pose pose = Pose.STANDING;
     public Vector3d lastTickPosition;
     public Vector3d position;
     public PacketEntity riding;
     public int[] passengers = new int[0];
     public boolean isDead = false;
+    public boolean isBaby = false;
 
-    public PacketEntity(Entity entity, Vector3d position) {
-        this.entity = entity;
+    public PacketEntity(org.bukkit.entity.EntityType type, Vector3d position) {
         this.position = position;
         this.lastTickPosition = position;
-        this.type = EntityType.valueOf(entity.getType().toString().toUpperCase(Locale.ROOT));
+        this.bukkitEntityType = type;
+        this.type = EntityType.valueOf(type.toString().toUpperCase(Locale.ROOT));
     }
 }

@@ -2,21 +2,24 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
-import ac.grim.grimac.utils.data.packetentity.latency.SpawnEntityData;
+import ac.grim.grimac.utils.entitytypes.Entity1_17Types;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.WrappedPacketOutEntityDestroy;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
+import io.github.retrooper.packetevents.packetwrappers.play.out.entitystatus.WrappedPacketOutEntityStatus;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityteleport.WrappedPacketOutEntityTeleport;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mount.WrappedPacketOutMount;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.Pair;
+import org.bukkit.entity.EntityType;
 
 public class PacketEntityReplication extends PacketListenerAbstract {
 
@@ -30,7 +33,12 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedEntities.spawnEntityQueue.add(new SpawnEntityData(packetOutEntity.getEntityId(), packetOutEntity.getPosition(), player.lastTransactionSent.get()));
+            // Temporary hack until PacketEvents fixes entity.getType()
+            String entityType = Entity1_17Types.getTypeFromId(packetOutEntity.readInt(1)).toString();
+            if (entityType.equalsIgnoreCase("ENTITY"))
+                return;
+
+            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), EntityType.valueOf(entityType), packetOutEntity.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
@@ -63,6 +71,23 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (player == null) return;
 
             player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects(), player.lastTransactionSent.get()));
+        }
+
+        if (packetID == PacketType.Play.Server.UPDATE_ATTRIBUTES) {
+
+        }
+
+        if (packetID == PacketType.Play.Server.ENTITY_STATUS) {
+            WrappedPacketOutEntityStatus status = new WrappedPacketOutEntityStatus(event.getNMSPacket());
+            // This hasn't changed from 1.7.2 to 1.17
+            // Needed to exempt players on dead vehicles, as dead entities have strange physics.
+            if (status.getEntityStatus() == 3) {
+                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                if (player == null) return;
+
+                PacketEntity entity = player.compensatedEntities.getEntity(status.getEntityId());
+                entity.isDead = true;
+            }
         }
 
         if (packetID == PacketType.Play.Server.MOUNT) {

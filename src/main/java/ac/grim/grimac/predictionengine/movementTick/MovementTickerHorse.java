@@ -15,11 +15,10 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         super(player);
 
         PacketEntityHorse horsePacket = (PacketEntityHorse) player.playerVehicle;
-        Entity horse = horsePacket.entity;
 
         if (!horsePacket.hasSaddle) return;
 
-        player.speed = (float) PredictionData.getMovementSpeedAttribute((LivingEntity) horse);
+        player.speed = horsePacket.movementSpeedAttribute / 0.43065f;
         player.movementSpeed = player.speed;
 
         // Setup player inputs
@@ -35,10 +34,11 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         if (player.horseJump > 0.0F && !player.horseJumping && player.lastOnGround) {
             // Safe to use attributes as entity riding is server sided on 1.8
             // Not using bukkit API getJumpStrength() because the API changes around 1.11
-            double d0 = ((LivingEntity) horse).getAttribute(Attribute.HORSE_JUMP_STRENGTH).getValue() * player.horseJump * JumpPower.getPlayerJumpFactor(player);
+            double d0 = horsePacket.jumpStrength * player.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
 
-            int jumpBoost = PredictionData.getHighestPotionEffect(((LivingEntity) horse).getActivePotionEffects(), "JUMP", 0);
+            // TODO: Fix jump boost
+            int jumpBoost = 0;/*PredictionData.getHighestPotionEffect(((LivingEntity) horse).getActivePotionEffects(), "JUMP", 0);*/
             if (jumpBoost > 0) {
                 d1 = d0 + (double) ((float) (jumpBoost + 1) * 0.1F);
             } else {

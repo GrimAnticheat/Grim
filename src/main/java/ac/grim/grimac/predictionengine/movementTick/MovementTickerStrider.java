@@ -1,10 +1,8 @@
 package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.Pose;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
 public class MovementTickerStrider extends MovementTickerRideable {
@@ -21,11 +19,9 @@ public class MovementTickerStrider extends MovementTickerRideable {
     }
 
     @Override
-    public float getSteeringSpeed() {
+    public float getSteeringSpeed() { // Don't question why we have to multiply by 17.5
         PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
-
-        // Idk why you have to multiply by 10... I blame bukkit.
-        return (float) PredictionData.getMovementSpeedAttribute((LivingEntity) strider.entity) * 10 * (strider.isShaking ? 0.23F : 0.55F);
+        return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F) * 17.5f;
     }
 
     @Override
