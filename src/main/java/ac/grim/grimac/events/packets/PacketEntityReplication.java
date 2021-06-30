@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
@@ -18,7 +17,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.mount.WrappedPac
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.Pair;
-import org.bukkit.entity.Entity;
 
 public class PacketEntityReplication extends PacketListenerAbstract {
 
@@ -32,10 +30,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            Entity entity = packetOutEntity.getEntity();
-            if (entity == null) return;
-
-            player.compensatedEntities.spawnEntityQueue.add(new SpawnEntityData(entity, packetOutEntity.getPosition(), player.lastTransactionSent.get()));
+            player.compensatedEntities.spawnEntityQueue.add(new SpawnEntityData(packetOutEntity.getEntityId(), packetOutEntity.getPosition(), player.lastTransactionSent.get()));
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
