@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.*;
@@ -11,6 +12,7 @@ import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -48,7 +50,13 @@ public class CompensatedEntities {
             if (spawnEntity.lastTransactionSent >= lastTransactionReceived) break;
             spawnEntityQueue.poll();
 
-            addEntity(spawnEntity.entity, spawnEntity.position);
+            Entity entity = PacketEvents.get().getServerUtils().getEntityById(spawnEntity.entity);
+            if (entity == null) {
+                GrimAC.staticGetLogger().warning("Please don't report this issue.  Unable to get entity with ID " + spawnEntity.entity + " at position " + spawnEntity.position + " for player " + player.bukkitPlayer.getName());
+                return;
+            }
+
+            addEntity(entity, spawnEntity.position);
         }
 
         // Move entities + teleport (combined to prevent teleport + move position desync)
@@ -214,11 +222,11 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityShulker) {
-            Optional<WrappedWatchableObject> shulkerAttached = watchableObjects.stream().filter(o -> o.getIndex() == 15).findFirst();
+            Optional<WrappedWatchableObject> shulkerAttached = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 16 : 15)).findFirst();
             // This NMS -> Bukkit conversion is great and works in all 11 versions.
             shulkerAttached.ifPresent(wrappedWatchableObject -> ((PacketEntityShulker) entity).facing = BlockFace.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
 
-            Optional<WrappedWatchableObject> height = watchableObjects.stream().filter(o -> o.getIndex() == 17).findFirst();
+            Optional<WrappedWatchableObject> height = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 18 : 17)).findFirst();
             if (height.isPresent()) {
                 if ((byte) height.get().getRawValue() == 0) {
                     Vector3i position = new Vector3i((int) Math.floor(entity.position.getX()), (int) Math.floor(entity.position.getY()), (int) Math.floor(entity.position.getZ()));
@@ -236,25 +244,25 @@ public class CompensatedEntities {
 
         if (entity instanceof PacketEntityRideable) {
             if (entity.type == EntityType.PIG) {
-                Optional<WrappedWatchableObject> pigSaddle = watchableObjects.stream().filter(o -> o.getIndex() == 16).findFirst();
+                Optional<WrappedWatchableObject> pigSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 17 : 16)).findFirst();
                 pigSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
 
-                Optional<WrappedWatchableObject> pigBoost = watchableObjects.stream().filter(o -> o.getIndex() == 17).findFirst();
+                Optional<WrappedWatchableObject> pigBoost = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 18 : 17)).findFirst();
                 if (pigBoost.isPresent()) {
                     ((PacketEntityRideable) entity).boostTimeMax = (int) pigBoost.get().getRawValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 1;
                 }
             } else if (entity instanceof PacketEntityStrider) {
-                Optional<WrappedWatchableObject> striderBoost = watchableObjects.stream().filter(o -> o.getIndex() == 16).findFirst();
+                Optional<WrappedWatchableObject> striderBoost = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 17 : 16)).findFirst();
                 if (striderBoost.isPresent()) {
                     ((PacketEntityRideable) entity).boostTimeMax = (int) striderBoost.get().getRawValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 1;
                 }
 
-                Optional<WrappedWatchableObject> striderShaking = watchableObjects.stream().filter(o -> o.getIndex() == 17).findFirst();
+                Optional<WrappedWatchableObject> striderShaking = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 18 : 17)).findFirst();
                 striderShaking.ifPresent(wrappedWatchableObject -> ((PacketEntityStrider) entity).isShaking = (boolean) wrappedWatchableObject.getRawValue());
 
-                Optional<WrappedWatchableObject> striderSaddle = watchableObjects.stream().filter(o -> o.getIndex() == 18).findFirst();
+                Optional<WrappedWatchableObject> striderSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 19 : 18)).findFirst();
                 striderSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
             }
         }
