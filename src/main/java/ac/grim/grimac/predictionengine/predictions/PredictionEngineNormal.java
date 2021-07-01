@@ -38,7 +38,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             Vector jump = vector.vector.clone();
 
             if (!player.specialFlying) {
-                if (!player.lastOnGround)
+                if (!player.lastOnGround || player.onGround)
                     return;
 
                 JumpPower.jumpFromGround(player, jump);
