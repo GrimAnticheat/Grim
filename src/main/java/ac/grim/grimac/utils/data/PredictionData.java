@@ -20,24 +20,6 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 
 public class PredictionData {
-    private static final Method onePointEightAttribute;
-    private static Object movementSpeedAttribute;
-
-    static {
-        onePointEightAttribute = Reflection.getMethod(NMSUtils.entityHumanClass, "getAttributeInstance", 0);
-        try {
-            if (XMaterial.getVersion() == 8) {
-                // 1.8 mappings
-                movementSpeedAttribute = NMSUtils.getNMSClass("GenericAttributes").getDeclaredField("MOVEMENT_SPEED").get(null);
-            } else if (XMaterial.getVersion() < 8) {
-                // 1.7 mappings
-                movementSpeedAttribute = NMSUtils.getNMSClass("GenericAttributes").getDeclaredField("d").get(null);
-            }
-        } catch (ClassNotFoundException | NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
-    }
-
     public GrimPlayer player;
     public double playerX;
     public double playerY;
@@ -50,7 +32,6 @@ public class PredictionData {
     public boolean isTryingToRiptide = false;
     public boolean isUsingItem = false;
     public World playerWorld;
-    public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier = 0;
     public float slowFallingAmplifier = 0;
@@ -105,10 +86,6 @@ public class PredictionData {
 
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
-        this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
-
-        // When a player punches a mob, bukkit thinks the player isn't sprinting
-        if (isSprinting && !player.bukkitPlayer.isSprinting()) this.movementSpeed *= 1.3D;
 
         Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
 
@@ -131,23 +108,6 @@ public class PredictionData {
 
         itemHeld = player.packetStateData.lastSlotSelected;
         player.packetStateData.horseJump = 0;
-    }
-
-    public static double getMovementSpeedAttribute(LivingEntity entity) {
-        if (XMaterial.getVersion() > 8) {
-            return entity.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).getValue();
-        }
-
-        try {
-            Method handle = Reflection.getMethod(entity.getClass(), "getHandle", 0);
-            Object attribute = onePointEightAttribute.invoke(handle.invoke(entity), movementSpeedAttribute);
-            Method valueField = attribute.getClass().getMethod("getValue");
-            return (double) valueField.invoke(attribute);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return 0.1f;
     }
 
     public static int getHighestPotionEffect(Collection<PotionEffect> effects, String typeName, int minimumVersion) {
@@ -188,7 +148,6 @@ public class PredictionData {
 
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
-        this.movementSpeed = getMovementSpeedAttribute(player.bukkitPlayer);
 
         firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
         requiredKB = player.knockbackHandler.getRequiredKB();

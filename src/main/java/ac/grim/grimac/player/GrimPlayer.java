@@ -99,6 +99,7 @@ public class GrimPlayer {
     // Determining slow movement has to be done before pose is updated
     public boolean isSlowMovement = false;
     public World playerWorld;
+    public double playerMovementSpeed = 0.1f;
     public double movementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;

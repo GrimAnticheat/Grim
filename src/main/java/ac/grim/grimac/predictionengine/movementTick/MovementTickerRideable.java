@@ -13,7 +13,7 @@ public class MovementTickerRideable extends MovementTickerLivingVehicle {
         float f = getSteeringSpeed();
 
         PacketEntityRideable boost = ((PacketEntityRideable) player.playerVehicle);
-        // Do stuff for boosting on a pig
+        // Do stuff for boosting on a pig/strider
         if (boost.currentBoostTime++ < boost.boostTimeMax) {
             // I wonder how much fastmath actually affects boosting movement
             f += f * 1.15F * player.trigHandler.sin((float) boost.currentBoostTime / (float) boost.boostTimeMax * (float) Math.PI);
