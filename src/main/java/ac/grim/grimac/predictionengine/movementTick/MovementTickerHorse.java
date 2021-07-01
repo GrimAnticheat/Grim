@@ -19,7 +19,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
         if (!horsePacket.hasSaddle) return;
 
-        player.speed = horsePacket.movementSpeedAttribute / 0.43065f;
+        player.speed = horsePacket.movementSpeedAttribute;
         player.movementSpeed = player.speed;
 
         // Setup player inputs

@@ -21,9 +21,9 @@ public class MovementTickerPig extends MovementTickerRideable {
         movementInput = new Vector(0, 0, 1);
     }
 
-    public float getSteeringSpeed() { // Not sure why the * 0.5625 is needed, don't question it.
+    public float getSteeringSpeed() { // Vanilla multiples by 0.225f
         PacketEntityRideable pig = (PacketEntityRideable) player.playerVehicle;
-        return pig.movementSpeedAttribute * 0.5625f;
+        return pig.movementSpeedAttribute * 0.225f;
     }
 
     @Override

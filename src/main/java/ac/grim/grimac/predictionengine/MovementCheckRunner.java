@@ -133,6 +133,12 @@ public class MovementCheckRunner {
         }
         player.lastDummy = data.isDummy;
 
+        if (!player.inVehicle)
+            player.movementSpeed = player.playerMovementSpeed;
+
+        // Store speed for later use (handling sprinting)
+        double tempMovementSpeed = player.movementSpeed;
+
         // Set position now to support "dummy" riding without control
         // Warning - on pigs and striders players, can turn into dummies independent of whether they have
         // control of the vehicle or not (which could be abused to set velocity to 0 repeatedly and kind
@@ -203,7 +209,7 @@ public class MovementCheckRunner {
                 player.lastZ = player.z;
             }
 
-            player.movementSpeed = data.movementSpeed;
+            player.movementSpeed = ((float) player.movementSpeed) * (player.isSprinting ? 1.3f : 1.0f);
             player.jumpAmplifier = data.jumpAmplifier;
             player.levitationAmplifier = data.levitationAmplifier;
             player.slowFallingAmplifier = data.slowFallingAmplifier;
@@ -348,6 +354,8 @@ public class MovementCheckRunner {
             // Fail open
             player.clientVelocity = player.actualMovement.clone();
         }
+
+        player.movementSpeed = tempMovementSpeed;
 
         player.lastX = player.x;
         player.lastY = player.y;

@@ -6,18 +6,24 @@ import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
+import ac.grim.grimac.utils.data.packetentity.latency.EntityPropertiesData;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
+import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeModifierWrapper;
+import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeSnapshotWrapper;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -30,6 +36,7 @@ public class CompensatedEntities {
     public ConcurrentLinkedQueue<EntityMoveData> moveEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMountData> mountVehicleQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<EntityPropertiesData> entityPropertiesData = new ConcurrentLinkedQueue<>();
 
     GrimPlayer player;
 
@@ -74,6 +81,45 @@ public class CompensatedEntities {
             if (entity == null) continue;
 
             updateEntityMetadata(entity, metaData.objects);
+        }
+
+        // Update entity properties such as movement speed and horse jump height
+        while (true) {
+            EntityPropertiesData metaData = entityPropertiesData.peek();
+            if (metaData == null) break;
+
+            if (metaData.lastTransactionSent > lastTransactionReceived) break;
+            entityPropertiesData.poll();
+
+            PacketEntity entity = getEntity(metaData.entityID);
+
+            if (metaData.entityID == player.entityID) {
+                for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
+                    if (snapshotWrapper.getKey().equalsIgnoreCase("attribute.name.generic.movement_speed")) {
+                        player.playerMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
+                    }
+                }
+            }
+
+            if (entity instanceof PacketEntityHorse) {
+                for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
+                    if (snapshotWrapper.getKey().equalsIgnoreCase("attribute.name.generic.movement_speed")) {
+                        ((PacketEntityHorse) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
+                    }
+
+                    if (snapshotWrapper.getKey().equalsIgnoreCase("attribute.name.horse.jump_strength")) {
+                        ((PacketEntityHorse) entity).jumpStrength = (float) calculateAttribute(snapshotWrapper, 0.0, 2.0);
+                    }
+                }
+            }
+
+            if (entity instanceof PacketEntityRideable) {
+                for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
+                    if (snapshotWrapper.getKey().equalsIgnoreCase("attribute.name.generic.movement_speed")) {
+                        ((PacketEntityRideable) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
+                    }
+                }
+            }
         }
 
         // Update what entities are riding what (needed to keep track of position accurately)
@@ -136,6 +182,32 @@ public class CompensatedEntities {
                 tickPassenger(entity, passengerPassenger);
             }
         }
+    }
+
+    private double calculateAttribute(AttributeSnapshotWrapper snapshotWrapper, double minValue, double maxValue) {
+        double d0 = snapshotWrapper.getValue();
+
+        Collection<AttributeModifierWrapper> modifiers = snapshotWrapper.getModifiers();
+        modifiers.removeIf(modifier -> modifier.getName().equalsIgnoreCase("Sprinting speed boost"));
+
+        for (AttributeModifierWrapper attributemodifier : modifiers) {
+            if (attributemodifier.getOperation() == AttributeModifierWrapper.Operation.ADDITION)
+                d0 += attributemodifier.getAmount();
+        }
+
+        double d1 = d0;
+
+        for (AttributeModifierWrapper attributemodifier : modifiers) {
+            if (attributemodifier.getOperation() == AttributeModifierWrapper.Operation.MULTIPLY_BASE)
+                d1 += d0 * attributemodifier.getAmount();
+        }
+
+        for (AttributeModifierWrapper attributemodifier : modifiers) {
+            if (attributemodifier.getOperation() == AttributeModifierWrapper.Operation.MULTIPLY_TOTAL)
+                d1 *= 1.0D + attributemodifier.getAmount();
+        }
+
+        return GrimMathHelper.clamp(d1, minValue, maxValue);
     }
 
     private void tickPassenger(PacketEntity riding, PacketEntity passenger) {
