@@ -98,6 +98,8 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 if (player == null) return;
 
                 PacketEntity entity = player.compensatedEntities.getEntity(status.getEntityId());
+
+                if (entity == null) return;
                 entity.isDead = true;
             }
         }
