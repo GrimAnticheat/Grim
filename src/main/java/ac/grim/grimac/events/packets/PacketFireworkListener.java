@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
@@ -39,7 +40,7 @@ public class PacketFireworkListener extends PacketListenerAbstract {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
 
             if (fireworks.remove(entityMetadata.getEntityId())) {
-                Optional<WrappedWatchableObject> fireworkWatchableObject = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == 8).findFirst();
+                Optional<WrappedWatchableObject> fireworkWatchableObject = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 9 : 8)).findFirst();
                 if (!fireworkWatchableObject.isPresent()) return;
 
                 OptionalInt attachedEntityID = (OptionalInt) fireworkWatchableObject.get().getRawValue();
