@@ -13,33 +13,44 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PredictionEngine {
     boolean canRiptide = false;
-    boolean lastCanSkipTick;
 
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
         double bestInput = Double.MAX_VALUE;
-        lastCanSkipTick = player.couldSkipTick;
 
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
-        // Sorting is an optimization and a requirement
-        possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
-
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
         // If on ground ignore Y velocity because it will be -0.07 if the player has gravity
+        //
+        // Vanilla uses 0.03, we use 0.04 for safety
         player.couldSkipTick = false;
         if (player.onGround) {
-            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 9.0E-4D);
+            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 0.0016);
         } else {
-            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.lengthSquared() < 9.0E-4D);
+            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.lengthSquared() < 0.0016);
         }
+
+        if (player.couldSkipTick) {
+            possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, Collections.singleton(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree)), speed));
+
+            double yVelocity = player.clientVelocity.getY();
+
+            if (Math.abs(yVelocity) < 0.03) {
+                yVelocity -= 0.08;
+
+                player.uncertaintyHandler.gravityUncertainty = yVelocity;
+            }
+        }
+
+        Bukkit.broadcastMessage("Can skip tick " + player.couldSkipTick + " length of movement " + player.actualMovement.length());
+
+        // Sorting is an optimization and a requirement
+        possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
         VectorData bestCollisionVel = null;
         Vector beforeCollisionMovement = null;
@@ -101,9 +112,6 @@ public class PredictionEngine {
         addExplosionRiptideToPossibilities(player, velocities);
         addJumpsToPossibilities(player, velocities);
 
-        if (lastCanSkipTick)
-            velocities.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
-
         return velocities;
     }
 
@@ -153,19 +161,19 @@ public class PredictionEngine {
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
-        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
-        // 0.04 is safe from falses
-        // Set to 0.06 because this is a very stupid reason to allow falses
-        //
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        return getStartingVector(player, vector.vector, vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : 0);
+        // Give 0.06 lenience when zero tick
+        return getStartingVector(player, vector.vector, vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : player.uncertaintyHandler.lastMovementWasZeroPointZeroThree ? 0.06 : player.uncertaintyHandler.lastLastMovementWasZeroPointZeroThree ? 0.03 : 0);
     }
 
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
 
-        // Handle entity pushing/piston movement/riptide onGround addition
+        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
+        // 0.04 is safe from falses
+        // Set to 0.06 because this is a very stupid reason to allow falses
+        //
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.065, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.065);
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)),
@@ -173,7 +181,6 @@ public class PredictionEngine {
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
-        Bukkit.broadcastMessage("Can skip tick " + player.couldSkipTick);
         player.clientVelocitySwimHop = null;
         if (canSwimHop(player)) {
             player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
@@ -248,7 +255,7 @@ public class PredictionEngine {
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
 
         Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
-        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, 0, player.uncertaintyHandler.zNegativeUncertainty - addition);
+        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, player.uncertaintyHandler.gravityUncertainty - (player.uncertaintyHandler.wasLastGravityUncertain ? 0.03 : 0), player.uncertaintyHandler.zNegativeUncertainty - addition);
         Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, 0, player.uncertaintyHandler.zPositiveUncertainty + addition);
 
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,

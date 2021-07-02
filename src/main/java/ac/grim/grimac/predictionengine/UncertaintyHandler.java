@@ -20,6 +20,11 @@ public class UncertaintyHandler {
     public double zNegativeUncertainty = 0;
     public double zPositiveUncertainty = 0;
 
+    public boolean wasLastGravityUncertain = false;
+    public double gravityUncertainty = 0;
+    public boolean lastLastMovementWasZeroPointZeroThree = false;
+    public boolean lastMovementWasZeroPointZeroThree = false;
+
     public EvictingList<Integer> strictCollidingEntities = new EvictingList<>(3);
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
 
@@ -31,6 +36,7 @@ public class UncertaintyHandler {
         pistonX = 0;
         pistonY = 0;
         pistonZ = 0;
+        gravityUncertainty = 0;
         collidingWithBoat = false;
         collidingWithShulker = false;
         isStepMovement = false;
