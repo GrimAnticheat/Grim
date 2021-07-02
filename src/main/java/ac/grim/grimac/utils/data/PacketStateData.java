@@ -15,6 +15,7 @@ public class PacketStateData {
     public double packetPlayerZ;
     public float packetPlayerXRot;
     public float packetPlayerYRot;
+    public boolean packetPlayerOnGround = false;
     public int lastSlotSelected;
     public Hand eatingHand = Hand.MAIN_HAND;
     public boolean isEating = false;
