@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -19,10 +20,12 @@ import java.util.Set;
 
 public class PredictionEngine {
     boolean canRiptide = false;
+    boolean lastCanSkipTick;
 
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
         double bestInput = Double.MAX_VALUE;
+        lastCanSkipTick = player.couldSkipTick;
 
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
@@ -35,7 +38,7 @@ public class PredictionEngine {
         if (player.onGround) {
             possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 9.0E-4D);
         } else {
-            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getY() * a.vector.getY() + a.vector.getZ() + a.vector.getZ() < 9.0E-4D);
+            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.lengthSquared() < 9.0E-4D);
         }
 
         VectorData bestCollisionVel = null;
@@ -43,7 +46,7 @@ public class PredictionEngine {
         Vector tempClientVelChosen = null;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput.vector);
+            Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput);
             Vector backOff = Collisions.maybeBackOffFromEdge(primaryPushMovement, player);
             Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
             Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
@@ -51,9 +54,10 @@ public class PredictionEngine {
 
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
-                tempClientVelChosen = backOff.clone();
+
+                bestCollisionVel = clientVelAfterInput.setVector(outputVel, VectorData.VectorType.BestVelPicked);
                 beforeCollisionMovement = additionalPushMovement;
-                bestCollisionVel = new VectorData(outputVel.clone(), clientVelAfterInput, VectorData.VectorType.BestVelPicked);
+                tempClientVelChosen = primaryPushMovement.clone();
 
                 // Optimization - Close enough, other inputs won't get closer
                 // This works as knockback and explosions are ran first
@@ -96,6 +100,9 @@ public class PredictionEngine {
 
         addExplosionRiptideToPossibilities(player, velocities);
         addJumpsToPossibilities(player, velocities);
+
+        if (lastCanSkipTick)
+            velocities.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
 
         return velocities;
     }
@@ -145,24 +152,13 @@ public class PredictionEngine {
         return Double.compare(distance1, distance2);
     }
 
-    private Vector handleStartingVelocityUncertainty(GrimPlayer player, Vector vector) {
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
-
-        if (avgColliding == 0 && player.uncertaintyHandler.xNegativeUncertainty == 0 && player.uncertaintyHandler.xPositiveUncertainty == 0)
-            return vector;
-
+    private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
         // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
         // 0.04 is safe from falses
         // Set to 0.06 because this is a very stupid reason to allow falses
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
-        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty, 0, player.uncertaintyHandler.zNegativeUncertainty);
-        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty, 0, player.uncertaintyHandler.zPositiveUncertainty);
-
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(min.subtract(uncertainty)),
-                vector.clone().add(max.add(uncertainty)));
+        return getStartingVector(player, vector.vector, vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : 0);
     }
 
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
@@ -177,6 +173,7 @@ public class PredictionEngine {
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
+        Bukkit.broadcastMessage("Can skip tick " + player.couldSkipTick);
         player.clientVelocitySwimHop = null;
         if (canSwimHop(player)) {
             player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
@@ -245,6 +242,18 @@ public class PredictionEngine {
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+    }
+
+    private Vector getStartingVector(GrimPlayer player, Vector vector, double addition) {
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
+
+        Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
+        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, 0, player.uncertaintyHandler.zNegativeUncertainty - addition);
+        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, 0, player.uncertaintyHandler.zPositiveUncertainty + addition);
+
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                vector.clone().add(min.subtract(uncertainty)),
+                vector.clone().add(max.add(uncertainty)));
     }
 
     public boolean canSwimHop(GrimPlayer player) {
