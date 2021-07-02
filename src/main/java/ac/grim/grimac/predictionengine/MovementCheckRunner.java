@@ -61,12 +61,13 @@ public class MovementCheckRunner {
     static List<MovementCheck> movementCheckListeners = new ArrayList<>();
     static int temp = 0;
 
-    public static void processAndCheckMovementPacket(PredictionData data, boolean isDummy) {
+    public static void processAndCheckMovementPacket(PredictionData data) {
         data.player.packetStateData.packetPlayerX = data.playerX;
         data.player.packetStateData.packetPlayerY = data.playerY;
         data.player.packetStateData.packetPlayerZ = data.playerZ;
         data.player.packetStateData.packetPlayerXRot = data.xRot;
         data.player.packetStateData.packetPlayerYRot = data.yRot;
+        data.player.packetStateData.packetPlayerOnGround = data.onGround;
 
         // Support teleports without teleport confirmations
         Vector3d teleportPos = data.player.teleports.peek();
@@ -74,10 +75,6 @@ public class MovementCheckRunner {
             data.player.teleports.poll();
             data.isJustTeleported = true;
             data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
-        }
-
-        if (!isDummy) {
-            data.player.timerCheck.processMovementPacket(data.playerX, data.playerY, data.playerZ, data.xRot, data.yRot);
         }
 
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
@@ -166,6 +163,20 @@ public class MovementCheckRunner {
             return;
         }
 
+        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
+
+        player.uncertaintyHandler.wasLastOnGroundUncertain = false;
+        // Vehicles don't have jumping or that stupid < 0.03 thing
+        // If the player isn't on the ground, a packet in between < 0.03 said they did
+        // And the player is reasonably touching the ground
+        //
+        // Give some lenience and update the onGround status
+        if (data.didGroundStatusChangeWithoutPositionPacket && !player.lastOnGround
+                && !Collisions.isEmpty(player, player.boundingBox.copy().offset(0, -0.03, 0))) {
+            player.lastOnGround = true;
+            player.uncertaintyHandler.wasLastOnGroundUncertain = true;
+        }
+
         // If we don't catch it, the exception is silently eaten by ThreadPoolExecutor
         try {
             player.x = data.playerX;
@@ -218,7 +229,6 @@ public class MovementCheckRunner {
 
             // This isn't the final velocity of the player in the tick, only the one applied to the player
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
 
             if (data.isJustTeleported || player.isFirstTick) {
                 // Don't let the player move if they just teleported

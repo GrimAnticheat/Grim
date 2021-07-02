@@ -28,7 +28,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Vector3d pos = position.getPosition();
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()), false);
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
+            player.timerCheck.processMovementPacket();
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
@@ -38,7 +39,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Vector3d pos = position.getPosition();
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()), false);
+            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround()));
+            player.timerCheck.processMovementPacket();
         }
 
         if (packetID == PacketType.Play.Client.LOOK) {
@@ -49,7 +51,10 @@ public class PacketPositionListener extends PacketListenerAbstract {
             // Prevent memory leaks from players continually staying in vehicles that they can't ride - also updates player position
             if (player.packetStateData.vehicle != null && player.compensatedEntities.entityMap.containsKey(player.packetStateData.vehicle)) {
                 if (!player.packetStateData.receivedVehicleMove) {
-                    MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player), true);
+                    // Do not put this into the timer check
+                    // Instead attach it to vehicle move, which actually updates position.
+                    // As sending thousands of look packets in a vehicle is useless
+                    MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player));
                 }
 
                 player.packetStateData.receivedVehicleMove = false;
@@ -57,9 +62,12 @@ public class PacketPositionListener extends PacketListenerAbstract {
                 return;
             }
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
-                    player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,
-                    position.getYaw(), position.getPitch(), position.isOnGround()), false);
+            player.timerCheck.processMovementPacket();
+
+            if (position.isOnGround() != player.packetStateData.packetPlayerOnGround) {
+                player.packetStateData.packetPlayerOnGround = !player.packetStateData.packetPlayerOnGround;
+                player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = true;
+            }
         }
 
         if (packetID == PacketType.Play.Client.FLYING) {
@@ -67,9 +75,11 @@ public class PacketPositionListener extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player,
-                    player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ,
-                    player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()), false);
+            player.timerCheck.processMovementPacket();
+            if (position.isOnGround() != player.packetStateData.packetPlayerOnGround) {
+                player.packetStateData.packetPlayerOnGround = !player.packetStateData.packetPlayerOnGround;
+                player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = true;
+            }
         }
 
         if (packetID == PacketType.Play.Client.STEER_VEHICLE) {

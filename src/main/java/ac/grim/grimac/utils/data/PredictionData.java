@@ -52,6 +52,7 @@ public class PredictionData {
     public float horseJump = 0;
 
     public boolean isDummy = false;
+    public boolean didGroundStatusChangeWithoutPositionPacket = false;
 
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
@@ -108,6 +109,9 @@ public class PredictionData {
 
         itemHeld = player.packetStateData.lastSlotSelected;
         player.packetStateData.horseJump = 0;
+
+        didGroundStatusChangeWithoutPositionPacket = player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket;
+        player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = false;
     }
 
     public static int getHighestPotionEffect(Collection<PotionEffect> effects, String typeName, int minimumVersion) {
@@ -167,6 +171,8 @@ public class PredictionData {
 
         player.packetStateData.horseJump = 0;
         player.packetStateData.tryingToRiptide = false;
+
+        player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = false;
     }
 
     public PredictionData(GrimPlayer player) {
@@ -192,5 +198,7 @@ public class PredictionData {
         isDummy = true;
         player.packetStateData.horseJump = 0;
         player.packetStateData.tryingToRiptide = false;
+
+        player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = false;
     }
 }
