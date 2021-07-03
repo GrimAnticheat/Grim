@@ -47,8 +47,6 @@ public class PredictionEngine {
             }
         }
 
-        Bukkit.broadcastMessage("Can skip tick " + player.couldSkipTick + " length of movement " + player.actualMovement.length());
-
         // Sorting is an optimization and a requirement
         possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
