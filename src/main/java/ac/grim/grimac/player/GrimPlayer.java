@@ -156,6 +156,8 @@ public class GrimPlayer {
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(1);
     // For syncing together the main thread with the packet thread
+    // It can take two ticks for packets to be processed
+    public int lastLastTransactionAtStartOfTick = 0;
     public int lastTransactionAtStartOfTick = 0;
     // For timer checks and fireworks
     public int lastTransactionBeforeLastMovement = 0;

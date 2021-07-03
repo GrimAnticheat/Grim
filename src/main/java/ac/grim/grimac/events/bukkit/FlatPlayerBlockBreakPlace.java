@@ -29,7 +29,11 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
         if (player == null) return;
         Block block = event.getBlock();
-        PlayerChangeBlockData data = new PlayerChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), block.getBlockData());
+
+        // It can take two ticks for the block place packet to be processed
+        // Better to be one tick early than one tick late for block placing
+        // as the player can't place a block inside themselves
+        PlayerChangeBlockData data = new PlayerChangeBlockData(player.lastLastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), block.getBlockData());
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 

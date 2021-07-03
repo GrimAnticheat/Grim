@@ -295,7 +295,9 @@ public class MovementCheckRunner {
 
             ChatColor color;
 
-            if (offset < 0.0001) {
+            if (offset == 0) {
+                color = ChatColor.GRAY;
+            } else if (offset < 0.0001) {
                 color = ChatColor.GREEN;
             } else if (offset < 0.01) {
                 color = ChatColor.YELLOW;
