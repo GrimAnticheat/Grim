@@ -89,7 +89,10 @@ public class PacketWorldReaderNine extends PacketListenerAbstract {
             }
             Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
-            event.setPostTask(player::sendTransactionOrPingPong);
+            int range = (player.getTransactionPing() / 100) + 16;
+            if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
+                event.setPostTask(player::sendTransactionOrPingPong);
+
             player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
         }
 
@@ -116,7 +119,11 @@ public class PacketWorldReaderNine extends PacketListenerAbstract {
                 Field shortField = Reflection.getField(blockInformation[0].getClass(), 0);
                 Field blockDataField = Reflection.getField(blockInformation[0].getClass(), 1);
 
-                event.setPostTask(player::sendTransactionOrPingPong);
+                int range = (player.getTransactionPing() / 100) + 32;
+                if (Math.abs(chunkX - player.x) < range && Math.abs(chunkZ - player.z) < range)
+                    event.setPostTask(player::sendTransactionOrPingPong);
+
+
                 for (Object o : blockInformation) {
                     short pos = shortField.getShort(o);
                     int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(o));
