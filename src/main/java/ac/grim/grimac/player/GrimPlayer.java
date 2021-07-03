@@ -173,12 +173,12 @@ public class GrimPlayer {
     public VelocityData firstBreadExplosion = null;
     public VelocityData knownExplosion = null;
     public TimerCheck timerCheck;
-    private int transactionPing = 0;
-    private long playerClockAtLeast = 0;
     public float horseJump = 0;
     public boolean horseJumping = false;
     public boolean tryingToRiptide = false;
     public PacketTracker packetTracker;
+    private int transactionPing = 0;
+    private long playerClockAtLeast = 0;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -275,9 +275,9 @@ public class GrimPlayer {
     // The design is allowing players to miss transaction packets, which shouldn't be possible
     // But if some error made a client miss a packet, then it won't hurt them too bad.
     // Also it forces players to take knockback
-    public void addTransactionResponse(short id) {
+    public boolean addTransactionResponse(short id) {
         // Disable ViaVersion packet limiter
-        // Required as ViaVersion listens before us for version compatibility
+        // Required as ViaVersion listens before us for converting packets between game versions
         if (packetTracker != null)
             packetTracker.setIntervalPackets(0);
 
@@ -293,14 +293,9 @@ public class GrimPlayer {
                 explosionHandler.handleTransactionPacket(data.getFirst());
             }
         } while (data != null && data.getFirst() != id);
-    }
 
-    public short getNextTransactionID(int add) {
-        // Take the 15 least significant bits, multiply by 1.
-        // Short range is -32768 to 32767
-        // We return a range of -32767 to 0
-        // Allowing a range of -32768 to 0 for velocity + explosions
-        return (short) (-1 * (lastTransactionSent.getAndAdd(add) & 0x7FFF));
+        // Were we the ones who sent the packet?
+        return data != null && data.getFirst() == id;
     }
 
     public void baseTickAddVector(Vector vector) {
@@ -371,9 +366,19 @@ public class GrimPlayer {
             } else {
                 PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));
             }
+
+            addTransactionSend(transactionID);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
+    }
+
+    public short getNextTransactionID(int add) {
+        // Take the 15 least significant bits, multiply by 1.
+        // Short range is -32768 to 32767
+        // We return a range of -32767 to 0
+        // Allowing a range of -32768 to 0 for velocity + explosions
+        return (short) (-1 * (lastTransactionSent.getAndAdd(add) & 0x7FFF));
     }
 
     public boolean isEyeInFluid(FluidTag tag) {

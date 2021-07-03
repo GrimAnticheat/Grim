@@ -60,6 +60,9 @@ public class PacketPositionListener extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
+            player.packetStateData.packetPlayerXRot = position.getYaw();
+            player.packetStateData.packetPlayerYRot = position.getPitch();
+
             // Prevent memory leaks from players continually staying in vehicles that they can't ride - also updates player position
             if (player.packetStateData.vehicle != null && player.compensatedEntities.entityMap.containsKey(player.packetStateData.vehicle)) {
                 if (!player.packetStateData.receivedVehicleMove) {
