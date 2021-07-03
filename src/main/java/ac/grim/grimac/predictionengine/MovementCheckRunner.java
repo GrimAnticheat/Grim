@@ -215,7 +215,7 @@ public class MovementCheckRunner {
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
-        if (data.isJustTeleported || player.isFirstTick) {
+        if (data.isJustTeleported) {
             // Don't let the player move if they just teleported
             player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
             player.clientVelocity = new Vector();
