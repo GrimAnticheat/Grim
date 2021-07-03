@@ -182,6 +182,7 @@ public class GrimPlayer {
         this.bukkitPlayer = player;
         this.playerUUID = player.getUniqueId();
         this.entityID = player.getEntityId();
+        this.playerWorld = player.getWorld();
 
         Location loginLocation = player.getLocation();
         lastX = loginLocation.getX();
