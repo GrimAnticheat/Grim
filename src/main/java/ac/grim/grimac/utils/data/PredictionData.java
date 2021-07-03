@@ -179,6 +179,7 @@ public class PredictionData {
         PacketEntity vehicle = player.compensatedEntities.getEntity(player.packetStateData.vehicle);
         this.player = player;
         this.playerVehicle = player.packetStateData.vehicle;
+        this.playerWorld = player.bukkitPlayer.getWorld();
 
         this.playerX = vehicle.position.getX();
         this.playerY = vehicle.position.getY();

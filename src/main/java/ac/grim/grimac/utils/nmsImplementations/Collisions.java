@@ -262,7 +262,7 @@ public class Collisions {
                 .expandMax(0.26, 0.26, 0.26);
 
         // Worldborders were added in 1.8
-        if (XMaterial.supports(8)) {
+        if (XMaterial.supports(8) && player.playerWorld != null) {
             WorldBorder border = player.playerWorld.getWorldBorder();
             double centerX = border.getCenter().getX();
             double centerZ = border.getCenter().getZ();
