@@ -101,6 +101,7 @@ public class GrimPlayer {
     public World playerWorld;
     public double playerMovementSpeed = 0.1f;
     public double movementSpeed;
+    public double tempMovementSpeed;
     public float jumpAmplifier;
     public float levitationAmplifier;
     public float slowFallingAmplifier;
@@ -113,6 +114,7 @@ public class GrimPlayer {
     public PacketEntity lastVehiclePersistent = null;
     public int lastVehicleSwitch = 1000;
     public boolean lastDummy = false;
+    public boolean isCheckNotReady = false;
     public float vehicleHorizontal;
     public float vehicleForward;
     public BoatData boatData = new BoatData();
