@@ -24,8 +24,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 public class FlatPlayerBlockBreakPlace implements Listener {
 
-    BlockData air = Material.AIR.createBlockData();
-
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
@@ -41,8 +39,8 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         if (player == null) return;
         Block block = event.getBlock();
 
-        // Even when breaking waterlogged stuff, the client assumes it will turn into air (?)
-        PlayerChangeBlockData data = new PlayerChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), air);
+        // Even when breaking waterlogged stuff, the client assumes it will turn into air - which is fine with me
+        ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 
