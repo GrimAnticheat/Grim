@@ -65,6 +65,7 @@ public final class GrimAC extends JavaPlugin {
             currentTick++;
 
             for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                player.lastLastTransactionAtStartOfTick = player.lastTransactionAtStartOfTick;
                 player.lastTransactionAtStartOfTick = player.packetStateData.packetLastTransactionReceived;
             }
         }, 0, 1);

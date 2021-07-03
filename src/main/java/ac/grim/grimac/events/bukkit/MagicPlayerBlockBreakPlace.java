@@ -22,7 +22,10 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         int combinedID = materialID + (blockData << 12);
 
-        ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), combinedID);
+        // It can take two ticks for the block place packet to be processed
+        // Better to be one tick early than one tick late for block placing
+        // as the player can't place a block inside themselves
+        ChangeBlockData data = new ChangeBlockData(player.lastLastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.changeBlockQueue.add(data);
 
     }
