@@ -34,7 +34,7 @@ public class PacketElytraListener extends PacketListenerAbstract {
                     boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
 
                     int transactionSent = player.lastTransactionSent.get();
-                    player.sendTransactionOrPingPong();
+                    event.setPostTask(player::sendTransactionOrPingPong);
                     player.compensatedElytra.tryAddStatus(transactionSent, isGliding);
                 }
             }
