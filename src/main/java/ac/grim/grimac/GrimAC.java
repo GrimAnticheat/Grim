@@ -61,6 +61,7 @@ public final class GrimAC extends JavaPlugin {
         // Try and sync together the main thread with packet threads - this is really difficult without a good solution
         // This works as schedulers run at the beginning of the tick
         // Sync to make sure we loop all players before any events and because this is very fast.
+        // It does show up on spark which is sad, but oh well.
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             currentTick++;
 
@@ -78,7 +79,7 @@ public final class GrimAC extends JavaPlugin {
 
                 if (data == null) break;
 
-                MovementCheckRunner.executor.submit(() -> MovementCheckRunner.check(data));
+                MovementCheckRunner.executor.runCheck(data);
             }
         }, 0, 1);
 
