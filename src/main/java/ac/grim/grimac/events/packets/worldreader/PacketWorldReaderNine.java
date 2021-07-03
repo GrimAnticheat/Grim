@@ -47,8 +47,6 @@ public class PacketWorldReaderNine extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            long time = System.nanoTime();
-
             try {
                 int chunkX = packet.getChunkX();
                 int chunkZ = packet.getChunkZ();
@@ -91,7 +89,7 @@ public class PacketWorldReaderNine extends PacketListenerAbstract {
             }
             Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
-            player.sendTransactionOrPingPong();
+            event.setPostTask(player::sendTransactionOrPingPong);
             player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
         }
 
@@ -118,7 +116,7 @@ public class PacketWorldReaderNine extends PacketListenerAbstract {
                 Field shortField = Reflection.getField(blockInformation[0].getClass(), 0);
                 Field blockDataField = Reflection.getField(blockInformation[0].getClass(), 1);
 
-                player.sendTransactionOrPingPong();
+                event.setPostTask(player::sendTransactionOrPingPong);
                 for (Object o : blockInformation) {
                     short pos = shortField.getShort(o);
                     int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(o));

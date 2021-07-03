@@ -44,8 +44,6 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            long time = System.nanoTime();
-
             try {
                 int chunkX = packet.getChunkX();
                 int chunkZ = packet.getChunkZ();

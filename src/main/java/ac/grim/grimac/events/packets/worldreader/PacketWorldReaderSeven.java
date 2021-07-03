@@ -163,7 +163,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
 
                 Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
-                player.sendTransactionOrPingPong();
+                event.setPostTask(player::sendTransactionOrPingPong);
                 player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
 
             } catch (IllegalAccessException | InvocationTargetException exception) {
@@ -194,7 +194,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
 
                 ByteBuffer buffer = ByteBuffer.wrap(blockData);
 
-                player.sendTransactionOrPingPong();
+                event.setPostTask(player::sendTransactionOrPingPong);
                 while (buffer.hasRemaining()) {
                     short positionData = buffer.getShort();
                     short block = buffer.getShort();
