@@ -12,6 +12,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPac
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
 
 public class PacketPositionListener extends PacketListenerAbstract {
     public PacketPositionListener() {
@@ -83,6 +84,10 @@ public class PacketPositionListener extends PacketListenerAbstract {
                 player.packetStateData.packetPlayerOnGround = !player.packetStateData.packetPlayerOnGround;
                 player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = true;
             }
+        }
+
+        if (event.getPacketName().equalsIgnoreCase("d")) {
+            Bukkit.broadcastMessage("Caught!");
         }
 
         if (packetID == PacketType.Play.Client.FLYING) {
