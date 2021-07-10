@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.seven.SevenChunk;
-import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -17,10 +16,8 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.Wrapped
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
-import org.bukkit.block.Block;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -42,13 +39,11 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
 
         // Time to dump chunk data for 1.9+ - 0.07 ms
         // Time to dump chunk data for 1.8 - 0.02 ms
-        // Time to dump chunk data for 1.7 - 1 ms
+        // Time to dump chunk data for 1.7 - 0.04 ms
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
             WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
-
-            long time = System.nanoTime();
 
             try {
                 int chunkX = packet.getChunkX();
@@ -75,6 +70,8 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
                         }
                     }
 
+                    // 1.7 chunk section logic is complicated and custom forks make it worse
+                    // Just use the bukkit API as it copies all the data we need into an array
                     Field ids = Reflection.getField(snapshot.getClass(), "blockids");
                     Field data = Reflection.getField(snapshot.getClass(), "blockdata");
 
@@ -91,8 +88,6 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
                 Column column = new Column(chunkX, chunkZ, chunks);
                 player.compensatedWorld.addToCache(column, chunkX, chunkZ);
 
-                Bukkit.broadcastMessage("Took (new method) " + (System.nanoTime() - time));
-
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
@@ -104,44 +99,51 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-            int[] chunkXArray = (int[]) packet.readAnyObject(0);
-            int[] chunkZArray = (int[]) packet.readAnyObject(1);
+            try {
+                WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+                int[] chunkXArray = (int[]) packet.readAnyObject(0);
+                int[] chunkZArray = (int[]) packet.readAnyObject(1);
 
-            for (int i = 0; i < chunkXArray.length; i++) {
-                long time = System.nanoTime();
+                for (int i = 0; i < chunkXArray.length; i++) {
 
-                int chunkX = chunkXArray[i];
-                int chunkZ = chunkZArray[i];
+                    int chunkX = chunkXArray[i];
+                    int chunkZ = chunkZArray[i];
 
-                // This isn't the most efficient 1.7 support but it works.
-                TwelveChunk[] chunks = new TwelveChunk[16];
+                    BaseChunk[] chunks = new SevenChunk[16];
 
-                if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
-                    Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+                    if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                        Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+                        ChunkSnapshot snapshot = sentChunk.getChunkSnapshot();
 
-                    for (int y = 0; y < 255; y++) {
+                        int highestBlock = 0;
+
                         for (int z = 0; z < 16; z++) {
                             for (int x = 0; x < 16; x++) {
-                                Block block = sentChunk.getBlock(x, y, z);
-                                int typeID = block.getType().getId();
+                                highestBlock = Math.max(highestBlock, snapshot.getHighestBlockYAt(x, z));
+                            }
+                        }
 
-                                if (typeID != 0) {
-                                    if (chunks[y >> 4] == null) {
-                                        chunks[y >> 4] = new TwelveChunk();
-                                    }
+                        // 1.7 chunk section logic is complicated and custom forks make it worse
+                        // Just use the bukkit API as it copies all the data we need into an array
+                        Field ids = Reflection.getField(snapshot.getClass(), "blockids");
+                        Field data = Reflection.getField(snapshot.getClass(), "blockdata");
 
-                                    chunks[y >> 4].set(x, y & 15, z, typeID | block.getData() << 12);
-                                }
+                        short[][] blockids = (short[][]) ids.get(snapshot);
+                        byte[][] blockdata = (byte[][]) data.get(snapshot);
+
+                        for (int x = 0; x < 16; x++) {
+                            if (!snapshot.isSectionEmpty(x)) {
+                                chunks[x] = new SevenChunk(blockids[x], blockdata[x]);
                             }
                         }
                     }
 
                     Column column = new Column(chunkX, chunkZ, chunks);
                     player.compensatedWorld.addToCache(column, chunkX, chunkZ);
-                }
 
-                Bukkit.broadcastMessage("Took (old method) " + (System.nanoTime() - time));
+                }
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
             }
         }
 
