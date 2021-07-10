@@ -38,7 +38,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
 
         // Time to dump chunk data for 1.9+ - 0.07 ms
         // Time to dump chunk data for 1.8 - 0.02 ms
-        // Time to dump chunk data for 1.7 - 1 ms
+        // Time to dump chunk data for 1.7 - 0.04 ms
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
             WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());

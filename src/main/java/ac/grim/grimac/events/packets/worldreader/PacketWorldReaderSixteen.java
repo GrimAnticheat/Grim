@@ -51,7 +51,7 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
                 BaseChunk[] chunks = new SixteenChunk[16];
 
                 byte[] chunkData = packet.getCompressedData();
-                int availableSectionsInt = packet.getPrimaryBitMap().isPresent() ? packet.getPrimaryBitMap().get() : 0;
+                int availableSectionsInt = packet.getPrimaryBitMask().isPresent() ? packet.getPrimaryBitMask().get() : 0;
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
                 for (int index = 0; index < chunks.length; ++index) {

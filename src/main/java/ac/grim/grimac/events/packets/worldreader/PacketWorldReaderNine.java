@@ -52,7 +52,7 @@ public class PacketWorldReaderNine extends PacketListenerAbstract {
                 int chunkZ = packet.getChunkZ();
 
                 byte[] chunkData = packet.getCompressedData();
-                int availableSectionsInt = packet.getPrimaryBitMap().isPresent() ? packet.getPrimaryBitMap().get() : 0;
+                int availableSectionsInt = packet.getPrimaryBitMask().isPresent() ? packet.getPrimaryBitMask().get() : 0;
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
                 BaseChunk[] chunks = new TwelveChunk[16];

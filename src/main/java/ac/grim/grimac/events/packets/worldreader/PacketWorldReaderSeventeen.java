@@ -45,21 +45,19 @@ public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
             if (player == null) return;
 
             try {
-                // Waiting on PacketEvents to fix chunkX and chunkZ...
-                // For now, just bypass it
                 int chunkX = packet.getChunkX();
                 int chunkZ = packet.getChunkZ();
 
                 BaseChunk[] chunks = new SixteenChunk[16];
 
                 byte[] chunkData = packet.getCompressedData();
+                int availableSectionsInt = packet.getPrimaryBitMask().isPresent() ? packet.getPrimaryBitMask().get() : 0;
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
                 for (int index = 0; index < chunks.length; ++index) {
-                    // This is a hack until getting the sections length is available on 1.17
-                    // Waiting on PacketEvents...
-                    if (dataIn.available() > 0)
+                    if ((availableSectionsInt & 1 << index) != 0) {
                         chunks[index] = SixteenChunk.read(dataIn);
+                    }
                 }
 
                 Column column = new Column(chunkX, chunkZ, chunks);
