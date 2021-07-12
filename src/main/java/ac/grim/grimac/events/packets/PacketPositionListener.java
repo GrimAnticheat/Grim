@@ -86,10 +86,6 @@ public class PacketPositionListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketName().equalsIgnoreCase("d")) {
-            Bukkit.broadcastMessage("Caught!");
-        }
-
         if (packetID == PacketType.Play.Client.FLYING) {
             WrappedPacketInFlying position = new WrappedPacketInFlying(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());

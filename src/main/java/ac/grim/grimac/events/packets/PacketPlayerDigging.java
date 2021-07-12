@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -10,6 +11,7 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedPacketInBlockDig;
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
 import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.WrappedPacketInHeldItemSlot;
+import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPacketInUseItem;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -31,6 +33,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
 
+            player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(dig.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
+
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
             if ((type == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS && player.packetStateData.eatingHand == Hand.MAIN_HAND) ||
                     type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM ||
@@ -43,9 +47,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
                     int j = 0;
-                    if (main.getType() == Material.TRIDENT) {
+                    if (main.getType() == trident) {
                         j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
-                    } else if (off.getType() == Material.TRIDENT) {
+                    } else if (off.getType() == trident) {
                         j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
                     }
 
@@ -53,6 +57,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                         player.packetStateData.tryingToRiptide = true;
                     }
                 }
+            }
+
+            if (type == WrappedPacketInBlockDig.PlayerDigType.START_DESTROY_BLOCK || type == WrappedPacketInBlockDig.PlayerDigType.STOP_DESTROY_BLOCK) {
+                dig.getBlockPosition();
             }
         }
 
@@ -72,12 +80,25 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
         }
 
+        if (packetID == PacketType.Play.Client.USE_ITEM) {
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
+            WrappedPacketInUseItem item = new WrappedPacketInUseItem(event.getNMSPacket());
+
+            player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(item.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
+        }
+
         if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
             ItemStack itemStack;
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
+
+            // 1.9+ use the use item packet for this
+            if (XMaterial.getVersion() <= 8)
+                player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
 
             if (place.getHand() == Hand.MAIN_HAND) {
                 itemStack = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);

@@ -16,8 +16,12 @@ import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.BasePlayerChangeBlockData;
+import ac.grim.grimac.utils.data.ChangeBlockData;
+import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
+import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -35,7 +39,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -100,6 +107,8 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<BasePlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
 
+    public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPositions = new ConcurrentLinkedQueue<>();
+
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
 
@@ -151,6 +160,9 @@ public class CompensatedWorld {
             pistonData.poll();
             activePistons.add(data);
         }
+
+        // 10 ticks is more than enough for everything that needs to be processed to be processed
+        packetBlockPositions.removeIf(data -> GrimAC.getCurrentTick() - data.tick > 10);
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
@@ -165,7 +177,7 @@ public class CompensatedWorld {
                     column.getChunks()[y >> 4] = new FifteenChunk();
                 } else if (XMaterial.getVersion() > 8) {
                     column.getChunks()[y >> 4] = new TwelveChunk();
-                } else if (XMaterial.getVersion() == 8){
+                } else if (XMaterial.getVersion() == 8) {
                     column.getChunks()[y >> 4] = new EightChunk(new char[4096]);
                 } else {
                     column.getChunks()[y >> 4] = new SevenChunk(new short[4096], new byte[2048]);
@@ -373,54 +385,6 @@ public class CompensatedWorld {
         return 0;
     }
 
-    public double getWaterFluidLevelAt(int x, int y, int z) {
-        BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
-        boolean isWater = Materials.isWater(player.getClientVersion(), bukkitBlock);
-
-        if (!isWater) return 0;
-
-        BaseBlockState aboveData = getWrappedBlockStateAt(x, y + 1, z);
-
-        // If water has water above it, it's block height is 1, even if it's waterlogged
-        if (Materials.isWater(player.getClientVersion(), aboveData)) {
-            return 1;
-        }
-
-        if (bukkitBlock instanceof FlatBlockState) {
-            FlatBlockState flatBlockState = (FlatBlockState) bukkitBlock;
-
-            if (flatBlockState.getBlockData() instanceof Levelled) {
-                if (bukkitBlock.getMaterial() == WATER) {
-                    int waterLevel = ((Levelled) flatBlockState.getBlockData()).getLevel();
-
-                    // Falling water has a level of 8
-                    if (waterLevel >= 8) return 8 / 9f;
-
-                    return (8 - waterLevel) / 9f;
-                }
-            }
-
-            // The block is water, isn't water material directly, and doesn't have block above, so it is waterlogged
-            // or another source-like block such as kelp.
-            return 8 / 9F;
-        } else {
-            MagicBlockState magicBlockState = (MagicBlockState) bukkitBlock;
-
-            // If it is water or flowing water
-            if (magicBlockState.getId() == 8 || magicBlockState.getId() == 9) {
-                int magicData = magicBlockState.getData();
-
-                // Falling water has a level of 8
-                if ((magicData & 0x8) == 8) return 8 / 9f;
-
-                return (8 - magicData) / 9f;
-            }
-        }
-
-
-        return 0;
-    }
-
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
 
@@ -473,6 +437,54 @@ public class CompensatedWorld {
         }
 
         return false;
+    }
+
+    public double getWaterFluidLevelAt(int x, int y, int z) {
+        BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
+        boolean isWater = Materials.isWater(player.getClientVersion(), bukkitBlock);
+
+        if (!isWater) return 0;
+
+        BaseBlockState aboveData = getWrappedBlockStateAt(x, y + 1, z);
+
+        // If water has water above it, it's block height is 1, even if it's waterlogged
+        if (Materials.isWater(player.getClientVersion(), aboveData)) {
+            return 1;
+        }
+
+        if (bukkitBlock instanceof FlatBlockState) {
+            FlatBlockState flatBlockState = (FlatBlockState) bukkitBlock;
+
+            if (flatBlockState.getBlockData() instanceof Levelled) {
+                if (bukkitBlock.getMaterial() == WATER) {
+                    int waterLevel = ((Levelled) flatBlockState.getBlockData()).getLevel();
+
+                    // Falling water has a level of 8
+                    if (waterLevel >= 8) return 8 / 9f;
+
+                    return (8 - waterLevel) / 9f;
+                }
+            }
+
+            // The block is water, isn't water material directly, and doesn't have block above, so it is waterlogged
+            // or another source-like block such as kelp.
+            return 8 / 9F;
+        } else {
+            MagicBlockState magicBlockState = (MagicBlockState) bukkitBlock;
+
+            // If it is water or flowing water
+            if (magicBlockState.getId() == 8 || magicBlockState.getId() == 9) {
+                int magicData = magicBlockState.getData();
+
+                // Falling water has a level of 8
+                if ((magicData & 0x8) == 8) return 8 / 9f;
+
+                return (8 - magicData) / 9f;
+            }
+        }
+
+
+        return 0;
     }
 
     public void removeChunk(int chunkX, int chunkZ) {
