@@ -29,8 +29,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Vector3d pos = position.getPosition();
 
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && player.packetStateData.packetPlayerX == pos.getX() && player.packetStateData.packetPlayerY == pos.getY()
-                    && player.packetStateData.packetPlayerZ == pos.getZ())
+            if (player.packetStateData.packetPlayerX == pos.getX() && player.packetStateData.packetPlayerY == pos.getY() && player.packetStateData.packetPlayerZ == pos.getZ())
                 return;
 
             MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround()));
@@ -44,8 +43,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Vector3d pos = position.getPosition();
 
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && player.packetStateData.packetPlayerX == pos.getX() && player.packetStateData.packetPlayerY == pos.getY()
-                    && player.packetStateData.packetPlayerZ == pos.getZ()) {
+            if (player.packetStateData.packetPlayerX == pos.getX() && player.packetStateData.packetPlayerY == pos.getY() && player.packetStateData.packetPlayerZ == pos.getZ()) {
                 player.packetStateData.packetPlayerXRot = position.getYaw();
                 player.packetStateData.packetPlayerYRot = position.getPitch();
                 return;
