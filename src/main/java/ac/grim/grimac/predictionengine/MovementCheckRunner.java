@@ -166,6 +166,9 @@ public class MovementCheckRunner {
             player.uncertaintyHandler.wasLastOnGroundUncertain = true;
         }
 
+        player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
+        player.uncertaintyHandler.lastPacketWasGroundPacket = data.didGroundStatusChangeWithoutPositionPacket;
+
         player.x = data.playerX;
         player.y = data.playerY;
         player.z = data.playerZ;

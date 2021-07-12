@@ -22,6 +22,8 @@ public class UncertaintyHandler {
 
     public boolean wasLastGravityUncertain = false;
     public boolean wasLastOnGroundUncertain = false;
+    public boolean lastPacketWasGroundPacket = false;
+    public boolean lastLastPacketWasGroundPacket = false;
     public double gravityUncertainty = 0;
     public boolean lastLastMovementWasZeroPointZeroThree = false;
     public boolean lastMovementWasZeroPointZeroThree = false;

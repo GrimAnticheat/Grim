@@ -254,11 +254,16 @@ public class PredictionEngine {
 
         Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, player.uncertaintyHandler.gravityUncertainty - (player.uncertaintyHandler.wasLastGravityUncertain ? 0.03 : 0), player.uncertaintyHandler.zNegativeUncertainty - addition);
-        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, 0, player.uncertaintyHandler.zPositiveUncertainty + addition);
+        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, player.uncertaintyHandler.lastLastPacketWasGroundPacket ? 0.03 : 0, player.uncertaintyHandler.zPositiveUncertainty + addition);
+
+        Vector maxVector = vector.clone().add(max.add(uncertainty));
+
+        if (player.uncertaintyHandler.lastPacketWasGroundPacket && vector.getY() < 0) {
+            maxVector.setY(0);
+        }
 
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(min.subtract(uncertainty)),
-                vector.clone().add(max.add(uncertainty)));
+                vector.clone().add(min.subtract(uncertainty)), maxVector);
     }
 
     public boolean canSwimHop(GrimPlayer player) {
