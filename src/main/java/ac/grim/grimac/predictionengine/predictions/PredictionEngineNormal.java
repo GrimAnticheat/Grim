@@ -38,7 +38,10 @@ public class PredictionEngineNormal extends PredictionEngine {
             Vector jump = vector.vector.clone();
 
             if (!player.specialFlying) {
-                if (!player.lastOnGround || player.onGround)
+                // If the player didn't try to jump
+                // And 0.03 didn't affect onGround status
+                // The player cannot jump
+                if ((!player.lastOnGround || player.onGround) && !(player.uncertaintyHandler.lastPacketWasGroundPacket && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree))
                     return;
 
                 JumpPower.jumpFromGround(player, jump);

@@ -25,18 +25,18 @@ public class PredictionEngine {
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
-        // If on ground ignore Y velocity because it will be -0.07 if the player has gravity
-        //
-        // Vanilla uses 0.03, we use 0.04 for safety
         player.couldSkipTick = false;
-        if (player.onGround) {
+        if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
             possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 0.0016);
         } else {
             possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.lengthSquared() < 0.0016);
         }
 
         if (player.couldSkipTick) {
-            possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, Collections.singleton(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree)), speed));
+            Set<VectorData> zeroStuff = new HashSet<>();
+            zeroStuff.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
+            addJumpsToPossibilities(player, zeroStuff);
+            possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, zeroStuff, speed));
 
             double yVelocity = player.clientVelocity.getY();
 
@@ -258,7 +258,7 @@ public class PredictionEngine {
 
         Vector maxVector = vector.clone().add(max.add(uncertainty));
 
-        if (player.uncertaintyHandler.lastPacketWasGroundPacket && vector.getY() < 0) {
+        if ((player.uncertaintyHandler.wasLastOnGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.getY() < 0) {
             maxVector.setY(0);
         }
 

@@ -23,13 +23,10 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -154,21 +151,6 @@ public class MovementCheckRunner {
 
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
 
-        player.uncertaintyHandler.wasLastOnGroundUncertain = false;
-        // Vehicles don't have jumping or that stupid < 0.03 thing
-        // If the player isn't on the ground, a packet in between < 0.03 said they did
-        // And the player is reasonably touching the ground
-        //
-        // Give some lenience and update the onGround status
-        if (data.didGroundStatusChangeWithoutPositionPacket && !player.lastOnGround
-                && !Collisions.isEmpty(player, player.boundingBox.copy().offset(0, -0.03, 0))) {
-            player.lastOnGround = true;
-            player.uncertaintyHandler.wasLastOnGroundUncertain = true;
-        }
-
-        player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
-        player.uncertaintyHandler.lastPacketWasGroundPacket = data.didGroundStatusChangeWithoutPositionPacket;
-
         player.x = data.playerX;
         player.y = data.playerY;
         player.z = data.playerZ;
@@ -215,6 +197,8 @@ public class MovementCheckRunner {
         player.dolphinsGraceAmplifier = data.dolphinsGraceAmplifier;
         player.flySpeed = data.flySpeed;
 
+        player.uncertaintyHandler.wasLastOnGroundUncertain = false;
+
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
@@ -255,6 +239,23 @@ public class MovementCheckRunner {
             }
 
             new PlayerBaseTick(player).doBaseTick();
+            player.compensatedWorld.tickPlayerUpdates(data.lastTransaction);
+
+            // Vehicles don't have jumping or that stupid < 0.03 thing
+            // If the player isn't on the ground, a packet in between < 0.03 said they did
+            // And the player is reasonably touching the ground
+            //
+            // And the player isn't now near the ground due to a new block placed by the player
+            //
+            // Give some lenience and update the onGround status
+            if (data.didGroundStatusChangeWithoutPositionPacket && !player.lastOnGround
+                    && (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree
+                    || !Collisions.isEmpty(player, player.boundingBox.copy().offset(0, -0.03, 0)))) {
+                player.lastOnGround = true;
+                player.uncertaintyHandler.wasLastOnGroundUncertain = true;
+                player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
+            }
+
             new MovementTickerPlayer(player).livingEntityAIStep();
         } else if (XMaterial.getVersion() > 8 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
             // The player and server are both on a version with client controlled entities
@@ -309,6 +310,9 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.wasLastGravityUncertain = player.uncertaintyHandler.gravityUncertainty != 0;
         player.uncertaintyHandler.lastLastMovementWasZeroPointZeroThree = player.uncertaintyHandler.lastMovementWasZeroPointZeroThree;
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01) || player.predictedVelocity.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
+        player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
+        player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
+        player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().offset(0, -0.03, 0));
 
         player.knockbackHandler.handlePlayerKb(offset);
         player.explosionHandler.handlePlayerExplosion(offset);

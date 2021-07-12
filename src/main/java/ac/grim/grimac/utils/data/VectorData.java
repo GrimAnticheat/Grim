@@ -82,4 +82,12 @@ public class VectorData {
         Entity_Pushing,
         ZeroPointZeroThree
     }
+
+    @Override
+    public String toString() {
+        return "VectorData{" +
+                "vectorType=" + vectorType +
+                ", vector=" + vector +
+                '}';
+    }
 }
