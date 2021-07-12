@@ -42,6 +42,8 @@ public class UncertaintyHandler {
     public boolean lastPacketWasGroundPacket = false;
     // Marks previous lastPacketWasGroundPacket from last tick
     public boolean lastLastPacketWasGroundPacket = false;
+    // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
+    public boolean isSteppingOnSlime = false;
 
     // Marks whether the player could have landed but without position packet because 0.03
     public boolean lastTickWasNearGroundZeroPointZeroThree = false;
