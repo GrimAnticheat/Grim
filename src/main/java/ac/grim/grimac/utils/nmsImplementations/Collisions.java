@@ -31,6 +31,7 @@ public class Collisions {
     private static final Material COBWEB = XMaterial.COBWEB.parseMaterial();
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
     private static final Material SWEET_BERRY_BUSH = XMaterial.SWEET_BERRY_BUSH.parseMaterial();
+    private static final Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
 
     private static final Material LADDER = XMaterial.LADDER.parseMaterial();
 
@@ -493,6 +494,21 @@ public class Collisions {
         return false;
     }
 
+    public static boolean hasSlimeBlock(GrimPlayer player) {
+        SimpleCollisionBox playerBB = player.boundingBox.copy().offset(0, -0.04, 0);
+
+        // Blocks are stored in YZX order
+        for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
+            for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
+                for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
+                    if (player.compensatedWorld.getBukkitMaterialAt(x, y, z) == SLIME_BLOCK) return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static boolean onClimbable(GrimPlayer player) {
         BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(player.x, player.y, player.z);
         Material blockMaterial = blockState.getMaterial();
@@ -503,7 +519,6 @@ public class Collisions {
 
         return trapdoorUsableAsLadder(player, player.x, player.y, player.z, blockState);
     }
-
 
     private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, BaseBlockState blockData) {
         if (!Materials.checkFlag(blockData.getMaterial(), Materials.TRAPDOOR)) return false;
@@ -524,27 +539,4 @@ public class Collisions {
 
         return false;
     }
-
-    // 1.12 collision boxes
-    /*public List<Entity> getEntitiesWithinAABBExcludingEntity(@Nullable Entity entityIn, AxisAlignedBB bb) {
-        return this.getEntitiesInAABBexcluding(entityIn, bb, EntitySelectors.NOT_SPECTATING);
-    }
-
-    public List<Entity> getEntitiesInAABBexcluding(@Nullable Entity entityIn, AxisAlignedBB boundingBox, @Nullable Predicate<? super Entity> predicate) {
-        List<Entity> list = Lists.<Entity>newArrayList();
-        int j2 = MathHelper.floor((boundingBox.minX - 2.0D) / 16.0D);
-        int k2 = MathHelper.floor((boundingBox.maxX + 2.0D) / 16.0D);
-        int l2 = MathHelper.floor((boundingBox.minZ - 2.0D) / 16.0D);
-        int i3 = MathHelper.floor((boundingBox.maxZ + 2.0D) / 16.0D);
-
-        for (int j3 = j2; j3 <= k2; ++j3) {
-            for (int k3 = l2; k3 <= i3; ++k3) {
-                if (this.isChunkLoaded(j3, k3, true)) {
-                    this.getChunkFromChunkCoords(j3, k3).getEntitiesWithinAABBForEntity(entityIn, boundingBox, list, predicate);
-                }
-            }
-        }
-
-        return list;
-    }*/
 }
