@@ -12,7 +12,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPac
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 
 public class PacketPositionListener extends PacketListenerAbstract {
     public PacketPositionListener() {
@@ -82,7 +81,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             if (position.isOnGround() != player.packetStateData.packetPlayerOnGround) {
                 player.packetStateData.packetPlayerOnGround = !player.packetStateData.packetPlayerOnGround;
-                player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = true;
+                player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;
             }
         }
 
@@ -94,7 +93,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.timerCheck.processMovementPacket();
             if (position.isOnGround() != player.packetStateData.packetPlayerOnGround) {
                 player.packetStateData.packetPlayerOnGround = !player.packetStateData.packetPlayerOnGround;
-                player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = true;
+                player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;
             }
         }
 

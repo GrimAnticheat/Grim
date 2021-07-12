@@ -23,4 +23,6 @@ public class PacketStateData {
     public boolean receivedVehicleMove = false;
     public int horseJump = 0;
     public boolean tryingToRiptide = false;
+    // Marks when the player received a ground packet
+    public boolean didGroundStatusChangeWithoutPositionPacket = false;
 }

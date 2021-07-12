@@ -121,7 +121,7 @@ public class CompensatedWorld {
         return id == -1 ? 0 : id;
     }
 
-    public void tickUpdates(int lastTransactionReceived) {
+    public void tickPlayerUpdates(int lastTransactionReceived) {
         while (true) {
             BasePlayerChangeBlockData changeBlockData = changeBlockQueue.peek();
 
@@ -132,7 +132,9 @@ public class CompensatedWorld {
 
             player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.getCombinedID());
         }
+    }
 
+    public void tickUpdates(int lastTransactionReceived) {
         while (true) {
             ChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
 

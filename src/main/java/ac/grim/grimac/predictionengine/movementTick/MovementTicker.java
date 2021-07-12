@@ -45,16 +45,23 @@ public class MovementTicker {
         player.verticalCollision = inputVel.getY() != collide.getY();
         player.isActuallyOnGround = player.verticalCollision && inputVel.getY() < 0.0D;
 
-        if (player.isActuallyOnGround != player.onGround)
-            Bukkit.broadcastMessage("Desync " + player.onGround);
+
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
         // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them
         // The player's onGround status isn't given when riding a vehicle, so we don't have a choice in whether we calculate or not
+        //
+        // Trust the onGround status if the player is near the ground and they sent a ground packet
         if (player.inVehicle || (player.clientVelocitySwimHop == null
                 && player.uncertaintyHandler.pistonX == 0 && player.uncertaintyHandler.pistonY == 0 && player.uncertaintyHandler.pistonZ == 0
-                && player.uncertaintyHandler.slimePistonBounces.isEmpty() && !player.uncertaintyHandler.isStepMovement))
+                && player.uncertaintyHandler.slimePistonBounces.isEmpty() && !player.uncertaintyHandler.isStepMovement)) {
+
+            if (player.isActuallyOnGround != player.onGround)
+                Bukkit.broadcastMessage("Desync " + player.onGround);
+
             player.onGround = player.isActuallyOnGround || player.uncertaintyHandler.striderOnGround;
+        }
+
 
         Material onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
 
