@@ -25,7 +25,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         // It can take two ticks for the block place packet to be processed
         // Better to be one tick early than one tick late for block placing
         // as the player can't place a block inside themselves
-        ChangeBlockData data = new ChangeBlockData(player.lastLastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), combinedID);
+        ChangeBlockData data = new ChangeBlockData(FlatPlayerBlockBreakPlace.getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.changeBlockQueue.add(data);
 
     }
@@ -38,7 +38,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         // Even when breaking waterlogged stuff, the client assumes it will turn into air (?)
         // So in 1.12 everything probably turns into air when broken
-        ChangeBlockData data = new ChangeBlockData(player.lastTransactionAtStartOfTick, block.getX(), block.getY(), block.getZ(), 0);
+        ChangeBlockData data = new ChangeBlockData(FlatPlayerBlockBreakPlace.getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 }
