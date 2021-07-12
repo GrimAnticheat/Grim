@@ -56,9 +56,9 @@ public class PredictionEngineNormal extends PredictionEngine {
     @Override
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
         if (player.lastClimbing) {
-            vector.setX(GrimMathHelper.clamp(vector.getX(), -0.15, 0.15));
-            vector.setZ(GrimMathHelper.clamp(vector.getZ(), -0.15, 0.15));
-            vector.setY(Math.max(vector.getY(), -0.15));
+            vector.setX(GrimMathHelper.clamp(vector.getX(), -0.15F, 0.15F));
+            vector.setZ(GrimMathHelper.clamp(vector.getZ(), -0.15F, 0.15F));
+            vector.setY(Math.max(vector.getY(), -0.15F));
 
             // Yes, this uses shifting not crouching
             if (vector.getY() < 0.0 && !(player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY, player.lastZ) == scaffolding) && player.isSneaking && !player.specialFlying) {
