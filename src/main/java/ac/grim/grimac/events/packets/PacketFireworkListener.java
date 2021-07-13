@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
@@ -59,11 +58,9 @@ public class PacketFireworkListener extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
             WrappedPacketOutEntityDestroy destroy = new WrappedPacketOutEntityDestroy(event.getNMSPacket());
 
-            if (destroy.getEntityIds().isPresent()) {
-                for (int entity : destroy.getEntityIds().get()) {
-                    for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
-                        grimPlayer.compensatedFireworks.removeFirework(entity);
-                    }
+            for (int entity : destroy.getEntityIds()) {
+                for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
+                    grimPlayer.compensatedFireworks.removeFirework(entity);
                 }
             }
         }

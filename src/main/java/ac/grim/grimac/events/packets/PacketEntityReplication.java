@@ -140,7 +140,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (player == null) return;
 
             int lastTransactionSent = player.lastTransactionSent.get();
-            int[] destroyEntityIds = destroy.getEntityIds().isPresent() ? destroy.getEntityIds().get() : null;
+            int[] destroyEntityIds = destroy.getEntityIds();
 
             player.compensatedEntities.destroyEntityQueue.add(new Pair<Integer, int[]>() {
                 @Override
