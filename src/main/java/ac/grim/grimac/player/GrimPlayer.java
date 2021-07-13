@@ -22,6 +22,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.ping.WrappedPack
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
@@ -76,7 +77,7 @@ public class GrimPlayer {
     public boolean wasSneaking;
     public boolean isCrouching;
     public boolean isSprinting;
-    public AlmostBoolean nextUsingItem = AlmostBoolean.FALSE;
+    public Hand lastHand = Hand.MAIN_HAND;
     public AlmostBoolean isUsingItem;
     public boolean lastSprinting;
     public boolean isFlying;

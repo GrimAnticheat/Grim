@@ -192,7 +192,7 @@ public class Materials {
     }
 
     public static boolean isUsable(Material material) {
-        return material.isEdible() || material == Material.POTION || material == Material.MILK_BUCKET
+        return material != null && material.isEdible() || material == Material.POTION || material == Material.MILK_BUCKET
                 || material == CROSSBOW || material == BOW || checkFlag(material, SWORD)
                 || material == TRIDENT || material == SHIELD;
     }
