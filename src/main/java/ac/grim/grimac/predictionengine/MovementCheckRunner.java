@@ -8,6 +8,7 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
+import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -15,10 +16,12 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
@@ -83,6 +86,29 @@ public class MovementCheckRunner {
         if (player.isCheckNotReady = (data.minimumTickRequiredToContinue > GrimAC.getCurrentTick())) {
             return;
         }
+
+        AlmostBoolean tempUsingItem = data.isUsingItem;
+
+        if (data.isUsingItem == AlmostBoolean.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
+            tempUsingItem = AlmostBoolean.MAYBE;
+        } else {
+            // Handle the player dropping food to stop eating
+            if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
+                ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
+                if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
+                    tempUsingItem = AlmostBoolean.FALSE;
+                }
+            } else {
+                ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
+                // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
+                if (offHand == null || !Materials.isUsable(offHand.getType())) {
+                    tempUsingItem = AlmostBoolean.FALSE;
+                }
+            }
+        }
+
+        player.nextUsingItem = tempUsingItem;
+        player.isUsingItem = tempUsingItem;
 
         player.lastVehicle = player.playerVehicle;
         player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
@@ -163,7 +189,6 @@ public class MovementCheckRunner {
         player.isSprinting = data.isSprinting;
         player.wasSneaking = player.isSneaking;
         player.isSneaking = data.isSneaking;
-        player.isUsingItem = data.isUsingItem;
 
         player.isFlying = player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
         player.isClimbing = Collisions.onClimbable(player);
@@ -324,7 +349,7 @@ public class MovementCheckRunner {
 
         player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        player.bukkitPlayer.sendMessage("O:" + color + offset);
+        player.bukkitPlayer.sendMessage("O:" + color + offset + " versus " + player.isUsingItem);
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
