@@ -16,7 +16,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPa
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -56,6 +55,12 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(dig.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
 
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
+
+            if (type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND && player.packetStateData.slowedByUsingItem == AlmostBoolean.TRUE) {
+                player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
+                player.packetStateData.eatingHand = player.packetStateData.eatingHand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND;
+            }
+
             if ((type == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS && player.packetStateData.eatingHand == Hand.MAIN_HAND) ||
                     type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
 

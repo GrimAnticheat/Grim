@@ -93,6 +93,9 @@ public class MovementCheckRunner {
             tempUsingItem = AlmostBoolean.MAYBE;
         } else {
             // Handle the player dropping food to stop eating
+            // We are sync'd to roughly the bukkit thread here
+            // Although we don't have inventory lag compensation so we can't fully sync
+            // Works unless the player spams their offhand button
             if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
                 ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
                 if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
