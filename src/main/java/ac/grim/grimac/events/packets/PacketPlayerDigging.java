@@ -16,6 +16,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPa
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -77,10 +78,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
                 }
             }
-
-            if (type == WrappedPacketInBlockDig.PlayerDigType.START_DESTROY_BLOCK || type == WrappedPacketInBlockDig.PlayerDigType.STOP_DESTROY_BLOCK) {
-                dig.getBlockPosition();
-            }
         }
 
         if (packetID == PacketType.Play.Client.HELD_ITEM_SLOT) {
@@ -131,11 +128,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                         player.bukkitPlayer.getGameMode() != GameMode.CREATIVE && material.isEdible())
                         || material == POTION || material == MILK_BUCKET) {
                     // pre1.9 splash potion
-                    if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8) && item.getDurability() > 16384) return;
+                    if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8) && item.getDurability() > 16384)
+                        return;
 
                     // Eatable items that don't require any hunger to eat
                     if (material == Material.POTION || material == Material.MILK_BUCKET
                             || material == GOLDEN_APPLE || material == ENCHANTED_GOLDEN_APPLE || material == HONEY_BOTTLE) {
+                        Bukkit.broadcastMessage("STARTING DIGGING! ");
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
