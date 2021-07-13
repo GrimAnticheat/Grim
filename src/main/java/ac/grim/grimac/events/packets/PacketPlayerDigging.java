@@ -12,15 +12,32 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedP
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
 import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.WrappedPacketInHeldItemSlot;
 import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPacketInUseItem;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CrossbowMeta;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
-    Material crossbow = XMaterial.CROSSBOW.parseMaterial();
-    Material trident = XMaterial.TRIDENT.parseMaterial();
+
+    private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
+    private static final Material BOW = XMaterial.BOW.parseMaterial();
+    private static final Material TRIDENT = XMaterial.TRIDENT.parseMaterial();
+    private static final Material SHIELD = XMaterial.SHIELD.parseMaterial();
+
+    private static final Material ARROW = XMaterial.ARROW.parseMaterial();
+    private static final Material TIPPED_ARROW = XMaterial.TIPPED_ARROW.parseMaterial();
+    private static final Material SPECTRAL_ARROW = XMaterial.SPECTRAL_ARROW.parseMaterial();
+
+    private static final Material POTION = XMaterial.POTION.parseMaterial();
+    private static final Material MILK_BUCKET = XMaterial.MILK_BUCKET.parseMaterial();
+
+    private static final Material APPLE = XMaterial.APPLE.parseMaterial();
+    private static final Material GOLDEN_APPLE = XMaterial.GOLDEN_APPLE.parseMaterial();
+    private static final Material ENCHANTED_GOLDEN_APPLE = XMaterial.ENCHANTED_GOLDEN_APPLE.parseMaterial();
+    private static final Material HONEY_BOTTLE = XMaterial.HONEY_BOTTLE.parseMaterial();
 
     @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
@@ -40,16 +57,16 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM ||
                     type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND) {
 
-                player.packetStateData.isEating = false;
+                player.packetStateData.slowedByUsingItem = false;
 
                 if (XMaterial.supports(13)) {
                     ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
                     ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
                     int j = 0;
-                    if (main.getType() == trident) {
+                    if (main.getType() == TRIDENT) {
                         j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
-                    } else if (off.getType() == trident) {
+                    } else if (off.getType() == TRIDENT) {
                         j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
                     }
 
@@ -76,7 +93,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.packetStateData.lastSlotSelected = slot.getCurrentSelectedSlot();
 
             if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
-                player.packetStateData.isEating = false;
+                player.packetStateData.slowedByUsingItem = false;
             }
         }
 
@@ -91,33 +108,85 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
         if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
-            ItemStack itemStack;
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
+
+            if (XMaterial.supports(8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)
+                return;
 
             // 1.9+ use the use item packet for this
             if (XMaterial.getVersion() <= 8)
                 player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
 
-            if (place.getHand() == Hand.MAIN_HAND) {
-                itemStack = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
-            } else {
-                itemStack = player.bukkitPlayer.getInventory().getItemInOffHand();
-            }
+            // Design inspired by NoCheatPlus, but rewritten to be faster
+            // https://github.com/Updated-NoCheatPlus/NoCheatPlus/blob/master/NCPCompatProtocolLib/src/main/java/fr/neatmonster/nocheatplus/checks/net/protocollib/NoSlow.java
+            ItemStack item = place.getHand() == Hand.MAIN_HAND ? player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected) : player.bukkitPlayer.getInventory().getItemInOffHand();
+            if (item != null) {
+                Material material = item.getType();
+                // 1.14 and below players cannot eat in creative, exceptions are potions or milk
+                if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15) ||
+                        player.bukkitPlayer.getGameMode() != GameMode.CREATIVE && material.isEdible())
+                        || material == POTION || material == MILK_BUCKET) {
+                    // pre1.9 splash potion
+                    if (XMaterial.getVersion() < 9 && item.getDurability() > 16384) return;
 
-            if (itemStack != null && Materials.isUsable(itemStack.getType())) {
-                player.packetStateData.eatingHand = place.getHand();
+                    // Eatable items that don't require any hunger to eat
+                    if (material == Material.POTION || material == Material.MILK_BUCKET || material == APPLE
+                            || material == GOLDEN_APPLE || material == ENCHANTED_GOLDEN_APPLE || material == HONEY_BOTTLE) {
+                        player.packetStateData.slowedByUsingItem = true;
+                        player.packetStateData.eatingHand = place.getHand();
+
+                        return;
+                    }
+
+                    // The other items that do require it
+                    if (item.getType().isEdible() && event.getPlayer().getFoodLevel() < 20) {
+                        player.packetStateData.slowedByUsingItem = true;
+                        player.packetStateData.eatingHand = place.getHand();
+
+                        return;
+                    }
+
+                    // The player cannot eat this item, resync use status
+                    player.packetStateData.slowedByUsingItem = false;
+                }
+
+                if (material == SHIELD) {
+                    player.packetStateData.slowedByUsingItem = true;
+                    player.packetStateData.eatingHand = place.getHand();
+
+                    return;
+                }
 
                 // Avoid releasing crossbow as being seen as slowing player
-                if (itemStack.getType() == crossbow) {
-                    CrossbowMeta crossbowMeta = (CrossbowMeta) itemStack.getItemMeta();
+                if (material == CROSSBOW) {
+                    CrossbowMeta crossbowMeta = (CrossbowMeta) item.getItemMeta();
                     if (crossbowMeta != null && crossbowMeta.hasChargedProjectiles())
                         return;
                 }
 
-                player.packetStateData.isEating = true;
+                // Players in survival can't use a bow without an arrow
+                // Crossbow charge checked previously
+                if (material == BOW || material == CROSSBOW) {
+                    player.packetStateData.slowedByUsingItem = (player.bukkitPlayer.getGameMode() == GameMode.CREATIVE ||
+                            hasItem(player, ARROW) || hasItem(player, TIPPED_ARROW) || hasItem(player, SPECTRAL_ARROW));
+                }
+
+                // Only 1.8 and below players can block with swords
+                if (Materials.checkFlag(material, Materials.SWORD) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8)) {
+                    player.packetStateData.slowedByUsingItem = true;
+                }
+            } else {
+                player.packetStateData.slowedByUsingItem = false;
             }
         }
+    }
+
+    private boolean hasItem(GrimPlayer player, Material material) {
+        return material != null && player.bukkitPlayer.getInventory().contains(material)
+                || (XMaterial.getVersion() > 8 && (player.bukkitPlayer.getInventory().getItemInOffHand().getType() == ARROW
+                || player.bukkitPlayer.getInventory().getItemInOffHand().getType() == TIPPED_ARROW
+                || player.bukkitPlayer.getInventory().getItemInOffHand().getType() == SPECTRAL_ARROW));
     }
 }

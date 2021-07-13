@@ -256,14 +256,30 @@ public class PredictionEngine {
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, player.uncertaintyHandler.gravityUncertainty - (player.uncertaintyHandler.wasLastGravityUncertain ? 0.03 : 0), player.uncertaintyHandler.zNegativeUncertainty - addition);
         Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, player.uncertaintyHandler.lastLastPacketWasGroundPacket || player.uncertaintyHandler.isSteppingOnSlime ? 0.03 : 0, player.uncertaintyHandler.zPositiveUncertainty + addition);
 
+        Vector minVector = vector.clone().add(min.subtract(uncertainty));
         Vector maxVector = vector.clone().add(max.add(uncertainty));
+
+        // Player velocity can multiply 0.4-0.45 (guess on max) when the player is on slime with
+        // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
+        if (player.uncertaintyHandler.isSteppingOnSlime) {
+            if (vector.getX() > 0) {
+                minVector.multiply(new Vector(0.4, 1, 1));
+            } else {
+                maxVector.multiply(new Vector(0.4, 1, 1));
+            }
+
+            if (vector.getZ() > 0) {
+                minVector.multiply(new Vector(1, 1, 0.4));
+            } else {
+                maxVector.multiply(new Vector(1, 1, 0.4));
+            }
+        }
 
         if ((player.uncertaintyHandler.wasLastOnGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.getY() < 0) {
             maxVector.setY(0);
         }
 
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(min.subtract(uncertainty)), maxVector);
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
     public boolean canSwimHop(GrimPlayer player) {

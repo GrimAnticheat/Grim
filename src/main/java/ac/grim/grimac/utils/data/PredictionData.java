@@ -5,18 +5,12 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.player.Hand;
-import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.attribute.Attribute;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.lang.reflect.Method;
 import java.util.Collection;
 
 public class PredictionData {
@@ -73,17 +67,17 @@ public class PredictionData {
         if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
             ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
             if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
-                player.packetStateData.isEating = false;
+                player.packetStateData.slowedByUsingItem = false;
             }
         } else {
             ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
             // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
             if (offHand == null || !Materials.isUsable(offHand.getType())) {
-                player.packetStateData.isEating = false;
+                player.packetStateData.slowedByUsingItem = false;
             }
         }
 
-        this.isUsingItem = player.packetStateData.isEating;
+        this.isUsingItem = player.packetStateData.slowedByUsingItem;
 
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
