@@ -25,6 +25,7 @@ public class PredictionData {
     public boolean isSneaking;
     public boolean isTryingToRiptide = false;
     public AlmostBoolean isUsingItem = AlmostBoolean.FALSE;
+    public Hand usingHand = Hand.MAIN_HAND;
     public World playerWorld;
     public float jumpAmplifier;
     public float levitationAmplifier = 0;
@@ -64,6 +65,7 @@ public class PredictionData {
         player.packetStateData.tryingToRiptide = false;
 
         this.isUsingItem = player.packetStateData.slowedByUsingItem;
+        this.usingHand = player.packetStateData.eatingHand;
 
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
