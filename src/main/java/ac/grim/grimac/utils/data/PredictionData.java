@@ -24,7 +24,7 @@ public class PredictionData {
     public boolean isSprinting;
     public boolean isSneaking;
     public boolean isTryingToRiptide = false;
-    public boolean isUsingItem = false;
+    public AlmostBoolean isUsingItem = AlmostBoolean.FALSE;
     public World playerWorld;
     public float jumpAmplifier;
     public float levitationAmplifier = 0;
@@ -67,13 +67,13 @@ public class PredictionData {
         if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
             ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
             if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
-                player.packetStateData.slowedByUsingItem = false;
+                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
             }
         } else {
             ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
             // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
             if (offHand == null || !Materials.isUsable(offHand.getType())) {
-                player.packetStateData.slowedByUsingItem = false;
+                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
             }
         }
 
