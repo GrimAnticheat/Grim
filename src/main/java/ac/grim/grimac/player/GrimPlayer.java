@@ -76,6 +76,7 @@ public class GrimPlayer {
     public boolean wasSneaking;
     public boolean isCrouching;
     public boolean isSprinting;
+    public AlmostBoolean nextUsingItem = AlmostBoolean.FALSE;
     public AlmostBoolean isUsingItem;
     public boolean lastSprinting;
     public boolean isFlying;

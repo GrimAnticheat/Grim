@@ -63,20 +63,6 @@ public class PredictionData {
         this.isTryingToRiptide = player.packetStateData.tryingToRiptide;
         player.packetStateData.tryingToRiptide = false;
 
-        // Handle the player dropping food to stop eating
-        if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
-            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
-            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
-            }
-        } else {
-            ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
-            // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
-            if (offHand == null || !Materials.isUsable(offHand.getType())) {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
-            }
-        }
-
         this.isUsingItem = player.packetStateData.slowedByUsingItem;
 
         this.playerWorld = player.bukkitPlayer.getWorld();
