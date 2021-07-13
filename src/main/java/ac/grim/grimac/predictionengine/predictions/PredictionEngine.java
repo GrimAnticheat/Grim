@@ -3,17 +3,20 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PredictionEngine {
     boolean canRiptide = false;
@@ -113,6 +116,9 @@ public class PredictionEngine {
         return velocities;
     }
 
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+    }
+
     public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
         int aScore = 0;
         int bScore = 0;
@@ -192,17 +198,31 @@ public class PredictionEngine {
         // Probably as a way to tell the server it is swimming
         int zMin = player.isSprinting && !player.isSwimming ? 1 : -1;
 
-        for (VectorData possibleLastTickOutput : possibleVectors) {
-            for (int x = -1; x <= 1; x++) {
-                for (int z = zMin; z <= 1; z++) {
-                    VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-                    result = result.setVector(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
-                    result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
-                    result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
-                    returnVectors.add(result);
+        AlmostBoolean usingItem = player.isUsingItem;
+        boolean loopAgain = true;
+
+        // Loop twice for the using item status if the player is using a trident
+        // (Or in the future mojang desync's with another item and we can't be sure)
+        for (int loopUsingItem = 0; loopAgain && loopUsingItem <= 1; loopUsingItem++) {
+            for (VectorData possibleLastTickOutput : possibleVectors) {
+                for (int x = -1; x <= 1; x++) {
+                    for (int z = zMin; z <= 1; z++) {
+                        VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
+                        result = result.setVector(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
+                        result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
+                        result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                        returnVectors.add(result);
+                    }
                 }
             }
+
+            // Loop again if the player is using a riptide trident in the rain (as this is too easy to desync)
+            if (loopAgain = (player.isUsingItem == AlmostBoolean.MAYBE && !player.wasTouchingWater)) {
+                player.isUsingItem = AlmostBoolean.FALSE;
+            }
         }
+
+        player.isUsingItem = usingItem;
     }
 
     public void addExplosionRiptideToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
@@ -244,9 +264,6 @@ public class PredictionEngine {
 
             existingVelocities.add(new VectorData(player.clientVelocity.clone().add(new Vector(f1, f2, f3)), VectorData.VectorType.Trident));
         }
-    }
-
-    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
     }
 
     private Vector getStartingVector(GrimPlayer player, Vector vector, double addition) {
@@ -334,7 +351,7 @@ public class PredictionEngine {
             bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
         }
 
-        if (player.isUsingItem) {
+        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
             bestPossibleX *= 0.2F;
             bestPossibleZ *= 0.2F;
         }
