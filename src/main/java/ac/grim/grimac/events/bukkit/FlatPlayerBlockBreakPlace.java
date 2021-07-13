@@ -23,6 +23,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import static ac.grim.grimac.events.bukkit.MagicPlayerBlockBreakPlace.getPlayerTransactionForPosition;
+
 public class FlatPlayerBlockBreakPlace implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -36,19 +38,6 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         // as the player can't place a block inside themselves
         PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), block.getBlockData());
         player.compensatedWorld.changeBlockQueue.add(data);
-    }
-
-    public static int getPlayerTransactionForPosition(GrimPlayer player, Location location) {
-        int transaction = player.lastTransactionAtStartOfTick;
-        for (BlockPlayerUpdate update : player.compensatedWorld.packetBlockPositions) {
-            if (update.position.getX() == location.getBlockX()
-                    && update.position.getY() == location.getBlockY()
-                    && update.position.getZ() == location.getBlockZ()) {
-                transaction = update.transaction;
-            }
-        }
-
-        return transaction;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

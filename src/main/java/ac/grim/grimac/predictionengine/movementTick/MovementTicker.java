@@ -101,17 +101,6 @@ public class MovementTicker {
             player.clientVelocity.setY(0);
         }
 
-        // Warning: onGround changes every tick. Current implementation works fine with this vanilla feature.
-        if (onBlock == slime && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
-            if ((player.inVehicle || player.onGround) && !player.isSneaking) {
-                double absVelocityY = Math.abs(player.clientVelocity.getY());
-                if (absVelocityY < 0.1) {
-                    double d1 = 0.4D + absVelocityY * 0.2D;
-                    player.clientVelocity.multiply(new Vector(d1, 1, d1));
-                }
-            }
-        }
-
         player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update

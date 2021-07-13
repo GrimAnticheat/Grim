@@ -19,7 +19,7 @@ public class Materials {
     public static final int SLABS = 0b00000000000000000000000010000;
     public static final int WATER = 0b00000000000000000000000100000;
     public static final int LAVA = 0b00000000000000000000001000000;
-    public static final int LIQUID = 0b00000000000000000000010000000;
+    public static final int BUTTON = 0b00000000000000000000010000000;
     public static final int ICE = 0b00000000000000000000100000000;
     public static final int FENCE = 0b00000000000000000001000000000;
     public static final int GATE = 0b00000000000000000010000000000;
@@ -35,6 +35,12 @@ public class Materials {
     public static final int WATER_LEGACY = 0b00000000100000000000000000000;
     public static final int WATER_SOURCE_LEGACY = 0b00000001000000000000000000000;
     public static final int CLIENT_SIDE_INTERACTABLE = 0b00000010000000000000000000000;
+    public static final int SWORD = 0b00000100000000000000000000000;
+
+    private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
+    private static final Material BOW = XMaterial.BOW.parseMaterial();
+    private static final Material TRIDENT = XMaterial.TRIDENT.parseMaterial();
+    private static final Material SHIELD = XMaterial.SHIELD.parseMaterial();
 
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
@@ -121,6 +127,7 @@ public class Materials {
         markAs(XMaterial.TWISTING_VINES_PLANT, CLIMBABLE);
 
         for (Material mat : Material.values()) {
+            if (mat.name().endsWith("_SWORD")) MATERIAL_FLAGS[mat.ordinal()] |= SWORD;
             if (!mat.isBlock()) continue;
             if (mat.name().contains("FENCE")) {
                 if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
@@ -158,6 +165,7 @@ public class Materials {
             if (mat.name().contains("SKULL") || mat.name().contains("HEAD"))
                 MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("_SIGN")) markAsNotSolid(mat);
+            if (mat.name().contains("BUTTON")) MATERIAL_FLAGS[mat.ordinal()] |= BUTTON;
         }
     }
 
@@ -184,11 +192,9 @@ public class Materials {
     }
 
     public static boolean isUsable(Material material) {
-        String nameLower = material.name().toLowerCase();
-        return material.isEdible()
-                || nameLower.contains("bow")
-                || nameLower.contains("sword")
-                || nameLower.contains("trident");
+        return material.isEdible() || material == Material.POTION || material == Material.MILK_BUCKET
+                || material == CROSSBOW || material == BOW || checkFlag(material, SWORD)
+                || material == TRIDENT || material == SHIELD;
     }
 
     public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
