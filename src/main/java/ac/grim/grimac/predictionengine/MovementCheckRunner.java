@@ -21,7 +21,6 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
@@ -96,22 +95,26 @@ public class MovementCheckRunner {
             // We are sync'd to roughly the bukkit thread here
             // Although we don't have inventory lag compensation so we can't fully sync
             // Works unless the player spams their offhand button
-            if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
-                ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
-                if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
-                    tempUsingItem = AlmostBoolean.FALSE;
-                }
-            } else {
+            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
+            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
+                tempUsingItem = AlmostBoolean.FALSE;
+            }
+
+            if (data.isUsingItem == AlmostBoolean.TRUE && XMaterial.supports(9)) {
                 ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
                 // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
-                if (offHand == null || !Materials.isUsable(offHand.getType())) {
-                    tempUsingItem = AlmostBoolean.FALSE;
+                if (Materials.isUsable(offHand.getType())) {
+                    tempUsingItem = AlmostBoolean.TRUE;
                 }
             }
         }
 
-        player.nextUsingItem = tempUsingItem;
+        if (data.usingHand != player.lastHand) {
+            tempUsingItem = AlmostBoolean.MAYBE;
+        }
+
         player.isUsingItem = tempUsingItem;
+        player.lastHand = data.usingHand;
 
         player.lastVehicle = player.playerVehicle;
         player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
