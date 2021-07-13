@@ -16,6 +16,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.W
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeModifierWrapper;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeSnapshotWrapper;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.Pair;
@@ -276,7 +277,7 @@ public class CompensatedEntities {
         }
 
         if (EntityType.isAgeableEntity(entity.bukkitEntityType)) {
-            Optional<WrappedWatchableObject> ageableObject = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 16 : 15)).findFirst();
+            Optional<WrappedWatchableObject> ageableObject = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15)).findFirst();
             if (ageableObject.isPresent()) {
                 Object value = ageableObject.get().getRawValue();
                 // Required because bukkit Ageable doesn't align with minecraft's ageable
@@ -287,7 +288,7 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntitySizeable) {
-            Optional<WrappedWatchableObject> sizeObject = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 16 : 15)).findFirst();
+            Optional<WrappedWatchableObject> sizeObject = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15)).findFirst();
             if (sizeObject.isPresent()) {
                 Object value = sizeObject.get().getRawValue();
                 if (value instanceof Integer) {
@@ -297,11 +298,11 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityShulker) {
-            Optional<WrappedWatchableObject> shulkerAttached = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 16 : 15)).findFirst();
+            Optional<WrappedWatchableObject> shulkerAttached = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15)).findFirst();
             // This NMS -> Bukkit conversion is great and works in all 11 versions.
             shulkerAttached.ifPresent(wrappedWatchableObject -> ((PacketEntityShulker) entity).facing = BlockFace.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
 
-            Optional<WrappedWatchableObject> height = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 18 : 17)).findFirst();
+            Optional<WrappedWatchableObject> height = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17)).findFirst();
             if (height.isPresent()) {
                 if ((byte) height.get().getRawValue() == 0) {
                     Vector3i position = new Vector3i((int) Math.floor(entity.position.getX()), (int) Math.floor(entity.position.getY()), (int) Math.floor(entity.position.getZ()));
@@ -319,31 +320,31 @@ public class CompensatedEntities {
 
         if (entity instanceof PacketEntityRideable) {
             if (entity.type == EntityType.PIG) {
-                Optional<WrappedWatchableObject> pigSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 17 : 16)).findFirst();
+                Optional<WrappedWatchableObject> pigSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16)).findFirst();
                 pigSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
 
-                Optional<WrappedWatchableObject> pigBoost = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 18 : 17)).findFirst();
+                Optional<WrappedWatchableObject> pigBoost = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17)).findFirst();
                 if (pigBoost.isPresent()) {
                     ((PacketEntityRideable) entity).boostTimeMax = (int) pigBoost.get().getRawValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 1;
                 }
             } else if (entity instanceof PacketEntityStrider) {
-                Optional<WrappedWatchableObject> striderBoost = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 17 : 16)).findFirst();
+                Optional<WrappedWatchableObject> striderBoost = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16)).findFirst();
                 if (striderBoost.isPresent()) {
                     ((PacketEntityRideable) entity).boostTimeMax = (int) striderBoost.get().getRawValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 1;
                 }
 
-                Optional<WrappedWatchableObject> striderShaking = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 18 : 17)).findFirst();
+                Optional<WrappedWatchableObject> striderShaking = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17)).findFirst();
                 striderShaking.ifPresent(wrappedWatchableObject -> ((PacketEntityStrider) entity).isShaking = (boolean) wrappedWatchableObject.getRawValue());
 
-                Optional<WrappedWatchableObject> striderSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 19 : 18)).findFirst();
+                Optional<WrappedWatchableObject> striderSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 19 : 18)).findFirst();
                 striderSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
             }
         }
 
         if (entity instanceof PacketEntityHorse) {
-            Optional<WrappedWatchableObject> horseByte = watchableObjects.stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 17 : 16)).findFirst();
+            Optional<WrappedWatchableObject> horseByte = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16)).findFirst();
             if (horseByte.isPresent()) {
                 byte info = (byte) horseByte.get().getRawValue();
 

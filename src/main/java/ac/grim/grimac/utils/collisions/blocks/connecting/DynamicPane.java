@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
@@ -41,7 +42,7 @@ public class DynamicPane extends DynamicConnecting implements CollisionFactory {
         }
 
         // On 1.7 and 1.8 clients, and 1.13+ clients on 1.7 and 1.8 servers, the glass pane is + instead of |
-        if (!north && !south && !east && !west && (version.isOlderThanOrEquals(ClientVersion.v_1_8) || (XMaterial.getVersion() <= 8 && version.isNewerThanOrEquals(ClientVersion.v_1_13)))) {
+        if (!north && !south && !east && !west && (version.isOlderThanOrEquals(ClientVersion.v_1_8) || (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8) && version.isNewerThanOrEquals(ClientVersion.v_1_13)))) {
             north = south = east = west = true;
         }
 
