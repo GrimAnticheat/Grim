@@ -15,6 +15,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.Wrap
 import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPacketInUseItem;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -117,7 +118,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 return;
 
             // 1.9+ use the use item packet for this
-            if (XMaterial.getVersion() <= 8)
+            if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8))
                 player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
@@ -130,7 +131,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                         player.bukkitPlayer.getGameMode() != GameMode.CREATIVE && material.isEdible())
                         || material == POTION || material == MILK_BUCKET) {
                     // pre1.9 splash potion
-                    if (XMaterial.getVersion() < 9 && item.getDurability() > 16384) return;
+                    if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8) && item.getDurability() > 16384) return;
 
                     // Eatable items that don't require any hunger to eat
                     if (material == Material.POTION || material == Material.MILK_BUCKET
@@ -194,7 +195,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
     private boolean hasItem(GrimPlayer player, Material material) {
         return material != null && player.bukkitPlayer.getInventory().contains(material)
-                || (XMaterial.getVersion() > 8 && (player.bukkitPlayer.getInventory().getItemInOffHand().getType() == ARROW
+                || (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && (player.bukkitPlayer.getInventory().getItemInOffHand().getType() == ARROW
                 || player.bukkitPlayer.getInventory().getItemInOffHand().getType() == TIPPED_ARROW
                 || player.bukkitPlayer.getInventory().getItemInOffHand().getType() == SPECTRAL_ARROW));
     }

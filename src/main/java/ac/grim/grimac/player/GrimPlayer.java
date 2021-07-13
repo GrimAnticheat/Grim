@@ -358,7 +358,7 @@ public class GrimPlayer {
     // Shouldn't error, but be on the safe side as this is networking stuff
     public void sendTransactionOrPingPong(short transactionID) {
         try {
-            if (XMaterial.getVersion() >= 17) {
+            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
                 PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutPing(transactionID));
             } else {
                 PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));

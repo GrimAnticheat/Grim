@@ -15,6 +15,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.Wrap
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Chunk;
 
@@ -116,7 +117,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
 
             try {
                 // Section Position or Chunk Section - depending on version
-                Object position = packet.readAnyObject(XMaterial.getVersion() == 7 ? 1 : 0);
+                Object position = packet.readAnyObject(ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_7_10) ? 1 : 0);
 
                 Object[] blockInformation;
                 blockInformation = (Object[]) packet.readAnyObject(1);

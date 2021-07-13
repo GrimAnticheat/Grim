@@ -27,6 +27,7 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
@@ -173,13 +174,13 @@ public class CompensatedWorld {
         try {
             BaseChunk chunk = column.getChunks()[y >> 4];
             if (chunk == null) {
-                if (XMaterial.getVersion() > 15) {
+                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_16)) {
                     column.getChunks()[y >> 4] = new SixteenChunk();
-                } else if (XMaterial.isNewVersion()) {
+                } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
                     column.getChunks()[y >> 4] = new FifteenChunk();
-                } else if (XMaterial.getVersion() > 8) {
+                } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
                     column.getChunks()[y >> 4] = new TwelveChunk();
-                } else if (XMaterial.getVersion() == 8) {
+                } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8)) {
                     column.getChunks()[y >> 4] = new EightChunk(new char[4096]);
                 } else {
                     column.getChunks()[y >> 4] = new SevenChunk(new short[4096], new byte[2048]);

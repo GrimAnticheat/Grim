@@ -1,8 +1,6 @@
 package ac.grim.grimac.utils.enums;
 
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import com.viaversion.viaversion.api.minecraft.entities.Entity1_17Types;
-import com.viaversion.viaversion.util.EntityTypeUtil;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.entity.Ageable;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.LivingEntity;
@@ -165,7 +163,7 @@ public enum EntityType {
     }
 
     public static boolean isSize(org.bukkit.entity.EntityType type) {
-        if (XMaterial.getVersion() >= 13 && type == org.bukkit.entity.EntityType.PHANTOM)
+        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) && type == org.bukkit.entity.EntityType.PHANTOM)
             return true;
 
         return type == org.bukkit.entity.EntityType.SLIME || type == org.bukkit.entity.EntityType.MAGMA_CUBE;

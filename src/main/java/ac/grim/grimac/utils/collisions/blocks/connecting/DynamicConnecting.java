@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
@@ -76,7 +77,7 @@ public class DynamicConnecting {
         if (Materials.checkFlag(target, Materials.STAIRS)) {
             // 1.12 clients generate their own data, 1.13 clients use the server's data
             // 1.11- versions don't allow fences to connect to the back sides of stairs
-            if (v.isOlderThan(ClientVersion.v_1_12) || (XMaterial.getVersion() < 12 && v.isNewerThanOrEquals(ClientVersion.v_1_13)))
+            if (v.isOlderThan(ClientVersion.v_1_12) || (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_11) && v.isNewerThanOrEquals(ClientVersion.v_1_13)))
                 return false;
             WrappedStairs stairs = (WrappedStairs) WrappedBlockData.getMaterialData(targetBlock);
 

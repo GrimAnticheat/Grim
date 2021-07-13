@@ -11,6 +11,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPa
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.WrappedPacketOutEntityDestroy;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.entity.Firework;
 
 import java.util.HashSet;
@@ -40,7 +41,7 @@ public class PacketFireworkListener extends PacketListenerAbstract {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
 
             if (fireworks.remove(entityMetadata.getEntityId())) {
-                Optional<WrappedWatchableObject> fireworkWatchableObject = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == (XMaterial.getVersion() >= 17 ? 9 : 8)).findFirst();
+                Optional<WrappedWatchableObject> fireworkWatchableObject = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 9 : 8)).findFirst();
                 if (!fireworkWatchableObject.isPresent()) return;
 
                 OptionalInt attachedEntityID = (OptionalInt) fireworkWatchableObject.get().getRawValue();

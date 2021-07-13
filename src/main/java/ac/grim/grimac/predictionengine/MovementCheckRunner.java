@@ -19,6 +19,7 @@ import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -213,7 +214,7 @@ public class MovementCheckRunner {
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
         } else if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.isFlying ||
-                (XMaterial.getVersion() >= 8 && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)) {
+                (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
             // ViaVersion plays with 1.7 player flying speed, don't bother checking them
@@ -259,7 +260,7 @@ public class MovementCheckRunner {
             }
 
             new MovementTickerPlayer(player).livingEntityAIStep();
-        } else if (XMaterial.getVersion() > 8 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
             // The player can't use entities (or the server just checks the entities)
