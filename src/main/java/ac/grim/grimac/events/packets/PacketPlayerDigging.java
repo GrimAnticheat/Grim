@@ -57,8 +57,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
             if ((type == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS && player.packetStateData.eatingHand == Hand.MAIN_HAND) ||
-                    type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM ||
-                    type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND) {
+                    type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
 
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
 
@@ -134,7 +133,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     // Eatable items that don't require any hunger to eat
                     if (material == Material.POTION || material == Material.MILK_BUCKET
                             || material == GOLDEN_APPLE || material == ENCHANTED_GOLDEN_APPLE || material == HONEY_BOTTLE) {
-                        Bukkit.broadcastMessage("STARTING DIGGING! ");
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
@@ -142,7 +140,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     // The other items that do require it
-                    if (item.getType().isEdible() && event.getPlayer().getFoodLevel() < 20) {
+                    if (item.getType().isEdible() && event.getPlayer().getFoodLevel() < 20 || player.bukkitPlayer.getGameMode() == GameMode.CREATIVE) {
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
@@ -173,6 +171,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
                     else
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                    player.packetStateData.eatingHand = place.getHand();
                 }
 
                 // Players in survival can't use a bow without an arrow
@@ -180,6 +179,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 if (material == BOW || material == CROSSBOW) {
                     player.packetStateData.slowedByUsingItem = (player.bukkitPlayer.getGameMode() == GameMode.CREATIVE ||
                             hasItem(player, ARROW) || hasItem(player, TIPPED_ARROW) || hasItem(player, SPECTRAL_ARROW)) ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
+                    player.packetStateData.eatingHand = place.getHand();
                 }
 
                 // Only 1.8 and below players can block with swords
