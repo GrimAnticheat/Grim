@@ -290,6 +290,15 @@ public class PredictionEngine {
             } else {
                 maxVector.multiply(new Vector(1, 1, 0.4));
             }
+
+            // If the player is using fireworks on slime
+            // Their Y velocity gets hidden once by fireworks applying push movement
+            // Then again by bouncing on the slime itself
+            // Then again by 0.03
+            // Give up, what cheat could exploit slime and fireworks?
+            if (player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
+                minVector.setY(0);
+            }
         }
 
         if ((player.uncertaintyHandler.wasLastOnGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.getY() < 0) {
