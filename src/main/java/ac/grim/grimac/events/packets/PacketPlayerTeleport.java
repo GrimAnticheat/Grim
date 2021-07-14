@@ -3,15 +3,21 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.position.WrappedPacketOutPosition;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 public class PacketPlayerTeleport extends PacketListenerAbstract {
+
+    public PacketPlayerTeleport() {
+        super(PacketListenerPriority.LOW);
+    }
+
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
-
         if (event.getPacketId() == PacketType.Play.Server.POSITION) {
             WrappedPacketOutPosition teleport = new WrappedPacketOutPosition(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
@@ -52,7 +58,11 @@ public class PacketPlayerTeleport extends PacketListenerAbstract {
             teleport.setPitch(pitch);
             teleport.setRelativeFlagsMask((byte) 0);
 
-            player.teleports.add(pos);
+            final int lastTransactionSent = player.getTrueLastTransactionSent();
+            Vector3d finalPos = pos;
+
+            event.setPostTask(player::sendTransactionOrPingPong);
+            player.teleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
     }
 }

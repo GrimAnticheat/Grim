@@ -315,8 +315,6 @@ public class Collisions {
         return listOfBlocks;
     }
 
-    // MCP mappings PlayerEntity 959
-    // Mojang mappings 911
     public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player) {
         if (!player.specialFlying && player.isSneaking && isAboveGround(player)) {
             double d = vec3.getX();

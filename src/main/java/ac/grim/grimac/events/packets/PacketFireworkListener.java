@@ -3,8 +3,8 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.WrappedPacketOutEntityDestroy;
@@ -22,7 +22,7 @@ public class PacketFireworkListener extends PacketListenerAbstract {
     Set<Integer> fireworks = new HashSet<>();
 
     public PacketFireworkListener() {
-        super(PacketEventPriority.MONITOR);
+        super(PacketListenerPriority.MONITOR);
     }
 
     @Override

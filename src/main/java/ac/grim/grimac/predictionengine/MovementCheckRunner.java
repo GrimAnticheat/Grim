@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -56,27 +57,83 @@ public class MovementCheckRunner {
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
-    public static void processAndCheckMovementPacket(PredictionData data) {
-        data.player.packetStateData.packetPlayerX = data.playerX;
-        data.player.packetStateData.packetPlayerY = data.playerY;
-        data.player.packetStateData.packetPlayerZ = data.playerZ;
+    public static boolean processAndCheckMovementPacket(PredictionData data) {
+        // Support teleports without teleport confirmations
+        // If the player is in a vehicle when teleported, they will exit their vehicle
+        while (true) {
+            Pair<Integer, Vector3d> teleportPos = data.player.teleports.peek();
+            if (teleportPos == null) break;
+
+            Vector3d position = teleportPos.getSecond();
+
+            if (data.lastTransaction < teleportPos.getFirst()) {
+                break;
+            }
+
+            if (position.getX() == data.playerX && position.getY() == data.playerY && position.getZ() == data.playerZ) {
+                data.player.teleports.poll();
+                data.isJustTeleported = true;
+                data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
+
+                continue;
+            } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
+                data.player.teleports.poll();
+                continue;
+            }
+
+            break;
+        }
+
+        // Handle similar teleports for players in vehicles
+        while (true) {
+            Pair<Integer, Vector3d> teleportPos = data.player.vehicleTeleports.peek();
+            if (teleportPos == null) break;
+            if (data.lastTransaction < teleportPos.getFirst()) {
+                break;
+            }
+
+            if (data.playerVehicle == null) {
+                data.player.vehicleTeleports.poll();
+                break;
+            }
+
+            Vector3d position = teleportPos.getSecond();
+            if (position.getX() == data.playerX && position.getY() == data.playerY && position.getZ() == data.playerZ) {
+                data.player.teleports.poll();
+                data.isJustTeleported = true;
+                data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
+            } else if (data.lastTransaction > teleportPos.getFirst() + 1) {
+                break;
+            }
+        }
+
+        // Client sends junk onGround data when they teleport
+        if (data.isJustTeleported)
+            data.onGround = data.player.packetStateData.packetPlayerOnGround;
+
         data.player.packetStateData.packetPlayerXRot = data.xRot;
         data.player.packetStateData.packetPlayerYRot = data.yRot;
         data.player.packetStateData.packetPlayerOnGround = data.onGround;
 
-        // Support teleports without teleport confirmations
-        Vector3d teleportPos = data.player.teleports.peek();
-        if (teleportPos != null && teleportPos.getX() == data.playerX && teleportPos.getY() == data.playerY && teleportPos.getZ() == data.playerZ) {
-            data.player.teleports.poll();
-            data.isJustTeleported = true;
-            data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
-        }
+        // Filter out reminder packet for performance and consistency
+        // Filter out 1.17 sending multiple identical move packets because Mojang makes great decisions!
+        if (data.player.packetStateData.packetPlayerX == data.playerX &&
+                data.player.packetStateData.packetPlayerY == data.playerY &&
+                data.player.packetStateData.packetPlayerZ == data.playerZ
+                && !data.isJustTeleported)
+            return false;
+
+        data.player.packetStateData.packetPlayerX = data.playerX;
+        data.player.packetStateData.packetPlayerY = data.playerY;
+        data.player.packetStateData.packetPlayerZ = data.playerZ;
 
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
             executor.runCheck(data);
         } else {
             queuedPredictions.get(data.player.playerUUID).add(data);
         }
+
+        return true;
     }
 
     public static void check(PredictionData data) {

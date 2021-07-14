@@ -26,7 +26,7 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
             player.lastOnGround = player.onGround;
             player.lastClimbing = player.isClimbing;
 
-            player.lastTransactionBeforeLastMovement = player.packetStateData.packetLastTransactionReceived;
+            player.lastTransactionBeforeLastMovement = player.packetStateData.packetLastTransactionReceived.get();
 
             player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
             player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));

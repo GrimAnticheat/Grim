@@ -5,10 +5,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.eight.EightChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
@@ -28,7 +27,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
     public static Method getByCombinedID;
 
     public PacketWorldReaderEight() {
-        super(PacketEventPriority.MONITOR);
+        super(PacketListenerPriority.MONITOR);
 
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
     }

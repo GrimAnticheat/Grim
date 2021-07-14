@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedPacketInBlockDig;
@@ -41,6 +42,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
     private static final Material ENCHANTED_GOLDEN_APPLE = XMaterial.ENCHANTED_GOLDEN_APPLE.parseMaterial();
     private static final Material HONEY_BOTTLE = XMaterial.HONEY_BOTTLE.parseMaterial();
 
+    public PacketPlayerDigging() {
+        super(PacketListenerPriority.LOW);
+    }
+
     @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         byte packetID = event.getPacketId();
@@ -52,7 +57,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
 
-            player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(dig.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
+            player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(dig.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
 
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
 
@@ -106,7 +111,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrappedPacketInUseItem item = new WrappedPacketInUseItem(event.getNMSPacket());
 
-            player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(item.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
+            player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(item.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
         }
 
         if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
@@ -120,7 +125,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             // 1.9+ use the use item packet for this
             if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8))
-                player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived));
+                player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
             // https://github.com/Updated-NoCheatPlus/NoCheatPlus/blob/master/NCPCompatProtocolLib/src/main/java/fr/neatmonster/nocheatplus/checks/net/protocollib/NoSlow.java

@@ -370,7 +370,7 @@ public class PredictionEngine {
         return inputVector;
     }
 
-    private Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
+    public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
         int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
 
         if (maxFireworks <= 0) return vector;

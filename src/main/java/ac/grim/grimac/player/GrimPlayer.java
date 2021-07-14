@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
@@ -128,7 +127,8 @@ public class GrimPlayer {
     public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
-    public ConcurrentLinkedQueue<Vector3d> teleports = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> teleports = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
     // Set after checks
     public double lastX;
     public double lastY;
@@ -155,6 +155,7 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickSet = new Vector();
     public Vector baseTickAddition = new Vector();
+    // This is wrong and needs to be index'd at 0!!!!  But everything was written incorrectly and off by 1!
     public AtomicInteger lastTransactionSent = new AtomicInteger(1);
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
@@ -284,7 +285,7 @@ public class GrimPlayer {
         do {
             data = transactionsSent.poll();
             if (data != null) {
-                packetStateData.packetLastTransactionReceived++;
+                packetStateData.packetLastTransactionReceived.getAndIncrement();
                 transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
                 playerClockAtLeast = System.currentTimeMillis() - transactionPing;
 
@@ -378,6 +379,12 @@ public class GrimPlayer {
         // We return a range of -32767 to 0
         // Allowing a range of -32768 to 0 for velocity + explosions
         return (short) (-1 * (lastTransactionSent.getAndAdd(add) & 0x7FFF));
+    }
+
+    // I made an off by one error extremely early in this project indexing at 0 versus 1
+    // So I have to slowly convert everything to use this "true" value before fixing the error
+    public int getTrueLastTransactionSent() {
+        return lastTransactionSent.get() - 1;
     }
 
     public boolean isEyeInFluid(FluidTag tag) {
