@@ -50,7 +50,8 @@ public class MovementTicker {
         if (player.inVehicle || (player.clientVelocitySwimHop == null
                 && player.uncertaintyHandler.pistonX == 0 && player.uncertaintyHandler.pistonY == 0 && player.uncertaintyHandler.pistonZ == 0
                 && player.uncertaintyHandler.slimePistonBounces.isEmpty() && !player.uncertaintyHandler.isStepMovement
-                && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnSlime) {
+                && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnSlime
+                && player.isGliding == player.wasGliding) {
 
             if (player.isActuallyOnGround != player.onGround)
                 Bukkit.broadcastMessage("Desync " + player.onGround);
