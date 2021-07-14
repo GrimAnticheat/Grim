@@ -86,7 +86,7 @@ public class PredictionData {
         firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
+        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
 
         itemHeld = player.packetStateData.lastSlotSelected;
@@ -138,7 +138,7 @@ public class PredictionData {
         firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
         requiredKB = player.knockbackHandler.getRequiredKB();
 
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
+        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
 
         itemHeld = player.packetStateData.lastSlotSelected;
@@ -173,7 +173,7 @@ public class PredictionData {
         firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 2;
+        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
         lastTransaction = player.packetStateData.packetLastTransactionReceived;
 
         itemHeld = player.packetStateData.lastSlotSelected;
