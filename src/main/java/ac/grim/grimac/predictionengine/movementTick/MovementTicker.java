@@ -142,8 +142,21 @@ public class MovementTicker {
 
         player.uncertaintyHandler.xNegativeUncertainty = 0;
         player.uncertaintyHandler.xPositiveUncertainty = 0;
+        player.uncertaintyHandler.yNegativeUncertainty = 0;
+        player.uncertaintyHandler.yPositiveUncertainty = 0;
         player.uncertaintyHandler.zNegativeUncertainty = 0;
         player.uncertaintyHandler.zPositiveUncertainty = 0;
+
+        if (player.isFlying) {
+            SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+            if (!Collisions.isEmpty(player, playerBox.copy().offset(0, 0.1, 0))) {
+                player.uncertaintyHandler.yPositiveUncertainty = player.flySpeed * 5;
+            }
+
+            if (!Collisions.isEmpty(player, playerBox.copy().offset(0, -0.1, 0))) {
+                player.uncertaintyHandler.yNegativeUncertainty = player.flySpeed * -5;
+            }
+        }
 
         // 1.7 and 1.8 do not have player collision
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))

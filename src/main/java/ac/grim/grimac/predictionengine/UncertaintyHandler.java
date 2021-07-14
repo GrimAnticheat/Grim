@@ -31,6 +31,9 @@ public class UncertaintyHandler {
     public double zNegativeUncertainty = 0;
     public double zPositiveUncertainty = 0;
 
+    public double yNegativeUncertainty = 0;
+    public double yPositiveUncertainty = 0;
+
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasLastGravityUncertain = false;
     // Marks how much to allow the actual velocity to deviate from predicted when
