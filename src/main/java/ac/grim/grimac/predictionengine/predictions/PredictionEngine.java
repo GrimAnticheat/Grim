@@ -28,10 +28,12 @@ public class PredictionEngine {
 
         // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
         player.couldSkipTick = false;
-        if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
-            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 0.0016);
-        } else {
-            possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.lengthSquared() < 0.0016);
+        if (!player.inVehicle) {
+            if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
+                possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 0.0016);
+            } else {
+                possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.lengthSquared() < 0.0016);
+            }
         }
 
         if (player.couldSkipTick) {

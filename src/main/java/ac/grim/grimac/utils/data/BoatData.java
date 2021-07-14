@@ -12,6 +12,9 @@ public class BoatData {
     public double waterLevel;
     public float deltaRotation;
 
+    public float nextVehicleForward = 0f;
+    public float nextVehicleHorizontal = 0f;
+
     public BoatData() {
 
     }

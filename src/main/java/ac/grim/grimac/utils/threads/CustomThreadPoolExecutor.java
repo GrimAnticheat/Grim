@@ -28,8 +28,10 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
 
             player.lastTransactionBeforeLastMovement = player.packetStateData.packetLastTransactionReceived.get();
 
-            player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
-            player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
+            player.vehicleForward = player.boatData.nextVehicleForward;
+            player.vehicleHorizontal = player.boatData.nextVehicleHorizontal;
+            player.boatData.nextVehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
+            player.boatData.nextVehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
             player.horseJump = data.horseJump;
 
             if (t != null) {
