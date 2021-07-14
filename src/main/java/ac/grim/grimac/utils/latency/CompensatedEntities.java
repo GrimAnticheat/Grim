@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
-import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeModifierWrapper;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeSnapshotWrapper;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
@@ -21,8 +20,8 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import org.bukkit.Bukkit;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
 
 import java.util.Collection;
 import java.util.List;
@@ -179,7 +178,7 @@ public class CompensatedEntities {
                 continue;
 
             for (int passengerID : entity.passengers) {
-                PacketEntity passengerPassenger = player.compensatedEntities.getEntity(passengerID);
+                PacketEntity passengerPassenger = getEntity(passengerID);
                 tickPassenger(entity, passengerPassenger);
             }
         }
@@ -224,23 +223,20 @@ public class CompensatedEntities {
             passenger.position = riding.position.add(new Vector3d(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(passenger), 0));
 
             for (int entity : riding.passengers) {
-                PacketEntity passengerPassenger = player.compensatedEntities.getEntity(entity);
+                PacketEntity passengerPassenger = getEntity(entity);
                 tickPassenger(passenger, passengerPassenger);
             }
         }
     }
 
-    public void addEntity(WrappedPacketOutSpawnEntityLiving packet) {
-        int entityID = packet.getEntityId();
-        org.bukkit.entity.EntityType entityType = packet.getEntity().getType();
-        Vector3d position = packet.getPosition();
+    public void addEntity(int entityID, Entity entity, org.bukkit.entity.EntityType entityType, Vector3d position) {
 
         PacketEntity packetEntity;
         EntityType type = EntityType.valueOf(entityType.toString().toUpperCase(Locale.ROOT));
 
         if (EntityType.isHorse(type)) {
             try {
-                packetEntity = new PacketEntityHorse(packet.getEntity(), entityType, position);
+                packetEntity = new PacketEntityHorse(entity, entityType, position);
             } catch (Exception e) {
                 packetEntity = new PacketEntityHorse(null, entityType, position);
             }

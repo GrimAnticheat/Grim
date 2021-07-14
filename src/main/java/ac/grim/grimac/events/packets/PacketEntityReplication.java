@@ -19,6 +19,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.W
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitystatus.WrappedPacketOutEntityStatus;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityteleport.WrappedPacketOutEntityTeleport;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mount.WrappedPacketOutMount;
+import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentity.WrappedPacketOutSpawnEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.packetwrappers.play.out.updateattributes.WrappedPacketOutUpdateAttributes;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -35,7 +36,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
 
-        if (packetID == PacketType.Play.Server.SPAWN_ENTITY || packetID == PacketType.Play.Server.SPAWN_ENTITY_SPAWN || packetID == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
+        if (packetID == PacketType.Play.Server.SPAWN_ENTITY_SPAWN || packetID == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
             WrappedPacketOutSpawnEntityLiving packetOutEntity = new WrappedPacketOutSpawnEntityLiving(event.getNMSPacket());
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
@@ -44,7 +45,19 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             Entity entity = packetOutEntity.getEntity();
             if (entity == null) return;
 
-            player.compensatedEntities.addEntity(packetOutEntity);
+            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity, entity.getType(), packetOutEntity.getPosition());
+        }
+
+        if (packetID == PacketType.Play.Server.SPAWN_ENTITY) {
+            WrappedPacketOutSpawnEntity packetOutEntity = new WrappedPacketOutSpawnEntity(event.getNMSPacket());
+
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
+            Entity entity = packetOutEntity.getEntity();
+            if (entity == null) return;
+
+            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity, entity.getType(), packetOutEntity.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
