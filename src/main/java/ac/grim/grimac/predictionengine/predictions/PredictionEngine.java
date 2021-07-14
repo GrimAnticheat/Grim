@@ -2,7 +2,6 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
-import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
@@ -396,29 +395,10 @@ public class PredictionEngine {
             boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
         }
 
-        SimpleCollisionBox box = new SimpleCollisionBox(boostOne, boostTwo);
+        Vector cutOne = PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, boostOne, vector);
+        Vector cutTwo = PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, boostTwo, vector);
 
-        if (box.minX > vector.getX()) {
-            box.minX = vector.getX();
-        } else if (box.maxX < vector.getX()) {
-            box.maxX = vector.getX();
-        }
-
-        if (box.minY > vector.getY()) {
-            box.minY = vector.getY();
-        } else if (box.maxY < vector.getY()) {
-            box.maxY = vector.getY();
-        }
-
-        if (box.minZ > vector.getZ()) {
-            box.minZ = vector.getZ();
-        } else if (box.maxZ < vector.getZ()) {
-            box.maxZ = vector.getZ();
-        }
-
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                new Vector(box.minX, box.minY, box.minZ),
-                new Vector(box.maxX, box.maxY, box.maxZ));
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
     }
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
