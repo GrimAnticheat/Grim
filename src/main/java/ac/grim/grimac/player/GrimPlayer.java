@@ -91,6 +91,7 @@ public class GrimPlayer {
     public boolean isSwimming;
     public boolean isClimbing;
     public boolean isGliding;
+    public boolean wasGliding;
     public double fallDistance;
     public SimpleCollisionBox boundingBox;
     public Pose pose = Pose.STANDING;

@@ -268,6 +268,10 @@ public class PredictionEngine {
     private Vector getStartingVector(GrimPlayer player, Vector vector, double addition) {
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
 
+        // Gliding status changed, there are a decent amount of edge cases in this scenario so give lenience
+        if (player.isGliding != player.wasGliding)
+            addition += 0.05;
+
         Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, player.uncertaintyHandler.yNegativeUncertainty + player.uncertaintyHandler.gravityUncertainty - (player.uncertaintyHandler.wasLastGravityUncertain ? 0.03 : 0), player.uncertaintyHandler.zNegativeUncertainty - addition);
         Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket || player.uncertaintyHandler.isSteppingOnSlime ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + addition);

@@ -249,6 +249,7 @@ public class MovementCheckRunner {
         player.onGround = data.onGround;
         player.lastSprinting = player.isSprinting;
         player.wasFlying = player.isFlying;
+        player.wasGliding = player.isGliding;
         player.isSprinting = data.isSprinting;
         player.wasSneaking = player.isSneaking;
         player.isSneaking = data.isSneaking;
