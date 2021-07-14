@@ -114,8 +114,8 @@ public class GrimPlayer {
     public int lastVehicleSwitch = 1000;
     public boolean lastDummy = false;
     public boolean isCheckNotReady = false;
-    public float vehicleHorizontal;
-    public float vehicleForward;
+    public float vehicleHorizontal = 0f;
+    public float vehicleForward = 0f;
     public BoatData boatData = new BoatData();
     // We determine this
     public boolean isActuallyOnGround;

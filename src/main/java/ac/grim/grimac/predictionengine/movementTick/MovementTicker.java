@@ -53,7 +53,7 @@ public class MovementTicker {
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnSlime
                 && player.isGliding == player.wasGliding) {
 
-            if (player.isActuallyOnGround != player.onGround)
+            if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
                 Bukkit.broadcastMessage("Desync " + player.onGround);
 
             player.onGround = player.isActuallyOnGround || player.uncertaintyHandler.striderOnGround;
