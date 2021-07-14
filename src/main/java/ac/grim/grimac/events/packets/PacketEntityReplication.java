@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityPropertiesData;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
@@ -25,6 +26,10 @@ import it.unimi.dsi.fastutil.Pair;
 import org.bukkit.entity.Entity;
 
 public class PacketEntityReplication extends PacketListenerAbstract {
+
+    public PacketEntityReplication() {
+        super(PacketListenerPriority.MONITOR);
+    }
 
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {

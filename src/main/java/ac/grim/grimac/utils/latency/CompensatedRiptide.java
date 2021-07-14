@@ -18,7 +18,7 @@ public class CompensatedRiptide {
     }
 
     public void addRiptide() {
-        lagCompensatedRiptide.add(player.packetStateData.packetLastTransactionReceived);
+        lagCompensatedRiptide.add(player.packetStateData.packetLastTransactionReceived.get());
     }
 
     public void handleRemoveRiptide() {

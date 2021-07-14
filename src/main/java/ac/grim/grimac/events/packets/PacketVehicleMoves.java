@@ -5,17 +5,19 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 public class PacketVehicleMoves extends PacketListenerAbstract {
+
     public PacketVehicleMoves() {
-        super(PacketEventPriority.MONITOR);
+        super(PacketListenerPriority.MONITOR);
     }
 
     @Override
@@ -48,7 +50,11 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.teleports.add(new Vector3d(x, y, z));
+            int lastTransactionSent = player.getTrueLastTransactionSent();
+            Vector3d finalPos = new Vector3d(x, y, z);
+
+            event.setPostTask(player::sendTransactionOrPingPong);
+            player.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
     }
 }

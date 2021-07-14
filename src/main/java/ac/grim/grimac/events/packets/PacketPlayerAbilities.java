@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -11,6 +12,10 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.abilities.Wrappe
 
 public class PacketPlayerAbilities extends PacketListenerAbstract {
 
+    public PacketPlayerAbilities() {
+        super(PacketListenerPriority.MONITOR);
+    }
+
     @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         if (event.getPacketId() == PacketType.Play.Client.ABILITIES) {
@@ -18,7 +23,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived, abilities.isFlying());
+            player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived.get(), abilities.isFlying());
         }
     }
 

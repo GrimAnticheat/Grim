@@ -134,4 +134,9 @@ public class PredictionEngineElytra extends PredictionEngine {
             existingVelocities.add(new VectorData(jump, VectorData.VectorType.Jump));
         }
     }
+
+    @Override
+    public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
+        return vector;
+    }
 }

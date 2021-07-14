@@ -9,8 +9,8 @@ import ac.grim.grimac.utils.data.ChangeBlockData;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
@@ -29,7 +29,7 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
     public static Method getByCombinedID;
 
     public PacketWorldReaderSixteen() {
-        super(PacketEventPriority.MONITOR);
+        super(PacketListenerPriority.MONITOR);
 
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
     }

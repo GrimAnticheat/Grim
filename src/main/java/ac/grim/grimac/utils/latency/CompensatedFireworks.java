@@ -38,8 +38,10 @@ public class CompensatedFireworks {
             Map.Entry<Integer, FireworkData> firework = iterator.next();
 
             // If the firework has 100% been destroyed on the client side
-            if (firework.getValue().destroyTime < lastTransactionReceived - 1) {
+            // This is lazy coding but it works
+            if (firework.getValue().destroyTime < lastTransactionReceived - 5) {
                 iterator.remove();
+
                 continue;
             }
 

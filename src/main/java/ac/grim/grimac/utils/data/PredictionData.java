@@ -3,11 +3,9 @@ package ac.grim.grimac.utils.data;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import org.bukkit.World;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
@@ -87,7 +85,7 @@ public class PredictionData {
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
-        lastTransaction = player.packetStateData.packetLastTransactionReceived;
+        lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
         itemHeld = player.packetStateData.lastSlotSelected;
         player.packetStateData.horseJump = 0;
@@ -139,7 +137,7 @@ public class PredictionData {
         requiredKB = player.knockbackHandler.getRequiredKB();
 
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
-        lastTransaction = player.packetStateData.packetLastTransactionReceived;
+        lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
         itemHeld = player.packetStateData.lastSlotSelected;
 
@@ -174,7 +172,7 @@ public class PredictionData {
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
-        lastTransaction = player.packetStateData.packetLastTransactionReceived;
+        lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
         itemHeld = player.packetStateData.lastSlotSelected;
 

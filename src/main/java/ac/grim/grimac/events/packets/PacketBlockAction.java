@@ -5,8 +5,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
+import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.event.priority.PacketEventPriority;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.blockaction.WrappedPacketOutBlockAction;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -20,7 +20,7 @@ import io.github.retrooper.packetevents.utils.vector.Vector3i;
 // Due to the difficulty of cross version shulker box
 public class PacketBlockAction extends PacketListenerAbstract {
     public PacketBlockAction() {
-        super(PacketEventPriority.MONITOR);
+        super(PacketListenerPriority.MONITOR);
     }
 
     @Override
