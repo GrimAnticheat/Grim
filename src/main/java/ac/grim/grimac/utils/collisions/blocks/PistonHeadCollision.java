@@ -45,7 +45,7 @@ public class PistonHeadCollision implements CollisionFactory {
                         new HexCollisionBox(6, 0 - longAmount, 6, 10, 12, 10));
             case NORTH:
                 return new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 16, 16, 4),
-                        new HexCollisionBox(4, 6, 4, 12, 10, 16 + longAmount));
+                        new HexCollisionBox(6, 6, 4, 10, 10, 16 + longAmount));
             case SOUTH:
                 // SOUTH piston is glitched in 1.7 and 1.8, fixed in 1.9
                 // Don't bother with short piston boxes as 1.7/1.8 clients don't have them
