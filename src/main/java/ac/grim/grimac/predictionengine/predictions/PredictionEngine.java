@@ -316,6 +316,10 @@ public class PredictionEngine {
             maxVector.setY(0);
         }
 
+        // ViaVersion playing with flight speed causes a bug on 1.7 clients while exiting flying
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.wasFlying)
+            minVector.setY(0);
+
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
