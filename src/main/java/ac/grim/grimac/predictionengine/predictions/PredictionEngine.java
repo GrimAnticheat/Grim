@@ -186,7 +186,9 @@ public class PredictionEngine {
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
+        player.clientVelocityOnLadder = null;
         player.clientVelocitySwimHop = null;
+
         if (canSwimHop(player)) {
             player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
         }
