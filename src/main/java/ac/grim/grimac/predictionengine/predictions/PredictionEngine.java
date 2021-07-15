@@ -12,10 +12,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PredictionEngine {
     boolean canRiptide = false;
@@ -276,7 +273,9 @@ public class PredictionEngine {
         if (player.isGliding != player.wasGliding)
             addition += 0.05;
 
-        Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
+        double uncertainPiston = Collections.max(player.uncertaintyHandler.pistonPushing);
+
+        Vector uncertainty = new Vector(avgColliding * 0.04 + uncertainPiston, uncertainPiston, avgColliding * 0.04 + uncertainPiston);
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, player.uncertaintyHandler.yNegativeUncertainty + player.uncertaintyHandler.gravityUncertainty - (player.uncertaintyHandler.wasLastGravityUncertain ? 0.03 : 0), player.uncertaintyHandler.zNegativeUncertainty - addition);
         Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket || player.uncertaintyHandler.isSteppingOnSlime ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + addition);
 

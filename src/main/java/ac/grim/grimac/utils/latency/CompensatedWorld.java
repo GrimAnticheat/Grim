@@ -46,6 +46,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
@@ -135,39 +136,6 @@ public class CompensatedWorld {
         }
     }
 
-    public void tickUpdates(int lastTransactionReceived) {
-        while (true) {
-            ChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
-
-            if (changeBlockData == null) break;
-            // The player hasn't gotten this update yet
-            if (changeBlockData.transaction > lastTransactionReceived) {
-                break;
-            }
-
-            worldChangedBlockQueue.poll();
-
-            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.combinedID);
-        }
-
-        while (true) {
-            PistonData data = pistonData.peek();
-
-            if (data == null) break;
-
-            // The player hasn't gotten this update yet
-            if (data.lastTransactionSent > lastTransactionReceived) {
-                break;
-            }
-
-            pistonData.poll();
-            activePistons.add(data);
-        }
-
-        // 10 ticks is more than enough for everything that needs to be processed to be processed
-        packetBlockPositions.removeIf(data -> GrimAC.getCurrentTick() - data.tick > 10);
-    }
-
     public void updateBlock(int x, int y, int z, int combinedID) {
         Column column = getChunk(x >> 4, z >> 4);
 
@@ -206,6 +174,39 @@ public class CompensatedWorld {
 
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
+    }
+
+    public void tickUpdates(int lastTransactionReceived) {
+        while (true) {
+            ChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
+
+            if (changeBlockData == null) break;
+            // The player hasn't gotten this update yet
+            if (changeBlockData.transaction > lastTransactionReceived) {
+                break;
+            }
+
+            worldChangedBlockQueue.poll();
+
+            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.combinedID);
+        }
+
+        while (true) {
+            PistonData data = pistonData.peek();
+
+            if (data == null) break;
+
+            // The player hasn't gotten this update yet
+            if (data.lastTransactionSent > lastTransactionReceived) {
+                break;
+            }
+
+            pistonData.poll();
+            activePistons.add(data);
+        }
+
+        // 10 ticks is more than enough for everything that needs to be processed to be processed
+        packetBlockPositions.removeIf(data -> GrimAC.getCurrentTick() - data.tick > 10);
     }
 
     public void tickPlayerInPistonPushingArea() {
@@ -288,6 +289,14 @@ public class CompensatedWorld {
             player.uncertaintyHandler.pistonY = 0;
             player.uncertaintyHandler.pistonZ = 0;
         }
+
+        // Reduce effects of piston pushing by 0.5 per tick
+        List<Double> reducedList = player.uncertaintyHandler.pistonPushing.stream().map(d -> d * 0.9).collect(Collectors.toList());
+
+        player.uncertaintyHandler.pistonPushing.clear();
+        player.uncertaintyHandler.pistonPushing.addAll(reducedList);
+
+        player.uncertaintyHandler.pistonPushing.add(Math.max(Math.max(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY), player.uncertaintyHandler.pistonZ) * (player.uncertaintyHandler.slimePistonBounces.isEmpty() ? 1 : 2));
 
         // Tick the pistons and remove them if they can no longer exist
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
