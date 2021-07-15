@@ -721,8 +721,9 @@ public enum WrappedBlockData {
         public void getWrappedData(FlatBlockState data) {
             setBlockData(data.getBlockData());
         }
-    }, XMaterial.BELL.parseMaterial(), XMaterial.LANTERN.parseMaterial(), XMaterial.GRINDSTONE.parseMaterial(),
-            XMaterial.CHAIN.parseMaterial(), XMaterial.SWEET_BERRIES.parseMaterial(), XMaterial.SEA_PICKLE.parseMaterial(),
+    }, XMaterial.BELL.parseMaterial(), XMaterial.LANTERN.parseMaterial(), XMaterial.SOUL_LANTERN.parseMaterial(),
+            XMaterial.GRINDSTONE.parseMaterial(), XMaterial.CHAIN.parseMaterial(),
+            XMaterial.SWEET_BERRIES.parseMaterial(), XMaterial.SEA_PICKLE.parseMaterial(),
             XMaterial.TURTLE_EGG.parseMaterial(), XMaterial.SCAFFOLDING.parseMaterial()),
 
     NO_DATA(new WrappedBlockDataValue(), XMaterial.AIR.parseMaterial());
