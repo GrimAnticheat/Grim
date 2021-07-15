@@ -28,7 +28,7 @@ public class PistonBaseCollision implements CollisionFactory {
             case SOUTH:
                 return new HexCollisionBox(0, 0, 0, 16, 16, 12);
             case WEST:
-                return new HexCollisionBox(0, 0, 0, 16, 16, 16);
+                return new HexCollisionBox(4, 0, 0, 16, 16, 16);
             case EAST:
                 return new HexCollisionBox(0, 0, 0, 12, 16, 16);
         }

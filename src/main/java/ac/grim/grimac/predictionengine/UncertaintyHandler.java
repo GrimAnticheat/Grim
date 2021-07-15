@@ -60,6 +60,7 @@ public class UncertaintyHandler {
     public EvictingList<Integer> strictCollidingEntities = new EvictingList<>(3);
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
+    public int lastTeleportTicks = 0;
 
     public UncertaintyHandler() {
         reset();

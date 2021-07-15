@@ -239,6 +239,10 @@ public class MovementCheckRunner {
             return;
         }
 
+        player.uncertaintyHandler.lastTeleportTicks--;
+        if (data.isJustTeleported)
+            player.uncertaintyHandler.lastTeleportTicks = 0;
+
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
 
         player.x = data.playerX;
@@ -246,7 +250,9 @@ public class MovementCheckRunner {
         player.z = data.playerZ;
         player.xRot = data.xRot;
         player.yRot = data.yRot;
+
         player.onGround = data.onGround;
+
         player.lastSprinting = player.isSprinting;
         player.wasFlying = player.isFlying;
         player.wasGliding = player.isGliding;
@@ -413,7 +419,7 @@ public class MovementCheckRunner {
 
         player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        player.bukkitPlayer.sendMessage("O:" + color + offset + " versus " + player.isUsingItem);
+        player.bukkitPlayer.sendMessage("O:" + color + offset + " versus " + player.lastOnGround);
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());

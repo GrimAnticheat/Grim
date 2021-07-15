@@ -51,14 +51,13 @@ public class MovementTicker {
                 && player.uncertaintyHandler.pistonX == 0 && player.uncertaintyHandler.pistonY == 0 && player.uncertaintyHandler.pistonZ == 0
                 && player.uncertaintyHandler.slimePistonBounces.isEmpty() && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnSlime
-                && player.isGliding == player.wasGliding) {
+                && player.isGliding == player.wasGliding && player.uncertaintyHandler.lastTeleportTicks < -2) {
 
             if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
                 Bukkit.broadcastMessage("Desync " + player.onGround);
 
             player.onGround = player.isActuallyOnGround || player.uncertaintyHandler.striderOnGround;
         }
-
 
         Material onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
 
