@@ -20,7 +20,7 @@ public class PacketStateData {
     public boolean packetPlayerOnGround = false;
     public int lastSlotSelected;
     public Hand eatingHand = Hand.MAIN_HAND;
-    public AlmostBoolean slowedByUsingItem = AlmostBoolean.FALSE;
+    public ItemUseEnum slowedByUsingItem = ItemUseEnum.FALSE;
     public Integer vehicle = null;
     public boolean receivedVehicleMove = false;
     public int horseJump = 0;

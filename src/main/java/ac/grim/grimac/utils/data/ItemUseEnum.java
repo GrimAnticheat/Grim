@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data;
 
-public enum AlmostBoolean {
+public enum ItemUseEnum {
     TRUE,
     FALSE,
     MAYBE

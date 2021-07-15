@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.AlmostBoolean;
+import ac.grim.grimac.utils.data.ItemUseEnum;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -61,15 +61,15 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
 
-            if (type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND && player.packetStateData.slowedByUsingItem == AlmostBoolean.TRUE) {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
+            if (type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND && player.packetStateData.slowedByUsingItem == ItemUseEnum.TRUE) {
+                player.packetStateData.slowedByUsingItem = ItemUseEnum.MAYBE;
                 player.packetStateData.eatingHand = player.packetStateData.eatingHand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND;
             }
 
             if ((type == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS && player.packetStateData.eatingHand == Hand.MAIN_HAND) ||
                     type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
 
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                player.packetStateData.slowedByUsingItem = ItemUseEnum.FALSE;
 
                 if (XMaterial.supports(13)) {
                     ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
@@ -101,7 +101,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.packetStateData.lastSlotSelected = slot.getCurrentSelectedSlot();
 
             if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                player.packetStateData.slowedByUsingItem = ItemUseEnum.FALSE;
             }
         }
 
@@ -143,7 +143,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     // Eatable items that don't require any hunger to eat
                     if (material == Material.POTION || material == Material.MILK_BUCKET
                             || material == GOLDEN_APPLE || material == ENCHANTED_GOLDEN_APPLE || material == HONEY_BOTTLE) {
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                        player.packetStateData.slowedByUsingItem = ItemUseEnum.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
                         return;
@@ -151,18 +151,18 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                     // The other items that do require it
                     if (item.getType().isEdible() && event.getPlayer().getFoodLevel() < 20 || player.bukkitPlayer.getGameMode() == GameMode.CREATIVE) {
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                        player.packetStateData.slowedByUsingItem = ItemUseEnum.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
                         return;
                     }
 
                     // The player cannot eat this item, resync use status
-                    player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                    player.packetStateData.slowedByUsingItem = ItemUseEnum.FALSE;
                 }
 
                 if (material == SHIELD) {
-                    player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                    player.packetStateData.slowedByUsingItem = ItemUseEnum.TRUE;
                     player.packetStateData.eatingHand = place.getHand();
 
                     return;
@@ -178,9 +178,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 // The client and server don't agree on trident status because mojang is incompetent at netcode.
                 if (material == TRIDENT) {
                     if (item.getEnchantmentLevel(Enchantment.RIPTIDE) > 0)
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
+                        player.packetStateData.slowedByUsingItem = ItemUseEnum.MAYBE;
                     else
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                        player.packetStateData.slowedByUsingItem = ItemUseEnum.TRUE;
                     player.packetStateData.eatingHand = place.getHand();
                 }
 
@@ -188,16 +188,16 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 // Crossbow charge checked previously
                 if (material == BOW || material == CROSSBOW) {
                     player.packetStateData.slowedByUsingItem = (player.bukkitPlayer.getGameMode() == GameMode.CREATIVE ||
-                            hasItem(player, ARROW) || hasItem(player, TIPPED_ARROW) || hasItem(player, SPECTRAL_ARROW)) ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
+                            hasItem(player, ARROW) || hasItem(player, TIPPED_ARROW) || hasItem(player, SPECTRAL_ARROW)) ? ItemUseEnum.TRUE : ItemUseEnum.FALSE;
                     player.packetStateData.eatingHand = place.getHand();
                 }
 
                 // Only 1.8 and below players can block with swords
                 if (Materials.checkFlag(material, Materials.SWORD) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8)) {
-                    player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                    player.packetStateData.slowedByUsingItem = ItemUseEnum.TRUE;
                 }
             } else {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                player.packetStateData.slowedByUsingItem = ItemUseEnum.FALSE;
             }
         }
     }

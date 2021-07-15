@@ -156,7 +156,7 @@ public class CompensatedWorld {
             if (data == null) break;
 
             // The player hasn't gotten this update yet
-            if (data.lastTransactionSent > lastTransactionReceived) {
+            if (data.lastTransactionSent > lastTransactionReceived + 1) {
                 break;
             }
 
@@ -221,9 +221,9 @@ public class CompensatedWorld {
 
             for (SimpleCollisionBox box : data.boxes) {
                 if (playerBox.isCollided(box)) {
-                    modX = Math.abs(data.direction.getModX()) * 0.51D;
-                    modY = Math.abs(data.direction.getModY()) * 0.51D;
-                    modZ = Math.abs(data.direction.getModZ()) * 0.51D;
+                    modX = Math.abs(data.direction.getModX()) * 1.01D;
+                    modY = Math.abs(data.direction.getModY()) * 1.01D;
+                    modZ = Math.abs(data.direction.getModZ()) * 1.01D;
 
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
@@ -283,10 +283,9 @@ public class CompensatedWorld {
             player.uncertaintyHandler.pistonZ = Math.max(modZ, player.uncertaintyHandler.pistonZ);
         }
 
-        if (activePistons.isEmpty() && openShulkerBoxes.isEmpty()) {
-            player.uncertaintyHandler.pistonX = 0;
-            player.uncertaintyHandler.pistonY = 0;
-            player.uncertaintyHandler.pistonZ = 0;
+        if (player.uncertaintyHandler.slimePistonBounces.size() > 0 && player.actualMovement.length() > 1) {
+            Bukkit.broadcastMessage("Last on ground set to false!");
+            player.lastOnGround = false;
         }
 
         // Tick the pistons and remove them if they can no longer exist

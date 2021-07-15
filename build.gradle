@@ -59,8 +59,5 @@ tasks.withType(JavaCompile) {
 
 shadowJar {
     minimize()
-    relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.packetevents'
-    relocate 'it.unimi.dsi.fastutil', 'ac.grim.grimac.shaded.fastutil'
-    relocate 'com.github.steveice10.packetlib', 'ac.grim.grimac.shaded.packetlib'
 }
 

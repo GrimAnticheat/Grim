@@ -2,11 +2,12 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
-import ac.grim.grimac.utils.data.AlmostBoolean;
+import ac.grim.grimac.utils.data.ItemUseEnum;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -58,6 +59,8 @@ public class PredictionEngine {
         Vector beforeCollisionMovement = null;
         Vector tempClientVelChosen = null;
 
+        Bukkit.broadcastMessage("Uncertainty is " + player.uncertaintyHandler);
+
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput);
             Vector backOff = Collisions.maybeBackOffFromEdge(primaryPushMovement, player);
@@ -86,6 +89,7 @@ public class PredictionEngine {
         player.clientVelocity = tempClientVelChosen;
         new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
         player.predictedVelocity = bestCollisionVel;
+
         endOfTick(player, player.gravity, player.friction);
     }
 
@@ -201,7 +205,7 @@ public class PredictionEngine {
         // Probably as a way to tell the server it is swimming
         int zMin = player.isSprinting && !player.isSwimming ? 1 : -1;
 
-        AlmostBoolean usingItem = player.isUsingItem;
+        ItemUseEnum usingItem = player.isUsingItem;
         boolean loopAgain = true;
 
         // Loop twice for the using item status if the player is using a trident
@@ -219,9 +223,8 @@ public class PredictionEngine {
                 }
             }
 
-            // Loop again if the player is using a riptide trident in the rain (as this is too easy to desync)
-            if (loopAgain = (player.isUsingItem == AlmostBoolean.MAYBE && !player.wasTouchingWater)) {
-                player.isUsingItem = AlmostBoolean.FALSE;
+            if (loopAgain = (player.isUsingItem == ItemUseEnum.MAYBE)) {
+                player.isUsingItem = ItemUseEnum.FALSE;
             }
         }
 
@@ -269,50 +272,36 @@ public class PredictionEngine {
         }
     }
 
-    private Vector getStartingVector(GrimPlayer player, Vector vector, double addition) {
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
+    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
 
-        // Gliding status changed, there are a decent amount of edge cases in this scenario so give lenience
-        if (player.isGliding != player.wasGliding)
-            addition += 0.05;
-
-        Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
-        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, player.uncertaintyHandler.yNegativeUncertainty + player.uncertaintyHandler.gravityUncertainty - (player.uncertaintyHandler.wasLastGravityUncertain ? 0.03 : 0), player.uncertaintyHandler.zNegativeUncertainty - addition);
-        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket || player.uncertaintyHandler.isSteppingOnSlime ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + addition);
-
-        Vector minVector = vector.clone().add(min.subtract(uncertainty));
-        Vector maxVector = vector.clone().add(max.add(uncertainty));
-
-        // Player velocity can multiply 0.4-0.45 (guess on max) when the player is on slime with
-        // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
-        if (player.uncertaintyHandler.isSteppingOnSlime) {
-            if (vector.getX() > 0) {
-                minVector.multiply(new Vector(0.4, 1, 1));
-            } else {
-                maxVector.multiply(new Vector(0.4, 1, 1));
-            }
-
-            if (vector.getZ() > 0) {
-                minVector.multiply(new Vector(1, 1, 0.4));
-            } else {
-                maxVector.multiply(new Vector(1, 1, 0.4));
-            }
-
-            // If the player is using fireworks on slime
-            // Their Y velocity gets hidden once by fireworks applying push movement
-            // Then again by bouncing on the slime itself
-            // Then again by 0.03
-            // Give up, what cheat could exploit slime and fireworks?
-            if (player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
-                minVector.setY(0);
-            }
+        // Slow movement was determined by the previous pose
+        if (player.isSlowMovement) {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
+        } else {
+            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
+            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
         }
 
-        if ((player.uncertaintyHandler.wasLastOnGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.getY() < 0) {
-            maxVector.setY(0);
+        if (player.isUsingItem == ItemUseEnum.TRUE || player.isUsingItem == ItemUseEnum.MAYBE) {
+            bestPossibleX *= 0.2F;
+            bestPossibleZ *= 0.2F;
         }
 
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98);
+
+        // Simulate float rounding imprecision
+        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
+
+        if (inputVector.lengthSquared() > 1) {
+            double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
+            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
+        }
+
+        return inputVector;
     }
 
     public boolean canSwimHop(GrimPlayer player) {
@@ -354,36 +343,51 @@ public class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
+    private Vector getStartingVector(GrimPlayer player, Vector vector, double addition) {
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
 
-        // Slow movement was determined by the previous pose
-        if (player.isSlowMovement) {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
-        } else {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
+        // Gliding status changed, there are a decent amount of edge cases in this scenario so give lenience
+        if (player.isGliding != player.wasGliding)
+            addition += 0.05;
+
+        Vector uncertainty = new Vector(avgColliding * 0.04, 0, avgColliding * 0.04);
+
+        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, player.uncertaintyHandler.yNegativeUncertainty + player.uncertaintyHandler.gravityUncertainty - (player.uncertaintyHandler.wasLastGravityUncertain ? 0.06 : 0), player.uncertaintyHandler.zNegativeUncertainty - addition);
+        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.wasLastGravityUncertain || player.uncertaintyHandler.lastLastPacketWasGroundPacket || player.uncertaintyHandler.isSteppingOnSlime ? 0.06 : 0), player.uncertaintyHandler.zPositiveUncertainty + addition);
+
+        Vector minVector = vector.clone().add(min.subtract(uncertainty));
+        Vector maxVector = vector.clone().add(max.add(uncertainty));
+
+        // Player velocity can multiply 0.4-0.45 (guess on max) when the player is on slime with
+        // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
+        if (player.uncertaintyHandler.isSteppingOnSlime) {
+            if (vector.getX() > 0) {
+                minVector.multiply(new Vector(0.4, 1, 1));
+            } else {
+                maxVector.multiply(new Vector(0.4, 1, 1));
+            }
+
+            if (vector.getZ() > 0) {
+                minVector.multiply(new Vector(1, 1, 0.4));
+            } else {
+                maxVector.multiply(new Vector(1, 1, 0.4));
+            }
+
+            // If the player is using fireworks on slime
+            // Their Y velocity gets hidden once by fireworks applying push movement
+            // Then again by bouncing on the slime itself
+            // Then again by 0.03
+            // Give up, what cheat could exploit slime and fireworks?
+            if (player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
+                minVector.setY(0);
+            }
         }
 
-        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
-            bestPossibleX *= 0.2F;
-            bestPossibleZ *= 0.2F;
+        if ((player.uncertaintyHandler.wasLastOnGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.getY() < 0) {
+            maxVector.setY(0);
         }
 
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98);
-
-        // Simulate float rounding imprecision
-        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
-
-        if (inputVector.lengthSquared() > 1) {
-            double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
-            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
-        }
-
-        return inputVector;
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
     public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {

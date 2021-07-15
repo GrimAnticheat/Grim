@@ -22,7 +22,7 @@ public class PredictionData {
     public boolean isSprinting;
     public boolean isSneaking;
     public boolean isTryingToRiptide = false;
-    public AlmostBoolean isUsingItem = AlmostBoolean.FALSE;
+    public ItemUseEnum isUsingItem = ItemUseEnum.FALSE;
     public Hand usingHand = Hand.MAIN_HAND;
     public World playerWorld;
     public float jumpAmplifier;

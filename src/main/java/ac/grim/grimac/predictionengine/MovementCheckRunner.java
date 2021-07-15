@@ -8,7 +8,7 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
-import ac.grim.grimac.utils.data.AlmostBoolean;
+import ac.grim.grimac.utils.data.ItemUseEnum;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -58,6 +58,7 @@ public class MovementCheckRunner {
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
     public static boolean processAndCheckMovementPacket(PredictionData data) {
+
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         while (true) {
@@ -143,36 +144,6 @@ public class MovementCheckRunner {
             return;
         }
 
-        AlmostBoolean tempUsingItem = data.isUsingItem;
-
-        if (data.isUsingItem == AlmostBoolean.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
-            tempUsingItem = AlmostBoolean.MAYBE;
-        } else {
-            // Handle the player dropping food to stop eating
-            // We are sync'd to roughly the bukkit thread here
-            // Although we don't have inventory lag compensation so we can't fully sync
-            // Works unless the player spams their offhand button
-            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
-            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
-                tempUsingItem = AlmostBoolean.FALSE;
-            }
-
-            if (data.isUsingItem == AlmostBoolean.TRUE && XMaterial.supports(9)) {
-                ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
-                // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
-                if (Materials.isUsable(offHand.getType())) {
-                    tempUsingItem = AlmostBoolean.TRUE;
-                }
-            }
-        }
-
-        if (data.usingHand != player.lastHand) {
-            tempUsingItem = AlmostBoolean.MAYBE;
-        }
-
-        player.isUsingItem = tempUsingItem;
-        player.lastHand = data.usingHand;
-
         player.lastVehicle = player.playerVehicle;
         player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
         player.inVehicle = player.playerVehicle != null;
@@ -251,6 +222,9 @@ public class MovementCheckRunner {
         player.xRot = data.xRot;
         player.yRot = data.yRot;
 
+        // This isn't the final velocity of the player in the tick, only the one applied to the player
+        player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+
         player.onGround = data.onGround;
 
         player.lastSprinting = player.isSprinting;
@@ -286,6 +260,36 @@ public class MovementCheckRunner {
             player.lastZ = player.z;
         }
 
+        ItemUseEnum tempUsingItem = data.isUsingItem;
+
+        if (data.isUsingItem == ItemUseEnum.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
+            tempUsingItem = ItemUseEnum.MAYBE;
+        } else {
+            // Handle the player dropping food to stop eating
+            // We are sync'd to roughly the bukkit thread here
+            // Although we don't have inventory lag compensation so we can't fully sync
+            // Works unless the player spams their offhand button
+            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
+            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
+                tempUsingItem = ItemUseEnum.FALSE;
+            }
+
+            if (data.isUsingItem == ItemUseEnum.TRUE && XMaterial.supports(9)) {
+                ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
+                // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
+                if (Materials.isUsable(offHand.getType())) {
+                    tempUsingItem = ItemUseEnum.TRUE;
+                }
+            }
+        }
+
+        if (data.usingHand != player.lastHand) {
+            tempUsingItem = ItemUseEnum.MAYBE;
+        }
+
+        player.isUsingItem = tempUsingItem;
+        player.lastHand = data.usingHand;
+
         player.movementSpeed = ((float) player.movementSpeed) * (player.isSprinting ? 1.3f : 1.0f);
         player.jumpAmplifier = data.jumpAmplifier;
         player.levitationAmplifier = data.levitationAmplifier;
@@ -296,9 +300,6 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
-
-        // This isn't the final velocity of the player in the tick, only the one applied to the player
-        player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
         if (data.isJustTeleported) {
             // Don't let the player move if they just teleported
