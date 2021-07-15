@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -271,6 +272,10 @@ public class PredictionEngine {
 
         // Gliding status changed, there are a decent amount of edge cases in this scenario so give lenience
         if (player.isGliding != player.wasGliding)
+            addition += 0.05;
+
+        // ViaVersion playing with flight speed causes a bug on 1.7 clients while exiting flying
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.wasFlying)
             addition += 0.05;
 
         double uncertainPiston = Collections.max(player.uncertaintyHandler.pistonPushing);
