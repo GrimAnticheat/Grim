@@ -58,6 +58,33 @@ public enum WrappedBlockData {
         }
     }, XMaterial.VINE.parseMaterial()),
 
+    HOPPER(new WrappedDirectional() {
+        public void getWrappedData(FlatBlockState data) {
+            setDirection(((Directional) data.getBlockData()).getFacing());
+        }
+
+        // 0x8 is activated/disabled
+        public void getWrappedData(MagicBlockState data) {
+            switch (data.getBlockData() & 7) {
+                case 0:
+                    setDirection(BlockFace.DOWN);
+                    break;
+                case 2:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 4:
+                    setDirection(BlockFace.WEST);
+                    break;
+                case 5:
+                    setDirection(BlockFace.EAST);
+                    break;
+            }
+        }
+    }, XMaterial.HOPPER.parseMaterial()),
+
     CHORUS_PLANT(new WrappedMultipleFacing() {
         public void getWrappedData(FlatBlockState data) {
             setDirections(((MultipleFacing) data.getBlockData()).getFaces());

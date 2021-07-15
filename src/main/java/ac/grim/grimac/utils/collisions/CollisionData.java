@@ -174,17 +174,46 @@ public enum CollisionData {
             .toArray(Material[]::new)),
 
     HOPPER((player, version, data, x, y, z) -> {
-        double height = 0.125 * 5;
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_13)) {
+            ComplexCollisionBox hopperBox = new ComplexCollisionBox();
 
-        if (version.isNewerThanOrEquals(ClientVersion.v_1_13))
-            height = 0.6875;
+            switch (((WrappedDirectional) data).getDirection()) {
+                case DOWN:
+                    hopperBox.add(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 4.0D, 10.0D));
+                    break;
+                case EAST:
+                    hopperBox.add(new HexCollisionBox(12.0D, 4.0D, 6.0D, 16.0D, 8.0D, 10.0D));
+                    break;
+                case NORTH:
+                    hopperBox.add(new HexCollisionBox(6.0D, 4.0D, 0.0D, 10.0D, 8.0D, 4.0D));
+                    break;
+                case SOUTH:
+                    hopperBox.add(new HexCollisionBox(6.0D, 4.0D, 12.0D, 10.0D, 8.0D, 16.0D));
+                    break;
+                case WEST:
+                    hopperBox.add(new HexCollisionBox(0.0D, 4.0D, 6.0D, 4.0D, 8.0D, 10.0D));
+                    break;
+            }
 
-        return new ComplexCollisionBox(
-                new SimpleCollisionBox(0, 0, 0, 1, height, 1),
-                new SimpleCollisionBox(0, height, 0, 0.125, 1, 1),
-                new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1),
-                new SimpleCollisionBox(0, height, 0, 1, 1, 0.125),
-                new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
+            hopperBox.add(new SimpleCollisionBox(0, 0.625, 0, 1.0, 0.6875, 1.0));
+            hopperBox.add(new SimpleCollisionBox(0, 0.6875, 0, 0.125, 1, 1));
+            hopperBox.add(new SimpleCollisionBox(0.125, 0.6875, 0, 1, 1, 0.125));
+            hopperBox.add(new SimpleCollisionBox(0.125, 0.6875, 0.875, 1, 1, 1));
+            hopperBox.add(new SimpleCollisionBox(0.25, 0.25, 0.25, 0.75, 0.625, 0.75));
+            hopperBox.add(new SimpleCollisionBox(0.875, 0.6875, 0.125, 1, 1, 0.875));
+
+            return hopperBox;
+        } else {
+            double height = 0.125 * 5;
+
+            return new ComplexCollisionBox(
+                    new SimpleCollisionBox(0, 0, 0, 1, height, 1),
+                    new SimpleCollisionBox(0, height, 0, 0.125, 1, 1),
+                    new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1),
+                    new SimpleCollisionBox(0, height, 0, 1, 1, 0.125),
+                    new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
+        }
+
     }, XMaterial.HOPPER.parseMaterial()),
 
     CAKE((player, version, data, x, y, z) -> {
