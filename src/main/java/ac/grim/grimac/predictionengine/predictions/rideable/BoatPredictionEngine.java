@@ -174,6 +174,7 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     @Override
     public void endOfTick(GrimPlayer player, double d, float friction) {
+        player.clientVelocityOnLadder = null;
         Collisions.handleInsideBlocks(player);
     }
 
