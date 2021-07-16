@@ -32,6 +32,7 @@ public class Collisions {
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
     private static final Material SWEET_BERRY_BUSH = XMaterial.SWEET_BERRY_BUSH.parseMaterial();
     private static final Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
+    private static final Material POWDER_SNOW = XMaterial.POWDER_SNOW.parseMaterial();
 
     private static final Material LADDER = XMaterial.LADDER.parseMaterial();
 
@@ -387,6 +388,10 @@ public class Collisions {
 
                     if (blockType == SWEET_BERRY_BUSH) {
                         player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
+                    }
+
+                    if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z)) {
+                        player.stuckSpeedMultiplier = new Vector(0.8999999761581421, 1.5, 0.8999999761581421);
                     }
 
                     if (blockType == BUBBLE_COLUMN) {

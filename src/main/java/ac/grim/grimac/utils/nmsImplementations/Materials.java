@@ -84,6 +84,11 @@ public class Materials {
         markAs(XMaterial.SCAFFOLDING, SOLID);
         markAs(XMaterial.COCOA, SOLID);
 
+        // 1.17 isSolid() mistakes, I think MD_5 just gave up with marking stuff as solid
+        markAs(XMaterial.SCULK_SENSOR, SOLID);
+        markAs(XMaterial.POWDER_SNOW, SOLID);
+        markAs(XMaterial.BIG_DRIPLEAF, SOLID);
+
         markAs(XMaterial.WATER, WATER);
 
         markAs(XMaterial.SEAGRASS, WATER);
@@ -166,6 +171,7 @@ public class Materials {
                 MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("_SIGN")) markAsNotSolid(mat);
             if (mat.name().contains("BUTTON")) MATERIAL_FLAGS[mat.ordinal()] |= BUTTON;
+            if (mat.name().contains("CANDLE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
         }
     }
 
