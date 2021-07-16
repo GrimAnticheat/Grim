@@ -39,7 +39,7 @@ public class DoorHandler implements CollisionFactory {
                     door.setRightHinge(upperDoor.isRightHinge());
                 } else {
                     // Default missing value
-                    door.setRightHinge(true);
+                    door.setRightHinge(false);
                 }
             } else {
                 BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y - 1, z);

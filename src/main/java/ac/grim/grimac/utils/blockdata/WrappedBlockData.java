@@ -735,6 +735,7 @@ public enum WrappedBlockData {
     }, XMaterial.BELL.parseMaterial(), XMaterial.LANTERN.parseMaterial(), XMaterial.SOUL_LANTERN.parseMaterial(),
             XMaterial.GRINDSTONE.parseMaterial(), XMaterial.CHAIN.parseMaterial(),
             XMaterial.SWEET_BERRIES.parseMaterial(), XMaterial.SEA_PICKLE.parseMaterial(),
+            XMaterial.CAMPFIRE.parseMaterial(), XMaterial.SOUL_CAMPFIRE.parseMaterial(),
             XMaterial.TURTLE_EGG.parseMaterial(), XMaterial.SCAFFOLDING.parseMaterial(),
             XMaterial.SCULK_SENSOR.parseMaterial(), XMaterial.BIG_DRIPLEAF.parseMaterial(),
             XMaterial.POINTED_DRIPSTONE.parseMaterial(), XMaterial.AMETHYST_CLUSTER.parseMaterial(),

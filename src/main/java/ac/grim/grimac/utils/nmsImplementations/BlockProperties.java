@@ -9,14 +9,14 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
-    private final static Material ice = XMaterial.ICE.parseMaterial();
-    private final static Material slime = XMaterial.SLIME_BLOCK.parseMaterial();
-    private final static Material packedIce = XMaterial.PACKED_ICE.parseMaterial();
-    private final static Material frostedIce = XMaterial.FROSTED_ICE.parseMaterial();
-    private final static Material blueIce = XMaterial.BLUE_ICE.parseMaterial();
+    private final static Material ICE = XMaterial.ICE.parseMaterial();
+    private final static Material SLIME = XMaterial.SLIME_BLOCK.parseMaterial();
+    private final static Material PACKED_ICE = XMaterial.PACKED_ICE.parseMaterial();
+    private final static Material FROSTED_ICE = XMaterial.FROSTED_ICE.parseMaterial();
+    private final static Material BLUE_ICE = XMaterial.BLUE_ICE.parseMaterial();
 
-    private final static Material soulSand = XMaterial.SOUL_SAND.parseMaterial();
-    private final static Material honeyBlock = XMaterial.HONEY_BLOCK.parseMaterial();
+    private final static Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
+    private final static Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
 
     // WATER and STATIONARY_WATER on 1.12
     // WATER and BUBBLE_COLUMN on 1.13
@@ -49,11 +49,13 @@ public class BlockProperties {
     public static float getMaterialFriction(GrimPlayer player, Material material) {
         float friction = 0.6f;
 
-        if (material == ice) friction = 0.98f;
-        if (material == slime && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) friction = 0.8f;
-        if (material == packedIce) friction = 0.98f;
-        if (material == frostedIce) friction = 0.98f;
-        if (material == blueIce) {
+        if (material == ICE) friction = 0.98f;
+        if (material == SLIME && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) friction = 0.8f;
+        if (material == HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14_4))
+            friction = 0.8f;
+        if (material == PACKED_ICE) friction = 0.98f;
+        if (material == FROSTED_ICE) friction = 0.98f;
+        if (material == BLUE_ICE) {
             friction = 0.98f;
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) friction = 0.989f;
         }
@@ -108,7 +110,7 @@ public class BlockProperties {
 
         Material block = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
 
-        if (block == soulSand) {
+        if (block == SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
                 return 1.0f;
@@ -117,7 +119,7 @@ public class BlockProperties {
 
         float f = 1.0f;
 
-        if (block == honeyBlock) f = 0.4F;
+        if (block == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)) f = 0.4F;
 
         if (block == water || block == alsoWater) {
             return f;
@@ -125,8 +127,9 @@ public class BlockProperties {
 
         if (f == 1.0) {
             Material block2 = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y - 0.5000001, player.z);
-            if (block2 == honeyBlock) return 0.4F;
-            if (block2 == soulSand) return 0.4F;
+            if (block2 == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4))
+                return 0.4F;
+            if (block2 == SOUL_SAND) return 0.4F;
             return 1.0f;
         }
 

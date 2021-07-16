@@ -70,6 +70,10 @@ public enum CollisionData {
     }, XMaterial.BREWING_STAND.parseMaterial()),
 
     BAMBOO((player, version, block, x, y, z) -> {
+        // ViaVersion replacement block - sugarcane
+        if (version.isOlderThan(ClientVersion.v_1_13_2))
+            return NoCollisionBox.INSTANCE;
+
         // Offset taken from NMS
         long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
         i = i * i * 42317861L + i * 11L;
@@ -89,6 +93,12 @@ public enum CollisionData {
 
     COMPOSTER((player, version, block, x, y, z) -> {
         double height = 0.125;
+
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
+            height = 0.25;
+
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
+            height = 0.3125;
 
         return new ComplexCollisionBox(
                 new SimpleCollisionBox(0, 0, 0, 1, height, 1),
@@ -278,10 +288,17 @@ public enum CollisionData {
     }, XMaterial.COCOA.parseMaterial()),
 
 
-    STONE_CUTTER(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D),
-            XMaterial.STONECUTTER.parseMaterial()),
+    STONE_CUTTER((player, version, data, x, y, z) -> {
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
+    }, XMaterial.STONECUTTER.parseMaterial()),
 
     BELL((player, version, data, x, y, z) -> {
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
         Bell bell = (Bell) ((WrappedFlatBlock) data).getBlockData();
         BlockFace direction = bell.getFacing();
 
@@ -321,6 +338,10 @@ public enum CollisionData {
     }, XMaterial.BELL.parseMaterial()),
 
     SCAFFOLDING((player, version, data, x, y, z) -> {
+        // ViaVersion replacement block - hay block
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
         Scaffolding scaffolding = (Scaffolding) ((WrappedFlatBlock) data).getBlockData();
 
         if (player.lastY > y + 1 - 1.0E-5F && !player.isSneaking) {
@@ -350,9 +371,25 @@ public enum CollisionData {
         }
     }, XMaterial.LADDER.parseMaterial()),
 
-    CAMPFIRE(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 7.0D, 16.0D), XMaterial.CAMPFIRE.parseMaterial(), XMaterial.SOUL_CAMPFIRE.parseMaterial()),
+    CAMPFIRE((player, version, data, x, y, z) -> {
+        // ViaVersion replacement block - slab if not lit or fire if lit
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
+            WrappedFlatBlock campfire = (WrappedFlatBlock) data;
+
+            if (((Campfire) campfire.getBlockData()).isLit()) {
+                return NoCollisionBox.INSTANCE;
+            }
+
+            return new HexCollisionBox(0, 0, 0, 16, 8, 16);
+        }
+
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 7.0D, 16.0D);
+    }, XMaterial.CAMPFIRE.parseMaterial(), XMaterial.SOUL_CAMPFIRE.parseMaterial()),
 
     LANTERN((player, version, data, x, y, z) -> {
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
         WrappedFlatBlock lantern = (WrappedFlatBlock) data;
 
         if (((Lantern) lantern.getBlockData()).isHanging()) {
@@ -366,20 +403,56 @@ public enum CollisionData {
     }, XMaterial.LANTERN.parseMaterial(), XMaterial.SOUL_LANTERN.parseMaterial()),
 
 
-    LECTERN(new ComplexCollisionBox(
-            new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D), // base
-            new HexCollisionBox(4.0D, 2.0D, 4.0D, 12.0D, 14.0D, 12.0D)) // post
-            , XMaterial.LECTERN.parseMaterial()),
+    LECTERN((player, version, data, x, y, z) -> {
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
+        return new ComplexCollisionBox(
+                new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D), // base
+                new HexCollisionBox(4.0D, 2.0D, 4.0D, 12.0D, 14.0D, 12.0D)); // post
+    }, XMaterial.LECTERN.parseMaterial()),
 
 
-    HONEY_BLOCK(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 15.0D, 15.0D)
-            , XMaterial.HONEY_BLOCK.parseMaterial()),
+    HONEY_BLOCK((player, version, data, x, y, z) -> {
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_14_4))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
+        return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 15.0D, 15.0D); // post
+    }, XMaterial.HONEY_BLOCK.parseMaterial()),
 
 
     DRAGON_EGG_BLOCK(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), XMaterial.DRAGON_EGG.parseMaterial()),
 
     GRINDSTONE((player, version, data, x, y, z) -> {
         Grindstone grindstone = (Grindstone) ((WrappedFlatBlock) data).getBlockData();
+
+        // ViaVersion replacement block - Anvil
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
+            // Just a single solid collision box with 1.12
+            if (grindstone.getFacing() == BlockFace.NORTH || grindstone.getFacing() == BlockFace.SOUTH) {
+                return new SimpleCollisionBox(0.125F, 0.0F, 0.0F, 0.875F, 1.0F, 1.0F);
+            } else {
+                return new SimpleCollisionBox(0.0F, 0.0F, 0.125F, 1.0F, 1.0F, 0.875F);
+            }
+        }
+
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
+            ComplexCollisionBox complexAnvil = new ComplexCollisionBox();
+            // Base of the anvil
+            complexAnvil.add(new HexCollisionBox(2, 0, 2, 14, 4, 14));
+
+            if (grindstone.getFacing() == BlockFace.NORTH || grindstone.getFacing() == BlockFace.SOUTH) {
+                complexAnvil.add(new HexCollisionBox(4.0D, 4.0D, 3.0D, 12.0D, 5.0D, 13.0D));
+                complexAnvil.add(new HexCollisionBox(6.0D, 5.0D, 4.0D, 10.0D, 10.0D, 12.0D));
+                complexAnvil.add(new HexCollisionBox(3.0D, 10.0D, 0.0D, 13.0D, 16.0D, 16.0D));
+            } else {
+                complexAnvil.add(new HexCollisionBox(3.0D, 4.0D, 4.0D, 13.0D, 5.0D, 12.0D));
+                complexAnvil.add(new HexCollisionBox(4.0D, 5.0D, 6.0D, 12.0D, 10.0D, 10.0D));
+                complexAnvil.add(new HexCollisionBox(0.0D, 10.0D, 3.0D, 16.0D, 16.0D, 13.0D));
+            }
+
+            return complexAnvil;
+        }
 
         if (grindstone.getAttachedFace() == FaceAttachable.AttachedFace.FLOOR) {
             if (grindstone.getFacing() == BlockFace.NORTH || grindstone.getFacing() == BlockFace.SOUTH) {
@@ -648,6 +721,19 @@ public enum CollisionData {
     PICKLE((player, version, data, x, y, z) -> {
         SeaPickle pickle = (SeaPickle) ((WrappedFlatBlock) data).getBlockData();
 
+        // ViaVersion replacement block (West facing cocoa beans)
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
+            switch (pickle.getPickles()) {
+                case 1:
+                case 2:
+                    return new HexCollisionBox(11.0D, 7.0D, 6.0D, 15.0D, 12.0D, 10.0D);
+                case 3:
+                    return new HexCollisionBox(9.0D, 5.0D, 5.0D, 15.0D, 12.0D, 11.0D);
+                case 4:
+                    return new HexCollisionBox(7.0D, 3.0D, 4.0D, 15.0D, 12.0D, 12.0D);
+            }
+        }
+
         switch (pickle.getPickles()) {
             case 1:
                 return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 6.0D, 10.0D);
@@ -665,6 +751,19 @@ public enum CollisionData {
     TURTLEEGG((player, version, data, x, y, z) -> {
         TurtleEgg egg = (TurtleEgg) ((WrappedFlatBlock) data).getBlockData();
 
+        // ViaVersion replacement block (West facing cocoa beans)
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
+            switch (egg.getEggs()) {
+                case 1:
+                case 2:
+                    return new HexCollisionBox(1.0D, 7.0D, 6.0D, 5.0D, 12.0D, 10.0D);
+                case 3:
+                    return new HexCollisionBox(1.0D, 5.0D, 5.0D, 7.0D, 12.0D, 11.0D);
+                case 4:
+                    return new HexCollisionBox(1.0D, 3.0D, 4.0D, 9.0D, 12.0D, 12.0D);
+            }
+        }
+
         if (egg.getEggs() == 1) {
             return new HexCollisionBox(3.0D, 0.0D, 3.0D, 12.0D, 7.0D, 12.0D);
         }
@@ -673,6 +772,10 @@ public enum CollisionData {
     }, XMaterial.TURTLE_EGG.parseMaterial()),
 
     CONDUIT((player, version, data, x, y, z) -> {
+        // ViaVersion replacement block - Beacon
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
         return new HexCollisionBox(5.0D, 5.0D, 5.0D, 11.0D, 11.0D, 11.0D);
     }, XMaterial.CONDUIT.parseMaterial()),
 
@@ -913,6 +1016,7 @@ public enum CollisionData {
     private final Material[] materials;
     private CollisionBox box;
     private CollisionFactory dynamic;
+
     CollisionData(CollisionBox box, Material... materials) {
         this.box = box;
         Set<Material> mList = new HashSet<>(Arrays.asList(materials));

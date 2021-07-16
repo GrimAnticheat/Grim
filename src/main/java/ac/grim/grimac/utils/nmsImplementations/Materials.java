@@ -130,6 +130,7 @@ public class Materials {
         markAs(XMaterial.WEEPING_VINES_PLANT, CLIMBABLE);
         markAs(XMaterial.TWISTING_VINES, CLIMBABLE);
         markAs(XMaterial.TWISTING_VINES_PLANT, CLIMBABLE);
+        markAs(XMaterial.CAVE_VINES, CLIMBABLE);
 
         for (Material mat : Material.values()) {
             if (mat.name().endsWith("_SWORD")) MATERIAL_FLAGS[mat.ordinal()] |= SWORD;

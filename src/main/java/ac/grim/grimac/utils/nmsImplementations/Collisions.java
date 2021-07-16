@@ -509,6 +509,17 @@ public class Collisions {
             }
         }
 
+        // ViaVersion replacement block
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)) {
+            for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
+                for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
+                    for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
+                        if (player.compensatedWorld.getBukkitMaterialAt(x, y, z) == HONEY_BLOCK) return true;
+                    }
+                }
+            }
+        }
+
         return false;
     }
 
