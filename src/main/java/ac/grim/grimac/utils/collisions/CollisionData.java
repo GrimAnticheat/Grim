@@ -974,6 +974,11 @@ public enum CollisionData {
 
     }, XMaterial.POWDER_SNOW.parseMaterial()),
 
+    AZALEA((player, version, data, x, y, z) -> {
+        return new ComplexCollisionBox(new HexCollisionBox(0.0, 8.0, 0.0, 16.0, 16.0, 16.0),
+                new HexCollisionBox(6.0, 0.0, 6.0, 10.0, 8.0, 10.0));
+    }, XMaterial.AZALEA.parseMaterial(), XMaterial.FLOWERING_AZALEA.parseMaterial()),
+
     AMETHYST_CLUSTER((player, version, data, x, y, z) -> {
         Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
         return getAmethystBox(cluster.getFacing(), 7, 3);

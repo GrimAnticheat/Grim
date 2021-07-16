@@ -88,6 +88,8 @@ public class Materials {
         markAs(XMaterial.SCULK_SENSOR, SOLID);
         markAs(XMaterial.POWDER_SNOW, SOLID);
         markAs(XMaterial.BIG_DRIPLEAF, SOLID);
+        markAs(XMaterial.AZALEA, SOLID);
+        markAs(XMaterial.FLOWERING_AZALEA, SOLID);
 
         markAs(XMaterial.WATER, WATER);
 
@@ -131,6 +133,7 @@ public class Materials {
         markAs(XMaterial.TWISTING_VINES, CLIMBABLE);
         markAs(XMaterial.TWISTING_VINES_PLANT, CLIMBABLE);
         markAs(XMaterial.CAVE_VINES, CLIMBABLE);
+        markAs(XMaterial.CAVE_VINES_PLANT, CLIMBABLE);
 
         for (Material mat : Material.values()) {
             if (mat.name().endsWith("_SWORD")) MATERIAL_FLAGS[mat.ordinal()] |= SWORD;
