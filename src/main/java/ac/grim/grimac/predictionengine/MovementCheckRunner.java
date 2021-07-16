@@ -287,7 +287,8 @@ public class MovementCheckRunner {
             player.lastZ = player.z;
         }
 
-        player.movementSpeed = ((float) player.movementSpeed) * (player.isSprinting ? 1.3f : 1.0f);
+        // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
+        player.movementSpeed += player.isSprinting ? player.movementSpeed * 0.3f : 0;
         player.jumpAmplifier = data.jumpAmplifier;
         player.levitationAmplifier = data.levitationAmplifier;
         player.slowFallingAmplifier = data.slowFallingAmplifier;
@@ -375,8 +376,6 @@ public class MovementCheckRunner {
                 new MovementTickerStrider(player).livingEntityAIStep();
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
-
-        player.isFirstTick = false;
 
         Vector offsetVector = player.predictedVelocity.vector.clone().subtract(player.actualMovement);
         double offset = offsetVector.length();
