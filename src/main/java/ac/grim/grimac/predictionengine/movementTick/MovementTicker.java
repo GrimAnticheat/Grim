@@ -152,7 +152,7 @@ public class MovementTicker {
         player.uncertaintyHandler.zPositiveUncertainty = 0;
 
         if (player.isFlying) {
-            SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+            SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             if (!Collisions.isEmpty(player, playerBox.copy().offset(0, 0.1, 0))) {
                 player.uncertaintyHandler.yPositiveUncertainty = player.flySpeed * 5;
             }
@@ -252,7 +252,8 @@ public class MovementTicker {
             double oldYJumping = oldY + player.flySpeed * 3;
             livingEntityTravel();
 
-            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) || player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident)) {
+            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) || player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident)
+                    || player.uncertaintyHandler.yPositiveUncertainty != 0 || player.uncertaintyHandler.yNegativeUncertainty != 0) {
                 player.baseTickSetY(player.actualMovement.getY() * 0.6);
             } else if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
                 player.baseTickSetY(oldY * 0.6);
