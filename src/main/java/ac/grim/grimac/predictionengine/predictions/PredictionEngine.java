@@ -183,15 +183,6 @@ public class PredictionEngine {
                 vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
     }
 
-    public void endOfTick(GrimPlayer player, double d, float friction) {
-        player.clientVelocityOnLadder = null;
-        player.clientVelocitySwimHop = null;
-
-        if (canSwimHop(player)) {
-            player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
-        }
-    }
-
     private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
         // Stop omni-sprint
         // Optimization - Also cuts down scenarios by 2/3
@@ -323,33 +314,6 @@ public class PredictionEngine {
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
-    public boolean canSwimHop(GrimPlayer player) {
-        boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
-        boolean inWater = player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
-
-        // Vanilla system ->
-        // Requirement 1 - The player must be in water or lava
-        // Requirement 2 - The player must have X position + X movement, Y position + Y movement - Y position before tick + 0.6, Z position + Z movement have no collision
-        // Requirement 3 - The player must have horizontal collision
-
-        // Our system ->
-        // Requirement 1 - The player must be within 0.1 blocks of water or lava (which is why this is base and not PredictionEngineWater/Lava)
-        // Requirement 2 - The player must have something to collide with within 0.1 blocks
-
-        // Why remove the empty check?  The real movement is hidden due to the horizontal collision
-        // For example, a 1.14+ player can have a velocity of (10000, 0, 0) and if they are against a wall,
-        // We only see the (0,0,0) velocity.
-        // This means it is impossible to accurately create the requirement of no collision.
-        // Oh well, I guess this could allow some Jesus bypasses next to a wall that has multiple blocks
-        // But it's faster to swim anyways on 1.13+, and faster to just go on land in 1.12-
-
-        // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
-        // Just give a high lenience to this... not worth the risk of falses
-
-        return canCollideHorizontally && inWater;
-    }
-
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
     // We need it because of collision support when a player is using speed
     public Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
@@ -419,6 +383,42 @@ public class PredictionEngine {
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
         return vector;
+    }
+
+    public void endOfTick(GrimPlayer player, double d, float friction) {
+        player.clientVelocityOnLadder = null;
+        player.clientVelocitySwimHop = null;
+
+        if (canSwimHop(player)) {
+            player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
+        }
+    }
+
+    public boolean canSwimHop(GrimPlayer player) {
+        boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
+        boolean inWater = player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
+
+        // Vanilla system ->
+        // Requirement 1 - The player must be in water or lava
+        // Requirement 2 - The player must have X position + X movement, Y position + Y movement - Y position before tick + 0.6, Z position + Z movement have no collision
+        // Requirement 3 - The player must have horizontal collision
+
+        // Our system ->
+        // Requirement 1 - The player must be within 0.1 blocks of water or lava (which is why this is base and not PredictionEngineWater/Lava)
+        // Requirement 2 - The player must have something to collide with within 0.1 blocks
+
+        // Why remove the empty check?  The real movement is hidden due to the horizontal collision
+        // For example, a 1.14+ player can have a velocity of (10000, 0, 0) and if they are against a wall,
+        // We only see the (0,0,0) velocity.
+        // This means it is impossible to accurately create the requirement of no collision.
+        // Oh well, I guess this could allow some Jesus bypasses next to a wall that has multiple blocks
+        // But it's faster to swim anyways on 1.13+, and faster to just go on land in 1.12-
+
+        // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
+        // Just give a high lenience to this... not worth the risk of falses
+
+        return canCollideHorizontally && inWater;
     }
 
     public void doJump(GrimPlayer player, Vector vector) {
