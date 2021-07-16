@@ -358,7 +358,7 @@ public enum WrappedBlockData {
         }
     }, XMaterial.END_PORTAL_FRAME.parseMaterial()),
 
-    END_ROD(new WrappedDirectional() {
+    ROD(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
             Directional rod = (Directional) data.getBlockData();
             setDirection(rod.getFacing());
@@ -387,7 +387,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, XMaterial.END_ROD.parseMaterial()),
+    }, XMaterial.END_ROD.parseMaterial(), XMaterial.LIGHTNING_ROD.parseMaterial()),
 
 
     SHULKER_BOX(new WrappedDirectional() {
@@ -714,8 +714,19 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, Arrays.stream(Material.values())
-            .filter(mat -> mat.name().contains("TRAP_DOOR") || mat.name().contains("TRAPDOOR")).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("TRAP_DOOR") || mat.name().contains("TRAPDOOR")).toArray(Material[]::new)),
+
+    CANDLE(new WrappedFlatBlock() {
+        public void getWrappedData(FlatBlockState data) {
+            setBlockData(data.getBlockData());
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("CANDLE")).toArray(Material[]::new)),
+
+    CANDLE_CAKE(new WrappedFlatBlock() {
+        public void getWrappedData(FlatBlockState data) {
+            setBlockData(data.getBlockData());
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("CANDLE_CAKE")).toArray(Material[]::new)),
 
     FLAT_ONLY_BLOCK(new WrappedFlatBlock() {
         public void getWrappedData(FlatBlockState data) {
@@ -724,7 +735,13 @@ public enum WrappedBlockData {
     }, XMaterial.BELL.parseMaterial(), XMaterial.LANTERN.parseMaterial(), XMaterial.SOUL_LANTERN.parseMaterial(),
             XMaterial.GRINDSTONE.parseMaterial(), XMaterial.CHAIN.parseMaterial(),
             XMaterial.SWEET_BERRIES.parseMaterial(), XMaterial.SEA_PICKLE.parseMaterial(),
-            XMaterial.TURTLE_EGG.parseMaterial(), XMaterial.SCAFFOLDING.parseMaterial()),
+            XMaterial.TURTLE_EGG.parseMaterial(), XMaterial.SCAFFOLDING.parseMaterial(),
+            XMaterial.SCULK_SENSOR.parseMaterial(), XMaterial.BIG_DRIPLEAF.parseMaterial(),
+            XMaterial.POINTED_DRIPSTONE.parseMaterial(), XMaterial.AMETHYST_CLUSTER.parseMaterial(),
+            XMaterial.POWDER_SNOW.parseMaterial(), XMaterial.SMALL_AMETHYST_BUD.parseMaterial(),
+            XMaterial.MEDIUM_AMETHYST_BUD.parseMaterial(), XMaterial.LARGE_AMETHYST_BUD.parseMaterial(),
+            XMaterial.CANDLE.parseMaterial()),
+
 
     NO_DATA(new WrappedBlockDataValue(), XMaterial.AIR.parseMaterial());
 

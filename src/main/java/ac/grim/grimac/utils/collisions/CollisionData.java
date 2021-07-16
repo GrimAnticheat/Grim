@@ -19,6 +19,7 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.FaceAttachable;
 import org.bukkit.block.data.type.*;
 import org.bukkit.entity.Boat;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
@@ -31,23 +32,22 @@ public enum CollisionData {
     VINE((player, version, block, x, y, z) -> {
         ComplexCollisionBox boxes = new ComplexCollisionBox();
 
-        for (BlockFace face : ((WrappedMultipleFacing) block).getDirections()) {
-            if (face == BlockFace.SOUTH) {
-                boxes.add(new SimpleCollisionBox(0., 0., 0.9375, 1., 1., 1.));
-            }
+        Set<BlockFace> directions = ((WrappedMultipleFacing) block).getDirections();
 
-            if (face == BlockFace.WEST) {
-                boxes.add(new SimpleCollisionBox(0., 0., 0., 0.0625, 1., 1.));
-            }
+        if (directions.contains(BlockFace.UP))
+            boxes.add(new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D));
 
-            if (face == BlockFace.NORTH) {
-                boxes.add(new SimpleCollisionBox(0., 0., 0., 1., 1., 0.0625));
-            }
+        if (directions.contains(BlockFace.WEST))
+            boxes.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 16.0D, 16.0D));
 
-            if (face == BlockFace.EAST) {
-                boxes.add(new SimpleCollisionBox(0.9375, 0., 0., 1., 1., 1.));
-            }
-        }
+        if (directions.contains(BlockFace.EAST))
+            boxes.add(new HexCollisionBox(15.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D));
+
+        if (directions.contains(BlockFace.NORTH))
+            boxes.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D));
+
+        if (directions.contains(BlockFace.SOUTH))
+            boxes.add(new SimpleCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
 
         return boxes;
 
@@ -618,7 +618,7 @@ public enum CollisionData {
                 return new HexCollisionBox(0.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D);
         }
 
-    }, XMaterial.END_ROD.parseMaterial()),
+    }, XMaterial.END_ROD.parseMaterial(), XMaterial.LIGHTNING_ROD.parseMaterial()),
 
     CAULDRON((player, version, data, x, y, z) -> {
         double height = 0.25;
@@ -786,7 +786,111 @@ public enum CollisionData {
     // Known as block 36 - has no collision box
     TECHNICAL_MOVING_PISTON(NoCollisionBox.INSTANCE, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("MOVING")).toArray(Material[]::new)),
 
-    // TODO: Some of these blocks have a collision box, fix them for the interact check
+    // 1.17 blocks
+    CANDLE((player, version, data, x, y, z) -> {
+        Candle candle = (Candle) ((WrappedFlatBlock) data).getBlockData();
+
+        switch (candle.getCandles()) {
+            case 1:
+                return new HexCollisionBox(7.0, 0.0, 7.0, 9.0, 6.0, 9.0);
+            case 2:
+                return new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 6.0, 9.0);
+            case 3:
+                return new HexCollisionBox(5.0, 0.0, 6.0, 10.0, 6.0, 11.0);
+            default:
+            case 4:
+                return new HexCollisionBox(5.0, 0.0, 5.0, 11.0, 6.0, 10.0);
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("CANDLE")).toArray(Material[]::new)),
+
+    CANDLE_CAKE((player, version, data, x, y, z) -> {
+        ComplexCollisionBox cake = new ComplexCollisionBox(new HexCollisionBox(1.0, 0.0, 1.0, 15.0, 8.0, 15.0));
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_17))
+            cake.add(new HexCollisionBox(7.0, 8.0, 7.0, 9.0, 14.0, 9.0));
+        return cake;
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("CANDLE_CAKE")).toArray(Material[]::new)),
+
+    SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), XMaterial.SCULK_SENSOR.parseMaterial()),
+
+    BIG_DRIPLEAF((player, version, data, x, y, z) -> {
+        BigDripleaf dripleaf = (BigDripleaf) ((WrappedFlatBlock) data).getBlockData();
+
+        switch (dripleaf.getTilt()) {
+            case NONE:
+            case UNSTABLE:
+                return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 15.0, 16.0);
+            case PARTIAL:
+                return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 13.0, 16.0);
+            default:
+            case FULL:
+                return NoCollisionBox.INSTANCE;
+        }
+    }, XMaterial.BIG_DRIPLEAF.parseMaterial()),
+
+    DRIPSTONE((player, version, data, x, y, z) -> {
+        PointedDripstone dripstone = (PointedDripstone) ((WrappedFlatBlock) data).getBlockData();
+
+        HexCollisionBox box;
+
+        if (dripstone.getThickness() == PointedDripstone.Thickness.TIP_MERGE) {
+            box = new HexCollisionBox(5.0, 0.0, 5.0, 11.0, 16.0, 11.0);
+        } else if (dripstone.getThickness() == PointedDripstone.Thickness.TIP) {
+            if (dripstone.getVerticalDirection() == BlockFace.DOWN) {
+                box = new HexCollisionBox(5.0, 5.0, 5.0, 11.0, 16.0, 11.0);
+            } else {
+                box = new HexCollisionBox(5.0, 0.0, 5.0, 11.0, 11.0, 11.0);
+            }
+        } else if (dripstone.getThickness() == PointedDripstone.Thickness.FRUSTUM) {
+            box = new HexCollisionBox(4.0, 0.0, 4.0, 12.0, 16.0, 12.0);
+        } else if (dripstone.getThickness() == PointedDripstone.Thickness.MIDDLE) {
+            box = new HexCollisionBox(3.0, 0.0, 3.0, 13.0, 16.0, 13.0);
+        } else {
+            box = new HexCollisionBox(2.0, 0.0, 2.0, 14.0, 16.0, 14.0);
+        }
+
+        // Copied from NMS and it works!  That's all you need to know.
+        long i = (x * 3129871L) ^ (long) z * 116129781L ^ (long) 0;
+        i = i * i * 42317861L + i * 11L;
+        i = i >> 16;
+
+        return box.offset((((i & 15L) / 15.0F) - 0.5D) * 0.5D, 0, (((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D);
+    }, XMaterial.DRIPSTONE_BLOCK.parseMaterial()),
+
+    POWDER_SNOW((player, version, data, x, y, z) -> {
+        // Who makes a collision box dependent on fall distance?? If fall distance greater than 2.5, 0.899999 box
+        // Until we accurately get fall distance, just let players decide what box they get
+        if (Math.abs((player.y % 1.0) - 0.89999997615814) < 0.001) {
+            return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.8999999761581421, 1.0);
+        }
+
+        ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
+        if (player.lastY > y + 1 - 9.999999747378752E-6 && boots != null && boots.getType() == Material.LEATHER_BOOTS && !player.isSneaking)
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
+        return NoCollisionBox.INSTANCE;
+
+    }, XMaterial.POWDER_SNOW.parseMaterial()),
+
+    AMETHYST_CLUSTER((player, version, data, x, y, z) -> {
+        Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
+        return getAmethystBox(cluster.getFacing(), 7, 3);
+    }, XMaterial.AMETHYST_CLUSTER.parseMaterial()),
+
+    SMALL_AMETHYST_BUD((player, version, data, x, y, z) -> {
+        Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
+        return getAmethystBox(cluster.getFacing(), 3, 4);
+    }, XMaterial.SMALL_AMETHYST_BUD.parseMaterial()),
+
+    MEDIUM_AMETHYST_BUD((player, version, data, x, y, z) -> {
+        Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
+        return getAmethystBox(cluster.getFacing(), 4, 3);
+    }, XMaterial.MEDIUM_AMETHYST_BUD.parseMaterial()),
+
+    LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> {
+        Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
+        return getAmethystBox(cluster.getFacing(), 5, 3);
+    }, XMaterial.LARGE_AMETHYST_BUD.parseMaterial()),
+
     NONE(NoCollisionBox.INSTANCE, XMaterial.REDSTONE_WIRE.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial(),
             XMaterial.RAIL.parseMaterial(), XMaterial.ACTIVATOR_RAIL.parseMaterial(), XMaterial.DETECTOR_RAIL.parseMaterial(), XMaterial.AIR.parseMaterial(), XMaterial.TALL_GRASS.parseMaterial(),
             XMaterial.TRIPWIRE.parseMaterial(), XMaterial.TRIPWIRE_HOOK.parseMaterial()),
@@ -809,7 +913,6 @@ public enum CollisionData {
     private final Material[] materials;
     private CollisionBox box;
     private CollisionFactory dynamic;
-
     CollisionData(CollisionBox box, Material... materials) {
         this.box = box;
         Set<Material> mList = new HashSet<>(Arrays.asList(materials));
@@ -822,6 +925,24 @@ public enum CollisionData {
         Set<Material> mList = new HashSet<>(Arrays.asList(materials));
         mList.remove(null); // Sets can contain one null
         this.materials = mList.toArray(new Material[0]);
+    }
+
+    private static CollisionBox getAmethystBox(BlockFace facing, int param_0, int param_1) {
+        switch (facing) {
+            default:
+            case UP:
+                return new HexCollisionBox(param_1, 0.0, param_1, 16 - param_1, param_0, 16 - param_1);
+            case DOWN:
+                return new HexCollisionBox(param_1, 16 - param_0, param_1, 16 - param_1, 16.0, 16 - param_1);
+            case NORTH:
+                return new HexCollisionBox(param_1, param_1, 16 - param_0, 16 - param_1, 16 - param_1, 16.0);
+            case SOUTH:
+                return new HexCollisionBox(param_1, param_1, 0.0, 16 - param_1, 16 - param_1, param_0);
+            case EAST:
+                return new HexCollisionBox(0.0, param_1, param_1, param_0, 16 - param_1, 16 - param_1);
+            case WEST:
+                return new HexCollisionBox(16 - param_0, param_1, param_1, 16.0, 16 - param_1, 16 - param_1);
+        }
     }
 
     public static CollisionData getData(Material material) {
