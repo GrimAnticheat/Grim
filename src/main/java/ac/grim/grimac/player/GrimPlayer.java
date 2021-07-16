@@ -268,10 +268,6 @@ public class GrimPlayer {
         return possibleMovements;
     }
 
-    public void addTransactionSend(short id) {
-        transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
-    }
-
     // Players can get 0 ping by repeatedly sending invalid transaction packets, but that will only hurt them
     // The design is allowing players to miss transaction packets, which shouldn't be possible
     // But if some error made a client miss a packet, then it won't hurt them too bad.
@@ -380,6 +376,10 @@ public class GrimPlayer {
         // We return a range of -32767 to 0
         // Allowing a range of -32768 to 0 for velocity + explosions
         return (short) (-1 * (lastTransactionSent.getAndAdd(add) & 0x7FFF));
+    }
+
+    public void addTransactionSend(short id) {
+        transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
     }
 
     // I made an off by one error extremely early in this project indexing at 0 versus 1

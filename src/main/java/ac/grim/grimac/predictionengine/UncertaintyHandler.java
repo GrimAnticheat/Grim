@@ -52,7 +52,7 @@ public class UncertaintyHandler {
     public boolean lastTickWasNearGroundZeroPointZeroThree = false;
 
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
-    public boolean lastMovementWasZeroPointZeroThree = false;
+    public boolean lastMovementWasZeroPointZeroThree = true;
     // Give horizontal lenience if two movements ago was 0.03 because especially on ice it matters
     public boolean lastLastMovementWasZeroPointZeroThree = false;
 
