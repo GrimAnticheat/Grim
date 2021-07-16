@@ -75,7 +75,11 @@ public class PredictionEngine {
                 //
                 // Note that sometimes the first and closest velocity isn't the closest because collisions
                 // The player may only be able to move a slight amount compared to what the initial vector shows
-                if (resultAccuracy < 1e-6) break;
+                //
+                // 0.001 was causing issues with horizontal collision resulting in 1e-4 (which should flag checks!)
+                // Ladders are the best way to see this behavior
+                // Remember this is squared so it is actually 0.0001
+                if (resultAccuracy < 0.0001 * 0.0001) break;
             }
         }
 
@@ -386,7 +390,6 @@ public class PredictionEngine {
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
-        player.clientVelocityOnLadder = null;
         player.clientVelocitySwimHop = null;
 
         if (canSwimHop(player)) {
