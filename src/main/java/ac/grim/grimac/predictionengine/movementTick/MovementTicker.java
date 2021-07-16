@@ -20,7 +20,8 @@ import org.bukkit.util.Vector;
 import java.util.Collections;
 
 public class MovementTicker {
-    private static final Material slime = XMaterial.SLIME_BLOCK.parseMaterial();
+    private static final Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
+    private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
     public final Player bukkitPlayer;
     public final GrimPlayer player;
 
@@ -82,7 +83,8 @@ public class MovementTicker {
         }
 
         if (inputVel.getY() != collide.getY()) {
-            if (onBlock == slime && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
+            if ((onBlock == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)) ||
+                    (onBlock == SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8))) {
                 if (player.isSneaking) { // Slime blocks use shifting instead of sneaking
                     player.clientVelocity.setY(0);
                 } else {

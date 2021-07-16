@@ -55,6 +55,10 @@ public class DynamicChorusPlant implements CollisionFactory {
 
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+        // ViaVersion replacement block (Purple wool)
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_8))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
         // Player is 1.12- on 1.13 server
         // Player is 1.12 on 1.12 server
         if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
@@ -86,18 +90,6 @@ public class DynamicChorusPlant implements CollisionFactory {
         float f6 = faces.contains(BlockFace.SOUTH) ? 1.0F : 0.8125F;
 
         return new SimpleCollisionBox(f1, f2, f3, f4, f5, f6);
-    }
-
-    protected int getAABBIndex(Set<BlockFace> p_196486_1_) {
-        int i = 0;
-
-        for (int j = 0; j < directions.length; ++j) {
-            if (p_196486_1_.contains(directions[j])) {
-                i |= 1 << j;
-            }
-        }
-
-        return i;
     }
 
     public Set<BlockFace> getLegacyStates(GrimPlayer player, ClientVersion version, int x, int y, int z) {
@@ -134,5 +126,17 @@ public class DynamicChorusPlant implements CollisionFactory {
         }
 
         return faces;
+    }
+
+    protected int getAABBIndex(Set<BlockFace> p_196486_1_) {
+        int i = 0;
+
+        for (int j = 0; j < directions.length; ++j) {
+            if (p_196486_1_.contains(directions[j])) {
+                i |= 1 << j;
+            }
+        }
+
+        return i;
     }
 }
