@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
@@ -21,7 +22,6 @@ import org.bukkit.block.data.type.*;
 import org.bukkit.entity.Boat;
 import org.bukkit.inventory.ItemStack;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -518,25 +518,13 @@ public enum CollisionData {
     CHAIN_BLOCK((player, version, data, x, y, z) -> {
         Chain chain = (Chain) ((WrappedFlatBlock) data).getBlockData();
 
-        try {
-            // getAxis fails and causes an initialization error on older versions
-            // There probably is a better way but this works.
-            Enum axis = (Enum) chain.getClass().getDeclaredMethod("getAxis").invoke(chain);
-
-            switch (axis.ordinal()) {
-                case 0: // X
-                    return new HexCollisionBox(0.0D, 6.5D, 6.5D, 16.0D, 9.5D, 9.5D);
-                case 1: // Y
-                    return new HexCollisionBox(6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
-                default:
-                case 2: // Z
-                    return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
-            }
-        } catch (InvocationTargetException | IllegalAccessException | NoSuchMethodException e) {
-            e.printStackTrace();
+        if (chain.getAxis() == Axis.X) {
+            return new HexCollisionBox(0.0D, 6.5D, 6.5D, 16.0D, 9.5D, 9.5D);
+        } else if (chain.getAxis() == Axis.Y) {
+            return new HexCollisionBox(6.5D, 0.0D, 6.5D, 9.5D, 16.0D, 9.5D);
         }
 
-        return NoCollisionBox.INSTANCE;
+        return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
     }, XMaterial.CHAIN.parseMaterial()),
 
     SWEET_BERRY((player, version, data, x, y, z) -> {
@@ -918,16 +906,14 @@ public enum CollisionData {
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
         BigDripleaf dripleaf = (BigDripleaf) ((WrappedFlatBlock) data).getBlockData();
 
-        switch (dripleaf.getTilt()) {
-            case NONE:
-            case UNSTABLE:
-                return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 15.0, 16.0);
-            case PARTIAL:
-                return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 13.0, 16.0);
-            default:
-            case FULL:
-                return NoCollisionBox.INSTANCE;
+        if (dripleaf.getTilt() == BigDripleaf.Tilt.NONE || dripleaf.getTilt() == BigDripleaf.Tilt.UNSTABLE) {
+            return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 15.0, 16.0);
+        } else if (dripleaf.getTilt() == BigDripleaf.Tilt.PARTIAL) {
+            return new HexCollisionBox(0.0, 11.0, 0.0, 16.0, 13.0, 16.0);
         }
+
+        return NoCollisionBox.INSTANCE;
+
     }, XMaterial.BIG_DRIPLEAF.parseMaterial()),
 
     DRIPSTONE((player, version, data, x, y, z) -> {
