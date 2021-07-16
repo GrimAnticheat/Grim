@@ -28,6 +28,12 @@ import java.util.Set;
 
 import static ac.grim.grimac.utils.nmsImplementations.Materials.matchLegacy;
 
+// Warning for major game updates!
+// Do not use an enum for stuff like Axis and other data types not in 1.7
+// Meaning only stuff like getDirection() should have enums
+//
+// An enum will break support for all previous versions which is very bad
+// An if statement for new data types is perfectly safe and should be used instead
 public enum CollisionData {
     VINE((player, version, block, x, y, z) -> {
         ComplexCollisionBox boxes = new ComplexCollisionBox();
