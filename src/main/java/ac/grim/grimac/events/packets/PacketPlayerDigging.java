@@ -1,5 +1,4 @@
 package ac.grim.grimac.events.packets;
-
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
@@ -17,6 +16,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPa
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -124,8 +124,26 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 return;
 
             // 1.9+ use the use item packet for this
-            if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8))
-                player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
+            if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8)) {
+                Vector3i position = place.getBlockPosition();
+
+                switch (place.getDirection()) {
+                    case UP:
+                        position.setY(position.getY() + 1);
+                    case DOWN:
+                        position.setY(position.getY() - 1);
+                    case EAST:
+                        position.setX(position.getX() + 1);
+                    case WEST:
+                        position.setX(position.getX() - 1);
+                    case NORTH:
+                        position.setZ(position.getZ() - 1);
+                    case SOUTH:
+                        position.setZ(position.getZ() + 1);
+                }
+
+                player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(position, player.packetStateData.packetLastTransactionReceived.get()));
+            }
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
             // https://github.com/Updated-NoCheatPlus/NoCheatPlus/blob/master/NCPCompatProtocolLib/src/main/java/fr/neatmonster/nocheatplus/checks/net/protocollib/NoSlow.java
