@@ -1,4 +1,5 @@
 package ac.grim.grimac.events.packets;
+
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
@@ -14,6 +15,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.Wrappe
 import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.WrappedPacketInHeldItemSlot;
 import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPacketInUseItem;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -124,25 +126,35 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 return;
 
             // 1.9+ use the use item packet for this
-            if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8)) {
-                Vector3i position = place.getBlockPosition();
+            if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
+                Direction face = place.getDirection();
+                // OTHER means it wasn't a block place
+                if (face != Direction.OTHER) {
+                    Vector3i position = place.getBlockPosition();
 
-                switch (place.getDirection()) {
-                    case UP:
-                        position.setY(position.getY() + 1);
-                    case DOWN:
-                        position.setY(position.getY() - 1);
-                    case EAST:
-                        position.setX(position.getX() + 1);
-                    case WEST:
-                        position.setX(position.getX() - 1);
-                    case NORTH:
-                        position.setZ(position.getZ() - 1);
-                    case SOUTH:
-                        position.setZ(position.getZ() + 1);
+                    switch (place.getDirection()) {
+                        case UP:
+                            position.setY(position.getY() + 1);
+                            break;
+                        case DOWN:
+                            position.setY(position.getY() - 1);
+                            break;
+                        case EAST:
+                            position.setX(position.getX() + 1);
+                            break;
+                        case WEST:
+                            position.setX(position.getX() - 1);
+                            break;
+                        case NORTH:
+                            position.setZ(position.getZ() - 1);
+                            break;
+                        case SOUTH:
+                            position.setZ(position.getZ() + 1);
+                            break;
+                    }
+
+                    player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(position, player.packetStateData.packetLastTransactionReceived.get()));
                 }
-
-                player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(position, player.packetStateData.packetLastTransactionReceived.get()));
             }
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
