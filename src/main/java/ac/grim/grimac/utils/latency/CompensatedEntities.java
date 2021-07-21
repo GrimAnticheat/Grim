@@ -207,7 +207,7 @@ public class CompensatedEntities {
                 d1 *= 1.0D + attributemodifier.getAmount();
         }
 
-        return GrimMathHelper.clamp(d1, minValue, maxValue);
+        return GrimMathHelper.clampFloat((float) d1, (float) minValue, (float) maxValue);
     }
 
     private void tickPassenger(PacketEntity riding, PacketEntity passenger) {

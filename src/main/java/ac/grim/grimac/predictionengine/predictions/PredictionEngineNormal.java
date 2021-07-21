@@ -27,9 +27,9 @@ public class PredictionEngineNormal extends PredictionEngine {
             d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
         }
 
-        vector.setX(vector.getX() * player.friction);
-        vector.setY(d9 * 0.9800000190734863);
-        vector.setZ(vector.getZ() * player.friction);
+        vector.setX(vector.getX() * (double) player.friction);
+        vector.setY(d9 * (double) 0.98F);
+        vector.setZ(vector.getZ() * (double) player.friction);
     }
 
     @Override

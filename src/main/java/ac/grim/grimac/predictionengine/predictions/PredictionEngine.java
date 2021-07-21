@@ -18,13 +18,45 @@ import java.util.*;
 public class PredictionEngine {
     boolean canRiptide = false;
 
+    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
+
+        // Slow movement was determined by the previous pose
+        if (player.isSlowMovement) {
+            bestPossibleX = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getX() / 0.3)), 1f) * 0.3d);
+            bestPossibleZ = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ() / 0.3)), 1f) * 0.3d);
+        } else {
+            bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
+            bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
+        }
+
+        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
+            bestPossibleX *= 0.2F;
+            bestPossibleZ *= 0.2F;
+        }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98F);
+
+        // Simulate float rounding imprecision
+        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
+
+        if (inputVector.lengthSquared() > 1) {
+            double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
+            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
+        }
+
+        return inputVector;
+    }
+
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
         double bestInput = Double.MAX_VALUE;
 
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
-        // Other checks will catch ground spoofing - determine if the player can make an input below 0.03
+        // Determine if the player can make an input below 0.03
         player.couldSkipTick = false;
         if (!player.inVehicle) {
             if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
@@ -91,25 +123,6 @@ public class PredictionEngine {
         endOfTick(player, player.gravity, player.friction);
     }
 
-    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> returnVectors = new ArrayList<>();
-        loopVectors(player, possibleVectors, speed, returnVectors);
-
-        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
-        // It mostly occurs when the player takes damage.
-        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
-        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
-        // If a player in this glitched state lets go of moving forward, then become un-glitched
-        if (player.isSprinting) {
-            player.isSprinting = false;
-            speed /= 1.3D;
-            loopVectors(player, possibleVectors, speed, returnVectors);
-            player.isSprinting = true;
-        }
-
-        return returnVectors;
-    }
-
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
         Set<VectorData> velocities = player.getPossibleVelocities();
 
@@ -122,49 +135,23 @@ public class PredictionEngine {
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
     }
 
-    public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
-        int aScore = 0;
-        int bScore = 0;
+    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+        List<VectorData> returnVectors = new ArrayList<>();
+        loopVectors(player, possibleVectors, speed, returnVectors);
 
-        // Fixes false using riptide under 2 blocks of water
-        boolean aTridentJump = a.hasVectorType(VectorData.VectorType.Trident) && !a.hasVectorType(VectorData.VectorType.Jump);
-        boolean bTridentJump = b.hasVectorType(VectorData.VectorType.Trident) && !b.hasVectorType(VectorData.VectorType.Jump);
+        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
+        // It mostly occurs when the player takes damage.
+        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
+        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
+        // If a player in this glitched state lets go of moving forward, then become un-glitched
+        if (player.isSprinting) {
+            player.isSprinting = false;
+            speed -= speed * 0.3F;
+            loopVectors(player, possibleVectors, speed, returnVectors);
+            player.isSprinting = true;
+        }
 
-        if (aTridentJump && !bTridentJump)
-            return -1;
-
-        if (bTridentJump && !aTridentJump)
-            return 1;
-
-        // Put explosions and knockback first so they are applied to the player
-        // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
-        if (a.hasVectorType(VectorData.VectorType.Explosion))
-            aScore++;
-
-        if (a.hasVectorType(VectorData.VectorType.Knockback))
-            aScore++;
-
-        if (b.hasVectorType(VectorData.VectorType.Explosion))
-            bScore++;
-
-        if (b.hasVectorType(VectorData.VectorType.Knockback))
-            bScore++;
-
-        if (aScore != bScore)
-            return Integer.compare(aScore, bScore);
-
-        // If all else fails, just compare the distance and use the one closest to the player
-        // It's an optimization and isn't really required
-        double x = player.actualMovement.getX();
-        double y = player.actualMovement.getY();
-        double z = player.actualMovement.getZ();
-
-        // Weight y distance heavily to avoid jumping when we shouldn't be jumping, as it affects later ticks.
-        // Issue with this mainly occurs with < 0.03 movement in stuff such as cobwebs
-        double distance1 = Math.pow(a.vector.getX() - x, 2) + Math.pow(a.vector.getY() - y, 2) * 5 + Math.pow(a.vector.getZ() - z, 2);
-        double distance2 = Math.pow(b.vector.getX() - x, 2) + Math.pow(b.vector.getY() - y, 2) * 5 + Math.pow(b.vector.getZ() - z, 2);
-
-        return Double.compare(distance1, distance2);
+        return returnVectors;
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
@@ -330,36 +317,38 @@ public class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
+    public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
+        int aScore = 0;
+        int bScore = 0;
 
-        // Slow movement was determined by the previous pose
-        if (player.isSlowMovement) {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX() / 0.3)), 1) * 0.3f;
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ() / 0.3)), 1) * 0.3f;
-        } else {
-            bestPossibleX = Math.min(Math.max(-1, Math.round(theoreticalInput.getX())), 1);
-            bestPossibleZ = Math.min(Math.max(-1, Math.round(theoreticalInput.getZ())), 1);
-        }
+        // Fixes false using riptide under 2 blocks of water
+        boolean aTridentJump = a.hasVectorType(VectorData.VectorType.Trident) && !a.hasVectorType(VectorData.VectorType.Jump);
+        boolean bTridentJump = b.hasVectorType(VectorData.VectorType.Trident) && !b.hasVectorType(VectorData.VectorType.Jump);
 
-        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
-            bestPossibleX *= 0.2F;
-            bestPossibleZ *= 0.2F;
-        }
+        if (aTridentJump && !bTridentJump)
+            return -1;
 
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98);
+        if (bTridentJump && !aTridentJump)
+            return 1;
 
-        // Simulate float rounding imprecision
-        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
+        // Put explosions and knockback first so they are applied to the player
+        // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
+        if (a.hasVectorType(VectorData.VectorType.Explosion))
+            aScore++;
 
-        if (inputVector.lengthSquared() > 1) {
-            double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
-            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
-        }
+        if (a.hasVectorType(VectorData.VectorType.Knockback))
+            aScore++;
 
-        return inputVector;
+        if (b.hasVectorType(VectorData.VectorType.Explosion))
+            bScore++;
+
+        if (b.hasVectorType(VectorData.VectorType.Knockback))
+            bScore++;
+
+        if (aScore != bScore)
+            return Integer.compare(aScore, bScore);
+
+        return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
     }
 
     public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
