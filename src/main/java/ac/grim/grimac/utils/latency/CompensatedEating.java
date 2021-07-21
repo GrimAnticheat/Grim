@@ -20,7 +20,12 @@ public class CompensatedEating {
             ServerToClientEating data = eatingData.peek();
 
             if (data == null) break;
-            // The anticheat thread is behind, this event has not occurred yet
+
+            // We don't know if the packet has arrived yet
+            if (data.transaction - 1 > lastTransactionReceived) break;
+            player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
+
+            // The packet has 100% arrived
             if (data.transaction > lastTransactionReceived) break;
             eatingData.poll();
 
