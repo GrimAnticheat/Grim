@@ -95,18 +95,18 @@ public class PredictionEngineNormal extends PredictionEngine {
 
     @Override
     public void endOfTick(GrimPlayer player, double d, float friction) {
-        player.clientVelocityOnLadder = null;
+        super.endOfTick(player, d, friction);
 
         // Force 1.13.2 and below players to have something to collide with horizontally to climb-
         if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5)))) {
-            player.clientVelocityOnLadder = player.clientVelocity.clone().setY(0.2);
+            Vector ladder = player.clientVelocity.clone().setY(0.2);
+            staticVectorEndOfTick(player, ladder);
+            player.lastWasClimbing = ladder.getY();
         }
 
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
             staticVectorEndOfTick(player, vector.vector);
         }
-
-        super.endOfTick(player, d, friction);
     }
 }

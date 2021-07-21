@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
@@ -45,7 +44,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
                 d1 = d0;
             }
 
-            player.baseTickSetY(d1 / 0.98);
+            player.clientVelocity.setY(d1 / 0.98);
             player.horseJumping = true;
 
             if (f1 > 0.0F) {

@@ -57,7 +57,7 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
 
     @Override
     public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
-        player.clientVelocityOnLadder = null;
+        super.endOfTick(player, playerGravity, friction);
 
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
             vector.vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
@@ -65,7 +65,5 @@ public class PredictionEngineWaterLegacy extends PredictionEngine {
             // Gravity
             vector.vector.setY(vector.vector.getY() - 0.02D);
         }
-
-        super.endOfTick(player, playerGravity, friction);
     }
 }

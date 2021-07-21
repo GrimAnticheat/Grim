@@ -32,9 +32,6 @@ public class MovementTicker {
 
     public void move(Vector inputVel, Vector collide) {
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
-            player.baseTickSetX(0);
-            player.baseTickSetY(0);
-            player.baseTickSetZ(0);
             player.clientVelocity = new Vector();
         }
 
@@ -50,7 +47,7 @@ public class MovementTicker {
         // The player's onGround status isn't given when riding a vehicle, so we don't have a choice in whether we calculate or not
         //
         // Trust the onGround status if the player is near the ground and they sent a ground packet
-        if (player.inVehicle || (player.clientVelocitySwimHop == null
+        if (player.inVehicle || (!player.canSwimHop
                 && player.uncertaintyHandler.pistonX == 0 && player.uncertaintyHandler.pistonY == 0 && player.uncertaintyHandler.pistonZ == 0
                 && player.uncertaintyHandler.slimePistonBounces.isEmpty() && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnSlime
@@ -254,11 +251,11 @@ public class MovementTicker {
 
             if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) || player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident)
                     || player.uncertaintyHandler.yPositiveUncertainty != 0 || player.uncertaintyHandler.yNegativeUncertainty != 0) {
-                player.baseTickSetY(player.actualMovement.getY() * 0.6);
+                player.clientVelocity.setY(player.actualMovement.getY() * 0.6);
             } else if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
-                player.baseTickSetY(oldY * 0.6);
+                player.clientVelocity.setY(oldY * 0.6);
             } else {
-                player.baseTickSetY(oldYJumping * 0.6);
+                player.clientVelocity.setY(oldYJumping * 0.6);
             }
 
         } else {
@@ -314,7 +311,7 @@ public class MovementTicker {
 
             // 1.12 and below players can't climb ladders while touching water
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isClimbing) {
-                player.clientVelocityOnLadder = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.16));
+                player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.16)).getY();
             }
 
         } else {
