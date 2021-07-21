@@ -90,6 +90,7 @@ public class Materials {
         markAs(XMaterial.BIG_DRIPLEAF, SOLID);
         markAs(XMaterial.AZALEA, SOLID);
         markAs(XMaterial.FLOWERING_AZALEA, SOLID);
+        markAs(XMaterial.POINTED_DRIPSTONE, SOLID);
 
         markAs(XMaterial.WATER, WATER);
 
