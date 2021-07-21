@@ -4,6 +4,8 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import io.github.retrooper.packetevents.PacketEvents;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,6 +17,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PlayerJoinQuitListener implements Listener {
 
+    public static boolean isViaLegacyUpdated = true;
+
     // Allow other plugins to modify login location or flight status
     @EventHandler(priority = EventPriority.MONITOR)
     public void playerJoinEvent(PlayerJoinEvent event) {
@@ -23,6 +27,16 @@ public class PlayerJoinQuitListener implements Listener {
         if (PacketEvents.get().getPlayerUtils().isGeyserPlayer(bukkitPlayer)) return;
 
         GrimPlayer player = new GrimPlayer(bukkitPlayer);
+
+        // We can't send transaction packets to this player, disable the anticheat for them
+        if (!isViaLegacyUpdated && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_16_4)) {
+            GrimAC.staticGetLogger().warning(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
+            GrimAC.staticGetLogger().warning(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
+            GrimAC.staticGetLogger().warning(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
+            GrimAC.staticGetLogger().warning(ChatColor.RED + "Supported version: " + ChatColor.WHITE + "https://github.com/ViaVersion/ViaBackwards/actions/runs/1039987269");
+            return;
+        }
+
         player.lastX = bukkitPlayer.getLocation().getX();
         player.lastY = bukkitPlayer.getLocation().getY();
         player.lastZ = bukkitPlayer.getLocation().getZ();
