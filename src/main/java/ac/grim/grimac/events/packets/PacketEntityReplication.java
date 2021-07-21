@@ -68,7 +68,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
             if (move.getDeltaX() != 0 || move.getDeltaY() != 0 || move.getDeltaZ() != 0)
                 player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(move.getEntityId(),
-                        move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), player.lastTransactionSent.get(), true));
+                        move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), player.getTrueLastTransactionSent(), true));
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
@@ -80,7 +80,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             Vector3d position = teleport.getPosition();
 
             player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(teleport.getEntityId(),
-                    position.getX(), position.getY(), position.getZ(), player.lastTransactionSent.get(), false));
+                    position.getX(), position.getY(), position.getZ(), player.getTrueLastTransactionSent(), false));
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_METADATA) {
@@ -89,7 +89,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects(), player.lastTransactionSent.get()));
+            player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects(), player.getTrueLastTransactionSent()));
         }
 
         if (packetID == PacketType.Play.Server.UPDATE_ATTRIBUTES) {
@@ -103,7 +103,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             PacketEntity entity = player.compensatedEntities.getEntity(attributes.getEntityId());
             if (player.entityID == entityID || entity instanceof PacketEntityHorse || entity instanceof PacketEntityRideable) {
                 event.setPostTask(player::sendTransactionOrPingPong);
-                player.compensatedEntities.entityPropertiesData.add(new EntityPropertiesData(entityID, attributes.getProperties(), player.lastTransactionSent.get()));
+                player.compensatedEntities.entityPropertiesData.add(new EntityPropertiesData(entityID, attributes.getProperties(), player.getTrueLastTransactionSent()));
             }
         }
 

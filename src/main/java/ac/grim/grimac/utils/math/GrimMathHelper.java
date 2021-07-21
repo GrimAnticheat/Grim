@@ -18,6 +18,14 @@ public class GrimMathHelper {
         return Math.min(d, d3);
     }
 
+    public static float clampFloat(float d, float d2, float d3) {
+        if (d < d2) {
+            return d2;
+        }
+        return Math.min(d, d3);
+    }
+
+
     public static boolean equal(double d, double d2) {
         return Math.abs(d2 - d) < 9.999999747378752E-6;
     }

@@ -416,10 +416,12 @@ public class MovementCheckRunner {
 
         player.uncertaintyHandler.wasLastGravityUncertain = player.uncertaintyHandler.gravityUncertainty != 0;
         player.uncertaintyHandler.lastLastMovementWasZeroPointZeroThree = player.uncertaintyHandler.lastMovementWasZeroPointZeroThree;
-        player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01) || player.predictedVelocity.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
+        player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.isFirstTick || (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01) || player.predictedVelocity.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
         player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().offset(0, -0.03, 0));
+
+        player.isFirstTick = false;
 
         player.knockbackHandler.handlePlayerKb(offset);
         player.explosionHandler.handlePlayerExplosion(offset);
@@ -428,7 +430,7 @@ public class MovementCheckRunner {
 
         player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        player.bukkitPlayer.sendMessage("O:" + color + offset);
+        player.bukkitPlayer.sendMessage("O: " + color + offset);
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());

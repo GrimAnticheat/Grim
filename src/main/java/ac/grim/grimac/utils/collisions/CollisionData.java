@@ -910,6 +910,9 @@ public enum CollisionData {
     SCULK_SENSOR(new HexCollisionBox(0.0, 0.0, 0.0, 16.0, 8.0, 16.0), XMaterial.SCULK_SENSOR.parseMaterial()),
 
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_16_4))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
         BigDripleaf dripleaf = (BigDripleaf) ((WrappedFlatBlock) data).getBlockData();
 
         if (dripleaf.getTilt() == BigDripleaf.Tilt.NONE || dripleaf.getTilt() == BigDripleaf.Tilt.UNSTABLE) {
@@ -952,6 +955,9 @@ public enum CollisionData {
     }, XMaterial.DRIPSTONE_BLOCK.parseMaterial()),
 
     POWDER_SNOW((player, version, data, x, y, z) -> {
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_16_4))
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+
         // Who makes a collision box dependent on fall distance?? If fall distance greater than 2.5, 0.899999 box
         // Until we accurately get fall distance, just let players decide what box they get
         if (Math.abs((player.y % 1.0) - 0.89999997615814) < 0.001) {
@@ -973,22 +979,22 @@ public enum CollisionData {
 
     AMETHYST_CLUSTER((player, version, data, x, y, z) -> {
         Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
-        return getAmethystBox(cluster.getFacing(), 7, 3);
+        return getAmethystBox(version, cluster.getFacing(), 7, 3);
     }, XMaterial.AMETHYST_CLUSTER.parseMaterial()),
 
     SMALL_AMETHYST_BUD((player, version, data, x, y, z) -> {
         Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
-        return getAmethystBox(cluster.getFacing(), 3, 4);
+        return getAmethystBox(version, cluster.getFacing(), 3, 4);
     }, XMaterial.SMALL_AMETHYST_BUD.parseMaterial()),
 
     MEDIUM_AMETHYST_BUD((player, version, data, x, y, z) -> {
         Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
-        return getAmethystBox(cluster.getFacing(), 4, 3);
+        return getAmethystBox(version, cluster.getFacing(), 4, 3);
     }, XMaterial.MEDIUM_AMETHYST_BUD.parseMaterial()),
 
     LARGE_AMETHYST_BUD((player, version, data, x, y, z) -> {
         Directional cluster = (Directional) ((WrappedFlatBlock) data).getBlockData();
-        return getAmethystBox(cluster.getFacing(), 5, 3);
+        return getAmethystBox(version, cluster.getFacing(), 5, 3);
     }, XMaterial.LARGE_AMETHYST_BUD.parseMaterial()),
 
     NONE(NoCollisionBox.INSTANCE, XMaterial.REDSTONE_WIRE.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial(),
@@ -1028,7 +1034,10 @@ public enum CollisionData {
         this.materials = mList.toArray(new Material[0]);
     }
 
-    private static CollisionBox getAmethystBox(BlockFace facing, int param_0, int param_1) {
+    private static CollisionBox getAmethystBox(ClientVersion version, BlockFace facing, int param_0, int param_1) {
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_16_4))
+            return NoCollisionBox.INSTANCE;
+
         switch (facing) {
             default:
             case UP:

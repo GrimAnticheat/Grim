@@ -1,7 +1,5 @@
 # GrimAC
 
-Note: Progress is temporarily paused (again) and will resume July 20th.
-
 GrimAC is an open source anticheat designed for 1.16 and supporting 1.7-1.16. It will be sold for $15 on SpigotMC and
 other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats. It is
 planning to release either June or July 2021.

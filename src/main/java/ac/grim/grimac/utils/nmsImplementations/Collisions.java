@@ -386,11 +386,13 @@ public class Collisions {
                         player.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
                     }
 
-                    if (blockType == SWEET_BERRY_BUSH) {
+                    if (blockType == SWEET_BERRY_BUSH
+                            && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
                         player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
                     }
 
-                    if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z)) {
+                    if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z)
+                            && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) {
                         player.stuckSpeedMultiplier = new Vector(0.8999999761581421, 1.5, 0.8999999761581421);
                     }
 
