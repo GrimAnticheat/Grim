@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
+import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -951,8 +952,8 @@ public enum CollisionData {
         i = i * i * 42317861L + i * 11L;
         i = i >> 16;
 
-        return box.offset((((i & 15L) / 15.0F) - 0.5D) * 0.5D, 0, (((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D);
-    }, XMaterial.DRIPSTONE_BLOCK.parseMaterial()),
+        return box.offset(GrimMathHelper.clamp((((i & 15L) / 15.0F) - 0.5D) * 0.5D, -0.125f, 0.125f), 0, GrimMathHelper.clamp((((i >> 8 & 15L) / 15.0F) - 0.5D) * 0.5D, -0.125f, 0.125f));
+    }, XMaterial.POINTED_DRIPSTONE.parseMaterial()),
 
     POWDER_SNOW((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_16_4))
