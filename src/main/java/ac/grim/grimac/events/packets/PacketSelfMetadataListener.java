@@ -74,7 +74,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // - Server: Okay, I will not make you eat or stop eating because it makes sense that the server doesn't control a player's eating.
                         //
                         // This was added for stuff like shields, but IMO it really should be all client sided
-                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
                             boolean isActive = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
                             boolean hand = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
 
