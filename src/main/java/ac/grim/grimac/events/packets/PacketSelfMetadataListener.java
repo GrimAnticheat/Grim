@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.ServerToClientEating;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -58,6 +59,30 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         boolean isRiptiding = (((byte) riptide.get().getRawValue()) & 0x04) == 0x04;
 
                         player.compensatedRiptide.setPose(isRiptiding);
+
+                        // 1.9 eating:
+                        // - Client: I am starting to eat
+                        // - Client: I am no longer eating
+                        // - Server: Got that, you are eating!
+                        // - Client: Okay, starting to eat (no response packet because server caused this)
+                        // - Server: I got that you aren't eating, you are not eating!
+                        // - Client: Okay, I am no longer eating (no response packet because server caused this)
+                        //
+                        // 1.8 eating:
+                        // - Client: I am starting to eat
+                        // - Client: I am no longer eating
+                        // - Server: Okay, I will not make you eat or stop eating because it makes sense that the server doesn't control a player's eating.
+                        //
+                        // This was added for stuff like shields, but IMO it really should be all client sided
+                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+                            boolean isActive = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
+                            boolean hand = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
+
+                            // Yes, we do have to use a transaction for eating as otherwise it can desync much easier
+                            event.setPostTask(player::sendTransactionOrPingPong);
+
+                            player.compensatedEating.eatingData.add(new ServerToClientEating(player.lastTransactionSent.get(), isActive, hand));
+                        }
                     }
                 }
             }
