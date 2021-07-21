@@ -31,7 +31,7 @@ public class CompensatedRiptide {
     }
 
     public void setPose(boolean isPose) {
-        lagCompensatedPose.put(player.getTrueLastTransactionSent(), isPose);
+        lagCompensatedPose.put(player.lastTransactionSent.get(), isPose);
     }
 
     public boolean getPose(int lastTransaction) {

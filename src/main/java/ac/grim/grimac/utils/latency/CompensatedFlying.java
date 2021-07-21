@@ -24,7 +24,7 @@ public class CompensatedFlying {
     }
 
     public void setCanPlayerFly(boolean canFly) {
-        lagCompensatedCanFlyMap.put(player.lastTransactionSent.get(), canFly);
+        lagCompensatedCanFlyMap.put(player.lastTransactionSent.get() + 1, canFly);
     }
 
     public boolean canFlyLagCompensated(int lastTransaction) {
