@@ -135,7 +135,7 @@ public final class GrimAC extends JavaPlugin {
         PacketEvents.get().registerListener(new PacketBlockAction());
 
         PacketEvents.get().registerListener(new PacketFireworkListener());
-        PacketEvents.get().registerListener(new PacketElytraListener());
+        PacketEvents.get().registerListener(new PacketSelfMetadataListener());
         PacketEvents.get().registerListener(new PacketPlayerTeleport());
 
         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
