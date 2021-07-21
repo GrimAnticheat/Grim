@@ -30,7 +30,6 @@ public class PlayerBaseTick {
 
     public void doBaseTick() {
         // Keep track of basetick stuff
-        player.baseTickSet = new Vector();
         player.baseTickAddition = new Vector(0, 0, 0);
 
         if (player.specialFlying && player.isSneaking && !player.inVehicle) {
@@ -187,9 +186,9 @@ public class PlayerBaseTick {
         }
         if (direction != null) {
             if (direction == BlockFace.WEST || direction == BlockFace.EAST) {
-                player.baseTickSetX(0.1 * (double) direction.getModX());
+                player.clientVelocity.setX(0.1 * (double) direction.getModX());
             } else {
-                player.baseTickSetZ(0.1 * (double) direction.getModZ());
+                player.clientVelocity.setZ(0.1 * (double) direction.getModZ());
             }
         }
     }

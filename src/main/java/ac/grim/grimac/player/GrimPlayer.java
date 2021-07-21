@@ -53,8 +53,8 @@ public class GrimPlayer {
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Vector clientVelocity = new Vector();
-    public Vector clientVelocityOnLadder = new Vector();
-    public Vector clientVelocitySwimHop = new Vector();
+    public double lastWasClimbing = 0;
+    public boolean canSwimHop = false;
     public VectorData predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Normal);
     public Vector actualMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
@@ -154,7 +154,6 @@ public class GrimPlayer {
     public TrigHandler trigHandler;
     public PacketStateData packetStateData;
     // Keep track of basetick stuff
-    public Vector baseTickSet = new Vector();
     public Vector baseTickAddition = new Vector();
     // This is wrong and needs to be index'd at 0!!!!  But everything was written incorrectly and off by 1!
     public AtomicInteger lastTransactionSent = new AtomicInteger(1);
@@ -243,12 +242,12 @@ public class GrimPlayer {
         Set<VectorData> possibleMovements = new HashSet<>();
         possibleMovements.add(new VectorData(clientVelocity, VectorData.VectorType.Normal));
 
-        if (clientVelocityOnLadder != null) {
-            possibleMovements.add(new VectorData(clientVelocityOnLadder, VectorData.VectorType.Climbable));
+        if (canSwimHop) {
+            possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f), VectorData.VectorType.Swimhop));
         }
 
-        if (clientVelocitySwimHop != null) {
-            possibleMovements.add(new VectorData(clientVelocitySwimHop, VectorData.VectorType.Swimhop));
+        if (lastWasClimbing != 0) {
+            possibleMovements.add(new VectorData(clientVelocity.clone().setY(lastWasClimbing), VectorData.VectorType.Climbable));
         }
 
         // Knockback takes precedence over piston pushing in my testing
@@ -297,47 +296,7 @@ public class GrimPlayer {
 
     public void baseTickAddVector(Vector vector) {
         baseTickAddition.add(vector);
-
         clientVelocity.add(vector);
-
-        if (clientVelocityOnLadder != null)
-            clientVelocityOnLadder.add(vector);
-
-        if (clientVelocitySwimHop != null)
-            clientVelocitySwimHop.add(vector);
-    }
-
-    public void baseTickSetX(double x) {
-        baseTickSet.setX(x);
-        clientVelocity.setX(x);
-
-        if (clientVelocityOnLadder != null)
-            clientVelocityOnLadder.setX(x);
-
-        if (clientVelocitySwimHop != null)
-            clientVelocitySwimHop.setX(x);
-    }
-
-    public void baseTickSetY(double y) {
-        baseTickSet.setY(y);
-        clientVelocity.setY(y);
-
-        if (clientVelocityOnLadder != null)
-            clientVelocityOnLadder.setY(y);
-
-        if (clientVelocitySwimHop != null)
-            clientVelocitySwimHop.setY(y);
-    }
-
-    public void baseTickSetZ(double z) {
-        baseTickSet.setZ(z);
-        clientVelocity.setZ(z);
-
-        if (clientVelocityOnLadder != null)
-            clientVelocityOnLadder.setZ(z);
-
-        if (clientVelocitySwimHop != null)
-            clientVelocitySwimHop.setZ(z);
     }
 
     public float getMaxUpStep() {

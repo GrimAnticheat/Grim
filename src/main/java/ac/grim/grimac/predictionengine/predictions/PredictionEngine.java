@@ -50,6 +50,25 @@ public class PredictionEngine {
         return inputVector;
     }
 
+    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+        List<VectorData> returnVectors = new ArrayList<>();
+        loopVectors(player, possibleVectors, speed, returnVectors);
+
+        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
+        // It mostly occurs when the player takes damage.
+        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
+        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
+        // If a player in this glitched state lets go of moving forward, then become un-glitched
+        if (player.isSprinting) {
+            player.isSprinting = false;
+            speed -= speed * 0.3F;
+            loopVectors(player, possibleVectors, speed, returnVectors);
+            player.isSprinting = true;
+        }
+
+        return returnVectors;
+    }
+
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
         double bestInput = Double.MAX_VALUE;
@@ -110,8 +129,10 @@ public class PredictionEngine {
                 //
                 // 0.001 was causing issues with horizontal collision resulting in 1e-4 (which should flag checks!)
                 // Ladders are the best way to see this behavior
-                // Remember this is squared so it is actually 0.0001
-                if (resultAccuracy < 0.0001 * 0.0001) break;
+                // Remember this is squared so it is actually 0.00001
+                //
+                // This should likely be the value for the predictions to flag the movement as invalid
+                if (resultAccuracy < 0.00001 * 0.00001) break;
             }
         }
 
@@ -135,25 +156,6 @@ public class PredictionEngine {
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
     }
 
-    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> returnVectors = new ArrayList<>();
-        loopVectors(player, possibleVectors, speed, returnVectors);
-
-        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
-        // It mostly occurs when the player takes damage.
-        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
-        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
-        // If a player in this glitched state lets go of moving forward, then become un-glitched
-        if (player.isSprinting) {
-            player.isSprinting = false;
-            speed -= speed * 0.3F;
-            loopVectors(player, possibleVectors, speed, returnVectors);
-            player.isSprinting = true;
-        }
-
-        return returnVectors;
-    }
-
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
         // Give 0.06 lenience when zero tick
         return getStartingVector(player, vector.vector, vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : player.uncertaintyHandler.lastMovementWasZeroPointZeroThree ? 0.06 : player.uncertaintyHandler.lastLastMovementWasZeroPointZeroThree ? 0.03 : 0);
@@ -172,6 +174,40 @@ public class PredictionEngine {
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
                 vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
+    }
+
+    public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
+        int aScore = 0;
+        int bScore = 0;
+
+        // Fixes false using riptide under 2 blocks of water
+        boolean aTridentJump = a.hasVectorType(VectorData.VectorType.Trident) && !a.hasVectorType(VectorData.VectorType.Jump);
+        boolean bTridentJump = b.hasVectorType(VectorData.VectorType.Trident) && !b.hasVectorType(VectorData.VectorType.Jump);
+
+        if (aTridentJump && !bTridentJump)
+            return -1;
+
+        if (bTridentJump && !aTridentJump)
+            return 1;
+
+        // Put explosions and knockback first so they are applied to the player
+        // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
+        if (a.hasVectorType(VectorData.VectorType.Explosion))
+            aScore++;
+
+        if (a.hasVectorType(VectorData.VectorType.Knockback))
+            aScore++;
+
+        if (b.hasVectorType(VectorData.VectorType.Explosion))
+            bScore++;
+
+        if (b.hasVectorType(VectorData.VectorType.Knockback))
+            bScore++;
+
+        if (aScore != bScore)
+            return Integer.compare(aScore, bScore);
+
+        return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
     }
 
     private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
@@ -305,6 +341,11 @@ public class PredictionEngine {
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
+    public void endOfTick(GrimPlayer player, double d, float friction) {
+        player.canSwimHop = canSwimHop(player);
+        player.lastWasClimbing = 0;
+    }
+
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
     // We need it because of collision support when a player is using speed
     public Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
@@ -317,38 +358,34 @@ public class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
-        int aScore = 0;
-        int bScore = 0;
+    public boolean canSwimHop(GrimPlayer player) {
+        if (player.inVehicle)
+            return false;
 
-        // Fixes false using riptide under 2 blocks of water
-        boolean aTridentJump = a.hasVectorType(VectorData.VectorType.Trident) && !a.hasVectorType(VectorData.VectorType.Jump);
-        boolean bTridentJump = b.hasVectorType(VectorData.VectorType.Trident) && !b.hasVectorType(VectorData.VectorType.Jump);
+        boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
+        boolean inWater = player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
 
-        if (aTridentJump && !bTridentJump)
-            return -1;
+        // Vanilla system ->
+        // Requirement 1 - The player must be in water or lava
+        // Requirement 2 - The player must have X position + X movement, Y position + Y movement - Y position before tick + 0.6, Z position + Z movement have no collision
+        // Requirement 3 - The player must have horizontal collision
 
-        if (bTridentJump && !aTridentJump)
-            return 1;
+        // Our system ->
+        // Requirement 1 - The player must be within 0.1 blocks of water or lava (which is why this is base and not PredictionEngineWater/Lava)
+        // Requirement 2 - The player must have something to collide with within 0.1 blocks
 
-        // Put explosions and knockback first so they are applied to the player
-        // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
-        if (a.hasVectorType(VectorData.VectorType.Explosion))
-            aScore++;
+        // Why remove the empty check?  The real movement is hidden due to the horizontal collision
+        // For example, a 1.14+ player can have a velocity of (10000, 0, 0) and if they are against a wall,
+        // We only see the (0,0,0) velocity.
+        // This means it is impossible to accurately create the requirement of no collision.
+        // Oh well, I guess this could allow some Jesus bypasses next to a wall that has multiple blocks
+        // But it's faster to swim anyways on 1.13+, and faster to just go on land in 1.12-
 
-        if (a.hasVectorType(VectorData.VectorType.Knockback))
-            aScore++;
+        // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
+        // Just give a high lenience to this... not worth the risk of falses
 
-        if (b.hasVectorType(VectorData.VectorType.Explosion))
-            bScore++;
-
-        if (b.hasVectorType(VectorData.VectorType.Knockback))
-            bScore++;
-
-        if (aScore != bScore)
-            return Integer.compare(aScore, bScore);
-
-        return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
+        return canCollideHorizontally && inWater;
     }
 
     public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
@@ -376,41 +413,6 @@ public class PredictionEngine {
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
         return vector;
-    }
-
-    public void endOfTick(GrimPlayer player, double d, float friction) {
-        player.clientVelocitySwimHop = null;
-
-        if (canSwimHop(player)) {
-            player.clientVelocitySwimHop = player.clientVelocity.clone().setY(0.3);
-        }
-    }
-
-    public boolean canSwimHop(GrimPlayer player) {
-        boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
-        boolean inWater = player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
-
-        // Vanilla system ->
-        // Requirement 1 - The player must be in water or lava
-        // Requirement 2 - The player must have X position + X movement, Y position + Y movement - Y position before tick + 0.6, Z position + Z movement have no collision
-        // Requirement 3 - The player must have horizontal collision
-
-        // Our system ->
-        // Requirement 1 - The player must be within 0.1 blocks of water or lava (which is why this is base and not PredictionEngineWater/Lava)
-        // Requirement 2 - The player must have something to collide with within 0.1 blocks
-
-        // Why remove the empty check?  The real movement is hidden due to the horizontal collision
-        // For example, a 1.14+ player can have a velocity of (10000, 0, 0) and if they are against a wall,
-        // We only see the (0,0,0) velocity.
-        // This means it is impossible to accurately create the requirement of no collision.
-        // Oh well, I guess this could allow some Jesus bypasses next to a wall that has multiple blocks
-        // But it's faster to swim anyways on 1.13+, and faster to just go on land in 1.12-
-
-        // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
-        // Just give a high lenience to this... not worth the risk of falses
-
-        return canCollideHorizontally && inWater;
     }
 
     public void doJump(GrimPlayer player, Vector vector) {
