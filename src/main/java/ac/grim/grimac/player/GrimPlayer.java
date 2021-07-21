@@ -152,6 +152,7 @@ public class GrimPlayer {
     public ExplosionHandler explosionHandler;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
+    public CompensatedEating compensatedEating;
     public TrigHandler trigHandler;
     public PacketStateData packetStateData;
     // Keep track of basetick stuff
@@ -216,6 +217,7 @@ public class GrimPlayer {
         explosionHandler = new ExplosionHandler(this);
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
+        compensatedEating = new CompensatedEating(this);
         trigHandler = new TrigHandler(this);
         timerCheck = new TimerCheck(this);
 
@@ -285,6 +287,8 @@ public class GrimPlayer {
                 packetStateData.packetLastTransactionReceived.getAndIncrement();
                 transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
                 playerClockAtLeast = System.currentTimeMillis() - transactionPing;
+
+                compensatedEating.handleTransactionPacket(packetStateData.packetLastTransactionReceived.get());
 
                 knockbackHandler.handleTransactionPacket(data.getFirst());
                 explosionHandler.handleTransactionPacket(data.getFirst());
