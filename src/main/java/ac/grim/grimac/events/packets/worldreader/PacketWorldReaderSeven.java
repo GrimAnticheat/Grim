@@ -169,7 +169,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
                 if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
                     event.setPostTask(player::sendTransactionOrPingPong);
 
-                player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
+                player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
 
             } catch (IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
@@ -214,7 +214,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
                     int blockID = block >> 4 & 255;
                     int blockMagicValue = block & 15;
 
-                    player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get(), chunkX + relativeX, relativeY, chunkZ + relativeZ, blockID | blockMagicValue << 12));
+                    player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, chunkX + relativeX, relativeY, chunkZ + relativeZ, blockID | blockMagicValue << 12));
                 }
             } catch (IllegalAccessException | NoSuchFieldException exception) {
                 exception.printStackTrace();

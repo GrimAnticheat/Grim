@@ -50,7 +50,7 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            int lastTransactionSent = player.getTrueLastTransactionSent();
+            int lastTransactionSent = player.lastTransactionSent.get();
             Vector3d finalPos = new Vector3d(x, y, z);
 
             event.setPostTask(player::sendTransactionOrPingPong);

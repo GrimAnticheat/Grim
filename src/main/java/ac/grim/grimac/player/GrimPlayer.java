@@ -157,8 +157,7 @@ public class GrimPlayer {
     public PacketStateData packetStateData;
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
-    // This is wrong and needs to be index'd at 0!!!!  But everything was written incorrectly and off by 1!
-    public AtomicInteger lastTransactionSent = new AtomicInteger(1);
+    public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
     // For timer checks and fireworks
@@ -344,12 +343,6 @@ public class GrimPlayer {
 
     public void addTransactionSend(short id) {
         transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
-    }
-
-    // I made an off by one error extremely early in this project indexing at 0 versus 1
-    // So I have to slowly convert everything to use this "true" value before fixing the error
-    public int getTrueLastTransactionSent() {
-        return lastTransactionSent.get() - 1;
     }
 
     public boolean isEyeInFluid(FluidTag tag) {

@@ -58,7 +58,7 @@ public class PacketPlayerTeleport extends PacketListenerAbstract {
             teleport.setPitch(pitch);
             teleport.setRelativeFlagsMask((byte) 0);
 
-            final int lastTransactionSent = player.getTrueLastTransactionSent();
+            final int lastTransactionSent = player.lastTransactionSent.get();
             Vector3d finalPos = pos;
 
             event.setPostTask(player::sendTransactionOrPingPong);
