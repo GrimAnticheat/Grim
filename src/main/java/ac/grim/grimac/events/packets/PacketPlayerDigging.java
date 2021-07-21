@@ -180,7 +180,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     // The other items that do require it
-                    if (item.getType().isEdible() && event.getPlayer().getFoodLevel() < 20 || player.bukkitPlayer.getGameMode() == GameMode.CREATIVE) {
+                    if (item.getType().isEdible() && (event.getPlayer().getFoodLevel() < 20 || player.bukkitPlayer.getGameMode() == GameMode.CREATIVE)) {
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 

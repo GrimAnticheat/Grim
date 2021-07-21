@@ -2,7 +2,10 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class CompensatedRiptide {
@@ -11,6 +14,7 @@ public class CompensatedRiptide {
 
     // The integers represent the expiration of the riptide event
     ConcurrentLinkedQueue<Integer> lagCompensatedRiptide = new ConcurrentLinkedQueue<>();
+    ConcurrentHashMap<Integer, Boolean> lagCompensatedPose = new ConcurrentHashMap<>();
     GrimPlayer player;
 
     public CompensatedRiptide(GrimPlayer player) {
@@ -24,6 +28,16 @@ public class CompensatedRiptide {
     public void handleRemoveRiptide() {
         if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))
             lagCompensatedRiptide.poll();
+    }
+
+    public void setPose(boolean isPose) {
+        lagCompensatedPose.put(player.getTrueLastTransactionSent(), isPose);
+    }
+
+    public boolean getPose(int lastTransaction) {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) &&
+                ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) &&
+                LatencyUtils.getBestValue(lagCompensatedPose, lastTransaction);
     }
 
     public boolean getCanRiptide() {

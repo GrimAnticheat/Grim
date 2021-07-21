@@ -265,6 +265,7 @@ public class MovementCheckRunner {
         player.isClimbing = Collisions.onClimbable(player);
         player.isGliding = player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction) && !player.isFlying;
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
+        player.isRiptidePose = player.compensatedRiptide.getPose(data.lastTransaction);
 
         // Stop stuff like clients using elytra in a vehicle...
         // Interesting, on a pig or strider, a player can climb a ladder
