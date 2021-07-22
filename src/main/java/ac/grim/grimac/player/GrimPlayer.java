@@ -102,10 +102,10 @@ public class GrimPlayer {
     public double playerMovementSpeed = 0.1f;
     public double movementSpeed;
     public double tempMovementSpeed;
-    public float jumpAmplifier;
-    public float levitationAmplifier;
-    public float slowFallingAmplifier;
-    public float dolphinsGraceAmplifier;
+    public int jumpAmplifier;
+    public int levitationAmplifier;
+    public int slowFallingAmplifier;
+    public int dolphinsGraceAmplifier;
     public float depthStriderLevel;
     public float flySpeed;
     public boolean inVehicle;
@@ -153,6 +153,7 @@ public class GrimPlayer {
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
     public CompensatedEating compensatedEating;
+    public CompensatedPotions compensatedPotions;
     public TrigHandler trigHandler;
     public PacketStateData packetStateData;
     // Keep track of basetick stuff
@@ -217,6 +218,7 @@ public class GrimPlayer {
         compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
         compensatedEating = new CompensatedEating(this);
+        compensatedPotions = new CompensatedPotions(this);
         trigHandler = new TrigHandler(this);
         timerCheck = new TimerCheck(this);
 
@@ -287,6 +289,7 @@ public class GrimPlayer {
                 transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
                 playerClockAtLeast = System.currentTimeMillis() - transactionPing;
 
+                // Must be here as this is required to be real time
                 compensatedEating.handleTransactionPacket(packetStateData.packetLastTransactionReceived.get());
 
                 knockbackHandler.handleTransactionPacket(data.getFirst());

@@ -1,11 +1,9 @@
 package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.util.Vector;
 
 public class MovementTickerHorse extends MovementTickerLivingVehicle {
@@ -37,9 +35,12 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
             double d0 = horsePacket.jumpStrength * player.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
 
-            int jumpBoost = horse != null ? PredictionData.getHighestPotionEffect(((LivingEntity) horse).getActivePotionEffects(), "JUMP", 0) : 0;
-            if (jumpBoost > 0) {
-                d1 = d0 + (double) ((float) (jumpBoost + 1) * 0.1F);
+            // This doesn't even work because vehicle jump boost has (likely) been
+            // broken ever since vehicle control became client sided
+            //
+            // But plugins can still send this, so support it anyways
+            if (player.jumpAmplifier > 0) {
+                d1 = d0 + (double) ((float) (player.jumpAmplifier + 1) * 0.1F);
             } else {
                 d1 = d0;
             }
