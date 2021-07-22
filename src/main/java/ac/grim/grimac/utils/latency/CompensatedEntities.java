@@ -332,9 +332,6 @@ public class CompensatedEntities {
                     ((PacketEntityRideable) entity).currentBoostTime = 1;
                 }
 
-                Optional<WrappedWatchableObject> striderShaking = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17)).findFirst();
-                striderShaking.ifPresent(wrappedWatchableObject -> ((PacketEntityStrider) entity).isShaking = (boolean) wrappedWatchableObject.getRawValue());
-
                 Optional<WrappedWatchableObject> striderSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 19 : 18)).findFirst();
                 striderSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
             }

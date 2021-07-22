@@ -15,6 +15,22 @@ public class MovementTickerStrider extends MovementTickerRideable {
             return;
         }
 
+        ((PacketEntityStrider) player.playerVehicle).isShaking = true;
+        // Blocks are stored in YZX order
+        checkLava:
+        {
+            for (int y = (int) Math.floor(player.boundingBox.minY); y < Math.ceil(player.boundingBox.maxY); y++) {
+                for (int z = (int) Math.floor(player.boundingBox.minZ) - 1; z < Math.ceil(player.boundingBox.maxZ); z++) {
+                    for (int x = (int) Math.floor(player.boundingBox.minX); x < Math.ceil(player.boundingBox.maxX); x++) {
+                        if (player.compensatedWorld.getLavaFluidLevelAt(x, y, z) > 0) {
+                            ((PacketEntityStrider) player.playerVehicle).isShaking = false;
+                            break checkLava;
+                        }
+                    }
+                }
+            }
+        }
+
         movementInput = new Vector(0, 0, player.speed);
     }
 
