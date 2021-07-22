@@ -46,17 +46,19 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
                 if (data.player.tasksNotFinished.getAndDecrement() > 1) {
                     PredictionData nextData;
 
+                    ConcurrentLinkedQueue<PredictionData> playerQueue = MovementCheckRunner.queuedPredictions.get(data.player.playerUUID);
+
+                    // The player logged out
+                    if (playerQueue == null)
+                        return;
+
                     // We KNOW that there is data in the queue
                     // However the other thread increments this value BEFORE adding it to the LinkedQueue
                     // Meaning it could increment the value, we read the queue, and it hasn't been added yet
                     // So we have to loop until it's added
-                    try {
-                        do {
-                            nextData = MovementCheckRunner.queuedPredictions.get(data.player.playerUUID).poll();
-                        } while (nextData == null);
-                    } catch (NullPointerException exception) {
-                        return;
-                    }
+                    do {
+                        nextData = playerQueue.poll();
+                    } while (nextData == null);
 
                     PredictionData finalNextData = nextData;
                     runCheck(finalNextData);
