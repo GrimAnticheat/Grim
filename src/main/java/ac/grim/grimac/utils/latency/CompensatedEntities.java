@@ -323,13 +323,13 @@ public class CompensatedEntities {
                 Optional<WrappedWatchableObject> pigBoost = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17)).findFirst();
                 if (pigBoost.isPresent()) {
                     ((PacketEntityRideable) entity).boostTimeMax = (int) pigBoost.get().getRawValue();
-                    ((PacketEntityRideable) entity).currentBoostTime = 1;
+                    ((PacketEntityRideable) entity).currentBoostTime = 0;
                 }
             } else if (entity instanceof PacketEntityStrider) {
                 Optional<WrappedWatchableObject> striderBoost = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16)).findFirst();
                 if (striderBoost.isPresent()) {
                     ((PacketEntityRideable) entity).boostTimeMax = (int) striderBoost.get().getRawValue();
-                    ((PacketEntityRideable) entity).currentBoostTime = 1;
+                    ((PacketEntityRideable) entity).currentBoostTime = 0;
                 }
 
                 Optional<WrappedWatchableObject> striderSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 19 : 18)).findFirst();
