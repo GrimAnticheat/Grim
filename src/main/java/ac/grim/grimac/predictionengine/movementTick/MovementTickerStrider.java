@@ -31,6 +31,11 @@ public class MovementTickerStrider extends MovementTickerRideable {
     }
 
     @Override
+    public void setMovementSpeed() {
+        player.movementSpeed = 0.1f;
+    }
+
+    @Override
     public float getSteeringSpeed() { // Don't question why we have to multiply by 10
         PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
         return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F) * 10f;
