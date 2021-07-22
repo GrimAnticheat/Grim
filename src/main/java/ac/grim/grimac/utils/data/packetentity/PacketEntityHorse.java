@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.data.packetentity;
 
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 
 public class PacketEntityHorse extends PacketEntity {
@@ -20,10 +19,8 @@ public class PacketEntityHorse extends PacketEntity {
     //
     // If any one of the three scenarios is false, we are fine
     // If you do see a plugin doing this, please tell me which packet it is
-    public Entity entity;
 
-    public PacketEntityHorse(Entity entity, EntityType type, Vector3d position) {
+    public PacketEntityHorse(EntityType type, Vector3d position) {
         super(type, position);
-        this.entity = entity;
     }
 }

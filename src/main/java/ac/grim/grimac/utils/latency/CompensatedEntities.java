@@ -21,7 +21,6 @@ import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Entity;
 
 import java.util.Collection;
 import java.util.List;
@@ -230,17 +229,13 @@ public class CompensatedEntities {
         }
     }
 
-    public void addEntity(int entityID, Entity entity, org.bukkit.entity.EntityType entityType, Vector3d position) {
+    public void addEntity(int entityID, org.bukkit.entity.EntityType entityType, Vector3d position) {
 
         PacketEntity packetEntity;
         EntityType type = EntityType.valueOf(entityType.toString().toUpperCase(Locale.ROOT));
 
         if (EntityType.isHorse(type)) {
-            try {
-                packetEntity = new PacketEntityHorse(entity, entityType, position);
-            } catch (Exception e) {
-                packetEntity = new PacketEntityHorse(null, entityType, position);
-            }
+            packetEntity = new PacketEntityHorse(entityType, position);
         } else if (EntityType.isSize(entityType)) {
             packetEntity = new PacketEntitySizeable(entityType, position);
         } else {

@@ -3,7 +3,6 @@ package ac.grim.grimac.predictionengine.movementTick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 public class MovementTickerHorse extends MovementTickerLivingVehicle {
@@ -12,7 +11,6 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         super(player);
 
         PacketEntityHorse horsePacket = (PacketEntityHorse) player.playerVehicle;
-        Entity horse = horsePacket.entity;
 
         if (!horsePacket.hasSaddle) return;
 
