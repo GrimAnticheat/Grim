@@ -76,6 +76,7 @@ public class UncertaintyHandler {
         gravityUncertainty = 0;
         collidingWithBoat = false;
         collidingWithShulker = false;
+        striderOnGround = false;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
     }
