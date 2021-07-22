@@ -20,17 +20,15 @@ public class MovementTickerRideable extends MovementTickerLivingVehicle {
         }
 
         player.speed = f;
-        if (isPig()) {
-            player.movementSpeed = f;
-        }
+        setMovementSpeed();
+    }
+
+    public void setMovementSpeed() {
+        player.movementSpeed = player.speed;
     }
 
     // Pig and Strider should implement this
     public float getSteeringSpeed() {
         throw new NotImplementedException();
-    }
-
-    public boolean isPig() {
-        return false;
     }
 }
