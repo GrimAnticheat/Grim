@@ -3,13 +3,8 @@ package ac.grim.grimac.utils.data;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import org.bukkit.World;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-
-import java.util.Collection;
 
 public class PredictionData {
     public GrimPlayer player;
@@ -25,10 +20,10 @@ public class PredictionData {
     public AlmostBoolean isUsingItem = AlmostBoolean.FALSE;
     public Hand usingHand = Hand.MAIN_HAND;
     public World playerWorld;
-    public float jumpAmplifier;
-    public float levitationAmplifier = 0;
-    public float slowFallingAmplifier = 0;
-    public float dolphinsGraceAmplifier = 0;
+    public int jumpAmplifier = 0;
+    public int levitationAmplifier = 0;
+    public int slowFallingAmplifier = 0;
+    public int dolphinsGraceAmplifier = 0;
     public float flySpeed;
     public double fallDistance;
     public Integer playerVehicle;
@@ -68,12 +63,11 @@ public class PredictionData {
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
 
-        Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
-
-        this.jumpAmplifier = getHighestPotionEffect(playerPotionEffects, "JUMP", 0);
-        this.levitationAmplifier = getHighestPotionEffect(playerPotionEffects, "LEVITATION", 9);
-        this.slowFallingAmplifier = getHighestPotionEffect(playerPotionEffects, "SLOW_FALLING", 13);
-        this.dolphinsGraceAmplifier = getHighestPotionEffect(playerPotionEffects, "DOLPHINS_GRACE", 13);
+        player.compensatedPotions.handleTransactionPacket(player.packetStateData.packetLastTransactionReceived.get());
+        this.jumpAmplifier = player.compensatedPotions.getPotionLevel("JUMP");
+        this.levitationAmplifier = player.compensatedPotions.getPotionLevel("LEVITATION");
+        this.slowFallingAmplifier = player.compensatedPotions.getPotionLevel("SLOW_FALLING");
+        this.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
 
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
         this.playerVehicle = player.packetStateData.vehicle;
@@ -94,20 +88,6 @@ public class PredictionData {
         player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;
     }
 
-    public static int getHighestPotionEffect(Collection<PotionEffect> effects, String typeName, int minimumVersion) {
-        if (XMaterial.getVersion() < minimumVersion) return 0;
-
-        PotionEffectType type = PotionEffectType.getByName(typeName);
-
-        int highestEffect = 0;
-        for (PotionEffect effect : effects) {
-            if (effect.getType() == type && effect.getAmplifier() > highestEffect)
-                highestEffect = effect.getAmplifier();
-        }
-
-        return highestEffect;
-    }
-
     // For riding entity movement while in control
     public PredictionData(GrimPlayer player, double boatX, double boatY, double boatZ, float xRot, float yRot) {
         this.player = player;
@@ -123,12 +103,11 @@ public class PredictionData {
         this.vehicleForward = player.packetStateData.packetVehicleForward;
         this.vehicleHorizontal = player.packetStateData.packetVehicleHorizontal;
 
-        Collection<PotionEffect> playerPotionEffects = player.bukkitPlayer.getActivePotionEffects();
-
-        this.jumpAmplifier = getHighestPotionEffect(playerPotionEffects, "JUMP", 0);
-        this.levitationAmplifier = getHighestPotionEffect(playerPotionEffects, "LEVITATION", 9);
-        this.slowFallingAmplifier = getHighestPotionEffect(playerPotionEffects, "SLOW_FALLING", 13);
-        this.dolphinsGraceAmplifier = getHighestPotionEffect(playerPotionEffects, "DOLPHINS_GRACE", 13);
+        player.compensatedPotions.handleTransactionPacket(player.packetStateData.packetLastTransactionReceived.get());
+        this.jumpAmplifier = player.compensatedPotions.getPotionLevel("JUMP");
+        this.levitationAmplifier = player.compensatedPotions.getPotionLevel("LEVITATION");
+        this.slowFallingAmplifier = player.compensatedPotions.getPotionLevel("SLOW_FALLING");
+        this.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
 
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.fallDistance = player.bukkitPlayer.getFallDistance();
@@ -181,5 +160,8 @@ public class PredictionData {
         player.packetStateData.tryingToRiptide = false;
 
         player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;
+
+        // Stop memory leaks
+        player.compensatedPotions.handleTransactionPacket(player.packetStateData.packetLastTransactionReceived.get());
     }
 }

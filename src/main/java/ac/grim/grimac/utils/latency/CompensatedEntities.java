@@ -168,6 +168,7 @@ public class CompensatedEntities {
 
             for (int entityID : spawnEntity.right()) {
                 entityMap.remove(entityID);
+                player.compensatedPotions.removeEntity(entityID);
             }
         }
 
