@@ -10,6 +10,7 @@ public class CompensatedElytra {
     private final ConcurrentHashMap<Integer, Boolean> lagCompensatedIsGlidingMap = new ConcurrentHashMap<>();
     private final GrimPlayer player;
     public int lastToggleElytra = 1;
+    public int lastToggleFly = 1;
 
     public CompensatedElytra(GrimPlayer player) {
         this.player = player;

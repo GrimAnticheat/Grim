@@ -27,7 +27,7 @@ public class PlayerToggleElytra implements Listener {
 
         // Support the player ending flight themselves by beginning to fly
         if (((Player) event.getEntity()).isFlying() && !event.isGliding()) {
-            player.compensatedElytra.tryAddStatus(player.lastTransactionAtStartOfTick, false);
+            player.compensatedElytra.tryAddStatus(player.compensatedElytra.lastToggleFly, false);
         }
     }
 }
