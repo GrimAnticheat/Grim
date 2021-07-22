@@ -123,7 +123,7 @@ public class MovementCheckRunner {
 
         // Filter out reminder packet for performance and consistency
         // Filter out 1.17 sending multiple identical move packets because Mojang makes great decisions!
-        if (data.player.packetStateData.packetPlayerX == data.playerX &&
+        if (!data.player.inVehicle && data.player.packetStateData.packetPlayerX == data.playerX &&
                 data.player.packetStateData.packetPlayerY == data.playerY &&
                 data.player.packetStateData.packetPlayerZ == data.playerZ
                 && !data.isJustTeleported)

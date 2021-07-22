@@ -32,7 +32,8 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
             player.vehicleHorizontal = player.boatData.nextVehicleHorizontal;
             player.boatData.nextVehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
             player.boatData.nextVehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
-            player.horseJump = data.horseJump;
+            player.horseJump = player.nextHorseJump;
+            player.nextHorseJump = data.horseJump;
 
             if (t != null) {
                 t.printStackTrace();
