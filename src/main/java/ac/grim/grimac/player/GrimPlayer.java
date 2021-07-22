@@ -5,7 +5,6 @@ import ac.grim.grimac.checks.movement.KnockbackHandler;
 import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.compat.ViaVersionCompat;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.EntityType;
@@ -26,6 +25,7 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
 import io.github.retrooper.packetevents.utils.versionlookup.v_1_7_10.SpigotVersionLookup_1_7;
+import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -204,7 +204,7 @@ public class GrimPlayer {
                         ClientVersion.getClientVersion(SpigotVersionLookup_1_7.getProtocolVersion(player)) :
                         ClientVersion.getClientVersion(PacketEvents.get().getServerUtils().getVersion().getProtocolVersion());
 
-        if (ViaVersionCompat.hasViaVersion) {
+        if (ViaVersionLookupUtils.isAvailable()) {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
             packetTracker = connection != null ? connection.getPacketTracker() : null;
         }
