@@ -62,6 +62,8 @@ public class UncertaintyHandler {
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
 
+    public EvictingList<Boolean> tempElytraFlightHack = new EvictingList<>(3);
+
     public int lastTeleportTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
 

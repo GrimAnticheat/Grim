@@ -117,6 +117,8 @@ public class MovementTicker {
     }
 
     public void livingEntityAIStep() {
+        player.uncertaintyHandler.tempElytraFlightHack.add(player.isFlying && player.wasGliding);
+
         double minimumMovement = 0.003D;
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             minimumMovement = 0.005D;
@@ -250,7 +252,7 @@ public class MovementTicker {
             livingEntityTravel();
 
             if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) || player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident)
-                    || player.uncertaintyHandler.yPositiveUncertainty != 0 || player.uncertaintyHandler.yNegativeUncertainty != 0) {
+                    || player.uncertaintyHandler.yPositiveUncertainty != 0 || player.uncertaintyHandler.yNegativeUncertainty != 0 || player.isGliding) {
                 player.clientVelocity.setY(player.actualMovement.getY() * 0.6);
             } else if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {
                 player.clientVelocity.setY(oldY * 0.6);
