@@ -84,6 +84,11 @@ public class Materials {
         markAs(XMaterial.SCAFFOLDING, SOLID);
         markAs(XMaterial.COCOA, SOLID);
 
+        // Thanks a lot striders: optimization - don't mark as solid when striders don't exist
+        // If you are unaware, striders can walk on lava
+        if (XMaterial.supports(16))
+            markAs(XMaterial.LAVA, SOLID);
+
         // 1.17 isSolid() mistakes, I think MD_5 just gave up with marking stuff as solid
         markAs(XMaterial.SCULK_SENSOR, SOLID);
         markAs(XMaterial.POWDER_SNOW, SOLID);
@@ -203,17 +208,17 @@ public class Materials {
     }
 
     public static boolean isUsable(Material material) {
-        return material != null && material.isEdible() || material == Material.POTION || material == Material.MILK_BUCKET
+        return material != null && (material.isEdible() || material == Material.POTION || material == Material.MILK_BUCKET
                 || material == CROSSBOW || material == BOW || checkFlag(material, SWORD)
-                || material == TRIDENT || material == SHIELD;
-    }
-
-    public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
-        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
+                || material == TRIDENT || material == SHIELD);
     }
 
     public static boolean checkFlag(Material material, int flag) {
         return (MATERIAL_FLAGS[material.ordinal()] & flag) == flag;
+    }
+
+    public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
+        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
     }
 
     public static boolean isWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
