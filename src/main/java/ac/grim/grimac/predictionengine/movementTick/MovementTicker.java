@@ -86,12 +86,14 @@ public class MovementTicker {
                     player.clientVelocity.setY(0);
                 } else {
                     if (player.clientVelocity.getY() < 0.0) {
-                        player.clientVelocity.setY(-player.clientVelocity.getY() * (player.inVehicle ? 0.8 : 1.0));
+                        player.clientVelocity.setY(-player.clientVelocity.getY() *
+                                (player.playerVehicle != null && !EntityType.isLivingEntity(player.playerVehicle.bukkitEntityType) ? 0.8 : 1.0));
                     }
                 }
             } else if (Materials.checkFlag(onBlock, Materials.BED) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12)) {
                 if (player.clientVelocity.getY() < 0.0) {
-                    player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 * (player.inVehicle ? 0.8 : 1.0));
+                    player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 *
+                            (player.playerVehicle != null && !EntityType.isLivingEntity(player.playerVehicle.bukkitEntityType) ? 0.8 : 1.0));
                 }
             } else {
                 player.clientVelocity.setY(0);
