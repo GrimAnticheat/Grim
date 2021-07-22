@@ -36,14 +36,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
         return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F) * 10f;
     }
 
-    @Override
-    public void livingEntityTravel() {
-        floatStrider();
-
-        super.livingEntityTravel();
-    }
-
-    private void floatStrider() {
+    public void floatStrider() {
         if (player.wasTouchingLava) {
             if (isAbove() && player.compensatedWorld.
                     getLavaFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(player.lastY + 1), (int) Math.floor(player.lastZ)) == 0) {

@@ -373,6 +373,7 @@ public class MovementCheckRunner {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerPig(player).livingEntityAIStep();
             } else if (player.playerVehicle.type == EntityType.STRIDER) {
+                new MovementTickerStrider(player).floatStrider();
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerStrider(player).livingEntityAIStep();
             }

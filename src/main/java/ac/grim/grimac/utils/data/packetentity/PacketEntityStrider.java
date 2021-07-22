@@ -8,5 +8,7 @@ public class PacketEntityStrider extends PacketEntityRideable {
 
     public PacketEntityStrider(EntityType type, Vector3d vector3d) {
         super(type, vector3d);
+        // Default strider movement speed
+        movementSpeedAttribute = 0.175F;
     }
 }

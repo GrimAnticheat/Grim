@@ -60,9 +60,8 @@ public enum CollisionData {
 
     }, XMaterial.VINE.parseMaterial()),
 
-
-    LIQUID(new SimpleCollisionBox(0, 0, 0, 1f, 0.9f, 1f),
-            XMaterial.WATER.parseMaterial(), XMaterial.LAVA.parseMaterial()),
+    LAVA((player, version, block, x, y, z) -> player.uncertaintyHandler.striderOnGround ? new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D) :
+            NoCollisionBox.INSTANCE, XMaterial.LAVA.parseMaterial()),
 
     BREWINGSTAND((player, version, block, x, y, z) -> {
         int base = 0;
