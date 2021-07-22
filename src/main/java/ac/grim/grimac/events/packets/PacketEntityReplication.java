@@ -48,7 +48,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             Entity entity = packetOutEntity.getEntity();
             if (entity == null) return;
 
-            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity, entity.getType(), packetOutEntity.getPosition());
+            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity.getType(), packetOutEntity.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY) {
@@ -60,7 +60,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             Entity entity = packetOutEntity.getEntity();
             if (entity == null) return;
 
-            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity, entity.getType(), packetOutEntity.getPosition());
+            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity.getType(), packetOutEntity.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
