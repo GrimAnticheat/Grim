@@ -36,9 +36,9 @@ public class MovementTickerStrider extends MovementTickerRideable {
         return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F) * 10f;
     }
 
-    public void floatStrider() {
+    public static void floatStrider(GrimPlayer player) {
         if (player.wasTouchingLava) {
-            if (isAbove() && player.compensatedWorld.
+            if (isAbove(player) && player.compensatedWorld.
                     getLavaFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(player.lastY + 1), (int) Math.floor(player.lastZ)) == 0) {
                 player.uncertaintyHandler.striderOnGround = true;
                 // This is a hack because I believe there is something wrong with order of collision stuff.
@@ -53,7 +53,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
         }
     }
 
-    public boolean isAbove() {
+    public static boolean isAbove(GrimPlayer player) {
         return player.lastY > Math.floor(player.lastY) + 0.5 - (double) 1.0E-5F;
     }
 

@@ -103,9 +103,14 @@ public class MovementCheckRunner {
                 data.player.teleports.poll();
                 data.isJustTeleported = true;
                 data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
-            } else if (data.lastTransaction > teleportPos.getFirst() + 1) {
-                break;
+
+                continue;
+            } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
+                data.player.teleports.poll();
+                continue;
             }
+
+            break;
         }
 
         // Client sends junk onGround data when they teleport
@@ -373,7 +378,7 @@ public class MovementCheckRunner {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerPig(player).livingEntityAIStep();
             } else if (player.playerVehicle.type == EntityType.STRIDER) {
-                new MovementTickerStrider(player).floatStrider();
+                MovementTickerStrider.floatStrider(player);
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerStrider(player).livingEntityAIStep();
             }
