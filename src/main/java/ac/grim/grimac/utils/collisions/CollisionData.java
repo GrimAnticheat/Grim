@@ -626,7 +626,15 @@ public enum CollisionData {
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("DAYLIGHT")).toArray(Material[]::new)),
 
     FARMLAND((player, version, data, x, y, z) -> {
-        // This will be wrong if a player uses 1.10.0 or 1.10.1, not sure if I can fix this as protocol version is same
+        // Thanks Mojang for changing block collisions without changing protocol version!
+        // Anyways, let a 1.10/1.10.1/1.10.2 client decide what farmland collision box it uses
+        if (version == ClientVersion.v_1_10) {
+            if (Math.abs(player.y % 1.0) < 0.001) {
+                return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            }
+            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
+        }
+
         if (version.isNewerThanOrEquals(ClientVersion.v_1_10))
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
 
