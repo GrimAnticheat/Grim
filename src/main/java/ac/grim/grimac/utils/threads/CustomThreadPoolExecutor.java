@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.lists.EvictingList;
 import java.util.concurrent.*;
 
 public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
-    private static final EvictingList<Long> computeTimes = new EvictingList<>(500);
+    private static final EvictingList<Long> computeTimes = new EvictingList<>(100);
 
     public CustomThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
@@ -48,35 +48,39 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
                 t.printStackTrace();
             }
 
-            // If the last task was finished and there is another task to run -> run the next task
-            // If the last task was finished and there are no more tasks -> let tasksNotFinished signal to immediately add to thread pool on new task
-            // If the last task wasn't finished because the server hasn't ticked relevant packets -> add the prediction data back to the queue
-            // If there is an exception, just queue the next data
             if (!data.player.isCheckNotReady) {
-                if (data.player.tasksNotFinished.getAndDecrement() > 1) {
-                    PredictionData nextData;
-
-                    ConcurrentLinkedQueue<PredictionData> playerQueue = MovementCheckRunner.queuedPredictions.get(data.player.playerUUID);
-
-                    // The player logged out
-                    if (playerQueue == null)
-                        return;
-
-                    // We KNOW that there is data in the queue
-                    // However the other thread increments this value BEFORE adding it to the LinkedQueue
-                    // Meaning it could increment the value, we read the queue, and it hasn't been added yet
-                    // So we have to loop until it's added
-                    do {
-                        nextData = playerQueue.poll();
-                    } while (nextData == null);
-
-                    PredictionData finalNextData = nextData;
-                    runCheck(finalNextData);
-                }
+                queueNext(player);
             } else {
                 MovementCheckRunner.waitingOnServerQueue.add(data);
             }
         });
+    }
+
+    // If the last task was finished and there is another task to run -> run the next task
+    // If the last task was finished and there are no more tasks -> let tasksNotFinished signal to immediately add to thread pool on new task
+    // If the last task wasn't finished because the server hasn't ticked relevant packets -> add the prediction data back to the queue
+    // If there is an exception, just queue the next data
+    public void queueNext(GrimPlayer player) {
+        if (player.tasksNotFinished.getAndDecrement() > 1) {
+            PredictionData nextData;
+
+            ConcurrentLinkedQueue<PredictionData> playerQueue = MovementCheckRunner.queuedPredictions.get(player.playerUUID);
+
+            // The player logged out
+            if (playerQueue == null)
+                return;
+
+            // We KNOW that there is data in the queue
+            // However the other thread increments this value BEFORE adding it to the LinkedQueue
+            // Meaning it could increment the value, we read the queue, and it hasn't been added yet
+            // So we have to loop until it's added
+            do {
+                nextData = playerQueue.poll();
+            } while (nextData == null);
+
+            PredictionData finalNextData = nextData;
+            runCheck(finalNextData);
+        }
     }
 
     @Override
