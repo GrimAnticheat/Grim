@@ -4,10 +4,8 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
-import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
-import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
-import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -80,7 +78,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
                     if (doorAbove.getFacing() == door.getFacing() && doorAbove.isOpen() == door.isOpen()) {
                         doorAbove.setOpen(!doorAbove.isOpen());
 
-                        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY() + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), block.getZ(), CompensatedWorld.getFlattenedGlobalID(doorAbove));
+                        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY() + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), block.getZ(), CompensatedWorldFlat.getFlattenedGlobalID(doorAbove));
                         player.compensatedWorld.changeBlockQueue.add(data);
                     }
                 }
@@ -92,7 +90,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
                 openable.setOpen(!openable.isOpen());
             }
 
-            ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ(), CompensatedWorld.getFlattenedGlobalID(stateData));
+            ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ(), CompensatedWorldFlat.getFlattenedGlobalID(stateData));
             player.compensatedWorld.changeBlockQueue.add(data);
         }
     }

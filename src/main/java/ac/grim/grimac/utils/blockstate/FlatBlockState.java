@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.blockstate;
 
-import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 
@@ -12,7 +12,7 @@ public class FlatBlockState implements BaseBlockState {
     }
 
     public FlatBlockState(int globalID) {
-        this.blockData = CompensatedWorld.globalPaletteToBlockData.get(globalID);
+        this.blockData = CompensatedWorldFlat.globalPaletteToBlockData.get(globalID);
     }
 
     @Override
@@ -20,12 +20,12 @@ public class FlatBlockState implements BaseBlockState {
         return blockData.getMaterial();
     }
 
-    public BlockData getBlockData() {
-        return blockData;
+    public int getCombinedId() {
+        return CompensatedWorldFlat.getFlattenedGlobalID(blockData);
     }
 
-    public int getCombinedId() {
-        return CompensatedWorld.getFlattenedGlobalID(blockData);
+    public BlockData getBlockData() {
+        return blockData;
     }
 
     @Override

@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
-import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -97,40 +96,50 @@ public class Materials {
         markAs(XMaterial.FLOWERING_AZALEA, SOLID);
         markAs(XMaterial.POINTED_DRIPSTONE, SOLID);
 
-        markAs(XMaterial.WATER, WATER);
 
+        // Lava hasn't changed, other than STATIONARY_LAVA material on 1.12- servers
+        markAs(XMaterial.LAVA, LAVA);
+        markAs(XMaterial.STATIONARY_LAVA, LAVA);
+
+
+        // Base water, flowing on 1.12- but not on 1.13+ servers
+        markAs(XMaterial.WATER, WATER);
+        markAs(XMaterial.WATER, WATER_LEGACY);
+        if (XMaterial.isNewVersion()) {
+            markAs(XMaterial.KELP, WATER_SOURCE);
+            markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);
+        }
+
+        // This is not water on 1.12- players
         markAs(XMaterial.SEAGRASS, WATER);
         markAs(XMaterial.SEAGRASS, WATER_SOURCE);
 
+        // This is not water on 1.12- players
         markAs(XMaterial.TALL_SEAGRASS, WATER);
         markAs(XMaterial.TALL_SEAGRASS, WATER_SOURCE);
 
+        // This is not water on 1.12- players
         markAs(XMaterial.KELP, WATER);
         markAs(XMaterial.KELP, WATER_SOURCE);
 
+        // This is not water on 1.12- players
         markAs(XMaterial.KELP_PLANT, WATER);
         markAs(XMaterial.KELP_PLANT, WATER_SOURCE);
 
+        // This is replaced by water on 1.12- players
         markAs(XMaterial.BUBBLE_COLUMN, WATER);
-        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE);
-
-        markAs(XMaterial.WATER, WATER_LEGACY);
         markAs(XMaterial.BUBBLE_COLUMN, WATER_LEGACY);
+        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE);
         markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);
 
-        markAs(XMaterial.LAVA, LAVA);
+        // This is the 1.12 still water block
+        markAs(XMaterial.STATIONARY_WATER, WATER);
+        markAs(XMaterial.STATIONARY_WATER, WATER_LEGACY);
+        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE);
+        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);
 
-        Material legacyStationaryWater = matchLegacy("STATIONARY_WATER");
-        if (legacyStationaryWater != null) {
-            MATERIAL_FLAGS[legacyStationaryWater.ordinal()] = WATER;
-            MATERIAL_FLAGS[legacyStationaryWater.ordinal()] = WATER_LEGACY;
-        }
 
-        Material legacyStationaryLava = matchLegacy("STATIONARY_LAVA");
-        if (legacyStationaryLava != null) {
-            MATERIAL_FLAGS[legacyStationaryLava.ordinal()] = LAVA;
-        }
-
+        // Mark blocks as climbable
         markAs(XMaterial.LADDER, CLIMBABLE);
         markAs(XMaterial.VINE, CLIMBABLE);
         markAs(XMaterial.SCAFFOLDING, CLIMBABLE);
@@ -217,13 +226,13 @@ public class Materials {
         return (MATERIAL_FLAGS[material.ordinal()] & flag) == flag;
     }
 
-    public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
+    public static boolean isWaterFlat(ClientVersion clientVersion, BaseBlockState state) {
         return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
     }
 
     public static boolean isWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
         if (clientVersion.isOlderThanOrEquals(ClientVersion.v_1_12_2)) return false;
-        if (state instanceof MagicBlockState) return false;
+        if (!XMaterial.isNewVersion()) return false;
 
         FlatBlockState flat = (FlatBlockState) state;
         BlockData blockData = flat.getBlockData();
@@ -232,6 +241,10 @@ public class Materials {
         if (clientVersion.isOlderThan(ClientVersion.v_1_16_2) && blockData instanceof Lantern) return false;
 
         return blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged();
+    }
+
+    public static boolean isWaterMagic(ClientVersion clientVersion, BaseBlockState state) {
+        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY);
     }
 
     public static Material matchLegacy(String material) {
