@@ -85,29 +85,31 @@ public class CompensatedWorld {
         Column column = getChunk(x >> 4, z >> 4);
 
         try {
-            BaseChunk chunk = column.getChunks()[y >> 4];
-            if (chunk == null) {
-                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_16)) {
-                    column.getChunks()[y >> 4] = new SixteenChunk();
-                } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
-                    column.getChunks()[y >> 4] = new FifteenChunk();
-                } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
-                    column.getChunks()[y >> 4] = new TwelveChunk();
-                } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8)) {
-                    column.getChunks()[y >> 4] = new EightChunk(new char[4096]);
-                } else {
-                    column.getChunks()[y >> 4] = new SevenChunk(new short[4096], new byte[2048]);
+            if (column != null) {
+                BaseChunk chunk = column.getChunks()[y >> 4];
+                if (chunk == null) {
+                    if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_16)) {
+                        column.getChunks()[y >> 4] = new SixteenChunk();
+                    } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+                        column.getChunks()[y >> 4] = new FifteenChunk();
+                    } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
+                        column.getChunks()[y >> 4] = new TwelveChunk();
+                    } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8)) {
+                        column.getChunks()[y >> 4] = new EightChunk(new char[4096]);
+                    } else {
+                        column.getChunks()[y >> 4] = new SevenChunk(new short[4096], new byte[2048]);
+                    }
+
+                    chunk = column.getChunks()[y >> 4];
+
+                    // Sets entire chunk to air
+                    // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
+                    // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
+                    chunk.set(0, 0, 0, 0);
                 }
 
-                chunk = column.getChunks()[y >> 4];
-
-                // Sets entire chunk to air
-                // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
-                // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
-                chunk.set(0, 0, 0, 0);
+                chunk.set(x & 0xF, y & 0xF, z & 0xF, combinedID);
             }
-
-            chunk.set(x & 0xF, y & 0xF, z & 0xF, combinedID);
         } catch (Exception ignored) {
         }
     }
