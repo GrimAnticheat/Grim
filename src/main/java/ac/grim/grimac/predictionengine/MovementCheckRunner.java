@@ -33,10 +33,7 @@ import org.bukkit.util.Vector;
 
 import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 // This class is how we manage to safely do everything async
 // AtomicInteger allows us to make decisions safely - we can get and set values in one processor instruction
@@ -126,8 +123,25 @@ public class MovementCheckRunner {
         if (!data.player.inVehicle && data.player.packetStateData.packetPlayerX == data.playerX &&
                 data.player.packetStateData.packetPlayerY == data.playerY &&
                 data.player.packetStateData.packetPlayerZ == data.playerZ
-                && !data.isJustTeleported)
+                && !data.isJustTeleported) {
+            if (data.player.tasksNotFinished.get() == 0) {
+                // This takes < 0.01 ms to run world and entity updates, not perfectly safe but good enough
+                // It stops a memory leak from all the lag compensation queue'ing and never ticking
+                long time = System.nanoTime();
+                CompletableFuture.runAsync(() -> {
+                    data.player.compensatedWorld.tickUpdates(data.lastTransaction);
+                    data.player.compensatedEntities.tickUpdates(data.lastTransaction);
+                    data.player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
+                    data.player.compensatedFireworks.getMaxFireworksAppliedPossible();
+                    data.player.compensatedRiptide.getCanRiptide();
+                    data.player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction);
+                    data.player.compensatedPotions.handleTransactionPacket(data.lastTransaction);
+                    Bukkit.broadcastMessage("Ticking updates! " + (System.nanoTime() - time));
+                }, executor);
+            }
             return false;
+        }
+
 
         data.player.packetStateData.packetPlayerX = data.playerX;
         data.player.packetStateData.packetPlayerY = data.playerY;
