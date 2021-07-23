@@ -46,7 +46,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.stream.Collectors;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
@@ -291,11 +290,6 @@ public class CompensatedWorld {
         }
 
         // Reduce effects of piston pushing by 0.5 per tick
-        List<Double> reducedList = player.uncertaintyHandler.pistonPushing.stream().map(d -> d * 0.9).collect(Collectors.toList());
-
-        player.uncertaintyHandler.pistonPushing.clear();
-        player.uncertaintyHandler.pistonPushing.addAll(reducedList);
-
         player.uncertaintyHandler.pistonPushing.add(Math.max(Math.max(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY), player.uncertaintyHandler.pistonZ) * (player.uncertaintyHandler.slimePistonBounces.isEmpty() ? 1 : 2));
 
         // Tick the pistons and remove them if they can no longer exist

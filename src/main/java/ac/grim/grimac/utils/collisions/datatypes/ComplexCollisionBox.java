@@ -25,7 +25,11 @@ public class ComplexCollisionBox implements CollisionBox {
 
     @Override
     public boolean isIntersected(SimpleCollisionBox other) {
-        return boxes.stream().anyMatch(box -> box.isIntersected(other));
+        for (CollisionBox box : boxes) {
+            if (box.isIntersected(other))
+                return true;
+        }
+        return false;
     }
 
     @Override
