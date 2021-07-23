@@ -41,9 +41,9 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
                 short breadTwo = (short) (reservedID - 1);
 
                 // Wrap velocity between two transactions
-                player.sendTransactionOrPingPong(breadOne);
+                player.sendTransactionOrPingPong(breadOne, false);
                 player.knockbackHandler.addPlayerKnockback(breadOne, playerVelocity);
-                event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo));
+                event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
             }
         }
 
@@ -64,9 +64,9 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
                 short breadOne = (short) reservedID;
                 short breadTwo = (short) (reservedID - 1);
 
-                player.sendTransactionOrPingPong(breadOne);
+                player.sendTransactionOrPingPong(breadOne, false);
                 player.explosionHandler.addPlayerExplosion(breadOne, explosion);
-                event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo));
+                event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
             }
         }
     }

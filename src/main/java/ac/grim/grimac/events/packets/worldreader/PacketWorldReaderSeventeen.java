@@ -87,7 +87,7 @@ public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
 
             int range = (player.getTransactionPing() / 100) + 16;
             if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
-                event.setPostTask(player::sendTransactionOrPingPong);
+                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
 
             player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
         }
@@ -114,7 +114,7 @@ public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
 
                 int range = (player.getTransactionPing() / 100) + 32;
                 if (Math.abs(chunkX - player.x) < range && Math.abs(chunkY - player.y) < range && Math.abs(chunkZ - player.z) < range)
-                    event.setPostTask(player::sendTransactionOrPingPong);
+                    event.setPostTask(player::sendAndFlushTransactionOrPingPong);
 
                 for (int i = 0; i < blockPositions.length; i++) {
                     short blockPosition = blockPositions[i];

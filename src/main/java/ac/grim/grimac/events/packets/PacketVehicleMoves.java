@@ -53,7 +53,7 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             int lastTransactionSent = player.lastTransactionSent.get();
             Vector3d finalPos = new Vector3d(x, y, z);
 
-            event.setPostTask(player::sendTransactionOrPingPong);
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             player.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
     }

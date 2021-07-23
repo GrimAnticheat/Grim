@@ -100,10 +100,11 @@ public final class GrimAC extends JavaPlugin {
             }
         }, 20, 100);
 
-        // Writing packets takes more time than it appears
+        // Writing packets takes more time than it appears - don't flush to try and get the packet to send right before
+        // the server begins sending packets to the client
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                player.sendTransactionOrPingPong();
+                player.sendTransactionOrPingPong(player.getNextTransactionID(1), true);
             }
         }, 1, 1);
 

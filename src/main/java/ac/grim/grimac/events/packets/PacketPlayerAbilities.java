@@ -42,7 +42,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
                 player.compensatedElytra.lastToggleFly = player.packetStateData.packetLastTransactionReceived.get();
             }
 
-            event.setPostTask(player::sendTransactionOrPingPong);
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
         }
     }
 }

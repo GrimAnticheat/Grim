@@ -61,7 +61,7 @@ public class PacketPlayerTeleport extends PacketListenerAbstract {
             final int lastTransactionSent = player.lastTransactionSent.get();
             Vector3d finalPos = pos;
 
-            event.setPostTask(player::sendTransactionOrPingPong);
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             player.teleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
     }
