@@ -43,7 +43,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
 
                         int transactionSent = player.lastTransactionSent.get() + 1;
-                        event.setPostTask(player::sendTransactionOrPingPong);
+                        event.setPostTask(player::sendAndFlushTransactionOrPingPong);
                         player.compensatedElytra.tryAddStatus(transactionSent, isGliding);
                     }
                 }
@@ -79,7 +79,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             boolean hand = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
 
                             // Yes, we do have to use a transaction for eating as otherwise it can desync much easier
-                            event.setPostTask(player::sendTransactionOrPingPong);
+                            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
 
                             player.compensatedEating.eatingData.add(new ServerToClientEating(player.lastTransactionSent.get() + 1, isActive, hand));
                         }

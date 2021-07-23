@@ -136,7 +136,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
             PacketEntity entity = player.compensatedEntities.getEntity(attributes.getEntityId());
             if (player.entityID == entityID || entity instanceof PacketEntityHorse || entity instanceof PacketEntityRideable) {
-                event.setPostTask(player::sendTransactionOrPingPong);
+                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
                 player.compensatedEntities.entityPropertiesData.add(new EntityPropertiesData(entityID, attributes.getProperties(), player.lastTransactionSent.get() + 1));
             }
         }
