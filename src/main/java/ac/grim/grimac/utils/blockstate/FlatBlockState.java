@@ -8,12 +8,6 @@ public class FlatBlockState implements BaseBlockState {
     BlockData blockData;
     int globalID;
 
-    // Required to init air data
-    public FlatBlockState(BlockData data, int globalID) {
-        this.blockData = data;
-        this.globalID = globalID;
-    }
-
     public FlatBlockState(int globalID) {
         this.blockData = CompensatedWorldFlat.globalPaletteToBlockData.get(globalID);
         this.globalID = globalID;

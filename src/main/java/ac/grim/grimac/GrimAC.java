@@ -6,6 +6,7 @@ import ac.grim.grimac.events.packets.worldreader.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
@@ -46,6 +47,7 @@ public final class GrimAC extends JavaPlugin {
         // Reading the palette takes a while, do it first
         if (XMaterial.isNewVersion())
             CompensatedWorldFlat.init();
+        CompensatedWorld.init();
 
         PacketEvents.create(this);
         PacketEventsSettings settings = PacketEvents.get().getSettings();
