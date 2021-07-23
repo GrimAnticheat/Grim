@@ -27,14 +27,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
         ((PacketEntityStrider) player.playerVehicle).isShaking = !Tag.STRIDER_WARM_BLOCKS.isTagged(posMaterial) &&
                 !Tag.STRIDER_WARM_BLOCKS.isTagged(belowMaterial) && !player.wasTouchingLava;
 
-        player.speed = getSteeringSpeed();
         movementInput = new Vector(0, 0, 1);
-    }
-
-    @Override
-    public float getSteeringSpeed() {
-        PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
-        return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F);
     }
 
     public static void floatStrider(GrimPlayer player) {
@@ -56,6 +49,12 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public static boolean isAbove(GrimPlayer player) {
         return player.lastY > Math.floor(player.lastY) + 0.5 - (double) 1.0E-5F;
+    }
+
+    @Override
+    public float getSteeringSpeed() {
+        PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
+        return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F);
     }
 
     @Override
