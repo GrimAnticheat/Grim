@@ -124,11 +124,15 @@ public class MovementCheckRunner {
                 data.player.packetStateData.packetPlayerY == data.playerY &&
                 data.player.packetStateData.packetPlayerZ == data.playerZ
                 && !data.isJustTeleported) {
-            if (data.player.tasksNotFinished.get() == 0) {
-                // This takes < 0.01 ms to run world and entity updates, not perfectly safe but good enough
-                // It stops a memory leak from all the lag compensation queue'ing and never ticking
-                long time = System.nanoTime();
-                CompletableFuture.runAsync(() -> {
+            // This takes < 0.01 ms to run world and entity updates
+            // It stops a memory leak from all the lag compensation queue'ing and never ticking
+            // Didn't really need to write this async but it's nice to do so
+            CompletableFuture.runAsync(() -> {
+                // It is unsafe to modify the transaction world async if another check is running
+                // Adding 1 to the tasks blocks another check from running
+                //
+                // If there are no tasks queue'd, it is safe to modify these variables
+                if (data.player.tasksNotFinished.compareAndSet(0, 1)) {
                     data.player.compensatedWorld.tickUpdates(data.lastTransaction);
                     data.player.compensatedEntities.tickUpdates(data.lastTransaction);
                     data.player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
@@ -136,9 +140,11 @@ public class MovementCheckRunner {
                     data.player.compensatedRiptide.getCanRiptide();
                     data.player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction);
                     data.player.compensatedPotions.handleTransactionPacket(data.lastTransaction);
-                    Bukkit.broadcastMessage("Ticking updates! " + (System.nanoTime() - time));
-                }, executor);
-            }
+
+                    // As we incremented the tasks, we must now execute the next task, if there is one
+                    executor.queueNext(data.player);
+                }
+            }, executor);
             return false;
         }
 
