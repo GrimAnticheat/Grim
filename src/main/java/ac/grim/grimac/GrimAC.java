@@ -6,6 +6,7 @@ import ac.grim.grimac.events.packets.worldreader.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.settings.PacketEventsSettings;
@@ -40,6 +41,12 @@ public final class GrimAC extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        plugin = this;
+
+        // Reading the palette takes a while, do it first
+        if (XMaterial.isNewVersion())
+            CompensatedWorldFlat.init();
+
         PacketEvents.create(this);
         PacketEventsSettings settings = PacketEvents.get().getSettings();
         settings.fallbackServerVersion(ServerVersion.v_1_7_10).compatInjector(false).checkForUpdates(false).bStats(true);
@@ -54,8 +61,6 @@ public final class GrimAC extends JavaPlugin {
     // Don't add online players - exempt the players on reload by not adding them to hashmap due to chunk caching system
     @Override
     public void onEnable() {
-        plugin = this;
-
         registerEvents();
         registerPackets();
 

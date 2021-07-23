@@ -46,7 +46,7 @@ public class CompensatedWorld {
 
     static {
         if (XMaterial.isNewVersion()) {
-            airData = new FlatBlockState(Material.AIR.createBlockData());
+            airData = new FlatBlockState(Material.AIR.createBlockData(), 0);
         } else {
             airData = new MagicBlockState(0, 0);
 

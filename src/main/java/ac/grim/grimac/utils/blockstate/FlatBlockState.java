@@ -6,13 +6,17 @@ import org.bukkit.block.data.BlockData;
 
 public class FlatBlockState implements BaseBlockState {
     BlockData blockData;
+    int globalID;
 
-    public FlatBlockState(BlockData blockData) {
-        this.blockData = blockData;
+    // Required to init air data
+    public FlatBlockState(BlockData data, int globalID) {
+        this.blockData = data;
+        this.globalID = globalID;
     }
 
     public FlatBlockState(int globalID) {
         this.blockData = CompensatedWorldFlat.globalPaletteToBlockData.get(globalID);
+        this.globalID = globalID;
     }
 
     @Override
@@ -21,7 +25,7 @@ public class FlatBlockState implements BaseBlockState {
     }
 
     public int getCombinedId() {
-        return CompensatedWorldFlat.getFlattenedGlobalID(blockData);
+        return globalID;
     }
 
     public BlockData getBlockData() {
