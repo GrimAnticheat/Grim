@@ -4,6 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.math.GrimMathHelper;
+import org.bukkit.Bukkit;
 
 import java.util.concurrent.*;
 
@@ -20,7 +22,7 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
             if (!data.player.isCheckNotReady) {
                 long timeTaken = System.nanoTime() - startTime;
                 computeTimes.add(timeTaken);
-                //Bukkit.broadcastMessage("Time taken " + (timeTaken + " " + GrimMathHelper.calculateAverageLong(computeTimes)));
+                Bukkit.broadcastMessage("Time taken " + (timeTaken + " " + GrimMathHelper.calculateAverageLong(computeTimes)));
             }
 
             GrimPlayer player = data.player;
