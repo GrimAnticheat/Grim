@@ -22,7 +22,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class CompensatedWorldFlat extends CompensatedWorld {
-    public static final Material WATER = XMaterial.WATER.parseMaterial();
+    private static final Material WATER = XMaterial.WATER.parseMaterial();
+    private static final Material CAULDRON = XMaterial.CAULDRON.parseMaterial();
     public static List<BlockData> globalPaletteToBlockData;
 
     public CompensatedWorldFlat(GrimPlayer player) {
@@ -76,6 +77,8 @@ public class CompensatedWorldFlat extends CompensatedWorld {
     public boolean isFluidFalling(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
 
+        // Cauldrons are technically levelled blocks
+        if (Materials.checkFlag(bukkitBlock.getMaterial(), Materials.CAULDRON)) return false;
         if (((FlatBlockState) bukkitBlock).getBlockData() instanceof Levelled) {
             return ((Levelled) ((FlatBlockState) bukkitBlock).getBlockData()).getLevel() > 7;
         }
@@ -111,7 +114,7 @@ public class CompensatedWorldFlat extends CompensatedWorld {
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
 
-        if (((FlatBlockState) bukkitBlock).getBlockData() instanceof Levelled && bukkitBlock.getMaterial() == WATER) {
+        if (bukkitBlock.getMaterial() == WATER && ((FlatBlockState) bukkitBlock).getBlockData() instanceof Levelled) {
             return ((Levelled) ((FlatBlockState) bukkitBlock).getBlockData()).getLevel() == 0;
         }
 

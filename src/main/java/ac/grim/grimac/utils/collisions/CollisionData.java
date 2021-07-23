@@ -707,7 +707,7 @@ public enum CollisionData {
                 new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1, false),
                 new SimpleCollisionBox(0, height, 0, 1, 1, 0.125, false),
                 new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1, false));
-    }, XMaterial.CAULDRON.parseMaterial()),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("CAULDRON")).toArray(Material[]::new)),
 
     CACTUS(new SimpleCollisionBox(0.0625, 0, 0.0625,
             1 - 0.0625, 1 - 0.0625, 1 - 0.0625, false), XMaterial.CACTUS.parseMaterial()),

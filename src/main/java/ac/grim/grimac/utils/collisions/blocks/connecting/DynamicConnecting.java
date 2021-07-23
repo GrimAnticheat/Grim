@@ -20,7 +20,6 @@ public class DynamicConnecting {
     private static final Material PUMPKIN = XMaterial.PUMPKIN.parseMaterial();
     private static final Material MELON = XMaterial.MELON.parseMaterial();
     private static final Material BEACON = XMaterial.BEACON.parseMaterial();
-    private static final Material CAULDRON = XMaterial.CAULDRON.parseMaterial();
     private static final Material GLOWSTONE = XMaterial.GLOWSTONE.parseMaterial();
     private static final Material SEA_LANTERN = XMaterial.SEA_LANTERN.parseMaterial();
     private static final Material ICE = XMaterial.ICE.parseMaterial();
@@ -61,7 +60,7 @@ public class DynamicConnecting {
 
 
         return m == BARRIER || m == CARVED_PUMPKIN || m == JACK_O_LANTERN || m == PUMPKIN || m == MELON ||
-                m == BEACON || m == CAULDRON || m == GLOWSTONE || m == SEA_LANTERN || m == ICE
+                m == BEACON || Materials.checkFlag(m, Materials.CAULDRON) || m == GLOWSTONE || m == SEA_LANTERN || m == ICE
                 || m == PISTON || m == STICKY_PISTON || m == PISTON_HEAD || !canConnectToGlassBlock() && Materials.checkFlag(m, Materials.GLASS_BLOCK);
     }
 
