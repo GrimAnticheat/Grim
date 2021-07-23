@@ -25,11 +25,11 @@ public class PistonEvent implements Listener {
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         for (Block block : event.getBlocks()) {
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
+            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX(),
                             block.getY(),
                             block.getZ()));
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
+            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX() + event.getDirection().getModX(),
                             block.getY() + event.getDirection().getModY(),
                             block.getZ() + event.getDirection().getModZ()));
@@ -42,7 +42,7 @@ public class PistonEvent implements Listener {
         Block piston = event.getBlock();
 
         // Add bounding box of the actual piston head pushing
-        boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
+        boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                 .offset(piston.getX() + event.getDirection().getModX(),
                         piston.getY() + event.getDirection().getModY(),
                         piston.getZ() + event.getDirection().getModZ()));
@@ -76,16 +76,16 @@ public class PistonEvent implements Listener {
             Block piston = event.getBlock();
 
             // Add bounding box of the actual piston head pushing
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
+            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     .offset(piston.getX() + face.getModX(),
                             piston.getY() + face.getModY(),
                             piston.getZ() + face.getModZ()));
         }
 
         for (Block block : event.getBlocks()) {
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
+            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX(), block.getY(), block.getZ()));
-            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1)
+            boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX() + face.getModX(), block.getY() + face.getModY(), block.getZ() + face.getModZ()));
 
             if (block.getType() == SLIME_BLOCK) {

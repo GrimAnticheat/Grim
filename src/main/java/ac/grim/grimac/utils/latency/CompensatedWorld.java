@@ -246,7 +246,7 @@ public class CompensatedWorld {
             double modZ = 0;
 
             SimpleCollisionBox shulkerCollision = new SimpleCollisionBox(data.position.getX(), data.position.getY(), data.position.getZ(),
-                    data.position.getX() + 1, data.position.getY() + 1, data.position.getZ() + 1);
+                    data.position.getX() + 1, data.position.getY() + 1, data.position.getZ() + 1, true);
 
             BlockFace direction;
             if (data.entity == null) {

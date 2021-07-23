@@ -25,7 +25,7 @@ public class PlayerBaseTick {
 
     protected static SimpleCollisionBox getBoundingBoxForPose(Pose pose, double x, double y, double z) {
         float radius = pose.width / 2.0F;
-        return new SimpleCollisionBox(x - radius, y, z - radius, x + radius, y + pose.height, z + radius);
+        return new SimpleCollisionBox(x - radius, y, z - radius, x + radius, y + pose.height, z + radius, false);
     }
 
     public void doBaseTick() {
@@ -334,7 +334,7 @@ public class PlayerBaseTick {
     }
 
     private boolean suffocatesAt(int x, int z) {
-        SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(x, player.boundingBox.minY, z, x + 1.0, player.boundingBox.maxY, z + 1.0).expand(-1.0E-7);
+        SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(x, player.boundingBox.minY, z, x + 1.0, player.boundingBox.maxY, z + 1.0, false).expand(-1.0E-7);
 
         return Collisions.suffocatesAt(player, axisAlignedBB);
     }

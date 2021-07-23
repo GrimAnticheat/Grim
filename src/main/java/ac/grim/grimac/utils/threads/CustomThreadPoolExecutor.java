@@ -3,17 +3,26 @@ package ac.grim.grimac.utils.threads;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.lists.EvictingList;
 
 import java.util.concurrent.*;
 
 public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
+    private static final EvictingList<Long> computeTimes = new EvictingList<>(500);
 
     public CustomThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
     }
 
     public void runCheck(PredictionData data) {
+        long startTime = System.nanoTime();
         CompletableFuture.runAsync(() -> MovementCheckRunner.check(data), this).whenComplete((s, t) -> {
+            if (!data.player.isCheckNotReady) {
+                long timeTaken = System.nanoTime() - startTime;
+                computeTimes.add(timeTaken);
+                //Bukkit.broadcastMessage("Time taken " + (timeTaken + " " + GrimMathHelper.calculateAverageLong(computeTimes)));
+            }
+
             GrimPlayer player = data.player;
 
             // Set required variables here just in case of exceptions

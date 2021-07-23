@@ -37,4 +37,12 @@ public class GrimMathHelper {
         }
         return marks.isEmpty() ? 0 : 1.0 * sum / marks.size();
     }
+
+    public static double calculateAverageLong(List<Long> marks) {
+        long sum = 0;
+        for (Long mark : marks) {
+            sum += mark;
+        }
+        return marks.isEmpty() ? 0 : 1.0 * sum / marks.size();
+    }
 }
