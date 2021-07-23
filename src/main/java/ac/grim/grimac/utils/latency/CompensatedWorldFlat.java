@@ -25,7 +25,11 @@ public class CompensatedWorldFlat extends CompensatedWorld {
     public static final Material WATER = XMaterial.WATER.parseMaterial();
     public static List<BlockData> globalPaletteToBlockData;
 
-    static {
+    public CompensatedWorldFlat(GrimPlayer player) {
+        super(player);
+    }
+
+    public static void init() {
         // The global palette only exists in 1.13+, 1.12- uses magic values for everything
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
 
@@ -61,10 +65,6 @@ public class CompensatedWorldFlat extends CompensatedWorld {
             System.out.println("Palette reading failed! Unsupported version?");
             e.printStackTrace();
         }
-    }
-
-    public CompensatedWorldFlat(GrimPlayer player) {
-        super(player);
     }
 
     public static int getFlattenedGlobalID(BlockData blockData) {
