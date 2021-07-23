@@ -80,8 +80,11 @@ public class MovementTicker {
         }
 
         if (inputVel.getY() != collide.getY()) {
-            if ((onBlock == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)) ||
-                    (onBlock == SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8))) {
+            // If the client supports slime blocks
+            // And the block is a slime block
+            // Or the block is honey and was replaced by viaversion
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
+                    && (onBlock == SLIME_BLOCK || (onBlock == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)))) {
                 if (player.isSneaking) { // Slime blocks use shifting instead of sneaking
                     player.clientVelocity.setY(0);
                 } else {
