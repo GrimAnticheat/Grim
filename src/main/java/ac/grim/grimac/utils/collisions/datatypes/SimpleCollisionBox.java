@@ -11,33 +11,28 @@ public class SimpleCollisionBox implements CollisionBox {
     boolean isFullBlock = false;
 
     public SimpleCollisionBox() {
-        this(0, 0, 0, 0, 0, 0);
+        this(0, 0, 0, 0, 0, 0, false);
     }
 
-    public SimpleCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        if (minX == 0 && minY == 0 && minZ == 0 && maxX == 1 && maxY == 1 && maxZ == 1) isFullBlock = true;
+    public SimpleCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ, boolean fullBlock) {
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minY = minY;
+        this.maxY = maxY;
+        this.minZ = minZ;
+        this.maxZ = maxZ;
+        isFullBlock = fullBlock;
+    }
 
-        if (minX < maxX) {
-            this.minX = minX;
-            this.maxX = maxX;
-        } else {
-            this.minX = maxX;
-            this.maxX = minX;
-        }
-        if (minY < maxY) {
-            this.minY = minY;
-            this.maxY = maxY;
-        } else {
-            this.minY = maxY;
-            this.maxY = minY;
-        }
-        if (minZ < maxZ) {
-            this.minZ = minZ;
-            this.maxZ = maxZ;
-        } else {
-            this.minZ = maxZ;
-            this.maxZ = minZ;
-        }
+    // Use only if you don't know the fullBlock status, which is rare
+    public SimpleCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minY = minY;
+        this.maxY = maxY;
+        this.minZ = minZ;
+        this.maxZ = maxZ;
+        if (minX == 0 && minY == 0 && minZ == 0 && maxX == 1 && maxY == 1 && maxZ == 1) isFullBlock = true;
     }
 
     public SimpleCollisionBox(Vector min, Vector max) {
@@ -151,7 +146,7 @@ public class SimpleCollisionBox implements CollisionBox {
     }
 
     public SimpleCollisionBox copy() {
-        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, isFullBlock);
     }
 
     public SimpleCollisionBox offset(double x, double y, double z) {

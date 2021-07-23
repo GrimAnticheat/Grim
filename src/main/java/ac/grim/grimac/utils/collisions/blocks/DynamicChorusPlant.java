@@ -28,12 +28,12 @@ public class DynamicChorusPlant implements CollisionFactory {
     private static CollisionBox[] makeShapes() {
         float f = 0.5F - (float) 0.3125;
         float f1 = 0.5F + (float) 0.3125;
-        SimpleCollisionBox baseShape = new SimpleCollisionBox(f, f, f, f1, f1, f1);
+        SimpleCollisionBox baseShape = new SimpleCollisionBox(f, f, f, f1, f1, f1, false);
         CollisionBox[] avoxelshape = new CollisionBox[directions.length];
 
         for (int i = 0; i < directions.length; ++i) {
             BlockFace direction = directions[i];
-            avoxelshape[i] = new SimpleCollisionBox(0.5D + Math.min(-(float) 0.3125, (double) direction.getModX() * 0.5D), 0.5D + Math.min(-(float) 0.3125, (double) direction.getModY() * 0.5D), 0.5D + Math.min(-(float) 0.3125, (double) direction.getModZ() * 0.5D), 0.5D + Math.max((float) 0.3125, (double) direction.getModX() * 0.5D), 0.5D + Math.max((float) 0.3125, (double) direction.getModY() * 0.5D), 0.5D + Math.max((float) 0.3125, (double) direction.getModZ() * 0.5D));
+            avoxelshape[i] = new SimpleCollisionBox(0.5D + Math.min(-(float) 0.3125, (double) direction.getModX() * 0.5D), 0.5D + Math.min(-(float) 0.3125, (double) direction.getModY() * 0.5D), 0.5D + Math.min(-(float) 0.3125, (double) direction.getModZ() * 0.5D), 0.5D + Math.max((float) 0.3125, (double) direction.getModX() * 0.5D), 0.5D + Math.max((float) 0.3125, (double) direction.getModY() * 0.5D), 0.5D + Math.max((float) 0.3125, (double) direction.getModZ() * 0.5D), false);
         }
 
         CollisionBox[] avoxelshape1 = new CollisionBox[64];
@@ -57,7 +57,7 @@ public class DynamicChorusPlant implements CollisionFactory {
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         // ViaVersion replacement block (Purple wool)
         if (version.isOlderThanOrEquals(ClientVersion.v_1_8))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         // Player is 1.12- on 1.13 server
         // Player is 1.12 on 1.12 server

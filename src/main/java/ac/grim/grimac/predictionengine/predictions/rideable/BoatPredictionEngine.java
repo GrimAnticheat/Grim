@@ -105,7 +105,7 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     public static float getGroundFriction(GrimPlayer player) {
         SimpleCollisionBox axisalignedbb = player.boundingBox;
-        SimpleCollisionBox axisalignedbb1 = new SimpleCollisionBox(axisalignedbb.minX, axisalignedbb.minY - 0.001D, axisalignedbb.minZ, axisalignedbb.maxX, axisalignedbb.minY, axisalignedbb.maxZ);
+        SimpleCollisionBox axisalignedbb1 = new SimpleCollisionBox(axisalignedbb.minX, axisalignedbb.minY - 0.001D, axisalignedbb.minZ, axisalignedbb.maxX, axisalignedbb.minY, axisalignedbb.maxZ, false);
         int i = (int) (Math.floor(axisalignedbb1.minX) - 1);
         int j = (int) (Math.ceil(axisalignedbb1.maxX) + 1);
         int k = (int) (Math.floor(axisalignedbb1.minY) - 1);

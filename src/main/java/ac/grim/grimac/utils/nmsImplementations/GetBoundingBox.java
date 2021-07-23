@@ -32,7 +32,7 @@ public class GetBoundingBox {
         double minZ = centerZ - (width / 2);
         double maxZ = centerZ + (width / 2);
 
-        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, false);
     }
 
     public static SimpleCollisionBox getPacketEntityBoundingBox(double centerX, double minY, double centerZ, PacketEntity entity) {

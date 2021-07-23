@@ -54,7 +54,7 @@ public enum CollisionData {
             boxes.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D));
 
         if (directions.contains(BlockFace.SOUTH))
-            boxes.add(new SimpleCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
+            boxes.add(new SimpleCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D, false));
 
         return boxes;
 
@@ -71,7 +71,7 @@ public enum CollisionData {
 
         return new ComplexCollisionBox(
                 new HexCollisionBox(base, 0, base, 16 - base, 2, 16 - base),
-                new SimpleCollisionBox(0.4375, 0.0, 0.4375, 0.5625, 0.875, 0.5625));
+                new SimpleCollisionBox(0.4375, 0.0, 0.4375, 0.5625, 0.875, 0.5625, false));
 
     }, XMaterial.BREWING_STAND.parseMaterial()),
 
@@ -107,14 +107,14 @@ public enum CollisionData {
             height = 0.3125;
 
         return new ComplexCollisionBox(
-                new SimpleCollisionBox(0, 0, 0, 1, height, 1),
-                new SimpleCollisionBox(0, height, 0, 0.125, 1, 1),
-                new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1),
-                new SimpleCollisionBox(0, height, 0, 1, 1, 0.125),
-                new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
+                new SimpleCollisionBox(0, 0, 0, 1, height, 1, false),
+                new SimpleCollisionBox(0, height, 0, 0.125, 1, 1, false),
+                new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1, false),
+                new SimpleCollisionBox(0, height, 0, 1, 1, 0.125, false),
+                new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1, false));
     }, XMaterial.COMPOSTER.parseMaterial()),
 
-    RAIL(new SimpleCollisionBox(0, 0, 0, 1, 0.125, 0),
+    RAIL(new SimpleCollisionBox(0, 0, 0, 1, 0.125, 0, false),
             XMaterial.RAIL.parseMaterial(), XMaterial.ACTIVATOR_RAIL.parseMaterial(),
             XMaterial.DETECTOR_RAIL.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial()),
 
@@ -142,9 +142,9 @@ public enum CollisionData {
         } else {
             // Just a single solid collision box with 1.12
             if (((WrappedDirectional) data).getDirection() == BlockFace.NORTH) {
-                return new SimpleCollisionBox(0.125F, 0.0F, 0.0F, 0.875F, 1.0F, 1.0F);
+                return new SimpleCollisionBox(0.125F, 0.0F, 0.0F, 0.875F, 1.0F, 1.0F, false);
             } else {
-                return new SimpleCollisionBox(0.0F, 0.0F, 0.125F, 1.0F, 1.0F, 0.875F);
+                return new SimpleCollisionBox(0.0F, 0.0F, 0.125F, 1.0F, 1.0F, 0.875F, false);
             }
         }
     }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
@@ -158,12 +158,12 @@ public enum CollisionData {
 
     SLAB((player, version, data, x, y, z) -> {
         if (((WrappedSlab) data).isDouble()) {
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         } else if (((WrappedSlab) data).isBottom()) {
-            return new SimpleCollisionBox(0, 0, 0, 1, 0.5, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 0.5, 1, false);
         }
 
-        return new SimpleCollisionBox(0, 0.5, 0, 1, 1, 1);
+        return new SimpleCollisionBox(0, 0.5, 0, 1, 1, 1, false);
         // 1.13 can handle double slabs as it's in the block data
         // 1.12 has double slabs as a separate block, no block data to differentiate it
     }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("_SLAB") || mat.name().contains("STEP"))
@@ -174,15 +174,15 @@ public enum CollisionData {
         switch (((WrappedDirectional) data).getDirection()) {
             case DOWN:
             default: // On the floor
-                return new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F);
+                return new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false);
             case NORTH:
-                return new SimpleCollisionBox(0.25F, 0.25F, 0.5F, 0.75F, 0.75F, 1.0F);
+                return new SimpleCollisionBox(0.25F, 0.25F, 0.5F, 0.75F, 0.75F, 1.0F, false);
             case SOUTH:
-                return new SimpleCollisionBox(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.5F);
+                return new SimpleCollisionBox(0.25F, 0.25F, 0.0F, 0.75F, 0.75F, 0.5F, false);
             case WEST:
-                return new SimpleCollisionBox(0.5F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F);
+                return new SimpleCollisionBox(0.5F, 0.25F, 0.25F, 1.0F, 0.75F, 0.75F, false);
             case EAST:
-                return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F);
+                return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
         }
     }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("HEAD") || mat.name().contains("SKULL")) && !mat.name().contains("PISTON")).toArray(Material[]::new)),
 
@@ -211,23 +211,23 @@ public enum CollisionData {
                     break;
             }
 
-            hopperBox.add(new SimpleCollisionBox(0, 0.625, 0, 1.0, 0.6875, 1.0));
-            hopperBox.add(new SimpleCollisionBox(0, 0.6875, 0, 0.125, 1, 1));
-            hopperBox.add(new SimpleCollisionBox(0.125, 0.6875, 0, 1, 1, 0.125));
-            hopperBox.add(new SimpleCollisionBox(0.125, 0.6875, 0.875, 1, 1, 1));
-            hopperBox.add(new SimpleCollisionBox(0.25, 0.25, 0.25, 0.75, 0.625, 0.75));
-            hopperBox.add(new SimpleCollisionBox(0.875, 0.6875, 0.125, 1, 1, 0.875));
+            hopperBox.add(new SimpleCollisionBox(0, 0.625, 0, 1.0, 0.6875, 1.0, false));
+            hopperBox.add(new SimpleCollisionBox(0, 0.6875, 0, 0.125, 1, 1, false));
+            hopperBox.add(new SimpleCollisionBox(0.125, 0.6875, 0, 1, 1, 0.125, false));
+            hopperBox.add(new SimpleCollisionBox(0.125, 0.6875, 0.875, 1, 1, 1, false));
+            hopperBox.add(new SimpleCollisionBox(0.25, 0.25, 0.25, 0.75, 0.625, 0.75, false));
+            hopperBox.add(new SimpleCollisionBox(0.875, 0.6875, 0.125, 1, 1, 0.875, false));
 
             return hopperBox;
         } else {
             double height = 0.125 * 5;
 
             return new ComplexCollisionBox(
-                    new SimpleCollisionBox(0, 0, 0, 1, height, 1),
-                    new SimpleCollisionBox(0, height, 0, 0.125, 1, 1),
-                    new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1),
-                    new SimpleCollisionBox(0, height, 0, 1, 1, 0.125),
-                    new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
+                    new SimpleCollisionBox(0, 0, 0, 1, height, 1, false),
+                    new SimpleCollisionBox(0, height, 0, 0.125, 1, 1, false),
+                    new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1, false),
+                    new SimpleCollisionBox(0, height, 0, 1, 1, 0.125, false),
+                    new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1, false));
         }
 
     }, XMaterial.HOPPER.parseMaterial()),
@@ -237,7 +237,7 @@ public enum CollisionData {
         if (version.isOlderThan(ClientVersion.v_1_8))
             height = 0.4375;
         double eatenPosition = (1 + ((WrappedCake) data).getSlicesEaten() * 2) / 16D;
-        return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, height, 1 - 0.0625);
+        return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, height, 1 - 0.0625, false);
     }, XMaterial.CAKE.parseMaterial()),
 
 
@@ -296,14 +296,14 @@ public enum CollisionData {
 
     STONE_CUTTER((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
     }, XMaterial.STONECUTTER.parseMaterial()),
 
     BELL((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         Bell bell = (Bell) ((WrappedFlatBlock) data).getBlockData();
         BlockFace direction = bell.getFacing();
@@ -346,7 +346,7 @@ public enum CollisionData {
     SCAFFOLDING((player, version, data, x, y, z) -> {
         // ViaVersion replacement block - hay block
         if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         Scaffolding scaffolding = (Scaffolding) ((WrappedFlatBlock) data).getBlockData();
 
@@ -394,7 +394,7 @@ public enum CollisionData {
 
     LANTERN((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         WrappedFlatBlock lantern = (WrappedFlatBlock) data;
 
@@ -411,7 +411,7 @@ public enum CollisionData {
 
     LECTERN((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new ComplexCollisionBox(
                 new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D), // base
@@ -421,7 +421,7 @@ public enum CollisionData {
 
     HONEY_BLOCK((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_14_4))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 15.0D, 15.0D); // post
     }, XMaterial.HONEY_BLOCK.parseMaterial()),
@@ -436,9 +436,9 @@ public enum CollisionData {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
             // Just a single solid collision box with 1.12
             if (grindstone.getFacing() == BlockFace.NORTH || grindstone.getFacing() == BlockFace.SOUTH) {
-                return new SimpleCollisionBox(0.125F, 0.0F, 0.0F, 0.875F, 1.0F, 1.0F);
+                return new SimpleCollisionBox(0.125F, 0.0F, 0.0F, 0.875F, 1.0F, 1.0F, false);
             } else {
-                return new SimpleCollisionBox(0.0F, 0.0F, 0.125F, 1.0F, 1.0F, 0.875F);
+                return new SimpleCollisionBox(0.0F, 0.0F, 0.125F, 1.0F, 1.0F, 0.875F, false);
             }
         }
 
@@ -554,10 +554,10 @@ public enum CollisionData {
         switch (gate.getDirection()) {
             case NORTH:
             case SOUTH:
-                return new SimpleCollisionBox(0.0F, 0.0F, 0.375F, 1.0F, 1.5F, 0.625F);
+                return new SimpleCollisionBox(0.0F, 0.0F, 0.375F, 1.0F, 1.5F, 0.625F, false);
             case WEST:
             case EAST:
-                return new SimpleCollisionBox(0.375F, 0.0F, 0.0F, 0.625F, 1.5F, 1.0F);
+                return new SimpleCollisionBox(0.375F, 0.0F, 0.0F, 0.625F, 1.5F, 1.0F, false);
         }
 
         // This code is unreachable but the compiler does not know this
@@ -594,11 +594,11 @@ public enum CollisionData {
 
 
     ENDER_CHEST(new SimpleCollisionBox(0.0625F, 0.0F, 0.0625F,
-            0.9375F, 0.875F, 0.9375F),
+            0.9375F, 0.875F, 0.9375F, false),
             XMaterial.ENDER_CHEST.parseMaterial()),
 
 
-    ENCHANTING_TABLE(new SimpleCollisionBox(0, 0, 0, 1, 1 - 0.25, 1),
+    ENCHANTING_TABLE(new SimpleCollisionBox(0, 0, 0, 1, 1 - 0.25, 1, false),
             XMaterial.ENCHANTING_TABLE.parseMaterial()),
 
 
@@ -617,12 +617,12 @@ public enum CollisionData {
 
     CARPET((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_7_10))
-            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F);
+            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, false);
 
-        return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F);
+        return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("CARPET")).toArray(Material[]::new)),
 
-    DAYLIGHT(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F),
+    DAYLIGHT(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F, false),
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("DAYLIGHT")).toArray(Material[]::new)),
 
     FARMLAND((player, version, data, x, y, z) -> {
@@ -630,7 +630,7 @@ public enum CollisionData {
         // Anyways, let a 1.10/1.10.1/1.10.2 client decide what farmland collision box it uses
         if (version == ClientVersion.v_1_10) {
             if (Math.abs(player.y % 1.0) < 0.001) {
-                return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+                return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
             }
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
         }
@@ -638,7 +638,7 @@ public enum CollisionData {
         if (version.isNewerThanOrEquals(ClientVersion.v_1_10))
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
 
-        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
     }, XMaterial.FARMLAND.parseMaterial()),
 
@@ -646,7 +646,7 @@ public enum CollisionData {
         if (version.isNewerThanOrEquals(ClientVersion.v_1_9))
             return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 15.0D, 16.0D);
 
-        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
     }, XMaterial.DIRT_PATH.parseMaterial()),
 
@@ -656,11 +656,11 @@ public enum CollisionData {
             return NoCollisionBox.INSTANCE;
 
         if (version.isOlderThan(ClientVersion.v_1_9))
-            return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f);
+            return new SimpleCollisionBox(0.0f, 0.0F, 0.0f, 1.0f, 0.015625F, 1.0f, false);
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
     }, XMaterial.LILY_PAD.parseMaterial()),
 
-    BED(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.5625, 1.0F),
+    BED(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.5625, 1.0F, false),
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BED") && !mat.name().contains("ROCK"))
                     .toArray(Material[]::new)),
 
@@ -668,13 +668,13 @@ public enum CollisionData {
             .filter(mat -> mat.name().contains("TRAP_DOOR") || mat.name().contains("TRAPDOOR")).toArray(Material[]::new)),
 
 
-    DIODES(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F),
+    DIODES(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F, false),
             matchLegacy("LEGACY_DIODE_BLOCK_OFF"), matchLegacy("LEGACY_DIODE_BLOCK_ON"),
             matchLegacy("LEGACY_REDSTONE_COMPARATOR_ON"), matchLegacy("LEGACY_REDSTONE_COMPARATOR_OFF"),
             XMaterial.REPEATER.parseMaterial(), XMaterial.COMPARATOR.parseMaterial()),
 
     STRUCTURE_VOID(new SimpleCollisionBox(0.375, 0.375, 0.375,
-            0.625, 0.625, 0.625),
+            0.625, 0.625, 0.625, false),
             XMaterial.STRUCTURE_VOID.parseMaterial()),
 
     END_ROD((player, version, data, x, y, z) -> {
@@ -702,22 +702,22 @@ public enum CollisionData {
             height = 0.3125;
 
         return new ComplexCollisionBox(
-                new SimpleCollisionBox(0, 0, 0, 1, height, 1),
-                new SimpleCollisionBox(0, height, 0, 0.125, 1, 1),
-                new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1),
-                new SimpleCollisionBox(0, height, 0, 1, 1, 0.125),
-                new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1));
+                new SimpleCollisionBox(0, 0, 0, 1, height, 1, false),
+                new SimpleCollisionBox(0, height, 0, 0.125, 1, 1, false),
+                new SimpleCollisionBox(1 - 0.125, height, 0, 1, 1, 1, false),
+                new SimpleCollisionBox(0, height, 0, 1, 1, 0.125, false),
+                new SimpleCollisionBox(0, height, 1 - 0.125, 1, 1, 1, false));
     }, XMaterial.CAULDRON.parseMaterial()),
 
     CACTUS(new SimpleCollisionBox(0.0625, 0, 0.0625,
-            1 - 0.0625, 1 - 0.0625, 1 - 0.0625), XMaterial.CACTUS.parseMaterial()),
+            1 - 0.0625, 1 - 0.0625, 1 - 0.0625, false), XMaterial.CACTUS.parseMaterial()),
 
 
     PISTON_BASE(new PistonBaseCollision(), XMaterial.PISTON.parseMaterial(), XMaterial.STICKY_PISTON.parseMaterial()),
 
     PISTON_HEAD(new PistonHeadCollision(), XMaterial.PISTON_HEAD.parseMaterial()),
 
-    SOULSAND(new SimpleCollisionBox(0, 0, 0, 1, 0.875, 1),
+    SOULSAND(new SimpleCollisionBox(0, 0, 0, 1, 0.875, 1, false),
             XMaterial.SOUL_SAND.parseMaterial()),
 
     PICKLE((player, version, data, x, y, z) -> {
@@ -776,7 +776,7 @@ public enum CollisionData {
     CONDUIT((player, version, data, x, y, z) -> {
         // ViaVersion replacement block - Beacon
         if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return new HexCollisionBox(5.0D, 5.0D, 5.0D, 11.0D, 11.0D, 11.0D);
     }, XMaterial.CONDUIT.parseMaterial()),
@@ -805,7 +805,7 @@ public enum CollisionData {
 
 
     // The nether signes map to sign post and other regular sign
-    SIGN(new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75),
+    SIGN(new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75, false),
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("SIGN") && !mat.name().contains("WALL"))
                     .toArray(Material[]::new)),
 
@@ -816,17 +816,17 @@ public enum CollisionData {
 
         switch (button.getDirection()) {
             case WEST:
-                return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875);
+                return new SimpleCollisionBox(0.0, 0.375, 0.3125, f2, 0.625, 0.6875, false);
             case EAST:
-                return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875);
+                return new SimpleCollisionBox(1.0 - f2, 0.375, 0.3125, 1.0, 0.625, 0.6875, false);
             case NORTH:
-                return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2);
+                return new SimpleCollisionBox(0.3125, 0.375, 0.0, 0.6875, 0.625, f2, false);
             case SOUTH:
-                return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0);
+                return new SimpleCollisionBox(0.3125, 0.375, 1.0 - f2, 0.6875, 0.625, 1.0, false);
             case DOWN:
-                return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625);
+                return new SimpleCollisionBox(0.3125, 0.0, 0.375, 0.6875, 0.0 + f2, 0.625, false);
             case UP:
-                return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625);
+                return new SimpleCollisionBox(0.3125, 1.0 - f2, 0.375, 0.6875, 1.0, 0.625, false);
         }
 
         return NoCollisionBox.INSTANCE;
@@ -838,17 +838,17 @@ public enum CollisionData {
 
         switch (((WrappedDirectional) data).getDirection()) {
             case WEST:
-                return new SimpleCollisionBox(1.0 - f * 2.0, 0.2, 0.5 - f, 1.0, 0.8, 0.5 + f);
+                return new SimpleCollisionBox(1.0 - f * 2.0, 0.2, 0.5 - f, 1.0, 0.8, 0.5 + f, false);
             case EAST:
-                return new SimpleCollisionBox(0.0, 0.2, 0.5 - f, f * 2.0, 0.8, 0.5 + f);
+                return new SimpleCollisionBox(0.0, 0.2, 0.5 - f, f * 2.0, 0.8, 0.5 + f, false);
             case NORTH:
-                return new SimpleCollisionBox(0.5 - f, 0.2, 1.0 - f * 2.0, 0.5 + f, 0.8, 1.0);
+                return new SimpleCollisionBox(0.5 - f, 0.2, 1.0 - f * 2.0, 0.5 + f, 0.8, 1.0, false);
             case SOUTH:
-                return new SimpleCollisionBox(0.5 - f, 0.2, 0.0, 0.5 + f, 0.8, f * 2.0);
+                return new SimpleCollisionBox(0.5 - f, 0.2, 0.0, 0.5 + f, 0.8, f * 2.0, false);
             case DOWN:
-                return new SimpleCollisionBox(0.25, 0.4, 0.25, 0.75, 1.0, 0.75);
+                return new SimpleCollisionBox(0.25, 0.4, 0.25, 0.75, 1.0, 0.75, false);
             case UP:
-                return new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 0.6, 0.75);
+                return new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 0.6, 0.75, false);
         }
 
         return NoCollisionBox.INSTANCE;
@@ -919,7 +919,7 @@ public enum CollisionData {
 
     BIG_DRIPLEAF((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_16_4))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         BigDripleaf dripleaf = (BigDripleaf) ((WrappedFlatBlock) data).getBlockData();
 
@@ -964,17 +964,17 @@ public enum CollisionData {
 
     POWDER_SNOW((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_16_4))
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         // Who makes a collision box dependent on fall distance?? If fall distance greater than 2.5, 0.899999 box
         // Until we accurately get fall distance, just let players decide what box they get
         if (Math.abs((player.y % 1.0) - 0.89999997615814) < 0.001) {
-            return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.8999999761581421, 1.0);
+            return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.8999999761581421, 1.0, false);
         }
 
         ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
         if (player.lastY > y + 1 - 9.999999747378752E-6 && boots != null && boots.getType() == Material.LEATHER_BOOTS && !player.isSneaking)
-            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return NoCollisionBox.INSTANCE;
 
@@ -1013,7 +1013,7 @@ public enum CollisionData {
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_PLATE"))
                     .toArray(Material[]::new)),
 
-    DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1),
+    DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true),
             XMaterial.STONE.parseMaterial());
 
     private static final CollisionData[] lookup = new CollisionData[Material.values().length];

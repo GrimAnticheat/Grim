@@ -18,20 +18,20 @@ public class TrapDoorHandler implements CollisionFactory {
         if (trapdoor.isOpen()) {
             switch (trapdoor.getDirection()) {
                 case SOUTH:
-                    return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 1.0, var2);
+                    return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 1.0, var2, false);
                 case NORTH:
-                    return new SimpleCollisionBox(0.0, 0.0, 1.0 - var2, 1.0, 1.0, 1.0);
+                    return new SimpleCollisionBox(0.0, 0.0, 1.0 - var2, 1.0, 1.0, 1.0, false);
                 case EAST:
-                    return new SimpleCollisionBox(0.0, 0.0, 0.0, var2, 1.0, 1.0);
+                    return new SimpleCollisionBox(0.0, 0.0, 0.0, var2, 1.0, 1.0, false);
                 case WEST:
-                    return new SimpleCollisionBox(1.0 - var2, 0.0, 0.0, 1.0, 1.0, 1.0);
+                    return new SimpleCollisionBox(1.0 - var2, 0.0, 0.0, 1.0, 1.0, 1.0, false);
 
             }
         } else {
             if (trapdoor.isBottom()) {
-                return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, var2, 1.0);
+                return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, var2, 1.0, false);
             } else {
-                return new SimpleCollisionBox(0.0, 1.0 - var2, 0.0, 1.0, 1.0, 1.0);
+                return new SimpleCollisionBox(0.0, 1.0 - var2, 0.0, 1.0, 1.0, 1.0, false);
 
             }
         }

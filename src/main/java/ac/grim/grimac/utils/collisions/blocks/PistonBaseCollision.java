@@ -15,7 +15,7 @@ public class PistonBaseCollision implements CollisionFactory {
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         WrappedPistonBase base = (WrappedPistonBase) block;
 
-        if (!base.isPowered()) return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 1.0F, 1.0F);
+        if (!base.isPowered()) return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         switch (base.getDirection()) {
             default:
