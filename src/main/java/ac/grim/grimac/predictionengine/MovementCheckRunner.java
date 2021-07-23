@@ -238,10 +238,7 @@ public class MovementCheckRunner {
         player.lastDummy = data.isDummy;
 
         if (!player.inVehicle)
-            player.movementSpeed = player.playerMovementSpeed;
-
-        // Store speed for later use (handling sprinting)
-        player.tempMovementSpeed = player.movementSpeed;
+            player.speed = player.compensatedEntities.playerEntityMovementSpeed;
 
         // Set position now to support "dummy" riding without control
         // Warning - on pigs and striders players, can turn into dummies independent of whether they have
@@ -314,7 +311,7 @@ public class MovementCheckRunner {
         }
 
         // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
-        player.movementSpeed += player.isSprinting ? player.movementSpeed * 0.3f : 0;
+        player.speed += player.isSprinting ? player.speed * 0.3f : 0;
         player.jumpAmplifier = data.jumpAmplifier;
         player.levitationAmplifier = data.levitationAmplifier;
         player.slowFallingAmplifier = data.slowFallingAmplifier;
