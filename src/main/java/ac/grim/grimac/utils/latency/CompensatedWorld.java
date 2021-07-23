@@ -41,15 +41,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class CompensatedWorld {
     public static final int MIN_WORLD_HEIGHT = 0;
     public static final int MAX_WORLD_HEIGHT = 255;
-    public static final BaseBlockState airData;
+    public static BaseBlockState airData;
     public static Method getByCombinedID;
 
-    static {
+    public static void init() {
         if (XMaterial.isNewVersion()) {
-            airData = new FlatBlockState(Material.AIR.createBlockData(), 0);
+            airData = new FlatBlockState(0);
         } else {
             airData = new MagicBlockState(0, 0);
-
         }
     }
 
