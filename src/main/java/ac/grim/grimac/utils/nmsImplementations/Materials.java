@@ -35,6 +35,7 @@ public class Materials {
     public static final int WATER_SOURCE_LEGACY = 0b00000001000000000000000000000;
     public static final int CLIENT_SIDE_INTERACTABLE = 0b00000010000000000000000000000;
     public static final int SWORD = 0b00000100000000000000000000000;
+    public static final int CAULDRON = 0b00001000000000000000000000000;
 
     private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
     private static final Material BOW = XMaterial.BOW.parseMaterial();
@@ -191,6 +192,8 @@ public class Materials {
             if (mat.name().contains("_SIGN")) markAsNotSolid(mat);
             if (mat.name().contains("BUTTON")) MATERIAL_FLAGS[mat.ordinal()] |= BUTTON;
             if (mat.name().contains("CANDLE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
+            // 1.17 separates the types of cauldrons
+            if (mat.name().contains("CAULDRON")) MATERIAL_FLAGS[mat.ordinal()] |= CAULDRON;
         }
     }
 

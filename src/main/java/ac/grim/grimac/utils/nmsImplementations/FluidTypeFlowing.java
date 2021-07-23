@@ -20,7 +20,6 @@ public class FluidTypeFlowing {
     private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
 
     private static final Material BEACON = XMaterial.BEACON.parseMaterial();
-    private static final Material CAULDRON = XMaterial.CAULDRON.parseMaterial();
     private static final Material GLOWSTONE = XMaterial.GLOWSTONE.parseMaterial();
     private static final Material SEA_LANTERN = XMaterial.SEA_LANTERN.parseMaterial();
     private static final Material CONDUIT = XMaterial.CONDUIT.parseMaterial();
@@ -100,7 +99,7 @@ public class FluidTypeFlowing {
                             || Materials.checkFlag(blockMaterial, Materials.TRAPDOOR))
                         continue;
 
-                    if (blockMaterial == BEACON || blockMaterial == CAULDRON || blockMaterial == GLOWSTONE
+                    if (blockMaterial == BEACON || Materials.checkFlag(blockMaterial, Materials.CAULDRON) || blockMaterial == GLOWSTONE
                             || blockMaterial == SEA_LANTERN || blockMaterial == CONDUIT || blockMaterial == ICE)
                         continue;
 
