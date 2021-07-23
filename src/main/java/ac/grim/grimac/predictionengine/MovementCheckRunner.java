@@ -97,13 +97,13 @@ public class MovementCheckRunner {
 
             Vector3d position = teleportPos.getSecond();
             if (position.getX() == data.playerX && position.getY() == data.playerY && position.getZ() == data.playerZ) {
-                data.player.teleports.poll();
+                data.player.vehicleTeleports.poll();
                 data.isJustTeleported = true;
                 data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
 
                 continue;
             } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
-                data.player.teleports.poll();
+                data.player.vehicleTeleports.poll();
                 continue;
             }
 
