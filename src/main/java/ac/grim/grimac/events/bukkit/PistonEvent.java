@@ -18,6 +18,7 @@ import java.util.List;
 
 public class PistonEvent implements Listener {
     Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
+    Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
 
     @EventHandler
     public void onPistonPushEvent(BlockPistonExtendEvent event) {
@@ -34,7 +35,8 @@ public class PistonEvent implements Listener {
                             block.getY() + event.getDirection().getModY(),
                             block.getZ() + event.getDirection().getModZ()));
 
-            if (block.getType() == SLIME_BLOCK) {
+            // Support honey block like this because ViaVersion replacement
+            if (block.getType() == SLIME_BLOCK || block.getType() == HONEY_BLOCK) {
                 hasSlimeBlock = true;
             }
         }
@@ -88,7 +90,8 @@ public class PistonEvent implements Listener {
             boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX() + face.getModX(), block.getY() + face.getModY(), block.getZ() + face.getModZ()));
 
-            if (block.getType() == SLIME_BLOCK) {
+            // Support honey block like this because ViaVersion replacement
+            if (block.getType() == SLIME_BLOCK || block.getType() == HONEY_BLOCK) {
                 hasSlimeBlock = true;
             }
         }
