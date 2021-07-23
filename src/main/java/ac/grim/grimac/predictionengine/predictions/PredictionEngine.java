@@ -209,7 +209,9 @@ public class PredictionEngine {
 
         double uncertainPiston = 0;
         for (int x = 0; x < player.uncertaintyHandler.pistonPushing.size(); x++) {
-            double value = player.uncertaintyHandler.pistonPushing.get(x) * (Math.pow(0.8, x));
+            double value = player.uncertaintyHandler.pistonPushing.get(x);
+            if (value == 0) continue;
+            value *= (Math.pow(0.8, x));
             uncertainPiston = Math.max(uncertainPiston, value);
         }
 
