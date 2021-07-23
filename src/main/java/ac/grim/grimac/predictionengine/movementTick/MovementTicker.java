@@ -238,15 +238,15 @@ public class MovementTicker {
         if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
             return;
 
-        boolean xAxisPositiveCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMax(player.movementSpeed, 0, 0));
-        boolean xAxisNegativeCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMin(-player.movementSpeed, 0, 0));
-        boolean zAxisCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(-0.01, -0.01, player.movementSpeed));
+        boolean xAxisPositiveCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMax(player.speed, 0, 0));
+        boolean xAxisNegativeCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMin(-player.speed, 0, 0));
+        boolean zAxisCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(-0.01, -0.01, player.speed));
 
         if (zAxisCollision) {
             if (xAxisPositiveCollision)
-                player.uncertaintyHandler.xNegativeUncertainty -= player.movementSpeed * 4;
+                player.uncertaintyHandler.xNegativeUncertainty -= player.speed * 4;
             if (xAxisNegativeCollision)
-                player.uncertaintyHandler.xPositiveUncertainty += player.movementSpeed * 4;
+                player.uncertaintyHandler.xPositiveUncertainty += player.speed * 4;
         }
     }
 
@@ -307,7 +307,7 @@ public class MovementTicker {
 
             if (player.depthStriderLevel > 0.0F) {
                 swimFriction += (0.54600006F - swimFriction) * player.depthStriderLevel / 3.0F;
-                swimSpeed += (player.movementSpeed - swimSpeed) * player.depthStriderLevel / 3.0F;
+                swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
             if (XMaterial.supports(13) && player.dolphinsGraceAmplifier > 0) {

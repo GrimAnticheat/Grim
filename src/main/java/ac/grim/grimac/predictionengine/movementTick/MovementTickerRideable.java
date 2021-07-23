@@ -20,11 +20,7 @@ public class MovementTickerRideable extends MovementTickerLivingVehicle {
         }
 
         player.speed = f;
-        setMovementSpeed();
-    }
 
-    public void setMovementSpeed() {
-        player.movementSpeed = player.speed;
     }
 
     // Pig and Strider should implement this

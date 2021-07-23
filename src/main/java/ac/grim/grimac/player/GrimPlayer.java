@@ -64,7 +64,7 @@ public class GrimPlayer {
     public UncertaintyHandler uncertaintyHandler = new UncertaintyHandler();
     public double gravity;
     public float friction;
-    public float speed;
+    public double speed;
     // Set from prediction data
     public double x;
     public double y;
@@ -100,9 +100,6 @@ public class GrimPlayer {
     // Determining slow movement has to be done before pose is updated
     public boolean isSlowMovement = false;
     public World playerWorld;
-    public double playerMovementSpeed = 0.1f;
-    public double movementSpeed;
-    public double tempMovementSpeed;
     public int jumpAmplifier;
     public int levitationAmplifier;
     public int slowFallingAmplifier;

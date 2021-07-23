@@ -2,8 +2,10 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -69,13 +71,22 @@ public class BlockProperties {
         // Use base value because otherwise it isn't async safe.
         // Well, more async safe, still isn't 100% safe.
         if (player.lastOnGround) {
-            return (float) (player.movementSpeed * (0.21600002f / (f * f * f)));
+            return (float) (player.speed * (0.21600002f / (f * f * f)));
         }
 
         // The game uses values known as flyingSpeed for some vehicles in the air
         if (player.playerVehicle != null) {
             if (player.playerVehicle.type == EntityType.PIG || player.playerVehicle instanceof PacketEntityHorse) {
-                return player.speed * 0.1F;
+                return (float) (player.speed * 0.1f);
+            }
+
+            if (player.playerVehicle instanceof PacketEntityStrider) {
+                /*if (((PacketEntityStrider) player.playerVehicle).isShaking) {
+                    return player.speed * (0.66f / 0.23f) * 0.1f / 0.8f;
+                }
+                return player.speed * (1.0f / 0.55f) * 0.1f / 0.8f;*/
+                Bukkit.broadcastMessage("asdf");
+                return 0.01155f;
             }
         }
 

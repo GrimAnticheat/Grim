@@ -37,6 +37,8 @@ public class CompensatedEntities {
     public ConcurrentLinkedQueue<EntityMountData> mountVehicleQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityPropertiesData> entityPropertiesData = new ConcurrentLinkedQueue<>();
 
+    public double playerEntityMovementSpeed = 0.1f;
+
     GrimPlayer player;
 
     public CompensatedEntities(GrimPlayer player) {
@@ -95,7 +97,7 @@ public class CompensatedEntities {
             if (metaData.entityID == player.entityID) {
                 for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
                     if (snapshotWrapper.getKey().equalsIgnoreCase("attribute.name.generic.movement_speed")) {
-                        player.playerMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
+                        playerEntityMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                     }
                 }
             }

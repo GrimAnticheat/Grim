@@ -28,7 +28,6 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
             GrimPlayer player = data.player;
 
             // Set required variables here just in case of exceptions
-            player.movementSpeed = player.tempMovementSpeed;
             player.lastX = player.x;
             player.lastY = player.y;
             player.lastZ = player.z;
