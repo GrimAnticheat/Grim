@@ -23,6 +23,7 @@ public class PistonEvent implements Listener {
     @EventHandler
     public void onPistonPushEvent(BlockPistonExtendEvent event) {
         boolean hasSlimeBlock = false;
+        boolean hasHoneyBlock = false;
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         for (Block block : event.getBlocks()) {
@@ -36,8 +37,12 @@ public class PistonEvent implements Listener {
                             block.getZ() + event.getDirection().getModZ()));
 
             // Support honey block like this because ViaVersion replacement
-            if (block.getType() == SLIME_BLOCK || block.getType() == HONEY_BLOCK) {
+            if (block.getType() == SLIME_BLOCK) {
                 hasSlimeBlock = true;
+            }
+
+            if (block.getType() == HONEY_BLOCK) {
+                hasHoneyBlock = true;
             }
         }
 
@@ -51,7 +56,7 @@ public class PistonEvent implements Listener {
 
         for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                player.compensatedWorld.pistonData.add(new PistonData(event.getDirection(), boxes, player.lastTransactionAtStartOfTick, true, hasSlimeBlock));
+                player.compensatedWorld.pistonData.add(new PistonData(event.getDirection(), boxes, player.lastTransactionAtStartOfTick, true, hasSlimeBlock, hasHoneyBlock));
             }
         }
     }
@@ -69,6 +74,7 @@ public class PistonEvent implements Listener {
     @EventHandler
     public void onPistonRetractEvent(BlockPistonRetractEvent event) {
         boolean hasSlimeBlock = false;
+        boolean hasHoneyBlock = false;
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         BlockFace face = event.getDirection();
@@ -91,14 +97,18 @@ public class PistonEvent implements Listener {
                     .offset(block.getX() + face.getModX(), block.getY() + face.getModY(), block.getZ() + face.getModZ()));
 
             // Support honey block like this because ViaVersion replacement
-            if (block.getType() == SLIME_BLOCK || block.getType() == HONEY_BLOCK) {
+            if (block.getType() == SLIME_BLOCK) {
                 hasSlimeBlock = true;
+            }
+
+            if (block.getType() == HONEY_BLOCK) {
+                hasHoneyBlock = true;
             }
         }
 
         for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                player.compensatedWorld.pistonData.add(new PistonData(event.getBlocks().isEmpty() ? event.getDirection().getOppositeFace() : event.getDirection(), boxes, player.lastTransactionAtStartOfTick, false, hasSlimeBlock));
+                player.compensatedWorld.pistonData.add(new PistonData(event.getBlocks().isEmpty() ? event.getDirection().getOppositeFace() : event.getDirection(), boxes, player.lastTransactionAtStartOfTick, false, hasSlimeBlock, hasHoneyBlock));
             }
         }
     }

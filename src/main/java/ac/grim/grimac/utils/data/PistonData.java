@@ -8,6 +8,7 @@ import java.util.List;
 public class PistonData {
     public final boolean isPush;
     public final boolean hasSlimeBlock;
+    public final boolean hasHoneyBlock;
     public final BlockFace direction;
     public final int lastTransactionSent;
 
@@ -17,12 +18,13 @@ public class PistonData {
     // The actual blocks pushed by the piston, plus the piston head itself
     public List<SimpleCollisionBox> boxes;
 
-    public PistonData(BlockFace direction, List<SimpleCollisionBox> pushedBlocks, int lastTransactionSent, boolean isPush, boolean hasSlimeBlock) {
+    public PistonData(BlockFace direction, List<SimpleCollisionBox> pushedBlocks, int lastTransactionSent, boolean isPush, boolean hasSlimeBlock, boolean hasHoneyBlock) {
         this.direction = direction;
         this.boxes = pushedBlocks;
         this.lastTransactionSent = lastTransactionSent;
         this.isPush = isPush;
         this.hasSlimeBlock = hasSlimeBlock;
+        this.hasHoneyBlock = hasHoneyBlock;
     }
 
     // We don't know when the piston has applied, or what stage of pushing it is on

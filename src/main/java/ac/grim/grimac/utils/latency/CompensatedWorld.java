@@ -24,6 +24,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
@@ -176,7 +177,9 @@ public class CompensatedWorld {
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
 
-                    player.uncertaintyHandler.slimePistonBounces.add(data.direction);
+                    if (data.hasSlimeBlock || (data.hasHoneyBlock && player.getClientVersion().isOlderThan(ClientVersion.v_1_15_2))) {
+                        player.uncertaintyHandler.slimePistonBounces.add(data.direction);
+                    }
 
                     break;
                 }
