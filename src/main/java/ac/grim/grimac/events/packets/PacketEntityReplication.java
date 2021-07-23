@@ -20,6 +20,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.W
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitystatus.WrappedPacketOutEntityStatus;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityteleport.WrappedPacketOutEntityTeleport;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mount.WrappedPacketOutMount;
+import io.github.retrooper.packetevents.packetwrappers.play.out.namedentityspawn.WrappedPacketOutNamedEntitySpawn;
 import io.github.retrooper.packetevents.packetwrappers.play.out.removeentityeffect.WrappedPacketOutRemoveEntityEffect;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentity.WrappedPacketOutSpawnEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
@@ -61,6 +62,18 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (entity == null) return;
 
             player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity.getType(), packetOutEntity.getPosition());
+        }
+
+        if (packetID == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
+            WrappedPacketOutNamedEntitySpawn spawn = new WrappedPacketOutNamedEntitySpawn(event.getNMSPacket());
+
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
+            Entity entity = spawn.getEntity();
+            if (entity == null) return;
+
+            player.compensatedEntities.addEntity(spawn.getEntityId(), entity.getType(), spawn.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
