@@ -206,7 +206,12 @@ public class PredictionEngine {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.wasFlying)
             addition += 0.05;
 
-        double uncertainPiston = Collections.max(player.uncertaintyHandler.pistonPushing);
+
+        double uncertainPiston = 0;
+        for (int x = 0; x < player.uncertaintyHandler.pistonPushing.size(); x++) {
+            double value = player.uncertaintyHandler.pistonPushing.get(x) * (Math.pow(0.8, x));
+            uncertainPiston = Math.max(uncertainPiston, value);
+        }
 
         // "temporary" workaround for when player enters flight from gliding
         double bonusY = 0;
