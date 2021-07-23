@@ -19,7 +19,7 @@ public class PredictionEngineNormal extends PredictionEngine {
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();
         if (player.levitationAmplifier > 0) {
-            d9 += (0.05 * (double) (player.levitationAmplifier + 1) - vector.getY()) * 0.2;
+            d9 += (0.05 * (double) (player.levitationAmplifier) - vector.getY()) * 0.2;
         } else if (player.compensatedWorld.getChunk((int) player.x >> 4, (int) player.z >> 4) != null) {
             // Commenting out hasGravity check because players always have gravity
             d9 -= player.gravity;

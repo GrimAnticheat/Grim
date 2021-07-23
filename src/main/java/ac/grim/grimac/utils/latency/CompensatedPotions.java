@@ -16,7 +16,7 @@ public class CompensatedPotions {
     }
 
     public void addPotionEffect(String type, int level, int entityID) {
-        queuedPotions.add(new PotionEffectData(player.lastTransactionSent.get() + 1, type, level, entityID));
+        queuedPotions.add(new PotionEffectData(player.lastTransactionSent.get() + 1, type, level + 1, entityID));
     }
 
     public void removePotionEffect(String type, int entityID) {
