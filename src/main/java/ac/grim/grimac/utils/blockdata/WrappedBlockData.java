@@ -728,6 +728,7 @@ public enum WrappedBlockData {
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("CANDLE_CAKE")).toArray(Material[]::new)),
 
+
     FLAT_ONLY_BLOCK(new WrappedFlatBlock() {
         public void getWrappedData(FlatBlockState data) {
             setBlockData(data.getBlockData());
@@ -741,7 +742,7 @@ public enum WrappedBlockData {
             XMaterial.POINTED_DRIPSTONE.parseMaterial(), XMaterial.AMETHYST_CLUSTER.parseMaterial(),
             XMaterial.POWDER_SNOW.parseMaterial(), XMaterial.SMALL_AMETHYST_BUD.parseMaterial(),
             XMaterial.MEDIUM_AMETHYST_BUD.parseMaterial(), XMaterial.LARGE_AMETHYST_BUD.parseMaterial(),
-            XMaterial.CANDLE.parseMaterial()),
+            XMaterial.CANDLE.parseMaterial(), XMaterial.LAVA.parseMaterial()), // Lava is only solid on 1.16+
 
 
     NO_DATA(new WrappedBlockDataValue(), XMaterial.AIR.parseMaterial());

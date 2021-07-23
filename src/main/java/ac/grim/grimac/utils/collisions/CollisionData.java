@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
@@ -9,6 +10,7 @@ import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -19,6 +21,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.FaceAttachable;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.type.*;
 import org.bukkit.entity.Boat;
 import org.bukkit.inventory.ItemStack;
@@ -60,8 +63,16 @@ public enum CollisionData {
 
     }, XMaterial.VINE.parseMaterial()),
 
-    LAVA((player, version, block, x, y, z) -> player.uncertaintyHandler.striderOnGround ? new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D) :
-            NoCollisionBox.INSTANCE, XMaterial.LAVA.parseMaterial()),
+    LAVA((player, version, block, x, y, z) -> {
+        if (MovementTickerStrider.isAbove(player) && player.playerVehicle instanceof PacketEntityStrider) {
+            Levelled water = (Levelled) ((WrappedFlatBlock) block).getBlockData();
+            if (water.getLevel() == 0) {
+                return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
+            }
+        }
+
+        return NoCollisionBox.INSTANCE;
+    }, XMaterial.LAVA.parseMaterial()),
 
     BREWINGSTAND((player, version, block, x, y, z) -> {
         int base = 0;
