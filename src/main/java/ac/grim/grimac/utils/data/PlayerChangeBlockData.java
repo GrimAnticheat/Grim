@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data;
 
-import ac.grim.grimac.utils.latency.CompensatedWorld;
+import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
 import org.bukkit.block.data.BlockData;
 
 public class PlayerChangeBlockData extends BasePlayerChangeBlockData{
@@ -13,6 +13,6 @@ public class PlayerChangeBlockData extends BasePlayerChangeBlockData{
 
     @Override
     public int getCombinedID() {
-        return CompensatedWorld.getFlattenedGlobalID(data);
+        return CompensatedWorldFlat.getFlattenedGlobalID(data);
     }
 }

@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
@@ -210,13 +211,18 @@ public class GrimPlayer {
             packetTracker = connection != null ? connection.getPacketTracker() : null;
         }
 
+        if (XMaterial.isNewVersion()) {
+            compensatedWorld = new CompensatedWorldFlat(this);
+        } else {
+            compensatedWorld = new CompensatedWorld(this);
+        }
+
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedRiptide = new CompensatedRiptide(this);
         compensatedElytra = new CompensatedElytra(this);
         knockbackHandler = new KnockbackHandler(this);
         explosionHandler = new ExplosionHandler(this);
-        compensatedWorld = new CompensatedWorld(this);
         compensatedEntities = new CompensatedEntities(this);
         compensatedEating = new CompensatedEating(this);
         compensatedPotions = new CompensatedPotions(this);

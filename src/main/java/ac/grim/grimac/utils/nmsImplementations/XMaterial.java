@@ -1194,6 +1194,8 @@ public enum XMaterial {
     STONE_SLAB("DOUBLE_STEP", "STEP"),
     STONE_STAIRS,
     STONE_SWORD,
+    STATIONARY_LAVA,
+    STATIONARY_WATER,
     STRAY_SPAWN_EGG(6, "MONSTER_EGG"),
     STRIDER_SPAWN_EGG(16),
     STRING,
@@ -1289,7 +1291,8 @@ public enum XMaterial {
      * After 1.13+ this uses
      * https://hub.spigotmc.org/javadocs/spigot/org/bukkit/block/data/Levelled.html water flowing system.
      */
-    WATER("STATIONARY_WATER"),
+    // Update note - Don't let this be STATIONARY_WATER
+    WATER,
     WATER_BUCKET,
     WATER_CAULDRON,
     WAXED_COPPER_BLOCK,

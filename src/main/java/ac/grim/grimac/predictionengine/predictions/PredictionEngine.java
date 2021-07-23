@@ -359,7 +359,9 @@ public class PredictionEngine {
 
         boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
-        boolean inWater = player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
+
+        if (!canCollideHorizontally)
+            return false;
 
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava
@@ -380,7 +382,7 @@ public class PredictionEngine {
         // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
         // Just give a high lenience to this... not worth the risk of falses
 
-        return canCollideHorizontally && inWater;
+        return player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
