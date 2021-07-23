@@ -27,13 +27,14 @@ public class MovementTickerStrider extends MovementTickerRideable {
         ((PacketEntityStrider) player.playerVehicle).isShaking = !Tag.STRIDER_WARM_BLOCKS.isTagged(posMaterial) &&
                 !Tag.STRIDER_WARM_BLOCKS.isTagged(belowMaterial) && !player.wasTouchingLava;
 
-        movementInput = new Vector(0, 0, player.speed);
+        player.speed = getSteeringSpeed();
+        movementInput = new Vector(0, 0, 1);
     }
 
     @Override
-    public float getSteeringSpeed() { // Don't question why we have to multiply by 10
+    public float getSteeringSpeed() {
         PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
-        return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F) * 10f;
+        return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F);
     }
 
     public static void floatStrider(GrimPlayer player) {

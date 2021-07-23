@@ -5,7 +5,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -81,12 +80,9 @@ public class BlockProperties {
             }
 
             if (player.playerVehicle instanceof PacketEntityStrider) {
-                /*if (((PacketEntityStrider) player.playerVehicle).isShaking) {
-                    return player.speed * (0.66f / 0.23f) * 0.1f / 0.8f;
-                }
-                return player.speed * (1.0f / 0.55f) * 0.1f / 0.8f;*/
-                Bukkit.broadcastMessage("asdf");
-                return 0.01155f;
+                PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
+                // Vanilla multiplies by 0.1 to calculate speed
+                return strider.movementSpeedAttribute * (strider.isShaking ? 0.66F : 1.0F) * 0.1f;
             }
         }
 
