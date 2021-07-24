@@ -35,9 +35,6 @@ public class MovementTickerStrider extends MovementTickerRideable {
             if (isAbove(player) && player.compensatedWorld.
                     getLavaFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(player.lastY + 1), (int) Math.floor(player.lastZ)) == 0) {
                 player.uncertaintyHandler.striderOnGround = true;
-                // This is a hack because I believe there is something wrong with order of collision stuff.
-                // that doesn't affect players but does affect things that artificially change onGround status
-                player.clientVelocity.setY(0);
             } else {
                 player.clientVelocity.multiply(0.5).add(new Vector(0, 0.05, 0));
                 player.uncertaintyHandler.striderOnGround = false;
