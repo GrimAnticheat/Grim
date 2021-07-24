@@ -65,8 +65,8 @@ public enum CollisionData {
 
     LAVA((player, version, block, x, y, z) -> {
         if (MovementTickerStrider.isAbove(player) && player.playerVehicle instanceof PacketEntityStrider) {
-            Levelled water = (Levelled) ((WrappedFlatBlock) block).getBlockData();
-            if (water.getLevel() == 0) {
+            Levelled lava = (Levelled) ((WrappedFlatBlock) block).getBlockData();
+            if (lava.getLevel() == 0) {
                 return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
             }
         }
