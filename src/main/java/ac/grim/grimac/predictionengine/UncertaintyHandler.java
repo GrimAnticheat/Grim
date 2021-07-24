@@ -15,8 +15,6 @@ public class UncertaintyHandler {
     public boolean collidingWithBoat;
     // Is the player within 0.26 blocks of a shulker?
     public boolean collidingWithShulker;
-    // Should the player's onGround be set to true as their strider is walking on lava?
-    public boolean striderOnGround;
     // Did the player step onto a block?
     // This is needed because we don't know if a player jumped onto the step block or not
     // Jumping would set onGround to false while not would set it to true
@@ -78,7 +76,6 @@ public class UncertaintyHandler {
         gravityUncertainty = 0;
         collidingWithBoat = false;
         collidingWithShulker = false;
-        striderOnGround = false;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
     }
@@ -91,7 +88,6 @@ public class UncertaintyHandler {
                 ", pistonZ=" + pistonZ +
                 ", collidingWithBoat=" + collidingWithBoat +
                 ", collidingWithShulker=" + collidingWithShulker +
-                ", striderOnGround=" + striderOnGround +
                 ", isStepMovement=" + isStepMovement +
                 ", xNegativeUncertainty=" + xNegativeUncertainty +
                 ", xPositiveUncertainty=" + xPositiveUncertainty +
