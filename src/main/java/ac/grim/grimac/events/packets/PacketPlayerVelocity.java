@@ -8,6 +8,8 @@ import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import io.github.retrooper.packetevents.utils.vector.Vector3f;
 import org.bukkit.util.Vector;
 
 public class PacketPlayerVelocity extends PacketListenerAbstract {
@@ -30,11 +32,7 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
             // If the player isn't in a vehicle and the ID is for the player, the player will take kb
             // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
             if ((player.packetStateData.vehicle == null && entityId == player.entityID) || (player.packetStateData.vehicle != null && player.packetStateData.vehicle == entityId)) {
-                double velX = velocity.getVelocityX();
-                double velY = velocity.getVelocityY();
-                double velZ = velocity.getVelocityZ();
-
-                Vector playerVelocity = new Vector(velX, velY, velZ);
+                Vector3d playerVelocity = velocity.getVelocity();
 
                 int reservedID = player.getNextTransactionID(2);
                 short breadOne = (short) reservedID;
@@ -42,7 +40,7 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
 
                 // Wrap velocity between two transactions
                 player.sendTransactionOrPingPong(breadOne, false);
-                player.knockbackHandler.addPlayerKnockback(breadOne, playerVelocity);
+                player.knockbackHandler.addPlayerKnockback(breadOne, new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
                 event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
             }
         }
@@ -50,11 +48,9 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.EXPLOSION) {
             WrappedPacketOutExplosion explosion = new WrappedPacketOutExplosion(event.getNMSPacket());
 
-            double x = explosion.getPlayerMotionX();
-            double y = explosion.getPlayerMotionY();
-            double z = explosion.getPlayerMotionZ();
+            Vector3f velocity = explosion.getPlayerVelocity();
 
-            if (x != 0 || y != 0 || z != 0) {
+            if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
                 GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
                 if (player == null) return;
                 // No matter what, the player cannot take explosion vector in a vehicle
@@ -65,7 +61,7 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
                 short breadTwo = (short) (reservedID - 1);
 
                 player.sendTransactionOrPingPong(breadOne, false);
-                player.explosionHandler.addPlayerExplosion(breadOne, explosion);
+                player.explosionHandler.addPlayerExplosion(breadOne, velocity);
                 event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
             }
         }
