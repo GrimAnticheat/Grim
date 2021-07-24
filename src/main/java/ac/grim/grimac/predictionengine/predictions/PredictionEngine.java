@@ -18,6 +18,38 @@ import java.util.*;
 public class PredictionEngine {
     boolean canRiptide = false;
 
+    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
+
+        // Slow movement was determined by the previous pose
+        if (player.isSlowMovement) {
+            bestPossibleX = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getX() / 0.3)), 1f) * 0.3d);
+            bestPossibleZ = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ() / 0.3)), 1f) * 0.3d);
+        } else {
+            bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
+            bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
+        }
+
+        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
+            bestPossibleX *= 0.2F;
+            bestPossibleZ *= 0.2F;
+        }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98F);
+
+        // Simulate float rounding imprecision
+        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
+
+        if (inputVector.lengthSquared() > 1) {
+            double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
+            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
+        }
+
+        return inputVector;
+    }
+
     public void guessBestMovement(float speed, GrimPlayer player) {
         player.speed = speed;
         double bestInput = Double.MAX_VALUE;
@@ -36,7 +68,10 @@ public class PredictionEngine {
 
         if (player.couldSkipTick) {
             Set<VectorData> zeroStuff = new HashSet<>();
-            zeroStuff.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
+            if (player.uncertaintyHandler.controlsVerticalMovement())
+                zeroStuff.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
+            else
+                zeroStuff.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
             addJumpsToPossibilities(player, zeroStuff);
             possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, zeroStuff, speed));
 
@@ -44,6 +79,13 @@ public class PredictionEngine {
 
             if (Math.abs(yVelocity) < 0.03) {
                 yVelocity -= 0.08;
+
+                // damn swimming on water
+                if (player.actualMovement.getY() < -0.15) {
+                    if (player.compensatedWorld.containsWater(player.boundingBox.copy().offset(0, -0.1, 0))) {
+                        yVelocity -= 0.16;
+                    }
+                }
 
                 player.uncertaintyHandler.gravityUncertainty = yVelocity;
             }
@@ -91,38 +133,6 @@ public class PredictionEngine {
         new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
         player.predictedVelocity = bestCollisionVel;
         endOfTick(player, player.gravity, player.friction);
-    }
-
-    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
-
-        // Slow movement was determined by the previous pose
-        if (player.isSlowMovement) {
-            bestPossibleX = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getX() / 0.3)), 1f) * 0.3d);
-            bestPossibleZ = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ() / 0.3)), 1f) * 0.3d);
-        } else {
-            bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
-            bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
-        }
-
-        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
-            bestPossibleX *= 0.2F;
-            bestPossibleZ *= 0.2F;
-        }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98F);
-
-        // Simulate float rounding imprecision
-        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
-
-        if (inputVector.lengthSquared() > 1) {
-            double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
-            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
-        }
-
-        return inputVector;
     }
 
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
@@ -191,20 +201,18 @@ public class PredictionEngine {
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
-        // Give 0.06 lenience when zero tick
-        return getStartingVector(player, vector.vector, vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : player.uncertaintyHandler.lastMovementWasZeroPointZeroThree ? 0.06 : player.uncertaintyHandler.lastLastMovementWasZeroPointZeroThree ? 0.03 : 0);
-    }
-
-    private Vector getStartingVector(GrimPlayer player, Vector vector, double addition) {
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
+
+        double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
+        double additionVertical = player.uncertaintyHandler.getVerticalOffset(vector);
 
         // Gliding status changed, there are a decent amount of edge cases in this scenario so give lenience
         if (player.isGliding != player.wasGliding)
-            addition += 0.05;
+            additionHorizontal += 0.05;
 
         // ViaVersion playing with flight speed causes a bug on 1.7 clients while exiting flying
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.wasFlying)
-            addition += 0.05;
+            additionHorizontal += 0.05;
 
 
         double uncertainPiston = 0;
@@ -218,27 +226,27 @@ public class PredictionEngine {
         // "temporary" workaround for when player enters flight from gliding
         double bonusY = 0;
         if (Collections.max(player.uncertaintyHandler.tempElytraFlightHack)) {
-            addition += 0.1;
+            additionHorizontal += 0.1;
             bonusY += 0.1;
         }
 
-        Vector uncertainty = new Vector(avgColliding * 0.04 + uncertainPiston, uncertainPiston, avgColliding * 0.04 + uncertainPiston);
-        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - addition, -bonusY + player.uncertaintyHandler.yNegativeUncertainty + player.uncertaintyHandler.gravityUncertainty - (player.uncertaintyHandler.wasLastGravityUncertain ? 0.03 : 0), player.uncertaintyHandler.zNegativeUncertainty - addition);
-        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + addition, bonusY + player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket || player.uncertaintyHandler.isSteppingOnSlime ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + addition);
+        Vector uncertainty = new Vector(avgColliding * 0.04 + uncertainPiston, additionVertical + uncertainPiston, avgColliding * 0.04 + uncertainPiston);
+        Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal, -bonusY + player.uncertaintyHandler.yNegativeUncertainty + player.uncertaintyHandler.gravityUncertainty, player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal);
+        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket || player.uncertaintyHandler.isSteppingOnSlime ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
 
-        Vector minVector = vector.clone().add(min.subtract(uncertainty));
-        Vector maxVector = vector.clone().add(max.add(uncertainty));
+        Vector minVector = vector.vector.clone().add(min.subtract(uncertainty));
+        Vector maxVector = vector.vector.clone().add(max.add(uncertainty));
 
         // Player velocity can multiply 0.4-0.45 (guess on max) when the player is on slime with
         // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
         if (player.uncertaintyHandler.isSteppingOnSlime) {
-            if (vector.getX() > 0) {
+            if (vector.vector.getX() > 0) {
                 minVector.multiply(new Vector(0.4, 1, 1));
             } else {
                 maxVector.multiply(new Vector(0.4, 1, 1));
             }
 
-            if (vector.getZ() > 0) {
+            if (vector.vector.getZ() > 0) {
                 minVector.multiply(new Vector(1, 1, 0.4));
             } else {
                 maxVector.multiply(new Vector(1, 1, 0.4));
@@ -254,7 +262,7 @@ public class PredictionEngine {
             }
         }
 
-        if ((player.uncertaintyHandler.wasLastOnGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.getY() < 0) {
+        if ((player.uncertaintyHandler.wasLastOnGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.vector.getY() < 0) {
             maxVector.setY(0);
         }
 
@@ -263,6 +271,21 @@ public class PredictionEngine {
             minVector.setY(0);
 
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
+    }
+
+    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
+
+        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
+        // 0.04 is safe from falses
+        // Set to 0.06 because this is a very stupid reason to allow falses
+        //
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.065, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.065);
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
+                vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
     }
 
     private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
@@ -340,21 +363,6 @@ public class PredictionEngine {
         }
     }
 
-    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
-
-        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
-        // 0.04 is safe from falses
-        // Set to 0.06 because this is a very stupid reason to allow falses
-        //
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.065, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.065);
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
-                vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
-    }
-
     public boolean canSwimHop(GrimPlayer player) {
         if (player.inVehicle)
             return false;
@@ -387,11 +395,6 @@ public class PredictionEngine {
         return player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
     }
 
-    public void endOfTick(GrimPlayer player, double d, float friction) {
-        player.canSwimHop = canSwimHop(player);
-        player.lastWasClimbing = 0;
-    }
-
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
     // We need it because of collision support when a player is using speed
     public Vector getMovementResultFromInput(GrimPlayer player, Vector inputVector, float f, float f2) {
@@ -402,6 +405,11 @@ public class PredictionEngine {
         double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
 
         return new Vector(xResult * f, 0, zResult * f);
+    }
+
+    public void endOfTick(GrimPlayer player, double d, float friction) {
+        player.canSwimHop = canSwimHop(player);
+        player.lastWasClimbing = 0;
     }
 
     public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
