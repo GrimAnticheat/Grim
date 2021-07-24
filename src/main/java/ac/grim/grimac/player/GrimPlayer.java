@@ -61,7 +61,7 @@ public class GrimPlayer {
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
     public Vector blockSpeedMultiplier = new Vector(1, 1, 1);
     public Vector lastStuckSpeedMultiplier = new Vector(1, 1, 1);
-    public UncertaintyHandler uncertaintyHandler = new UncertaintyHandler();
+    public UncertaintyHandler uncertaintyHandler;
     public double gravity;
     public float friction;
     public double speed;
@@ -225,6 +225,7 @@ public class GrimPlayer {
         compensatedPotions = new CompensatedPotions(this);
         trigHandler = new TrigHandler(this);
         timerCheck = new TimerCheck(this);
+        uncertaintyHandler = new UncertaintyHandler(this);
 
         packetStateData = new PacketStateData();
         packetStateData.lastSlotSelected = bukkitPlayer.getInventory().getHeldItemSlot();

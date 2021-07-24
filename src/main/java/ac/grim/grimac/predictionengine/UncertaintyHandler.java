@@ -1,5 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
+import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.lists.EvictingList;
 import org.bukkit.block.BlockFace;
 
@@ -65,7 +67,10 @@ public class UncertaintyHandler {
     public int lastTeleportTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
 
-    public UncertaintyHandler() {
+    private GrimPlayer player;
+
+    public UncertaintyHandler(GrimPlayer player) {
+        this.player = player;
         reset();
     }
 
@@ -78,6 +83,28 @@ public class UncertaintyHandler {
         collidingWithShulker = false;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
+    }
+
+    public double getOffsetHorizontal(VectorData data) {
+        return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+    }
+
+    public double getVerticalOffset(VectorData data) {
+        // Not worth my time to fix this because checking flying generally sucks
+        if (player.isFlying && Math.abs(data.vector.getY()) < 0.2)
+            return 0.2;
+
+        if (wasLastGravityUncertain)
+            return 0.03;
+
+        if (!controlsVerticalMovement() || data.hasVectorType(VectorData.VectorType.Jump))
+            return 0;
+
+        return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+    }
+
+    public boolean controlsVerticalMovement() {
+        return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnSlime || player.isFlying || player.isGliding;
     }
 
     @Override
