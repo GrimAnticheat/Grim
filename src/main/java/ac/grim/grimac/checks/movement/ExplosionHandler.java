@@ -3,7 +3,7 @@ package ac.grim.grimac.checks.movement;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
-import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
+import io.github.retrooper.packetevents.utils.vector.Vector3f;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -31,8 +31,8 @@ public class ExplosionHandler {
         }
     }
 
-    public void addPlayerExplosion(short breadOne, WrappedPacketOutExplosion explosion) {
-        firstBreadMap.put(breadOne, new Vector(explosion.getPlayerMotionX(), explosion.getPlayerMotionY(), explosion.getPlayerMotionZ()));
+    public void addPlayerExplosion(short breadOne, Vector3f explosion) {
+        firstBreadMap.put(breadOne, new Vector(explosion.getX(), explosion.getY(), explosion.getZ()));
     }
 
     public void handlePlayerExplosion(double offset) {
