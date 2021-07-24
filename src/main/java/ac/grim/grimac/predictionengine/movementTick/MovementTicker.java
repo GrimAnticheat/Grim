@@ -56,7 +56,7 @@ public class MovementTicker {
             if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
                 Bukkit.broadcastMessage("Desync " + player.onGround);
 
-            player.onGround = player.isActuallyOnGround || player.uncertaintyHandler.striderOnGround;
+            player.onGround = player.isActuallyOnGround;
         }
 
         Material onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
