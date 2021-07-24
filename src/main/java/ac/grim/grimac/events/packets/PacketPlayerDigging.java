@@ -39,10 +39,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
     private static final Material POTION = XMaterial.POTION.parseMaterial();
     private static final Material MILK_BUCKET = XMaterial.MILK_BUCKET.parseMaterial();
 
-    private static final Material APPLE = XMaterial.APPLE.parseMaterial();
     private static final Material GOLDEN_APPLE = XMaterial.GOLDEN_APPLE.parseMaterial();
     private static final Material ENCHANTED_GOLDEN_APPLE = XMaterial.ENCHANTED_GOLDEN_APPLE.parseMaterial();
     private static final Material HONEY_BOTTLE = XMaterial.HONEY_BOTTLE.parseMaterial();
+
+    private static final Material BUCKET = XMaterial.BUCKET.parseMaterial();
+    private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
+    private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
 
     public PacketPlayerDigging() {
         super(PacketListenerPriority.LOW);
@@ -121,6 +124,22 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
+
+            // This is code for detecting a desync caused by buckets
+            // TODO: We need to wait on movement to fix the desync
+            /*boolean isBucket = false;
+            if (place.getHand() == Hand.MAIN_HAND) {
+                ItemStack main = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+                if (main != null && (main.getType() == BUCKET || main.getType() == WATER_BUCKET || main.getType() == LAVA_BUCKET))
+                    isBucket = true;
+            } else {
+                ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
+                if (off.getType() == BUCKET || off.getType() == WATER_BUCKET || off.getType() == LAVA_BUCKET)
+                    isBucket = true;
+            }
+
+            RayTrace trace = new RayTrace(player, player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.bukkitPlayer.isSleeping(), player.getClientVersion()), player.packetStateData.packetPlayerZ, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
+            trace.highlight(player, 60, 0.01);*/
 
             if (XMaterial.supports(8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)
                 return;
