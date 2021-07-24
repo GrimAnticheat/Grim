@@ -292,6 +292,10 @@ public class MovementTicker {
 
         float swimFriction;
 
+        double lavaLevel = 0;
+        if (canStandOnLava())
+            lavaLevel = player.compensatedWorld.getLavaFluidLevelAt(GrimMathHelper.floor(player.lastX), GrimMathHelper.floor(player.lastY), GrimMathHelper.floor(player.lastZ));
+
         if (player.wasTouchingWater && !player.specialFlying) {
             // 0.8F seems hardcoded in
             swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? 0.9F : 0.8F;
@@ -322,7 +326,7 @@ public class MovementTicker {
             }
 
         } else {
-            if (player.wasTouchingLava && !player.specialFlying && !canStandOnLava()) {
+            if (player.wasTouchingLava && !player.specialFlying && !(lavaLevel > 0 && canStandOnLava())) {
 
                 doLavaMove();
 
