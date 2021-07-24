@@ -19,14 +19,6 @@ public class MovementTickerStrider extends MovementTickerRideable {
             return;
         }
 
-        ((PacketEntityStrider) player.playerVehicle).isShaking = true;
-        // Blocks are stored in YZX order
-
-        Material posMaterial = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
-        Material belowMaterial = BlockProperties.getOnBlock(player, new Location(null, player.x, player.y, player.z));
-        ((PacketEntityStrider) player.playerVehicle).isShaking = !Tag.STRIDER_WARM_BLOCKS.isTagged(posMaterial) &&
-                !Tag.STRIDER_WARM_BLOCKS.isTagged(belowMaterial) && !player.wasTouchingLava;
-
         movementInput = new Vector(0, 0, 1);
     }
 
@@ -43,6 +35,18 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public static boolean isAbove(GrimPlayer player) {
         return player.lastY > Math.floor(player.lastY) + 0.5 - (double) 1.0E-5F;
+    }
+
+    @Override
+    public void livingEntityAIStep() {
+        super.livingEntityAIStep();
+
+        ((PacketEntityStrider) player.playerVehicle).isShaking = true;
+
+        Material posMaterial = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
+        Material belowMaterial = BlockProperties.getOnBlock(player, new Location(null, player.x, player.y, player.z));
+        ((PacketEntityStrider) player.playerVehicle).isShaking = !Tag.STRIDER_WARM_BLOCKS.isTagged(posMaterial) &&
+                !Tag.STRIDER_WARM_BLOCKS.isTagged(belowMaterial) && !player.wasTouchingLava;
     }
 
     @Override
