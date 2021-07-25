@@ -25,8 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Collisions {
-    public static final double maxUpStep = 0.6f;
-
     private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
     private static final Material COBWEB = XMaterial.COBWEB.parseMaterial();
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
@@ -36,225 +34,46 @@ public class Collisions {
 
     private static final Material LADDER = XMaterial.LADDER.parseMaterial();
 
-    public static Vector collide(GrimPlayer player, double xWithCollision, double yWithCollision, double zWithCollision) {
-        if (xWithCollision == 0 && yWithCollision == 0 && zWithCollision == 0) return new Vector();
+    public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ) {
+        if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
 
-        SimpleCollisionBox currentPosBB = player.boundingBox;
+        List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ));
 
-        List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(player, currentPosBB.copy().expandToCoordinate(xWithCollision, yWithCollision, zWithCollision));
-        SimpleCollisionBox setBB = currentPosBB.copy();
-        double setX = 0;
-        double setY = 0;
-        double setZ = 0;
-
-        double clonedX = xWithCollision;
-        double clonedY = yWithCollision;
-        double clonedZ = zWithCollision;
-
-        // First, collisions are ran without any step height, in y -> x -> z order
-        // In 1.14+ clients collision order is Y -> Z -> X, or if Z < X, Y -> X -> Z
-        if (yWithCollision != 0.0D) {
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                yWithCollision = bb.collideY(setBB, yWithCollision);
-            }
-
-            setBB.offset(0.0D, yWithCollision, 0.0D);
-            setY += yWithCollision;
-        }
-
-        boolean doZFirst = Math.abs(xWithCollision) < Math.abs(zWithCollision) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
-        if (doZFirst && zWithCollision != 0.0D) {
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                zWithCollision = bb.collideZ(setBB, zWithCollision);
-            }
-
-            if (zWithCollision != 0) {
-                setBB.offset(0.0D, 0.0D, zWithCollision);
-                setZ += zWithCollision;
-            }
-        }
-
-        if (xWithCollision != 0.0D) {
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                xWithCollision = bb.collideX(setBB, xWithCollision);
-            }
-
-            if (xWithCollision != 0) {
-                setBB.offset(xWithCollision, 0.0D, 0.0D);
-                setX += xWithCollision;
-            }
-        }
-
-        if (!doZFirst && zWithCollision != 0.0D) {
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                zWithCollision = bb.collideZ(setBB, zWithCollision);
-            }
-
-            if (zWithCollision != 0) {
-                setBB.offset(0.0D, 0.0D, zWithCollision);
-                setZ += zWithCollision;
-            }
-        }
+        Vector baseCollision = collideBoundingBoxLegacy(player, new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes);
 
         // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
-        boolean movingIntoGround = player.lastOnGround || (clonedY != yWithCollision && clonedY < 0.0D);
-
-        // This fixes an issue where stepping from water onto land with an animal sees itself as "swim hopping"
-        // and therefore not on the ground.
-        // Not very pretty but it works...
-        if (player.wasTouchingWater && player.inVehicle)
-            movingIntoGround = clonedY != yWithCollision && clonedY < 0.0D;
+        boolean movingIntoGround = player.lastOnGround || baseCollision.getY() != desiredY && desiredY < 0.0D;
+        double stepUpHeight = player.getMaxUpStep();
 
         // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
         // If not, just return the collisions without stepping up that we calculated earlier
-        if (player.getMaxUpStep() > 0.0F && movingIntoGround && (clonedX != xWithCollision || clonedZ != zWithCollision)) {
+        if (stepUpHeight > 0.0F && movingIntoGround && (baseCollision.getX() != desiredX || baseCollision.getZ() != desiredZ)) {
             player.uncertaintyHandler.isStepMovement = true;
 
-            double stepUpHeight = player.getMaxUpStep();
-            // Undo the offsets done above, but keep the result in justAfterCollisionBB
-            setBB = currentPosBB.copy();
-
             // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
-            List<SimpleCollisionBox> stepUpCollisionBoxes = getCollisionBoxes(player, setBB.copy().expandToCoordinate(clonedX, stepUpHeight, clonedZ));
+            List<SimpleCollisionBox> stepUpCollisionBoxes = getCollisionBoxes(player,
+                    player.boundingBox.copy().expandToCoordinate(desiredX, stepUpHeight, desiredZ));
 
-            // Adds a coordinate to the bounding box, extending it if the point lies outside the current ranges. - mcp
-            // Note that this will include bounding boxes that we don't need, but the next code can handle it
-            SimpleCollisionBox expandedToCoordinateBB = setBB.copy().expandToCoordinate(clonedX, 0.0D, clonedZ);
-            double stepMaxClone = stepUpHeight;
-            // See how far upwards we go in the Y axis with coordinate expanded collision
-            for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                stepMaxClone = bb.collideY(expandedToCoordinateBB, stepMaxClone);
-            }
 
-            SimpleCollisionBox yCollisionStepUpBB = currentPosBB.copy();
-            double xSetYCol = 0;
-            double ySetYCol = 0;
-            double zSetYCol = 0;
+            Vector regularStepUp = collideBoundingBoxLegacy(player, new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, stepUpCollisionBoxes);
 
-            yCollisionStepUpBB.offset(0.0D, stepMaxClone, 0.0D);
-            ySetYCol += stepMaxClone;
-
-            double clonedClonedX = clonedX;
-            double clonedClonedZ = clonedZ;
-
-            doZFirst = Math.abs(zWithCollision) < Math.abs(xWithCollision) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
-            if (doZFirst) {
-                // Calculate Z offset
-                for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    clonedClonedZ = bb.collideZ(yCollisionStepUpBB, clonedClonedZ);
+            // 1.7 clients do not have this stepping bug fix
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
+                Vector stepUpBugFix = collideBoundingBoxLegacy(player, new Vector(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), stepUpCollisionBoxes);
+                if (stepUpBugFix.getY() < stepUpHeight) {
+                    Vector stepUpBugFixResult = collideBoundingBoxLegacy(player, new Vector(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), stepUpCollisionBoxes).add(stepUpBugFix);
+                    if (getHorizontalDistanceSqr(stepUpBugFixResult) > getHorizontalDistanceSqr(regularStepUp)) {
+                        regularStepUp = stepUpBugFixResult;
+                    }
                 }
-                yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
-                zSetYCol += clonedClonedZ;
-            }
 
-            // Calculate X offset
-            for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                clonedClonedX = bb.collideX(yCollisionStepUpBB, clonedClonedX);
-            }
-            yCollisionStepUpBB.offset(clonedClonedX, 0.0D, 0.0D);
-            xSetYCol += clonedClonedX;
-
-            if (!doZFirst) {
-                // Calculate Z offset
-                for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    clonedClonedZ = bb.collideZ(yCollisionStepUpBB, clonedClonedZ);
+                if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(baseCollision)) {
+                    return regularStepUp.add(collideBoundingBoxLegacy(player, new Vector(0, -regularStepUp.getY() + desiredY, 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), stepUpCollisionBoxes));
                 }
-                yCollisionStepUpBB.offset(0.0D, 0.0D, clonedClonedZ);
-                zSetYCol += clonedClonedZ;
-            }
-
-            // Then calculate collisions with the step up height added to the Y axis
-            SimpleCollisionBox alwaysStepUpBB = currentPosBB.copy();
-            double xAlways = 0;
-            double yAlways = 0;
-            double zAlways = 0;
-
-            // Calculate y offset
-            double stepUpHeightCloned = stepUpHeight;
-            for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                stepUpHeightCloned = bb.collideY(alwaysStepUpBB, stepUpHeightCloned);
-            }
-            alwaysStepUpBB.offset(0.0D, stepUpHeightCloned, 0.0D);
-            yAlways += stepUpHeightCloned;
-
-            double zWithCollisionClonedOnceAgain = 0;
-            double xWithCollisionClonedOnceAgain = 0;
-
-            if (doZFirst) {
-                // Calculate Z offset
-                zWithCollisionClonedOnceAgain = clonedZ;
-                for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    zWithCollisionClonedOnceAgain = bb.collideZ(alwaysStepUpBB, zWithCollisionClonedOnceAgain);
-                }
-                alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
-                zAlways += zWithCollisionClonedOnceAgain;
-            }
-
-            // Calculate X offset
-            xWithCollisionClonedOnceAgain = clonedX;
-            for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                xWithCollisionClonedOnceAgain = bb.collideX(alwaysStepUpBB, xWithCollisionClonedOnceAgain);
-            }
-            alwaysStepUpBB.offset(xWithCollisionClonedOnceAgain, 0.0D, 0.0D);
-            xAlways += xWithCollisionClonedOnceAgain;
-
-            if (!doZFirst) {
-                // Calculate Z offset
-                zWithCollisionClonedOnceAgain = clonedZ;
-                for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                    zWithCollisionClonedOnceAgain = bb.collideZ(alwaysStepUpBB, zWithCollisionClonedOnceAgain);
-                }
-                alwaysStepUpBB.offset(0.0D, 0.0D, zWithCollisionClonedOnceAgain);
-                zAlways += zWithCollisionClonedOnceAgain;
-            }
-
-            double d23 = clonedClonedX * clonedClonedX + clonedClonedZ * clonedClonedZ;
-            double d9 = xWithCollisionClonedOnceAgain * xWithCollisionClonedOnceAgain + zWithCollisionClonedOnceAgain * zWithCollisionClonedOnceAgain;
-
-            double x;
-            double y;
-            double z;
-
-            double originalSetX = setX;
-            double originalSetY = setY;
-            double originalSetZ = setZ;
-
-            // 1.7 players do not have this bug fix for stepping
-            if (d23 > d9 && player.getClientVersion().isNewerThan(ClientVersion.v_1_7_10)) {
-                x = clonedClonedX;
-                y = -stepMaxClone;
-                z = clonedClonedZ;
-                setBB = yCollisionStepUpBB;
-                setX = xSetYCol;
-                setY = ySetYCol;
-                setZ = zSetYCol;
-            } else {
-                x = xWithCollisionClonedOnceAgain;
-                y = -stepUpHeightCloned;
-                z = zWithCollisionClonedOnceAgain;
-                setBB = alwaysStepUpBB;
-                setX = xAlways;
-                setY = yAlways;
-                setZ = zAlways;
-            }
-
-            for (SimpleCollisionBox bb : stepUpCollisionBoxes) {
-                y = bb.collideY(setBB, y);
-            }
-
-            setBB.offset(0.0D, y, 0.0D);
-            setY += y;
-
-            if (xWithCollision * xWithCollision + zWithCollision * zWithCollision >= x * x + z * z) {
-                setX = originalSetX;
-                setY = originalSetY;
-                setZ = originalSetZ;
             }
         }
 
-        // Convert bounding box movement back into a vector
-        return new Vector(setX, setY, setZ);
-        //return new Vector(setBB.minX - currentPosBB.minX, setBB.minY - currentPosBB.minY, setBB.minZ - currentPosBB.minZ);
+        return baseCollision;
     }
 
     public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
@@ -319,11 +138,56 @@ public class Collisions {
         return listOfBlocks;
     }
 
+    private static Vector collideBoundingBoxLegacy(GrimPlayer player, Vector toCollide, SimpleCollisionBox box, List<SimpleCollisionBox> desiredMovementCollisionBoxes) {
+        double x = toCollide.getX();
+        double y = toCollide.getY();
+        double z = toCollide.getZ();
+
+        SimpleCollisionBox setBB = box.copy();
+
+        // First, collisions are ran without any step height, in y -> x -> z order
+        // In 1.14+ clients collision order is Y -> Z -> X, or if Z < X, Y -> X -> Z
+        if (y != 0.0D) {
+            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
+                y = bb.collideY(setBB, y);
+            }
+            setBB.offset(0.0D, y, 0.0D);
+        }
+
+        boolean doZFirst = Math.abs(x) < Math.abs(z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
+        if (doZFirst && z != 0.0D) {
+            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
+                z = bb.collideZ(setBB, z);
+            }
+            setBB.offset(0.0D, 0.0D, z);
+        }
+
+        if (x != 0.0D) {
+            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
+                x = bb.collideX(setBB, x);
+            }
+            setBB.offset(x, 0.0D, 0.0D);
+        }
+
+        if (!doZFirst && z != 0.0D) {
+            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
+                z = bb.collideZ(setBB, z);
+            }
+            setBB.offset(0.0D, 0.0D, z);
+        }
+
+        return new Vector(x, y, z);
+    }
+
+    private static double getHorizontalDistanceSqr(Vector vector) {
+        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
+    }
+
     public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player) {
         if (!player.specialFlying && player.isSneaking && isAboveGround(player)) {
             double d = vec3.getX();
             double d2 = vec3.getZ();
-            while (d != 0.0 && isEmpty(player, player.boundingBox.copy().offset(d, -maxUpStep, 0.0))) {
+            while (d != 0.0 && isEmpty(player, player.boundingBox.copy().offset(d, -player.getMaxUpStep(), 0.0))) {
                 if (d < 0.05 && d >= -0.05) {
                     d = 0.0;
                     continue;
@@ -334,7 +198,7 @@ public class Collisions {
                 }
                 d += 0.05;
             }
-            while (d2 != 0.0 && isEmpty(player, player.boundingBox.copy().offset(0.0, -maxUpStep, d2))) {
+            while (d2 != 0.0 && isEmpty(player, player.boundingBox.copy().offset(0.0, -player.getMaxUpStep(), d2))) {
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
                     continue;
@@ -345,7 +209,7 @@ public class Collisions {
                 }
                 d2 += 0.05;
             }
-            while (d != 0.0 && d2 != 0.0 && isEmpty(player, player.boundingBox.copy().offset(d, -maxUpStep, d2))) {
+            while (d != 0.0 && d2 != 0.0 && isEmpty(player, player.boundingBox.copy().offset(d, -player.getMaxUpStep(), d2))) {
                 d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? d - 0.05 : d + 0.05);
                 if (d2 < 0.05 && d2 >= -0.05) {
                     d2 = 0.0;
@@ -365,8 +229,8 @@ public class Collisions {
     private static boolean isAboveGround(GrimPlayer player) {
         //Player bukkitPlayer = player.bukkitPlayer;
 
-        return player.lastOnGround || player.fallDistance < Collisions.maxUpStep &&
-                !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - Collisions.maxUpStep, 0.0));
+        return player.lastOnGround || player.fallDistance < player.getMaxUpStep() &&
+                !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0));
     }
 
     public static void handleInsideBlocks(GrimPlayer player) {
