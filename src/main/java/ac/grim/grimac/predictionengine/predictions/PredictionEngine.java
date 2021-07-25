@@ -51,7 +51,6 @@ public class PredictionEngine {
     }
 
     public void guessBestMovement(float speed, GrimPlayer player) {
-        player.speed = speed;
         double bestInput = Double.MAX_VALUE;
 
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
