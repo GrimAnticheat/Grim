@@ -221,6 +221,7 @@ public class Collisions {
                 }
                 d2 += 0.05;
             }
+
             vec3 = new Vector(d, vec3.getY(), d2);
         }
         return vec3;
