@@ -296,6 +296,9 @@ public class MovementCheckRunner {
             if (player.playerVehicle.type != EntityType.PIG && player.playerVehicle.type != EntityType.STRIDER) {
                 player.isClimbing = false;
             }
+
+            player.compensatedWorld.tickPlayerUpdates(data.lastTransaction);
+            player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
         }
 
         player.playerWorld = data.playerWorld;
@@ -361,6 +364,8 @@ public class MovementCheckRunner {
 
             new PlayerBaseTick(player).doBaseTick();
             player.compensatedWorld.tickPlayerUpdates(data.lastTransaction);
+            // Now that we have all the world updates, recalculate if the player is near the ground
+            player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
 
             // Vehicles don't have jumping or that stupid < 0.03 thing
             // If the player isn't on the ground, a packet in between < 0.03 said they did
@@ -441,7 +446,6 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity);
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
-        player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
 
         player.isFirstTick = false;
 
