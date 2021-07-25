@@ -97,7 +97,7 @@ public class Collisions {
         }
 
         // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
-        boolean movingIntoGround = player.lastOnGround || clonedY != yWithCollision && clonedY < 0.0D;
+        boolean movingIntoGround = player.lastOnGround || (clonedY != yWithCollision && clonedY < 0.0D);
 
         // This fixes an issue where stepping from water onto land with an animal sees itself as "swim hopping"
         // and therefore not on the ground.
