@@ -94,6 +94,10 @@ public class UncertaintyHandler {
         if (player.isFlying && Math.abs(data.vector.getY()) < 0.2)
             return 0.2;
 
+        // I don't understand this either.  0.03 in lava just really sucks.
+        if (wasLastGravityUncertain && player.wasTouchingLava)
+            return 0.2;
+
         if (wasLastGravityUncertain)
             return 0.03;
 
