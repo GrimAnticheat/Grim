@@ -443,7 +443,7 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.isFirstTick || (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01) || player.predictedVelocity.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
-        player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().offset(0, -0.03, 0));
+        player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
 
         player.isFirstTick = false;
 
