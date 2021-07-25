@@ -58,11 +58,16 @@ public class PredictionEngine {
 
         // Determine if the player can make an input below 0.03
         player.couldSkipTick = false;
+
         if (!player.inVehicle) {
+            double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
+
             if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
-                possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.getX() * a.vector.getX() + a.vector.getZ() * a.vector.getZ() < 0.0016);
+                for (VectorData data : possibleVelocities)
+                    player.couldSkipTick = player.couldSkipTick || data.vector.getX() * data.vector.getX() + data.vector.getZ() * data.vector.getZ() < threshold;
             } else {
-                possibleVelocities.forEach((a) -> player.couldSkipTick = player.couldSkipTick || a.vector.lengthSquared() < 0.0016);
+                for (VectorData data : possibleVelocities)
+                    player.couldSkipTick = player.couldSkipTick || data.vector.lengthSquared() < threshold;
             }
         }
 

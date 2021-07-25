@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -59,7 +58,7 @@ public class MovementTicker {
             player.onGround = player.isActuallyOnGround;
         }
 
-        Material onBlock = BlockProperties.getOnBlock(player, new Location(player.playerWorld, player.x, player.y, player.z));
+        Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
         // This is how the player checks for fall damage
         // By running fluid pushing for the player

@@ -4,9 +4,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
+import ac.grim.grimac.utils.math.GrimMathHelper;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 
@@ -100,11 +100,11 @@ public class BlockProperties {
         }
     }
 
-    public static Material getOnBlock(GrimPlayer player, Location getBlockLocation) {
-        Material block1 = player.compensatedWorld.getBukkitMaterialAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - (double) 0.2F), getBlockLocation.getBlockZ());
+    public static Material getOnBlock(GrimPlayer player, double x, double y, double z) {
+        Material block1 = player.compensatedWorld.getBukkitMaterialAt(GrimMathHelper.floor(x), (int) Math.floor(GrimMathHelper.floor(y) - (double) 0.2F), GrimMathHelper.floor(z));
 
         if (Materials.checkFlag(block1, Materials.AIR)) {
-            Material block2 = player.compensatedWorld.getBukkitMaterialAt(getBlockLocation.getBlockX(), (int) Math.floor(getBlockLocation.getY() - (double) 1.2F), getBlockLocation.getBlockZ());
+            Material block2 = player.compensatedWorld.getBukkitMaterialAt(GrimMathHelper.floor(x), (int) Math.floor(GrimMathHelper.floor(y) - (double) 1.2F), GrimMathHelper.floor(z));
 
             if (Materials.checkFlag(block2, Materials.FENCE) || Materials.checkFlag(block2, Materials.WALL) || Materials.checkFlag(block2, Materials.GATE)) {
                 return block2;

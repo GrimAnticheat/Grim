@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.util.Vector;
@@ -44,7 +43,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
         ((PacketEntityStrider) player.playerVehicle).isShaking = true;
 
         Material posMaterial = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
-        Material belowMaterial = BlockProperties.getOnBlock(player, new Location(null, player.x, player.y, player.z));
+        Material belowMaterial = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
         ((PacketEntityStrider) player.playerVehicle).isShaking = !Tag.STRIDER_WARM_BLOCKS.isTagged(posMaterial) &&
                 !Tag.STRIDER_WARM_BLOCKS.isTagged(belowMaterial) && !player.wasTouchingLava;
     }

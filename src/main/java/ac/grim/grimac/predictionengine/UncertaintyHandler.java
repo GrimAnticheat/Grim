@@ -47,6 +47,7 @@ public class UncertaintyHandler {
     public boolean lastLastPacketWasGroundPacket = false;
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
     public boolean isSteppingOnSlime = false;
+    public boolean isSteppingOnIce = false;
 
     // Marks whether the player could have landed but without position packet because 0.03
     public boolean lastTickWasNearGroundZeroPointZeroThree = false;
@@ -83,6 +84,26 @@ public class UncertaintyHandler {
         collidingWithShulker = false;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
+    }
+
+    public double getZeroPointZeroThreeThreshold() {
+        return 0.0016;
+    }
+
+    public boolean countsAsZeroPointZeroThree(VectorData predicted) {
+        // First tick movement should always be considered zero point zero three
+        if (player.isFirstTick)
+            return true;
+
+        // Explicitly is 0.03 movement
+        if (predicted.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
+            return true;
+
+        // Movement is too low to determine whether this is zero point zero three
+        if (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01)
+            return true;
+
+        return isSteppingOnIce && lastTickWasNearGroundZeroPointZeroThree && player.actualMovement.clone().setY(0).lengthSquared() < 0.01;
     }
 
     public double getOffsetHorizontal(VectorData data) {
