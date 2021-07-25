@@ -86,8 +86,13 @@ public class UncertaintyHandler {
         slimePistonBounces = new HashSet<>();
     }
 
+    // 0.04 is safe for speed 10, 0.03 is unsafe
+    // 0.0016 is safe for speed 1, 0.09 is unsafe
+    //
+    // Taking these approximate values gives us this, the same 0.03 value for each speed
+    // Don't give bonus for sprinting because sprinting against walls isn't possible
     public double getZeroPointZeroThreeThreshold() {
-        return 0.0016;
+        return 0.096 * (player.speed / (player.isSprinting ? 1.3d : 1)) - 0.008;
     }
 
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
