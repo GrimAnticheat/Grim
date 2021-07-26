@@ -8,10 +8,8 @@ import org.bukkit.ChatColor;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class TimerCheck extends Check {
-    public int exempt = 400; // Exempt for 20 seconds on login
+    public int exempt = 200; // Exempt for 10 seconds on login
     GrimPlayer player;
-
-    long lastTransactionReceivedRealtime = 0;
 
     long timerTransaction = 0;
 
@@ -37,23 +35,8 @@ public class TimerCheck extends Check {
     //
     // This is better than traditional timer checks because ping fluctuations will never affect this check
     // As we are tying this check to the player's ping, rather than real time.
-    //
-    // We mark a transaction every 50 ms because if the player processes multiple transactions from the same tick,
-    // oh wait this is real time let me remove this hack.
     public TimerCheck(GrimPlayer player) {
         this.player = player;
-    }
-
-    public void handleTransactionPacket(int id) {
-        Integer oldestTrackedID = trackedTransactions.peek();
-        if (oldestTrackedID != null && id >= oldestTrackedID) {
-            trackedTransactions.poll();
-            lastTransactionReceivedRealtime = player.getPlayerClockAtLeast();
-        }
-    }
-
-    public void trackTransaction(int id) {
-        trackedTransactions.add(id);
     }
 
     public void processMovementPacket() {
@@ -74,7 +57,7 @@ public class TimerCheck extends Check {
 
         /*Bukkit.broadcastMessage("==================");
         Bukkit.broadcastMessage("Timer: " + (System.currentTimeMillis() - timerTransaction));
-        Bukkit.broadcastMessage("Received: " + (System.currentTimeMillis() - lastTransactionReceivedRealtime));
+        Bukkit.broadcastMessage("Received: " + (System.currentTimeMillis() - player.getPlayerClockAtLeast()));
         Bukkit.broadcastMessage("==================");*/
 
         // Detect lag spikes of minimum 130 ms (missing 2 transactions missing)
@@ -86,9 +69,9 @@ public class TimerCheck extends Check {
             beginningLagSpikeReceivedRealtime = transactionsReceivedAtEndOfLastCheck;
             lastLagSpike = System.currentTimeMillis();
         } else if (System.currentTimeMillis() - lastLagSpike > 1000) {
-            timerTransaction = Math.max(timerTransaction, lastTransactionReceivedRealtime);
+            timerTransaction = Math.max(timerTransaction, player.getPlayerClockAtLeast());
         }
 
-        transactionsReceivedAtEndOfLastCheck = lastTransactionReceivedRealtime;
+        transactionsReceivedAtEndOfLastCheck = player.getPlayerClockAtLeast();
     }
 }
