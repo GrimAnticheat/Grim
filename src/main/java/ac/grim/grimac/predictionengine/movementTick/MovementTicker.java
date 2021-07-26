@@ -50,7 +50,8 @@ public class MovementTicker {
                 && player.uncertaintyHandler.pistonX == 0 && player.uncertaintyHandler.pistonY == 0 && player.uncertaintyHandler.pistonZ == 0
                 && player.uncertaintyHandler.slimePistonBounces.isEmpty() && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnSlime
-                && player.isGliding == player.wasGliding && player.uncertaintyHandler.lastTeleportTicks < -2 && Collections.max(player.uncertaintyHandler.pistonPushing) == 0) {
+                && player.isGliding == player.wasGliding && player.uncertaintyHandler.lastTeleportTicks < -2 && Collections.max(player.uncertaintyHandler.pistonPushing) == 0
+                && (!player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree || !player.uncertaintyHandler.wasAffectedByStuckSpeed())) {
 
             if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
                 Bukkit.broadcastMessage("Desync " + player.onGround);
@@ -109,7 +110,7 @@ public class MovementTicker {
         player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
-        player.lastStuckSpeedMultiplier = player.stuckSpeedMultiplier;
+        player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.add(player.stuckSpeedMultiplier.getX() < 0.99);
         player.stuckSpeedMultiplier = new Vector(1, 1, 1);
 
         Collisions.handleInsideBlocks(player);

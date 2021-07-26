@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.lists.EvictingList;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.block.BlockFace;
 
+import java.util.Collections;
 import java.util.HashSet;
 
 public class UncertaintyHandler {
@@ -61,6 +62,7 @@ public class UncertaintyHandler {
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
     public EvictingList<Boolean> tempElytraFlightHack = new EvictingList<>(3);
+    public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
     public int lastTeleportTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
 
@@ -77,6 +79,7 @@ public class UncertaintyHandler {
         collidingWithBoat = false;
         collidingWithShulker = false;
         isStepMovement = false;
+        stuckOnEdge = false;
         slimePistonBounces = new HashSet<>();
     }
 
@@ -92,7 +95,7 @@ public class UncertaintyHandler {
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
         // First tick movement should always be considered zero point zero three
         // Shifting movement is somewhat buggy because 0.03
-        if (player.isFirstTick || stuckOnEdge)
+        if (player.isFirstTick || stuckOnEdge || wasAffectedByStuckSpeed())
             return true;
 
         // Explicitly is 0.03 movement
@@ -106,6 +109,10 @@ public class UncertaintyHandler {
         return isSteppingOnIce && lastTickWasNearGroundZeroPointZeroThree && player.actualMovement.clone().setY(0).lengthSquared() < 0.01;
     }
 
+    public boolean wasAffectedByStuckSpeed() {
+        return !stuckMultiplierZeroPointZeroThree.isEmpty() && Collections.max(stuckMultiplierZeroPointZeroThree);
+    }
+
     public double getOffsetHorizontal(VectorData data) {
         double pointThree = stuckOnEdge || data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
 
@@ -116,6 +123,9 @@ public class UncertaintyHandler {
         // Scale based on speed 0.1 is 0.01, and speed 0.5 is 0.05
         if (willBeStuckOnEdge)
             pointThree = Math.max(pointThree, (0.01 * player.speed / 0.1));
+
+        if (wasAffectedByStuckSpeed())
+            pointThree = Math.max(pointThree, 0.08);
 
         return pointThree;
     }
