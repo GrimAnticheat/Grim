@@ -335,6 +335,9 @@ public class MovementCheckRunner {
 
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
+        player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
+
+        player.uncertaintyHandler.nextTickScaffoldingOnEdge = false;
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
