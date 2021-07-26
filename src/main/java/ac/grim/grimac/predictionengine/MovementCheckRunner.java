@@ -69,7 +69,13 @@ public class MovementCheckRunner {
             if (position.getX() == data.playerX && position.getY() == data.playerY && position.getZ() == data.playerZ) {
                 data.player.teleports.poll();
                 data.isJustTeleported = true;
-                data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
+
+                // Exempt for the next tick for all teleports
+                data.player.timerCheck.exempt = 1;
+
+                // Long distance teleport
+                if (position.distanceSquared(new Vector3d(data.playerX, data.playerY, data.playerZ)) > 32 * 32)
+                    data.player.timerCheck.exempt = 150; // Exempt for 7.5 seconds on teleport
 
                 continue;
             } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
@@ -97,7 +103,13 @@ public class MovementCheckRunner {
             if (position.getX() == data.playerX && position.getY() == data.playerY && position.getZ() == data.playerZ) {
                 data.player.vehicleTeleports.poll();
                 data.isJustTeleported = true;
-                data.player.timerCheck.exempt = 60; // Exempt for 3 seconds on teleport
+
+                // Exempt for the next tick for all teleports
+                data.player.timerCheck.exempt = 1;
+
+                // Long distance teleport
+                if (position.distanceSquared(new Vector3d(data.playerX, data.playerY, data.playerZ)) > 32 * 32)
+                    data.player.timerCheck.exempt = 150; // Exempt for 7.5 seconds on long teleport
 
                 continue;
             } else if (data.lastTransaction > teleportPos.getFirst() + 2) {

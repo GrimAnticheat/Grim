@@ -297,9 +297,6 @@ public class GrimPlayer {
                 // Must be here as this is required to be real time
                 compensatedEating.handleTransactionPacket(packetStateData.packetLastTransactionReceived.get());
 
-                // Timer check needs to listen for special transactions
-                timerCheck.handleTransactionPacket(incrementingID);
-
                 knockbackHandler.handleTransactionPacket(data.getFirst());
                 explosionHandler.handleTransactionPacket(data.getFirst());
             }
