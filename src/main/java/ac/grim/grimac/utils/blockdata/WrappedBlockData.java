@@ -258,7 +258,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
 
         }
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE"))
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE") && !mat.name().equalsIgnoreCase("IRON_FENCE"))
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about panes, 1.13+ does
