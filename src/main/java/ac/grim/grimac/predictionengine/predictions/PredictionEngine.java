@@ -58,7 +58,11 @@ public class PredictionEngine {
         // Determine if the player can make an input below 0.03
         player.couldSkipTick = false;
 
-        if (!player.inVehicle) {
+        // 0.03 is very bad with stuck speed multipliers
+        if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
+            player.uncertaintyHandler.gravityUncertainty = -0.08;
+            player.couldSkipTick = true;
+        } else if (!player.inVehicle) {
             double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
 
             if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
