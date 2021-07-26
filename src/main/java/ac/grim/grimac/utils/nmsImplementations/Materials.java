@@ -154,7 +154,7 @@ public class Materials {
         for (Material mat : Material.values()) {
             if (mat.name().endsWith("_SWORD")) MATERIAL_FLAGS[mat.ordinal()] |= SWORD;
             if (!mat.isBlock()) continue;
-            if (mat.name().contains("FENCE")) {
+            if (mat.name().contains("FENCE") && !mat.name().equalsIgnoreCase("IRON_FENCE")) {
                 if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
                 else {
                     MATERIAL_FLAGS[mat.ordinal()] |= GATE;

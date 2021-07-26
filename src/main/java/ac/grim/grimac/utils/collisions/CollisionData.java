@@ -578,11 +578,11 @@ public enum CollisionData {
             .toArray(Material[]::new)),
 
 
-    FENCE(new DynamicFence(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE"))
+    FENCE(new DynamicFence(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE") && !mat.name().equalsIgnoreCase("IRON_FENCE"))
             .toArray(Material[]::new)),
 
 
-    PANE(new DynamicPane(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().equals("IRON_BARS"))
+    PANE(new DynamicPane(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().equals("IRON_BARS") || mat.name().equalsIgnoreCase("IRON_FENCE"))
             .toArray(Material[]::new)),
 
 
