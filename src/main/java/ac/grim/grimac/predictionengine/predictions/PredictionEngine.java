@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -17,6 +18,7 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public class PredictionEngine {
+    private static final Material SCAFFOLDING = XMaterial.SCAFFOLDING.parseMaterial();
     boolean canRiptide = false;
 
     public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
@@ -126,6 +128,12 @@ public class PredictionEngine {
                 SimpleCollisionBox playerBox = player.boundingBox.copy().offset(outputVel.getX(), primaryPushMovement.getY(), outputVel.getZ());
                 if (Collisions.isEmpty(player, playerBox))
                     outputVel.setY(primaryPushMovement.getY());
+            }
+
+            // Scaffolding bug occurred
+            // This is an extension of the sneaking bug
+            if (player.isSneaking && primaryPushMovement.getY() < 0 && backOff.getX() == 0 && backOff.getZ() == 0 && Collisions.hasMaterial(player, SCAFFOLDING)) {
+                player.uncertaintyHandler.nextTickScaffoldingOnEdge = true;
             }
 
             double resultAccuracy = outputVel.distanceSquared(player.actualMovement);

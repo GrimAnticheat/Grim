@@ -48,8 +48,9 @@ public class UncertaintyHandler {
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
-    public boolean willBeStuckOnEdge = false;
     public boolean stuckOnEdge = false;
+    public boolean nextTickScaffoldingOnEdge = false;
+    public boolean scaffoldingOnEdge = false;
     // Marks whether the player could have landed but without position packet because 0.03
     public boolean lastTickWasNearGroundZeroPointZeroThree = false;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
@@ -120,12 +121,12 @@ public class UncertaintyHandler {
         if (stuckOnEdge && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
             pointThree = Math.max(pointThree, player.speed / 3);
 
-        // Scale based on speed 0.1 is 0.01, and speed 0.5 is 0.05
-        if (willBeStuckOnEdge)
-            pointThree = Math.max(pointThree, (0.01 * player.speed / 0.1));
-
         if (wasAffectedByStuckSpeed())
             pointThree = Math.max(pointThree, 0.08);
+
+        if (player.uncertaintyHandler.scaffoldingOnEdge) {
+            pointThree = Math.max(pointThree, player.speed * 1.5);
+        }
 
         return pointThree;
     }
