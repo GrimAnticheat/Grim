@@ -12,13 +12,13 @@ public class TimerCheck extends Check {
     public int exempt = 200; // Exempt for 10 seconds on login
     GrimPlayer player;
 
-    long timerTransaction = 0;
+    long timerBalanceRealTime = 0;
 
     // To patch out lag spikes
-    long timeSinceLastTransaction = 0;
+    long timeSinceLastProcessedMovement = 0;
     long transactionsReceivedAtEndOfLastCheck = System.currentTimeMillis();
 
-    ConcurrentLinkedQueue<Pair<Long, Long>> lagSpikeToTransactionFloor = new ConcurrentLinkedQueue<>();
+    ConcurrentLinkedQueue<Pair<Long, Long>> lagSpikeToRealTimeFloor = new ConcurrentLinkedQueue<>();
 
     // Proof for this timer check
     // https://i.imgur.com/Hk2Wb6c.png
@@ -49,12 +49,12 @@ public class TimerCheck extends Check {
             return;
         }
 
-        timerTransaction += 50;
+        timerBalanceRealTime += 50;
 
-        if (timerTransaction > System.currentTimeMillis()) {
+        if (timerBalanceRealTime > System.currentTimeMillis()) {
             Bukkit.broadcastMessage(ChatColor.RED + "THE PLAYER HAS TIMER! (Can't false as of 7/26/21, open github issue if not timer!)");
             // Reset the violation by 1 movement
-            timerTransaction -= 50;
+            timerBalanceRealTime -= 50;
         }
 
         /*Bukkit.broadcastMessage("==================");
@@ -63,25 +63,25 @@ public class TimerCheck extends Check {
         Bukkit.broadcastMessage("==================");*/
 
         // Calculate time since last transaction - affected by 50 ms delay movement packets and
-        timeSinceLastTransaction = System.currentTimeMillis() + (System.currentTimeMillis() - transactionsReceivedAtEndOfLastCheck);
+        timeSinceLastProcessedMovement = System.currentTimeMillis() + (System.currentTimeMillis() - transactionsReceivedAtEndOfLastCheck);
         // As we don't check players standing still, cap this at 1000 ms
         // A second is more than enough time for all packets from the lag spike to arrive
         // Exempting over a 30 second lag spike will lead to bypasses where the player can catch up movement
         // packets that were lost by standing still
-        timeSinceLastTransaction = Math.min(timeSinceLastTransaction, System.currentTimeMillis() + 1000);
+        timeSinceLastProcessedMovement = Math.min(timeSinceLastProcessedMovement, System.currentTimeMillis() + 1000);
 
         // Add this into a queue so that new lag spikes do not override previous lag spikes
-        lagSpikeToTransactionFloor.add(new Pair<>(timeSinceLastTransaction, transactionsReceivedAtEndOfLastCheck));
+        lagSpikeToRealTimeFloor.add(new Pair<>(timeSinceLastProcessedMovement, transactionsReceivedAtEndOfLastCheck));
 
         // Find the safe floor, lag spikes affect transactions, which is bad.
-        Pair<Long, Long> lagSpikePair = lagSpikeToTransactionFloor.peek();
+        Pair<Long, Long> lagSpikePair = lagSpikeToRealTimeFloor.peek();
         if (lagSpikePair != null) {
             do {
                 if (System.currentTimeMillis() > lagSpikePair.getFirst()) {
-                    timerTransaction = Math.max(timerTransaction, lagSpikePair.getSecond());
+                    timerBalanceRealTime = Math.max(timerBalanceRealTime, lagSpikePair.getSecond());
 
-                    lagSpikeToTransactionFloor.poll();
-                    lagSpikePair = lagSpikeToTransactionFloor.peek();
+                    lagSpikeToRealTimeFloor.poll();
+                    lagSpikePair = lagSpikeToRealTimeFloor.peek();
                 } else {
                     break;
                 }
