@@ -25,6 +25,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.removeentityeffe
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentity.WrappedPacketOutSpawnEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.packetwrappers.play.out.updateattributes.WrappedPacketOutUpdateAttributes;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
 import it.unimi.dsi.fastutil.Pair;
@@ -122,8 +123,17 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             //
             // Set to 24 so ViaVersion blocks it
             // 24 is the levitation effect
-            if (ViaVersionLookupUtils.isAvailable() && effect.getEffectId() > 23) {
-                effect.setEffectId(24);
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9) && ViaVersionLookupUtils.isAvailable() && effect.getEffectId() > 23) {
+                effect.setEffectId(24); // Just in case cancelling doesn't work
+                event.setCancelled(true);
+                return;
+            }
+
+            // ViaVersion dolphin's grace also messes us up, set it to a potion effect that doesn't exist on 1.12
+            // Effect 31 is bad omen
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && ViaVersionLookupUtils.isAvailable() && effect.getEffectId() == 30) {
+                effect.setEffectId(31); // Just in case cancelling doesn't work
+                event.setCancelled(true);
                 return;
             }
 
