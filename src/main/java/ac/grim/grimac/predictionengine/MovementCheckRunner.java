@@ -8,6 +8,7 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
@@ -363,6 +364,20 @@ public class MovementCheckRunner {
             }
 
             new PlayerBaseTick(player).doBaseTick();
+
+            SimpleCollisionBox updatedBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
+
+            if (player.isSneaking || player.wasSneaking) {
+                // Before we do player block placements, determine if the shifting glitch occurred
+                // It's a glitch on 1.14+ and on earlier versions, the 0.03 is just brutal.
+                boolean east = player.actualMovement.angle(new Vector(1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0.1, -0.6, 0));
+                boolean west = player.actualMovement.angle(new Vector(-1, 0, 1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(-0.1, -0.6, 0));
+                boolean south = player.actualMovement.angle(new Vector(0, 0, 1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, 0.1));
+                boolean north = player.actualMovement.angle(new Vector(0, 0, -1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, -0.1));
+
+                player.uncertaintyHandler.stuckOnEdge = (east || west || south || north);
+            }
+
             player.compensatedWorld.tickPlayerUpdates(data.lastTransaction);
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));

@@ -3,11 +3,13 @@ package ac.grim.grimac.predictionengine;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.lists.EvictingList;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.block.BlockFace;
 
 import java.util.HashSet;
 
 public class UncertaintyHandler {
+    private final GrimPlayer player;
     // Handles uncertainty when a piston could have pushed a player in a direction
     // Only the required amount of uncertainty is given
     public double pistonX;
@@ -24,16 +26,13 @@ public class UncertaintyHandler {
     public boolean isStepMovement;
     // What directions could slime block pistons be pushing the player from
     public HashSet<BlockFace> slimePistonBounces;
-
     // Handles general uncertainty such as entity pushing and the 1.14+ X Z collision bug where X momentum is maintained
     public double xNegativeUncertainty = 0;
     public double xPositiveUncertainty = 0;
     public double zNegativeUncertainty = 0;
     public double zPositiveUncertainty = 0;
-
     public double yNegativeUncertainty = 0;
     public double yPositiveUncertainty = 0;
-
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasLastGravityUncertain = false;
     // Marks how much to allow the actual velocity to deviate from predicted when
@@ -48,27 +47,22 @@ public class UncertaintyHandler {
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
-
+    public boolean willBeStuckOnEdge = false;
+    public boolean stuckOnEdge = false;
     // Marks whether the player could have landed but without position packet because 0.03
     public boolean lastTickWasNearGroundZeroPointZeroThree = false;
-
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = true;
     // Give horizontal lenience if two movements ago was 0.03 because especially on ice it matters
     public boolean lastLastMovementWasZeroPointZeroThree = false;
-
     // How many entities are very likely to be colliding with the player's bounding box?
     public EvictingList<Integer> strictCollidingEntities = new EvictingList<>(3);
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
-
     public EvictingList<Boolean> tempElytraFlightHack = new EvictingList<>(3);
-
     public int lastTeleportTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
-
-    private GrimPlayer player;
 
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
@@ -97,7 +91,8 @@ public class UncertaintyHandler {
 
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
         // First tick movement should always be considered zero point zero three
-        if (player.isFirstTick)
+        // Shifting movement is somewhat buggy because 0.03
+        if (player.isFirstTick || stuckOnEdge)
             return true;
 
         // Explicitly is 0.03 movement
@@ -112,7 +107,17 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
-        return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+        double pointThree = stuckOnEdge || data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+
+        // 0.03 plus being able to maintain velocity even when shifting is brutal
+        if (stuckOnEdge && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
+            pointThree = Math.max(pointThree, player.speed / 3);
+
+        // Scale based on speed 0.1 is 0.01, and speed 0.5 is 0.05
+        if (willBeStuckOnEdge)
+            pointThree = Math.max(pointThree, (0.01 * player.speed / 0.1));
+
+        return pointThree;
     }
 
     public double getVerticalOffset(VectorData data) {
