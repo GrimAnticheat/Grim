@@ -186,7 +186,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                         player.bukkitPlayer.getGameMode() != GameMode.CREATIVE && material.isEdible())
                         || material == POTION || material == MILK_BUCKET) {
                     // pre1.9 splash potion
-                    if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8) && item.getDurability() > 16384)
+                    if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8) && item.getDurability() > 16384)
                         return;
 
                     // Eatable items that don't require any hunger to eat
