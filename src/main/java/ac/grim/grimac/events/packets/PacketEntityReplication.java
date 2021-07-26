@@ -26,6 +26,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentity.Wrap
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.packetwrappers.play.out.updateattributes.WrappedPacketOutUpdateAttributes;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
 import it.unimi.dsi.fastutil.Pair;
 import org.bukkit.entity.Entity;
 import org.bukkit.potion.PotionEffectType;
@@ -114,7 +115,19 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedPotions.addPotionEffect(PotionEffectType.getById(effect.getEffectId()).getName(), effect.getAmplifier(), effect.getEntityId());
+            PotionEffectType type = PotionEffectType.getById(effect.getEffectId());
+
+            // ViaVersion tries faking levitation effects and fails badly lol, flagging the anticheat
+            // Block other effects just in case ViaVersion gets any ideas
+            //
+            // Set to 24 so ViaVersion blocks it
+            // 24 is the levitation effect
+            if (ViaVersionLookupUtils.isAvailable() && effect.getEffectId() > 23) {
+                effect.setEffectId(24);
+                return;
+            }
+
+            player.compensatedPotions.addPotionEffect(type.getName(), effect.getAmplifier(), effect.getEntityId());
         }
 
         if (packetID == PacketType.Play.Server.REMOVE_ENTITY_EFFECT) {
