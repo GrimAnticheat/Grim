@@ -6,21 +6,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class TimerCheck extends Check {
     public int exempt = 400; // Exempt for 20 seconds on login
     GrimPlayer player;
 
-    AtomicInteger lastTransactionSent = new AtomicInteger(0);
-    AtomicInteger lastTransactionReceived = new AtomicInteger(0);
+    long lastTransactionReceivedRealtime = 0;
 
-    int timerTransaction = 0;
+    long timerTransaction = 0;
 
     // To patch out lag spikes
     long lastLagSpike = 0;
-    int beginningLagSpikeTransaction = 0;
-    int transactionsReceivedAtEndOfLastCheck = 0;
+    long beginningLagSpikeReceivedRealtime = 0;
+    long transactionsReceivedAtEndOfLastCheck = 0;
 
     ConcurrentLinkedQueue<Integer> trackedTransactions = new ConcurrentLinkedQueue<>();
 
@@ -39,6 +37,9 @@ public class TimerCheck extends Check {
     //
     // This is better than traditional timer checks because ping fluctuations will never affect this check
     // As we are tying this check to the player's ping, rather than real time.
+    //
+    // We mark a transaction every 50 ms because if the player processes multiple transactions from the same tick,
+    // oh wait this is real time let me remove this hack.
     public TimerCheck(GrimPlayer player) {
         this.player = player;
     }
@@ -47,12 +48,11 @@ public class TimerCheck extends Check {
         Integer oldestTrackedID = trackedTransactions.peek();
         if (oldestTrackedID != null && id >= oldestTrackedID) {
             trackedTransactions.poll();
-            lastTransactionReceived.getAndIncrement();
+            lastTransactionReceivedRealtime = player.getPlayerClockAtLeast();
         }
     }
 
     public void trackTransaction(int id) {
-        lastTransactionSent.getAndIncrement();
         trackedTransactions.add(id);
     }
 
@@ -64,29 +64,31 @@ public class TimerCheck extends Check {
             return;
         }
 
-        if (timerTransaction++ > lastTransactionSent.get()) {
+        timerTransaction += 50;
+
+        if (timerTransaction > System.currentTimeMillis()) {
             Bukkit.broadcastMessage(ChatColor.RED + "THE PLAYER HAS TIMER! (Check stable as of 7/25/21, report if not timer!)");
             // Reset the violation by 1 movement
-            timerTransaction--;
+            timerTransaction -= 50;
         }
 
         /*Bukkit.broadcastMessage("==================");
-        Bukkit.broadcastMessage("Sent: " + lastTransactionSent.get());
-        Bukkit.broadcastMessage("Timer: " + timerTransaction);
-        Bukkit.broadcastMessage("Received: " + lastTransactionReceived.get());
+        Bukkit.broadcastMessage("Timer: " + (System.currentTimeMillis() - timerTransaction));
+        Bukkit.broadcastMessage("Received: " + (System.currentTimeMillis() - lastTransactionReceivedRealtime));
         Bukkit.broadcastMessage("==================");*/
 
-        if (lastTransactionReceived.get() - transactionsReceivedAtEndOfLastCheck > 2) {
+        // Detect lag spikes of minimum 130 ms (missing 2 transactions missing)
+        if (System.currentTimeMillis() - transactionsReceivedAtEndOfLastCheck > 130) {
             // Stop players from spamming lag spikes to become exempt
             // Spamming F3 + T, I can still flag 1.07 timer
             // Probably can still flag lower over more time, if the client is spamming fake lag spikes
-            timerTransaction = Math.max(timerTransaction, beginningLagSpikeTransaction);
-            beginningLagSpikeTransaction = transactionsReceivedAtEndOfLastCheck;
+            timerTransaction = Math.max(timerTransaction, beginningLagSpikeReceivedRealtime);
+            beginningLagSpikeReceivedRealtime = transactionsReceivedAtEndOfLastCheck;
             lastLagSpike = System.currentTimeMillis();
         } else if (System.currentTimeMillis() - lastLagSpike > 1000) {
-            timerTransaction = Math.max(timerTransaction, lastTransactionReceived.get());
+            timerTransaction = Math.max(timerTransaction, lastTransactionReceivedRealtime);
         }
 
-        transactionsReceivedAtEndOfLastCheck = lastTransactionReceived.get();
+        transactionsReceivedAtEndOfLastCheck = lastTransactionReceivedRealtime;
     }
 }
