@@ -104,7 +104,9 @@ public final class GrimAC extends JavaPlugin {
         // the server begins sending packets to the client
         Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
             for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
-                player.sendTransactionOrPingPong(player.getNextTransactionID(1), true);
+                short nextID = player.getNextTransactionID(1);
+                player.timerCheck.trackTransaction(player.lastTransactionSent.get());
+                player.sendTransactionOrPingPong(nextID, true);
             }
         }, 1, 1);
 

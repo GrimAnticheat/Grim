@@ -290,12 +290,15 @@ public class GrimPlayer {
         do {
             data = transactionsSent.poll();
             if (data != null) {
-                packetStateData.packetLastTransactionReceived.getAndIncrement();
+                int incrementingID = packetStateData.packetLastTransactionReceived.incrementAndGet();
                 transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
                 playerClockAtLeast = System.currentTimeMillis() - transactionPing;
 
                 // Must be here as this is required to be real time
                 compensatedEating.handleTransactionPacket(packetStateData.packetLastTransactionReceived.get());
+
+                // Timer check needs to listen for special transactions
+                timerCheck.handleTransactionPacket(incrementingID);
 
                 knockbackHandler.handleTransactionPacket(data.getFirst());
                 explosionHandler.handleTransactionPacket(data.getFirst());
