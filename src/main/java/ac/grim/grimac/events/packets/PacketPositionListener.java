@@ -29,6 +29,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             if (player == null) return;
 
             Vector3d pos = position.getPosition();
+            player.reach.handleMovement(player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
 
             if (MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround())))
                 player.timerCheck.processMovementPacket();
@@ -40,6 +41,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             if (player == null) return;
 
             Vector3d pos = position.getPosition();
+            player.reach.handleMovement(position.getYaw(), position.getPitch());
 
             if (player.packetStateData.vehicle != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17))
                 return;
@@ -55,6 +57,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             player.packetStateData.packetPlayerXRot = position.getYaw();
             player.packetStateData.packetPlayerYRot = position.getPitch();
+
+            player.reach.handleMovement(position.getYaw(), position.getPitch());
 
             // Prevent memory leaks from players continually staying in vehicles that they can't ride - also updates player position
             if (player.packetStateData.vehicle != null && player.compensatedEntities.entityMap.containsKey(player.packetStateData.vehicle)) {
@@ -84,6 +88,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
             if (player == null) return;
 
             player.timerCheck.processMovementPacket();
+            player.reach.handleMovement(player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
+
             if (position.isOnGround() != player.packetStateData.packetPlayerOnGround) {
                 player.packetStateData.packetPlayerOnGround = !player.packetStateData.packetPlayerOnGround;
                 player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;

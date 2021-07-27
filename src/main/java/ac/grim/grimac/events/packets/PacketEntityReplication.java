@@ -76,6 +76,8 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (entity == null) return;
 
             player.compensatedEntities.addEntity(spawn.getEntityId(), entity.getType(), spawn.getPosition());
+
+            player.reach.handleSpawnPlayer(spawn.getEntityId(), spawn.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
@@ -87,6 +89,13 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (move.getDeltaX() != 0 || move.getDeltaY() != 0 || move.getDeltaZ() != 0)
                 player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(move.getEntityId(),
                         move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), player.lastTransactionSent.get(), true));
+
+
+            if (player.reach.entityMap.containsKey(move.getEntityId())) {
+                player.sendAndFlushTransactionOrPingPong();
+                player.reach.handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
+                event.setPostTask(() -> player.sendTransactionOrPingPong(player.getNextTransactionID(1), true));
+            }
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
@@ -99,6 +108,13 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
             player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(teleport.getEntityId(),
                     position.getX(), position.getY(), position.getZ(), player.lastTransactionSent.get(), false));
+
+            if (player.reach.entityMap.containsKey(teleport.getEntityId())) {
+                player.sendAndFlushTransactionOrPingPong();
+                player.reach.handleMoveEntity(teleport.getEntityId(), teleport.getPosition().getX(),
+                        teleport.getPosition().getY(), teleport.getPosition().getZ(), false);
+                event.setPostTask(() -> player.sendTransactionOrPingPong(player.getNextTransactionID(1), true));
+            }
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_METADATA) {

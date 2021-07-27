@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
+import ac.grim.grimac.utils.nmsImplementations.Ray;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -268,6 +269,70 @@ public class SimpleCollisionBox implements CollisionBox {
         double hxz = Math.hypot(minX - box.minX, minZ - box.minZ);
 
         return hxz - (xwidth + zwidth + bxwidth + bzwidth) / 4;
+    }
+
+    /**
+     * Calculates intersection with the given ray between a certain distance
+     * interval.
+     * <p>
+     * Ray-box intersection is using IEEE numerical properties to ensure the
+     * test is both robust and efficient, as described in:
+     * <p>
+     * Amy Williams, Steve Barrus, R. Keith Morley, and Peter Shirley: "An
+     * Efficient and Robust Ray-Box Intersection Algorithm" Journal of graphics
+     * tools, 10(1):49-54, 2005
+     *
+     * @param ray     incident ray
+     * @param minDist minimum distance
+     * @param maxDist maximum distance
+     * @return intersection point on the bounding box (only the first is
+     * returned) or null if no intersection
+     */
+    // Copied from hawk lol
+    public Vector intersectsRay(Ray ray, float minDist, float maxDist) {
+        Vector invDir = new Vector(1f / ray.getDirection().getX(), 1f / ray.getDirection().getY(), 1f / ray.getDirection().getZ());
+
+        boolean signDirX = invDir.getX() < 0;
+        boolean signDirY = invDir.getY() < 0;
+        boolean signDirZ = invDir.getZ() < 0;
+
+        Vector bbox = signDirX ? max() : min();
+        double tmin = (bbox.getX() - ray.getOrigin().getX()) * invDir.getX();
+        bbox = signDirX ? min() : max();
+        double tmax = (bbox.getX() - ray.getOrigin().getX()) * invDir.getX();
+        bbox = signDirY ? max() : min();
+        double tymin = (bbox.getY() - ray.getOrigin().getY()) * invDir.getY();
+        bbox = signDirY ? min() : max();
+        double tymax = (bbox.getY() - ray.getOrigin().getY()) * invDir.getY();
+
+        if ((tmin > tymax) || (tymin > tmax)) {
+            return null;
+        }
+        if (tymin > tmin) {
+            tmin = tymin;
+        }
+        if (tymax < tmax) {
+            tmax = tymax;
+        }
+
+        bbox = signDirZ ? max() : min();
+        double tzmin = (bbox.getZ() - ray.getOrigin().getZ()) * invDir.getZ();
+        bbox = signDirZ ? min() : max();
+        double tzmax = (bbox.getZ() - ray.getOrigin().getZ()) * invDir.getZ();
+
+        if ((tmin > tzmax) || (tzmin > tmax)) {
+            return null;
+        }
+        if (tzmin > tmin) {
+            tmin = tzmin;
+        }
+        if (tzmax < tmax) {
+            tmax = tzmax;
+        }
+        if ((tmin < maxDist) && (tmax > minDist)) {
+            return ray.getPointAtDistance(tmin);
+        }
+        return null;
     }
 
     @Override

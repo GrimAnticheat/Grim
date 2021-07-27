@@ -7,7 +7,6 @@ import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.useentity.WrappedPacketInUseEntity;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -28,8 +27,9 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
             if (action.getAction() == WrappedPacketInUseEntity.EntityUseAction.ATTACK) {
                 Entity attackedEntity = action.getEntity();
+                player.reach.checkReach(action.getEntityId());
                 if (attackedEntity != null && (!(attackedEntity instanceof LivingEntity) || attackedEntity instanceof Player)) {
-                    Bukkit.broadcastMessage("Player has been slowed!");
+                    //Bukkit.broadcastMessage("Player has been slowed!");
                 }
             }
         }
