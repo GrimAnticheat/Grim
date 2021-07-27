@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
@@ -62,7 +61,7 @@ public class KnockbackHandler {
             }
 
             // Add offset to violations
-            Bukkit.broadcastMessage(color + "Kb offset is " + offset);
+            //Bukkit.broadcastMessage(color + "Kb offset is " + offset);
         }
     }
 

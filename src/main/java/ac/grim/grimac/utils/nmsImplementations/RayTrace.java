@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import org.bukkit.Particle;
+import fr.mrmicky.fastparticles.ParticleType;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -113,7 +113,8 @@ public class RayTrace {
     //debug / effects
     public void highlight(GrimPlayer player, double blocksAway, double accuracy) {
         for (Vector position : traverse(blocksAway, accuracy)) {
-            player.bukkitPlayer.spawnParticle(Particle.NOTE, position.getX(), position.getY(), position.getZ(), 1);
+            ParticleType flame = ParticleType.of("REDSTONE");
+            flame.spawn(player.bukkitPlayer, position.getX(), position.getY(), position.getZ(), 1);
         }
     }
 

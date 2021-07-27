@@ -1,5 +1,6 @@
 package ac.grim.grimac.player;
 
+import ac.grim.grimac.checks.combat.Reach;
 import ac.grim.grimac.checks.movement.ExplosionHandler;
 import ac.grim.grimac.checks.movement.KnockbackHandler;
 import ac.grim.grimac.checks.movement.TimerCheck;
@@ -172,6 +173,7 @@ public class GrimPlayer {
     public VelocityData firstBreadExplosion = null;
     public VelocityData knownExplosion = null;
     public TimerCheck timerCheck;
+    public Reach reach;
     public float nextHorseJump = 0;
     public float horseJump = 0;
     public boolean horseJumping = false;
@@ -224,6 +226,7 @@ public class GrimPlayer {
         compensatedPotions = new CompensatedPotions(this);
         trigHandler = new TrigHandler(this);
         timerCheck = new TimerCheck(this);
+        reach = new Reach(this);
         uncertaintyHandler = new UncertaintyHandler(this);
 
         packetStateData = new PacketStateData();
@@ -294,10 +297,12 @@ public class GrimPlayer {
                 playerClockAtLeast = System.currentTimeMillis() - transactionPing;
 
                 // Must be here as this is required to be real time
-                compensatedEating.handleTransactionPacket(packetStateData.packetLastTransactionReceived.get());
+                compensatedEating.handleTransactionPacket(incrementingID);
 
                 knockbackHandler.handleTransactionPacket(data.getFirst());
                 explosionHandler.handleTransactionPacket(data.getFirst());
+
+                reach.handleTransaction(incrementingID);
             }
         } while (data != null && data.getFirst() != id);
 
