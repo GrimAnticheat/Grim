@@ -75,8 +75,9 @@ public class ReachInterpolationData {
     }
 
     public void updatePossibleStartingLocation(SimpleCollisionBox possibleLocationCombined) {
-        //Bukkit.broadcastMessage(ChatColor.GOLD + "WARNING: Desync has been protected!");
+        //GrimAC.staticGetLogger().info(ChatColor.BLUE + "Updated new starting location as second trans hasn't arrived " + startingLocation);
         this.startingLocation = combineCollisionBox(startingLocation, possibleLocationCombined);
+        //GrimAC.staticGetLogger().info(ChatColor.BLUE + "Finished updating new starting location as second trans hasn't arrived " + startingLocation);
     }
 
     public void tickMovement(boolean incrementLowBound, boolean setHighBoundToMax) {
@@ -86,5 +87,15 @@ public class ReachInterpolationData {
             this.interpolationStepsHighBound = 3;
         else
             this.interpolationStepsHighBound = Math.min(interpolationStepsHighBound + 1, 3);
+    }
+
+    @Override
+    public String toString() {
+        return "ReachInterpolationData{" +
+                "targetLocation=" + targetLocation +
+                ", startingLocation=" + startingLocation +
+                ", interpolationStepsLowBound=" + interpolationStepsLowBound +
+                ", interpolationStepsHighBound=" + interpolationStepsHighBound +
+                '}';
     }
 }
