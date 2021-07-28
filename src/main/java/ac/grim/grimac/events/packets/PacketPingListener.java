@@ -5,9 +5,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
+import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.pong.WrappedPacketInPong;
 import io.github.retrooper.packetevents.packetwrappers.play.in.transaction.WrappedPacketInTransaction;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 
 public class PacketPingListener extends PacketListenerAbstract {
 
@@ -42,12 +44,48 @@ public class PacketPingListener extends PacketListenerAbstract {
             int id = pong.getId();
             // If it wasn't below 0, it wasn't us
             // If it wasn't in short range, it wasn't us either
-            if (id >= Short.MIN_VALUE && id <= 0) {
+            if (id == (short) id) {
                 GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
                 if (player == null) return;
                 if (player.addTransactionResponse((short) id)) {
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
                     event.setCancelled(true);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onPacketPlaySend(PacketPlaySendEvent event) {
+        byte packetID = event.getPacketId();
+
+        if (packetID == PacketType.Play.Client.TRANSACTION) {
+            WrappedPacketInTransaction transaction = new WrappedPacketInTransaction(event.getNMSPacket());
+            short id = transaction.getActionNumber();
+
+            // Vanilla always uses an ID starting from 1
+            if (id <= 0) {
+                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                if (player == null) return;
+
+                if (player.didWeSendThatTrans.remove((Short) id)) {
+                    player.transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
+                }
+            }
+        }
+
+        if (packetID == PacketType.Play.Client.PONG) {
+            WrappedPacketInPong pong = new WrappedPacketInPong(event.getNMSPacket());
+
+            int id = pong.getId();
+            // Check if in the short range, we only use short range
+            if (id == (short) id) {
+                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                if (player == null) return;
+                // Cast ID twice so we can use the list
+                Short shortID = ((short) id);
+                if (player.didWeSendThatTrans.remove(shortID)) {
+                    player.transactionsSent.add(new Pair<>(shortID, System.currentTimeMillis()));
                 }
             }
         }
