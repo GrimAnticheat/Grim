@@ -62,8 +62,6 @@ public class Reach {
 
             Ray attackerRay = new Ray(new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + 1.62, player.packetStateData.packetPlayerZ), direction);
 
-            //attackerRay.highlight(player, 3, 0.1);
-
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes().copy();
             Vector intersection = targetBox.copy().expand(0.1).intersectsRay(attackerRay, 0, Float.MAX_VALUE);
 
@@ -77,7 +75,9 @@ public class Reach {
                 Bukkit.broadcastMessage(ChatColor.RED + "Player failed hitbox check!");
             } else {
                 double reach = new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + 1.62, player.packetStateData.packetPlayerZ).distance(intersection);
-                if (reach < 3) {
+                if (!player.packetStateData.didLastMovementIncludePosition && reach < 3.03) {
+                    Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected (0.03)!  Reach was " + reach);
+                } else if (reach < 3) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach);
                 } else {
                     Bukkit.broadcastMessage(ChatColor.RED + "Intersected!  Reach was " + reach);
