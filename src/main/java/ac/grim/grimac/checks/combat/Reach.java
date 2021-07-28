@@ -21,6 +21,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachMovementData;
 import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
 import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.Bukkit;
@@ -62,7 +63,12 @@ public class Reach {
             Vector attackerDirection = ReachUtils.getLook(player, xRot, yRot);
             Vector endReachPos = eyePos.clone().add(new Vector(attackerDirection.getX() * 6, attackerDirection.getY() * 6, attackerDirection.getZ() * 6));
 
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes().copy().expand(0.1);
+            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes().copy();
+
+            // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+                targetBox.expand(0.1);
+            }
 
             Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
 
