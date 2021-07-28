@@ -67,10 +67,10 @@ public class Reach {
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes().copy();
             Vector intersection = targetBox.copy().expand(0.1).intersectsRay(attackerRay, 0, Float.MAX_VALUE);
 
-            /*Bukkit.broadcastMessage(ChatColor.AQUA + "Checked x pos " + (targetBox.maxX + targetBox.minX) / 2 + " With size " + (targetBox.maxX - targetBox.minX));
+            Bukkit.broadcastMessage(ChatColor.AQUA + "Checked x pos " + (targetBox.maxX + targetBox.minX) / 2 + " With size " + (targetBox.maxX - targetBox.minX));
             if (reachEntity.oldPacketLocation != null)
                 Bukkit.broadcastMessage(ChatColor.AQUA + "Old position is " + (reachEntity.oldPacketLocation.targetLocation.maxX + reachEntity.oldPacketLocation.targetLocation.minX) / 2);
-            Bukkit.broadcastMessage(ChatColor.AQUA + "New position is " + (reachEntity.newPacketLocation.targetLocation.maxX + reachEntity.newPacketLocation.targetLocation.minX) / 2);*/
+            Bukkit.broadcastMessage(ChatColor.AQUA + "New position is " + (reachEntity.newPacketLocation.targetLocation.maxX + reachEntity.newPacketLocation.targetLocation.minX) / 2);
 
 
             if (intersection == null) {

@@ -17,8 +17,6 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
@@ -77,7 +75,7 @@ public class ReachInterpolationData {
     }
 
     public void updatePossibleStartingLocation(SimpleCollisionBox possibleLocationCombined) {
-        Bukkit.broadcastMessage(ChatColor.GOLD + "WARNING: Desync has been protected!");
+        //Bukkit.broadcastMessage(ChatColor.GOLD + "WARNING: Desync has been protected!");
         this.startingLocation = combineCollisionBox(startingLocation, possibleLocationCombined);
     }
 
