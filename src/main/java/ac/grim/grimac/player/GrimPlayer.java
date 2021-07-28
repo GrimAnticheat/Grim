@@ -20,6 +20,7 @@ import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.ping.WrappedPacketOutPing;
 import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
+import io.github.retrooper.packetevents.utils.list.ConcurrentList;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
@@ -50,7 +51,9 @@ public class GrimPlayer {
     public final Player bukkitPlayer;
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
-    private final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
+    public final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
+    // Sync this to the netty thread because when spamming transactions, they can get out of order... somehow
+    public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
     private final ClientVersion clientVersion;
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
@@ -357,7 +360,7 @@ public class GrimPlayer {
     }
 
     public void addTransactionSend(short id) {
-        transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
+        didWeSendThatTrans.add(id);
     }
 
     public boolean isEyeInFluid(FluidTag tag) {
