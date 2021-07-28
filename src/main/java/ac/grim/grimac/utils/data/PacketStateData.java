@@ -27,4 +27,6 @@ public class PacketStateData {
     public boolean tryingToRiptide = false;
     // Marks when the player received a ground packet
     public boolean didGroundStatusChangeWithoutPositionPacket = false;
+    // This works on 1.8 only
+    public boolean didLastMovementIncludePosition = false;
 }
