@@ -86,11 +86,9 @@ public class Reach {
                 // Create a bounding box taking the minimums and maximums of the previous packet target and the new target,
                 // meaning that the bounding box will become larger than the player’s actual bounding box.
                 PlayerReachEntity entity = entityMap.get(nextTrans.entityID);
-                entity.relativeMoveLocation = nextTrans.newPos;
-
                 //GrimAC.staticGetLogger().info("Handling first bread with pos " + entity.relativeMoveLocation);
 
-                entity.onFirstTransaction(entity.relativeMoveLocation.getX(), entity.relativeMoveLocation.getY(), entity.relativeMoveLocation.getZ());
+                entity.onFirstTransaction(nextTrans.newPos.getX(), nextTrans.newPos.getY(), nextTrans.newPos.getZ());
 
             } else if (transactionID - 1 == nextTrans.transactionID) {
                 PlayerReachEntity entity = entityMap.get(nextTrans.entityID);
