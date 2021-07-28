@@ -15,12 +15,12 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.checks.combat;
 
+import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachMovementData;
 import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
-import ac.grim.grimac.utils.nmsImplementations.Ray;
-import ac.grim.grimac.utils.nmsImplementations.RayTrace;
+import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.Bukkit;
@@ -57,24 +57,29 @@ public class Reach {
         while (attackQueue != null) {
             PlayerReachEntity reachEntity = entityMap.get((int) attackQueue);
 
-            Vector attackerDirection = RayTrace.getDirection(player, xRot, yRot);
-            Vector direction = new Vector(attackerDirection.getX(), attackerDirection.getY(), attackerDirection.getZ());
+            Vector eyePos = new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + (player.packetStateData.isPacketSneaking ? 1.54 : 1.62), player.packetStateData.packetPlayerZ);
 
-            Ray attackerRay = new Ray(new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + 1.62, player.packetStateData.packetPlayerZ), direction);
+            Vector attackerDirection = ReachUtils.getLook(player, xRot, yRot);
+            Vector endReachPos = eyePos.clone().add(new Vector(attackerDirection.getX() * 6, attackerDirection.getY() * 6, attackerDirection.getZ() * 6));
 
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes().copy();
-            Vector intersection = targetBox.copy().expand(0.1).intersectsRay(attackerRay, 0, Float.MAX_VALUE);
+            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes().copy().expand(0.1);
+
+            Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
 
             Bukkit.broadcastMessage(ChatColor.AQUA + "Checked x pos " + (targetBox.maxX + targetBox.minX) / 2 + " With size " + (targetBox.maxX - targetBox.minX));
             if (reachEntity.oldPacketLocation != null)
-                Bukkit.broadcastMessage(ChatColor.AQUA + "Old position is " + (reachEntity.oldPacketLocation.targetLocation.maxX + reachEntity.oldPacketLocation.targetLocation.minX) / 2);
-            Bukkit.broadcastMessage(ChatColor.AQUA + "New position is " + (reachEntity.newPacketLocation.targetLocation.maxX + reachEntity.newPacketLocation.targetLocation.minX) / 2);
+                GrimAC.staticGetLogger().info(ChatColor.AQUA + "Old position is " + (reachEntity.oldPacketLocation.targetLocation.maxX + reachEntity.oldPacketLocation.targetLocation.minX) / 2);
+            GrimAC.staticGetLogger().info(ChatColor.AQUA + "New position is " + (reachEntity.newPacketLocation.targetLocation.maxX + reachEntity.newPacketLocation.targetLocation.minX) / 2);
 
+            GrimAC.staticGetLogger().info(ChatColor.AQUA + "Checking entity " + reachEntity);
 
-            if (intersection == null) {
-                Bukkit.broadcastMessage(ChatColor.RED + "Player failed hitbox check!");
+            if (ReachUtils.isVecInside(targetBox, eyePos)) {
+                Bukkit.broadcastMessage(ChatColor.GREEN + "Intercepted! (Player inside other entity!)");
+            } else if (intercept == null) {
+                Bukkit.broadcastMessage(ChatColor.RED + "Player missed hitbox!");
             } else {
-                double reach = new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + 1.62, player.packetStateData.packetPlayerZ).distance(intersection);
+                double reach = eyePos.distance(intercept);
+
                 if (!player.packetStateData.didLastMovementIncludePosition && reach < 3.03) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected (0.03)!  Reach was " + reach);
                 } else if (reach < 3) {
