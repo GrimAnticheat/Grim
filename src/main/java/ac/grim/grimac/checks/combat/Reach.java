@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachMovementData;
 import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.Ray;
 import ac.grim.grimac.utils.nmsImplementations.RayTrace;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -32,11 +31,9 @@ public class Reach {
     }
 
     public void checkReach(int entityID) {
-        Bukkit.broadcastMessage("Packet last trans before attack " + player.packetStateData.packetLastTransactionReceived.get());
-        playerAttackQueue.add(entityID);
-
         if (desyncTrans.contains(player.packetStateData.packetLastTransactionReceived.get()))
-            Bukkit.broadcastMessage(ChatColor.RED + "A DESYNC HAS OCCURED!  PANIC");
+            Bukkit.broadcastMessage(ChatColor.GOLD + "Desync detected!");
+        playerAttackQueue.add(entityID);
     }
 
     public void handleMovement(float xRot, float yRot) {
@@ -49,15 +46,16 @@ public class Reach {
 
             Ray attackerRay = new Ray(new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + 1.62, player.packetStateData.packetPlayerZ), direction);
 
-            attackerRay.highlight(player, 3, 0.01);
+            //attackerRay.highlight(player, 3, 0.1);
 
-            Vector intersection = reachEntity.currentLocation.copy().expand(0.1).intersectsRay(attackerRay, 0, Float.MAX_VALUE);
+            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes().copy();
+            Vector intersection = targetBox.copy().expand(0.1).intersectsRay(attackerRay, 0, Float.MAX_VALUE);
 
-            Bukkit.broadcastMessage(ChatColor.AQUA + "Checked hitbox size " + (reachEntity.currentLocation.maxY - reachEntity.currentLocation.minY));
+            /*Bukkit.broadcastMessage(ChatColor.AQUA + "Checked x pos " + (targetBox.maxX + targetBox.minX) / 2 + " With size " + (targetBox.maxX - targetBox.minX));
+            if (reachEntity.oldPacketLocation != null)
+                Bukkit.broadcastMessage(ChatColor.AQUA + "Old position is " + (reachEntity.oldPacketLocation.targetLocation.maxX + reachEntity.oldPacketLocation.targetLocation.minX) / 2);
+            Bukkit.broadcastMessage(ChatColor.AQUA + "New position is " + (reachEntity.newPacketLocation.targetLocation.maxX + reachEntity.newPacketLocation.targetLocation.minX) / 2);*/
 
-            if (Math.abs((reachEntity.currentLocation.maxX - reachEntity.currentLocation.minX) - 0.6) > 0.01) {
-                Bukkit.broadcastMessage(ChatColor.GOLD + "We recovered from a desync!");
-            }
 
             if (intersection == null) {
                 Bukkit.broadcastMessage(ChatColor.RED + "Player failed hitbox check!");
@@ -73,21 +71,15 @@ public class Reach {
             attackQueue = playerAttackQueue.poll();
         }
 
-        // Move the current bounding box a third towards the target bounding box.
         for (PlayerReachEntity entity : entityMap.values()) {
-            double minX = entity.currentLocation.minX + ((entity.targetLocation.minX - entity.currentLocation.minX) / 3);
-            double maxX = entity.currentLocation.maxX + ((entity.targetLocation.maxX - entity.currentLocation.maxX) / 3);
-            double minY = entity.currentLocation.minY + ((entity.targetLocation.minY - entity.currentLocation.minY) / 3);
-            double maxY = entity.currentLocation.maxY + ((entity.targetLocation.maxY - entity.currentLocation.maxY) / 3);
-            double minZ = entity.currentLocation.minZ + ((entity.targetLocation.minZ - entity.currentLocation.minZ) / 3);
-            double maxZ = entity.currentLocation.maxZ + ((entity.targetLocation.maxZ - entity.currentLocation.maxZ) / 3);
-
-            entity.currentLocation = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+            entity.onMovement();
         }
     }
 
     public void handleTransaction(int transactionID) {
         ReachMovementData nextTrans = transactionReachQueue.peek();
+
+        //GrimAC.staticGetLogger().info("Got packet " + transactionID);
 
         if (nextTrans != null) {
             if (transactionID == nextTrans.transactionID) {
@@ -96,36 +88,16 @@ public class Reach {
                 PlayerReachEntity entity = entityMap.get(nextTrans.entityID);
                 entity.relativeMoveLocation = nextTrans.newPos;
 
-                double nextX = entity.relativeMoveLocation.getX();
-                double nextY = entity.relativeMoveLocation.getY();
-                double nextZ = entity.relativeMoveLocation.getZ();
+                //GrimAC.staticGetLogger().info("Handling first bread with pos " + entity.relativeMoveLocation);
 
-                SimpleCollisionBox newLoc = GetBoundingBox.getBoundingBoxFromPosAndSize(nextX, nextY, nextZ, 0.6, 1.8);
-                double minX = Math.min(entity.targetLocation.minX, newLoc.minX);
-                double maxX = Math.max(entity.targetLocation.maxX, newLoc.maxX);
-                double minY = Math.min(entity.targetLocation.minY, newLoc.minY);
-                double maxY = Math.max(entity.targetLocation.maxY, newLoc.maxY);
-                double minZ = Math.min(entity.targetLocation.minZ, newLoc.minZ);
-                double maxZ = Math.max(entity.targetLocation.maxZ, newLoc.maxZ);
-
-                entity.targetLocation = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
-
-                if (player.bukkitPlayer.getName().equalsIgnoreCase("DefineOutside"))
-                    Bukkit.broadcastMessage(ChatColor.AQUA + "Set uncertain hitbox size " + (entity.targetLocation.maxY - entity.targetLocation.minY) + " " + System.currentTimeMillis() + " " + player.packetStateData.packetLastTransactionReceived.get());
+                entity.onFirstTransaction(entity.relativeMoveLocation.getX(), entity.relativeMoveLocation.getY(), entity.relativeMoveLocation.getZ());
 
             } else if (transactionID - 1 == nextTrans.transactionID) {
                 PlayerReachEntity entity = entityMap.get(nextTrans.entityID);
 
-                // We have already added the move last transaction
-                double nextX = entity.relativeMoveLocation.getX();
-                double nextY = entity.relativeMoveLocation.getY();
-                double nextZ = entity.relativeMoveLocation.getZ();
+                //GrimAC.staticGetLogger().info("Handling second bread with pos " + entity.relativeMoveLocation);
 
-                entity.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(nextX, nextY, nextZ, 0.6, 1.8);
-
-                if (player.bukkitPlayer.getName().equalsIgnoreCase("DefineOutside"))
-                    Bukkit.broadcastMessage(ChatColor.GOLD + "Set certain hitbox size " + (entity.targetLocation.maxY - entity.targetLocation.minY) + " " + System.currentTimeMillis() + " " + player.packetStateData.packetLastTransactionReceived.get());
-
+                entity.onSecondTransaction();
                 transactionReachQueue.poll();
             }
         }
@@ -148,9 +120,6 @@ public class Reach {
             int lastTrans = player.lastTransactionSent.get();
 
             desyncTrans.add(lastTrans);
-
-            if (player.bukkitPlayer.getName().equalsIgnoreCase("DefineOutside"))
-                Bukkit.broadcastMessage("Trans before " + lastTrans);
 
             transactionReachQueue.add(new ReachMovementData(lastTrans, entityId, reachEntity.serverPos));
         }
