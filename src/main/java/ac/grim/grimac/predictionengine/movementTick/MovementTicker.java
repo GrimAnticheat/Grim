@@ -11,7 +11,6 @@ import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -53,8 +52,8 @@ public class MovementTicker {
                 && player.isGliding == player.wasGliding && player.uncertaintyHandler.lastTeleportTicks < -2 && Collections.max(player.uncertaintyHandler.pistonPushing) == 0
                 && (!player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree || !player.uncertaintyHandler.wasAffectedByStuckSpeed())) {
 
-            if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
-                Bukkit.broadcastMessage("Desync " + player.onGround);
+            /*if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
+                Bukkit.broadcastMessage("Desync " + player.onGround);*/
 
             player.onGround = player.isActuallyOnGround;
         }

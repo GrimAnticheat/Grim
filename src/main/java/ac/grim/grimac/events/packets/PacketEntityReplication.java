@@ -92,9 +92,9 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
 
             if (player.reach.entityMap.containsKey(move.getEntityId())) {
-                player.sendAndFlushTransactionOrPingPong();
+                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
                 player.reach.handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
-                event.setPostTask(() -> player.sendTransactionOrPingPong(player.getNextTransactionID(1), true));
+                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             }
         }
 
@@ -110,10 +110,10 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                     position.getX(), position.getY(), position.getZ(), player.lastTransactionSent.get(), false));
 
             if (player.reach.entityMap.containsKey(teleport.getEntityId())) {
-                player.sendAndFlushTransactionOrPingPong();
+                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
                 player.reach.handleMoveEntity(teleport.getEntityId(), teleport.getPosition().getX(),
                         teleport.getPosition().getY(), teleport.getPosition().getZ(), false);
-                event.setPostTask(() -> player.sendTransactionOrPingPong(player.getNextTransactionID(1), true));
+                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             }
         }
 
