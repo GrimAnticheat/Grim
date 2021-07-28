@@ -160,6 +160,7 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
+    private AtomicInteger transactionIDCounter = new AtomicInteger(0);
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
     // For timer checks and fireworks
@@ -336,6 +337,8 @@ public class GrimPlayer {
     // Shouldn't error, but be on the safe side as this is networking stuff
     public void sendTransactionOrPingPong(short transactionID, boolean flush) {
         try {
+            addTransactionSend(transactionID);
+
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
                 PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutPing(transactionID));
             } else {
@@ -344,8 +347,6 @@ public class GrimPlayer {
 
             if (flush)
                 PacketEvents.get().getPlayerUtils().flushPackets(bukkitPlayer);
-
-            addTransactionSend(transactionID);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
@@ -356,7 +357,7 @@ public class GrimPlayer {
         // Short range is -32768 to 32767
         // We return a range of -32767 to 0
         // Allowing a range of -32768 to 0 for velocity + explosions
-        return (short) (-1 * (lastTransactionSent.getAndAdd(add) & 0x7FFF));
+        return (short) (-1 * (transactionIDCounter.getAndAdd(add) & 0x7FFF));
     }
 
     public void addTransactionSend(short id) {

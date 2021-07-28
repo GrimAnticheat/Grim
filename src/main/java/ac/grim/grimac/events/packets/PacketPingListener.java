@@ -59,7 +59,7 @@ public class PacketPingListener extends PacketListenerAbstract {
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
 
-        if (packetID == PacketType.Play.Client.TRANSACTION) {
+        if (packetID == PacketType.Play.Server.TRANSACTION) {
             WrappedPacketInTransaction transaction = new WrappedPacketInTransaction(event.getNMSPacket());
             short id = transaction.getActionNumber();
 
@@ -70,11 +70,12 @@ public class PacketPingListener extends PacketListenerAbstract {
 
                 if (player.didWeSendThatTrans.remove((Short) id)) {
                     player.transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
+                    player.lastTransactionSent.getAndIncrement();
                 }
             }
         }
 
-        if (packetID == PacketType.Play.Client.PONG) {
+        if (packetID == PacketType.Play.Server.PING) {
             WrappedPacketInPong pong = new WrappedPacketInPong(event.getNMSPacket());
 
             int id = pong.getId();
@@ -86,6 +87,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 Short shortID = ((short) id);
                 if (player.didWeSendThatTrans.remove(shortID)) {
                     player.transactionsSent.add(new Pair<>(shortID, System.currentTimeMillis()));
+                    player.lastTransactionSent.getAndIncrement();
                 }
             }
         }
