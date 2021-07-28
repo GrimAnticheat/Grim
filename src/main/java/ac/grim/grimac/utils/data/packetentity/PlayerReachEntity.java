@@ -49,11 +49,11 @@ public class PlayerReachEntity {
     // If the old and new packet location are split, we need to combine bounding boxes
     // TODO: Let 1.9 uncertainty fuck this all up - Thanks Mojang!
     public void onMovement() {
-        newPacketLocation.tickMovement();
+        newPacketLocation.tickMovement(oldPacketLocation == null, false);
 
         // Handle uncertainty of second transaction spanning over multiple ticks
         if (oldPacketLocation != null) {
-            oldPacketLocation.tickMovement();
+            oldPacketLocation.tickMovement(true, false);
             newPacketLocation.updatePossibleStartingLocation(oldPacketLocation.getPossibleLocationCombined());
         }
     }

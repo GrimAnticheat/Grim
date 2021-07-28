@@ -79,8 +79,12 @@ public class ReachInterpolationData {
         this.startingLocation = combineCollisionBox(startingLocation, possibleLocationCombined);
     }
 
-    public void tickMovement() {
-        this.interpolationStepsLowBound = Math.min(interpolationStepsLowBound + 1, 3);
-        this.interpolationStepsHighBound = Math.min(interpolationStepsHighBound + 1, 3);
+    public void tickMovement(boolean incrementLowBound, boolean setHighBoundToMax) {
+        if (incrementLowBound)
+            this.interpolationStepsLowBound = Math.min(interpolationStepsLowBound + 1, 3);
+        if (setHighBoundToMax)
+            this.interpolationStepsHighBound = 3;
+        else
+            this.interpolationStepsHighBound = Math.min(interpolationStepsHighBound + 1, 3);
     }
 }
