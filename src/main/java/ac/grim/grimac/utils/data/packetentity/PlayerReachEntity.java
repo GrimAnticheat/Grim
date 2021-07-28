@@ -8,13 +8,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 public class PlayerReachEntity {
-    public Vector3d relativeMoveLocation;
     public Vector3d serverPos;
     public ReachInterpolationData oldPacketLocation;
     public ReachInterpolationData newPacketLocation;
 
     public PlayerReachEntity(double x, double y, double z) {
-        relativeMoveLocation = new Vector3d(x, y, z);
         serverPos = new Vector3d(x, y, z);
         this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8),
                 serverPos.getX(), serverPos.getY(), serverPos.getZ());
