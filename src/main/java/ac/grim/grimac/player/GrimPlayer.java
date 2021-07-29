@@ -292,23 +292,33 @@ public class GrimPlayer {
         if (packetTracker != null)
             packetTracker.setIntervalPackets(0);
 
-        Pair<Short, Long> data;
-        do {
-            data = transactionsSent.poll();
-            if (data != null) {
-                int incrementingID = packetStateData.packetLastTransactionReceived.incrementAndGet();
-                transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
-                playerClockAtLeast = System.currentTimeMillis() - transactionPing;
-
-                // Must be here as this is required to be real time
-                compensatedEating.handleTransactionPacket(incrementingID);
-
-                knockbackHandler.handleTransactionPacket(data.getFirst());
-                explosionHandler.handleTransactionPacket(data.getFirst());
-
-                reach.handleTransaction(incrementingID);
+        Pair<Short, Long> data = null;
+        boolean hasID = false;
+        for (Pair<Short, Long> iterator : transactionsSent) {
+            if (iterator.getFirst() == id) {
+                hasID = true;
+                break;
             }
-        } while (data != null && data.getFirst() != id);
+        }
+
+        if (hasID) {
+            do {
+                data = transactionsSent.poll();
+                if (data != null) {
+                    int incrementingID = packetStateData.packetLastTransactionReceived.incrementAndGet();
+                    transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
+                    playerClockAtLeast = System.currentTimeMillis() - transactionPing;
+
+                    // Must be here as this is required to be real time
+                    compensatedEating.handleTransactionPacket(incrementingID);
+
+                    knockbackHandler.handleTransactionPacket(data.getFirst());
+                    explosionHandler.handleTransactionPacket(data.getFirst());
+
+                    reach.handleTransaction(incrementingID);
+                }
+            } while (data != null && data.getFirst() != id);
+        }
 
         // Were we the ones who sent the packet?
         return data != null && data.getFirst() == id;
