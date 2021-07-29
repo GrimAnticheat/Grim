@@ -128,6 +128,15 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerYRot = data.yRot;
         data.player.packetStateData.packetPlayerOnGround = data.onGround;
 
+        // Filter out reminder packet for performance and consistency between client versions
+        // Filter out 1.17 sending multiple identical move packets because Mojang makes great decisions!
+        if (!data.player.inVehicle && data.player.packetStateData.packetPlayerX == data.playerX &&
+                data.player.packetStateData.packetPlayerY == data.playerY &&
+                data.player.packetStateData.packetPlayerZ == data.playerZ
+                && !data.isJustTeleported) {
+            return false;
+        }
+
         data.player.packetStateData.packetPlayerX = data.playerX;
         data.player.packetStateData.packetPlayerY = data.playerY;
         data.player.packetStateData.packetPlayerZ = data.playerZ;
