@@ -327,6 +327,10 @@ public class MovementCheckRunner {
             player.lastZ = player.z;
         }
 
+        // ViaVersion messes up flight speed for 1.7 players
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.isFlying)
+            player.isSprinting = true;
+
         // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
         player.speed += player.isSprinting ? player.speed * 0.3f : 0;
         player.jumpAmplifier = data.jumpAmplifier;
@@ -354,8 +358,7 @@ public class MovementCheckRunner {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
-        } else if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.isFlying ||
-                (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)) {
+        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
             // ViaVersion plays with 1.7 player flying speed, don't bother checking them

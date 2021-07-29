@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -224,11 +223,6 @@ public class PredictionEngine {
         if (player.isGliding != player.wasGliding)
             additionHorizontal += 0.05;
 
-        // ViaVersion playing with flight speed causes a bug on 1.7 clients while exiting flying
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.wasFlying)
-            additionHorizontal += 0.05;
-
-
         double uncertainPiston = 0;
         for (int x = 0; x < player.uncertaintyHandler.pistonPushing.size(); x++) {
             double value = player.uncertaintyHandler.pistonPushing.get(x);
@@ -280,10 +274,6 @@ public class PredictionEngine {
             maxVector.setY(0);
         }
 
-        // ViaVersion playing with flight speed causes a bug on 1.7 clients while exiting flying
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.wasFlying)
-            minVector.setY(0);
-
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
@@ -313,7 +303,11 @@ public class PredictionEngine {
         // If a player in this glitched state lets go of moving forward, then become un-glitched
         if (player.isSprinting) {
             player.isSprinting = false;
-            speed -= speed * 0.3F;
+            // Flying with sprinting increases speed by 2x
+            if (player.isFlying)
+                speed -= speed / 2;
+            else
+                speed -= speed * 0.3F;
             loopVectors(player, possibleVectors, speed, returnVectors);
             player.isSprinting = true;
         }
