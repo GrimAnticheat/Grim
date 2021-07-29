@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -52,6 +53,13 @@ public class PacketPingListener extends PacketListenerAbstract {
                     event.setCancelled(true);
                 }
             }
+        }
+
+        // Prevent players from OOM'ing the server by running through queue's on keepalive
+        if (packetID == PacketType.Play.Client.KEEP_ALIVE) {
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+            MovementCheckRunner.runTransactionQueue(player);
         }
     }
 

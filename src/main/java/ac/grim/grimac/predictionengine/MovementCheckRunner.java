@@ -128,37 +128,6 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerYRot = data.yRot;
         data.player.packetStateData.packetPlayerOnGround = data.onGround;
 
-        // Filter out reminder packet for performance and consistency
-        // Filter out 1.17 sending multiple identical move packets because Mojang makes great decisions!
-        if (!data.player.inVehicle && data.player.packetStateData.packetPlayerX == data.playerX &&
-                data.player.packetStateData.packetPlayerY == data.playerY &&
-                data.player.packetStateData.packetPlayerZ == data.playerZ
-                && !data.isJustTeleported) {
-            // This takes < 0.01 ms to run world and entity updates
-            // It stops a memory leak from all the lag compensation queue'ing and never ticking
-            // Didn't really need to write this async but it's nice to do so
-            CompletableFuture.runAsync(() -> {
-                // It is unsafe to modify the transaction world async if another check is running
-                // Adding 1 to the tasks blocks another check from running
-                //
-                // If there are no tasks queue'd, it is safe to modify these variables
-                if (data.player.tasksNotFinished.compareAndSet(0, 1)) {
-                    data.player.compensatedWorld.tickUpdates(data.lastTransaction);
-                    data.player.compensatedEntities.tickUpdates(data.lastTransaction);
-                    data.player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
-                    data.player.compensatedFireworks.getMaxFireworksAppliedPossible();
-                    data.player.compensatedRiptide.getCanRiptide();
-                    data.player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction);
-                    data.player.compensatedPotions.handleTransactionPacket(data.lastTransaction);
-
-                    // As we incremented the tasks, we must now execute the next task, if there is one
-                    executor.queueNext(data.player);
-                }
-            }, executor);
-            return false;
-        }
-
-
         data.player.packetStateData.packetPlayerX = data.playerX;
         data.player.packetStateData.packetPlayerY = data.playerY;
         data.player.packetStateData.packetPlayerZ = data.playerZ;
@@ -170,6 +139,32 @@ public class MovementCheckRunner {
         }
 
         return true;
+    }
+
+    public static void runTransactionQueue(GrimPlayer player) {
+        // This takes < 0.01 ms to run world and entity updates
+        // It stops a memory leak from all the lag compensation queue'ing and never ticking
+        CompletableFuture.runAsync(() -> {
+            // It is unsafe to modify the transaction world async if another check is running
+            // Adding 1 to the tasks blocks another check from running
+            //
+            // If there are no tasks queue'd, it is safe to modify these variables
+            //
+            // Additionally, we don't want to, and it isn't needed, to update the world
+            if (player.tasksNotFinished.compareAndSet(0, 1)) {
+                int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
+                player.compensatedWorld.tickUpdates(lastTransaction);
+                player.compensatedEntities.tickUpdates(lastTransaction);
+                player.compensatedFlying.canFlyLagCompensated(lastTransaction);
+                player.compensatedFireworks.getMaxFireworksAppliedPossible();
+                player.compensatedRiptide.getCanRiptide();
+                player.compensatedElytra.isGlidingLagCompensated(lastTransaction);
+                player.compensatedPotions.handleTransactionPacket(lastTransaction);
+
+                // As we incremented the tasks, we must now execute the next task, if there is one
+                executor.queueNext(player);
+            }
+        }, executor);
     }
 
     public static void check(PredictionData data) {
