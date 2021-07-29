@@ -734,31 +734,7 @@ public enum CollisionData {
     PICKLE((player, version, data, x, y, z) -> {
         SeaPickle pickle = (SeaPickle) ((WrappedFlatBlock) data).getBlockData();
 
-        // ViaVersion replacement block (West facing cocoa beans)
-        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
-            switch (pickle.getPickles()) {
-                case 1:
-                case 2:
-                    return new HexCollisionBox(11.0D, 7.0D, 6.0D, 15.0D, 12.0D, 10.0D);
-                case 3:
-                    return new HexCollisionBox(9.0D, 5.0D, 5.0D, 15.0D, 12.0D, 11.0D);
-                case 4:
-                    return new HexCollisionBox(7.0D, 3.0D, 4.0D, 15.0D, 12.0D, 12.0D);
-            }
-        }
-
-        switch (pickle.getPickles()) {
-            case 1:
-                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 6.0D, 10.0D);
-            case 2:
-                return new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 6.0D, 13.0D);
-            case 3:
-                return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 6.0D, 14.0D);
-            case 4:
-                return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 7.0D, 14.0D);
-        }
-        return NoCollisionBox.INSTANCE;
-
+        return getPicklesBox(version, pickle.getPickles());
     }, XMaterial.SEA_PICKLE.parseMaterial()),
 
     TURTLEEGG((player, version, data, x, y, z) -> {
@@ -906,17 +882,21 @@ public enum CollisionData {
     CANDLE((player, version, data, x, y, z) -> {
         Candle candle = (Candle) ((WrappedFlatBlock) data).getBlockData();
 
-        switch (candle.getCandles()) {
-            case 1:
-                return new HexCollisionBox(7.0, 0.0, 7.0, 9.0, 6.0, 9.0);
-            case 2:
-                return new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 6.0, 9.0);
-            case 3:
-                return new HexCollisionBox(5.0, 0.0, 6.0, 10.0, 6.0, 11.0);
-            default:
-            case 4:
-                return new HexCollisionBox(5.0, 0.0, 5.0, 11.0, 6.0, 10.0);
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_17)) {
+            switch (candle.getCandles()) {
+                case 1:
+                    return new HexCollisionBox(7.0, 0.0, 7.0, 9.0, 6.0, 9.0);
+                case 2:
+                    return new HexCollisionBox(5.0, 0.0, 6.0, 11.0, 6.0, 9.0);
+                case 3:
+                    return new HexCollisionBox(5.0, 0.0, 6.0, 10.0, 6.0, 11.0);
+                default:
+                case 4:
+                    return new HexCollisionBox(5.0, 0.0, 5.0, 11.0, 6.0, 10.0);
+            }
         }
+
+        return getPicklesBox(version, candle.getCandles());
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("CANDLE")).toArray(Material[]::new)),
 
     CANDLE_CAKE((player, version, data, x, y, z) -> {
@@ -1072,6 +1052,33 @@ public enum CollisionData {
             case WEST:
                 return new HexCollisionBox(16 - param_0, param_1, param_1, 16.0, 16 - param_1, 16 - param_1);
         }
+    }
+
+    private static CollisionBox getPicklesBox(ClientVersion version, int pickles) {
+        // ViaVersion replacement block (West facing cocoa beans)
+        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
+            switch (pickles) {
+                case 1:
+                case 2:
+                    return new HexCollisionBox(11.0D, 7.0D, 6.0D, 15.0D, 12.0D, 10.0D);
+                case 3:
+                    return new HexCollisionBox(9.0D, 5.0D, 5.0D, 15.0D, 12.0D, 11.0D);
+                case 4:
+                    return new HexCollisionBox(7.0D, 3.0D, 4.0D, 15.0D, 12.0D, 12.0D);
+            }
+        }
+
+        switch (pickles) {
+            case 1:
+                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 6.0D, 10.0D);
+            case 2:
+                return new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 6.0D, 13.0D);
+            case 3:
+                return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 6.0D, 14.0D);
+            case 4:
+                return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 7.0D, 14.0D);
+        }
+        return NoCollisionBox.INSTANCE;
     }
 
     public static CollisionData getData(Material material) {
