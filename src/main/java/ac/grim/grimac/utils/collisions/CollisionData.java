@@ -160,7 +160,6 @@ public enum CollisionData {
         }
     }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
 
-
     WALL(new DynamicWall(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL")
             && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER")
             && !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
@@ -251,59 +250,10 @@ public enum CollisionData {
         return new SimpleCollisionBox(eatenPosition, 0, 0.0625, 1 - 0.0625, height, 1 - 0.0625, false);
     }, XMaterial.CAKE.parseMaterial()),
 
-
     COCOA_BEANS((player, version, data, x, y, z) -> {
         WrappedCocoaBeans beans = (WrappedCocoaBeans) data;
-        int age = beans.getAge();
-
-        // From 1.9 - 1.10, the large cocoa block is the same as the medium one
-        // https://bugs.mojang.com/browse/MC-94274
-        if (version.isNewerThanOrEquals(ClientVersion.v_1_9_1) && version.isOlderThan(ClientVersion.v_1_11))
-            age = Math.min(age, 1);
-
-        switch (beans.getDirection()) {
-            case EAST:
-                switch (age) {
-                    case 0:
-                        return new HexCollisionBox(11.0D, 7.0D, 6.0D, 15.0D, 12.0D, 10.0D);
-                    case 1:
-                        return new HexCollisionBox(9.0D, 5.0D, 5.0D, 15.0D, 12.0D, 11.0D);
-                    case 2:
-                        return new HexCollisionBox(7.0D, 3.0D, 4.0D, 15.0D, 12.0D, 12.0D);
-                }
-            case WEST:
-                switch (age) {
-                    case 0:
-                        return new HexCollisionBox(1.0D, 7.0D, 6.0D, 5.0D, 12.0D, 10.0D);
-                    case 1:
-                        return new HexCollisionBox(1.0D, 5.0D, 5.0D, 7.0D, 12.0D, 11.0D);
-                    case 2:
-                        return new HexCollisionBox(1.0D, 3.0D, 4.0D, 9.0D, 12.0D, 12.0D);
-                }
-            case NORTH:
-                switch (age) {
-                    case 0:
-                        return new HexCollisionBox(6.0D, 7.0D, 1.0D, 10.0D, 12.0D, 5.0D);
-                    case 1:
-                        return new HexCollisionBox(5.0D, 5.0D, 1.0D, 11.0D, 12.0D, 7.0D);
-                    case 2:
-                        return new HexCollisionBox(4.0D, 3.0D, 1.0D, 12.0D, 12.0D, 9.0D);
-                }
-            case SOUTH:
-                switch (age) {
-                    case 0:
-                        return new HexCollisionBox(6.0D, 7.0D, 11.0D, 10.0D, 12.0D, 15.0D);
-                    case 1:
-                        return new HexCollisionBox(5.0D, 5.0D, 9.0D, 11.0D, 12.0D, 15.0D);
-                    case 2:
-                        return new HexCollisionBox(4.0D, 3.0D, 7.0D, 12.0D, 12.0D, 15.0D);
-                }
-        }
-
-        return NoCollisionBox.INSTANCE;
-
+        return getCocoa(version, beans.getAge(), beans.getDirection());
     }, XMaterial.COCOA.parseMaterial()),
-
 
     STONE_CUTTER((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
@@ -577,14 +527,12 @@ public enum CollisionData {
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
             .toArray(Material[]::new)),
 
-
     FENCE(new DynamicFence(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE") && !mat.name().equalsIgnoreCase("IRON_FENCE"))
             .toArray(Material[]::new)),
 
 
     PANE(new DynamicPane(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().equals("IRON_BARS") || mat.name().equalsIgnoreCase("IRON_FENCE"))
             .toArray(Material[]::new)),
-
 
     SNOW((player, version, data, x, y, z) -> {
         WrappedSnow snow = (WrappedSnow) data;
@@ -595,23 +543,18 @@ public enum CollisionData {
         return new SimpleCollisionBox(0, 0, 0, 1, snow.getLayers() * 0.125, 1);
     }, XMaterial.SNOW.parseMaterial()),
 
-
     STAIR(new DynamicStair(),
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("STAIRS"))
                     .toArray(Material[]::new)),
 
-
     CHEST(new DynamicChest(), XMaterial.CHEST.parseMaterial(), XMaterial.TRAPPED_CHEST.parseMaterial()),
-
 
     ENDER_CHEST(new SimpleCollisionBox(0.0625F, 0.0F, 0.0625F,
             0.9375F, 0.875F, 0.9375F, false),
             XMaterial.ENDER_CHEST.parseMaterial()),
 
-
     ENCHANTING_TABLE(new SimpleCollisionBox(0, 0, 0, 1, 1 - 0.25, 1, false),
             XMaterial.ENCHANTING_TABLE.parseMaterial()),
-
 
     FRAME((player, version, data, x, y, z) -> {
         WrappedFrame frame = (WrappedFrame) data;
@@ -731,15 +674,7 @@ public enum CollisionData {
 
         // ViaVersion replacement block (West facing cocoa beans)
         if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
-            switch (egg.getEggs()) {
-                case 1:
-                case 2:
-                    return new HexCollisionBox(1.0D, 7.0D, 6.0D, 5.0D, 12.0D, 10.0D);
-                case 3:
-                    return new HexCollisionBox(1.0D, 5.0D, 5.0D, 7.0D, 12.0D, 11.0D);
-                case 4:
-                    return new HexCollisionBox(1.0D, 3.0D, 4.0D, 9.0D, 12.0D, 12.0D);
-            }
+            return getCocoa(version, egg.getEggs(), BlockFace.WEST);
         }
 
         if (egg.getEggs() == 1) {
@@ -759,7 +694,6 @@ public enum CollisionData {
 
     POT(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 6.0D, 11.0D),
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("POTTED") || mat.name().contains("FLOWER_POT")).toArray(Material[]::new)),
-
 
     WALL_SIGN((player, version, data, x, y, z) -> {
         WrappedDirectional directional = (WrappedDirectional) data;
@@ -1049,15 +983,7 @@ public enum CollisionData {
     private static CollisionBox getPicklesBox(ClientVersion version, int pickles) {
         // ViaVersion replacement block (West facing cocoa beans)
         if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
-            switch (pickles) {
-                case 1:
-                case 2:
-                    return new HexCollisionBox(11.0D, 7.0D, 6.0D, 15.0D, 12.0D, 10.0D);
-                case 3:
-                    return new HexCollisionBox(9.0D, 5.0D, 5.0D, 15.0D, 12.0D, 11.0D);
-                case 4:
-                    return new HexCollisionBox(7.0D, 3.0D, 4.0D, 15.0D, 12.0D, 12.0D);
-            }
+            return getCocoa(version, pickles, BlockFace.WEST);
         }
 
         switch (pickles) {
@@ -1086,6 +1012,53 @@ public enum CollisionData {
             case WEST:
                 return new HexCollisionBox(0.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D);
         }
+    }
+
+    private static CollisionBox getCocoa(ClientVersion version, int age, BlockFace direction) {
+        // From 1.9 - 1.10, the large cocoa block is the same as the medium one
+        // https://bugs.mojang.com/browse/MC-94274
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_9_1) && version.isOlderThan(ClientVersion.v_1_11))
+            age = Math.min(age, 1);
+
+        switch (direction) {
+            case EAST:
+                switch (age) {
+                    case 0:
+                        return new HexCollisionBox(11.0D, 7.0D, 6.0D, 15.0D, 12.0D, 10.0D);
+                    case 1:
+                        return new HexCollisionBox(9.0D, 5.0D, 5.0D, 15.0D, 12.0D, 11.0D);
+                    case 2:
+                        return new HexCollisionBox(7.0D, 3.0D, 4.0D, 15.0D, 12.0D, 12.0D);
+                }
+            case WEST:
+                switch (age) {
+                    case 0:
+                        return new HexCollisionBox(1.0D, 7.0D, 6.0D, 5.0D, 12.0D, 10.0D);
+                    case 1:
+                        return new HexCollisionBox(1.0D, 5.0D, 5.0D, 7.0D, 12.0D, 11.0D);
+                    case 2:
+                        return new HexCollisionBox(1.0D, 3.0D, 4.0D, 9.0D, 12.0D, 12.0D);
+                }
+            case NORTH:
+                switch (age) {
+                    case 0:
+                        return new HexCollisionBox(6.0D, 7.0D, 1.0D, 10.0D, 12.0D, 5.0D);
+                    case 1:
+                        return new HexCollisionBox(5.0D, 5.0D, 1.0D, 11.0D, 12.0D, 7.0D);
+                    case 2:
+                        return new HexCollisionBox(4.0D, 3.0D, 1.0D, 12.0D, 12.0D, 9.0D);
+                }
+            case SOUTH:
+                switch (age) {
+                    case 0:
+                        return new HexCollisionBox(6.0D, 7.0D, 11.0D, 10.0D, 12.0D, 15.0D);
+                    case 1:
+                        return new HexCollisionBox(5.0D, 5.0D, 9.0D, 11.0D, 12.0D, 15.0D);
+                    case 2:
+                        return new HexCollisionBox(4.0D, 3.0D, 7.0D, 12.0D, 12.0D, 15.0D);
+                }
+        }
+        return NoCollisionBox.INSTANCE;
     }
 
     public static CollisionData getData(Material material) {
