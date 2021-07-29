@@ -101,10 +101,10 @@ public class BlockProperties {
     }
 
     public static Material getOnBlock(GrimPlayer player, double x, double y, double z) {
-        Material block1 = player.compensatedWorld.getBukkitMaterialAt(GrimMathHelper.floor(x), (int) Math.floor(GrimMathHelper.floor(y) - (double) 0.2F), GrimMathHelper.floor(z));
+        Material block1 = player.compensatedWorld.getBukkitMaterialAt(GrimMathHelper.floor(x), GrimMathHelper.floor(y - 0.2F), GrimMathHelper.floor(z));
 
         if (Materials.checkFlag(block1, Materials.AIR)) {
-            Material block2 = player.compensatedWorld.getBukkitMaterialAt(GrimMathHelper.floor(x), (int) Math.floor(GrimMathHelper.floor(y) - (double) 1.2F), GrimMathHelper.floor(z));
+            Material block2 = player.compensatedWorld.getBukkitMaterialAt(GrimMathHelper.floor(x), GrimMathHelper.floor(y - 1.2F), GrimMathHelper.floor(z));
 
             if (Materials.checkFlag(block2, Materials.FENCE) || Materials.checkFlag(block2, Materials.WALL) || Materials.checkFlag(block2, Materials.GATE)) {
                 return block2;
