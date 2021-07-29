@@ -28,8 +28,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // You may not copy the check unless you are licensed under GPL
@@ -40,17 +38,13 @@ public class Reach {
     private final ConcurrentLinkedQueue<ReachMovementData> transactionReachQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
 
-    // This is a memory leak to detect a desync
-    private final List<Integer> desyncTrans = new ArrayList<>();
-
     public Reach(GrimPlayer player) {
         this.player = player;
     }
 
     public void checkReach(int entityID) {
-        if (desyncTrans.contains(player.packetStateData.packetLastTransactionReceived.get()))
-            Bukkit.broadcastMessage(ChatColor.GOLD + "Desync detected!");
-        playerAttackQueue.add(entityID);
+        if (entityMap.containsKey(entityID))
+            playerAttackQueue.add(entityID);
     }
 
     public void handleMovement(float xRot, float yRot) {
@@ -161,9 +155,11 @@ public class Reach {
 
             int lastTrans = player.lastTransactionSent.get();
 
-            desyncTrans.add(lastTrans);
-
             transactionReachQueue.add(new ReachMovementData(lastTrans, entityId, reachEntity.serverPos));
         }
+    }
+
+    public void removeEntity(int entityID) {
+        entityMap.remove(entityID);
     }
 }
