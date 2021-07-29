@@ -7,7 +7,8 @@ public enum Pose {
     SWIMMING(0.6f, 0.6f),
     SPIN_ATTACK(0.6f, 0.6f),
     CROUCHING(0.6f, 1.5f),
-    DYING(0.2f, 0.2f);
+    DYING(0.2f, 0.2f),
+    LONG_JUMPING(0.6f, 1.8f); // DUMMY (players can't have this pose)
 
     public float width;
     public float height;
