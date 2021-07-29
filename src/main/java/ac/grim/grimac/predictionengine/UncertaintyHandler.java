@@ -65,6 +65,7 @@ public class UncertaintyHandler {
     public EvictingList<Boolean> tempElytraFlightHack = new EvictingList<>(3);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
     public int lastTeleportTicks = 0;
+    public int lastFlyingTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
 
     public UncertaintyHandler(GrimPlayer player) {
@@ -107,6 +108,9 @@ public class UncertaintyHandler {
         if (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01)
             return true;
 
+        if ((lastFlyingTicks > -3) && Math.abs(predicted.vector.getY()) < 0.2 && predicted.vector.getY() != 0 && player.actualMovement.lengthSquared() < 0.2)
+            return true;
+
         return isSteppingOnIce && lastTickWasNearGroundZeroPointZeroThree && player.actualMovement.clone().setY(0).lengthSquared() < 0.01;
     }
 
@@ -132,9 +136,9 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
-        // Not worth my time to fix this because checking flying generally sucks
-        if (player.isFlying && Math.abs(data.vector.getY()) < 0.2)
-            return 0.2;
+        // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
+        if ((lastFlyingTicks > -3) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
+            return 0.225;
 
         // I don't understand this either.  0.03 in lava just really sucks.
         if (wasLastGravityUncertain && player.wasTouchingLava)
@@ -150,7 +154,7 @@ public class UncertaintyHandler {
     }
 
     public boolean controlsVerticalMovement() {
-        return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnSlime || player.isFlying || player.isGliding;
+        return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnSlime || lastFlyingTicks > -3 || player.isGliding;
     }
 
     @Override

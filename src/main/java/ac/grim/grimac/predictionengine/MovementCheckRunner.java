@@ -276,6 +276,10 @@ public class MovementCheckRunner {
         if (data.isJustTeleported)
             player.uncertaintyHandler.lastTeleportTicks = 0;
 
+        player.uncertaintyHandler.lastFlyingTicks--;
+        if (player.isFlying)
+            player.uncertaintyHandler.lastFlyingTicks = 0;
+
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
 
         player.x = data.playerX;
@@ -448,7 +452,7 @@ public class MovementCheckRunner {
 
         ChatColor color;
 
-        if (offset == 0) {
+        if (offset <= 0) {
             color = ChatColor.GRAY;
         } else if (offset < 0.0001) {
             color = ChatColor.GREEN;
