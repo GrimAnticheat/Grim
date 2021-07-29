@@ -47,16 +47,15 @@ public class PlayerReachEntity {
     }
 
     // If the old and new packet location are split, we need to combine bounding boxes
-    // TODO: Let 1.9 uncertainty fuck this all up - Thanks Mojang!
-    public void onMovement() {
+    public void onMovement(boolean setHighBound) {
         //GrimAC.staticGetLogger().info("Ticking new packet start " + newPacketLocation.interpolationStepsLowBound + " and " + newPacketLocation.interpolationStepsHighBound);
-        newPacketLocation.tickMovement(oldPacketLocation == null, false);
+        newPacketLocation.tickMovement(oldPacketLocation == null, setHighBound);
         //GrimAC.staticGetLogger().info("Ticking new packet end " + newPacketLocation.interpolationStepsLowBound + " and " + newPacketLocation.interpolationStepsHighBound);
 
         // Handle uncertainty of second transaction spanning over multiple ticks
         if (oldPacketLocation != null) {
             //GrimAC.staticGetLogger().info("Ticking new packet start " + oldPacketLocation.interpolationStepsLowBound + " and " + oldPacketLocation.interpolationStepsHighBound);
-            oldPacketLocation.tickMovement(true, false);
+            oldPacketLocation.tickMovement(true, setHighBound);
             //GrimAC.staticGetLogger().info("Ticking new packet end " + oldPacketLocation.interpolationStepsLowBound + " and " + oldPacketLocation.interpolationStepsHighBound);
             newPacketLocation.updatePossibleStartingLocation(oldPacketLocation.getPossibleLocationCombined());
         }

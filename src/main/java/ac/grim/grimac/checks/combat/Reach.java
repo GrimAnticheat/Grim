@@ -58,12 +58,7 @@ public class Reach {
         while (attackQueue != null) {
             PlayerReachEntity reachEntity = entityMap.get((int) attackQueue);
 
-            Vector eyePos = new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + (player.packetStateData.isPacketSneaking ? 1.54 : 1.62), player.packetStateData.packetPlayerZ);
-
-            Vector attackerDirection = ReachUtils.getLook(player, xRot, yRot);
-            Vector endReachPos = eyePos.clone().add(new Vector(attackerDirection.getX() * 6, attackerDirection.getY() * 6, attackerDirection.getZ() * 6));
-
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes().copy();
+            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
             // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
             if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
@@ -75,21 +70,38 @@ public class Reach {
             if (!player.packetStateData.didLastMovementIncludePosition)
                 targetBox.expand(0.03);
 
-            Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
+            Vector eyePos = new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + (player.packetStateData.isPacketSneaking ? 1.54 : 1.62), player.packetStateData.packetPlayerZ);
+            Vector attackerDirection = ReachUtils.getLook(player, xRot, yRot);
+            Vector endReachPos = eyePos.clone().add(new Vector(attackerDirection.getX() * 6, attackerDirection.getY() * 6, attackerDirection.getZ() * 6));
 
-            //Bukkit.broadcastMessage(ChatColor.AQUA + "Checked x pos " + (targetBox.maxX + targetBox.minX) / 2 + " With size " + (targetBox.maxX - targetBox.minX) + " 0.03? " + (!player.packetStateData.didLastMovementIncludePosition));
+            Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
+            Vector vanillaIntercept = null;
+
+            // This is how vanilla handles look vectors on 1.8 - it's a tick behind.
+            if (player.getClientVersion().equals(ClientVersion.v_1_8)) {
+                Vector vanillaDir = ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
+                Vector vanillaEndPos = eyePos.clone().add(new Vector(vanillaDir.getX() * 6, vanillaDir.getY() * 6, vanillaDir.getZ() * 6));
+
+                vanillaIntercept = ReachUtils.calculateIntercept(targetBox, eyePos, vanillaEndPos);
+            }
+
             if (reachEntity.oldPacketLocation != null)
                 GrimAC.staticGetLogger().info(ChatColor.AQUA + "Old position is " + (reachEntity.oldPacketLocation.targetLocation.maxX + reachEntity.oldPacketLocation.targetLocation.minX) / 2);
+
             GrimAC.staticGetLogger().info(ChatColor.AQUA + "New position is " + (reachEntity.newPacketLocation.targetLocation.maxX + reachEntity.newPacketLocation.targetLocation.minX) / 2);
 
             GrimAC.staticGetLogger().info(ChatColor.AQUA + "Checking entity " + reachEntity);
 
             if (ReachUtils.isVecInside(targetBox, eyePos)) {
                 Bukkit.broadcastMessage(ChatColor.GREEN + "Intercepted! (Player inside other entity!)");
-            } else if (intercept == null) {
+            } else if (intercept == null && vanillaIntercept == null) {
                 Bukkit.broadcastMessage(ChatColor.RED + "Player missed hitbox!");
             } else {
-                double reach = eyePos.distance(intercept);
+                double reach = 6;
+                if (intercept != null)
+                    reach = eyePos.distance(intercept);
+                if (vanillaIntercept != null)
+                    reach = Math.min(reach, eyePos.distance(vanillaIntercept));
 
                 if (reach < 3 && !player.packetStateData.didLastMovementIncludePosition) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach + " (0.03 = true)");
@@ -104,7 +116,7 @@ public class Reach {
         }
 
         for (PlayerReachEntity entity : entityMap.values()) {
-            entity.onMovement();
+            entity.onMovement(player.getClientVersion().isNewerThan(ClientVersion.v_1_8));
         }
     }
 
