@@ -70,9 +70,14 @@ public class Reach {
                 targetBox.expand(0.1);
             }
 
+            // This is better than adding to the reach, as 0.03 can cause a player to miss their target
+            // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
+            if (!player.packetStateData.didLastMovementIncludePosition)
+                targetBox.expand(0.03);
+
             Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
 
-            Bukkit.broadcastMessage(ChatColor.AQUA + "Checked x pos " + (targetBox.maxX + targetBox.minX) / 2 + " With size " + (targetBox.maxX - targetBox.minX));
+            //Bukkit.broadcastMessage(ChatColor.AQUA + "Checked x pos " + (targetBox.maxX + targetBox.minX) / 2 + " With size " + (targetBox.maxX - targetBox.minX) + " 0.03? " + (!player.packetStateData.didLastMovementIncludePosition));
             if (reachEntity.oldPacketLocation != null)
                 GrimAC.staticGetLogger().info(ChatColor.AQUA + "Old position is " + (reachEntity.oldPacketLocation.targetLocation.maxX + reachEntity.oldPacketLocation.targetLocation.minX) / 2);
             GrimAC.staticGetLogger().info(ChatColor.AQUA + "New position is " + (reachEntity.newPacketLocation.targetLocation.maxX + reachEntity.newPacketLocation.targetLocation.minX) / 2);
@@ -86,8 +91,8 @@ public class Reach {
             } else {
                 double reach = eyePos.distance(intercept);
 
-                if (!player.packetStateData.didLastMovementIncludePosition && reach < 3.03) {
-                    Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected (0.03)!  Reach was " + reach);
+                if (reach < 3 && !player.packetStateData.didLastMovementIncludePosition) {
+                    Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach + " (0.03 = true)");
                 } else if (reach < 3) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach);
                 } else {

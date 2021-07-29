@@ -54,7 +54,7 @@ public class GrimPlayer {
     public final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
     // Sync this to the netty thread because when spamming transactions, they can get out of order... somehow
     public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
-    private final ClientVersion clientVersion;
+    private ClientVersion clientVersion;
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Vector clientVelocity = new Vector();
@@ -369,6 +369,10 @@ public class GrimPlayer {
     }
 
     public ClientVersion getClientVersion() {
+        // There seems to be some issues with getting client version on 1.8 with ViaVersion early on join?
+        if (clientVersion == ClientVersion.UNKNOWN) {
+            clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
+        }
         return clientVersion;
     }
 
