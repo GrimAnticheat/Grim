@@ -66,10 +66,10 @@ public class Collisions {
                         regularStepUp = stepUpBugFixResult;
                     }
                 }
+            }
 
-                if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(baseCollision)) {
-                    return regularStepUp.add(collideBoundingBoxLegacy(player, new Vector(0, -regularStepUp.getY() + desiredY, 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), stepUpCollisionBoxes));
-                }
+            if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(baseCollision)) {
+                return regularStepUp.add(collideBoundingBoxLegacy(player, new Vector(0, -regularStepUp.getY() + desiredY, 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), stepUpCollisionBoxes));
             }
         }
 
