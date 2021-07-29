@@ -691,18 +691,7 @@ public enum CollisionData {
     END_ROD((player, version, data, x, y, z) -> {
         WrappedDirectional directional = (WrappedDirectional) data;
 
-        switch (directional.getDirection()) {
-            case UP:
-            case DOWN:
-            default:
-                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 16.0D, 10.0);
-            case NORTH:
-            case SOUTH:
-                return new HexCollisionBox(6.0D, 6.0D, 0.0D, 10.0D, 10.0D, 16.0D);
-            case EAST:
-            case WEST:
-                return new HexCollisionBox(0.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D);
-        }
+        return getEndRod(version, directional.getDirection());
 
     }, XMaterial.END_ROD.parseMaterial(), XMaterial.LIGHTNING_ROD.parseMaterial()),
 
@@ -927,6 +916,9 @@ public enum CollisionData {
     DRIPSTONE((player, version, data, x, y, z) -> {
         PointedDripstone dripstone = (PointedDripstone) ((WrappedFlatBlock) data).getBlockData();
 
+        if (version.isOlderThan(ClientVersion.v_1_17))
+            return getEndRod(version, BlockFace.UP);
+
         HexCollisionBox box;
 
         if (dripstone.getThickness() == PointedDripstone.Thickness.TIP_MERGE) {
@@ -1079,6 +1071,21 @@ public enum CollisionData {
                 return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 7.0D, 14.0D);
         }
         return NoCollisionBox.INSTANCE;
+    }
+
+    private static CollisionBox getEndRod(ClientVersion version, BlockFace face) {
+        switch (face) {
+            case UP:
+            case DOWN:
+            default:
+                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 16.0D, 10.0);
+            case NORTH:
+            case SOUTH:
+                return new HexCollisionBox(6.0D, 6.0D, 0.0D, 10.0D, 10.0D, 16.0D);
+            case EAST:
+            case WEST:
+                return new HexCollisionBox(0.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D);
+        }
     }
 
     public static CollisionData getData(Material material) {
