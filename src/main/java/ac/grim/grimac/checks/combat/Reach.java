@@ -22,6 +22,7 @@ import ac.grim.grimac.utils.data.ReachMovementData;
 import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
 import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.Bukkit;
@@ -53,6 +54,16 @@ public class Reach {
             PlayerReachEntity reachEntity = entityMap.get((int) attackQueue);
 
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+
+            // 1.9 -> 1.8 precision loss in packets
+            // TODO: Figure out this precision loss and implement it properly
+            // (ViaVersion is doing some stuff that makes this code difficult)
+            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+                // Interpolation makes us uncertain of the center of the hitbox, we cannot determine the precision loss!
+                // Well, we could, we would just need a ton of logic for determining offsets position and what ViaVersion is doing.
+                // Anyways, this is an edge case on top of an edge case
+                targetBox.expand(0.03125);
+            }
 
             // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
             if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
