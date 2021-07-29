@@ -8,13 +8,17 @@ import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class PredictionEngineNormal extends PredictionEngine {
-    public static final Material scaffolding = XMaterial.SCAFFOLDING.parseMaterial();
+    private static final Material SCAFFOLDING = XMaterial.SCAFFOLDING.parseMaterial();
+    private static final Material POWDER_SNOW = XMaterial.POWDER_SNOW.parseMaterial();
+
+    private static final Material LEATHER_BOOTS = XMaterial.LEATHER_BOOTS.parseMaterial();
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();
@@ -54,19 +58,28 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
-        if (player.lastClimbing) {
-            vector.setX(GrimMathHelper.clamp(vector.getX(), -0.15F, 0.15F));
-            vector.setZ(GrimMathHelper.clamp(vector.getZ(), -0.15F, 0.15F));
-            vector.setY(Math.max(vector.getY(), -0.15F));
+    public void endOfTick(GrimPlayer player, double d, float friction) {
+        super.endOfTick(player, d, friction);
 
-            // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY, player.lastZ) == scaffolding) && player.isSneaking && !player.specialFlying) {
-                vector.setY(0.0);
-            }
+        boolean walkingOnPowderSnow = false;
+
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) &&
+                player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z) == POWDER_SNOW) {
+            ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
+            walkingOnPowderSnow = boots != null && boots.getType() == LEATHER_BOOTS;
         }
 
-        return vector;
+        // Force 1.13.2 and below players to have something to collide with horizontally to climb
+        if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5))) || walkingOnPowderSnow) {
+            Vector ladder = player.clientVelocity.clone().setY(0.2);
+            staticVectorEndOfTick(player, ladder);
+            player.lastWasClimbing = ladder.getY();
+        }
+
+        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
+            staticVectorEndOfTick(player, vector.vector);
+        }
     }
 
     @Override
@@ -94,19 +107,18 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public void endOfTick(GrimPlayer player, double d, float friction) {
-        super.endOfTick(player, d, friction);
+    public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
+        if (player.lastClimbing) {
+            vector.setX(GrimMathHelper.clamp(vector.getX(), -0.15F, 0.15F));
+            vector.setZ(GrimMathHelper.clamp(vector.getZ(), -0.15F, 0.15F));
+            vector.setY(Math.max(vector.getY(), -0.15F));
 
-        // Force 1.13.2 and below players to have something to collide with horizontally to climb-
-        if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5)))) {
-            Vector ladder = player.clientVelocity.clone().setY(0.2);
-            staticVectorEndOfTick(player, ladder);
-            player.lastWasClimbing = ladder.getY();
+            // Yes, this uses shifting not crouching
+            if (vector.getY() < 0.0 && !(player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY, player.lastZ) == SCAFFOLDING) && player.isSneaking && !player.specialFlying) {
+                vector.setY(0.0);
+            }
         }
 
-        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(player, vector.vector);
-        }
+        return vector;
     }
 }
