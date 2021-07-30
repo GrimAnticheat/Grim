@@ -345,7 +345,9 @@ public class MovementCheckRunner {
 
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
+        SimpleCollisionBox newBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).offset(0, -0.04, 0);
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
+        player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
 

@@ -48,6 +48,7 @@ public class UncertaintyHandler {
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
+    public boolean isSteppingOnBouncyBlock = false;
     public boolean stuckOnEdge = false;
     public boolean nextTickScaffoldingOnEdge = false;
     public boolean scaffoldingOnEdge = false;
@@ -125,6 +126,9 @@ public class UncertaintyHandler {
         if (stuckOnEdge && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
             pointThree = Math.max(pointThree, player.speed / 3);
 
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
+            pointThree = Math.max(pointThree, 0.1);
+
         if (wasAffectedByStuckSpeed())
             pointThree = Math.max(pointThree, 0.08);
 
@@ -150,11 +154,14 @@ public class UncertaintyHandler {
         if (!controlsVerticalMovement() || data.hasVectorType(VectorData.VectorType.Jump))
             return 0;
 
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
+            return 0.1;
+
         return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
     }
 
     public boolean controlsVerticalMovement() {
-        return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnSlime || lastFlyingTicks > -3 || player.isGliding;
+        return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnBouncyBlock || lastFlyingTicks > -3 || player.isGliding;
     }
 
     @Override

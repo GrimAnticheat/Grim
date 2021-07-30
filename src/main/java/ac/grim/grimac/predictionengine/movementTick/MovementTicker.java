@@ -48,7 +48,7 @@ public class MovementTicker {
         if (player.inVehicle || (!player.canSwimHop
                 && player.uncertaintyHandler.pistonX == 0 && player.uncertaintyHandler.pistonY == 0 && player.uncertaintyHandler.pistonZ == 0
                 && player.uncertaintyHandler.slimePistonBounces.isEmpty() && !player.uncertaintyHandler.isStepMovement
-                && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnSlime
+                && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnBouncyBlock
                 && player.isGliding == player.wasGliding && player.uncertaintyHandler.lastTeleportTicks < -2 && Collections.max(player.uncertaintyHandler.pistonPushing) == 0
                 && (!player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree || !player.uncertaintyHandler.wasAffectedByStuckSpeed())) {
 
