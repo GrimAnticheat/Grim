@@ -367,15 +367,38 @@ public class Collisions {
         return false;
     }
 
-    // Has slime block, or honey
-    public static boolean hasSlimeBlock(GrimPlayer player) {
-        return hasMaterial(player, SLIME_BLOCK) ||
-                (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)
-                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
-                        && hasMaterial(player, HONEY_BLOCK));
+    public static boolean hasBouncyBlock(GrimPlayer player) {
+        return hasSlimeBlock(player) || hasSlimeBlock(player) || onMaterialType(player, Materials.BED);
     }
 
-    public static boolean hasMaterial(GrimPlayer player, Material material) {
+    // Has slime block, or honey with the ViaVersion replacement block
+    // This is terrible code lmao.  I need to refactor to add a new player bounding box, or somehow play with block mappings,
+    // so I can automatically map honey -> slime and other important ViaVersion replacement blocks
+    public static boolean hasSlimeBlock(GrimPlayer player) {
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
+                && (onMaterial(player, SLIME_BLOCK) ||
+                (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)
+                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
+                        && onMaterial(player, HONEY_BLOCK)));
+    }
+
+    public static boolean onMaterialType(GrimPlayer player, int material) {
+        SimpleCollisionBox playerBB = player.boundingBox.copy().offset(0, -0.04, 0);
+
+        // Blocks are stored in YZX order
+        for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
+            for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
+                for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
+                    if (Materials.checkFlag(player.compensatedWorld.getBukkitMaterialAt(x, y, z), material))
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public static boolean onMaterial(GrimPlayer player, Material material) {
         SimpleCollisionBox playerBB = player.boundingBox.copy().offset(0, -0.04, 0);
 
         // Blocks are stored in YZX order
