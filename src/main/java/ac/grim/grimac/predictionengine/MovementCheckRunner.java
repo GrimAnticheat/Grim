@@ -163,6 +163,7 @@ public class MovementCheckRunner {
             if (player.tasksNotFinished.compareAndSet(0, 1)) {
                 int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
                 player.compensatedWorld.tickUpdates(lastTransaction);
+                player.compensatedWorld.tickPlayerUpdates(lastTransaction);
                 player.compensatedEntities.tickUpdates(lastTransaction);
                 player.compensatedFlying.canFlyLagCompensated(lastTransaction);
                 player.compensatedFireworks.getMaxFireworksAppliedPossible();
