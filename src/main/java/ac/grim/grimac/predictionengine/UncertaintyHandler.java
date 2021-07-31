@@ -129,6 +129,9 @@ public class UncertaintyHandler {
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
             pointThree = Math.max(pointThree, 0.1);
 
+        if (lastTeleportTicks == -1)
+            pointThree = Math.max(pointThree, 0.1);
+
         if (wasAffectedByStuckSpeed())
             pointThree = Math.max(pointThree, 0.08);
 

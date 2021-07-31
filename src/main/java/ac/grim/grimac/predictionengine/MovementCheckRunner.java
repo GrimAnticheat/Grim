@@ -70,6 +70,8 @@ public class MovementCheckRunner {
                 data.player.teleports.poll();
                 data.isJustTeleported = true;
 
+                Bukkit.broadcastMessage(ChatColor.AQUA + data.player.bukkitPlayer.getName() + " just teleported!");
+
                 // Exempt for the next tick for all teleports
                 data.player.timerCheck.exempt = 1;
 
@@ -80,6 +82,7 @@ public class MovementCheckRunner {
                 continue;
             } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
                 data.player.teleports.poll();
+                Bukkit.broadcastMessage(ChatColor.RED + data.player.bukkitPlayer.getName() + " ignored teleport!");
                 continue;
             }
 
@@ -278,8 +281,9 @@ public class MovementCheckRunner {
         }
 
         player.uncertaintyHandler.lastTeleportTicks--;
-        if (data.isJustTeleported)
+        if (data.isJustTeleported) {
             player.uncertaintyHandler.lastTeleportTicks = 0;
+        }
 
         player.uncertaintyHandler.lastFlyingTicks--;
         if (player.isFlying)
@@ -500,10 +504,10 @@ public class MovementCheckRunner {
 
         player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        player.bukkitPlayer.sendMessage("O: " + color + offset);
+        player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.uncertaintyHandler.lastTeleportTicks);
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.uncertaintyHandler.lastTeleportTicks);
     }
 }

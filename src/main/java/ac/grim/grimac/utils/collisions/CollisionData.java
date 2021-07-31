@@ -1000,6 +1000,10 @@ public enum CollisionData {
     }
 
     private static CollisionBox getEndRod(ClientVersion version, BlockFace face) {
+        // ViaVersion replacement block - torch
+        if (version.isOlderThan(ClientVersion.v_1_9))
+            return NoCollisionBox.INSTANCE;
+
         switch (face) {
             case UP:
             case DOWN:
