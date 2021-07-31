@@ -472,7 +472,7 @@ public class PredictionEngine {
     }
 
     public void doJump(GrimPlayer player, Vector vector) {
-        if (!player.lastOnGround)
+        if (!player.lastOnGround || player.onGround)
             return;
 
         JumpPower.jumpFromGround(player, vector);
