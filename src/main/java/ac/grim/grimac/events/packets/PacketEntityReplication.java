@@ -153,6 +153,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 return;
             }
 
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             player.compensatedPotions.addPotionEffect(type.getName(), effect.getAmplifier(), effect.getEntityId());
         }
 
@@ -162,6 +163,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             player.compensatedPotions.removePotionEffect(PotionEffectType.getById(effect.getEffectId()).getName(), effect.getEntityId());
         }
 

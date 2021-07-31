@@ -31,9 +31,6 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         if (player == null) return;
         Block block = event.getBlock();
 
-        // It can take two ticks for the block place packet to be processed
-        // Better to be one tick early than one tick late for block placing
-        // as the player can't place a block inside themselves
         PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), block.getBlockData());
         player.compensatedWorld.changeBlockQueue.add(data);
     }
@@ -49,15 +46,10 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 
-    // This doesn't work perfectly, but is an attempt to support the client changing blocks from interacting with blocks
-    // It also suffers the same issues as other listeners in this class, where the lastTransactionAtStartOfTick
-    // doesn't actually represent when the block was applied.
-    //
-    // It's much better than nothing though, and works sort of fine.
+    // This works perfectly and supports the client changing blocks from interacting with blocks
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockInteractEvent(PlayerInteractEvent event) {
         if (event.getClickedBlock() == null) return;
-        if (event.isBlockInHand()) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Block block = event.getClickedBlock();
