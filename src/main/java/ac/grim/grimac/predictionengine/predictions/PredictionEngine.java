@@ -80,10 +80,7 @@ public class PredictionEngine {
 
         if (player.couldSkipTick) {
             Set<VectorData> zeroStuff = new HashSet<>();
-            if (player.uncertaintyHandler.controlsVerticalMovement())
-                zeroStuff.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
-            else
-                zeroStuff.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
+            zeroStuff.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
             addJumpsToPossibilities(player, zeroStuff);
             possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, zeroStuff, speed));
 
@@ -109,6 +106,9 @@ public class PredictionEngine {
         VectorData bestCollisionVel = null;
         Vector beforeCollisionMovement = null;
         Vector tempClientVelChosen = null;
+        Vector originalNonUncertainInput = null;
+
+        boolean zeroPointZeroThreeOnGroundGlitch = false;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput);
@@ -123,12 +123,14 @@ public class PredictionEngine {
             // HOWEVER, because of that damn 0.03, the collision order can appear that Y collision is last
             // Reproduce this bug by shifting to the corner on 1.14+, get slight velocity, and then fall off
             // You will vertically move, collide, and horizontally move < 0.03
-            // Next tick, you will do the same and now you are moving downwards, which was impossible last tick
+            // Next tick, you will do the same, and now you are moving downwards, which was impossible last tick
             // Combining the two XZ movements results in the wrong Y movement because of this collision order
             if (player.couldSkipTick && player.actualMovement.getY() < 0 && primaryPushMovement.getY() < 0 && outputVel.getY() == 0) {
                 SimpleCollisionBox playerBox = player.boundingBox.copy().offset(outputVel.getX(), primaryPushMovement.getY(), outputVel.getZ());
-                if (Collisions.isEmpty(player, playerBox))
+                if (Collisions.isEmpty(player, playerBox)) {
+                    zeroPointZeroThreeOnGroundGlitch = true;
                     outputVel.setY(primaryPushMovement.getY());
+                }
             }
 
             // Scaffolding bug occurred
@@ -144,17 +146,18 @@ public class PredictionEngine {
 
                 bestCollisionVel = clientVelAfterInput.setVector(outputVel, VectorData.VectorType.BestVelPicked);
                 beforeCollisionMovement = additionalPushMovement;
+                originalNonUncertainInput = clientVelAfterInput.vector;
                 tempClientVelChosen = primaryPushMovement.clone();
 
                 // Optimization - Close enough, other inputs won't get closer
-                // This works as knockback and explosions are ran first
+                // This works as knockback and explosions are run first
                 //
                 // Note that sometimes the first and closest velocity isn't the closest because collisions
                 // The player may only be able to move a slight amount compared to what the initial vector shows
                 //
                 // 0.001 was causing issues with horizontal collision resulting in 1e-4 (which should flag checks!)
                 // Ladders are the best way to see this behavior
-                // Remember this is squared so it is actually 0.00001
+                // Remember this is squared, so it is actually 0.00001
                 //
                 // This should likely be the value for the predictions to flag the movement as invalid
                 if (resultAccuracy < 0.00001 * 0.00001) break;
@@ -164,7 +167,7 @@ public class PredictionEngine {
         // The player always has at least one velocity - clientVelocity
         assert bestCollisionVel != null;
         player.clientVelocity = tempClientVelChosen;
-        new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
+        new MovementTickerPlayer(player).move(originalNonUncertainInput, beforeCollisionMovement, bestCollisionVel.vector, zeroPointZeroThreeOnGroundGlitch);
         player.predictedVelocity = bestCollisionVel;
         endOfTick(player, player.gravity, player.friction);
     }
@@ -213,44 +216,6 @@ public class PredictionEngine {
             return Integer.compare(aScore, bScore);
 
         return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
-    }
-
-    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> returnVectors = new ArrayList<>();
-        loopVectors(player, possibleVectors, speed, returnVectors);
-
-        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
-        // It mostly occurs when the player takes damage.
-        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
-        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
-        // If a player in this glitched state lets go of moving forward, then become un-glitched
-        if (player.isSprinting) {
-            player.isSprinting = false;
-            // Flying with sprinting increases speed by 2x
-            if (player.isFlying)
-                speed -= speed / 2;
-            else
-                speed -= speed * 0.3F;
-            loopVectors(player, possibleVectors, speed, returnVectors);
-            player.isSprinting = true;
-        }
-
-        return returnVectors;
-    }
-
-    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
-
-        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
-        // 0.04 is safe from falses
-        // Set to 0.06 because this is a very stupid reason to allow falses
-        //
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.065, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.065);
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
-                vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
@@ -315,6 +280,44 @@ public class PredictionEngine {
         }
 
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
+    }
+
+    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+        List<VectorData> returnVectors = new ArrayList<>();
+        loopVectors(player, possibleVectors, speed, returnVectors);
+
+        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
+        // It mostly occurs when the player takes damage.
+        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
+        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
+        // If a player in this glitched state lets go of moving forward, then become un-glitched
+        if (player.isSprinting) {
+            player.isSprinting = false;
+            // Flying with sprinting increases speed by 2x
+            if (player.isFlying)
+                speed -= speed / 2;
+            else
+                speed -= speed * 0.3F;
+            loopVectors(player, possibleVectors, speed, returnVectors);
+            player.isSprinting = true;
+        }
+
+        return returnVectors;
+    }
+
+    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
+
+        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
+        // 0.04 is safe from falses
+        // Set to 0.06 because this is a very stupid reason to allow falses
+        //
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.065, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.065);
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
+                vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
     }
 
     private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {

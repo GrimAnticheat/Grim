@@ -60,7 +60,7 @@ public class TimerCheck extends Check {
         }
 
         /*Bukkit.broadcastMessage("==================");
-        Bukkit.broadcastMessage("Timer: " + (System.currentTimeMillis() - timerTransaction));
+        Bukkit.broadcastMessage("Timer: " + (System.currentTimeMillis() - timerBalanceRealTime));
         Bukkit.broadcastMessage("Received: " + (System.currentTimeMillis() - player.getPlayerClockAtLeast()));
         Bukkit.broadcastMessage("==================");*/
 
