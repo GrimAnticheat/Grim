@@ -421,6 +421,11 @@ public class Collisions {
             return true;
         }
 
+        // ViaVersion replacement block -> sweet berry bush to vines
+        if (blockMaterial == SWEET_BERRY_BUSH && player.getClientVersion().isOlderThan(ClientVersion.v_1_14)) {
+            return true;
+        }
+
         return trapdoorUsableAsLadder(player, player.x, player.y, player.z, blockState);
     }
 
