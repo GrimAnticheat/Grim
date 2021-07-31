@@ -96,7 +96,7 @@ public class CompensatedEntities {
 
             if (metaData.entityID == player.entityID) {
                 for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
-                    if (snapshotWrapper.getKey().toUpperCase().contains("SPEED")) {
+                    if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
                         playerEntityMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                     }
                 }
@@ -104,7 +104,7 @@ public class CompensatedEntities {
 
             if (entity instanceof PacketEntityHorse) {
                 for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
-                    if (snapshotWrapper.getKey().toUpperCase().contains("SPEED")) {
+                    if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
                         ((PacketEntityHorse) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                     }
 
@@ -116,7 +116,7 @@ public class CompensatedEntities {
 
             if (entity instanceof PacketEntityRideable) {
                 for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
-                    if (snapshotWrapper.getKey().toUpperCase().contains("SPEED")) {
+                    if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
                         ((PacketEntityRideable) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                     }
                 }
