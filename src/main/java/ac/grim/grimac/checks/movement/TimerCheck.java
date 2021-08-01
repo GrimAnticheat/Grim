@@ -17,7 +17,7 @@ public class TimerCheck extends Check {
     // To patch out lag spikes
     long timeSinceLastProcessedMovement = 0;
     // Default value is real time minus max keep-alive time
-    long transactionsReceivedAtEndOfLastCheck = System.currentTimeMillis() - 60000;
+    long transactionsReceivedAtEndOfLastCheck = (long) (System.nanoTime() - 6e10);
 
     ConcurrentLinkedQueue<Pair<Long, Long>> lagSpikeToRealTimeFloor = new ConcurrentLinkedQueue<>();
 
@@ -44,19 +44,19 @@ public class TimerCheck extends Check {
 
     public void processMovementPacket() {
         player.movementPackets++;
-        long currentMillis = System.currentTimeMillis();
+        long currentNanos = System.nanoTime();
 
         // Teleporting sends its own packet (We could handle this, but it's not worth the complexity)
         if (exempt-- > 0) {
             return;
         }
 
-        timerBalanceRealTime += 50;
+        timerBalanceRealTime += 5e7;
 
-        if (timerBalanceRealTime > currentMillis) {
+        if (timerBalanceRealTime > currentNanos) {
             Bukkit.broadcastMessage(ChatColor.RED + "THE PLAYER HAS TIMER! (report on discord if not timer)");
             // Reset the violation by 1 movement
-            timerBalanceRealTime -= 50;
+            timerBalanceRealTime -= 5e7;
         }
 
         /*Bukkit.broadcastMessage("==================");
@@ -65,12 +65,12 @@ public class TimerCheck extends Check {
         Bukkit.broadcastMessage("==================");*/
 
         // Calculate time since last transaction - affected by 50 ms delay movement packets and
-        timeSinceLastProcessedMovement = currentMillis + (currentMillis - transactionsReceivedAtEndOfLastCheck);
+        timeSinceLastProcessedMovement = currentNanos + (currentNanos - transactionsReceivedAtEndOfLastCheck);
         // As we don't check players standing still, cap this at 1000 ms
         // A second is more than enough time for all packets from the lag spike to arrive
         // Exempting over a 30 second lag spike will lead to bypasses where the player can catch up movement
         // packets that were lost by standing still
-        timeSinceLastProcessedMovement = Math.min(timeSinceLastProcessedMovement, currentMillis + 1000);
+        timeSinceLastProcessedMovement = (long) Math.min(timeSinceLastProcessedMovement, currentNanos + 1e9);
 
         // Add this into a queue so that new lag spikes do not override previous lag spikes
         lagSpikeToRealTimeFloor.add(new Pair<>(timeSinceLastProcessedMovement, transactionsReceivedAtEndOfLastCheck));
@@ -79,7 +79,7 @@ public class TimerCheck extends Check {
         Pair<Long, Long> lagSpikePair = lagSpikeToRealTimeFloor.peek();
         if (lagSpikePair != null) {
             do {
-                if (currentMillis > lagSpikePair.getFirst()) {
+                if (currentNanos > lagSpikePair.getFirst()) {
                     timerBalanceRealTime = Math.max(timerBalanceRealTime, lagSpikePair.getSecond());
 
                     lagSpikeToRealTimeFloor.poll();
