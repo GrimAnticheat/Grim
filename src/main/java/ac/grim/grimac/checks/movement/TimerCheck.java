@@ -50,6 +50,7 @@ public class TimerCheck extends Check {
         if (exempt-- > 0) {
             return;
         }
+        exempt = 0;
 
         timerBalanceRealTime += 5e7;
 
