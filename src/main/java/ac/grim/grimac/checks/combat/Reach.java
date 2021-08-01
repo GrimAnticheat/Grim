@@ -72,7 +72,9 @@ public class Reach {
 
             // This is better than adding to the reach, as 0.03 can cause a player to miss their target
             // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
-            if (!player.packetStateData.didLastMovementIncludePosition)
+            //
+            // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
+            if (!player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
                 targetBox.expand(0.03);
 
             Vector eyePos = new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + (player.packetStateData.isPacketSneaking ? 1.54 : 1.62), player.packetStateData.packetPlayerZ);
