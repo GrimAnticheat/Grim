@@ -70,10 +70,10 @@ public class MovementCheckRunner {
                 data.player.teleports.poll();
                 data.isJustTeleported = true;
 
-                Bukkit.broadcastMessage(ChatColor.AQUA + data.player.bukkitPlayer.getName() + " just teleported!");
+                Bukkit.broadcastMessage(ChatColor.AQUA + data.player.bukkitPlayer.getName() + " just teleported! to " + position);
 
                 // Exempt for the next tick for all teleports
-                data.player.timerCheck.exempt = 1;
+                data.player.timerCheck.exempt++;
 
                 // Long distance teleport
                 if (position.distanceSquared(new Vector3d(data.playerX, data.playerY, data.playerZ)) > 32 * 32)
