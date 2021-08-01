@@ -306,8 +306,8 @@ public class GrimPlayer {
                 data = transactionsSent.poll();
                 if (data != null) {
                     int incrementingID = packetStateData.packetLastTransactionReceived.incrementAndGet();
-                    transactionPing = (int) (System.currentTimeMillis() - data.getSecond());
-                    playerClockAtLeast = System.currentTimeMillis() - transactionPing;
+                    transactionPing = (int) (System.nanoTime() - data.getSecond());
+                    playerClockAtLeast = System.nanoTime() - transactionPing;
 
                     // Must be here as this is required to be real time
                     compensatedEating.handleTransactionPacket(incrementingID);
@@ -387,7 +387,7 @@ public class GrimPlayer {
     }
 
     public int getKeepAlivePing() {
-        return PacketEvents.get().getPlayerUtils().getPing(playerUUID);
+        return PacketEvents.get().getPlayerUtils().getPing(bukkitPlayer);
     }
 
     public int getTransactionPing() {

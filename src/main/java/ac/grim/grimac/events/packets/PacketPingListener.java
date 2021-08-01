@@ -77,7 +77,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 if (player == null) return;
 
                 if (player.didWeSendThatTrans.remove((Short) id)) {
-                    player.transactionsSent.add(new Pair<>(id, System.currentTimeMillis()));
+                    player.transactionsSent.add(new Pair<>(id, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
                 }
             }
@@ -94,7 +94,7 @@ public class PacketPingListener extends PacketListenerAbstract {
                 // Cast ID twice so we can use the list
                 Short shortID = ((short) id);
                 if (player.didWeSendThatTrans.remove(shortID)) {
-                    player.transactionsSent.add(new Pair<>(shortID, System.currentTimeMillis()));
+                    player.transactionsSent.add(new Pair<>(shortID, System.nanoTime()));
                     player.lastTransactionSent.getAndIncrement();
                 }
             }
