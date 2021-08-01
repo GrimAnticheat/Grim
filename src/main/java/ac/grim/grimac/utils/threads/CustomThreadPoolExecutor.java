@@ -22,33 +22,12 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
                 computeTimes.add(timeTaken);
                 //Bukkit.broadcastMessage("Time taken " + (timeTaken + " " + GrimMathHelper.calculateAverageLong(computeTimes)));
             }
-
-            GrimPlayer player = data.player;
-
-            // Set required variables here just in case of exceptions
-            player.lastX = player.x;
-            player.lastY = player.y;
-            player.lastZ = player.z;
-            player.lastXRot = player.xRot;
-            player.lastYRot = player.yRot;
-            player.lastOnGround = player.onGround;
-            player.lastClimbing = player.isClimbing;
-
-            player.lastTransactionBeforeLastMovement = player.packetStateData.packetLastTransactionReceived.get();
-
-            player.vehicleForward = player.boatData.nextVehicleForward;
-            player.vehicleHorizontal = player.boatData.nextVehicleHorizontal;
-            player.boatData.nextVehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
-            player.boatData.nextVehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
-            player.horseJump = player.nextHorseJump;
-            player.nextHorseJump = data.horseJump;
-
             if (t != null) {
                 t.printStackTrace();
             }
 
             if (!data.player.isCheckNotReady) {
-                queueNext(player);
+                queueNext(data.player);
             } else {
                 MovementCheckRunner.waitingOnServerQueue.add(data);
             }

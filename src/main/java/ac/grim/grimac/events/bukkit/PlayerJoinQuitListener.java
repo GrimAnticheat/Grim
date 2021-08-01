@@ -55,6 +55,9 @@ public class PlayerJoinQuitListener implements Listener {
         player.packetStateData.packetPlayerYRot = bukkitPlayer.getLocation().getPitch();
 
         player.uncertaintyHandler.pistonPushing.add(0d);
+        player.uncertaintyHandler.collidingEntities.add(0);
+        player.uncertaintyHandler.tempElytraFlightHack.add(false);
+        player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.add(false);
 
         GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
 
