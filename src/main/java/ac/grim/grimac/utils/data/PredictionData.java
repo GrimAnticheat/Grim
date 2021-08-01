@@ -25,7 +25,6 @@ public class PredictionData {
     public int slowFallingAmplifier = 0;
     public int dolphinsGraceAmplifier = 0;
     public float flySpeed;
-    public double fallDistance;
     public Integer playerVehicle;
     public float vehicleHorizontal;
     public float vehicleForward;
@@ -61,7 +60,6 @@ public class PredictionData {
         this.usingHand = player.packetStateData.eatingHand;
 
         this.playerWorld = player.bukkitPlayer.getWorld();
-        this.fallDistance = player.bukkitPlayer.getFallDistance();
 
         player.compensatedPotions.handleTransactionPacket(player.packetStateData.packetLastTransactionReceived.get());
         this.jumpAmplifier = player.compensatedPotions.getPotionLevel("JUMP");
@@ -110,7 +108,6 @@ public class PredictionData {
         this.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
 
         this.playerWorld = player.bukkitPlayer.getWorld();
-        this.fallDistance = player.bukkitPlayer.getFallDistance();
 
         firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
         requiredKB = player.knockbackHandler.getRequiredKB();

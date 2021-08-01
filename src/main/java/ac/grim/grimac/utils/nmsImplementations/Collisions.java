@@ -296,6 +296,9 @@ public class Collisions {
                                 }
                             }
                         }
+
+                        // Reset fall distance inside bubble column
+                        player.fallDistance = 0;
                     }
 
                     if (blockType == HONEY_BLOCK) {
@@ -311,6 +314,9 @@ public class Collisions {
                                 }
                             }
                         }
+
+                        // If honey sliding, fall distance is 0
+                        player.fallDistance = 0;
                     }
                 }
             }

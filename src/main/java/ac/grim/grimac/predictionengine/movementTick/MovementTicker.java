@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -59,6 +60,21 @@ public class MovementTicker {
         }
 
         Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+
+        if (player.isActuallyOnGround) {
+            if (player.fallDistance > 0) {
+                // Bed multiplier is 0.5
+                // Hay multiplier is 0.2
+                // Honey multiplier is 0.2
+                // Slime multiplier is 0
+
+                Bukkit.broadcastMessage(ChatColor.AQUA + "Applying fall distance " + player.fallDistance);
+                player.fallDistance = 0;
+            }
+        } else if (collide.getY() < 0) {
+            Bukkit.broadcastMessage(ChatColor.BLUE + "Adding fall distance " + collide.getY());
+            player.fallDistance -= collide.getY();
+        }
 
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
@@ -113,6 +129,11 @@ public class MovementTicker {
         player.stuckSpeedMultiplier = new Vector(1, 1, 1);
 
         Collisions.handleInsideBlocks(player);
+
+        if (player.stuckSpeedMultiplier.getX() < 0.9) {
+            // Reset fall distance if stuck in block
+            player.fallDistance = 0;
+        }
 
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.specialFlying) {
@@ -284,7 +305,8 @@ public class MovementTicker {
         boolean isFalling = player.actualMovement.getY() <= 0.0;
         if (isFalling && player.slowFallingAmplifier > 0) {
             playerGravity = 0.01;
-            //this.fallDistance = 0.0f;
+            // Set fall distance to 0 if the player has slow falling
+            player.fallDistance = 0;
         }
 
         player.gravity = playerGravity;
@@ -341,6 +363,9 @@ public class MovementTicker {
                 player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (player.isGliding) {
+                // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
+                if (player.clientVelocity.getY() > -0.5)
+                    player.fallDistance = 1;
 
                 new PredictionEngineElytra().guessBestMovement(0, player);
 

@@ -286,8 +286,10 @@ public class MovementCheckRunner {
         }
 
         player.uncertaintyHandler.lastFlyingTicks--;
-        if (player.isFlying)
+        if (player.isFlying) {
+            player.fallDistance = 0;
             player.uncertaintyHandler.lastFlyingTicks = 0;
+        }
 
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
 
@@ -315,6 +317,8 @@ public class MovementCheckRunner {
         // Stop stuff like clients using elytra in a vehicle...
         // Interesting, on a pig or strider, a player can climb a ladder
         if (player.inVehicle) {
+            // Reset fall distance when riding
+            player.fallDistance = 0;
             player.isFlying = false;
             player.isGliding = false;
             player.specialFlying = false;
@@ -328,7 +332,6 @@ public class MovementCheckRunner {
         }
 
         player.playerWorld = data.playerWorld;
-        player.fallDistance = data.fallDistance;
 
         if (data.isJustTeleported) {
             player.lastX = player.x;
