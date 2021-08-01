@@ -58,25 +58,7 @@ public class PredictionEngine {
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
         // Determine if the player can make an input below 0.03
-        player.couldSkipTick = false;
-
-        // 0.03 is very bad with stuck speed multipliers
-        if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
-            player.uncertaintyHandler.gravityUncertainty = -0.08;
-            player.couldSkipTick = true;
-        } else if (player.uncertaintyHandler.isSteppingOnBouncyBlock && Math.abs(player.clientVelocity.getY()) < 0.2) {
-            player.couldSkipTick = true;
-        } else if (!player.inVehicle) {
-            double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
-
-            if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
-                for (VectorData data : possibleVelocities)
-                    player.couldSkipTick = player.couldSkipTick || data.vector.getX() * data.vector.getX() + data.vector.getZ() * data.vector.getZ() < threshold;
-            } else {
-                for (VectorData data : possibleVelocities)
-                    player.couldSkipTick = player.couldSkipTick || data.vector.lengthSquared() < threshold;
-            }
-        }
+        player.couldSkipTick = player.uncertaintyHandler.canSkipTick(possibleVelocities);
 
         if (player.couldSkipTick) {
             Set<VectorData> zeroStuff = new HashSet<>();
@@ -282,6 +264,21 @@ public class PredictionEngine {
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
+    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
+
+        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
+        // 0.04 is safe from falses
+        // Set to 0.06 because this is a very stupid reason to allow falses
+        //
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.065, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.065);
+        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
+                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
+                vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
+    }
+
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
         loopVectors(player, possibleVectors, speed, returnVectors);
@@ -303,21 +300,6 @@ public class PredictionEngine {
         }
 
         return returnVectors;
-    }
-
-    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
-
-        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
-        // 0.04 is safe from falses
-        // Set to 0.06 because this is a very stupid reason to allow falses
-        //
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.065, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.065);
-        return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
-                vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
     }
 
     private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {

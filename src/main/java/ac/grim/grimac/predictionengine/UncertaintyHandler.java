@@ -8,6 +8,7 @@ import org.bukkit.block.BlockFace;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 
 public class UncertaintyHandler {
     private final GrimPlayer player;
@@ -165,6 +166,29 @@ public class UncertaintyHandler {
 
     public boolean controlsVerticalMovement() {
         return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnBouncyBlock || lastFlyingTicks > -3 || player.isGliding;
+    }
+
+    public boolean canSkipTick(List<VectorData> possibleVelocities) {
+        // 0.03 is very bad with stuck speed multipliers
+        if (player.inVehicle) {
+            return false;
+        } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
+            player.uncertaintyHandler.gravityUncertainty = -0.08;
+            return true;
+        } else if (player.uncertaintyHandler.isSteppingOnBouncyBlock && Math.abs(player.clientVelocity.getY()) < 0.2) {
+            return true;
+        } else {
+            double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
+
+            if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
+                for (VectorData data : possibleVelocities)
+                    player.couldSkipTick = player.couldSkipTick || data.vector.getX() * data.vector.getX() + data.vector.getZ() * data.vector.getZ() < threshold;
+            } else {
+                for (VectorData data : possibleVelocities)
+                    player.couldSkipTick = player.couldSkipTick || data.vector.lengthSquared() < threshold;
+            }
+            return player.couldSkipTick;
+        }
     }
 
     @Override
