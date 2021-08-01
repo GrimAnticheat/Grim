@@ -883,9 +883,8 @@ public enum CollisionData {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_16_4))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
-        // Who makes a collision box dependent on fall distance?? If fall distance greater than 2.5, 0.899999 box
-        // Until we accurately get fall distance, just let players decide what box they get
-        if (Math.abs((player.y % 1.0) - 0.89999997615814) < 0.001) {
+        // If fall distance greater than 2.5, 0.899999 box
+        if (player.fallDistance > 2.5) {
             return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.8999999761581421, 1.0, false);
         }
 

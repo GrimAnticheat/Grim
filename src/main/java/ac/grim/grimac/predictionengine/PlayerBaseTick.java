@@ -40,6 +40,9 @@ public class PlayerBaseTick {
         updateFluidOnEyes();
         updateSwimming();
 
+        // If in lava, fall distance is multiplied by 0.5
+        if (player.wasTouchingLava)
+            player.fallDistance *= 0.5;
 
         // You cannot crouch while flying, only shift - could be specific to 1.14?
         if (player.wasTouchingWater && player.isSneaking && !player.specialFlying && !player.inVehicle) {
@@ -195,6 +198,8 @@ public class PlayerBaseTick {
 
     public void updateInWaterStateAndDoWaterCurrentPushing() {
         player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT);
+        if (player.wasTouchingWater)
+            player.fallDistance = 0;
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(FluidTag tag, double multiplier) {
