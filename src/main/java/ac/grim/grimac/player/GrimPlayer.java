@@ -178,7 +178,6 @@ public class GrimPlayer {
     public VelocityData knownExplosion = null;
     public TimerCheck timerCheck;
     public Reach reach;
-    public float nextHorseJump = 0;
     public float horseJump = 0;
     public boolean horseJumping = false;
     public boolean tryingToRiptide = false;
