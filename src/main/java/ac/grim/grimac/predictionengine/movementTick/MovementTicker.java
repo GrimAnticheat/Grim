@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.PlayerBaseTick;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineElytra;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.ReachInterpolationData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.EntityType;
@@ -195,7 +196,9 @@ public class MovementTicker {
                     double width = BoundingBoxSize.getWidth(entity);
                     double height = BoundingBoxSize.getHeight(entity);
 
-                    SimpleCollisionBox entityBox = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height);
+                    SimpleCollisionBox entityBox = ReachInterpolationData.combineCollisionBox(
+                            GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height),
+                            GetBoundingBox.getBoundingBoxFromPosAndSize(entity.lastTickPosition.getX(), entity.lastTickPosition.getY(), entity.lastTickPosition.getZ(), width, height));
 
                     if (expandedPlayerBox.isCollided(entityBox))
                         possibleCollidingEntities++;
