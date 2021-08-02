@@ -218,9 +218,11 @@ public class PredictionEngine {
             uncertainPiston = Math.max(uncertainPiston, value);
         }
 
-        // "temporary" workaround for when player enters flight from gliding
+        // "temporary" workaround for when player toggles flight
+        // Difficult as there are a ton of edge cases and version differences with flying
+        // For example, try toggling not using elytra to flying without this hack
         double bonusY = 0;
-        if (Collections.max(player.uncertaintyHandler.tempElytraFlightHack)) {
+        if (Collections.max(player.uncertaintyHandler.flyingStatusSwitchHack)) {
             additionHorizontal += 0.1;
             bonusY += 0.1;
         }
