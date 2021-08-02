@@ -9,6 +9,7 @@ import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.animation.WrappedPacketOutAnimation;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.EntityEffect;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -98,6 +99,7 @@ public class NoFall {
                             player.bukkitPlayer.playEffect(EntityEffect.HURT);
                             PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, new WrappedPacketOutAnimation(player.entityID, WrappedPacketOutAnimation.EntityAnimationType.TAKE_DAMAGE));
                             player.bukkitPlayer.setHealth(GrimMathHelper.clamp(player.bukkitPlayer.getHealth() - finalDamage, 0, player.bukkitPlayer.getMaxHealth()));
+                            Bukkit.broadcastMessage(ChatColor.RED + "" + player.bukkitPlayer.getName() + " used nofall so we are applying fall damage");
                         }
                     });
                 }

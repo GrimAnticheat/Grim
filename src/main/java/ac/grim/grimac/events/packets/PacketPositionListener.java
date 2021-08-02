@@ -62,17 +62,9 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.packetStateData.packetPlayerXRot = position.getYaw();
             player.packetStateData.packetPlayerYRot = position.getPitch();
 
-            // Prevent memory leaks from players continually staying in vehicles that they can't ride - also updates player position
-            if (player.packetStateData.vehicle != null && player.compensatedEntities.entityMap.containsKey(player.packetStateData.vehicle)) {
-                if (!player.packetStateData.receivedVehicleMove) {
-                    // Do not put this into the timer check
-                    // Instead attach it to vehicle move, which actually updates position.
-                    // As sending thousands of look packets in a vehicle is useless
-                    MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player));
-                }
-
-                player.packetStateData.receivedVehicleMove = false;
-
+            Integer playerVehicle = player.packetStateData.vehicle;
+            // This is a dummy packet when in a vehicle
+            if (playerVehicle != null && player.compensatedEntities.entityMap.containsKey((int) playerVehicle)) {
                 return;
             }
 
@@ -103,6 +95,14 @@ public class PacketPositionListener extends PacketListenerAbstract {
             WrappedPacketInSteerVehicle steer = new WrappedPacketInSteerVehicle(event.getNMSPacket());
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
+
+            // Multiple steer vehicles in a row, the player is not in control of their vehicle
+            if (player.packetStateData.receivedSteerVehicle) {
+                MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player));
+            }
+
+            player.packetStateData.receivedSteerVehicle = true;
+
             player.packetStateData.packetVehicleForward = steer.getForwardValue();
             player.packetStateData.packetVehicleHorizontal = steer.getSideValue();
         }
