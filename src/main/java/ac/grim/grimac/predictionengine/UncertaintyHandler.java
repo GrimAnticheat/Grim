@@ -1,9 +1,15 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.block.BlockFace;
 
 import java.util.Collections;
@@ -69,7 +75,7 @@ public class UncertaintyHandler {
     public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(3);
     public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
-    public EvictingList<Boolean> boatCollision = new EvictingList<>(3);
+    public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
     public int lastTeleportTicks = 0;
     public int lastFlyingTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
@@ -144,7 +150,7 @@ public class UncertaintyHandler {
             pointThree = Math.max(pointThree, player.speed * 1.5);
         }
 
-        if (Collections.max(boatCollision)) {
+        if (Collections.max(hardCollidingLerpingEntity)) {
             pointThree = Math.max(pointThree, 1);
         }
 
@@ -156,7 +162,7 @@ public class UncertaintyHandler {
         if ((lastFlyingTicks > -3) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
             return 0.225;
 
-        if (Collections.max(boatCollision))
+        if (Collections.max(hardCollidingLerpingEntity))
             return 1;
 
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
@@ -200,6 +206,55 @@ public class UncertaintyHandler {
             }
             return player.couldSkipTick;
         }
+    }
+
+    public void checkForHardCollision() {
+        // Look for boats the player could collide with
+        SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
+        boolean hasHardCollision = false;
+
+        findCollision:
+        {
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                if (entity.type == EntityType.BOAT && entity != player.playerVehicle) {
+                    SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                    if (box.isIntersected(expandedBB)) {
+                        hasHardCollision = true;
+                        break findCollision;
+                    }
+                }
+            }
+
+            // Stiders can walk on top of other striders
+            if (player.playerVehicle instanceof PacketEntityStrider) {
+                for (Int2ObjectMap.Entry<PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+                    PacketEntity entity = entityPair.getValue();
+                    if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getIntKey())) {
+                        SimpleCollisionBox box = GetBoundingBox.getPacketEntityBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity);
+                        if (box.isIntersected(expandedBB)) {
+                            hasHardCollision = true;
+                            break findCollision;
+                        }
+                    }
+                }
+            }
+
+            // Boats can collide with quite literally anything
+            if (player.playerVehicle != null) {
+                for (Int2ObjectMap.Entry<PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+                    PacketEntity entity = entityPair.getValue();
+                    if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getIntKey())) {
+                        SimpleCollisionBox box = GetBoundingBox.getPacketEntityBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity);
+                        if (box.isIntersected(expandedBB)) {
+                            hasHardCollision = true;
+                            break findCollision;
+                        }
+                    }
+                }
+            }
+        }
+
+        player.uncertaintyHandler.hardCollidingLerpingEntity.add(hasHardCollision);
     }
 
     @Override

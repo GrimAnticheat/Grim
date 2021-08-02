@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.data.packetentity;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.entity.Entity;
 
 import java.util.Locale;
 
@@ -23,5 +22,12 @@ public class PacketEntity {
         this.lastTickPosition = position;
         this.bukkitEntityType = type;
         this.type = EntityType.valueOf(type.toString().toUpperCase(Locale.ROOT));
+    }
+
+    public boolean hasPassenger(int entityID) {
+        for (int passenger : passengers) {
+            if (passenger == entityID) return true;
+        }
+        return false;
     }
 }
