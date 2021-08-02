@@ -61,6 +61,7 @@ public class GrimPlayer {
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
+    public int riptideSpinAttackTicks = 0;
     public VectorData predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Normal);
     public Vector actualMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);
@@ -183,7 +184,7 @@ public class GrimPlayer {
     public float horseJump = 0;
     public boolean horseJumping = false;
     public boolean tryingToRiptide = false;
-    public PacketTracker packetTracker;
+    PacketTracker packetTracker;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
 
@@ -261,6 +262,11 @@ public class GrimPlayer {
 
         if (canSwimHop) {
             possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f), VectorData.VectorType.Swimhop));
+        }
+
+        // If the player has that client sided riptide thing and has colliding with an entity this tick
+        if (riptideSpinAttackTicks >= 0 && uncertaintyHandler.collidingEntities.getLast() > 0) {
+            possibleMovements.add(new VectorData(clientVelocity.clone().multiply(-0.2), VectorData.VectorType.Trident));
         }
 
         if (lastWasClimbing != 0) {
