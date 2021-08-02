@@ -68,6 +68,7 @@ public class UncertaintyHandler {
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
     public EvictingList<Boolean> tempElytraFlightHack = new EvictingList<>(3);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
+    public EvictingList<Boolean> boatCollision = new EvictingList<>(3);
     public int lastTeleportTicks = 0;
     public int lastFlyingTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
@@ -142,6 +143,10 @@ public class UncertaintyHandler {
             pointThree = Math.max(pointThree, player.speed * 1.5);
         }
 
+        if (Collections.max(boatCollision)) {
+            pointThree = Math.max(pointThree, 1);
+        }
+
         return pointThree;
     }
 
@@ -149,6 +154,12 @@ public class UncertaintyHandler {
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
         if ((lastFlyingTicks > -3) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
             return 0.225;
+
+        if (Collections.max(boatCollision))
+            return 1;
+
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
+            return 0.1;
 
         // I don't understand this either.  0.03 in lava just really sucks.
         if (wasLastGravityUncertain && player.wasTouchingLava)
@@ -159,9 +170,6 @@ public class UncertaintyHandler {
 
         if (!controlsVerticalMovement() || data.hasVectorType(VectorData.VectorType.Jump))
             return 0;
-
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
-            return 0.1;
 
         return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
     }

@@ -55,7 +55,7 @@ public class MovementTicker {
         // Trust the onGround status if the player is near the ground and they sent a ground packet
         if (player.inVehicle || ((Collections.max(player.uncertaintyHandler.pistonPushing) == 0 && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.isSteppingOnBouncyBlock
-                && player.uncertaintyHandler.lastTeleportTicks < -2)) {
+                && player.uncertaintyHandler.lastTeleportTicks < -2) && !Collections.max(player.uncertaintyHandler.boatCollision)) {
 
             if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
                 Bukkit.broadcastMessage("Desync " + player.onGround);
@@ -172,6 +172,20 @@ public class MovementTicker {
                 player.uncertaintyHandler.yNegativeUncertainty = player.flySpeed * -5;
             }
         }
+
+        // Look for boats the player could collide with
+        SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
+        boolean hasBoat = false;
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.type == EntityType.BOAT) {
+                SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                if (box.isIntersected(expandedBB)) {
+                    hasBoat = true;
+                    break;
+                }
+            }
+        }
+        player.uncertaintyHandler.boatCollision.add(hasBoat);
 
         // 1.7 and 1.8 do not have player collision
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
