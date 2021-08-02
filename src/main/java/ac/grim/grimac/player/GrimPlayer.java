@@ -3,6 +3,7 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.checks.combat.Reach;
 import ac.grim.grimac.checks.movement.ExplosionHandler;
 import ac.grim.grimac.checks.movement.KnockbackHandler;
+import ac.grim.grimac.checks.movement.NoFall;
 import ac.grim.grimac.checks.movement.TimerCheck;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -178,6 +179,7 @@ public class GrimPlayer {
     public VelocityData knownExplosion = null;
     public TimerCheck timerCheck;
     public Reach reach;
+    public NoFall noFall;
     public float horseJump = 0;
     public boolean horseJumping = false;
     public boolean tryingToRiptide = false;
@@ -230,6 +232,7 @@ public class GrimPlayer {
         trigHandler = new TrigHandler(this);
         timerCheck = new TimerCheck(this);
         reach = new Reach(this);
+        noFall = new NoFall();
         uncertaintyHandler = new UncertaintyHandler(this);
 
         packetStateData = new PacketStateData();

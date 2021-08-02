@@ -24,7 +24,7 @@ import java.util.logging.Logger;
 
 public final class GrimAC extends JavaPlugin {
     public static ConcurrentHashMap<Player, GrimPlayer> playerGrimHashMap = new ConcurrentHashMap<>();
-    private static Plugin plugin;
+    public static Plugin plugin;
     // For syncing together the anticheat and main thread
     private static int currentTick = 0;
 

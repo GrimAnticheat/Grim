@@ -353,7 +353,6 @@ public class MovementCheckRunner {
 
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
-        SimpleCollisionBox newBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).offset(0, -0.04, 0);
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
@@ -418,6 +417,7 @@ public class MovementCheckRunner {
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
 
+            player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = data.didGroundStatusChangeWithoutPositionPacket;
             // Vehicles don't have jumping or that stupid < 0.03 thing
             // If the player isn't on the ground, a packet in between < 0.03 said they did
             // And the player is reasonably touching the ground
@@ -425,7 +425,7 @@ public class MovementCheckRunner {
             // And the player isn't now near the ground due to a new block placed by the player
             //
             // Give some lenience and update the onGround status
-            if (data.didGroundStatusChangeWithoutPositionPacket && !player.lastOnGround
+            if (player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket && !player.lastOnGround
                     && (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree
                     || !Collisions.isEmpty(player, player.boundingBox.copy().offset(0, -0.03, 0)))) {
                 player.lastOnGround = true;
