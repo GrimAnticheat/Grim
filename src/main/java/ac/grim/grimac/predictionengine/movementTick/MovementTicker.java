@@ -131,6 +131,9 @@ public class MovementTicker {
     public void livingEntityAIStep() {
         player.uncertaintyHandler.flyingStatusSwitchHack.add(player.isFlying != player.wasFlying);
 
+        player.uncertaintyHandler.legacyUnderwaterFlyingHack.add(player.specialFlying &&
+                player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox));
+
         double minimumMovement = 0.003D;
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             minimumMovement = 0.005D;
