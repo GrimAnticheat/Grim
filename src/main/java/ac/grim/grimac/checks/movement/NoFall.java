@@ -36,6 +36,11 @@ public class NoFall {
         if (player.fallDistance == 0)
             playerUsedNoFall = false;
 
+        if (player.bukkitPlayer.getGameMode().getValue() == 1 || player.bukkitPlayer.getGameMode().getValue() == 3) {
+            playerUsedNoFall = false;
+            return;
+        }
+
         if (player.isActuallyOnGround) {
             if (player.fallDistance > 0) {
                 // Bed multiplier is 0.5 - 1.12+
