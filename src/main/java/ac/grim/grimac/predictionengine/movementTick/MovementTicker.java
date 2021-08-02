@@ -199,7 +199,7 @@ public class MovementTicker {
             // Calculate the offset of the player to colliding other stuff
             Vector3d playerPos = new Vector3d(player.x, player.y, player.z);
             SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-            SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(0.5);
+            SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
 
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                 if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
