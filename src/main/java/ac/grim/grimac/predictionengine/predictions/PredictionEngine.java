@@ -269,11 +269,11 @@ public class PredictionEngine {
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
 
         // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
-        // 0.04 is safe from falses
-        // Set to 0.06 because this is a very stupid reason to allow falses
+        // 0.065 was causing issues with fast moving dolphins
+        // 0.075 seems safe?
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.065, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.065);
+        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
         return PredictionEngineElytra.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
                 vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
