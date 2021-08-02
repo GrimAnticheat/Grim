@@ -189,10 +189,13 @@ public class CompensatedEntities {
             if (spawnEntity.left() >= lastTransactionReceived) break;
             destroyEntityQueue.poll();
 
+            Integer playerVehicle = player.packetStateData.vehicle;
             for (int entityID : spawnEntity.right()) {
                 entityMap.remove(entityID);
                 player.compensatedPotions.removeEntity(entityID);
                 player.reach.removeEntity(entityID);
+                if (playerVehicle != null && playerVehicle == entityID)
+                    player.packetStateData.vehicle = null;
             }
         }
 
