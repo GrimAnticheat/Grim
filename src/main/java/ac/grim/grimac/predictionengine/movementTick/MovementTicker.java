@@ -129,7 +129,7 @@ public class MovementTicker {
     }
 
     public void livingEntityAIStep() {
-        player.uncertaintyHandler.tempElytraFlightHack.add(player.isFlying && player.wasGliding);
+        player.uncertaintyHandler.flyingStatusSwitchHack.add(player.isFlying != player.wasFlying);
 
         double minimumMovement = 0.003D;
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))

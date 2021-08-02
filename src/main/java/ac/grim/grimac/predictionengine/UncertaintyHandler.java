@@ -66,7 +66,7 @@ public class UncertaintyHandler {
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
-    public EvictingList<Boolean> tempElytraFlightHack = new EvictingList<>(3);
+    public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(3);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
     public EvictingList<Boolean> boatCollision = new EvictingList<>(3);
     public int lastTeleportTicks = 0;
