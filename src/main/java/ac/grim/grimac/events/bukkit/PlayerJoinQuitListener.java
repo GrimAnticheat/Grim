@@ -57,6 +57,7 @@ public class PlayerJoinQuitListener implements Listener {
         player.uncertaintyHandler.pistonPushing.add(0d);
         player.uncertaintyHandler.collidingEntities.add(0);
         player.uncertaintyHandler.flyingStatusSwitchHack.add(false);
+        player.uncertaintyHandler.legacyUnderwaterFlyingHack.add(false);
         player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.add(false);
         player.uncertaintyHandler.boatCollision.add(false);
 
