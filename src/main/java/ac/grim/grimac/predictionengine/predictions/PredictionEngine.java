@@ -27,6 +27,7 @@ public class PredictionEngine {
 
         // Determine if the player can make an input below 0.03
         player.couldSkipTick = player.uncertaintyHandler.canSkipTick(possibleVelocities);
+        player.uncertaintyHandler.checkForHardCollision();
 
         if (player.couldSkipTick) {
             Set<VectorData> zeroStuff = new HashSet<>();
