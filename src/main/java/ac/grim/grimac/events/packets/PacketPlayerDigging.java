@@ -172,6 +172,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                             break;
                     }
 
+                    // Support interacting with blocks, such as fence gates
+                    player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
+                    // Support placing blocks
                     player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(position, player.packetStateData.packetLastTransactionReceived.get()));
                 }
             }

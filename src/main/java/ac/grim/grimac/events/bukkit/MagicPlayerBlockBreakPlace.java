@@ -3,14 +3,18 @@ package ac.grim.grimac.events.bukkit;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ChangeBlockData;
+import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 public class MagicPlayerBlockBreakPlace implements Listener {
 
@@ -52,5 +56,22 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         // So in 1.12 everything probably turns into air when broken
         ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.changeBlockQueue.add(data);
+    }
+
+    // This works perfectly and supports the client changing blocks from interacting with blocks
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onBlockInteractEvent(PlayerInteractEvent event) {
+        if (event.getClickedBlock() == null) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+        Block block = event.getClickedBlock();
+        // Client side interactable -> Door, trapdoor, gate
+        if (block != null && Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
+            PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ());
+            player.compensatedWorld.openBlockData.add(data);
+        }
     }
 }

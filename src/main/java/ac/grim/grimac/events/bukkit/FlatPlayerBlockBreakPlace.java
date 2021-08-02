@@ -4,15 +4,9 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
-import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
+import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
-import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Openable;
-import org.bukkit.block.data.type.Door;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -53,37 +47,13 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Block block = event.getClickedBlock();
+        // Client side interactable -> Door, trapdoor, gate
         if (block != null && Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            BlockState state = block.getState();
-
-            if (state.getBlockData() instanceof Door) {
-                Door door = (Door) state.getBlockData();
-                BlockState otherDoorState = block.getRelative(door.getHalf() == Bisected.Half.BOTTOM ? BlockFace.UP : BlockFace.DOWN).getState();
-
-                if (otherDoorState.getBlockData() instanceof Door) {
-                    Door doorAbove = (Door) otherDoorState.getBlock().getState().getBlockData();
-
-                    // The doors are probably connected
-                    if (doorAbove.getFacing() == door.getFacing() && doorAbove.isOpen() == door.isOpen()) {
-                        doorAbove.setOpen(!doorAbove.isOpen());
-
-                        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY() + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), block.getZ(), CompensatedWorldFlat.getFlattenedGlobalID(doorAbove));
-                        player.compensatedWorld.changeBlockQueue.add(data);
-                    }
-                }
-            }
-
-            BlockData stateData = state.getBlockData();
-            if (stateData instanceof Openable) {
-                Openable openable = (Openable) stateData;
-                openable.setOpen(!openable.isOpen());
-            }
-
-            ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ(), CompensatedWorldFlat.getFlattenedGlobalID(stateData));
-            player.compensatedWorld.changeBlockQueue.add(data);
+            PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ());
+            player.compensatedWorld.openBlockData.add(data);
         }
     }
 }

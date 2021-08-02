@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -11,8 +12,11 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.Openable;
+import org.bukkit.block.data.type.Door;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -65,6 +69,38 @@ public class CompensatedWorldFlat extends CompensatedWorld {
         } catch (IOException e) {
             System.out.println("Palette reading failed! Unsupported version?");
             e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void tickOpenables(int lastTransactionReceived) {
+        while (true) {
+            PlayerOpenBlockData blockToOpen = openBlockData.peek();
+
+            if (blockToOpen == null) break;
+            // The anticheat thread is behind, this event has not occurred yet
+            if (blockToOpen.transaction > lastTransactionReceived) break;
+            openBlockData.poll();
+
+            FlatBlockState data = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
+
+            if (data.getBlockData() instanceof Door) {
+                Door door = (Door) data.getBlockData();
+                FlatBlockState otherDoorState = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ);
+
+                if (otherDoorState.getBlockData() instanceof Door) {
+                    Door otherDoor = (Door) otherDoorState.getBlockData().clone();
+                    otherDoor.setOpen(!otherDoor.isOpen());
+                    player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ, getFlattenedGlobalID(otherDoor));
+                }
+            }
+
+            if (data.getBlockData() instanceof Openable) {
+                // Do NOT change the getBlockData() without cloning otherwise you will corrupt the (grim) global palette!
+                Openable openable = (Openable) data.getBlockData().clone();
+                openable.setOpen(!openable.isOpen());
+                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, getFlattenedGlobalID(openable));
+            }
         }
     }
 

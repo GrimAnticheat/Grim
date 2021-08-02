@@ -3,8 +3,7 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
-import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.types.WrappedDirectional;
+import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
@@ -16,10 +15,7 @@ import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.BasePlayerChangeBlockData;
-import ac.grim.grimac.utils.data.ChangeBlockData;
-import ac.grim.grimac.utils.data.PistonData;
-import ac.grim.grimac.utils.data.ShulkerData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
@@ -44,6 +40,19 @@ public class CompensatedWorld {
     public static final int MAX_WORLD_HEIGHT = 255;
     public static BaseBlockState airData;
     public static Method getByCombinedID;
+    public final GrimPlayer player;
+    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
+    public ConcurrentLinkedQueue<ChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<BasePlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<PlayerOpenBlockData> openBlockData = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPositions = new ConcurrentLinkedQueue<>();
+    public List<PistonData> activePistons = new ArrayList<>();
+    public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
+
+    public CompensatedWorld(GrimPlayer player) {
+        this.player = player;
+    }
 
     public static void init() {
         if (XMaterial.isNewVersion()) {
@@ -52,22 +61,6 @@ public class CompensatedWorld {
             airData = new MagicBlockState(0, 0);
         }
     }
-
-    public final GrimPlayer player;
-    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
-    public ConcurrentLinkedQueue<ChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<BasePlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
-
-    public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPositions = new ConcurrentLinkedQueue<>();
-
-    public List<PistonData> activePistons = new ArrayList<>();
-    public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
-
-    public CompensatedWorld(GrimPlayer player) {
-        this.player = player;
-    }
-
 
     public void tickPlayerUpdates(int lastTransactionReceived) {
         while (true) {
@@ -80,6 +73,77 @@ public class CompensatedWorld {
 
             player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.getCombinedID());
         }
+
+        tickOpenables(lastTransactionReceived);
+    }
+
+    public void tickOpenables(int lastTransactionReceived) {
+        while (true) {
+            PlayerOpenBlockData blockToOpen = openBlockData.peek();
+
+            if (blockToOpen == null) break;
+            // The anticheat thread is behind, this event has not occurred yet
+            if (blockToOpen.transaction > lastTransactionReceived) break;
+            openBlockData.poll();
+
+            MagicBlockState data = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
+            WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(data);
+
+            if (blockDataValue instanceof WrappedDoor) {
+                WrappedDoor door = (WrappedDoor) blockDataValue;
+                MagicBlockState otherDoor = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.isBottom() ? 1 : -1), blockToOpen.blockZ);
+
+                // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
+                if (otherDoor.getMaterial() == data.getMaterial()) {
+                    // The doors are probably connected
+                    boolean isBottom = door.isBottom();
+                    // 1.12- stores door data in the bottom door
+                    if (!isBottom)
+                        data = otherDoor;
+                    // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
+                    // 1.12- - We can just flip a bit in the lower door and call it a day
+                    int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
+                    player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 0 : -1), blockToOpen.blockZ, magicValue);
+                }
+            } else if (blockDataValue instanceof WrappedTrapdoor || blockDataValue instanceof WrappedFenceGate) {
+                // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
+                int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
+                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, magicValue);
+            }
+        }
+    }
+
+    public void tickUpdates(int lastTransactionReceived) {
+        while (true) {
+            ChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
+
+            if (changeBlockData == null) break;
+            // The player hasn't gotten this update yet
+            if (changeBlockData.transaction > lastTransactionReceived) {
+                break;
+            }
+
+            worldChangedBlockQueue.poll();
+
+            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.combinedID);
+        }
+
+        while (true) {
+            PistonData data = pistonData.peek();
+
+            if (data == null) break;
+
+            // The player hasn't gotten this update yet
+            if (data.lastTransactionSent > lastTransactionReceived) {
+                break;
+            }
+
+            pistonData.poll();
+            activePistons.add(data);
+        }
+
+        // 10 ticks is more than enough for everything that needs to be processed to be processed
+        packetBlockPositions.removeIf(data -> GrimAC.getCurrentTick() - data.tick > 10);
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
@@ -122,39 +186,6 @@ public class CompensatedWorld {
 
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
-    }
-
-    public void tickUpdates(int lastTransactionReceived) {
-        while (true) {
-            ChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
-
-            if (changeBlockData == null) break;
-            // The player hasn't gotten this update yet
-            if (changeBlockData.transaction > lastTransactionReceived) {
-                break;
-            }
-
-            worldChangedBlockQueue.poll();
-
-            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.combinedID);
-        }
-
-        while (true) {
-            PistonData data = pistonData.peek();
-
-            if (data == null) break;
-
-            // The player hasn't gotten this update yet
-            if (data.lastTransactionSent > lastTransactionReceived) {
-                break;
-            }
-
-            pistonData.poll();
-            activePistons.add(data);
-        }
-
-        // 10 ticks is more than enough for everything that needs to be processed to be processed
-        packetBlockPositions.removeIf(data -> GrimAC.getCurrentTick() - data.tick > 10);
     }
 
     public void tickPlayerInPistonPushingArea() {
