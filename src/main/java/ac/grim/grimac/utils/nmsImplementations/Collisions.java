@@ -374,7 +374,7 @@ public class Collisions {
     }
 
     public static boolean hasBouncyBlock(GrimPlayer player) {
-        return hasSlimeBlock(player) || hasSlimeBlock(player) || onMaterialType(player, Materials.BED);
+        return hasSlimeBlock(player) || onMaterialType(player, Materials.BED);
     }
 
     // Has slime block, or honey with the ViaVersion replacement block

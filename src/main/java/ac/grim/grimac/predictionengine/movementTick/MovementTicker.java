@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -22,6 +21,7 @@ import java.util.Collections;
 public class MovementTicker {
     private static final Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
     private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
+
     public final Player bukkitPlayer;
     public final GrimPlayer player;
 
@@ -44,6 +44,9 @@ public class MovementTicker {
         // Avoid order of collisions being wrong because 0.03 movements
         player.isActuallyOnGround = !zeroPointZeroThreeOnGroundGlitch && player.verticalCollision && nonUncertainVector.getY() < 0.0D;
 
+        Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+        player.noFall.tickNoFall(player, onBlock, inputVel);
+
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
         // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them
         // The player's onGround status isn't given when riding a vehicle, so we don't have a choice in whether we calculate or not
@@ -57,23 +60,6 @@ public class MovementTicker {
                 Bukkit.broadcastMessage("Desync " + player.onGround);
 
             player.onGround = player.isActuallyOnGround;
-        }
-
-        Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
-
-        if (player.isActuallyOnGround) {
-            if (player.fallDistance > 0) {
-                // Bed multiplier is 0.5
-                // Hay multiplier is 0.2
-                // Honey multiplier is 0.2
-                // Slime multiplier is 0
-
-                Bukkit.broadcastMessage(ChatColor.AQUA + "Applying fall distance " + player.fallDistance);
-                player.fallDistance = 0;
-            }
-        } else if (collide.getY() < 0) {
-            Bukkit.broadcastMessage(ChatColor.BLUE + "Adding fall distance " + collide.getY());
-            player.fallDistance -= collide.getY();
         }
 
         // This is how the player checks for fall damage
