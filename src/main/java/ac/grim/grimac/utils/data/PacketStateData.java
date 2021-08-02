@@ -22,7 +22,7 @@ public class PacketStateData {
     public Hand eatingHand = Hand.MAIN_HAND;
     public AlmostBoolean slowedByUsingItem = AlmostBoolean.FALSE;
     public Integer vehicle = null;
-    public boolean receivedVehicleMove = false;
+    public boolean receivedSteerVehicle = false;
     public int horseJump = 0;
     public boolean tryingToRiptide = false;
     // Marks when the player received a ground packet

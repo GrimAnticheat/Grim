@@ -27,6 +27,7 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -104,15 +105,17 @@ public class Reach {
             } else if (intercept == null && vanillaIntercept == null) {
                 Bukkit.broadcastMessage(ChatColor.RED + "Player missed hitbox!");
             } else {
+                double maxReach = player.bukkitPlayer.getGameMode() == GameMode.CREATIVE ? 6 : 3;
+
                 double reach = 6;
                 if (intercept != null)
                     reach = eyePos.distance(intercept);
                 if (vanillaIntercept != null)
                     reach = Math.min(reach, eyePos.distance(vanillaIntercept));
 
-                if (reach < 3 && !player.packetStateData.didLastMovementIncludePosition) {
+                if (reach < maxReach && !player.packetStateData.didLastMovementIncludePosition) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach + " (0.03 = true)");
-                } else if (reach < 3) {
+                } else if (reach < maxReach) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach);
                 } else {
                     Bukkit.broadcastMessage(ChatColor.RED + "Intersected!  Reach was " + reach);

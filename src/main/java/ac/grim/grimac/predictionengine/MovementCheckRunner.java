@@ -12,8 +12,8 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
@@ -25,6 +25,7 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -47,6 +48,8 @@ import java.util.concurrent.*;
 // If stage 0 - Add one and add the data to the workers
 // If stage 1 - Add the data to the queue and add one
 public class MovementCheckRunner {
+    private static final Material CARROT_ON_A_STICK = XMaterial.CARROT_ON_A_STICK.parseMaterial();
+    private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
     public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
     public static CustomThreadPoolExecutor executor =
             new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
@@ -258,26 +261,34 @@ public class MovementCheckRunner {
         if (!player.inVehicle)
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
 
-        // Set position now to support "dummy" riding without control
-        // Warning - on pigs and striders players, can turn into dummies independent of whether they have
-        // control of the vehicle or not (which could be abused to set velocity to 0 repeatedly and kind
-        // of float in the air, although what's the point inside a vehicle?)
-        if (data.isDummy) {
-            PacketEntity entity = data.playerVehicle != null ? player.compensatedEntities.getEntity(data.playerVehicle) : null;
-
-            // Players on horses that have saddles or players inside boats cannot be dummies
-            if (entity == null || (entity instanceof PacketEntityHorse && !((PacketEntityHorse) entity).hasSaddle)
-                    || entity.type != EntityType.BOAT) {
+        // Check if the player can control their horse, if they are on a horse
+        if (player.inVehicle) {
+            // Set position now to support "dummy" riding without control
+            // Warning - on pigs and striders players, can turn into dummies independent of whether they have
+            // control of the vehicle or not (which could be abused to set velocity to 0 repeatedly and kind
+            // of float in the air, although what's the point inside a vehicle?)
+            if (data.isDummy) {
                 player.lastX = player.x;
                 player.lastY = player.y;
                 player.lastZ = player.z;
 
-                player.x = data.playerX;
-                player.y = data.playerY;
-                player.z = data.playerZ;
+                player.x = player.playerVehicle.position.getX();
+                player.y = player.playerVehicle.position.getY();
+                player.z = player.playerVehicle.position.getZ();
+
+                return;
             }
 
-            return;
+            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
+            if (player.playerVehicle instanceof PacketEntityRideable) {
+                Material requiredItem = player.playerVehicle.type == EntityType.PIG ? CARROT_ON_A_STICK : WARPED_FUNGUS_ON_A_STICK;
+                if ((mainHand == null || mainHand.getType() != requiredItem) &&
+                        (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)
+                                && player.bukkitPlayer.getInventory().getItemInOffHand().getType() != requiredItem)) {
+                    // TODO: Setback
+                    Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity!");
+                }
+            }
         }
 
         player.uncertaintyHandler.lastTeleportTicks--;
@@ -482,6 +493,8 @@ public class MovementCheckRunner {
         if (player.lastVehicleSwitch < 3) {
             color = ChatColor.GRAY;
             offset = 0;
+
+            // TODO: Vehicles are extremely glitchy, so we have to force resync the player's position here.
         }
 
         // Vanilla can desync with riptide status

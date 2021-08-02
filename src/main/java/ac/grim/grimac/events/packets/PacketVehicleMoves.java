@@ -29,7 +29,7 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.packetStateData.receivedVehicleMove = true;
+            player.packetStateData.receivedSteerVehicle = false;
 
             player.timerCheck.processMovementPacket();
             Vector3d pos = move.getPosition();
