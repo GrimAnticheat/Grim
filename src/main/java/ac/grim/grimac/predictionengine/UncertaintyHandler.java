@@ -167,7 +167,7 @@ public class UncertaintyHandler {
             return 1;
 
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingNearBubbleColumn)
-            return 0.15;
+            return 0.35;
 
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingOnBouncyBlock)
             return 0.1;
