@@ -178,7 +178,7 @@ public class UncertaintyHandler {
         if (!controlsVerticalMovement() || data.hasVectorType(VectorData.VectorType.Jump))
             return 0;
 
-        return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+        return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.09 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
     }
 
     public boolean controlsVerticalMovement() {
