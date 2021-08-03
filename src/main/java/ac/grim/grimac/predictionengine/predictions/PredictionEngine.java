@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -31,6 +32,9 @@ public class PredictionEngine {
 
         if (player.couldSkipTick) {
             Set<VectorData> zeroStuff = new HashSet<>();
+            // Allow the player's Y velocity to be 0 if they are in water/lava (0.03 issue)
+            if (player.uncertaintyHandler.controlsVerticalMovement())
+                zeroStuff.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
             zeroStuff.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
             addJumpsToPossibilities(player, zeroStuff);
             possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, zeroStuff, speed));
