@@ -169,8 +169,13 @@ public class UncertaintyHandler {
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingNearBubbleColumn)
             return 0.35;
 
+        // Debug output when bouncing on a bed with 0.03-like movement
+        // [10:36:34 INFO]: [GrimAC] DefineOutside P: -1.3529602846240607E-4 -0.11397087614427903 -0.09891504315167055
+        // [10:36:34 INFO]: [GrimAC] DefineOutside A: -1.3529602846240607E-4 -0.11397087614427903 -0.09891504315167055
+        // [10:36:34 INFO]: [GrimAC] DefineOutside P: -6.764801675096521E-4 0.15 0.007984975003338945
+        // [10:36:34 INFO]: [GrimAC] DefineOutside A: -6.764801675096521E-4 0.2542683097376681 0.007984975003338945
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingOnBouncyBlock)
-            return 0.1;
+            return 0.28;
 
         // I don't understand this either.  0.03 in lava just really sucks.
         if (wasLastGravityUncertain && player.wasTouchingLava)
