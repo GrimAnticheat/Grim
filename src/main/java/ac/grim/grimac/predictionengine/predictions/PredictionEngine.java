@@ -162,7 +162,6 @@ public class PredictionEngine {
         Set<VectorData> velocities = player.getPossibleVelocities();
 
         addExplosionRiptideToPossibilities(player, velocities);
-        addJumpsToPossibilities(player, velocities);
 
         Set<VectorData> velocitiesToReturn = new HashSet<>(velocities);
 
@@ -171,6 +170,8 @@ public class PredictionEngine {
                 velocitiesToReturn.add(data.setVector(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
             }
         }
+
+        addJumpsToPossibilities(player, velocitiesToReturn);
 
         return velocitiesToReturn;
     }
