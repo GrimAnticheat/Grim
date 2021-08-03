@@ -219,7 +219,7 @@ public class PredictionEngine {
             if (player.isFlying)
                 speed -= speed / 2;
             else
-                speed -= speed * 0.3F;
+                speed /= 1.3f;
             loopVectors(player, possibleVectors, speed, returnVectors);
             player.isSprinting = true;
         }
