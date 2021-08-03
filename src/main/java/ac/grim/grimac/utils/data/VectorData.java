@@ -80,7 +80,8 @@ public class VectorData {
         Trident,
         SlimePistonBounce,
         Entity_Pushing,
-        ZeroPointZeroThree
+        ZeroPointZeroThree,
+        AttackSlow
     }
 
     @Override

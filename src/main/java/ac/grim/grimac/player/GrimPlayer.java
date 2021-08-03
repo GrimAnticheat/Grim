@@ -55,7 +55,6 @@ public class GrimPlayer {
     public final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
     // Sync this to the netty thread because when spamming transactions, they can get out of order... somehow
     public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
-    private ClientVersion clientVersion;
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public Vector clientVelocity = new Vector();
@@ -162,7 +161,6 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
-    private AtomicInteger transactionIDCounter = new AtomicInteger(0);
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
     // For timer checks and fireworks
@@ -184,7 +182,11 @@ public class GrimPlayer {
     public float horseJump = 0;
     public boolean horseJumping = false;
     public boolean tryingToRiptide = false;
+    public int minPlayerAttackSlow = 0;
+    public int maxPlayerAttackSlow = 0;
     PacketTracker packetTracker;
+    private ClientVersion clientVersion;
+    private AtomicInteger transactionIDCounter = new AtomicInteger(0);
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
 
@@ -284,6 +286,12 @@ public class GrimPlayer {
                 } else if (direction.getModZ() != 0) {
                     possibleMovements.add(data.setVector(data.vector.clone().setZ(direction.getModZ()), VectorData.VectorType.SlimePistonBounce));
                 }
+            }
+        }
+
+        for (int x = Math.max(1, minPlayerAttackSlow); x <= maxPlayerAttackSlow; x++) {
+            for (VectorData data : new HashSet<>(possibleMovements)) {
+                possibleMovements.add(data.setVector(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
             }
         }
 
