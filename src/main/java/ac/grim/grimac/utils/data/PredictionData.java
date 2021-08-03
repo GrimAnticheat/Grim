@@ -37,6 +37,9 @@ public class PredictionData {
     public int itemHeld;
     public float horseJump = 0;
 
+    public int minPlayerAttackSlow = 0;
+    public int maxPlayerAttackSlow = 0;
+
     public boolean isDummy = false;
     public boolean didGroundStatusChangeWithoutPositionPacket = false;
 
@@ -83,6 +86,11 @@ public class PredictionData {
 
         didGroundStatusChangeWithoutPositionPacket = player.packetStateData.didGroundStatusChangeWithoutPositionPacket;
         player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;
+
+        minPlayerAttackSlow = player.packetStateData.minPlayerAttackSlow;
+        player.packetStateData.minPlayerAttackSlow = 0;
+        maxPlayerAttackSlow = player.packetStateData.maxPlayerAttackSlow;
+        player.packetStateData.maxPlayerAttackSlow = 0;
     }
 
     // For riding entity movement while in control
@@ -128,6 +136,9 @@ public class PredictionData {
         player.packetStateData.tryingToRiptide = false;
 
         player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;
+
+        player.packetStateData.minPlayerAttackSlow = 0;
+        player.packetStateData.maxPlayerAttackSlow = 0;
     }
 
     public PredictionData(GrimPlayer player) {
@@ -152,7 +163,7 @@ public class PredictionData {
 
         player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;
 
-        // Stop memory leaks
-        player.compensatedPotions.handleTransactionPacket(player.packetStateData.packetLastTransactionReceived.get());
+        player.packetStateData.minPlayerAttackSlow = 0;
+        player.packetStateData.maxPlayerAttackSlow = 0;
     }
 }

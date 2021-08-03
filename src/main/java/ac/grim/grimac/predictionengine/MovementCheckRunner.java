@@ -234,6 +234,9 @@ public class MovementCheckRunner {
         player.firstBreadExplosion = data.firstBreadExplosion;
         player.knownExplosion = data.possibleExplosion;
 
+        player.minPlayerAttackSlow = data.minPlayerAttackSlow;
+        player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
+
         player.lastVehicleSwitch++;
         if (player.lastVehicle != player.playerVehicle) {
             if (player.playerVehicle == null) {

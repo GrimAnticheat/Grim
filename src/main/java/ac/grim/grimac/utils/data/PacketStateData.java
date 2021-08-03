@@ -29,4 +29,6 @@ public class PacketStateData {
     public boolean didGroundStatusChangeWithoutPositionPacket = false;
     // This works on 1.8 only
     public boolean didLastMovementIncludePosition = false;
+    public int minPlayerAttackSlow = 0;
+    public int maxPlayerAttackSlow = 0;
 }
