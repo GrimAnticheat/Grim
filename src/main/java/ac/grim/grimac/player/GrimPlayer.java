@@ -289,12 +289,6 @@ public class GrimPlayer {
             }
         }
 
-        for (int x = Math.max(1, minPlayerAttackSlow); x <= maxPlayerAttackSlow; x++) {
-            for (VectorData data : new HashSet<>(possibleMovements)) {
-                possibleMovements.add(data.setVector(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
-            }
-        }
-
         return possibleMovements;
     }
 

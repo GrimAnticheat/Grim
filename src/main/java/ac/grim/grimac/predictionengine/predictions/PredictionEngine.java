@@ -164,7 +164,15 @@ public class PredictionEngine {
         addExplosionRiptideToPossibilities(player, velocities);
         addJumpsToPossibilities(player, velocities);
 
-        return velocities;
+        Set<VectorData> velocitiesToReturn = new HashSet<>(velocities);
+
+        for (int x = 1; x <= player.maxPlayerAttackSlow; x++) {
+            for (VectorData data : new HashSet<>(velocitiesToReturn)) {
+                velocitiesToReturn.add(data.setVector(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
+            }
+        }
+
+        return velocitiesToReturn;
     }
 
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
