@@ -25,7 +25,7 @@ public class VectorData {
     }
 
     public boolean hasVectorType(VectorType type) {
-        VectorData last = lastVector;
+        VectorData last = this;
 
         while (last != null) {
             if (last.vectorType == type)

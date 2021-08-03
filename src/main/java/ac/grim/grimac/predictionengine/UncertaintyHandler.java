@@ -56,6 +56,7 @@ public class UncertaintyHandler {
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
     public boolean isSteppingOnBouncyBlock = false;
+    public boolean isSteppingNearBubbleColumn = false;
     public boolean stuckOnEdge = false;
     public boolean nextTickScaffoldingOnEdge = false;
     public boolean scaffoldingOnEdge = false;
@@ -165,7 +166,10 @@ public class UncertaintyHandler {
         if (Collections.max(hardCollidingLerpingEntity))
             return 1;
 
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingNearBubbleColumn)
+            return 0.15;
+
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingOnBouncyBlock)
             return 0.1;
 
         // I don't understand this either.  0.03 in lava just really sucks.
