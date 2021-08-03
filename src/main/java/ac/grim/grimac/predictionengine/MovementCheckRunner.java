@@ -50,6 +50,8 @@ import java.util.concurrent.*;
 public class MovementCheckRunner {
     private static final Material CARROT_ON_A_STICK = XMaterial.CARROT_ON_A_STICK.parseMaterial();
     private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
+    private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
+
     public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
     public static CustomThreadPoolExecutor executor =
             new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
@@ -367,6 +369,7 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
+        player.uncertaintyHandler.isSteppingNearBubbleColumn = Collisions.onMaterial(player, BUBBLE_COLUMN);
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
 
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = false;
