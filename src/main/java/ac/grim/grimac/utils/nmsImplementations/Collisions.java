@@ -382,10 +382,10 @@ public class Collisions {
     // so I can automatically map honey -> slime and other important ViaVersion replacement blocks
     public static boolean hasSlimeBlock(GrimPlayer player) {
         return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
-                && (onMaterial(player, SLIME_BLOCK) ||
+                && (onMaterial(player, SLIME_BLOCK, -0.04) ||
                 (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
-                        && onMaterial(player, HONEY_BLOCK)));
+                        && onMaterial(player, HONEY_BLOCK, -0.04)));
     }
 
     public static boolean onMaterialType(GrimPlayer player, int material) {
@@ -404,8 +404,8 @@ public class Collisions {
         return false;
     }
 
-    public static boolean onMaterial(GrimPlayer player, Material material) {
-        SimpleCollisionBox playerBB = player.boundingBox.copy().offset(0, -0.04, 0);
+    public static boolean onMaterial(GrimPlayer player, Material material, double offset) {
+        SimpleCollisionBox playerBB = player.boundingBox.copy().offset(0, -1, 0);
 
         // Blocks are stored in YZX order
         for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {

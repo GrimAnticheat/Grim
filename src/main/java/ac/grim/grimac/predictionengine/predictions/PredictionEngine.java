@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -90,7 +89,7 @@ public class PredictionEngine {
 
             // Scaffolding bug occurred
             // This is an extension of the sneaking bug
-            if (player.isSneaking && primaryPushMovement.getY() < 0 && backOff.getX() == 0 && backOff.getZ() == 0 && Collisions.onMaterial(player, SCAFFOLDING)) {
+            if (player.isSneaking && primaryPushMovement.getY() < 0 && backOff.getX() == 0 && backOff.getZ() == 0 && Collisions.onMaterial(player, SCAFFOLDING, -0.04)) {
                 player.uncertaintyHandler.nextTickScaffoldingOnEdge = true;
             }
 
