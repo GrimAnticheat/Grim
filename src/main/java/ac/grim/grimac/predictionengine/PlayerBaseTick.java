@@ -54,7 +54,8 @@ public class PlayerBaseTick {
         // This code is in the wrong place, I'll fix it later
 
         player.isCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
-                && (player.wasSneaking || player.bukkitPlayer.isSleeping() || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
+                && ((player.isCrouching || player.getClientVersion().isNewerThan(ClientVersion.v_1_14_4) ? player.wasSneaking : player.isSneaking)
+                || player.bukkitPlayer.isSleeping() || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
                 : player.isSneaking; // Sneaking on 1.7-1.13 is just the status the player sends us.  Nothing complicated.
         player.isSlowMovement = player.isCrouching || (player.pose == Pose.SWIMMING && !player.wasTouchingWater);
 
