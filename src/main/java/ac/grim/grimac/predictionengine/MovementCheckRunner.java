@@ -90,7 +90,7 @@ public class MovementCheckRunner {
                 continue;
             } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
                 data.player.teleports.poll();
-                Bukkit.broadcastMessage(ChatColor.RED + data.player.bukkitPlayer.getName() + " ignored teleport!");
+                Bukkit.broadcastMessage(ChatColor.RED + data.player.bukkitPlayer.getName() + " ignored teleport! " + position);
                 continue;
             }
 

@@ -12,7 +12,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPac
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 
 public class PacketPositionListener extends PacketListenerAbstract {
 
@@ -52,8 +51,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround());
             MovementCheckRunner.checkTeleportQueue(data);
 
+            // 1.17 clients can send a position look packet while in a vehicle when using an item because mojang
             if (player.packetStateData.vehicle != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) {
-                Bukkit.broadcastMessage("In a vehicle!");
                 return;
             }
 
