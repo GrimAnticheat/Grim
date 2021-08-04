@@ -232,10 +232,6 @@ public class MovementCheckRunner {
         player.isUsingItem = tempUsingItem;
         player.lastHand = data.usingHand;
 
-        player.lastVehicle = player.playerVehicle;
-        player.playerVehicle = data.playerVehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
-        player.inVehicle = player.playerVehicle != null;
-
         player.tryingToRiptide = data.isTryingToRiptide;
 
         player.firstBreadKB = data.firstBreadKB;
@@ -261,6 +257,11 @@ public class MovementCheckRunner {
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedEntities.tickUpdates(data.lastTransaction, data.isDummy);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
+
+        // Tick player vehicle after we update the packet entity state
+        player.lastVehicle = player.playerVehicle;
+        player.playerVehicle = player.packetStateData.vehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
+        player.inVehicle = player.playerVehicle != null;
 
         if (data.isDummy != player.lastDummy) {
             player.lastVehicleSwitch = 0;
