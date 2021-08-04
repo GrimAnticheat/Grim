@@ -263,6 +263,8 @@ public class PredictionEngine {
             // Rare case where better to force resync the client than it is to allow bypasses
             //
             // Yes, fucking mojang - They will fix their netcode when pigs fly.
+            // Okay, pigs are flying because of your netcode Mojang, fix it.
+            //
             // Reproduce by having high ping, stepping upwards continually,
             // and going off a cliff switching between carrot on a stick and an empty hand
             //

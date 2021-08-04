@@ -8,6 +8,7 @@ import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.position.WrappedPacketOutPosition;
 import io.github.retrooper.packetevents.utils.pair.Pair;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 public class PacketPlayerTeleport extends PacketListenerAbstract {
@@ -59,6 +60,11 @@ public class PacketPlayerTeleport extends PacketListenerAbstract {
             teleport.setRelativeFlagsMask((byte) 0);
 
             final int lastTransactionSent = player.lastTransactionSent.get();
+
+            // For some reason teleports on 1.7 servers are offset by 1.62?
+            if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_8))
+                pos.setY(pos.getY() - 1.62);
+
             Vector3d finalPos = pos;
 
             event.setPostTask(player::sendAndFlushTransactionOrPingPong);
