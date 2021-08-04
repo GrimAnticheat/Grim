@@ -189,6 +189,7 @@ public class GrimPlayer {
     private AtomicInteger transactionIDCounter = new AtomicInteger(0);
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
+    public long lastCheck = System.currentTimeMillis();
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
