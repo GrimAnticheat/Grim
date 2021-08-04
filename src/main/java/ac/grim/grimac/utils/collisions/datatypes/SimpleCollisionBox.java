@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.utils.nmsImplementations.Ray;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -25,6 +26,10 @@ public class SimpleCollisionBox implements CollisionBox {
         isFullBlock = fullBlock;
     }
 
+    public SimpleCollisionBox(Vector min, Vector max) {
+        this(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
+    }
+
     // Use only if you don't know the fullBlock status, which is rare
     public SimpleCollisionBox(double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         this.minX = minX;
@@ -36,7 +41,7 @@ public class SimpleCollisionBox implements CollisionBox {
         if (minX == 0 && minY == 0 && minZ == 0 && maxX == 1 && maxY == 1 && maxZ == 1) isFullBlock = true;
     }
 
-    public SimpleCollisionBox(Vector min, Vector max) {
+    public SimpleCollisionBox(Vector3d min, Vector3d max) {
         this(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
     }
 
@@ -102,12 +107,8 @@ public class SimpleCollisionBox implements CollisionBox {
         return vectors;
     }
 
-    public Vector min() {
-        return new Vector(minX, minY, minZ);
-    }
-
-    public Vector max() {
-        return new Vector(maxX, maxY, maxZ);
+    public SimpleCollisionBox expandToAbsoluteCoordinates(double x, double y, double z) {
+        return expandToCoordinate(x - ((minX + maxX) / 2), y - ((minY + maxY) / 2), z - ((minZ + maxZ) / 2));
     }
 
     public SimpleCollisionBox expandToCoordinate(double x, double y, double z) {
@@ -333,6 +334,14 @@ public class SimpleCollisionBox implements CollisionBox {
             return ray.getPointAtDistance(tmin);
         }
         return null;
+    }
+
+    public Vector max() {
+        return new Vector(maxX, maxY, maxZ);
+    }
+
+    public Vector min() {
+        return new Vector(minX, minY, minZ);
     }
 
     @Override

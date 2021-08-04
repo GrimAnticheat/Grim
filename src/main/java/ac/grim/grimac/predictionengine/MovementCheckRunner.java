@@ -175,7 +175,7 @@ public class MovementCheckRunner {
                     int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
                     player.compensatedWorld.tickUpdates(lastTransaction);
                     player.compensatedWorld.tickPlayerUpdates(lastTransaction);
-                    player.compensatedEntities.tickUpdates(lastTransaction);
+                    player.compensatedEntities.tickUpdates(lastTransaction, false);
                     player.compensatedFlying.canFlyLagCompensated(lastTransaction);
                     player.compensatedFireworks.getMaxFireworksAppliedPossible();
                     player.compensatedRiptide.getCanRiptide();
@@ -261,7 +261,7 @@ public class MovementCheckRunner {
         }
 
         player.compensatedWorld.tickUpdates(data.lastTransaction);
-        player.compensatedEntities.tickUpdates(data.lastTransaction);
+        player.compensatedEntities.tickUpdates(data.lastTransaction, data.isDummy);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
 
         if (data.isDummy != player.lastDummy) {
@@ -289,6 +289,10 @@ public class MovementCheckRunner {
 
                 return;
             }
+
+            // When in control of the entity, the player sets the entity position to their current position
+            player.playerVehicle.lastTickPosition = player.playerVehicle.position;
+            player.playerVehicle.position = new Vector3d(player.x, player.y, player.z);
 
             ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
             if (player.playerVehicle instanceof PacketEntityRideable) {
@@ -502,13 +506,6 @@ public class MovementCheckRunner {
             color = ChatColor.RED;
         }
 
-        if (player.lastVehicleSwitch < 3) {
-            color = ChatColor.GRAY;
-            offset = 0;
-
-            // TODO: Vehicles are extremely glitchy, so we have to force resync the player's position here.
-        }
-
         // Vanilla can desync with riptide status
         // This happens because of the < 0.03 thing
         // It also happens at random, especially when close to exiting water (because minecraft netcode sucks)
@@ -528,6 +525,12 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
 
         player.isFirstTick = false;
+
+        if (player.playerVehicle instanceof PacketEntityRideable) {
+            PacketEntityRideable rideable = (PacketEntityRideable) player.playerVehicle;
+            rideable.entityPositions.clear();
+            rideable.entityPositions.add(rideable.position);
+        }
 
         player.lastX = player.x;
         player.lastY = player.y;
