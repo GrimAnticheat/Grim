@@ -188,7 +188,6 @@ public class GrimPlayer {
     private ClientVersion clientVersion;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
-    public long lastCheck = System.currentTimeMillis();
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
