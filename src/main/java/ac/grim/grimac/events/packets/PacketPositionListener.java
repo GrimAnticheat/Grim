@@ -72,7 +72,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Integer playerVehicle = player.packetStateData.vehicle;
             // This is a dummy packet when in a vehicle
-            if (playerVehicle != null && player.compensatedEntities.entityMap.containsKey((int) playerVehicle)) {
+            // The player vehicle status is sync'd to the netty thread, therefore pull from bukkit to avoid excess work
+            if (player.bukkitPlayer.isInsideVehicle() || (playerVehicle != null && player.compensatedEntities.entityMap.containsKey((int) playerVehicle))) {
                 return;
             }
 
