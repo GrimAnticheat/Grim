@@ -113,10 +113,8 @@ public class GrimPlayer {
     public boolean inVehicle;
     public PacketEntity playerVehicle;
     public PacketEntity lastVehicle;
-    public PacketEntity lastVehiclePersistent = null;
     public int lastVehicleSwitch = 1000;
     public boolean lastDummy = false;
-    public boolean isCheckNotReady = false;
     public float vehicleHorizontal = 0f;
     public float vehicleForward = 0f;
     public BoatData boatData = new BoatData();
@@ -161,6 +159,7 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
+    private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
     // For timer checks and fireworks
@@ -186,7 +185,6 @@ public class GrimPlayer {
     public int maxPlayerAttackSlow = 0;
     PacketTracker packetTracker;
     private ClientVersion clientVersion;
-    private AtomicInteger transactionIDCounter = new AtomicInteger(0);
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
     public long lastCheck = System.currentTimeMillis();

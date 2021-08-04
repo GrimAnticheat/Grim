@@ -17,7 +17,7 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
     public void runCheck(PredictionData data) {
         long startTime = System.nanoTime();
         CompletableFuture.runAsync(() -> MovementCheckRunner.check(data), this).whenComplete((s, t) -> {
-            if (!data.player.isCheckNotReady) {
+            if (!data.isCheckNotReady) {
                 long timeTaken = System.nanoTime() - startTime;
                 computeTimes.add(timeTaken);
                 //Bukkit.broadcastMessage("Time taken " + (timeTaken + " " + GrimMathHelper.calculateAverageLong(computeTimes)));
@@ -26,7 +26,7 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
                 t.printStackTrace();
             }
 
-            if (!data.player.isCheckNotReady) {
+            if (!data.isCheckNotReady) {
                 queueNext(data.player);
             } else {
                 MovementCheckRunner.waitingOnServerQueue.add(data);
