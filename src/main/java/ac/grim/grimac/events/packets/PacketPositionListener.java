@@ -12,6 +12,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPac
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
 
 public class PacketPositionListener extends PacketListenerAbstract {
 
@@ -32,7 +33,10 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.reach.handleMovement(player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
             player.packetStateData.didLastMovementIncludePosition = true;
 
-            if (MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround())))
+            PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround());
+            MovementCheckRunner.checkVehicleTeleportQueue(data);
+
+            if (MovementCheckRunner.processAndCheckMovementPacket(data))
                 player.timerCheck.processMovementPacket();
         }
 
@@ -45,10 +49,15 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.reach.handleMovement(position.getYaw(), position.getPitch());
             player.packetStateData.didLastMovementIncludePosition = true;
 
-            if (player.packetStateData.vehicle != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17))
-                return;
+            PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround());
+            MovementCheckRunner.checkTeleportQueue(data);
 
-            if (MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround())))
+            if (player.packetStateData.vehicle != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) {
+                Bukkit.broadcastMessage("In a vehicle!");
+                return;
+            }
+
+            if (MovementCheckRunner.processAndCheckMovementPacket(data))
                 player.timerCheck.processMovementPacket();
         }
 
