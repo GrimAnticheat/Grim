@@ -10,6 +10,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.W
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3f;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 public class PacketPlayerVelocity extends PacketListenerAbstract {
@@ -31,17 +32,22 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
 
             // If the player isn't in a vehicle and the ID is for the player, the player will take kb
             // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
-            if ((player.packetStateData.vehicle == null && entityId == player.entityID) || (player.packetStateData.vehicle != null && player.packetStateData.vehicle == entityId)) {
-                Vector3d playerVelocity = velocity.getVelocity();
+            Vector3d playerVelocity = velocity.getVelocity();
 
-                int reservedID = player.getNextTransactionID(2);
-                short breadOne = (short) reservedID;
-                short breadTwo = (short) (reservedID - 1);
+            int reservedID = player.getNextTransactionID(2);
+            short breadOne = (short) reservedID;
+            short breadTwo = (short) (reservedID - 1);
 
+            Entity vehicle = player.bukkitPlayer.getVehicle();
+            if (entityId == player.entityID || (vehicle != null && vehicle.getEntityId() == entityId)) {
                 // Wrap velocity between two transactions
                 player.sendTransactionOrPingPong(breadOne, false);
                 player.knockbackHandler.addPlayerKnockback(breadOne, new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
                 event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
+            } else {
+                // This packet is useless
+                // Also prevents a knockback false positive when quickly switching vehicles
+                event.setCancelled(true);
             }
         }
 
@@ -54,7 +60,7 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
                 GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
                 if (player == null) return;
                 // No matter what, the player cannot take explosion vector in a vehicle
-                if (player.packetStateData.vehicle != null) return;
+                if (player.vehicle != null) return;
 
                 int reservedID = player.getNextTransactionID(2);
                 short breadOne = (short) reservedID;

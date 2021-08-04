@@ -58,7 +58,7 @@ public class MovementCheckRunner {
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
-    public static void checkTeleportQueue(PredictionData data) {
+    public static boolean checkTeleportQueue(PredictionData data) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         while (true) {
@@ -85,9 +85,9 @@ public class MovementCheckRunner {
                     data.player.timerCheck.exempt = 150; // Exempt for 7.5 seconds on teleport
 
                 // Teleports remove the player from their vehicle
-                data.player.packetStateData.vehicle = null;
+                data.player.vehicle = null;
 
-                continue;
+                return true;
             } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
                 data.player.teleports.poll();
                 Bukkit.broadcastMessage(ChatColor.RED + data.player.bukkitPlayer.getName() + " ignored teleport! " + position);
@@ -96,6 +96,8 @@ public class MovementCheckRunner {
 
             break;
         }
+
+        return false;
     }
 
     public static void checkVehicleTeleportQueue(PredictionData data) {
@@ -104,11 +106,6 @@ public class MovementCheckRunner {
             Pair<Integer, Vector3d> teleportPos = data.player.vehicleTeleports.peek();
             if (teleportPos == null) break;
             if (data.lastTransaction < teleportPos.getFirst()) {
-                break;
-            }
-
-            if (data.playerVehicle == null) {
-                data.player.vehicleTeleports.poll();
                 break;
             }
 
@@ -145,7 +142,7 @@ public class MovementCheckRunner {
 
         // Filter out reminder packet for performance and consistency between client versions
         // Filter out 1.17 sending multiple identical move packets because Mojang makes great decisions!
-        if (!data.player.inVehicle && data.player.packetStateData.packetPlayerX == data.playerX &&
+        if (!data.inVehicle && data.player.packetStateData.packetPlayerX == data.playerX &&
                 data.player.packetStateData.packetPlayerY == data.playerY &&
                 data.player.packetStateData.packetPlayerZ == data.playerZ
                 && !data.isJustTeleported) {
@@ -258,9 +255,13 @@ public class MovementCheckRunner {
         player.compensatedEntities.tickUpdates(data.lastTransaction, data.isDummy);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
 
+        // Player was teleported, so therefore they left their vehicle
+        if (!data.inVehicle && data.isJustTeleported)
+            player.playerVehicle = null;
+
         // Tick player vehicle after we update the packet entity state
         player.lastVehicle = player.playerVehicle;
-        player.playerVehicle = player.packetStateData.vehicle == null ? null : player.compensatedEntities.getEntity(data.playerVehicle);
+        player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
         player.inVehicle = player.playerVehicle != null;
 
         if (data.isDummy != player.lastDummy) {

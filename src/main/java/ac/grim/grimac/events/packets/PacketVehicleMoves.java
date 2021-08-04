@@ -36,7 +36,6 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
 
             player.timerCheck.processMovementPacket();
 
-            MovementCheckRunner.checkTeleportQueue(data);
             MovementCheckRunner.processAndCheckMovementPacket(data);
         }
     }
