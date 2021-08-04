@@ -202,6 +202,11 @@ public class MovementCheckRunner {
         player.compensatedEntities.tickUpdates(data.lastTransaction, data.isDummy);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
 
+        // If the check was for players moving in a vehicle, but after we just updated vehicles
+        // the player isn't in a vehicle, don't check.
+        if (data.inVehicle && player.vehicle == null)
+            return;
+
         // Player was teleported, so therefore they left their vehicle
         if (!data.inVehicle && data.isJustTeleported)
             player.playerVehicle = null;
@@ -227,6 +232,10 @@ public class MovementCheckRunner {
         player.lastVehicle = player.playerVehicle;
         player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
         player.inVehicle = player.playerVehicle != null;
+
+        if (player.playerVehicle != player.lastVehicle) {
+            data.isJustTeleported = true;
+        }
 
         if (!player.inVehicle)
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
