@@ -105,8 +105,11 @@ public class PacketPositionListener extends PacketListenerAbstract {
             if (player == null) return;
 
             // Multiple steer vehicles in a row, the player is not in control of their vehicle
-            if (player.packetStateData.receivedSteerVehicle) {
+            if (player.packetStateData.receivedSteerVehicle && player.packetStateData.vehicle != null) {
                 MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player));
+            } else {
+                // Try and get the player's vehicle to the queue
+                MovementCheckRunner.runTransactionQueue(player);
             }
 
             player.packetStateData.receivedSteerVehicle = true;

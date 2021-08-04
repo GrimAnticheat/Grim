@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import org.bukkit.World;
 
@@ -147,6 +148,13 @@ public class PredictionData {
         this.player = player;
         this.playerVehicle = player.packetStateData.vehicle;
         this.playerWorld = player.bukkitPlayer.getWorld();
+
+        PacketEntity vehicle = player.compensatedEntities.getEntity(playerVehicle);
+        if (vehicle == null) return;
+
+        playerX = vehicle.position.getX();
+        playerY = vehicle.position.getY();
+        playerZ = vehicle.position.getZ();
 
         firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
         requiredKB = player.knockbackHandler.getRequiredKB();
