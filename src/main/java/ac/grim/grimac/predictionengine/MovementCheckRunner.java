@@ -192,7 +192,8 @@ public class MovementCheckRunner {
     public static void check(PredictionData data) {
         GrimPlayer player = data.player;
 
-        if (player.isCheckNotReady = (data.minimumTickRequiredToContinue > GrimAC.getCurrentTick())) {
+        data.isCheckNotReady = data.minimumTickRequiredToContinue > GrimAC.getCurrentTick();
+        if (data.isCheckNotReady) {
             return;
         }
 
@@ -245,12 +246,6 @@ public class MovementCheckRunner {
 
         player.lastVehicleSwitch++;
         if (player.lastVehicle != player.playerVehicle) {
-            if (player.playerVehicle == null) {
-                player.lastVehiclePersistent = player.lastVehicle;
-            } else {
-                player.lastVehiclePersistent = player.playerVehicle;
-            }
-
             player.lastVehicleSwitch = 0;
         }
 

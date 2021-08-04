@@ -43,6 +43,8 @@ public class PredictionData {
     public boolean isDummy = false;
     public boolean didGroundStatusChangeWithoutPositionPacket = false;
 
+    public boolean isCheckNotReady;
+
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
         this.player = player;
