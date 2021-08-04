@@ -254,11 +254,11 @@ public class MovementTicker {
         boolean xAxisNegativeCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMin(-player.speed, 0, 0));
         boolean zAxisCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(-0.01, -0.01, player.speed));
 
-        if (zAxisCollision) {
-            if (xAxisPositiveCollision)
-                player.uncertaintyHandler.xNegativeUncertainty -= player.speed * 4;
-            if (xAxisNegativeCollision)
-                player.uncertaintyHandler.xPositiveUncertainty += player.speed * 4;
+        // Technically we should only give uncertainty on the axis of which this occurs
+        // Unfortunately, for some reason, riding entities break this.
+        if (zAxisCollision && (xAxisPositiveCollision || xAxisNegativeCollision)) {
+            player.uncertaintyHandler.xNegativeUncertainty -= player.speed * 4;
+            player.uncertaintyHandler.xPositiveUncertainty += player.speed * 4;
         }
     }
 
