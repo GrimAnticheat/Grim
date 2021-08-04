@@ -168,19 +168,23 @@ public class MovementCheckRunner {
             // If there are no tasks queue'd, it is safe to modify these variables
             //
             // Additionally, we don't want to, and it isn't needed, to update the world
-            if (player.tasksNotFinished.compareAndSet(0, 1)) {
-                int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
-                player.compensatedWorld.tickUpdates(lastTransaction);
-                player.compensatedWorld.tickPlayerUpdates(lastTransaction);
-                player.compensatedEntities.tickUpdates(lastTransaction);
-                player.compensatedFlying.canFlyLagCompensated(lastTransaction);
-                player.compensatedFireworks.getMaxFireworksAppliedPossible();
-                player.compensatedRiptide.getCanRiptide();
-                player.compensatedElytra.isGlidingLagCompensated(lastTransaction);
-                player.compensatedPotions.handleTransactionPacket(lastTransaction);
+            //
+            // Only run these updates if the player has been idle for more than a second
+            if (System.currentTimeMillis() - player.lastCheck > 1000) {
+                if (player.tasksNotFinished.compareAndSet(0, 1)) {
+                    int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
+                    player.compensatedWorld.tickUpdates(lastTransaction);
+                    player.compensatedWorld.tickPlayerUpdates(lastTransaction);
+                    player.compensatedEntities.tickUpdates(lastTransaction);
+                    player.compensatedFlying.canFlyLagCompensated(lastTransaction);
+                    player.compensatedFireworks.getMaxFireworksAppliedPossible();
+                    player.compensatedRiptide.getCanRiptide();
+                    player.compensatedElytra.isGlidingLagCompensated(lastTransaction);
+                    player.compensatedPotions.handleTransactionPacket(lastTransaction);
 
-                // As we incremented the tasks, we must now execute the next task, if there is one
-                executor.queueNext(player);
+                    // As we incremented the tasks, we must now execute the next task, if there is one
+                    executor.queueNext(player);
+                }
             }
         }, executor);
     }
@@ -218,6 +222,8 @@ public class MovementCheckRunner {
         if (data.usingHand != player.lastHand) {
             tempUsingItem = AlmostBoolean.MAYBE;
         }
+
+        player.lastCheck = System.currentTimeMillis();
 
         player.isUsingItem = tempUsingItem;
         player.lastHand = data.usingHand;
