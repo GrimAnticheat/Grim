@@ -141,7 +141,7 @@ public class UncertaintyHandler {
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
             pointThree = Math.max(pointThree, 0.1);
 
-        if (lastTeleportTicks > -3)
+        if (lastTeleportTicks > -3 || player.lastVehicleSwitch < 6)
             pointThree = Math.max(pointThree, 0.1);
 
         if (wasAffectedByStuckSpeed())

@@ -46,8 +46,7 @@ public class CompensatedEntities {
         this.player = player;
     }
 
-    public void tickUpdates(int lastTransactionReceived) {
-
+    public void tickUpdates(int lastTransactionReceived, boolean isDummy) {
         // Move entities + teleport (combined to prevent teleport + move position desync)
         while (true) {
             EntityMoveData moveEntity = moveEntityQueue.peek();
@@ -61,11 +60,19 @@ public class CompensatedEntities {
             // This is impossible without the server sending bad packets, but just to be safe...
             if (entity == null) continue;
 
-            entity.lastTickPosition = new Vector3d(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-            if (moveEntity.isRelative) {
-                entity.position = entity.position.add(new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z));
-            } else {
-                entity.position = new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z);
+            // If the player is accepting relative moves and teleports for this entity
+            // (They aren't in control of this entity)
+            if (isDummy || !(entity instanceof PacketEntityRideable)) {
+                entity.lastTickPosition = new Vector3d(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                if (moveEntity.isRelative) {
+                    entity.position = entity.position.add(new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z));
+                } else {
+                    entity.position = new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z);
+                }
+
+                if (entity instanceof PacketEntityRideable) {
+                    ((PacketEntityRideable) entity).entityPositions.add(entity.position);
+                }
             }
         }
 
