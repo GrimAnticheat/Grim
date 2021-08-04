@@ -58,7 +58,7 @@ public class MovementCheckRunner {
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
-    public static boolean processAndCheckMovementPacket(PredictionData data) {
+    public static void checkTeleportQueue(PredictionData data) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         while (true) {
@@ -84,6 +84,9 @@ public class MovementCheckRunner {
                 if (position.distanceSquared(new Vector3d(data.playerX, data.playerY, data.playerZ)) > 32 * 32)
                     data.player.timerCheck.exempt = 150; // Exempt for 7.5 seconds on teleport
 
+                // Teleports remove the player from their vehicle
+                data.player.packetStateData.vehicle = null;
+
                 continue;
             } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
                 data.player.teleports.poll();
@@ -93,7 +96,9 @@ public class MovementCheckRunner {
 
             break;
         }
+    }
 
+    public static void checkVehicleTeleportQueue(PredictionData data) {
         // Handle similar teleports for players in vehicles
         while (true) {
             Pair<Integer, Vector3d> teleportPos = data.player.vehicleTeleports.peek();
@@ -127,7 +132,9 @@ public class MovementCheckRunner {
 
             break;
         }
+    }
 
+    public static boolean processAndCheckMovementPacket(PredictionData data) {
         // Client sends junk onGround data when they teleport
         if (data.isJustTeleported)
             data.onGround = data.player.packetStateData.packetPlayerOnGround;

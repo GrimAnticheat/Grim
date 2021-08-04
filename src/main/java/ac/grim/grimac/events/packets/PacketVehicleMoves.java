@@ -30,10 +30,14 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             if (player == null) return;
 
             player.packetStateData.receivedSteerVehicle = false;
+            Vector3d pos = move.getPosition();
+
+            PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch());
 
             player.timerCheck.processMovementPacket();
-            Vector3d pos = move.getPosition();
-            MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch()));
+
+            MovementCheckRunner.checkTeleportQueue(data);
+            MovementCheckRunner.processAndCheckMovementPacket(data);
         }
     }
 
