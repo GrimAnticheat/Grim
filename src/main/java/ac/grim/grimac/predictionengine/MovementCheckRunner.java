@@ -290,11 +290,14 @@ public class MovementCheckRunner {
             player.playerVehicle.position = new Vector3d(player.x, player.y, player.z);
 
             ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
+            // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
+            ItemStack newMainHand = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             if (player.playerVehicle instanceof PacketEntityRideable) {
                 Material requiredItem = player.playerVehicle.type == EntityType.PIG ? CARROT_ON_A_STICK : WARPED_FUNGUS_ON_A_STICK;
                 if ((mainHand == null || mainHand.getType() != requiredItem) &&
                         (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)
-                                && player.bukkitPlayer.getInventory().getItemInOffHand().getType() != requiredItem)) {
+                                && player.bukkitPlayer.getInventory().getItemInOffHand().getType() != requiredItem) &&
+                        (newMainHand == null || newMainHand.getType() != requiredItem)) {
                     // TODO: Setback
                     Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity!");
                 }
