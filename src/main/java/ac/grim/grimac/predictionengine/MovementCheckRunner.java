@@ -389,6 +389,7 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
 
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = false;
+        player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
@@ -420,7 +421,7 @@ public class MovementCheckRunner {
                 player.depthStriderLevel = 0;
             }
 
-            if (player.canGroundRiptide = (player.lastOnGround && player.tryingToRiptide)) {
+            if (player.canGroundRiptide) {
                 double addedY = Math.min(player.actualMovement.getY(), 1.1999999F);
                 player.lastOnGround = false;
                 player.lastY += addedY;
