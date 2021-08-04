@@ -501,6 +501,11 @@ public class MovementCheckRunner {
             offset = Math.max(0, offset - 1);
         }
 
+        // Boats are too glitchy to check.
+        if (Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)) {
+            offset = Math.max(0, offset - 1);
+        }
+
         ChatColor color;
 
         if (offset <= 0) {

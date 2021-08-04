@@ -122,7 +122,6 @@ public class Collisions {
                 SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
                 if (box.isIntersected(expandedBB)) {
                     listOfBlocks.add(box);
-                    player.uncertaintyHandler.collidingWithBoat = true;
                 }
             }
 
@@ -130,7 +129,6 @@ public class Collisions {
                 SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
                 if (box.isIntersected(expandedBB)) {
                     listOfBlocks.add(box);
-                    player.uncertaintyHandler.collidingWithShulker = true;
                 }
             }
         }
