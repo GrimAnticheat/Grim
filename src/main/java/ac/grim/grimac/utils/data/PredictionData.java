@@ -73,7 +73,6 @@ public class PredictionData {
         this.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
 
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
-        this.playerVehicle = player.packetStateData.vehicle;
 
         firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
         requiredKB = player.knockbackHandler.getRequiredKB();
