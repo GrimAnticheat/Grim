@@ -21,7 +21,6 @@ public class PacketStateData {
     public int lastSlotSelected;
     public Hand eatingHand = Hand.MAIN_HAND;
     public AlmostBoolean slowedByUsingItem = AlmostBoolean.FALSE;
-    public Integer vehicle = null;
     public boolean receivedSteerVehicle = false;
     public int horseJump = 0;
     public boolean tryingToRiptide = false;

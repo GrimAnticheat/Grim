@@ -169,8 +169,8 @@ public class CompensatedEntities {
             }
 
             // Handle the player itself mounting and unmounting a vehicle
-            if (player.packetStateData.vehicle != null && player.packetStateData.vehicle == mountVehicle.vehicleID)
-                player.packetStateData.vehicle = null;
+            if (player.vehicle != null && player.vehicle == mountVehicle.vehicleID)
+                player.vehicle = null;
 
             if (mountVehicle.passengers != null) {
                 for (int entityID : mountVehicle.passengers) {
@@ -179,7 +179,7 @@ public class CompensatedEntities {
                     // Player is removed from the old entity
                     // Without the second check the player wouldn't be riding anything
                     if (player.entityID == entityID) {
-                        player.packetStateData.vehicle = mountVehicle.vehicleID;
+                        player.vehicle = mountVehicle.vehicleID;
                         break;
                     }
                 }
@@ -196,13 +196,13 @@ public class CompensatedEntities {
             if (spawnEntity.left() >= lastTransactionReceived) break;
             destroyEntityQueue.poll();
 
-            Integer playerVehicle = player.packetStateData.vehicle;
+            Integer playerVehicle = player.vehicle;
             for (int entityID : spawnEntity.right()) {
                 entityMap.remove(entityID);
                 player.compensatedPotions.removeEntity(entityID);
                 player.reach.removeEntity(entityID);
                 if (playerVehicle != null && playerVehicle == entityID)
-                    player.packetStateData.vehicle = null;
+                    player.vehicle = null;
             }
         }
 

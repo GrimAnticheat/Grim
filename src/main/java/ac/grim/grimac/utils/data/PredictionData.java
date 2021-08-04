@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import org.bukkit.World;
 
@@ -25,7 +24,6 @@ public class PredictionData {
     public int slowFallingAmplifier = 0;
     public int dolphinsGraceAmplifier = 0;
     public float flySpeed;
-    public Integer playerVehicle;
     public float vehicleHorizontal;
     public float vehicleForward;
     public boolean isJustTeleported = false;
@@ -37,6 +35,7 @@ public class PredictionData {
     public int lastTransaction;
     public int itemHeld;
     public float horseJump = 0;
+    public boolean inVehicle = false;
 
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
@@ -106,7 +105,6 @@ public class PredictionData {
         this.onGround = true;
         this.isSprinting = false;
         this.isSneaking = false;
-        this.playerVehicle = player.packetStateData.vehicle;
         this.vehicleForward = player.packetStateData.packetVehicleForward;
         this.vehicleHorizontal = player.packetStateData.packetVehicleHorizontal;
 
@@ -134,6 +132,8 @@ public class PredictionData {
             }
         }
 
+        inVehicle = true;
+
         player.packetStateData.horseJump = 0;
         player.packetStateData.tryingToRiptide = false;
 
@@ -145,15 +145,7 @@ public class PredictionData {
 
     public PredictionData(GrimPlayer player) {
         this.player = player;
-        this.playerVehicle = player.packetStateData.vehicle;
         this.playerWorld = player.bukkitPlayer.getWorld();
-
-        PacketEntity vehicle = player.compensatedEntities.getEntity(playerVehicle);
-        if (vehicle == null) return;
-
-        playerX = vehicle.position.getX();
-        playerY = vehicle.position.getY();
-        playerZ = vehicle.position.getZ();
 
         firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
         requiredKB = player.knockbackHandler.getRequiredKB();
@@ -166,6 +158,7 @@ public class PredictionData {
 
         itemHeld = player.packetStateData.lastSlotSelected;
 
+        inVehicle = true;
         isDummy = true;
         player.packetStateData.horseJump = 0;
         player.packetStateData.tryingToRiptide = false;

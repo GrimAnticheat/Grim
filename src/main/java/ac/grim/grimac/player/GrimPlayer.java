@@ -111,6 +111,7 @@ public class GrimPlayer {
     public float depthStriderLevel;
     public float flySpeed;
     public boolean inVehicle;
+    public Integer vehicle = null;
     public PacketEntity playerVehicle;
     public PacketEntity lastVehicle;
     public int lastVehicleSwitch = 1000;

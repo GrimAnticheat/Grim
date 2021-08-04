@@ -49,10 +49,12 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.packetStateData.didLastMovementIncludePosition = true;
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround());
-            MovementCheckRunner.checkTeleportQueue(data);
+            boolean wasTeleported = MovementCheckRunner.checkTeleportQueue(data);
 
             // 1.17 clients can send a position look packet while in a vehicle when using an item because mojang
-            if (player.packetStateData.vehicle != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) {
+            // Teleports can override this behavior
+            if (!wasTeleported && ((player.bukkitPlayer.isInsideVehicle() || player.vehicle != null)
+                    && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17))) {
                 return;
             }
 
@@ -70,10 +72,9 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.packetStateData.packetPlayerXRot = position.getYaw();
             player.packetStateData.packetPlayerYRot = position.getPitch();
 
-            Integer playerVehicle = player.packetStateData.vehicle;
             // This is a dummy packet when in a vehicle
             // The player vehicle status is sync'd to the netty thread, therefore pull from bukkit to avoid excess work
-            if (player.bukkitPlayer.isInsideVehicle() || (playerVehicle != null && player.compensatedEntities.entityMap.containsKey((int) playerVehicle))) {
+            if (player.bukkitPlayer.isInsideVehicle() || player.vehicle != null) {
                 return;
             }
 
@@ -106,7 +107,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             if (player == null) return;
 
             // Multiple steer vehicles in a row, the player is not in control of their vehicle
-            if (player.packetStateData.receivedSteerVehicle && player.packetStateData.vehicle != null) {
+            if (player.packetStateData.receivedSteerVehicle && player.vehicle != null) {
                 MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player));
             } else {
                 // Try and get the player's vehicle to the queue

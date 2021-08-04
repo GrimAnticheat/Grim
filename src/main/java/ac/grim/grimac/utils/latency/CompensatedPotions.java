@@ -25,10 +25,10 @@ public class CompensatedPotions {
 
     public int getPotionLevel(String type) {
         ConcurrentHashMap<String, Integer> effects;
-        if (player.packetStateData.vehicle == null) {
+        if (player.vehicle == null) {
             effects = potionsMap.get(player.entityID);
         } else {
-            effects = potionsMap.get(player.packetStateData.vehicle);
+            effects = potionsMap.get(player.vehicle);
         }
 
         if (effects == null)
