@@ -13,6 +13,7 @@ import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitydestroy.WrappedPacketOutEntityDestroy;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityeffect.WrappedPacketOutEntityEffect;
@@ -26,6 +27,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentity.Wrap
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.packetwrappers.play.out.updateattributes.WrappedPacketOutUpdateAttributes;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
 import it.unimi.dsi.fastutil.Pair;
@@ -206,23 +208,24 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             int vehicleID = mount.getEntityId();
             int[] passengers = mount.getPassengerIds();
 
-            if (player.packetStateData.vehicle != null && player.packetStateData.vehicle == vehicleID)
-                player.packetStateData.vehicle = null;
-
-            if (passengers != null) {
-                for (int entityID : passengers) {
-                    // Handle scenario transferring from entity to entity with the following packet order:
-                    // Player boards the new entity and a packet is sent for that
-                    // Player is removed from the old entity
-                    // Without the second check the player wouldn't be riding anything
-                    if (player.entityID == entityID) {
-                        player.packetStateData.vehicle = vehicleID;
-                        break;
-                    }
-                }
-            }
-
             player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(vehicleID, passengers, player.lastTransactionSent.get()));
+        }
+
+        if (packetID == PacketType.Play.Server.ATTACH_ENTITY) {
+            WrappedPacket attach = new WrappedPacket(event.getNMSPacket());
+
+            // This packet was replaced by the mount packet on 1.9+ servers - to support multiple passengers on one vehicle
+            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) return;
+
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
+            // If this is mounting rather than leashing
+            if (attach.readInt(0) == 0) {
+                int vehicleID = attach.readInt(2);
+                int[] passengers = new int[]{attach.readInt(1)};
+                player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(vehicleID, passengers, player.lastTransactionSent.get()));
+            }
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
