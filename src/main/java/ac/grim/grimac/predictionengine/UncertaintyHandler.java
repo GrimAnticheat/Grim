@@ -23,10 +23,6 @@ public class UncertaintyHandler {
     public double pistonX;
     public double pistonY;
     public double pistonZ;
-    // Is the player within 0.26 of a boat?
-    public boolean collidingWithBoat;
-    // Is the player within 0.26 blocks of a shulker?
-    public boolean collidingWithShulker;
     // Did the player step onto a block?
     // This is needed because we don't know if a player jumped onto the step block or not
     // Jumping would set onGround to false while not would set it to true
@@ -91,8 +87,6 @@ public class UncertaintyHandler {
         pistonY = 0;
         pistonZ = 0;
         gravityUncertainty = 0;
-        collidingWithBoat = false;
-        collidingWithShulker = false;
         isStepMovement = false;
         stuckOnEdge = false;
         slimePistonBounces = new HashSet<>();
@@ -151,10 +145,6 @@ public class UncertaintyHandler {
             pointThree = Math.max(pointThree, player.speed * 1.5);
         }
 
-        if (Collections.max(hardCollidingLerpingEntity)) {
-            pointThree = Math.max(pointThree, 1);
-        }
-
         return pointThree;
     }
 
@@ -162,9 +152,6 @@ public class UncertaintyHandler {
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
         if ((lastFlyingTicks > -3) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
             return 0.225;
-
-        if (Collections.max(hardCollidingLerpingEntity))
-            return 1;
 
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingNearBubbleColumn)
             return 0.35;
@@ -272,8 +259,6 @@ public class UncertaintyHandler {
                 "pistonX=" + pistonX +
                 ", pistonY=" + pistonY +
                 ", pistonZ=" + pistonZ +
-                ", collidingWithBoat=" + collidingWithBoat +
-                ", collidingWithShulker=" + collidingWithShulker +
                 ", isStepMovement=" + isStepMovement +
                 ", xNegativeUncertainty=" + xNegativeUncertainty +
                 ", xPositiveUncertainty=" + xPositiveUncertainty +
