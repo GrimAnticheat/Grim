@@ -197,60 +197,7 @@ public class MovementCheckRunner {
             return;
         }
 
-        AlmostBoolean tempUsingItem = data.isUsingItem;
-
-        if (data.isUsingItem == AlmostBoolean.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
-            tempUsingItem = AlmostBoolean.MAYBE;
-        } else {
-            // Handle the player dropping food to stop eating
-            // We are sync'd to roughly the bukkit thread here
-            // Although we don't have inventory lag compensation so we can't fully sync
-            // Works unless the player spams their offhand button
-            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
-            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
-                tempUsingItem = AlmostBoolean.FALSE;
-            }
-
-            if (data.isUsingItem == AlmostBoolean.TRUE && XMaterial.supports(9)) {
-                ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
-                // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
-                if (Materials.isUsable(offHand.getType())) {
-                    tempUsingItem = AlmostBoolean.TRUE;
-                }
-            }
-        }
-
-        if (data.usingHand != player.lastHand) {
-            tempUsingItem = AlmostBoolean.MAYBE;
-        }
-
-        player.lastCheck = System.currentTimeMillis();
-
-        player.isUsingItem = tempUsingItem;
-        player.lastHand = data.usingHand;
-
-        player.tryingToRiptide = data.isTryingToRiptide;
-
-        player.firstBreadKB = data.firstBreadKB;
-        player.possibleKB = data.requiredKB;
-
-        player.firstBreadExplosion = data.firstBreadExplosion;
-        player.knownExplosion = data.possibleExplosion;
-
-        player.minPlayerAttackSlow = data.minPlayerAttackSlow;
-        player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
-
-        player.lastVehicleSwitch++;
-        if (player.lastVehicle != player.playerVehicle) {
-            player.lastVehicleSwitch = 0;
-        }
-
-        // Stop desync where vehicle kb -> player leaves vehicle same tick
-        if (player.lastVehicleSwitch < 3) {
-            player.knockbackHandler.handlePlayerKb(0);
-            player.explosionHandler.handlePlayerExplosion(0);
-        }
-
+        // Update the world, entities, and pistons
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedEntities.tickUpdates(data.lastTransaction, data.isDummy);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
@@ -259,15 +206,27 @@ public class MovementCheckRunner {
         if (!data.inVehicle && data.isJustTeleported)
             player.playerVehicle = null;
 
-        // Tick player vehicle after we update the packet entity state
-        player.lastVehicle = player.playerVehicle;
-        player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
-        player.inVehicle = player.playerVehicle != null;
-
+        // The game's movement is glitchy when switching between vehicles
+        player.lastVehicleSwitch++;
+        if (player.lastVehicle != player.playerVehicle) {
+            player.lastVehicleSwitch = 0;
+        }
+        // It is also glitchy when switching between client vs server vehicle control
         if (data.isDummy != player.lastDummy) {
             player.lastVehicleSwitch = 0;
         }
         player.lastDummy = data.isDummy;
+
+        // Players not in control of their vehicle are not responsible for applying knockback to it
+        if (data.isDummy) {
+            player.knockbackHandler.handlePlayerKb(0);
+            player.explosionHandler.handlePlayerExplosion(0);
+        }
+
+        // Tick player vehicle after we update the packet entity state
+        player.lastVehicle = player.playerVehicle;
+        player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
+        player.inVehicle = player.playerVehicle != null;
 
         if (!player.inVehicle)
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
@@ -309,9 +268,33 @@ public class MovementCheckRunner {
             }
         }
 
-        player.uncertaintyHandler.lastTeleportTicks--;
-        if (data.isJustTeleported) {
-            player.uncertaintyHandler.lastTeleportTicks = 0;
+
+        // Determine whether the player is being slowed by using an item
+        if (data.isUsingItem == AlmostBoolean.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
+            data.isUsingItem = AlmostBoolean.MAYBE;
+        } else {
+            // Handle the player dropping food to stop eating
+            // We are sync'd to roughly the bukkit thread here
+            // Although we don't have inventory lag compensation so we can't fully sync
+            // Works unless the player spams their offhand button
+            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
+            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
+                data.isUsingItem = AlmostBoolean.FALSE;
+            }
+
+            if (data.isUsingItem == AlmostBoolean.TRUE && XMaterial.supports(9)) {
+                ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
+                // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
+                if (Materials.isUsable(offHand.getType())) {
+                    data.isUsingItem = AlmostBoolean.TRUE;
+                }
+            }
+        }
+
+        // We have had issues with swapping offhands in the past (Is this still needed? It doesn't hurt.)
+        // it gets overridden the next check
+        if (data.usingHand != player.lastHand) {
+            data.isUsingItem = AlmostBoolean.MAYBE;
         }
 
         player.uncertaintyHandler.lastFlyingTicks--;
@@ -343,6 +326,15 @@ public class MovementCheckRunner {
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
         player.isRiptidePose = player.compensatedRiptide.getPose(data.lastTransaction);
 
+        player.lastHand = data.usingHand;
+        player.tryingToRiptide = data.isTryingToRiptide;
+        player.firstBreadKB = data.firstBreadKB;
+        player.possibleKB = data.requiredKB;
+        player.firstBreadExplosion = data.firstBreadExplosion;
+        player.knownExplosion = data.possibleExplosion;
+        player.minPlayerAttackSlow = data.minPlayerAttackSlow;
+        player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
+
         // Stop stuff like clients using elytra in a vehicle...
         // Interesting, on a pig or strider, a player can climb a ladder
         if (player.inVehicle) {
@@ -362,10 +354,12 @@ public class MovementCheckRunner {
 
         player.playerWorld = data.playerWorld;
 
+        player.uncertaintyHandler.lastTeleportTicks--;
         if (data.isJustTeleported) {
             player.lastX = player.x;
             player.lastY = player.y;
             player.lastZ = player.z;
+            player.uncertaintyHandler.lastTeleportTicks = 0;
         }
 
         // ViaVersion messes up flight speed for 1.7 players
