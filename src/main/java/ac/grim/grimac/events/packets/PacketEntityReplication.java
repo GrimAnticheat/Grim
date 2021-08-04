@@ -206,6 +206,22 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             int vehicleID = mount.getEntityId();
             int[] passengers = mount.getPassengerIds();
 
+            if (player.packetStateData.vehicle != null && player.packetStateData.vehicle == vehicleID)
+                player.packetStateData.vehicle = null;
+
+            if (passengers != null) {
+                for (int entityID : passengers) {
+                    // Handle scenario transferring from entity to entity with the following packet order:
+                    // Player boards the new entity and a packet is sent for that
+                    // Player is removed from the old entity
+                    // Without the second check the player wouldn't be riding anything
+                    if (player.entityID == entityID) {
+                        player.packetStateData.vehicle = vehicleID;
+                        break;
+                    }
+                }
+            }
+
             player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(vehicleID, passengers, player.lastTransactionSent.get()));
         }
 

@@ -168,23 +168,6 @@ public class CompensatedEntities {
                 passenger.riding = vehicle;
             }
 
-            // Handle the player itself mounting and unmounting a vehicle
-            if (player.packetStateData.vehicle != null && player.packetStateData.vehicle == mountVehicle.vehicleID)
-                player.packetStateData.vehicle = null;
-
-            if (mountVehicle.passengers != null) {
-                for (int entityID : mountVehicle.passengers) {
-                    // Handle scenario transferring from entity to entity with the following packet order:
-                    // Player boards the new entity and a packet is sent for that
-                    // Player is removed from the old entity
-                    // Without the second check the player wouldn't be riding anything
-                    if (player.entityID == entityID) {
-                        player.packetStateData.vehicle = mountVehicle.vehicleID;
-                        break;
-                    }
-                }
-            }
-
             vehicle.passengers = mountVehicle.passengers;
         }
 
