@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.util.Vector;
 
@@ -36,9 +37,9 @@ public class PredictionEngineElytra extends PredictionEngine {
                 getElytraMovement(player, boostOne, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
                 getElytraMovement(player, boostTwo, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
 
-                Vector cutOne = cutVectorsToPlayerMovement(player.actualMovement, boostOne, fireworksResult);
-                Vector cutTwo = cutVectorsToPlayerMovement(player.actualMovement, boostTwo, fireworksResult);
-                fireworksResult = cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
+                Vector cutOne = VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, boostOne, fireworksResult);
+                Vector cutTwo = VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, boostTwo, fireworksResult);
+                fireworksResult = VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
             }
 
             data = data.setVector(fireworksResult, VectorData.VectorType.Elytra);
@@ -82,43 +83,6 @@ public class PredictionEngineElytra extends PredictionEngine {
         }
 
         return vector;
-    }
-
-    public static Vector cutVectorsToPlayerMovement(Vector vectorToCutTo, Vector vectorOne, Vector vectorTwo) {
-        double xMin = Math.min(vectorOne.getX(), vectorTwo.getX());
-        double xMax = Math.max(vectorOne.getX(), vectorTwo.getX());
-        double yMin = Math.min(vectorOne.getY(), vectorTwo.getY());
-        double yMax = Math.max(vectorOne.getY(), vectorTwo.getY());
-        double zMin = Math.min(vectorOne.getZ(), vectorTwo.getZ());
-        double zMax = Math.max(vectorOne.getZ(), vectorTwo.getZ());
-
-        Vector cutCloned = vectorToCutTo.clone();
-
-        if (xMin > vectorToCutTo.getX() || xMax < vectorToCutTo.getX()) {
-            if (Math.abs(vectorToCutTo.getX() - xMin) < Math.abs(vectorToCutTo.getX() - xMax)) {
-                cutCloned.setX(xMin);
-            } else {
-                cutCloned.setX(xMax);
-            }
-        }
-
-        if (yMin > vectorToCutTo.getY() || yMax < vectorToCutTo.getY()) {
-            if (Math.abs(vectorToCutTo.getY() - yMin) < Math.abs(vectorToCutTo.getY() - yMax)) {
-                cutCloned.setY(yMin);
-            } else {
-                cutCloned.setY(yMax);
-            }
-        }
-
-        if (zMin > vectorToCutTo.getZ() || zMax < vectorToCutTo.getZ()) {
-            if (Math.abs(vectorToCutTo.getZ() - zMin) < Math.abs(vectorToCutTo.getZ() - zMax)) {
-                cutCloned.setZ(zMin);
-            } else {
-                cutCloned.setZ(zMax);
-            }
-        }
-
-        return cutCloned;
     }
 
     // Yes... you can jump while using an elytra as long as you are on the ground
