@@ -167,8 +167,6 @@ public class MovementCheckRunner {
 
         if (forceAddThisTask) { // Run the check now
             addData(data);
-        } else { // We need to see if this is a duplicate 1.17 position
-            data.player.nextTaskToRun = data;
         }
 
         return wasNotDuplicate;
@@ -587,11 +585,11 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + data.itemHeld + " " + player.x);
+            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.isUsingItem);
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + data.itemHeld + " " + player.x);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + data.isUsingItem);
     }
 }
