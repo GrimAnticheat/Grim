@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.movement;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -34,6 +35,22 @@ public class KnockbackHandler {
     }
 
     public void addPlayerKnockback(short breadOne, Vector knockback) {
+        double minimumMovement = 0.003D;
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
+            minimumMovement = 0.005D;
+
+        if (Math.abs(knockback.getX()) < minimumMovement) {
+            knockback.setX(0D);
+        }
+
+        if (Math.abs(knockback.getY()) < minimumMovement) {
+            knockback.setY(0D);
+        }
+
+        if (Math.abs(knockback.getZ()) < minimumMovement) {
+            knockback.setZ(0D);
+        }
+
         firstBreadMap.put(breadOne, knockback);
     }
 

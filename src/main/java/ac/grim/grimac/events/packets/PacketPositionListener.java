@@ -12,6 +12,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPac
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
 
 public class PacketPositionListener extends PacketListenerAbstract {
 
@@ -32,6 +33,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.reach.handleMovement(player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
             player.packetStateData.didLastMovementIncludePosition = true;
 
+            Bukkit.broadcastMessage("Pos is " + pos);
+
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround());
             MovementCheckRunner.checkVehicleTeleportQueue(data);
 
@@ -50,6 +53,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround());
             boolean wasTeleported = MovementCheckRunner.checkTeleportQueue(data);
+
+            Bukkit.broadcastMessage("Pos is " + pos);
 
             // 1.17 clients can send a position look packet while in a vehicle when using an item because mojang
             // Teleports can override this behavior
