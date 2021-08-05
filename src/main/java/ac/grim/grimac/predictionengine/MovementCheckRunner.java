@@ -304,9 +304,9 @@ public class MovementCheckRunner {
         // Works unless the player spams their offhand button
         ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
         ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
-        if ((mainHand == null || !Materials.isUsable(mainHand.getType())) &&
+        if (data.isUsingItem == AlmostBoolean.TRUE && (mainHand == null || !Materials.isUsable(mainHand.getType())) &&
                 (offHand == null || !Materials.isUsable(offHand.getType()))) {
-            data.isUsingItem = AlmostBoolean.FALSE;
+            data.isUsingItem = AlmostBoolean.MAYBE;
             //Bukkit.broadcastMessage(ChatColor.RED + "Player is no longer using an item!");
         }
 
