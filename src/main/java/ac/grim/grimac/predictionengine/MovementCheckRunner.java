@@ -138,6 +138,8 @@ public class MovementCheckRunner {
         if (data.isJustTeleported)
             data.onGround = data.player.packetStateData.packetPlayerOnGround;
 
+        //Bukkit.broadcastMessage(ChatColor.BLUE + "We were sent data " + data.xRot);
+
         data.player.packetStateData.packetPlayerXRot = data.xRot;
         data.player.packetStateData.packetPlayerYRot = data.yRot;
         data.player.packetStateData.packetPlayerOnGround = data.onGround;
@@ -147,26 +149,31 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerZ = data.playerZ;
 
         boolean forceAddThisTask = data.inVehicle || data.isJustTeleported;
+
         PredictionData nextTask = data.player.nextTaskToRun;
-
-        // Do we queue this new data or immediately flush it into the queue?
-        data.player.nextTaskToRun = forceAddThisTask ? null : data;
-
-        if (nextTask != null) {
-            // This packet was a duplicate to the current one, ignore it.
-            // Damn 1.17 sending duplicate positions (The first one messes up packet order and needs to be ignored)
-            // Show this by switching into using an item, a glitch sends the change slot packet after the movement falsing
-            if (nextTask.playerX == data.playerX &&
-                    nextTask.playerY == data.playerY &&
-                    nextTask.playerZ == data.playerZ) {
-                wasNotDuplicate = false;
-            } else {
-                addData(nextTask);
-            }
-        }
+        data.player.nextTaskToRun = null;
 
         if (forceAddThisTask) { // Run the check now
             addData(data);
+        } else if (nextTask != null) {
+            // This packet was a duplicate to the current one, ignore it.
+            // Damn 1.17 sending duplicate positions (The first one messes up packet order and needs to be ignored)
+            // Show this by switching into using an item, a glitch sends the change slot packet after the movement falsing
+            if (nextTask.playerX == data.playerX && nextTask.playerY == data.playerY && nextTask.playerZ == data.playerZ) {
+                wasNotDuplicate = false;
+                // Mojang fucked up packet order so we need to fix the current item held
+                //
+                // Additionally, the next movement's position somehow gets fucked up too.
+                // It's like a half step or something stupid like that.
+                //
+                // You try debugging it.  God, I'm impressive how much mojang fucked with a single change.
+                nextTask.itemHeld = data.itemHeld;
+            } else {
+                data.player.nextTaskToRun = data;
+            }
+            addData(nextTask);
+        } else {
+            data.player.nextTaskToRun = data;
         }
 
         return wasNotDuplicate;
@@ -296,19 +303,15 @@ public class MovementCheckRunner {
         }
 
         // Determine whether the player is being slowed by using an item
-        if (data.isUsingItem == AlmostBoolean.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
-            data.isUsingItem = AlmostBoolean.MAYBE;
-        } else {
-            // Handle the player dropping food to stop eating
-            // We are sync'd to roughly the bukkit thread here
-            // Although we don't have inventory lag compensation so we can't fully sync
-            // Works unless the player spams their offhand button
-            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
-            ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
-            if ((mainHand == null || !Materials.isUsable(mainHand.getType())) &&
-                    (offHand == null || !Materials.isUsable(offHand.getType()))) {
-                data.isUsingItem = AlmostBoolean.FALSE;
-            }
+        // Handle the player dropping food to stop eating
+        // We are sync'd to roughly the bukkit thread here
+        // Although we don't have inventory lag compensation so we can't fully sync
+        // Works unless the player spams their offhand button
+        ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
+        ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
+        if ((mainHand == null || !Materials.isUsable(mainHand.getType())) &&
+                (offHand == null || !Materials.isUsable(offHand.getType()))) {
+            data.isUsingItem = AlmostBoolean.FALSE;
         }
 
         // We have had issues with swapping offhands in the past (Is this still needed? It doesn't hurt.)
