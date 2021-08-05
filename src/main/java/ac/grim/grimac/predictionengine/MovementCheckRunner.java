@@ -515,13 +515,20 @@ public class MovementCheckRunner {
         // This does NOT apply for 1.8 and above players
         // Anyways, 1.7 clients are more used on arena PvP servers or other gamemodes without pistons
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && Collections.max(player.uncertaintyHandler.pistonPushing) > 0) {
-            offset = Math.max(0, offset - 1);
+            offset -= 1;
         }
 
         // Boats are too glitchy to check.
         if (Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)) {
-            offset = Math.max(0, offset - 1);
+            offset -= 1;
         }
+
+        // Checking slime is too complicated
+        if (player.uncertaintyHandler.isSteppingOnBouncyBlock) {
+            offset -= 0.03;
+        }
+
+        offset = Math.max(0, offset);
 
         ChatColor color;
 
