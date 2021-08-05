@@ -83,6 +83,8 @@ public class GrimPlayer {
     public boolean isCrouching;
     public boolean isSprinting;
     public Hand lastHand = Hand.MAIN_HAND;
+    public int lastSlotSelected = 0;
+    public int ticksSinceLastSlotSwitch = 0;
     public AlmostBoolean isUsingItem;
     public boolean lastSprinting;
     public boolean isFlying;

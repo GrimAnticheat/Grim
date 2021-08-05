@@ -71,9 +71,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 player.packetStateData.eatingHand = player.packetStateData.eatingHand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND;
             }
 
-            if ((type == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS && player.packetStateData.eatingHand == Hand.MAIN_HAND) ||
-                    type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
-
+            if (type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
 
                 if (XMaterial.supports(13)) {
@@ -104,10 +102,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (slot.getCurrentSelectedSlot() > 8) return;
 
             player.packetStateData.lastSlotSelected = slot.getCurrentSelectedSlot();
-
-            if (player.packetStateData.eatingHand == Hand.MAIN_HAND) {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
-            }
         }
 
         if (packetID == PacketType.Play.Client.USE_ITEM) {
