@@ -19,8 +19,6 @@ import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -104,8 +102,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             // Stop people from spamming the server with out of bounds exceptions
             if (slot.getCurrentSelectedSlot() > 8) return;
-
-            Bukkit.broadcastMessage(ChatColor.AQUA + "SLOT CHANGED TO " + slot.getCurrentSelectedSlot());
 
             player.packetStateData.lastSlotSelected = slot.getCurrentSelectedSlot();
 

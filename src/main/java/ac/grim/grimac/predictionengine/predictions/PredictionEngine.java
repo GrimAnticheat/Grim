@@ -367,8 +367,10 @@ public class PredictionEngine {
                 }
             }
 
+
             // Loop again if the player is using a riptide trident in the rain (as this is too easy to desync)
-            if (loopAgain = (player.isUsingItem == AlmostBoolean.MAYBE)) {
+            loopAgain = (player.isUsingItem == AlmostBoolean.MAYBE);
+            if (loopAgain) {
                 player.isUsingItem = AlmostBoolean.FALSE;
             }
         }
