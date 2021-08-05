@@ -57,6 +57,7 @@ public class GrimPlayer {
     public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
+    public PredictionData nextTaskToRun;
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;

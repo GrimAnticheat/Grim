@@ -1,6 +1,5 @@
 package ac.grim.grimac.predictionengine.predictions;
 
-import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -278,8 +277,6 @@ public class PredictionEngine {
                 player.uncertaintyHandler.yNegativeUncertainty -= 0.5;
             }
         }
-
-        GrimAC.staticGetLogger().info(player.uncertaintyHandler.toString());
 
         // Gliding status changed, there are a decent amount of edge cases in this scenario so give lenience
         if (player.isGliding != player.wasGliding)

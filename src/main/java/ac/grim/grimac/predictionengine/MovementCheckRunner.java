@@ -132,6 +132,8 @@ public class MovementCheckRunner {
     }
 
     public static boolean processAndCheckMovementPacket(PredictionData data) {
+        boolean wasNotDuplicate = true;
+
         // Client sends junk onGround data when they teleport
         if (data.isJustTeleported)
             data.onGround = data.player.packetStateData.packetPlayerOnGround;
@@ -140,26 +142,44 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerYRot = data.yRot;
         data.player.packetStateData.packetPlayerOnGround = data.onGround;
 
-        // Filter out reminder packet for performance and consistency between client versions
-        // Filter out 1.17 sending multiple identical move packets because Mojang makes great decisions!
-        if (!data.inVehicle && data.player.packetStateData.packetPlayerX == data.playerX &&
-                data.player.packetStateData.packetPlayerY == data.playerY &&
-                data.player.packetStateData.packetPlayerZ == data.playerZ
-                && !data.isJustTeleported) {
-            return false;
-        }
-
         data.player.packetStateData.packetPlayerX = data.playerX;
         data.player.packetStateData.packetPlayerY = data.playerY;
         data.player.packetStateData.packetPlayerZ = data.playerZ;
 
+        boolean forceAddThisTask = data.inVehicle || data.isJustTeleported;
+        PredictionData nextTask = data.player.nextTaskToRun;
+
+        // Do we queue this new data or immediately flush it into the queue?
+        data.player.nextTaskToRun = forceAddThisTask ? null : data;
+
+        if (nextTask != null) {
+            // This packet was a duplicate to the current one, ignore it.
+            // Damn 1.17 sending duplicate positions (The first one messes up packet order and needs to be ignored)
+            // Show this by switching into using an item, a glitch sends the change slot packet after the movement falsing
+            if (nextTask.playerX == data.playerX &&
+                    nextTask.playerY == data.playerY &&
+                    nextTask.playerZ == data.playerZ) {
+                wasNotDuplicate = false;
+            } else {
+                addData(nextTask);
+            }
+        }
+
+        if (forceAddThisTask) { // Run the check now
+            addData(data);
+        } else { // We need to see if this is a duplicate 1.17 position
+            data.player.nextTaskToRun = data;
+        }
+
+        return wasNotDuplicate;
+    }
+
+    private static void addData(PredictionData data) {
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
             executor.runCheck(data);
         } else {
             queuedPredictions.get(data.player.playerUUID).add(data);
         }
-
-        return true;
     }
 
     public static void runTransactionQueue(GrimPlayer player) {
@@ -277,34 +297,23 @@ public class MovementCheckRunner {
             }
         }
 
-
-        // Determine whether the player is being slowed by using an item
-        if (data.isUsingItem == AlmostBoolean.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
-            data.isUsingItem = AlmostBoolean.MAYBE;
-        } else {
-            // Handle the player dropping food to stop eating
-            // We are sync'd to roughly the bukkit thread here
-            // Although we don't have inventory lag compensation so we can't fully sync
-            // Works unless the player spams their offhand button
-            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.bukkitPlayer.getInventory().getHeldItemSlot());
-            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
-                data.isUsingItem = AlmostBoolean.FALSE;
-            }
-
-            if (data.isUsingItem == AlmostBoolean.TRUE && XMaterial.supports(9)) {
-                ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
-                // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
-                if (Materials.isUsable(offHand.getType())) {
-                    data.isUsingItem = AlmostBoolean.TRUE;
-                }
-            }
+        // Handle the player dropping food to stop eating
+        // We are sync'd to roughly the bukkit thread here
+        // Although we don't have inventory lag compensation so we can't fully sync
+        // Works unless the player spams their offhand button
+        ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
+        ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
+        if ((mainHand == null || !Materials.isUsable(mainHand.getType())) && (offHand == null || !Materials.isUsable(offHand.getType()))) {
+            data.isUsingItem = AlmostBoolean.FALSE;
+            Bukkit.broadcastMessage(ChatColor.RED + "Player isn't using item");
         }
 
-        // We have had issues with swapping offhands in the past (Is this still needed? It doesn't hurt.)
-        // it gets overridden the next check
-        if (data.usingHand != player.lastHand) {
+        if (player.lastHand != data.usingHand)
             data.isUsingItem = AlmostBoolean.MAYBE;
-        }
+
+        Bukkit.broadcastMessage(ChatColor.AQUA + "Is using item " + data.isUsingItem + " " + data.usingHand);
+
+        player.isUsingItem = data.isUsingItem;
 
         player.uncertaintyHandler.lastFlyingTicks--;
         if (player.isFlying) {
@@ -566,11 +575,11 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset);
+            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + data.itemHeld + " " + player.x);
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + data.itemHeld + " " + player.x);
     }
 }

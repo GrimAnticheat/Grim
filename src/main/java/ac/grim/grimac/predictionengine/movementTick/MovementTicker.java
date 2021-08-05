@@ -138,7 +138,7 @@ public class MovementTicker {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             minimumMovement = 0.005D;
 
-        for (VectorData vector : player.getPossibleVelocities()) {
+        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
             if (Math.abs(vector.vector.getX()) < minimumMovement) {
                 vector.vector.setX(0D);
             }
