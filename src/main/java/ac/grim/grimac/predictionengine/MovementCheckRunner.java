@@ -217,6 +217,8 @@ public class MovementCheckRunner {
             return;
         }
 
+        player.lastTransactionReceived = data.lastTransaction;
+
         // Update the world, entities, and pistons
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedEntities.tickUpdates(data.lastTransaction, data.isDummy);
@@ -575,8 +577,6 @@ public class MovementCheckRunner {
         player.lastYRot = player.yRot;
         player.lastOnGround = player.onGround;
         player.lastClimbing = player.isClimbing;
-
-        player.lastTransactionBeforeLastMovement = player.packetStateData.packetLastTransactionReceived.get();
 
         player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
         player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
