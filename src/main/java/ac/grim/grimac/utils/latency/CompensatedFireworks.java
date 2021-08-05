@@ -30,23 +30,25 @@ public class CompensatedFireworks {
     }
 
     public int getMaxFireworksAppliedPossible() {
-        int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
         int fireworks = 0;
 
         Iterator<Map.Entry<Integer, FireworkData>> iterator = lagCompensatedFireworksMap.entrySet().iterator();
         while (iterator.hasNext()) {
             Map.Entry<Integer, FireworkData> firework = iterator.next();
 
-            // If the firework has 100% been destroyed on the client side
-            // This is lazy coding but it works
-            if (firework.getValue().destroyTime < lastTransactionReceived - 5) {
+            if (firework.getValue().destroyTick < player.movementPackets) {
                 iterator.remove();
-
                 continue;
             }
 
+
+            // If the firework has 100% been destroyed on the client side
+            if (firework.getValue().destroyTime < player.lastTransactionReceived) {
+                firework.getValue().destroyTick = player.movementPackets;
+            }
+
             // If the firework hasn't applied yet
-            if (firework.getValue().creationTime > lastTransactionReceived) {
+            if (firework.getValue().creationTime > player.lastTransactionReceived) {
                 continue;
             }
 

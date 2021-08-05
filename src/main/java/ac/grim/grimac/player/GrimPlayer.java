@@ -167,7 +167,7 @@ public class GrimPlayer {
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
     // For timer checks and fireworks
-    public int lastTransactionBeforeLastMovement = 0;
+    public int lastTransactionReceived = 0;
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
     // For setting the player as teleporting on their first tick

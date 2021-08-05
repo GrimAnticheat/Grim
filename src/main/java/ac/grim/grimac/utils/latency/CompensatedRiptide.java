@@ -41,7 +41,7 @@ public class CompensatedRiptide {
     }
 
     public boolean getCanRiptide() {
-        int lastTransactionReceived = player.lastTransactionBeforeLastMovement;
+        int lastTransactionReceived = player.lastTransactionReceived;
 
         if (player.inVehicle)
             return false;
