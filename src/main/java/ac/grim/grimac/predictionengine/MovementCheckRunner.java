@@ -138,8 +138,6 @@ public class MovementCheckRunner {
         if (data.isJustTeleported)
             data.onGround = data.player.packetStateData.packetPlayerOnGround;
 
-        //Bukkit.broadcastMessage(ChatColor.BLUE + "We were sent data " + data.xRot);
-
         data.player.packetStateData.packetPlayerXRot = data.xRot;
         data.player.packetStateData.packetPlayerYRot = data.yRot;
         data.player.packetStateData.packetPlayerOnGround = data.onGround;
@@ -156,18 +154,14 @@ public class MovementCheckRunner {
         if (forceAddThisTask) { // Run the check now
             addData(data);
         } else if (nextTask != null) {
+            // Mojang fucked up packet order so we need to fix the current item held
+            //
+            // Why would you send the item held AFTER you send their movement??? Anyways. fixed. you're welcome
+            nextTask.itemHeld = data.itemHeld;
             // This packet was a duplicate to the current one, ignore it.
-            // Damn 1.17 sending duplicate positions (The first one messes up packet order and needs to be ignored)
-            // Show this by switching into using an item, a glitch sends the change slot packet after the movement falsing
+            // Thank you 1.17 for sending duplicate positions!
             if (nextTask.playerX == data.playerX && nextTask.playerY == data.playerY && nextTask.playerZ == data.playerZ) {
                 wasNotDuplicate = false;
-                // Mojang fucked up packet order so we need to fix the current item held
-                //
-                // Additionally, the next movement's position somehow gets fucked up too.
-                // It's like a half step or something stupid like that.
-                //
-                // You try debugging it.  God, I'm impressive how much mojang fucked with a single change.
-                nextTask.itemHeld = data.itemHeld;
             } else {
                 data.player.nextTaskToRun = data;
             }
@@ -176,6 +170,7 @@ public class MovementCheckRunner {
             data.player.nextTaskToRun = data;
         }
 
+        // Was this mojang sending duplicate packets because 1.17?  If so, then don't pass into timer check.
         return wasNotDuplicate;
     }
 
@@ -312,6 +307,7 @@ public class MovementCheckRunner {
         if ((mainHand == null || !Materials.isUsable(mainHand.getType())) &&
                 (offHand == null || !Materials.isUsable(offHand.getType()))) {
             data.isUsingItem = AlmostBoolean.FALSE;
+            //Bukkit.broadcastMessage(ChatColor.RED + "Player is no longer using an item!");
         }
 
         // We have had issues with swapping offhands in the past (Is this still needed? It doesn't hurt.)
@@ -582,11 +578,11 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.isUsingItem);
+            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.isUsingItem + " " + data.itemHeld);
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + data.isUsingItem);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + data.isUsingItem + " " + data.itemHeld);
     }
 }
