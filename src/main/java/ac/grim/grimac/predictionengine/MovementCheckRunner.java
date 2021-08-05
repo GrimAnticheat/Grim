@@ -298,7 +298,6 @@ public class MovementCheckRunner {
         }
 
         // Determine whether the player is being slowed by using an item
-        player.uncertaintyHandler.lastTeleportTicks = 0;
         if (data.isUsingItem == AlmostBoolean.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
             data.isUsingItem = AlmostBoolean.MAYBE;
         } else {
