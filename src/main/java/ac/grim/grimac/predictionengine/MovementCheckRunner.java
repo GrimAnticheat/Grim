@@ -304,16 +304,10 @@ public class MovementCheckRunner {
             // Although we don't have inventory lag compensation so we can't fully sync
             // Works unless the player spams their offhand button
             ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
-            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
+            ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
+            if ((mainHand == null || !Materials.isUsable(mainHand.getType())) &&
+                    (offHand == null || !Materials.isUsable(offHand.getType()))) {
                 data.isUsingItem = AlmostBoolean.FALSE;
-            }
-
-            if (data.isUsingItem == AlmostBoolean.TRUE && XMaterial.supports(9)) {
-                ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
-                // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
-                if (Materials.isUsable(offHand.getType())) {
-                    data.isUsingItem = AlmostBoolean.TRUE;
-                }
             }
         }
 
