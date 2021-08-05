@@ -202,6 +202,13 @@ public class PredictionEngine {
         if (b.hasVectorType(VectorData.VectorType.Knockback))
             bScore++;
 
+        // If the player is on the ground but the vector leads the player off the ground
+        if (player.onGround && a.vector.getY() >= 0)
+            aScore += 2;
+
+        if (player.onGround && b.vector.getY() >= 0)
+            bScore += 2;
+
         if (aScore != bScore)
             return Integer.compare(aScore, bScore);
 
