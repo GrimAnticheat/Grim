@@ -105,10 +105,6 @@ public class MovementTicker {
             }
         }
 
-        if (Math.abs(player.y - player.lastY) < 0.05 && player.uncertaintyHandler.pistonY != 0) {
-            player.clientVelocity.setY(0);
-        }
-
         player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
