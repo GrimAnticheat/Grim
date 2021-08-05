@@ -310,11 +310,15 @@ public class MovementCheckRunner {
             //Bukkit.broadcastMessage(ChatColor.RED + "Player is no longer using an item!");
         }
 
-        // We have had issues with swapping offhands in the past (Is this still needed? It doesn't hurt.)
-        // it gets overridden the next check
-        if (data.usingHand != player.lastHand) {
-            data.isUsingItem = AlmostBoolean.MAYBE;
+        player.ticksSinceLastSlotSwitch++;
+        // Switching items results in the player no longer using an item
+        if (data.itemHeld != player.lastSlotSelected || data.usingHand != player.lastHand) {
+            player.ticksSinceLastSlotSwitch = 0;
         }
+
+        // See shields without this, there's a bit of a delay before the slow applies.  Not sure why.  I blame Mojang.
+        if (player.ticksSinceLastSlotSwitch < 3)
+            data.isUsingItem = AlmostBoolean.MAYBE;
 
         player.isUsingItem = data.isUsingItem;
 
@@ -348,6 +352,7 @@ public class MovementCheckRunner {
         player.isRiptidePose = player.compensatedRiptide.getPose(data.lastTransaction);
 
         player.lastHand = data.usingHand;
+        player.lastSlotSelected = data.itemHeld;
         player.tryingToRiptide = data.isTryingToRiptide;
         player.firstBreadKB = data.firstBreadKB;
         player.possibleKB = data.requiredKB;
