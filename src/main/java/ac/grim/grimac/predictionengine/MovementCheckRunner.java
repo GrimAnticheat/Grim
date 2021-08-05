@@ -132,8 +132,6 @@ public class MovementCheckRunner {
     }
 
     public static boolean processAndCheckMovementPacket(PredictionData data) {
-        boolean wasNotDuplicate = true;
-
         // Client sends junk onGround data when they teleport
         if (data.isJustTeleported)
             data.onGround = data.player.packetStateData.packetPlayerOnGround;
@@ -149,7 +147,6 @@ public class MovementCheckRunner {
         boolean forceAddThisTask = data.inVehicle || data.isJustTeleported;
 
         PredictionData nextTask = data.player.nextTaskToRun;
-        data.player.nextTaskToRun = null;
 
         if (forceAddThisTask) { // Run the check now
             addData(data);
@@ -161,17 +158,18 @@ public class MovementCheckRunner {
             // This packet was a duplicate to the current one, ignore it.
             // Thank you 1.17 for sending duplicate positions!
             if (nextTask.playerX == data.playerX && nextTask.playerY == data.playerY && nextTask.playerZ == data.playerZ) {
-                wasNotDuplicate = false;
+                return false;
             } else {
                 data.player.nextTaskToRun = data;
+                addData(nextTask);
             }
-            addData(nextTask);
         } else {
             data.player.nextTaskToRun = data;
         }
 
         // Was this mojang sending duplicate packets because 1.17?  If so, then don't pass into timer check.
-        return wasNotDuplicate;
+        // (This can happen multiple times a tick, the player can send us infinite movement packets a second!)
+        return true;
     }
 
     private static void addData(PredictionData data) {
