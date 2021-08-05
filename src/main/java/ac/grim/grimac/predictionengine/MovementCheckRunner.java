@@ -297,21 +297,34 @@ public class MovementCheckRunner {
             }
         }
 
-        // Handle the player dropping food to stop eating
-        // We are sync'd to roughly the bukkit thread here
-        // Although we don't have inventory lag compensation so we can't fully sync
-        // Works unless the player spams their offhand button
-        ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
-        ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
-        if ((mainHand == null || !Materials.isUsable(mainHand.getType())) && (offHand == null || !Materials.isUsable(offHand.getType()))) {
-            data.isUsingItem = AlmostBoolean.FALSE;
-            Bukkit.broadcastMessage(ChatColor.RED + "Player isn't using item");
+        // Determine whether the player is being slowed by using an item
+        player.uncertaintyHandler.lastTeleportTicks = 0;
+        if (data.isUsingItem == AlmostBoolean.TRUE && player.packetStateData.lastSlotSelected != data.itemHeld) {
+            data.isUsingItem = AlmostBoolean.MAYBE;
+        } else {
+            // Handle the player dropping food to stop eating
+            // We are sync'd to roughly the bukkit thread here
+            // Although we don't have inventory lag compensation so we can't fully sync
+            // Works unless the player spams their offhand button
+            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
+            if (mainHand == null || !Materials.isUsable(mainHand.getType())) {
+                data.isUsingItem = AlmostBoolean.FALSE;
+            }
+
+            if (data.isUsingItem == AlmostBoolean.TRUE && XMaterial.supports(9)) {
+                ItemStack offHand = player.bukkitPlayer.getInventory().getItemInOffHand();
+                // I don't believe you bukkit that this cannot be null from 1.9 to 1.17
+                if (Materials.isUsable(offHand.getType())) {
+                    data.isUsingItem = AlmostBoolean.TRUE;
+                }
+            }
         }
 
-        if (player.lastHand != data.usingHand)
+        // We have had issues with swapping offhands in the past (Is this still needed? It doesn't hurt.)
+        // it gets overridden the next check
+        if (data.usingHand != player.lastHand) {
             data.isUsingItem = AlmostBoolean.MAYBE;
-
-        Bukkit.broadcastMessage(ChatColor.AQUA + "Is using item " + data.isUsingItem + " " + data.usingHand);
+        }
 
         player.isUsingItem = data.isUsingItem;
 
