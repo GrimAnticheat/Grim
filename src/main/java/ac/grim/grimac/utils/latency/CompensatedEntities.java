@@ -36,6 +36,7 @@ public class CompensatedEntities {
     public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMountData> mountVehicleQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityPropertiesData> entityPropertiesData = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<Integer> teleportWorldQueue = new ConcurrentLinkedQueue<>();
 
     public double playerEntityMovementSpeed = 0.1f;
     public double playerEntityAttackSpeed = 4;
@@ -216,6 +217,19 @@ public class CompensatedEntities {
                 PacketEntity passengerPassenger = getEntity(passengerID);
                 tickPassenger(entity, passengerPassenger);
             }
+        }
+    }
+
+    public void handleTransaction(int lastTransactionReceived) {
+        // Update world changes to fix sneaking desync
+        while (true) {
+            Integer teleportWorld = teleportWorldQueue.peek();
+            if (teleportWorld == null) break;
+
+            if (teleportWorld >= lastTransactionReceived) break;
+            teleportWorldQueue.poll();
+
+            player.packetStateData.isPacketSneaking = false;
         }
     }
 
