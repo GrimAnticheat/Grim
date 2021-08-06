@@ -61,7 +61,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         int combinedID = materialID + (blockData << 12);
 
         ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation()), block.getX(), block.getY(), block.getZ(), combinedID);
-        player.compensatedWorld.changeBlockQueue.add(data);
+        player.compensatedWorld.worldChangedBlockQueue.add(data);
 
     }
 
@@ -88,7 +88,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         // Even when breaking waterlogged stuff, the client assumes it will turn into air (?)
         // So in 1.12 everything probably turns into air when broken
         ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), 0);
-        player.compensatedWorld.changeBlockQueue.add(data);
+        player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
     // This works perfectly and supports the client changing blocks from interacting with blocks
@@ -105,7 +105,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
             if (player == null) return;
 
             PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ());
-            player.compensatedWorld.openBlockData.add(data);
+            player.compensatedWorld.worldChangedBlockQueue.add(data);
         }
     }
 }

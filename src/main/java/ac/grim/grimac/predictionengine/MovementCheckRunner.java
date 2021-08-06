@@ -196,7 +196,6 @@ public class MovementCheckRunner {
             if (player.tasksNotFinished.compareAndSet(0, 1)) {
                 int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
                 player.compensatedWorld.tickUpdates(lastTransaction);
-                player.compensatedWorld.tickPlayerUpdates(lastTransaction);
                 player.compensatedEntities.tickUpdates(lastTransaction, false);
                 player.compensatedFlying.canFlyLagCompensated(lastTransaction);
                 player.compensatedFireworks.getMaxFireworksAppliedPossible();
@@ -377,7 +376,6 @@ public class MovementCheckRunner {
                 player.isClimbing = false;
             }
 
-            player.compensatedWorld.tickPlayerUpdates(data.lastTransaction);
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
         }
 
@@ -467,7 +465,6 @@ public class MovementCheckRunner {
                 player.uncertaintyHandler.stuckOnEdge = (east || west || south || north);
             }
 
-            player.compensatedWorld.tickPlayerUpdates(data.lastTransaction);
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
 
