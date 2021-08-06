@@ -15,6 +15,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.Wrappe
 import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.WrappedPacketInHeldItemSlot;
 import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPacketInUseItem;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.GameMode;
@@ -134,6 +135,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             trace.highlight(player, 60, 0.01);*/
 
             if (XMaterial.supports(8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)
+                return;
+
+            // This was an interaction with a block, not a use item
+            if (place.getDirection() != Direction.OTHER)
                 return;
 
             // 1.9+ use the use item packet for this
