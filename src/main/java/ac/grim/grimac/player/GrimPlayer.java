@@ -323,11 +323,12 @@ public class GrimPlayer {
 
                     // Must be here as this is required to be real time
                     compensatedEating.handleTransactionPacket(incrementingID);
+                    reach.handleTransaction(incrementingID);
+                    compensatedEntities.handleTransaction(incrementingID);
 
+                    // To keep code simple, we use raw ID's rather than incrementing stuff for kb and explosions
                     knockbackHandler.handleTransactionPacket(data.getFirst());
                     explosionHandler.handleTransactionPacket(data.getFirst());
-
-                    reach.handleTransaction(incrementingID);
                 }
             } while (data != null && data.getFirst() != id);
         }
