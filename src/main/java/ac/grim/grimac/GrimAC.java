@@ -108,6 +108,9 @@ public final class GrimAC extends JavaPlugin {
             }
         }, 1, 1);
 
+        // We have a more accurate version of this patch
+        System.setProperty("com.viaversion.ignorePaperBlockPlacePatch", "true");
+
         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
             // Enable ping -> transaction packet
             System.setProperty("com.viaversion.handlePingsAsInvAcknowledgements", "true");
