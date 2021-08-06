@@ -73,34 +73,25 @@ public class CompensatedWorldFlat extends CompensatedWorld {
     }
 
     @Override
-    public void tickOpenables(int lastTransactionReceived) {
-        while (true) {
-            PlayerOpenBlockData blockToOpen = openBlockData.peek();
+    public void tickOpenable(PlayerOpenBlockData blockToOpen) {
+        FlatBlockState data = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
 
-            if (blockToOpen == null) break;
-            // The anticheat thread is behind, this event has not occurred yet
-            if (blockToOpen.transaction > lastTransactionReceived) break;
-            openBlockData.poll();
+        if (data.getBlockData() instanceof Door) {
+            Door door = (Door) data.getBlockData();
+            FlatBlockState otherDoorState = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ);
 
-            FlatBlockState data = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
-
-            if (data.getBlockData() instanceof Door) {
-                Door door = (Door) data.getBlockData();
-                FlatBlockState otherDoorState = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ);
-
-                if (otherDoorState.getBlockData() instanceof Door) {
-                    Door otherDoor = (Door) otherDoorState.getBlockData().clone();
-                    otherDoor.setOpen(!otherDoor.isOpen());
-                    player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ, getFlattenedGlobalID(otherDoor));
-                }
+            if (otherDoorState.getBlockData() instanceof Door) {
+                Door otherDoor = (Door) otherDoorState.getBlockData().clone();
+                otherDoor.setOpen(!otherDoor.isOpen());
+                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ, getFlattenedGlobalID(otherDoor));
             }
+        }
 
-            if (data.getBlockData() instanceof Openable) {
-                // Do NOT change the getBlockData() without cloning otherwise you will corrupt the (grim) global palette!
-                Openable openable = (Openable) data.getBlockData().clone();
-                openable.setOpen(!openable.isOpen());
-                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, getFlattenedGlobalID(openable));
-            }
+        if (data.getBlockData() instanceof Openable) {
+            // Do NOT change the getBlockData() without cloning otherwise you will corrupt the (grim) global palette!
+            Openable openable = (Openable) data.getBlockData().clone();
+            openable.setOpen(!openable.isOpen());
+            player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, getFlattenedGlobalID(openable));
         }
     }
 

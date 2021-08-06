@@ -77,42 +77,6 @@ public class CompensatedWorld {
         tickOpenables(lastTransactionReceived);
     }
 
-    public void tickOpenables(int lastTransactionReceived) {
-        while (true) {
-            PlayerOpenBlockData blockToOpen = openBlockData.peek();
-
-            if (blockToOpen == null) break;
-            // The anticheat thread is behind, this event has not occurred yet
-            if (blockToOpen.transaction > lastTransactionReceived) break;
-            openBlockData.poll();
-
-            MagicBlockState data = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
-            WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(data);
-
-            if (blockDataValue instanceof WrappedDoor) {
-                WrappedDoor door = (WrappedDoor) blockDataValue;
-                MagicBlockState otherDoor = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.isBottom() ? 1 : -1), blockToOpen.blockZ);
-
-                // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
-                if (otherDoor.getMaterial() == data.getMaterial()) {
-                    // The doors are probably connected
-                    boolean isBottom = door.isBottom();
-                    // 1.12- stores door data in the bottom door
-                    if (!isBottom)
-                        data = otherDoor;
-                    // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
-                    // 1.12- - We can just flip a bit in the lower door and call it a day
-                    int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
-                    player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 0 : -1), blockToOpen.blockZ, magicValue);
-                }
-            } else if (blockDataValue instanceof WrappedTrapdoor || blockDataValue instanceof WrappedFenceGate) {
-                // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
-                int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
-                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, magicValue);
-            }
-        }
-    }
-
     public void tickUpdates(int lastTransactionReceived) {
         while (true) {
             ChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
@@ -142,8 +106,50 @@ public class CompensatedWorld {
             activePistons.add(data);
         }
 
+        tickOpenables(lastTransactionReceived);
+
         // 10 ticks is more than enough for everything that needs to be processed to be processed
         packetBlockPositions.removeIf(data -> GrimAC.getCurrentTick() - data.tick > 10);
+    }
+
+    public void tickOpenables(int lastTransactionReceived) {
+        while (true) {
+            PlayerOpenBlockData blockToOpen = openBlockData.peek();
+
+            if (blockToOpen == null) break;
+            // The anticheat thread is behind, this event has not occurred yet
+            if (blockToOpen.transaction > lastTransactionReceived) break;
+            openBlockData.poll();
+
+            tickOpenable(blockToOpen);
+        }
+    }
+
+    public void tickOpenable(PlayerOpenBlockData blockToOpen) {
+        MagicBlockState data = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
+        WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(data);
+
+        if (blockDataValue instanceof WrappedDoor) {
+            WrappedDoor door = (WrappedDoor) blockDataValue;
+            MagicBlockState otherDoor = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.isBottom() ? 1 : -1), blockToOpen.blockZ);
+
+            // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
+            if (otherDoor.getMaterial() == data.getMaterial()) {
+                // The doors are probably connected
+                boolean isBottom = door.isBottom();
+                // 1.12- stores door data in the bottom door
+                if (!isBottom)
+                    data = otherDoor;
+                // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
+                // 1.12- - We can just flip a bit in the lower door and call it a day
+                int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
+                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 0 : -1), blockToOpen.blockZ, magicValue);
+            }
+        } else if (blockDataValue instanceof WrappedTrapdoor || blockDataValue instanceof WrappedFenceGate) {
+            // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
+            int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
+            player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, magicValue);
+        }
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
