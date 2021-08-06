@@ -138,7 +138,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 return;
 
             // This was an interaction with a block, not a use item
-            if (place.getDirection() != Direction.OTHER)
+            if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9) && place.getDirection() != Direction.OTHER)
                 return;
 
             // 1.9+ use the use item packet for this
