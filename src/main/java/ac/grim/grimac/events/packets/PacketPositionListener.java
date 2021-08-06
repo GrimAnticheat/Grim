@@ -11,6 +11,7 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 public class PacketPositionListener extends PacketListenerAbstract {
@@ -37,6 +38,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             if (MovementCheckRunner.processAndCheckMovementPacket(data))
                 player.timerCheck.processMovementPacket();
+            else if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9))
+                event.setCancelled(true);
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
@@ -60,6 +63,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             if (MovementCheckRunner.processAndCheckMovementPacket(data))
                 player.timerCheck.processMovementPacket();
+            else if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9))
+                event.setCancelled(true);
         }
 
         if (packetID == PacketType.Play.Client.LOOK) {
