@@ -28,13 +28,14 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         int combinedID = materialID + (blockData << 12);
 
-        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), combinedID);
+        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation()), block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.changeBlockQueue.add(data);
 
     }
 
     public static int getPlayerTransactionForPosition(GrimPlayer player, Location location) {
         int transaction = player.lastTransactionAtStartOfTick;
+
         for (BlockPlayerUpdate update : player.compensatedWorld.packetBlockPositions) {
             if (update.position.getX() == location.getBlockX()
                     && update.position.getY() == location.getBlockY()
@@ -59,7 +60,8 @@ public class MagicPlayerBlockBreakPlace implements Listener {
     }
 
     // This works perfectly and supports the client changing blocks from interacting with blocks
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    // This event is broken again.
+    //@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockInteractEvent(PlayerInteractEvent event) {
         if (event.getClickedBlock() == null) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;

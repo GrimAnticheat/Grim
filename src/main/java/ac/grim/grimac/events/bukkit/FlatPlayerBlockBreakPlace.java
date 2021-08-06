@@ -25,7 +25,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         if (player == null) return;
         Block block = event.getBlock();
 
-        PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), block.getBlockData());
+        PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation()), block.getX(), block.getY(), block.getZ(), block.getBlockData());
         player.compensatedWorld.changeBlockQueue.add(data);
     }
 
@@ -41,7 +41,8 @@ public class FlatPlayerBlockBreakPlace implements Listener {
     }
 
     // This works perfectly and supports the client changing blocks from interacting with blocks
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    // This event is broken again.
+    //@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockInteractEvent(PlayerInteractEvent event) {
         if (event.getClickedBlock() == null) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
