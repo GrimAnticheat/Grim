@@ -250,7 +250,8 @@ public class PlayerBaseTick {
             }
         }
 
-        if (vec3.lengthSquared() > 0.0) {
+        // all clients using legacy fluid pushing are not pushed by lava
+        if (tag == FluidTag.WATER && vec3.lengthSquared() > 0.0) {
             vec3.normalize();
             vec3.multiply(multiplier);
             player.baseTickAddVector(vec3);
