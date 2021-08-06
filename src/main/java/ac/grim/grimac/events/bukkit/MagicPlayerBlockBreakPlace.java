@@ -1,32 +1,19 @@
-/*
- * This file is part of ViaVersion - https://github.com/ViaVersion/ViaVersion
- * Copyright (C) 2016-2021 ViaVersion and contributors
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- */
 package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.MagicBlockState;
+import ac.grim.grimac.utils.collisions.CollisionData;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -42,10 +29,6 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
         if (player == null) return;
 
-        // Taken from:
-        // https://github.com/ViaVersion/ViaVersion/blob/master/bukkit-legacy/src/main/java/com/viaversion/viaversion/bukkit/listeners/protocol1_9to1_8/PaperPatch.java
-        // (GrimAC and ViaVersion are both GPL licensed)
-        //
         // This code fixes an issue where a 1.9 player places a block inside themselves
         // Required due to the following packets:
         // Client -> Server: I right-clicked a block!
@@ -58,38 +41,17 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         // As we believe this block was placed client sided before server sided, while it is the other way around
         //
         // Also it's nice to have this patch and fix that bug :)
-        Material type = event.getBlockPlaced().getType();
-        if (!isPlacable(type)) {
-            Location location = event.getPlayer().getLocation();
-            Block locationBlock = location.getBlock();
+        Block placed = event.getBlockPlaced();
+        Material type = placed.getType();
+        Location location = event.getPlayer().getLocation();
 
-            if (locationBlock.equals(event.getBlock())) {
-                event.setCancelled(true);
-                return;
-            } else {
-                if (locationBlock.getRelative(BlockFace.UP).equals(event.getBlock())) {
-                    event.setCancelled(true);
-                    return;
-                } else {
-                    Location diff = location.clone().subtract(event.getBlock().getLocation().add(0.5D, 0, 0.5D));
-                    // Within radius of block
-                    if (Math.abs(diff.getX()) <= 0.8 && Math.abs(diff.getZ()) <= 0.8D) {
-                        // Are they on the edge / shifting ish
-                        if (diff.getY() <= 0.1D && diff.getY() >= -0.1D) {
-                            event.setCancelled(true);
-                            return;
-                        }
-                        BlockFace relative = event.getBlockAgainst().getFace(event.getBlock());
-                        // Are they towering up, (handles some latency)
-                        if (relative == BlockFace.UP) {
-                            if (diff.getY() < 1D && diff.getY() >= 0D) {
-                                event.setCancelled(true);
-                                return;
-                            }
-                        }
-                    }
-                }
-            }
+        BaseBlockState magicData = new MagicBlockState(type.getId(), placed.getData());
+        SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(location.getX(), location.getY(), location.getZ(), 0.6, 1.8);
+
+        // isIntersected != isCollided.  Intersection means check overlap, collided also checks if equal
+        if (CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), magicData, placed.getX(), placed.getY(), placed.getZ()).isIntersected(playerBox)) {
+            event.setCancelled(true);
+            return;
         }
 
         Block block = event.getBlock();
@@ -101,20 +63,6 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation()), block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.changeBlockQueue.add(data);
 
-    }
-
-    private boolean isPlacable(Material material) {
-        if (!material.isSolid()) return true;
-        // signs and banners
-        switch (material.getId()) {
-            case 63:
-            case 68:
-            case 176:
-            case 177:
-                return true;
-            default:
-                return false;
-        }
     }
 
     public static int getPlayerTransactionForPosition(GrimPlayer player, Location location) {
