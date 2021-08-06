@@ -15,7 +15,10 @@ import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.BasePlayerChangeBlockData;
+import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.data.PlayerOpenBlockData;
+import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
@@ -29,10 +32,12 @@ import org.bukkit.block.BlockFace;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
@@ -42,9 +47,13 @@ public class CompensatedWorld {
     public static Method getByCombinedID;
     public final GrimPlayer player;
     private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
-    public ConcurrentLinkedQueue<ChangeBlockData> worldChangedBlockQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<BasePlayerChangeBlockData> changeBlockQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<PlayerOpenBlockData> openBlockData = new ConcurrentLinkedQueue<>();
+    public ConcurrentSkipListSet<BasePlayerChangeBlockData> worldChangedBlockQueue = new ConcurrentSkipListSet<>((a, b) -> {
+        // We can't have elements with equal comparisons, otherwise they won't be added
+        if (a.transaction == b.transaction) {
+            return Integer.compare(a.hashCode(), b.hashCode());
+        }
+        return Integer.compare(a.transaction, b.transaction);
+    });
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPositions = new ConcurrentLinkedQueue<>();
     public List<PistonData> activePistons = new ArrayList<>();
@@ -62,34 +71,21 @@ public class CompensatedWorld {
         }
     }
 
-    public void tickPlayerUpdates(int lastTransactionReceived) {
-        while (true) {
-            BasePlayerChangeBlockData changeBlockData = changeBlockQueue.peek();
-
-            if (changeBlockData == null) break;
-            // The anticheat thread is behind, this event has not occurred yet
-            if (changeBlockData.transaction > lastTransactionReceived) break;
-            changeBlockQueue.poll();
-
-            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.getCombinedID());
-        }
-
-        tickOpenables(lastTransactionReceived);
-    }
-
     public void tickUpdates(int lastTransactionReceived) {
-        while (true) {
-            ChangeBlockData changeBlockData = worldChangedBlockQueue.peek();
-
-            if (changeBlockData == null) break;
-            // The player hasn't gotten this update yet
+        for (Iterator<BasePlayerChangeBlockData> it = worldChangedBlockQueue.iterator(); it.hasNext(); ) {
+            BasePlayerChangeBlockData changeBlockData = it.next();
             if (changeBlockData.transaction > lastTransactionReceived) {
                 break;
             }
 
-            worldChangedBlockQueue.poll();
+            it.remove();
 
-            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.combinedID);
+            if (changeBlockData instanceof PlayerOpenBlockData) {
+                tickOpenable((PlayerOpenBlockData) changeBlockData);
+                continue;
+            }
+
+            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.getCombinedID());
         }
 
         while (true) {
@@ -106,50 +102,8 @@ public class CompensatedWorld {
             activePistons.add(data);
         }
 
-        tickOpenables(lastTransactionReceived);
-
         // 10 ticks is more than enough for everything that needs to be processed to be processed
         packetBlockPositions.removeIf(data -> GrimAC.getCurrentTick() - data.tick > 10);
-    }
-
-    public void tickOpenables(int lastTransactionReceived) {
-        while (true) {
-            PlayerOpenBlockData blockToOpen = openBlockData.peek();
-
-            if (blockToOpen == null) break;
-            // The anticheat thread is behind, this event has not occurred yet
-            if (blockToOpen.transaction > lastTransactionReceived) break;
-            openBlockData.poll();
-
-            tickOpenable(blockToOpen);
-        }
-    }
-
-    public void tickOpenable(PlayerOpenBlockData blockToOpen) {
-        MagicBlockState data = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
-        WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(data);
-
-        if (blockDataValue instanceof WrappedDoor) {
-            WrappedDoor door = (WrappedDoor) blockDataValue;
-            MagicBlockState otherDoor = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.isBottom() ? 1 : -1), blockToOpen.blockZ);
-
-            // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
-            if (otherDoor.getMaterial() == data.getMaterial()) {
-                // The doors are probably connected
-                boolean isBottom = door.isBottom();
-                // 1.12- stores door data in the bottom door
-                if (!isBottom)
-                    data = otherDoor;
-                // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
-                // 1.12- - We can just flip a bit in the lower door and call it a day
-                int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
-                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 0 : -1), blockToOpen.blockZ, magicValue);
-            }
-        } else if (blockDataValue instanceof WrappedTrapdoor || blockDataValue instanceof WrappedFenceGate) {
-            // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
-            int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
-            player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, magicValue);
-        }
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
@@ -192,6 +146,33 @@ public class CompensatedWorld {
 
     public static long chunkPositionToLong(int x, int z) {
         return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
+    }
+
+    public void tickOpenable(PlayerOpenBlockData blockToOpen) {
+        MagicBlockState data = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
+        WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(data);
+
+        if (blockDataValue instanceof WrappedDoor) {
+            WrappedDoor door = (WrappedDoor) blockDataValue;
+            MagicBlockState otherDoor = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.isBottom() ? 1 : -1), blockToOpen.blockZ);
+
+            // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
+            if (otherDoor.getMaterial() == data.getMaterial()) {
+                // The doors are probably connected
+                boolean isBottom = door.isBottom();
+                // 1.12- stores door data in the bottom door
+                if (!isBottom)
+                    data = otherDoor;
+                // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
+                // 1.12- - We can just flip a bit in the lower door and call it a day
+                int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
+                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 0 : -1), blockToOpen.blockZ, magicValue);
+            }
+        } else if (blockDataValue instanceof WrappedTrapdoor || blockDataValue instanceof WrappedFenceGate) {
+            // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
+            int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
+            player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, magicValue);
+        }
     }
 
     public void tickPlayerInPistonPushingArea() {

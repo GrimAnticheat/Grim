@@ -26,7 +26,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         Block block = event.getBlock();
 
         PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation()), block.getX(), block.getY(), block.getZ(), block.getBlockData());
-        player.compensatedWorld.changeBlockQueue.add(data);
+        player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -37,7 +37,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
 
         // Even when breaking waterlogged stuff, the client assumes it will turn into air - which is fine with me
         ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), 0);
-        player.compensatedWorld.changeBlockQueue.add(data);
+        player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
     // This works perfectly and supports the client changing blocks from interacting with blocks
@@ -54,7 +54,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
             if (player == null) return;
 
             PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ());
-            player.compensatedWorld.openBlockData.add(data);
+            player.compensatedWorld.worldChangedBlockQueue.add(data);
         }
     }
 }
