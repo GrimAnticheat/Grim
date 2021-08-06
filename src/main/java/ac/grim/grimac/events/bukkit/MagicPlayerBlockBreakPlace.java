@@ -93,7 +93,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
     // This works perfectly and supports the client changing blocks from interacting with blocks
     // This event is broken again.
-    //@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockInteractEvent(PlayerInteractEvent event) {
         if (event.getClickedBlock() == null) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
