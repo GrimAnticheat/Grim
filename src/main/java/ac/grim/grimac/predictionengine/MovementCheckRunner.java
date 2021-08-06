@@ -149,6 +149,9 @@ public class MovementCheckRunner {
         PredictionData nextTask = data.player.nextTaskToRun;
 
         if (forceAddThisTask) { // Run the check now
+            data.player.nextTaskToRun = null;
+            if (nextTask != null)
+                addData(nextTask);
             addData(data);
         } else if (nextTask != null) {
             // Mojang fucked up packet order so we need to fix the current item held
