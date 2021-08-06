@@ -6,7 +6,10 @@ import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -14,10 +17,15 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 
 import static ac.grim.grimac.events.bukkit.MagicPlayerBlockBreakPlace.getPlayerTransactionForPosition;
 
 public class FlatPlayerBlockBreakPlace implements Listener {
+
+    private static final Material BUCKET = XMaterial.BUCKET.parseMaterial();
+    private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
+    private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
@@ -44,16 +52,33 @@ public class FlatPlayerBlockBreakPlace implements Listener {
     // This event is broken again.
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockInteractEvent(PlayerInteractEvent event) {
-        if (event.getClickedBlock() == null) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
-        Block block = event.getClickedBlock();
-        // Client side interactable -> Door, trapdoor, gate
-        if (block != null && Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
-            if (player == null) return;
+        GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        if (player == null) return;
 
+        Block block = event.getClickedBlock();
+        if (block == null) return;
+
+        // Client side interactable -> Door, trapdoor, gate
+        if (Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
             PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ());
+            player.compensatedWorld.worldChangedBlockQueue.add(data);
+        }
+
+        ItemStack hand = event.getItem();
+        if (hand == null) return;
+
+        BlockFace clickedFace = event.getBlockFace();
+
+        if (hand.getType() == BUCKET) {
+            ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX() + clickedFace.getModX(), block.getY() + clickedFace.getModY(), block.getZ() + clickedFace.getModZ(), 0);
+            player.compensatedWorld.worldChangedBlockQueue.add(data);
+        } else if (hand.getType() == WATER_BUCKET) {
+            PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX() + clickedFace.getModX(), block.getY() + clickedFace.getModY(), block.getZ() + clickedFace.getModZ(), Material.WATER.createBlockData());
+            player.compensatedWorld.worldChangedBlockQueue.add(data);
+        } else if (hand.getType() == LAVA_BUCKET) {
+            PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX() + clickedFace.getModX(), block.getY() + clickedFace.getModY(), block.getZ() + clickedFace.getModZ(), Material.LAVA.createBlockData());
             player.compensatedWorld.worldChangedBlockQueue.add(data);
         }
     }

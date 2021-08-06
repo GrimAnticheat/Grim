@@ -137,15 +137,15 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (XMaterial.supports(8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)
                 return;
 
-            // This was an interaction with a block, not a use item
-            if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9) && place.getDirection() != Direction.OTHER)
-                return;
-
             // 1.9+ use the use item packet for this
             if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
                 // Support interacting with blocks, such as fence gates, and also placing blocks
                 player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
             }
+
+            // This was an interaction with a block, not a use item
+            if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9) && place.getDirection() != Direction.OTHER)
+                return;
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
             // https://github.com/Updated-NoCheatPlus/NoCheatPlus/blob/master/NCPCompatProtocolLib/src/main/java/fr/neatmonster/nocheatplus/checks/net/protocollib/NoSlow.java

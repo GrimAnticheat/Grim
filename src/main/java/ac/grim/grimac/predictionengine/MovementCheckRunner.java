@@ -217,12 +217,14 @@ public class MovementCheckRunner {
             return;
         }
 
+        // Tick updates AFTER updating bounding box and actual movement
+        player.compensatedWorld.tickUpdates(data.lastTransaction);
+        player.compensatedWorld.tickPlayerInPistonPushingArea();
+
         player.lastTransactionReceived = data.lastTransaction;
 
-        // Update the world, entities, and pistons
-        player.compensatedWorld.tickUpdates(data.lastTransaction);
+        // Update entities to get current vehicle
         player.compensatedEntities.tickUpdates(data.lastTransaction, data.isDummy);
-        player.compensatedWorld.tickPlayerInPistonPushingArea();
 
         // If the check was for players moving in a vehicle, but after we just updated vehicles
         // the player isn't in a vehicle, don't check.
@@ -362,6 +364,22 @@ public class MovementCheckRunner {
         player.knownExplosion = data.possibleExplosion;
         player.minPlayerAttackSlow = data.minPlayerAttackSlow;
         player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
+        player.playerWorld = data.playerWorld;
+
+        player.uncertaintyHandler.lastTeleportTicks--;
+        if (data.isJustTeleported) {
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.lastZ = player.z;
+            player.uncertaintyHandler.lastTeleportTicks = 0;
+        }
+
+        // This isn't the final velocity of the player in the tick, only the one applied to the player
+        player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+
+        // ViaVersion messes up flight speed for 1.7 players
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.isFlying)
+            player.isSprinting = true;
 
         // Stop stuff like clients using elytra in a vehicle...
         // Interesting, on a pig or strider, a player can climb a ladder
@@ -378,20 +396,6 @@ public class MovementCheckRunner {
 
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
         }
-
-        player.playerWorld = data.playerWorld;
-
-        player.uncertaintyHandler.lastTeleportTicks--;
-        if (data.isJustTeleported) {
-            player.lastX = player.x;
-            player.lastY = player.y;
-            player.lastZ = player.z;
-            player.uncertaintyHandler.lastTeleportTicks = 0;
-        }
-
-        // ViaVersion messes up flight speed for 1.7 players
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.isFlying)
-            player.isSprinting = true;
 
         // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
         player.speed += player.isSprinting ? player.speed * 0.3f : 0;
@@ -411,9 +415,6 @@ public class MovementCheckRunner {
 
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = false;
         player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
-
-        // This isn't the final velocity of the player in the tick, only the one applied to the player
-        player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
         if (data.isJustTeleported) {
             // Don't let the player move if they just teleported
@@ -588,11 +589,11 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.isUsingItem + " " + data.itemHeld);
+            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.movementPackets);
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + data.isUsingItem + " " + data.itemHeld);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.movementPackets);
     }
 }
