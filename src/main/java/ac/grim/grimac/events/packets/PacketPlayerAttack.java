@@ -2,6 +2,8 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.AlmostBoolean;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -29,10 +31,17 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             if (player == null) return;
 
             if (action.getAction() == WrappedPacketInUseEntity.EntityUseAction.ATTACK) {
+                ItemStack heldItem = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
                 Entity attackedEntity = action.getEntity();
                 player.reach.checkReach(action.getEntityId());
+
+                // You don't get a release use item with block hitting with a sword?
+                if (heldItem != null) {
+                    if (Materials.checkFlag(heldItem.getType(), Materials.SWORD))
+                        player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                }
+
                 if (attackedEntity != null && (!(attackedEntity instanceof LivingEntity) || attackedEntity instanceof Player)) {
-                    ItemStack heldItem = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
                     boolean hasKnockbackSword = heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0;
                     boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8);
 
