@@ -36,7 +36,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 player.reach.checkReach(action.getEntityId());
 
                 // You don't get a release use item with block hitting with a sword?
-                if (heldItem != null) {
+                if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
                     if (Materials.checkFlag(heldItem.getType(), Materials.SWORD))
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 }
