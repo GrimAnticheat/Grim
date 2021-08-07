@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.events.packets.patch.AntiBucketDesync;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import io.github.retrooper.packetevents.PacketEvents;
@@ -71,5 +72,6 @@ public class PlayerJoinQuitListener implements Listener {
     public void playerQuitEvent(PlayerQuitEvent event) {
         MovementCheckRunner.queuedPredictions.remove(event.getPlayer().getUniqueId());
         GrimAC.playerGrimHashMap.remove(event.getPlayer());
+        AntiBucketDesync.resyncNeeded.remove(event.getPlayer());
     }
 }

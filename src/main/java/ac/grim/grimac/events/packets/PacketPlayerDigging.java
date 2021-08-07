@@ -42,10 +42,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
     private static final Material ENCHANTED_GOLDEN_APPLE = XMaterial.ENCHANTED_GOLDEN_APPLE.parseMaterial();
     private static final Material HONEY_BOTTLE = XMaterial.HONEY_BOTTLE.parseMaterial();
 
-    private static final Material BUCKET = XMaterial.BUCKET.parseMaterial();
-    private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
-    private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
-
     public PacketPlayerDigging() {
         super(PacketListenerPriority.LOW);
     }
