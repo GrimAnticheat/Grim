@@ -82,7 +82,7 @@ public class MovementCheckRunner {
 
                 // Long distance teleport
                 if (position.distanceSquared(new Vector3d(data.playerX, data.playerY, data.playerZ)) > 32 * 32)
-                    data.player.timerCheck.exempt = 150; // Exempt for 7.5 seconds on teleport
+                    data.player.timerCheck.exempt = Math.max(data.player.timerCheck.exempt, 150); // Exempt for 7.5 seconds on teleport
 
                 // Teleports remove the player from their vehicle
                 data.player.vehicle = null;
@@ -115,11 +115,11 @@ public class MovementCheckRunner {
                 data.isJustTeleported = true;
 
                 // Exempt for the next tick for all teleports
-                data.player.timerCheck.exempt = 1;
+                data.player.timerCheck.exempt++;
 
                 // Long distance teleport
                 if (position.distanceSquared(new Vector3d(data.playerX, data.playerY, data.playerZ)) > 32 * 32)
-                    data.player.timerCheck.exempt = 150; // Exempt for 7.5 seconds on long teleport
+                    data.player.timerCheck.exempt = Math.max(data.player.timerCheck.exempt, 150); // Exempt for 7.5 seconds on long teleport
 
                 continue;
             } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
