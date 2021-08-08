@@ -161,8 +161,8 @@ public enum CollisionData {
     }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
 
     WALL(new DynamicWall(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL")
-            && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER")
-            && !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
+                    && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER")
+                    && !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
             .toArray(Material[]::new)),
 
 
@@ -614,9 +614,36 @@ public enum CollisionData {
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.5D, 15.0D);
     }, XMaterial.LILY_PAD.parseMaterial()),
 
-    BED(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.5625, 1.0F, false),
-            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BED") && !mat.name().contains("ROCK"))
-                    .toArray(Material[]::new)),
+    BED((player, version, data, x, y, z) -> {
+        ComplexCollisionBox baseBox = new ComplexCollisionBox(new HexCollisionBox(0.0D, 3.0D, 0.0D, 16.0D, 9.0D, 16.0D));
+
+        // It's all the same box on 1.14 clients
+        if (version.isOlderThan(ClientVersion.v_1_14))
+            return baseBox;
+
+        WrappedDirectional directional = (WrappedDirectional) data;
+
+        switch (directional.getDirection()) {
+            case NORTH:
+                baseBox.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 3.0D, 3.0D));
+                baseBox.add(new HexCollisionBox(13.0D, 0.0D, 0.0D, 16.0D, 3.0D, 3.0D));
+                break;
+            case SOUTH:
+                baseBox.add(new HexCollisionBox(0.0D, 0.0D, 13.0D, 3.0D, 3.0D, 16.0D));
+                baseBox.add(new HexCollisionBox(13.0D, 0.0D, 13.0D, 16.0D, 3.0D, 16.0D));
+                break;
+            case WEST:
+                baseBox.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 3.0D, 3.0D));
+                baseBox.add(new HexCollisionBox(0.0D, 0.0D, 13.0D, 3.0D, 3.0D, 16.0D));
+                break;
+            case EAST:
+                baseBox.add(new HexCollisionBox(13.0D, 0.0D, 0.0D, 16.0D, 3.0D, 3.0D));
+                baseBox.add(new HexCollisionBox(13.0D, 0.0D, 13.0D, 16.0D, 3.0D, 16.0D));
+                break;
+        }
+
+        return baseBox;
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BED") && !mat.name().contains("ROCK")).toArray(Material[]::new)),
 
     TRAPDOOR(new TrapDoorHandler(), Arrays.stream(Material.values())
             .filter(mat -> mat.name().contains("TRAP_DOOR") || mat.name().contains("TRAPDOOR")).toArray(Material[]::new)),
@@ -998,25 +1025,6 @@ public enum CollisionData {
         return NoCollisionBox.INSTANCE;
     }
 
-    private static CollisionBox getEndRod(ClientVersion version, BlockFace face) {
-        // ViaVersion replacement block - torch
-        if (version.isOlderThan(ClientVersion.v_1_9))
-            return NoCollisionBox.INSTANCE;
-
-        switch (face) {
-            case UP:
-            case DOWN:
-            default:
-                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 16.0D, 10.0);
-            case NORTH:
-            case SOUTH:
-                return new HexCollisionBox(6.0D, 6.0D, 0.0D, 10.0D, 10.0D, 16.0D);
-            case EAST:
-            case WEST:
-                return new HexCollisionBox(0.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D);
-        }
-    }
-
     private static CollisionBox getCocoa(ClientVersion version, int age, BlockFace direction) {
         // From 1.9 - 1.10, the large cocoa block is the same as the medium one
         // https://bugs.mojang.com/browse/MC-94274
@@ -1062,6 +1070,25 @@ public enum CollisionData {
                 }
         }
         return NoCollisionBox.INSTANCE;
+    }
+
+    private static CollisionBox getEndRod(ClientVersion version, BlockFace face) {
+        // ViaVersion replacement block - torch
+        if (version.isOlderThan(ClientVersion.v_1_9))
+            return NoCollisionBox.INSTANCE;
+
+        switch (face) {
+            case UP:
+            case DOWN:
+            default:
+                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 16.0D, 10.0);
+            case NORTH:
+            case SOUTH:
+                return new HexCollisionBox(6.0D, 6.0D, 0.0D, 10.0D, 10.0D, 16.0D);
+            case EAST:
+            case WEST:
+                return new HexCollisionBox(0.0D, 6.0D, 6.0D, 16.0D, 10.0D, 10.0D);
+        }
     }
 
     public static CollisionData getData(Material material) {
