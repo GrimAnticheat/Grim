@@ -147,6 +147,12 @@ public class SimpleCollisionBox implements CollisionBox {
                 && other.maxZ > this.minZ && other.minZ < this.maxZ;
     }
 
+    public boolean collidesVertically(SimpleCollisionBox other) {
+        return other.maxX > this.minX && other.minX < this.maxX
+                && other.maxY >= this.minY && other.minY <= this.maxY
+                && other.maxZ > this.minZ && other.minZ < this.maxZ;
+    }
+
     public SimpleCollisionBox copy() {
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, isFullBlock);
     }

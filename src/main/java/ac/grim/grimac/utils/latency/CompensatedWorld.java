@@ -430,6 +430,13 @@ public class CompensatedWorld {
     }
 
     public void removeChunkLater(int chunkX, int chunkZ) {
+        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
+        Column column = chunks.get(chunkPosition);
+
+        if (column == null) return;
+
+        // Signify that there could be a desync between this and netty
+        column.markedForRemoval = true;
         unloadChunkQueue.add(new Pair<>(player.lastTransactionSent.get() + 1, new Vector3i(chunkX, 0, chunkZ)));
     }
 }

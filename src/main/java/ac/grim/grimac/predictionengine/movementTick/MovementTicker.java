@@ -46,7 +46,6 @@ public class MovementTicker {
         player.isActuallyOnGround = !zeroPointZeroThreeOnGroundGlitch && player.verticalCollision && nonUncertainVector.getY() < 0.0D;
 
         Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
-        player.noFall.tickNoFall(player, onBlock, inputVel);
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
         // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them
