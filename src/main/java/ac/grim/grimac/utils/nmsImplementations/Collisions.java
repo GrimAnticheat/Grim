@@ -262,7 +262,7 @@ public class Collisions {
                         player.stuckSpeedMultiplier = new Vector(0.8999999761581421, 1.5, 0.8999999761581421);
                     }
 
-                    if (blockType == BUBBLE_COLUMN) {
+                    if (blockType == BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
                         BaseBlockState blockAbove = player.compensatedWorld.getWrappedBlockStateAt(i, j + 1, k);
                         BlockData bubbleData = ((FlatBlockState) block).getBlockData();
                         BubbleColumn bubbleColumn = (BubbleColumn) bubbleData;
