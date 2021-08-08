@@ -237,7 +237,7 @@ public class GrimPlayer {
         trigHandler = new TrigHandler(this);
         timerCheck = new TimerCheck(this);
         reach = new Reach(this);
-        noFall = new NoFall();
+        noFall = new NoFall(this);
         uncertaintyHandler = new UncertaintyHandler(this);
 
         packetStateData = new PacketStateData();

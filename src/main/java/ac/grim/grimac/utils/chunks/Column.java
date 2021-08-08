@@ -8,6 +8,7 @@ public class Column {
     public final int z;
     public final BaseChunk[] chunks;
     public final int transaction;
+    public boolean markedForRemoval = false;
 
     public Column(int x, int z, BaseChunk[] chunks, int transaction) {
         this.chunks = chunks;
