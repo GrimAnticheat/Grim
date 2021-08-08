@@ -615,12 +615,11 @@ public enum CollisionData {
     }, XMaterial.LILY_PAD.parseMaterial()),
 
     BED((player, version, data, x, y, z) -> {
-        ComplexCollisionBox baseBox = new ComplexCollisionBox(new HexCollisionBox(0.0D, 3.0D, 0.0D, 16.0D, 9.0D, 16.0D));
-
         // It's all the same box on 1.14 clients
         if (version.isOlderThan(ClientVersion.v_1_14))
-            return baseBox;
+            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.5625, 1.0F, false);
 
+        ComplexCollisionBox baseBox = new ComplexCollisionBox(new HexCollisionBox(0.0D, 3.0D, 0.0D, 16.0D, 9.0D, 16.0D));
         WrappedDirectional directional = (WrappedDirectional) data;
 
         switch (directional.getDirection()) {
