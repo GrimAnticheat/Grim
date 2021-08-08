@@ -23,8 +23,10 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Material;
@@ -54,6 +56,7 @@ public class CompensatedWorld {
         }
         return Integer.compare(a.transaction, b.transaction);
     });
+    public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> unloadChunkQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPositions = new ConcurrentLinkedQueue<>();
     public List<PistonData> activePistons = new ArrayList<>();
@@ -72,6 +75,31 @@ public class CompensatedWorld {
     }
 
     public void tickUpdates(int lastTransactionReceived) {
+        while (true) {
+            Pair<Integer, Vector3i> data = unloadChunkQueue.peek();
+
+            if (data == null) break;
+
+            // The player hasn't gotten this update yet
+            if (data.getFirst() > lastTransactionReceived) {
+                break;
+            }
+
+            unloadChunkQueue.poll();
+
+            int chunkX = data.getSecond().getX();
+            int chunkZ = data.getSecond().getZ();
+
+            long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
+
+            // Don't unload the chunk if this is a different chunk than what we actually wanted.
+            Column loadedChunk = getChunk(chunkX, chunkZ);
+            if (loadedChunk != null && loadedChunk.transaction < data.getFirst()) {
+                chunks.remove(chunkPosition);
+                openShulkerBoxes.removeIf(box -> box.position.getX() >> 4 == chunkX && box.position.getZ() >> 4 == chunkZ);
+            }
+        }
+
         for (Iterator<BasePlayerChangeBlockData> it = worldChangedBlockQueue.iterator(); it.hasNext(); ) {
             BasePlayerChangeBlockData changeBlockData = it.next();
             if (changeBlockData.transaction > lastTransactionReceived) {
@@ -401,10 +429,7 @@ public class CompensatedWorld {
         return 0;
     }
 
-    public void removeChunk(int chunkX, int chunkZ) {
-        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        chunks.remove(chunkPosition);
-
-        openShulkerBoxes.removeIf(data -> data.position.getX() >> 4 == chunkX && data.position.getZ() >> 4 == chunkZ);
+    public void removeChunkLater(int chunkX, int chunkZ) {
+        unloadChunkQueue.add(new Pair<>(player.lastTransactionSent.get() + 1, new Vector3i(chunkX, 0, chunkZ)));
     }
 }

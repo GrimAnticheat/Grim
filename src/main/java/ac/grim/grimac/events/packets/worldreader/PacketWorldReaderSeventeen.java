@@ -60,12 +60,14 @@ public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
                     }
                 }
 
-                Column column = new Column(chunkX, chunkZ, chunks);
+                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
                 player.compensatedWorld.addToCache(column, chunkX, chunkZ);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
@@ -138,7 +140,8 @@ public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedWorld.removeChunk(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
+            player.compensatedWorld.removeChunkLater(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
         }
     }
 

@@ -65,7 +65,7 @@ public class PacketWorldReaderNine extends PacketListenerAbstract {
                     }
                 }
 
-                Column column = new Column(chunkX, chunkZ, chunks);
+                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
                 player.compensatedWorld.addToCache(column, chunkX, chunkZ);
 
             } catch (IOException e) {
@@ -145,7 +145,8 @@ public class PacketWorldReaderNine extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedWorld.removeChunk(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
+            player.compensatedWorld.removeChunkLater(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
         }
     }
 }
