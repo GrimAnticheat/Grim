@@ -118,6 +118,32 @@ public enum WrappedBlockData {
     }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("_SLAB") || mat.name().contains("STEP"))
             && !mat.name().contains("DOUBLE")).toArray(Material[]::new)),
 
+    BED(new WrappedDirectional() {
+        public void getWrappedData(FlatBlockState data) {
+            Bed bed = (Bed) data.getBlockData();
+            setDirection(bed.getPart() == Bed.Part.HEAD ? bed.getFacing() : bed.getFacing().getOppositeFace());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            boolean isFoot = (data.getData() & 0x8) == 0;
+            switch (data.getData() & 3) {
+                case 0:
+                    setDirection(isFoot ? BlockFace.NORTH : BlockFace.SOUTH);
+                    break;
+                case 1:
+                    setDirection(isFoot ? BlockFace.EAST : BlockFace.WEST);
+                    break;
+                case 2:
+                    setDirection(isFoot ? BlockFace.SOUTH : BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(isFoot ? BlockFace.WEST : BlockFace.EAST);
+                    break;
+            }
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BED") && !mat.name().contains("ROCK"))
+            .toArray(Material[]::new)),
+
     WALL_SKULL(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
             // Heads on the floor are not directional
