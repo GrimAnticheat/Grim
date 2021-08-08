@@ -109,6 +109,7 @@ public class CompensatedEntities {
                         playerEntityMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                     }
 
+                    // TODO: This would allow us to check NoSlow on 1.9+ clients with OldCombatMechanics
                     if (snapshotWrapper.getKey().toUpperCase().contains("ATTACK_SPEED")) {
 
                     }
