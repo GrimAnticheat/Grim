@@ -165,12 +165,12 @@ public class CompensatedWorld {
                     data = otherDoor;
                 // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
                 // 1.12- - We can just flip a bit in the lower door and call it a day
-                int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
+                int magicValue = data.getId() | ((data.getBlockData() ^ 0x4) << 12);
                 player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 0 : -1), blockToOpen.blockZ, magicValue);
             }
         } else if (blockDataValue instanceof WrappedTrapdoor || blockDataValue instanceof WrappedFenceGate) {
             // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
-            int magicValue = data.getId() | ((data.getData() ^ 0x4) << 12);
+            int magicValue = data.getId() | ((data.getBlockData() ^ 0x4) << 12);
             player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, magicValue);
         }
     }
@@ -320,7 +320,7 @@ public class CompensatedWorld {
 
         // If it is lava or flowing lava
         if (magicBlockState.getId() == 10 || magicBlockState.getId() == 11) {
-            int magicData = magicBlockState.getData();
+            int magicData = magicBlockState.getBlockData();
 
             // Falling lava has a level of 8
             if ((magicData & 0x8) == 8) return 8 / 9f;
@@ -334,7 +334,7 @@ public class CompensatedWorld {
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
 
-        return ((MagicBlockState) bukkitBlock).getData() == 0;
+        return ((MagicBlockState) bukkitBlock).getBlockData() == 0;
     }
 
     public boolean containsLiquid(SimpleCollisionBox var0) {
@@ -390,7 +390,7 @@ public class CompensatedWorld {
 
         // If it is water or flowing water
         if (magicBlockState.getId() == 8 || magicBlockState.getId() == 9) {
-            int magicData = magicBlockState.getData();
+            int magicData = magicBlockState.getBlockData();
 
             // Falling water has a level of 8
             if ((magicData & 0x8) == 8) return 8 / 9f;
