@@ -59,8 +59,6 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
             if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
                 GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
                 if (player == null) return;
-                // No matter what, the player cannot take explosion vector in a vehicle
-                if (player.vehicle != null) return;
 
                 int reservedID = player.getNextTransactionID(2);
                 short breadOne = (short) reservedID;

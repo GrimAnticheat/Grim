@@ -250,6 +250,8 @@ public class MovementCheckRunner {
         if (data.isDummy) {
             player.knockbackHandler.handlePlayerKb(0);
             player.explosionHandler.handlePlayerExplosion(0);
+        } else if (player.inVehicle) { // Players cannot take explosions in vehicles
+            player.explosionHandler.handlePlayerExplosion(0);
         }
 
         // Tick player vehicle after we update the packet entity state
