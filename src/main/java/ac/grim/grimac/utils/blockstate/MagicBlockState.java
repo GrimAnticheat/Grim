@@ -46,11 +46,7 @@ public class MagicBlockState implements BaseBlockState {
 
         MagicBlockState that = (MagicBlockState) o;
         return this.id == that.getId() &&
-                this.data == that.getData();
-    }
-
-    public int getBlockData() {
-        return data;
+                this.data == that.getBlockData();
     }
 
     public int getCombinedId() {
@@ -61,7 +57,7 @@ public class MagicBlockState implements BaseBlockState {
         return this.id;
     }
 
-    public int getData() {
-        return this.data;
+    public int getBlockData() {
+        return data;
     }
 }

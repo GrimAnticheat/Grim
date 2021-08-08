@@ -53,7 +53,7 @@ public class TwelveChunk implements BaseChunk {
     }
 
     public static void writeBlockState(NetOutput out, MagicBlockState blockState) throws IOException {
-        out.writeVarInt((blockState.getId() << 4) | (blockState.getData() & 0xF));
+        out.writeVarInt((blockState.getId() << 4) | (blockState.getBlockData() & 0xF));
     }
 
     public MagicBlockState get(int x, int y, int z) {

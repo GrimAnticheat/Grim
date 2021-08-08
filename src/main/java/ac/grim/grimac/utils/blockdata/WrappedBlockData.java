@@ -125,8 +125,8 @@ public enum WrappedBlockData {
         }
 
         public void getWrappedData(MagicBlockState data) {
-            boolean isFoot = (data.getData() & 0x8) == 0;
-            switch (data.getData() & 3) {
+            boolean isFoot = (data.getBlockData() & 0x8) == 0;
+            switch (data.getBlockData() & 3) {
                 case 0:
                     setDirection(isFoot ? BlockFace.NORTH : BlockFace.SOUTH);
                     break;
@@ -594,7 +594,7 @@ public enum WrappedBlockData {
         }
 
         public void getWrappedData(MagicBlockState data) {
-            int magic = data.getData();
+            int magic = data.getBlockData();
 
             setPowered((magic & 8) != 0);
 
@@ -683,7 +683,7 @@ public enum WrappedBlockData {
         }
 
         public void getWrappedData(MagicBlockState data) {
-            int magic = data.getData();
+            int magic = data.getBlockData();
 
             setBottom((magic & 0x8) == 0);
 
