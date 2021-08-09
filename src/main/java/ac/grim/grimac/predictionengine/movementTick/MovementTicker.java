@@ -37,9 +37,6 @@ public class MovementTicker {
             player.clientVelocity = new Vector();
         }
 
-        // This is where vanilla moves the bounding box and sets it
-        player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
-
         player.horizontalCollision = !GrimMathHelper.equal(inputVel.getX(), collide.getX()) || !GrimMathHelper.equal(inputVel.getZ(), collide.getZ());
         player.verticalCollision = nonUncertainVector.getY() != Collisions.collide(player, 0, nonUncertainVector.getY(), 0).getY();
 
@@ -109,6 +106,14 @@ public class MovementTicker {
                 player.clientVelocity.setY(0);
             }
         }
+
+        // The game disregards movements smaller than 1e-7 (such as in boats)
+        if (collide.lengthSquared() < 1e-7) {
+            collide = new Vector();
+        }
+
+        // This is where vanilla moves the bounding box and sets it
+        player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
 
         player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
