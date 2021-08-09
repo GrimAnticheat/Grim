@@ -30,6 +30,12 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
+            Entity playerVehicle = player.bukkitPlayer.getVehicle();
+
+            // It should be safe to sync to bukkit here because bukkit is the one sending this packet?
+            if (playerVehicle == null && entityId != player.entityID) return;
+            if (playerVehicle != null && entityId != playerVehicle.getEntityId()) return;
+
             // If the player isn't in a vehicle and the ID is for the player, the player will take kb
             // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
             Vector3d playerVelocity = velocity.getVelocity();
@@ -38,17 +44,10 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
             short breadOne = (short) reservedID;
             short breadTwo = (short) (reservedID - 1);
 
-            Entity vehicle = player.bukkitPlayer.getVehicle();
-            if (entityId == player.entityID || (vehicle != null && vehicle.getEntityId() == entityId)) {
-                // Wrap velocity between two transactions
-                player.sendTransactionOrPingPong(breadOne, false);
-                player.knockbackHandler.addPlayerKnockback(breadOne, new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
-                event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
-            } else {
-                // This packet is useless
-                // Also prevents a knockback false positive when quickly switching vehicles
-                event.setCancelled(true);
-            }
+            // Wrap velocity between two transactions
+            player.sendTransactionOrPingPong(breadOne, false);
+            player.knockbackHandler.addPlayerKnockback(breadOne, new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
+            event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
         }
 
         if (packetID == PacketType.Play.Server.EXPLOSION) {
