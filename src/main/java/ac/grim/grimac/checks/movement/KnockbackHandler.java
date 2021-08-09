@@ -87,7 +87,7 @@ public class KnockbackHandler {
         }
     }
 
-    public void tickKnockback(int transactionID) {
+    private void tickKnockback(int transactionID) {
         for (Iterator<TransactionKnockbackData> it = firstBreadMap.iterator(); it.hasNext(); ) {
             TransactionKnockbackData data = it.next();
             if (data.transactionID < transactionID) {

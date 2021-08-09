@@ -325,9 +325,6 @@ public class GrimPlayer {
                     compensatedEating.handleTransactionPacket(incrementingID);
                     reach.handleTransaction(incrementingID);
                     compensatedEntities.handleTransaction(incrementingID);
-
-                    // TODO: Change explosions to incrementing ID's rather than raw ID's
-                    explosionHandler.handleTransactionPacket(data.getFirst());
                 }
             } while (data != null && data.getFirst() != id);
         }

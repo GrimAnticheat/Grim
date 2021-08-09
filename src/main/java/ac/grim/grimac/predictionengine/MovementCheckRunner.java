@@ -373,8 +373,9 @@ public class MovementCheckRunner {
         player.firstBreadKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
         player.possibleKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
 
-        player.firstBreadExplosion = data.firstBreadExplosion;
-        player.knownExplosion = data.possibleExplosion;
+        player.firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion(data.lastTransaction);
+        player.knownExplosion = player.explosionHandler.getPossibleExplosions(data.lastTransaction);
+
         player.minPlayerAttackSlow = data.minPlayerAttackSlow;
         player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
         player.playerWorld = data.playerWorld;
