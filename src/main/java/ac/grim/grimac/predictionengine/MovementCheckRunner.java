@@ -149,9 +149,10 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerZ = data.playerZ;
 
         // The player is in an unloaded chunk
-        if (column == null) return false;
+        if (!data.isJustTeleported && column == null) return false;
         // The player has not loaded this chunk yet
-        if (column.transaction > data.player.packetStateData.packetLastTransactionReceived.get()) return false;
+        if (!data.isJustTeleported && column.transaction > data.player.packetStateData.packetLastTransactionReceived.get())
+            return false;
 
         boolean forceAddThisTask = data.inVehicle || data.isJustTeleported;
 
