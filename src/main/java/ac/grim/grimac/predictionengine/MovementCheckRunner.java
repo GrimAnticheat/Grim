@@ -369,8 +369,10 @@ public class MovementCheckRunner {
         player.lastHand = data.usingHand;
         player.lastSlotSelected = data.itemHeld;
         player.tryingToRiptide = data.isTryingToRiptide;
-        player.firstBreadKB = data.firstBreadKB;
-        player.possibleKB = data.requiredKB;
+
+        player.firstBreadKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+        player.possibleKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+
         player.firstBreadExplosion = data.firstBreadExplosion;
         player.knownExplosion = data.possibleExplosion;
         player.minPlayerAttackSlow = data.minPlayerAttackSlow;
@@ -600,11 +602,11 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.movementPackets);
+            player.bukkitPlayer.sendMessage("O: " + color + offset);
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.movementPackets);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset);
     }
 }

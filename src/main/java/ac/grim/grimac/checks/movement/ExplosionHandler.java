@@ -13,7 +13,7 @@ public class ExplosionHandler {
     Short2ObjectOpenHashMap<Vector> firstBreadMap = new Short2ObjectOpenHashMap<>();
     GrimPlayer player;
 
-    VelocityData lastExplosionsKnownTaken = new VelocityData(new Vector());
+    VelocityData lastExplosionsKnownTaken = new VelocityData(-1, new Vector());
     VelocityData firstBreadAddedExplosion = null;
 
     public ExplosionHandler(GrimPlayer player) {
@@ -22,7 +22,7 @@ public class ExplosionHandler {
 
     public void handleTransactionPacket(short transactionID) {
         if (firstBreadMap.containsKey(transactionID)) {
-            firstBreadAddedExplosion = new VelocityData(lastExplosionsKnownTaken.vector.clone().add(firstBreadMap.get(transactionID)));
+            firstBreadAddedExplosion = new VelocityData(-1, lastExplosionsKnownTaken.vector.clone().add(firstBreadMap.get(transactionID)));
         }
 
         if (firstBreadMap.containsKey((short) (transactionID + 1))) {
@@ -68,7 +68,7 @@ public class ExplosionHandler {
             return null;
 
         VelocityData returnLastExplosion = lastExplosionsKnownTaken;
-        lastExplosionsKnownTaken = new VelocityData(new Vector());
+        lastExplosionsKnownTaken = new VelocityData(-1, new Vector());
 
         return returnLastExplosion;
     }

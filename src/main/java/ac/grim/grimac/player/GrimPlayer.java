@@ -326,8 +326,7 @@ public class GrimPlayer {
                     reach.handleTransaction(incrementingID);
                     compensatedEntities.handleTransaction(incrementingID);
 
-                    // To keep code simple, we use raw ID's rather than incrementing stuff for kb and explosions
-                    knockbackHandler.handleTransactionPacket(data.getFirst());
+                    // TODO: Change explosions to incrementing ID's rather than raw ID's
                     explosionHandler.handleTransactionPacket(data.getFirst());
                 }
             } while (data != null && data.getFirst() != id);

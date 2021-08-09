@@ -27,10 +27,8 @@ public class PredictionData {
     public float vehicleHorizontal;
     public float vehicleForward;
     public boolean isJustTeleported = false;
-    public VelocityData firstBreadKB;
-    public VelocityData requiredKB;
-    public VelocityData firstBreadExplosion = null;
-    public VelocityData possibleExplosion = null;
+    public VelocityData firstBreadExplosion;
+    public VelocityData possibleExplosion;
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
     public int itemHeld;
@@ -73,9 +71,6 @@ public class PredictionData {
 
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
 
-        firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
-        requiredKB = player.knockbackHandler.getRequiredKB();
-
         firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
@@ -116,9 +111,6 @@ public class PredictionData {
 
         this.playerWorld = player.bukkitPlayer.getWorld();
 
-        firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
-        requiredKB = player.knockbackHandler.getRequiredKB();
-
         firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
         possibleExplosion = player.explosionHandler.getPossibleExplosions();
 
@@ -149,9 +141,6 @@ public class PredictionData {
     public PredictionData(GrimPlayer player) {
         this.player = player;
         this.playerWorld = player.bukkitPlayer.getWorld();
-
-        firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback();
-        requiredKB = player.knockbackHandler.getRequiredKB();
 
         firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion();
         possibleExplosion = player.explosionHandler.getPossibleExplosions();

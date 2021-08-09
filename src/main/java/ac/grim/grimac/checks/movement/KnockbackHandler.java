@@ -1,40 +1,31 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.TransactionKnockbackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 public class KnockbackHandler {
-    Short2ObjectOpenHashMap<Vector> firstBreadMap = new Short2ObjectOpenHashMap<>();
+    List<TransactionKnockbackData> firstBreadMap = new ArrayList<>();
     GrimPlayer player;
 
-    VelocityData lastKnockbackKnownTaken = null;
+    List<VelocityData> lastKnockbackKnownTaken = new ArrayList<>();
     VelocityData firstBreadOnlyKnockback = null;
 
     public KnockbackHandler(GrimPlayer player) {
         this.player = player;
     }
 
-    public void handleTransactionPacket(short transactionID) {
-        if (firstBreadMap.containsKey(transactionID)) {
-            firstBreadOnlyKnockback = new VelocityData(firstBreadMap.get(transactionID));
-        }
-
-        if (firstBreadMap.containsKey((short) (transactionID + 1))) {
-            firstBreadMap.remove((short) (transactionID + 1));
-
-            lastKnockbackKnownTaken = firstBreadOnlyKnockback;
-            firstBreadOnlyKnockback = null;
-        }
-    }
-
-    public void addPlayerKnockback(short breadOne, Vector knockback) {
+    public void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
         double minimumMovement = 0.003D;
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             minimumMovement = 0.005D;
@@ -51,11 +42,24 @@ public class KnockbackHandler {
             knockback.setZ(0D);
         }
 
-        firstBreadMap.put(breadOne, knockback);
+        firstBreadMap.add(new TransactionKnockbackData(breadOne, entityID, knockback));
+    }
+
+    public VelocityData getRequiredKB(int entityID, int transaction) {
+        tickKnockback(transaction);
+
+        VelocityData returnLastKB = null;
+        for (VelocityData data : lastKnockbackKnownTaken) {
+            if (data.entityID == entityID)
+                returnLastKB = data;
+        }
+
+        lastKnockbackKnownTaken.clear();
+
+        return returnLastKB;
     }
 
     public void handlePlayerKb(double offset) {
-
         if (player.possibleKB == null && player.firstBreadKB == null) {
             return;
         }
@@ -83,14 +87,23 @@ public class KnockbackHandler {
         }
     }
 
-    public VelocityData getRequiredKB() {
-        VelocityData returnLastKB = lastKnockbackKnownTaken;
-        lastKnockbackKnownTaken = null;
-
-        return returnLastKB;
+    public void tickKnockback(int transactionID) {
+        for (Iterator<TransactionKnockbackData> it = firstBreadMap.iterator(); it.hasNext(); ) {
+            TransactionKnockbackData data = it.next();
+            if (data.transactionID < transactionID) {
+                lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.knockback));
+                it.remove();
+                firstBreadOnlyKnockback = null;
+            } else if (data.transactionID - 1 == transactionID) { // First bread knockback
+                firstBreadOnlyKnockback = new VelocityData(data.entityID, data.knockback);
+            }
+        }
     }
 
-    public VelocityData getFirstBreadOnlyKnockback() {
-        return firstBreadOnlyKnockback;
+    public VelocityData getFirstBreadOnlyKnockback(int entityID, int transaction) {
+        tickKnockback(transaction);
+        if (firstBreadOnlyKnockback != null && firstBreadOnlyKnockback.entityID == entityID)
+            return firstBreadOnlyKnockback;
+        return null;
     }
 }
