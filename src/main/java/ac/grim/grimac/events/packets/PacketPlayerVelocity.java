@@ -57,13 +57,9 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
                 GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
                 if (player == null) return;
 
-                int reservedID = player.getNextTransactionID(2);
-                short breadOne = (short) reservedID;
-                short breadTwo = (short) (reservedID - 1);
-
-                player.sendTransactionOrPingPong(breadOne, false);
-                player.explosionHandler.addPlayerExplosion(breadOne, velocity);
-                event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
+                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+                player.explosionHandler.addPlayerExplosion(player.lastTransactionSent.get(), velocity);
+                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             }
         }
     }

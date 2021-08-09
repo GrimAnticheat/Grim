@@ -1,38 +1,31 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.TransactionKnockbackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.utils.vector.Vector3f;
-import it.unimi.dsi.fastutil.shorts.Short2ObjectOpenHashMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 public class ExplosionHandler {
-    Short2ObjectOpenHashMap<Vector> firstBreadMap = new Short2ObjectOpenHashMap<>();
+    List<TransactionKnockbackData> firstBreadMap = new ArrayList<>();
     GrimPlayer player;
 
-    VelocityData lastExplosionsKnownTaken = new VelocityData(-1, new Vector());
-    VelocityData firstBreadAddedExplosion = null;
+    Vector lastExplosionsKnownTaken = null;
+    Vector firstBreadAddedExplosion = null;
 
     public ExplosionHandler(GrimPlayer player) {
         this.player = player;
     }
 
-    public void handleTransactionPacket(short transactionID) {
-        if (firstBreadMap.containsKey(transactionID)) {
-            firstBreadAddedExplosion = new VelocityData(-1, lastExplosionsKnownTaken.vector.clone().add(firstBreadMap.get(transactionID)));
-        }
-
-        if (firstBreadMap.containsKey((short) (transactionID + 1))) {
-            firstBreadAddedExplosion = null;
-            lastExplosionsKnownTaken.vector.add(firstBreadMap.remove((short) (transactionID + 1)));
-        }
-    }
-
-    public void addPlayerExplosion(short breadOne, Vector3f explosion) {
-        firstBreadMap.put(breadOne, new Vector(explosion.getX(), explosion.getY(), explosion.getZ()));
+    public void addPlayerExplosion(int breadOne, Vector3f explosion) {
+        firstBreadMap.add(new TransactionKnockbackData(breadOne, null, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
     public void handlePlayerExplosion(double offset) {
@@ -63,17 +56,41 @@ public class ExplosionHandler {
         }
     }
 
-    public VelocityData getPossibleExplosions() {
-        if (lastExplosionsKnownTaken.vector.lengthSquared() < 1e-5)
+    public VelocityData getPossibleExplosions(int lastTransaction) {
+        handleTransactionPacket(lastTransaction);
+        if (lastExplosionsKnownTaken == null)
             return null;
 
-        VelocityData returnLastExplosion = lastExplosionsKnownTaken;
-        lastExplosionsKnownTaken = new VelocityData(-1, new Vector());
+        VelocityData returnLastExplosion = new VelocityData(-1, lastExplosionsKnownTaken);
+        lastExplosionsKnownTaken = null;
 
         return returnLastExplosion;
     }
 
-    public VelocityData getFirstBreadAddedExplosion() {
-        return firstBreadAddedExplosion;
+    private void handleTransactionPacket(int transactionID) {
+        for (Iterator<TransactionKnockbackData> it = firstBreadMap.iterator(); it.hasNext(); ) {
+            TransactionKnockbackData data = it.next();
+            if (data.transactionID < transactionID) {
+                if (lastExplosionsKnownTaken != null)
+                    lastExplosionsKnownTaken.add(data.knockback);
+                else
+                    lastExplosionsKnownTaken = data.knockback;
+                it.remove();
+
+                firstBreadAddedExplosion = null;
+            } else if (data.transactionID - 1 == transactionID) { // First bread explosion
+                if (lastExplosionsKnownTaken != null)
+                    firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(data.knockback);
+                else
+                    firstBreadAddedExplosion = data.knockback;
+            }
+        }
+    }
+
+    public VelocityData getFirstBreadAddedExplosion(int lastTransaction) {
+        handleTransactionPacket(lastTransaction);
+        if (firstBreadAddedExplosion == null)
+            return null;
+        return new VelocityData(-1, firstBreadAddedExplosion);
     }
 }
