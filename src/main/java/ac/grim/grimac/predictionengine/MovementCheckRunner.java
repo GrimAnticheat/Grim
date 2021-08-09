@@ -8,6 +8,7 @@ import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
+import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.PredictionData;
@@ -15,6 +16,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
+import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -136,6 +138,8 @@ public class MovementCheckRunner {
         if (data.isJustTeleported)
             data.onGround = data.player.packetStateData.packetPlayerOnGround;
 
+        Column column = data.player.compensatedWorld.getChunk(GrimMathHelper.floor(data.playerX) >> 4, GrimMathHelper.floor(data.playerZ) >> 4);
+
         data.player.packetStateData.packetPlayerXRot = data.xRot;
         data.player.packetStateData.packetPlayerYRot = data.yRot;
         data.player.packetStateData.packetPlayerOnGround = data.onGround;
@@ -143,6 +147,11 @@ public class MovementCheckRunner {
         data.player.packetStateData.packetPlayerX = data.playerX;
         data.player.packetStateData.packetPlayerY = data.playerY;
         data.player.packetStateData.packetPlayerZ = data.playerZ;
+
+        // The player is in an unloaded chunk
+        if (column == null) return false;
+        // The player has not loaded this chunk yet
+        if (column.transaction > data.player.packetStateData.packetLastTransactionReceived.get()) return false;
 
         boolean forceAddThisTask = data.inVehicle || data.isJustTeleported;
 
