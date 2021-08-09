@@ -256,14 +256,6 @@ public class MovementCheckRunner {
         }
         player.lastDummy = data.isDummy;
 
-        // Players not in control of their vehicle are not responsible for applying knockback to it
-        if (data.isDummy) {
-            player.knockbackHandler.handlePlayerKb(0);
-            player.explosionHandler.handlePlayerExplosion(0);
-        } else if (player.inVehicle) { // Players cannot take explosions in vehicles
-            player.explosionHandler.handlePlayerExplosion(0);
-        }
-
         // Tick player vehicle after we update the packet entity state
         player.lastVehicle = player.playerVehicle;
         player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
@@ -276,13 +268,25 @@ public class MovementCheckRunner {
         if (!player.inVehicle)
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
 
+        player.firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+        player.possibleKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+
+        player.firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion(data.lastTransaction);
+        player.knownExplosion = player.explosionHandler.getPossibleExplosions(data.lastTransaction);
+
         // Check if the player can control their horse, if they are on a horse
         if (player.inVehicle) {
+            // Players are unable to take explosions in vehicles
+            player.explosionHandler.handlePlayerExplosion(0);
+
             // Set position now to support "dummy" riding without control
             // Warning - on pigs and striders players, can turn into dummies independent of whether they have
             // control of the vehicle or not (which could be abused to set velocity to 0 repeatedly and kind
             // of float in the air, although what's the point inside a vehicle?)
             if (data.isDummy) {
+                // Players not in control of their vehicle are not responsible for applying knockback to it
+                player.knockbackHandler.handlePlayerKb(0);
+
                 player.lastX = player.x;
                 player.lastY = player.y;
                 player.lastZ = player.z;
@@ -370,12 +374,6 @@ public class MovementCheckRunner {
         player.lastHand = data.usingHand;
         player.lastSlotSelected = data.itemHeld;
         player.tryingToRiptide = data.isTryingToRiptide;
-
-        player.firstBreadKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
-        player.possibleKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
-
-        player.firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion(data.lastTransaction);
-        player.knownExplosion = player.explosionHandler.getPossibleExplosions(data.lastTransaction);
 
         player.minPlayerAttackSlow = data.minPlayerAttackSlow;
         player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
@@ -604,11 +602,11 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset);
+            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.possibleKB);
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.possibleKB);
     }
 }
