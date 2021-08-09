@@ -33,9 +33,9 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.packetStateData.didLastMovementIncludePosition = true;
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround());
-            MovementCheckRunner.checkVehicleTeleportQueue(data);
+            MovementCheckRunner.checkTeleportQueue(data);
 
-            if (player.noFall.tickNoFall(data))
+            if (data.isJustTeleported || player.noFall.tickNoFall(data))
                 position.setOnGround(false);
 
             if (MovementCheckRunner.processAndCheckMovementPacket(data))
@@ -56,7 +56,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround());
             boolean wasTeleported = MovementCheckRunner.checkTeleportQueue(data);
 
-            if (player.noFall.tickNoFall(data))
+            if (data.isJustTeleported || player.noFall.tickNoFall(data))
                 position.setOnGround(false);
 
             // 1.17 clients can send a position look packet while in a vehicle when using an item because mojang
