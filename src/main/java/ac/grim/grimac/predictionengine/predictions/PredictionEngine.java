@@ -117,7 +117,6 @@ public class PredictionEngine {
         assert bestCollisionVel != null;
         player.clientVelocity = tempClientVelChosen;
         new MovementTickerPlayer(player).move(originalNonUncertainInput, beforeCollisionMovement, bestCollisionVel.vector, zeroPointZeroThreeOnGroundGlitch);
-        player.predictedVelocity = bestCollisionVel;
         endOfTick(player, player.gravity, player.friction);
     }
 
