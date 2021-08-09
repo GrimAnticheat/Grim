@@ -32,22 +32,20 @@ public class PacketPlayerVelocity extends PacketListenerAbstract {
 
             Entity playerVehicle = player.bukkitPlayer.getVehicle();
 
-            // It should be safe to sync to bukkit here because bukkit is the one sending this packet?
-            if (playerVehicle == null && entityId != player.entityID) return;
-            if (playerVehicle != null && entityId != playerVehicle.getEntityId()) return;
+            // Useless velocity packet, cancel to save bandwidth, transactions, and grim processing power
+            if ((playerVehicle == null && entityId != player.entityID) || (playerVehicle != null && entityId != playerVehicle.getEntityId())) {
+                event.setCancelled(true);
+                return;
+            }
 
             // If the player isn't in a vehicle and the ID is for the player, the player will take kb
             // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
             Vector3d playerVelocity = velocity.getVelocity();
 
-            int reservedID = player.getNextTransactionID(2);
-            short breadOne = (short) reservedID;
-            short breadTwo = (short) (reservedID - 1);
-
             // Wrap velocity between two transactions
-            player.sendTransactionOrPingPong(breadOne, false);
-            player.knockbackHandler.addPlayerKnockback(breadOne, new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
-            event.setPostTask(() -> player.sendTransactionOrPingPong(breadTwo, true));
+            player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+            player.knockbackHandler.addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
         }
 
         if (packetID == PacketType.Play.Server.EXPLOSION) {
