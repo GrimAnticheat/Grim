@@ -23,9 +23,8 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public static void floatStrider(GrimPlayer player) {
         if (player.wasTouchingLava) {
-            if (isAbove(player) && player.compensatedWorld.
-                    getLavaFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(player.lastY + 1), (int) Math.floor(player.lastZ)) == 0) {
-                player.lastOnGround = true;
+            if (isAbove(player) && player.compensatedWorld.getLavaFluidLevelAt((int) Math.floor(player.x), (int) Math.floor(player.y + 1), (int) Math.floor(player.z)) == 0) {
+                player.onGround = true;
             } else {
                 player.clientVelocity.multiply(0.5).add(new Vector(0, 0.05, 0));
             }
