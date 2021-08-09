@@ -26,7 +26,8 @@ public class NoFall {
         // If the player claims to be on the ground
         if (data.onGround && !data.isJustTeleported) {
             SimpleCollisionBox feetBB;
-            if (player.packetStateData.packetPlayerY != data.playerY && Math.abs(data.playerY % (1 / 64f)) < 0.0001) { // Stepping movement
+            double distY = data.playerY - player.packetStateData.packetPlayerY;
+            if (distY > 0 && distY < 0.6 && Math.abs(data.playerY % (1 / 64f)) < 0.0001) { // Stepping movement
                 feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(data.playerX, data.playerY, data.playerZ, 0.6, 0.001);
             } else { // Not stepping movement
                 feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ, 0.6, 0.001);
