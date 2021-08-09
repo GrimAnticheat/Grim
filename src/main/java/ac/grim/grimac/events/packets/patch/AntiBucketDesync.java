@@ -9,7 +9,6 @@ import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PostPacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -31,9 +30,6 @@ public class AntiBucketDesync extends PacketListenerAbstract {
     @Override
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         byte packetID = event.getPacketId();
-
-        if (packetID != PacketType.Play.Client.PONG)
-            Bukkit.broadcastMessage(event.getPacketName());
 
         if (packetID == PacketType.Play.Client.BLOCK_PLACE || packetID == PacketType.Play.Client.USE_ITEM) {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
