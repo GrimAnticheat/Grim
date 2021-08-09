@@ -236,7 +236,7 @@ public class UncertaintyHandler {
             }
 
             // Boats can collide with quite literally anything
-            if (player.playerVehicle != null) {
+            if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
                 for (Int2ObjectMap.Entry<PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                     PacketEntity entity = entityPair.getValue();
                     if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getIntKey())) {
