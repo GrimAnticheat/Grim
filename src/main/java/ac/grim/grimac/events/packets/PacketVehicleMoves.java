@@ -33,6 +33,7 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             Vector3d pos = move.getPosition();
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch());
+            MovementCheckRunner.checkVehicleTeleportQueue(data);
 
             player.timerCheck.processMovementPacket();
 
