@@ -62,10 +62,11 @@ public class MovementTicker {
             player.onGround = player.isActuallyOnGround;
         }
 
+        // This is around the place where the new bounding box gets set
+        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
         if (!player.wasTouchingWater) {
-            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
             new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
         }
 
