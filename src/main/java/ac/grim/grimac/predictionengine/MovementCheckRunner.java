@@ -514,9 +514,10 @@ public class MovementCheckRunner {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerPig(player).livingEntityAIStep();
             } else if (player.playerVehicle.type == EntityType.STRIDER) {
-                MovementTickerStrider.floatStrider(player);
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerStrider(player).livingEntityAIStep();
+                MovementTickerStrider.floatStrider(player);
+                Collisions.handleInsideBlocks(player);
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 

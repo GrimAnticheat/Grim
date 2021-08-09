@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
@@ -68,6 +69,10 @@ public class MovementTicker {
         // By running fluid pushing for the player
         if (!player.wasTouchingWater) {
             new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
+        }
+        // Striders call the method for inside blocks AGAIN!
+        if (player.playerVehicle instanceof PacketEntityStrider) {
+            Collisions.handleInsideBlocks(player);
         }
 
         double xBeforeZero = player.clientVelocity.getX();
