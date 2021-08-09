@@ -32,7 +32,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
     }
 
     public static boolean isAbove(GrimPlayer player) {
-        return player.lastY > Math.floor(player.lastY) + 0.5 - (double) 1.0E-5F;
+        return player.y > Math.floor(player.y) + 0.5 - (double) 1.0E-5F;
     }
 
     @Override
