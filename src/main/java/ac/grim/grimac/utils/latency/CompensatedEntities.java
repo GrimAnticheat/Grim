@@ -280,6 +280,9 @@ public class CompensatedEntities {
     }
 
     public void addEntity(int entityID, org.bukkit.entity.EntityType entityType, Vector3d position) {
+        // Dropped items are all server sided and players can't interact with them (except create them!), save the performance
+        if (entityType == org.bukkit.entity.EntityType.DROPPED_ITEM) return;
+
         PacketEntity packetEntity;
         EntityType type = EntityType.valueOf(entityType.toString().toUpperCase(Locale.ROOT));
 
