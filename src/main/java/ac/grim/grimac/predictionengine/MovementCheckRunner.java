@@ -257,10 +257,10 @@ public class MovementCheckRunner {
             player.lastVehicleSwitch = 0;
         }
         // It is also glitchy when switching between client vs server vehicle control
-        if (!player.lastDummy) {
+        if (player.lastDummy) {
             player.lastVehicleSwitch = 0;
         }
-        player.lastDummy = true;
+        player.lastDummy = false;
 
         // Tick player vehicle after we update the packet entity state
         player.lastVehicle = player.playerVehicle;
