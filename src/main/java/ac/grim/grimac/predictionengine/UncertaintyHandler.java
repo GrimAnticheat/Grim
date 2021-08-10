@@ -72,7 +72,7 @@ public class UncertaintyHandler {
     public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(3);
     public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
-    public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
+    public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(5);
     // "Temporary" thirty million hard border workaround
     // There is nothing as permanent as temporary!!!
     // https://i.imgur.com/9pDMCKz.png
@@ -217,7 +217,7 @@ public class UncertaintyHandler {
 
     public void checkForHardCollision() {
         // Look for boats the player could collide with
-        SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
+        SimpleCollisionBox expandedBB = player.boundingBox.copy().expandToCoordinate(player.clientVelocity.getX(), player.clientVelocity.getY(), player.clientVelocity.getZ()).expand(1);
         boolean hasHardCollision = false;
 
         findCollision:
