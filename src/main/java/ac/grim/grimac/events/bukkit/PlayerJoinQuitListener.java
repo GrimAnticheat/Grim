@@ -61,6 +61,7 @@ public class PlayerJoinQuitListener implements Listener {
         player.uncertaintyHandler.legacyUnderwaterFlyingHack.add(false);
         player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.add(false);
         player.uncertaintyHandler.hardCollidingLerpingEntity.add(false);
+        player.uncertaintyHandler.thirtyMillionHardBorder.add(false);
 
         GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
 
