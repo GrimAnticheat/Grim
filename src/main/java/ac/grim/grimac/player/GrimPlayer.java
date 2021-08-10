@@ -176,9 +176,9 @@ public class GrimPlayer {
     // This sucks, but it's the only "real" option
     // Either we have to do the work of the server async to figure out whether a block placed, or we wait for the server to do it
     public VelocityData firstBreadKB = null;
-    public VelocityData possibleKB = null;
+    public VelocityData likelyKB = null;
     public VelocityData firstBreadExplosion = null;
-    public VelocityData knownExplosion = null;
+    public VelocityData likelyExplosions = null;
     public TimerCheck timerCheck;
     public Reach reach;
     public NoFall noFall;
@@ -251,9 +251,9 @@ public class GrimPlayer {
             set.add(new VectorData(firstBreadKB.vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
         }
 
-        if (possibleKB != null) {
+        if (likelyKB != null) {
             // Allow water pushing to affect knockback
-            set.add(new VectorData(possibleKB.vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
+            set.add(new VectorData(likelyKB.vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
         }
 
         set.addAll(getPossibleVelocitiesMinusKnockback());

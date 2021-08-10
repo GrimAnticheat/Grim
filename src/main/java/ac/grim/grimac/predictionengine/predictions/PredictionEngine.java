@@ -128,6 +128,7 @@ public class PredictionEngine {
         // The player always has at least one velocity - clientVelocity
         assert bestCollisionVel != null;
         player.clientVelocity = tempClientVelChosen;
+        player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
         new MovementTickerPlayer(player).move(originalNonUncertainInput, beforeCollisionMovement, bestCollisionVel.vector, zeroPointZeroThreeOnGroundGlitch);
         endOfTick(player, player.gravity, player.friction);
     }
@@ -404,8 +405,8 @@ public class PredictionEngine {
 
     public void addExplosionRiptideToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
-            if (player.knownExplosion != null) {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(player.knownExplosion.vector), vector, VectorData.VectorType.Explosion));
+            if (player.likelyExplosions != null) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.likelyExplosions.vector), vector, VectorData.VectorType.Explosion));
             }
 
             if (player.firstBreadExplosion != null) {
