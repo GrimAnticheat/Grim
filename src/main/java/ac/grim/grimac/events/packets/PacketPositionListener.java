@@ -32,7 +32,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.packetStateData.didLastMovementIncludePosition = true;
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround());
-            MovementCheckRunner.checkTeleportQueue(data);
+            MovementCheckRunner.checkTeleportQueue(data, pos.getX(), pos.getY(), pos.getZ());
 
             if (data.isJustTeleported || player.noFall.tickNoFall(data))
                 position.setOnGround(false);
@@ -53,7 +53,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.packetStateData.didLastMovementIncludePosition = true;
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround());
-            boolean wasTeleported = MovementCheckRunner.checkTeleportQueue(data);
+            boolean wasTeleported = MovementCheckRunner.checkTeleportQueue(data, pos.getX(), pos.getY(), pos.getZ());
 
             if (data.isJustTeleported || player.noFall.tickNoFall(data))
                 position.setOnGround(false);

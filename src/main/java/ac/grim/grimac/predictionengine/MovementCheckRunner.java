@@ -60,7 +60,7 @@ public class MovementCheckRunner {
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
-    public static boolean checkTeleportQueue(PredictionData data) {
+    public static boolean checkTeleportQueue(PredictionData data, double x, double y, double z) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         while (true) {
@@ -73,7 +73,8 @@ public class MovementCheckRunner {
                 break;
             }
 
-            if (position.getX() == data.playerX && position.getY() == data.playerY && position.getZ() == data.playerZ) {
+            // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
+            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
                 data.player.teleports.poll();
                 data.isJustTeleported = true;
 
@@ -83,7 +84,7 @@ public class MovementCheckRunner {
                 data.player.timerCheck.exempt++;
 
                 // Long distance teleport
-                if (position.distanceSquared(new Vector3d(data.playerX, data.playerY, data.playerZ)) > 32 * 32)
+                if (position.distanceSquared(new Vector3d(x, y, z)) > 32 * 32)
                     data.player.timerCheck.exempt = Math.max(data.player.timerCheck.exempt, 150); // Exempt for 7.5 seconds on teleport
 
                 // Teleports remove the player from their vehicle
