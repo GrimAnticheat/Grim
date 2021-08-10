@@ -20,10 +20,10 @@ public class PredictionData {
     public AlmostBoolean isUsingItem = AlmostBoolean.FALSE;
     public Hand usingHand = Hand.MAIN_HAND;
     public World playerWorld;
-    public int jumpAmplifier = 0;
-    public int levitationAmplifier = 0;
-    public int slowFallingAmplifier = 0;
-    public int dolphinsGraceAmplifier = 0;
+    public int jumpAmplifier;
+    public int levitationAmplifier;
+    public int slowFallingAmplifier;
+    public int dolphinsGraceAmplifier;
     public float flySpeed;
     public float vehicleHorizontal;
     public float vehicleForward;
@@ -37,7 +37,6 @@ public class PredictionData {
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
 
-    public boolean isDummy = false;
     public boolean didGroundStatusChangeWithoutPositionPacket = false;
 
     public boolean isCheckNotReady;
@@ -126,26 +125,6 @@ public class PredictionData {
 
         inVehicle = true;
 
-        player.packetStateData.horseJump = 0;
-        player.packetStateData.tryingToRiptide = false;
-
-        player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;
-
-        player.packetStateData.minPlayerAttackSlow = 0;
-        player.packetStateData.maxPlayerAttackSlow = 0;
-    }
-
-    public PredictionData(GrimPlayer player) {
-        this.player = player;
-        this.playerWorld = player.bukkitPlayer.getWorld();
-
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
-        lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
-
-        itemHeld = player.packetStateData.lastSlotSelected;
-
-        inVehicle = true;
-        isDummy = true;
         player.packetStateData.horseJump = 0;
         player.packetStateData.tryingToRiptide = false;
 

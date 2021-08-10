@@ -47,9 +47,50 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             if (player == null) return;
 
             // Multiple steer vehicles in a row, the player is not in control of their vehicle
-            // TODO: Set packet location of the player
-            if (player.packetStateData.receivedSteerVehicle && player.vehicle != null) {
-                MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player));
+            // We must do this SYNC! to netty, as to get the packet location of the vehicle
+            // Otherwise other checks may false because the player's position is unknown.
+            if (player.tasksNotFinished.get() == 0 && player.packetStateData.receivedSteerVehicle && player.vehicle != null) {
+                player.lastTransactionReceived = player.packetStateData.packetLastTransactionReceived.get();
+
+                // Tick updates AFTER updating bounding box and actual movement
+                player.compensatedWorld.tickUpdates(player.lastTransactionReceived);
+                player.compensatedWorld.tickPlayerInPistonPushingArea();
+
+                // Update entities to get current vehicle
+                player.compensatedEntities.tickUpdates(player.packetStateData.packetLastTransactionReceived.get(), true);
+
+                // Note for the movement check
+                player.lastDummy = true;
+
+                // Tick player vehicle after we update the packet entity state
+                player.lastVehicle = player.playerVehicle;
+                player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
+                player.inVehicle = player.playerVehicle != null;
+
+                player.firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
+                player.possibleKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
+
+                player.firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion(player.lastTransactionReceived);
+                player.knownExplosion = player.explosionHandler.getPossibleExplosions(player.lastTransactionReceived);
+
+                // Players are unable to take explosions in vehicles
+                player.explosionHandler.handlePlayerExplosion(0);
+                // Players not in control of their vehicle are not responsible for applying knockback to it
+                player.knockbackHandler.handlePlayerKb(0);
+
+                // Set position now to support "dummy" riding without control
+                // Warning - on pigs and striders players, can turn into dummies independent of whether they have
+                // control of the vehicle or not (which could be abused to set velocity to 0 repeatedly and kind
+                // of float in the air, although what's the point inside a vehicle?)
+                player.lastX = player.x;
+                player.lastY = player.y;
+                player.lastZ = player.z;
+
+                player.x = player.playerVehicle.position.getX();
+                player.y = player.playerVehicle.position.getY();
+                player.z = player.playerVehicle.position.getZ();
+
+                return;
             } else {
                 // Try and get the player's vehicle to the queue
                 MovementCheckRunner.runTransactionQueue(player);
