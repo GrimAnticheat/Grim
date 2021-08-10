@@ -320,6 +320,18 @@ public class MovementCheckRunner {
                     Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity!");
                 }
             }
+
+            // Player cannot control entities if other players are doing so, although the server will just
+            // ignore these bad packets
+            if (player.playerVehicle.passengers.length > 0 && player.playerVehicle.passengers[0] != player.entityID) {
+                Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity! (second passenger)");
+            }
+
+            // Players cannot control stacked vehicles
+            // Again, the server knows to ignore this
+            if (player.playerVehicle.riding != null) {
+                Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity! (stacked)");
+            }
         }
 
         // Determine whether the player is being slowed by using an item
