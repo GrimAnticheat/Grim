@@ -117,11 +117,11 @@ public class MovementTicker {
             if (d1 != player.lastZ + collide.getZ()) {
                 collide = new Vector(collide.getX(), collide.getY(), d1 - player.lastZ);
             }
+        }
 
-            // The game disregards movements smaller than 1e-7 (such as in boats)
-            if (collide.lengthSquared() < 1e-7) {
-                collide = new Vector();
-            }
+        // The game disregards movements smaller than 1e-7 (such as in boats)
+        if (collide.lengthSquared() < 1e-7) {
+            collide = new Vector();
         }
 
         // This is where vanilla moves the bounding box and sets it
