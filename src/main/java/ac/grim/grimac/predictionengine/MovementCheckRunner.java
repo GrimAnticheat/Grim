@@ -430,6 +430,7 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
         player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.onMaterial(player, BUBBLE_COLUMN, -0.5);
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
+        player.uncertaintyHandler.checkForHardCollision();
 
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = false;
         player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
@@ -541,8 +542,10 @@ public class MovementCheckRunner {
         }
 
         // Boats are too glitchy to check.
+        // Yes, they have caused an insane amount of uncertainty!
+        // Even 1 block offset reduction isn't enough... damn it mojang
         if (Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)) {
-            offset -= 1;
+            offset -= 1.2;
         }
 
         // Checking slime is too complicated
@@ -610,11 +613,11 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.possibleKB);
+            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.inVehicle + " " + Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity));
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.possibleKB);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.inVehicle + " " + Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity));
     }
 }
