@@ -72,7 +72,7 @@ public class UncertaintyHandler {
     public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(3);
     public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
-    public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(5);
+    public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
     // "Temporary" thirty million hard border workaround
     // There is nothing as permanent as temporary!!!
     // https://i.imgur.com/9pDMCKz.png
