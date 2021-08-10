@@ -32,6 +32,7 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
 import it.unimi.dsi.fastutil.Pair;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.potion.PotionEffectType;
 
 public class PacketEntityReplication extends PacketListenerAbstract {
@@ -51,9 +52,12 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (player == null) return;
 
             Entity entity = packetOutEntity.getEntity();
-            if (entity == null) return;
+            EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
+            if (entity != null) {
+                type = entity.getType();
+            }
 
-            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity.getType(), packetOutEntity.getPosition());
+            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), type, packetOutEntity.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY) {
@@ -63,9 +67,12 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (player == null) return;
 
             Entity entity = packetOutEntity.getEntity();
-            if (entity == null) return;
+            EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
+            if (entity != null) {
+                type = entity.getType();
+            }
 
-            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), entity.getType(), packetOutEntity.getPosition());
+            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), type, packetOutEntity.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
@@ -75,9 +82,12 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (player == null) return;
 
             Entity entity = spawn.getEntity();
-            if (entity == null) return;
+            EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
+            if (entity != null) {
+                type = entity.getType();
+            }
 
-            player.compensatedEntities.addEntity(spawn.getEntityId(), entity.getType(), spawn.getPosition());
+            player.compensatedEntities.addEntity(spawn.getEntityId(), type, spawn.getPosition());
 
             player.reach.handleSpawnPlayer(spawn.getEntityId(), spawn.getPosition());
         }
