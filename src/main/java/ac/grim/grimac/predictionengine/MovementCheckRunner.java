@@ -607,6 +607,10 @@ public class MovementCheckRunner {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
             player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.inVehicle + " " + Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity));
+
+            if (player.lastVehicleSwitch < 5) {
+                player.bukkitPlayer.sendMessage("Note that the player would be setback and not punished");
+            }
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
