@@ -239,7 +239,7 @@ public class MovementCheckRunner {
         player.lastTransactionReceived = data.lastTransaction;
 
         // Update entities to get current vehicle
-        player.compensatedEntities.tickUpdates(data.lastTransaction, data.isDummy);
+        player.compensatedEntities.tickUpdates(data.lastTransaction, false);
 
         // If the check was for players moving in a vehicle, but after we just updated vehicles
         // the player isn't in a vehicle, don't check.
@@ -256,10 +256,10 @@ public class MovementCheckRunner {
             player.lastVehicleSwitch = 0;
         }
         // It is also glitchy when switching between client vs server vehicle control
-        if (data.isDummy != player.lastDummy) {
+        if (!player.lastDummy) {
             player.lastVehicleSwitch = 0;
         }
-        player.lastDummy = data.isDummy;
+        player.lastDummy = true;
 
         // Tick player vehicle after we update the packet entity state
         player.lastVehicle = player.playerVehicle;
@@ -283,25 +283,6 @@ public class MovementCheckRunner {
         if (player.inVehicle) {
             // Players are unable to take explosions in vehicles
             player.explosionHandler.handlePlayerExplosion(0);
-
-            // Set position now to support "dummy" riding without control
-            // Warning - on pigs and striders players, can turn into dummies independent of whether they have
-            // control of the vehicle or not (which could be abused to set velocity to 0 repeatedly and kind
-            // of float in the air, although what's the point inside a vehicle?)
-            if (data.isDummy) {
-                // Players not in control of their vehicle are not responsible for applying knockback to it
-                player.knockbackHandler.handlePlayerKb(0);
-
-                player.lastX = player.x;
-                player.lastY = player.y;
-                player.lastZ = player.z;
-
-                player.x = player.playerVehicle.position.getX();
-                player.y = player.playerVehicle.position.getY();
-                player.z = player.playerVehicle.position.getZ();
-
-                return;
-            }
 
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.lastTickPosition = player.playerVehicle.position;
