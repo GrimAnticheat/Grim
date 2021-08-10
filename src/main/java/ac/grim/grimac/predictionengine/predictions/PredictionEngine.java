@@ -89,14 +89,16 @@ public class PredictionEngine {
             }
 
             Vector handleHardCodedBorder = outputVel;
-            double d0 = GrimMathHelper.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
-            double d1 = GrimMathHelper.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
-            if (d0 != player.lastX + handleHardCodedBorder.getX()) {
-                handleHardCodedBorder = new Vector(d0 - player.lastX, handleHardCodedBorder.getY(), handleHardCodedBorder.getZ());
-            }
+            if (!player.inVehicle) {
+                double d0 = GrimMathHelper.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
+                double d1 = GrimMathHelper.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
+                if (d0 != player.lastX + handleHardCodedBorder.getX()) {
+                    handleHardCodedBorder = new Vector(d0 - player.lastX, handleHardCodedBorder.getY(), handleHardCodedBorder.getZ());
+                }
 
-            if (d1 != player.lastZ + handleHardCodedBorder.getZ()) {
-                handleHardCodedBorder = new Vector(handleHardCodedBorder.getX(), handleHardCodedBorder.getY(), d1 - player.lastZ);
+                if (d1 != player.lastZ + handleHardCodedBorder.getZ()) {
+                    handleHardCodedBorder = new Vector(handleHardCodedBorder.getX(), handleHardCodedBorder.getY(), d1 - player.lastZ);
+                }
             }
 
             double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);

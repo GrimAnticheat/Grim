@@ -107,19 +107,21 @@ public class MovementTicker {
             }
         }
 
-        double d0 = GrimMathHelper.clamp(player.lastX + collide.getX(), -2.9999999E7D, 2.9999999E7D);
-        double d1 = GrimMathHelper.clamp(player.lastZ + collide.getZ(), -2.9999999E7D, 2.9999999E7D);
-        if (d0 != player.lastX + collide.getX()) {
-            collide = new Vector(d0 - player.lastX, collide.getY(), collide.getZ());
-        }
+        if (!player.inVehicle) {
+            double d0 = GrimMathHelper.clamp(player.lastX + collide.getX(), -2.9999999E7D, 2.9999999E7D);
+            double d1 = GrimMathHelper.clamp(player.lastZ + collide.getZ(), -2.9999999E7D, 2.9999999E7D);
+            if (d0 != player.lastX + collide.getX()) {
+                collide = new Vector(d0 - player.lastX, collide.getY(), collide.getZ());
+            }
 
-        if (d1 != player.lastZ + collide.getZ()) {
-            collide = new Vector(collide.getX(), collide.getY(), d1 - player.lastZ);
-        }
+            if (d1 != player.lastZ + collide.getZ()) {
+                collide = new Vector(collide.getX(), collide.getY(), d1 - player.lastZ);
+            }
 
-        // The game disregards movements smaller than 1e-7 (such as in boats)
-        if (collide.lengthSquared() < 1e-7) {
-            collide = new Vector();
+            // The game disregards movements smaller than 1e-7 (such as in boats)
+            if (collide.lengthSquared() < 1e-7) {
+                collide = new Vector();
+            }
         }
 
         // This is where vanilla moves the bounding box and sets it
