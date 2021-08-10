@@ -425,6 +425,7 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.onMaterial(player, BUBBLE_COLUMN, -0.5);
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
         player.uncertaintyHandler.checkForHardCollision();
+        player.uncertaintyHandler.thirtyMillionHardBorder.add(!player.inVehicle && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D));
 
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = false;
         player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
@@ -463,8 +464,6 @@ public class MovementCheckRunner {
 
                 player.boundingBox.offset(0, addedY, 0);
             }
-
-            player.uncertaintyHandler.thirtyMillionHardBorder.add(Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D);
 
             new PlayerBaseTick(player).doBaseTick();
 
