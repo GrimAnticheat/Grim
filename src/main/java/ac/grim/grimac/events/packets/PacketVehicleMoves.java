@@ -10,6 +10,7 @@ import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
+import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -38,6 +39,26 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
             player.timerCheck.processMovementPacket();
 
             MovementCheckRunner.processAndCheckMovementPacket(data);
+        }
+
+        if (packetID == PacketType.Play.Client.STEER_VEHICLE) {
+            WrappedPacketInSteerVehicle steer = new WrappedPacketInSteerVehicle(event.getNMSPacket());
+            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            if (player == null) return;
+
+            // Multiple steer vehicles in a row, the player is not in control of their vehicle
+            // TODO: Set packet location of the player
+            if (player.packetStateData.receivedSteerVehicle && player.vehicle != null) {
+                MovementCheckRunner.processAndCheckMovementPacket(new PredictionData(player));
+            } else {
+                // Try and get the player's vehicle to the queue
+                MovementCheckRunner.runTransactionQueue(player);
+            }
+
+            player.packetStateData.receivedSteerVehicle = true;
+
+            player.packetStateData.packetVehicleForward = steer.getForwardValue();
+            player.packetStateData.packetVehicleHorizontal = steer.getSideValue();
         }
     }
 
