@@ -2,7 +2,6 @@ package ac.grim.grimac.predictionengine.movementTick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -12,12 +11,6 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     public MovementTickerStrider(GrimPlayer player) {
         super(player);
-
-        if (player.playerVehicle.pose == Pose.DYING) {
-            player.clientVelocity = new Vector();
-            return;
-        }
-
         movementInput = new Vector(0, 0, 1);
     }
 

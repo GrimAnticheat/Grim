@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.data.packetentity;
 
 import ac.grim.grimac.utils.enums.EntityType;
-import ac.grim.grimac.utils.enums.Pose;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 import java.util.Locale;
@@ -9,7 +8,6 @@ import java.util.Locale;
 public class PacketEntity {
     public EntityType type;
     public org.bukkit.entity.EntityType bukkitEntityType;
-    public Pose pose = Pose.STANDING;
     public Vector3d lastTickPosition;
     public Vector3d position;
     public PacketEntity riding;
