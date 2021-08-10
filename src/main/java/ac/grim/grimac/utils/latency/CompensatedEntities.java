@@ -280,7 +280,6 @@ public class CompensatedEntities {
     }
 
     public void addEntity(int entityID, org.bukkit.entity.EntityType entityType, Vector3d position) {
-
         PacketEntity packetEntity;
         EntityType type = EntityType.valueOf(entityType.toString().toUpperCase(Locale.ROOT));
 
