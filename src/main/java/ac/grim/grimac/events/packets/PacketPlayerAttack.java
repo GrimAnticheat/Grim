@@ -44,11 +44,12 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 if (attackedEntity != null && (!(attackedEntity instanceof LivingEntity) || attackedEntity instanceof Player)) {
                     boolean hasKnockbackSword = heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0;
                     boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8);
+                    boolean hasNegativeKB = heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) < 0;
 
                     // 1.8 players who are packet sprinting WILL get slowed
                     // 1.9+ players who are packet sprinting might not, based on attack cooldown
                     // Players with knockback enchantments always get slowed
-                    if ((player.packetStateData.isPacketSprinting && isLegacyPlayer) || hasKnockbackSword) {
+                    if ((player.packetStateData.isPacketSprinting && !hasNegativeKB && isLegacyPlayer) || hasKnockbackSword) {
                         player.packetStateData.minPlayerAttackSlow += 1;
                         player.packetStateData.maxPlayerAttackSlow += 1;
 
