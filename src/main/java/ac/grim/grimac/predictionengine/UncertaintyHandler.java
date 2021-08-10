@@ -73,6 +73,10 @@ public class UncertaintyHandler {
     public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
     public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
+    // "Temporary" thirty million hard border workaround
+    // There is nothing as permanent as temporary!!!
+    // https://i.imgur.com/9pDMCKz.png
+    public EvictingList<Boolean> thirtyMillionHardBorder = new EvictingList<>(3);
     public int lastTeleportTicks = 0;
     public int lastFlyingTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
@@ -145,6 +149,10 @@ public class UncertaintyHandler {
             pointThree = Math.max(pointThree, player.speed * 1.5);
         }
 
+        if (Collections.max(thirtyMillionHardBorder)) {
+            pointThree = Math.max(pointThree, 0.15);
+        }
+
         return pointThree;
     }
 
@@ -167,6 +175,9 @@ public class UncertaintyHandler {
         // I don't understand this either.  0.03 in lava just really sucks.
         if (wasLastGravityUncertain && player.wasTouchingLava)
             return 0.2;
+
+        if (Collections.max(thirtyMillionHardBorder))
+            return 0.15;
 
         if (wasLastGravityUncertain)
             return 0.03;

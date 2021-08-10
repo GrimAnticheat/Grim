@@ -469,6 +469,8 @@ public class MovementCheckRunner {
                 player.boundingBox.offset(0, addedY, 0);
             }
 
+            player.uncertaintyHandler.thirtyMillionHardBorder.add(Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D);
+
             new PlayerBaseTick(player).doBaseTick();
 
             SimpleCollisionBox updatedBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
