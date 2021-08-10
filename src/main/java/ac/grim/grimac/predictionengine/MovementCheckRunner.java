@@ -2,10 +2,10 @@ package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.movementTick.MovementTickerHorse;
-import ac.grim.grimac.predictionengine.movementTick.MovementTickerPig;
-import ac.grim.grimac.predictionengine.movementTick.MovementTickerPlayer;
-import ac.grim.grimac.predictionengine.movementTick.MovementTickerStrider;
+import ac.grim.grimac.predictionengine.movementtick.MovementTickerHorse;
+import ac.grim.grimac.predictionengine.movementtick.MovementTickerPig;
+import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
+import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
 import ac.grim.grimac.utils.chunks.Column;
