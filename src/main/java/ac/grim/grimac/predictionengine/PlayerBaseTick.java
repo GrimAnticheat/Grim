@@ -123,13 +123,13 @@ public class PlayerBaseTick {
             return;
         }
 
-        double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+        double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
         if (d1 > d0) {
             player.fluidOnEyes = FluidTag.WATER;
             return;
         }
 
-        d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt((int) Math.floor(player.lastX), (int) Math.floor(d0), (int) Math.floor(player.lastZ));
+        d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
         if (d1 > d0) {
             player.fluidOnEyes = FluidTag.LAVA;
         }
@@ -147,7 +147,11 @@ public class PlayerBaseTick {
             } else if (player.isSwimming) {
                 player.isSwimming = player.lastSprinting && player.wasTouchingWater;
             } else {
-                player.isSwimming = player.lastSprinting && player.wasEyeInWater && player.wasTouchingWater;
+                // Requirement added in 1.17 to fix player glitching between two swimming states
+                // while swimming with feet in air and eyes in water
+                boolean feetInWater = player.getClientVersion().isOlderThan(ClientVersion.v_1_17)
+                        || player.compensatedWorld.getWaterFluidLevelAt(player.lastX, player.lastY, player.lastZ) > 0;
+                player.isSwimming = player.lastSprinting && player.wasEyeInWater && player.wasTouchingWater && feetInWater;
             }
         }
     }

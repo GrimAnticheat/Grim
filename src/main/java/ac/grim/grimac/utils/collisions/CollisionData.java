@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicPane;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -23,7 +24,6 @@ import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.FaceAttachable;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.type.*;
-import org.bukkit.entity.Boat;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
@@ -606,7 +606,7 @@ public enum CollisionData {
 
     LILYPAD((player, version, data, x, y, z) -> {
         // Boats break lilypads client sided on 1.12- clients.
-        if (player.playerVehicle instanceof Boat && version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
+        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT && version.isOlderThanOrEquals(ClientVersion.v_1_12_2))
             return NoCollisionBox.INSTANCE;
 
         if (version.isOlderThan(ClientVersion.v_1_9))
