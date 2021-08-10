@@ -21,6 +21,7 @@ import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
+import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.pair.Pair;
@@ -401,6 +402,10 @@ public class CompensatedWorld {
         }
 
         return false;
+    }
+
+    public double getWaterFluidLevelAt(double x, double y, double z) {
+        return getWaterFluidLevelAt(GrimMathHelper.floor(x), GrimMathHelper.floor(y), GrimMathHelper.floor(z));
     }
 
     public double getWaterFluidLevelAt(int x, int y, int z) {
