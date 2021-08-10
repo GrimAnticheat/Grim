@@ -29,30 +29,29 @@ public class ExplosionHandler {
     }
 
     public void handlePlayerExplosion(double offset) {
-        if (player.knownExplosion == null && player.firstBreadExplosion == null) {
+        if (player.likelyExplosions == null && player.firstBreadExplosion == null) {
             return;
         }
 
-        ChatColor color = ChatColor.GREEN;
+        if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion)) {
+            // Unsure knockback was taken
+            if (player.firstBreadExplosion != null) {
+                player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
+            }
 
-        if (!player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion))
-            return;
-
-        // Unsure knockback was taken
-        if (player.firstBreadExplosion != null) {
-            player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
+            if (player.likelyExplosions != null) {
+                player.likelyExplosions.offset = Math.min(player.likelyExplosions.offset, offset);
+            }
         }
 
         // 100% known kb was taken
-        if (player.knownExplosion != null) {
-            offset = Math.min(player.knownExplosion.offset, offset);
-
-            if (offset > 0.05) {
+        if (player.likelyExplosions != null) {
+            ChatColor color = ChatColor.GREEN;
+            if (player.likelyExplosions.offset > 0.05) {
                 color = ChatColor.RED;
             }
-
             // Add offset to violations
-            Bukkit.broadcastMessage(color + "Explosion offset is " + offset);
+            Bukkit.broadcastMessage(color + "Explosion offset is " + player.likelyExplosions.offset);
         }
     }
 
@@ -70,7 +69,12 @@ public class ExplosionHandler {
     private void handleTransactionPacket(int transactionID) {
         for (Iterator<TransactionKnockbackData> it = firstBreadMap.iterator(); it.hasNext(); ) {
             TransactionKnockbackData data = it.next();
-            if (data.transactionID < transactionID) {
+            if (data.transactionID == transactionID) { // First bread explosion
+                if (lastExplosionsKnownTaken != null)
+                    firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(data.knockback);
+                else
+                    firstBreadAddedExplosion = data.knockback;
+            } else if (data.transactionID < transactionID) {
                 if (lastExplosionsKnownTaken != null)
                     lastExplosionsKnownTaken.add(data.knockback);
                 else
@@ -78,11 +82,6 @@ public class ExplosionHandler {
                 it.remove();
 
                 firstBreadAddedExplosion = null;
-            } else if (data.transactionID - 1 == transactionID) { // First bread explosion
-                if (lastExplosionsKnownTaken != null)
-                    firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(data.knockback);
-                else
-                    firstBreadAddedExplosion = data.knockback;
             }
         }
     }

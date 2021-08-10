@@ -59,44 +59,43 @@ public class KnockbackHandler {
         return returnLastKB;
     }
 
-    public void handlePlayerKb(double offset) {
-        if (player.possibleKB == null && player.firstBreadKB == null) {
-            return;
-        }
-
-        if (!player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback))
-            return;
-
-        ChatColor color = ChatColor.GREEN;
-
-        // Unsure knockback was taken
-        if (player.firstBreadKB != null) {
-            player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
-        }
-
-        // 100% known kb was taken
-        if (player.possibleKB != null) {
-            offset = Math.min(player.possibleKB.offset, offset);
-
-            if (offset > 0.05) {
-                color = ChatColor.RED;
-            }
-
-            // Add offset to violations
-            Bukkit.broadcastMessage(color + "Kb offset is " + offset);
-        }
-    }
-
     private void tickKnockback(int transactionID) {
         for (Iterator<TransactionKnockbackData> it = firstBreadMap.iterator(); it.hasNext(); ) {
             TransactionKnockbackData data = it.next();
-            if (data.transactionID < transactionID) {
+            if (data.transactionID == transactionID) { // First bread knockback
+                firstBreadOnlyKnockback = new VelocityData(data.entityID, data.knockback);
+            } else if (data.transactionID < transactionID) {
                 lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.knockback));
                 it.remove();
                 firstBreadOnlyKnockback = null;
-            } else if (data.transactionID - 1 == transactionID) { // First bread knockback
-                firstBreadOnlyKnockback = new VelocityData(data.entityID, data.knockback);
             }
+        }
+    }
+
+    public void handlePlayerKb(double offset) {
+        if (player.likelyKB == null && player.firstBreadKB == null) {
+            return;
+        }
+
+        if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback)) {
+            // Unsure knockback was taken
+            if (player.firstBreadKB != null) {
+                player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
+            }
+
+            // 100% known kb was taken
+            if (player.likelyKB != null) {
+                player.likelyKB.offset = Math.min(player.likelyKB.offset, offset);
+            }
+        }
+
+        if (player.likelyKB != null) {
+            ChatColor color = ChatColor.GREEN;
+            if (player.likelyKB.offset > 0.05) {
+                color = ChatColor.RED;
+            }
+            // Add offset to violations
+            Bukkit.broadcastMessage(color + "Kb offset is " + player.likelyKB.offset);
         }
     }
 

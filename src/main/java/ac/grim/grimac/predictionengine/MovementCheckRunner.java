@@ -275,10 +275,10 @@ public class MovementCheckRunner {
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
 
         player.firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
-        player.possibleKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+        player.likelyKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
 
         player.firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion(data.lastTransaction);
-        player.knownExplosion = player.explosionHandler.getPossibleExplosions(data.lastTransaction);
+        player.likelyExplosions = player.explosionHandler.getPossibleExplosions(data.lastTransaction);
 
         // Check if the player can control their horse, if they are on a horse
         if (player.inVehicle) {

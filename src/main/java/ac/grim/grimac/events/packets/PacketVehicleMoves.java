@@ -68,10 +68,10 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
                 player.inVehicle = player.playerVehicle != null;
 
                 player.firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
-                player.possibleKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
+                player.likelyKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
 
                 player.firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion(player.lastTransactionReceived);
-                player.knownExplosion = player.explosionHandler.getPossibleExplosions(player.lastTransactionReceived);
+                player.likelyExplosions = player.explosionHandler.getPossibleExplosions(player.lastTransactionReceived);
 
                 // Players are unable to take explosions in vehicles
                 player.explosionHandler.handlePlayerExplosion(0);
