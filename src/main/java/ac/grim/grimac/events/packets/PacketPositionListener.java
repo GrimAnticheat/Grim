@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.PredictionData;
-import ac.grim.grimac.utils.math.GrimMathHelper;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -33,13 +32,6 @@ public class PacketPositionListener extends PacketListenerAbstract {
             player.reach.handleMovement(player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
             player.packetStateData.didLastMovementIncludePosition = true;
 
-            // Don't allow players to move past the hard coded border
-            double d0 = GrimMathHelper.clamp(pos.getX(), -2.9999999E7D, 2.9999999E7D);
-            double d1 = GrimMathHelper.clamp(pos.getZ(), -2.9999999E7D, 2.9999999E7D);
-            pos = new Vector3d(d0, pos.getY(), d1);
-            if (d0 != pos.getX() || d1 != pos.getZ())
-                position.setPosition(pos);
-
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround());
             MovementCheckRunner.checkTeleportQueue(data);
 
@@ -60,13 +52,6 @@ public class PacketPositionListener extends PacketListenerAbstract {
             Vector3d pos = position.getPosition();
             player.reach.handleMovement(position.getYaw(), position.getPitch());
             player.packetStateData.didLastMovementIncludePosition = true;
-
-            // Don't allow players to move past the hard coded border
-            double d0 = GrimMathHelper.clamp(pos.getX(), -2.9999999E7D, 2.9999999E7D);
-            double d1 = GrimMathHelper.clamp(pos.getZ(), -2.9999999E7D, 2.9999999E7D);
-            pos = new Vector3d(d0, pos.getY(), d1);
-            if (d0 != pos.getX() || d1 != pos.getZ())
-                position.setPosition(pos);
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround());
             boolean wasTeleported = MovementCheckRunner.checkTeleportQueue(data);
