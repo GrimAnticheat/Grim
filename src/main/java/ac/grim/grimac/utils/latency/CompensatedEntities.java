@@ -11,10 +11,10 @@ import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeModifierWrapper;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeSnapshotWrapper;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -298,6 +298,9 @@ public class CompensatedEntities {
                 case STRIDER:
                     packetEntity = new PacketEntityStrider(entityType, position);
                     break;
+                case PLAYER:
+                    packetEntity = new PacketEntityPlayer(entityType, position);
+                    break;
                 default:
                     packetEntity = new PacketEntity(entityType, position);
             }
@@ -312,9 +315,49 @@ public class CompensatedEntities {
 
     private void updateEntityMetadata(PacketEntity entity, List<WrappedWatchableObject> watchableObjects) {
         // Poses only exist in 1.14+ with the new shifting mechanics
-        if (XMaterial.supports(14)) {
-            Optional<WrappedWatchableObject> poseObject = watchableObjects.stream().filter(o -> o.getIndex() == 6).findFirst();
-            poseObject.ifPresent(wrappedWatchableObject -> entity.pose = Pose.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
+        if (entity instanceof PacketEntityPlayer) {
+            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
+                Optional<WrappedWatchableObject> poseObject = watchableObjects.stream().filter(o -> o.getIndex() == 6).findFirst();
+                poseObject.ifPresent(wrappedWatchableObject -> ((PacketEntityPlayer) entity).pose = Pose.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
+            } else {
+                Optional<WrappedWatchableObject> mainByteArray = watchableObjects.stream().filter(o -> o.getIndex() == 0).findFirst();
+
+                boolean gliding = false;
+                boolean swimming = false;
+                boolean sneaking = false;
+
+                boolean riptide = false;
+                if (mainByteArray.isPresent() && mainByteArray.get().getRawValue() instanceof Byte) {
+                    Byte mainByte = (Byte) mainByteArray.get().getRawValue();
+                    gliding = (mainByte & 0x80) != 0;
+                    swimming = (mainByte & 0x10) != 0;
+                    sneaking = (mainByte & 0x02) != 0;
+                }
+
+                Optional<WrappedWatchableObject> handStates = watchableObjects.stream().filter(o -> o.getIndex() == 7).findFirst();
+                if (handStates.isPresent() && handStates.get().getRawValue() instanceof Byte) {
+                    riptide = (((Byte) handStates.get().getRawValue()) & 0x04) != 0;
+                }
+
+                Pose pose;
+                // We don't check for sleeping to reduce complexity
+                if (gliding) {
+                    pose = Pose.FALL_FLYING;
+                } else if (swimming) {
+                    pose = Pose.SWIMMING;
+                } else if (riptide) { // Index 7 0x04
+                    pose = Pose.SPIN_ATTACK;
+                } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && sneaking) { // 0x02
+                    pose = Pose.NINE_CROUCHING;
+                } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && sneaking) { // 0x02
+                    pose = Pose.CROUCHING;
+                } else {
+                    pose = Pose.STANDING;
+                }
+
+                ((PacketEntityPlayer) entity).pose = pose;
+            }
+
         }
 
         if (EntityType.isAgeableEntity(entity.bukkitEntityType)) {

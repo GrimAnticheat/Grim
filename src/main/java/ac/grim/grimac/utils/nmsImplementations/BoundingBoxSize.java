@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
 import ac.grim.grimac.utils.enums.EntityType;
 
@@ -90,7 +91,8 @@ public class BoundingBoxSize {
             case MINECART_TNT:
                 return 0.98;
             case PLAYER:
-                return packetEntity.pose.width;
+                if (packetEntity instanceof PacketEntityPlayer)
+                    return ((PacketEntityPlayer) packetEntity).pose.width;
             case POLAR_BEAR:
                 return 1.4;
             case RAVAGER:
@@ -274,7 +276,8 @@ public class BoundingBoxSize {
                     return 0.5 + ((PacketEntitySizeable) packetEntity).size * 0.1;
                 }
             case PLAYER:
-                return packetEntity.pose.height;
+                if (packetEntity instanceof PacketEntityPlayer)
+                    return ((PacketEntityPlayer) packetEntity).pose.height;
             case POLAR_BEAR:
                 return 1.4;
             case PUFFERFISH:
