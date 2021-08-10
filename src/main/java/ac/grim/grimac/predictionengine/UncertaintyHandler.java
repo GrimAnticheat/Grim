@@ -223,7 +223,7 @@ public class UncertaintyHandler {
         findCollision:
         {
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.type == EntityType.BOAT && entity != player.playerVehicle) {
+                if ((entity.type == EntityType.BOAT || (player.getClientVersion().isOlderThan(ClientVersion.v_1_9) && entity.type == EntityType.SHULKER)) && entity != player.playerVehicle) {
                     SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
                     if (box.isIntersected(expandedBB)) {
                         hasHardCollision = true;
