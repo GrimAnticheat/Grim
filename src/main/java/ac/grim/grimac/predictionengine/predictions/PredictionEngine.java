@@ -323,6 +323,11 @@ public class PredictionEngine {
             bonusY += 0.2;
         }
 
+        if (Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)) {
+            additionHorizontal += 0.1;
+            bonusY += 0.1;
+        }
+
         Vector uncertainty = new Vector(avgColliding * 0.04 + uncertainPiston, additionVertical + uncertainPiston, avgColliding * 0.04 + uncertainPiston);
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal, -bonusY + player.uncertaintyHandler.yNegativeUncertainty + player.uncertaintyHandler.gravityUncertainty, player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal);
         Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
