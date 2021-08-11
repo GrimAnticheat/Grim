@@ -130,6 +130,8 @@ public enum CollisionData {
             XMaterial.DETECTOR_RAIL.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial()),
 
     ANVIL((player, version, data, x, y, z) -> {
+        BlockFace face = ((WrappedDirectional) data).getDirection();
+
         // Anvil collision box was changed in 1.13 to be more accurate
         // https://www.mcpk.wiki/wiki/Version_Differences
         // The base is 0.75×0.75, and its floor is 0.25b high.
@@ -138,8 +140,7 @@ public enum CollisionData {
             ComplexCollisionBox complexAnvil = new ComplexCollisionBox();
             // Base of the anvil
             complexAnvil.add(new HexCollisionBox(2, 0, 2, 14, 4, 14));
-
-            if (((WrappedDirectional) data).getDirection() == BlockFace.NORTH) {
+            if (face == BlockFace.NORTH || face == BlockFace.SOUTH) {
                 complexAnvil.add(new HexCollisionBox(4.0D, 4.0D, 3.0D, 12.0D, 5.0D, 13.0D));
                 complexAnvil.add(new HexCollisionBox(6.0D, 5.0D, 4.0D, 10.0D, 10.0D, 12.0D));
                 complexAnvil.add(new HexCollisionBox(3.0D, 10.0D, 0.0D, 13.0D, 16.0D, 16.0D));
@@ -152,7 +153,7 @@ public enum CollisionData {
             return complexAnvil;
         } else {
             // Just a single solid collision box with 1.12
-            if (((WrappedDirectional) data).getDirection() == BlockFace.NORTH) {
+            if (face == BlockFace.NORTH || face == BlockFace.SOUTH) {
                 return new SimpleCollisionBox(0.125F, 0.0F, 0.0F, 0.875F, 1.0F, 1.0F, false);
             } else {
                 return new SimpleCollisionBox(0.0F, 0.0F, 0.125F, 1.0F, 1.0F, 0.875F, false);
