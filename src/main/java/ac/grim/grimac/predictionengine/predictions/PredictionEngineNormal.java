@@ -55,7 +55,7 @@ public class PredictionEngineNormal extends PredictionEngine {
                 jump.add(new Vector(0, player.flySpeed * 3, 0));
             }
 
-            existingVelocities.add(vector.setVector(jump, VectorData.VectorType.Jump));
+            existingVelocities.add(vector.returnNewModified(jump, VectorData.VectorType.Jump));
         }
     }
 

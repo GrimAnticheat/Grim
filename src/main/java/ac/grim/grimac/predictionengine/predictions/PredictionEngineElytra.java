@@ -42,7 +42,7 @@ public class PredictionEngineElytra extends PredictionEngine {
                 fireworksResult = VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
             }
 
-            data = data.setVector(fireworksResult, VectorData.VectorType.Elytra);
+            data = data.returnNewModified(fireworksResult, VectorData.VectorType.Elytra);
             results.add(data);
         }
 

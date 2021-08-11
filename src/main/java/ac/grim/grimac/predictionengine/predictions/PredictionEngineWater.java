@@ -49,7 +49,7 @@ public class PredictionEngineWater extends PredictionEngine {
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
-            existingVelocities.add(vector.setVector(vector.vector.clone().add(new Vector(0, 0.04, 0)), VectorData.VectorType.Jump));
+            existingVelocities.add(vector.returnNewModified(vector.vector.clone().add(new Vector(0, 0.04, 0)), VectorData.VectorType.Jump));
 
             if (player.slightlyTouchingWater && player.lastOnGround && !player.onGround) {
                 Vector withJump = vector.vector.clone();
