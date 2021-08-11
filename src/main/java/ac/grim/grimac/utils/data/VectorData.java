@@ -21,7 +21,7 @@ public class VectorData {
         this.vectorType = vectorType;
     }
 
-    public VectorData setVector(Vector newVec, VectorType type) {
+    public VectorData returnNewModified(Vector newVec, VectorType type) {
         return new VectorData(newVec, this, type);
     }
 

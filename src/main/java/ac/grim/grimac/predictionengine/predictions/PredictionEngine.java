@@ -146,7 +146,7 @@ public class PredictionEngine {
             if (resultAccuracy < bestInput) {
                 bestInput = resultAccuracy;
 
-                bestCollisionVel = clientVelAfterInput.setVector(outputVel, VectorData.VectorType.BestVelPicked);
+                bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
                 beforeCollisionMovement = additionalPushMovement;
                 originalNonUncertainInput = clientVelAfterInput.vector;
                 tempClientVelChosen = primaryPushMovement.clone();
@@ -183,7 +183,7 @@ public class PredictionEngine {
 
         for (int x = 1; x <= player.maxPlayerAttackSlow; x++) {
             for (VectorData data : new HashSet<>(velocitiesToReturn)) {
-                velocitiesToReturn.add(data.setVector(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
+                velocitiesToReturn.add(data.returnNewModified(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
             }
         }
 
@@ -394,9 +394,9 @@ public class PredictionEngine {
                 for (int x = -1; x <= 1; x++) {
                     for (int z = zMin; z <= 1; z++) {
                         VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-                        result = result.setVector(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
-                        result = result.setVector(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
-                        result = result.setVector(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                        result = result.returnNewModified(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
+                        result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
+                        result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
                         returnVectors.add(result);
                     }
                 }
