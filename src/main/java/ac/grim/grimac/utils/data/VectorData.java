@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.data;
 
+import com.google.common.base.Objects;
 import org.bukkit.util.Vector;
 
 public class VectorData {
@@ -38,18 +39,16 @@ public class VectorData {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if (!(obj instanceof VectorData)) {
-            return false;
-        } else {
-            return vector.equals(((VectorData) obj).vector);
-        }
+    public int hashCode() {
+        return Objects.hashCode(vectorType, lastVector, vector);
     }
 
-    // Don't allow duplicate vectors in list - good optimization
     @Override
-    public int hashCode() {
-        return vector.hashCode();
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof VectorData)) return false;
+        VectorData that = (VectorData) o;
+        return vectorType == that.vectorType && Objects.equal(lastVector, that.lastVector) && Objects.equal(vector, that.vector);
     }
 
     // TODO: For debugging everything should have it's own type!
