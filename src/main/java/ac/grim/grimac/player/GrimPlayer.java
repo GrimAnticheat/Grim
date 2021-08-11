@@ -144,6 +144,8 @@ public class GrimPlayer {
     public boolean lastOnGround;
     public boolean horizontalCollision;
     public boolean verticalCollision;
+    public boolean clientControlledHorizontalCollision;
+    public boolean clientControlledVerticalCollision;
     public boolean lastClimbing;
     public boolean couldSkipTick = false;
     public boolean canGroundRiptide = false;

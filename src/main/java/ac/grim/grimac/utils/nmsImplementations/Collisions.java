@@ -83,12 +83,13 @@ public class Collisions {
                 .expandMax(0.26, 0.26, 0.26);
 
         // Worldborders were added in 1.8
-        if (XMaterial.supports(8) && player.playerWorld != null) {
+        // Don't add to border unless the player is colliding with it and is near it
+        if (player.clientControlledHorizontalCollision && XMaterial.supports(8) && player.playerWorld != null) {
             WorldBorder border = player.playerWorld.getWorldBorder();
             double centerX = border.getCenter().getX();
             double centerZ = border.getCenter().getZ();
             // For some reason, the game limits the border to 29999984 blocks wide
-            double size = Math.min(border.getSize() / 2, 29999984);
+            double size = Math.ceil(Math.min(border.getSize() / 2, 29999984));
 
             // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions
             if (Math.abs(player.x + centerX) + 16 > size || Math.abs(player.z + centerZ) + 16 > size) {
