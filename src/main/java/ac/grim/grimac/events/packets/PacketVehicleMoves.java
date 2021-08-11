@@ -90,6 +90,10 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
                 player.y = player.playerVehicle.position.getY();
                 player.z = player.playerVehicle.position.getZ();
 
+                player.packetStateData.packetPlayerX = player.x;
+                player.packetStateData.packetPlayerY = player.y;
+                player.packetStateData.packetPlayerZ = player.z;
+
                 return;
             } else {
                 // Try and get the player's vehicle to the queue
