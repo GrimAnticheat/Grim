@@ -253,13 +253,14 @@ public class PredictionEngine {
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
+        double shiftingInprecision = player.uncertaintyHandler.stuckOnEdge ? 0.05 : 0;
 
         // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
         // 0.065 was causing issues with fast moving dolphins
         // 0.075 seems safe?
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
+        Vector uncertainty = new Vector(shiftingInprecision + player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, shiftingInprecision + player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
         return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
                 vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));

@@ -555,6 +555,12 @@ public class MovementCheckRunner {
             offset -= 0.03;
         }
 
+        // Sneaking near edge cases a ton of issues
+        // Don't give this bonus if the Y axis is wrong though.
+        // Another temporary permanent hack.
+        if (player.uncertaintyHandler.stuckOnEdge && player.clientVelocity.getY() > 0 && Math.abs(player.clientVelocity.getY() - player.actualMovement.getY()) < 1e-6)
+            offset -= 0.1;
+
         offset = Math.max(0, offset);
 
         ChatColor color;
@@ -620,10 +626,17 @@ public class MovementCheckRunner {
             if (player.lastVehicleSwitch < 5) {
                 player.bukkitPlayer.sendMessage("Note that the player would be setback and not punished");
             }
+
+            if (!player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity) && !player.horizontalCollision && player.clientControlledHorizontalCollision) {
+                player.bukkitPlayer.sendMessage("Horizontal collision desync!");
+            }
+            if (!player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity) && !player.uncertaintyHandler.isStepMovement && !player.verticalCollision && player.clientControlledVerticalCollision) {
+                player.bukkitPlayer.sendMessage("Vertical collision desync!");
+            }
         }
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.inVehicle + " " + Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity));
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.uncertaintyHandler.stuckOnEdge);
     }
 }
