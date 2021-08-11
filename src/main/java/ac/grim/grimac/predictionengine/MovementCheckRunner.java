@@ -378,6 +378,10 @@ public class MovementCheckRunner {
         player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
         player.playerWorld = data.playerWorld;
 
+        player.clientControlledVerticalCollision = Math.abs(player.y % (1 / 64D)) < 0.00001;
+        // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
+        player.clientControlledHorizontalCollision = Math.min(GrimMathHelper.distanceToHorizontalCollision(player.x), GrimMathHelper.distanceToHorizontalCollision(player.z)) < 1e-6;
+
         player.uncertaintyHandler.lastTeleportTicks--;
         if (data.isJustTeleported) {
             player.lastX = player.x;

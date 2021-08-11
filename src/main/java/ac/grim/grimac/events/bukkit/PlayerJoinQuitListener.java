@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.events.packets.patch.AntiBucketDesync;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.ChatColor;
@@ -62,6 +63,8 @@ public class PlayerJoinQuitListener implements Listener {
         player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.add(false);
         player.uncertaintyHandler.hardCollidingLerpingEntity.add(false);
         player.uncertaintyHandler.thirtyMillionHardBorder.add(false);
+
+        player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8);
 
         GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
 
