@@ -96,15 +96,6 @@ public class UncertaintyHandler {
         slimePistonBounces = new HashSet<>();
     }
 
-    // 0.04 is safe for speed 10, 0.03 is unsafe
-    // 0.0016 is safe for speed 1, 0.09 is unsafe
-    //
-    // Taking these approximate values gives us this, the same 0.03 value for each speed
-    // Don't give bonus for sprinting because sprinting against walls isn't possible
-    public double getZeroPointZeroThreeThreshold() {
-        return 0.096 * (player.speed / (player.isSprinting ? 1.3d : 1)) - 0.008;
-    }
-
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
         // First tick movement should always be considered zero point zero three
         // Shifting movement is somewhat buggy because 0.03
@@ -196,10 +187,12 @@ public class UncertaintyHandler {
         // 0.03 is very bad with stuck speed multipliers
         if (player.inVehicle) {
             return false;
-        } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
-            player.uncertaintyHandler.gravityUncertainty = -0.08;
+        } else if (wasAffectedByStuckSpeed()) {
+            gravityUncertainty = -0.08;
             return true;
-        } else if (player.uncertaintyHandler.isSteppingOnBouncyBlock && Math.abs(player.clientVelocity.getY()) < 0.2) {
+        } else if (isSteppingOnBouncyBlock && Math.abs(player.clientVelocity.getY()) < 0.2) {
+            return true;
+        } else if (lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket) {
             return true;
         } else {
             double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
@@ -213,6 +206,15 @@ public class UncertaintyHandler {
             }
             return player.couldSkipTick;
         }
+    }
+
+    // 0.04 is safe for speed 10, 0.03 is unsafe
+    // 0.0016 is safe for speed 1, 0.09 is unsafe
+    //
+    // Taking these approximate values gives us this, the same 0.03 value for each speed
+    // Don't give bonus for sprinting because sprinting against walls isn't possible
+    public double getZeroPointZeroThreeThreshold() {
+        return 0.096 * (player.speed / (player.isSprinting ? 1.3d : 1)) - 0.008;
     }
 
     public void checkForHardCollision() {

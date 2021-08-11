@@ -491,8 +491,8 @@ public class MovementCheckRunner {
 
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
-
             player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = data.didGroundStatusChangeWithoutPositionPacket;
+
             // Vehicles don't have jumping or that stupid < 0.03 thing
             // If the player isn't on the ground, a packet in between < 0.03 said they did
             // And the player is reasonably touching the ground
