@@ -384,6 +384,10 @@ public class MovementCheckRunner {
             player.lastY = player.y;
             player.lastZ = player.z;
             player.uncertaintyHandler.lastTeleportTicks = 0;
+
+            // Teleports mess with explosions and knockback
+            player.explosionHandler.handlePlayerExplosion(0);
+            player.knockbackHandler.handlePlayerKb(0);
         }
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
@@ -430,7 +434,8 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = false;
         player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
 
-        if (data.isJustTeleported) {
+        // Exempt if the player is offline
+        if (data.isJustTeleported || !player.bukkitPlayer.isOnline()) {
             // Don't let the player move if they just teleported
             player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
             player.clientVelocity = new Vector();

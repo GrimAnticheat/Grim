@@ -1,12 +1,14 @@
 package ac.grim.grimac.utils.data;
 
 import com.google.common.base.Objects;
+import lombok.Data;
 
+@Data
 public abstract class BasePlayerChangeBlockData {
-    public int transaction;
-    public int blockX;
-    public int blockY;
-    public int blockZ;
+    public final int transaction;
+    public final int blockX;
+    public final int blockY;
+    public final int blockZ;
 
     public BasePlayerChangeBlockData(int transaction, int blockX, int blockY, int blockZ) {
         this.transaction = transaction;
