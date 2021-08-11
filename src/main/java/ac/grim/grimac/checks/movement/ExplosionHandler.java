@@ -9,12 +9,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ExplosionHandler {
-    List<TransactionKnockbackData> firstBreadMap = new ArrayList<>();
+    ConcurrentLinkedQueue<TransactionKnockbackData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
 
     Vector lastExplosionsKnownTaken = null;
@@ -67,21 +65,25 @@ public class ExplosionHandler {
     }
 
     private void handleTransactionPacket(int transactionID) {
-        for (Iterator<TransactionKnockbackData> it = firstBreadMap.iterator(); it.hasNext(); ) {
-            TransactionKnockbackData data = it.next();
+        TransactionKnockbackData data = firstBreadMap.peek();
+        while (data != null) {
             if (data.transactionID == transactionID) { // First bread explosion
                 if (lastExplosionsKnownTaken != null)
                     firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(data.knockback);
                 else
                     firstBreadAddedExplosion = data.knockback;
+                break; // All knockback after this will have not been applied
             } else if (data.transactionID < transactionID) {
                 if (lastExplosionsKnownTaken != null)
                     lastExplosionsKnownTaken.add(data.knockback);
                 else
                     lastExplosionsKnownTaken = data.knockback;
-                it.remove();
 
                 firstBreadAddedExplosion = null;
+                firstBreadMap.poll();
+                data = firstBreadMap.peek();
+            } else { // We are too far ahead in the future
+                break;
             }
         }
     }

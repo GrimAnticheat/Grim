@@ -9,16 +9,14 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 public class KnockbackHandler {
-    List<TransactionKnockbackData> firstBreadMap = new ArrayList<>();
+    ConcurrentLinkedQueue<TransactionKnockbackData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
 
-    List<VelocityData> lastKnockbackKnownTaken = new ArrayList<>();
+    ConcurrentLinkedQueue<VelocityData> lastKnockbackKnownTaken = new ConcurrentLinkedQueue<>();
     VelocityData firstBreadOnlyKnockback = null;
 
     public KnockbackHandler(GrimPlayer player) {
@@ -60,14 +58,18 @@ public class KnockbackHandler {
     }
 
     private void tickKnockback(int transactionID) {
-        for (Iterator<TransactionKnockbackData> it = firstBreadMap.iterator(); it.hasNext(); ) {
-            TransactionKnockbackData data = it.next();
+        TransactionKnockbackData data = firstBreadMap.peek();
+        while (data != null) {
             if (data.transactionID == transactionID) { // First bread knockback
                 firstBreadOnlyKnockback = new VelocityData(data.entityID, data.knockback);
-            } else if (data.transactionID < transactionID) {
+                break; // All knockback after this will have not been applied
+            } else if (data.transactionID < transactionID) { // This kb has 100% arrived to the player
                 lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.knockback));
-                it.remove();
                 firstBreadOnlyKnockback = null;
+                firstBreadMap.poll();
+                data = firstBreadMap.peek();
+            } else { // We are too far ahead in the future
+                break;
             }
         }
     }
