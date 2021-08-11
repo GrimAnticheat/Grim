@@ -144,13 +144,27 @@ public class PredictionEngine {
             double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
 
             if (resultAccuracy < bestInput) {
-                bestInput = resultAccuracy;
+                // Add a good amount before confirming that it is indeed knockback stuff
+                bestInput = resultAccuracy + 0.001;
 
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
                 beforeCollisionMovement = additionalPushMovement;
                 originalNonUncertainInput = clientVelAfterInput.vector;
                 tempClientVelChosen = primaryPushMovement.clone();
 
+                if (player.likelyKB != null && player.likelyKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
+                    continue;
+
+                if (player.firstBreadKB != null && player.firstBreadKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
+                    continue;
+
+                if (player.likelyExplosions != null && player.likelyExplosions.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
+                    continue;
+
+                if (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
+                    continue;
+
+                bestInput = resultAccuracy;
                 // Optimization - Close enough, other inputs won't get closer
                 // This works as knockback and explosions are run first
                 //
