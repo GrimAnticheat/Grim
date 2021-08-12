@@ -19,7 +19,24 @@ package ac.grim.grimac.utils.math;
 // I'd suggest everyone to go use Sodium instead as it's open source, is usually faster, and follows vanilla behavior
 //
 // I don't care when vanilla does something stupid, but I get angry when a proprietary mod breaks my anticheat
+//
 
+// Update a few months later
+
+// WHY DID THEY CHANGE FASTMATH
+// WHAT THE FUCK OPTIFINE - HOW DO I SUPPORT TWO VERSIONS OF BROKEN TRIG TABLES!
+// This is impossible and I give up!  Go fuck yourself sp614x.
+//
+// Instead of fixing the damn issue of changing vanilla mechanics, the new version patches some
+// issues with half angles.  Yes, it was wrong, so they made it more accurate, but this makes our
+// job impossible without significant performance degradation and 1e-4 bypasses from switching
+// between whichever trig table gives the most advantage.
+//
+// YOU ARE NOT VANILLA OPTIFINE.  YOU DO NOT CONTROL WHAT VANILLA MOVEMENT IS!
+//
+// I'm seriously considering allowing a warning for FastMath users that it may lead to false bans
+// his arrogance is impossible to patch.
+//
 public class OptifineShitMath {
     private static final float[] SIN_TABLE_FAST = new float[4096];
     private static final float radToIndex = roundToFloat(651.8986469044033D);
