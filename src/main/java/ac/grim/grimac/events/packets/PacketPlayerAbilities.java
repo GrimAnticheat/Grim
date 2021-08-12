@@ -23,7 +23,27 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player == null) return;
 
-            player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived.get(), abilities.isFlying());
+            // In one tick you can do the following
+            // - Start flying, send server abilities that you are flying
+            // - Make flying movement
+            // - Stop flying, send server abilities that you are no longer flying, in the same tick.
+            // 1.8 through 1.17, and likely 1.7 too.
+            //
+            // To do this, you need to:
+            // - Gain a good amount of downwards momentum
+            // - Tap jump once just before the ground
+            // - The tick before you you hit the ground, tap space again
+            // - This causes you to start flying
+            //-  Downwards momentum causes you to stop flying after you hit the ground
+            // - This causes you to stop flying in the same tick
+            //
+            // I mean, it's logical, but packet order is wrong.  At least it is easy to fix:
+            if (player.compensatedFlying.lastToggleTransaction == player.packetStateData.packetLastTransactionReceived.get())
+                player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived.get() + 1, abilities.isFlying());
+            else
+                player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived.get(), abilities.isFlying());
+
+            player.compensatedFlying.lastToggleTransaction = player.packetStateData.packetLastTransactionReceived.get();
         }
     }
 

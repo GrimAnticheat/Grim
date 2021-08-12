@@ -16,6 +16,7 @@ public class CompensatedFlying {
     private final GrimPlayer player;
 
     public ConcurrentHashMap<Integer, Boolean> lagCompensatedIsFlyingMap = new ConcurrentHashMap<>();
+    public int lastToggleTransaction = Integer.MIN_VALUE;
 
     public CompensatedFlying(GrimPlayer player) {
         this.player = player;
