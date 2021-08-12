@@ -54,8 +54,7 @@ public class BlockProperties {
         if (material == ICE) friction = 0.98f;
         if (material == SLIME && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) friction = 0.8f;
         // ViaVersion honey block replacement
-        if (material == HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14_4) &&
-                player.getClientVersion().isOlderThan(ClientVersion.v_1_15))
+        if (material == HONEY_BLOCK && player.getClientVersion().isOlderThan(ClientVersion.v_1_15))
             friction = 0.8f;
         if (material == PACKED_ICE) friction = 0.98f;
         if (material == FROSTED_ICE) friction = 0.98f;
