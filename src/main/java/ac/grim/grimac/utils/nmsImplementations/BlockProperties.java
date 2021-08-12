@@ -123,6 +123,7 @@ public class BlockProperties {
 
         Material block = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
 
+        if (block == HONEY_BLOCK) return 0.4f;
         if (block == SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
@@ -137,6 +138,7 @@ public class BlockProperties {
         }
 
         Material block2 = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y - 0.5000001, player.z);
+        if (block2 == HONEY_BLOCK) return 0.4f;
         if (block2 == SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
