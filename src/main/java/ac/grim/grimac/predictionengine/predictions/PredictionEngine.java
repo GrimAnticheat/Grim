@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -477,6 +478,7 @@ public class PredictionEngine {
         if (player.inVehicle)
             return false;
 
+        // This uses the new bounding box
         boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
 
@@ -502,7 +504,11 @@ public class PredictionEngine {
         // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
         // Just give a high lenience to this... not worth the risk of falses
 
-        return player.compensatedWorld.containsLiquid(player.boundingBox.copy().expand(0.1, 0.1, 0.1));
+        SimpleCollisionBox oldBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
+
+        // This uses the old bounding box
+        // (Water/lava checked before movement)
+        return player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1));
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
