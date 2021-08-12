@@ -66,30 +66,11 @@ public class PredictionEngine {
         Vector tempClientVelChosen = null;
         Vector originalNonUncertainInput = null;
 
-        boolean zeroPointZeroThreeOnGroundGlitch = false;
-
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput);
             Vector backOff = Collisions.maybeBackOffFromEdge(primaryPushMovement, player);
             Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
             Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
-
-            // Patch out 0.03 bug that can only be patched after checking collisions
-            // So basically the collision order is Y -> X -> Z or Y -> Z -> X
-            // Vertical collision can never run before horizontal collision
-            //
-            // HOWEVER, because of that damn 0.03, the collision order can appear that Y collision is last
-            // Reproduce this bug by shifting to the corner on 1.14+, get slight velocity, and then fall off
-            // You will vertically move, collide, and horizontally move < 0.03
-            // Next tick, you will do the same, and now you are moving downwards, which was impossible last tick
-            // Combining the two XZ movements results in the wrong Y movement because of this collision order
-            if (player.couldSkipTick && player.actualMovement.getY() < 0 && primaryPushMovement.getY() < 0 && outputVel.getY() == 0) {
-                SimpleCollisionBox playerBox = player.boundingBox.copy().offset(outputVel.getX(), primaryPushMovement.getY(), outputVel.getZ());
-                if (Collisions.isEmpty(player, playerBox)) {
-                    zeroPointZeroThreeOnGroundGlitch = true;
-                    outputVel.setY(primaryPushMovement.getY());
-                }
-            }
 
             // Scaffolding bug occurred
             // This is an extension of the sneaking bug
@@ -153,7 +134,7 @@ public class PredictionEngine {
         assert bestCollisionVel != null;
         player.clientVelocity = tempClientVelChosen;
         player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
-        new MovementTickerPlayer(player).move(originalNonUncertainInput, beforeCollisionMovement, bestCollisionVel.vector, zeroPointZeroThreeOnGroundGlitch);
+        new MovementTickerPlayer(player).move(originalNonUncertainInput, beforeCollisionMovement, bestCollisionVel.vector);
         endOfTick(player, player.gravity, player.friction);
     }
 

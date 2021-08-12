@@ -621,7 +621,7 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.inVehicle + " " + Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity));
+            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.wasTouchingLava + " " + player.uncertaintyHandler.gravityUncertainty);
 
             if (player.lastVehicleSwitch < 5) {
                 player.bukkitPlayer.sendMessage("Note that the player would be setback and not punished");
@@ -637,6 +637,6 @@ public class MovementCheckRunner {
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.uncertaintyHandler.stuckOnEdge);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ));
     }
 }
