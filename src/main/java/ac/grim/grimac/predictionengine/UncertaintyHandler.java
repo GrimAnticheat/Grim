@@ -69,7 +69,8 @@ public class UncertaintyHandler {
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
-    public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(3);
+    public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(5);
+    public EvictingList<Boolean> glidingStatusSwitchHack = new EvictingList<>(3);
     public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
     public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
@@ -110,7 +111,7 @@ public class UncertaintyHandler {
         if (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01)
             return true;
 
-        if ((lastFlyingTicks > -3) && Math.abs(predicted.vector.getY()) < 0.2 && predicted.vector.getY() != 0 && player.actualMovement.lengthSquared() < 0.2)
+        if ((lastFlyingTicks < 3) && Math.abs(predicted.vector.getY()) < 0.2 && predicted.vector.getY() != 0 && player.actualMovement.lengthSquared() < 0.2)
             return true;
 
         return isSteppingOnIce && lastTickWasNearGroundZeroPointZeroThree && player.actualMovement.clone().setY(0).lengthSquared() < 0.01;
@@ -149,8 +150,8 @@ public class UncertaintyHandler {
 
     public double getVerticalOffset(VectorData data) {
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
-        if ((lastFlyingTicks > -3) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
-            return 0.225;
+        if ((lastFlyingTicks < 5) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
+            return 0.06;
 
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingNearBubbleColumn)
             return 0.35;
@@ -180,7 +181,7 @@ public class UncertaintyHandler {
     }
 
     public boolean controlsVerticalMovement() {
-        return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnBouncyBlock || lastFlyingTicks > -3 || player.isGliding;
+        return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnBouncyBlock || lastFlyingTicks < 3 || player.isGliding;
     }
 
     public boolean canSkipTick(List<VectorData> possibleVelocities) {

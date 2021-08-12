@@ -53,6 +53,11 @@ public class PredictionEngineNormal extends PredictionEngine {
                 JumpPower.jumpFromGround(player, jump);
             } else {
                 jump.add(new Vector(0, player.flySpeed * 3, 0));
+                if (!player.wasFlying) {
+                    Vector edgeCaseJump = jump.clone();
+                    JumpPower.jumpFromGround(player, edgeCaseJump);
+                    existingVelocities.add(vector.returnNewModified(edgeCaseJump, VectorData.VectorType.Jump));
+                }
             }
 
             existingVelocities.add(vector.returnNewModified(jump, VectorData.VectorType.Jump));
