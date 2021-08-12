@@ -341,7 +341,7 @@ public class MovementCheckRunner {
 
         player.isUsingItem = data.isUsingItem;
 
-        player.uncertaintyHandler.lastFlyingTicks--;
+        player.uncertaintyHandler.lastFlyingTicks++;
         if (player.isFlying) {
             player.fallDistance = 0;
             player.uncertaintyHandler.lastFlyingTicks = 0;
