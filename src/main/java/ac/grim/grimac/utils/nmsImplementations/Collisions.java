@@ -268,6 +268,10 @@ public class Collisions {
                         player.clientVelocity.setZ(player.clientVelocity.getZ() * 0.4D);
                     }
 
+                    if (Materials.checkFlag(blockType, Materials.LAVA) && player.getClientVersion().isOlderThan(ClientVersion.v_1_16)) {
+                        player.wasTouchingLava = true;
+                    }
+
                     if (blockType == BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
                         BaseBlockState blockAbove = player.compensatedWorld.getWrappedBlockStateAt(i, j + 1, k);
                         BlockData bubbleData = ((FlatBlockState) block).getBlockData();
