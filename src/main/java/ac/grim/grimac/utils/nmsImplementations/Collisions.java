@@ -306,16 +306,14 @@ public class Collisions {
                     }
 
                     if (blockType == HONEY_BLOCK) {
-                        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-                            if (isSlidingDown(vector.vector, player, i, j, j)) {
-                                if (vector.vector.getY() < -0.13D) {
-                                    double d0 = -0.05 / vector.vector.getY();
-                                    vector.vector.setX(vector.vector.getX() * d0);
-                                    vector.vector.setY(-0.05D);
-                                    vector.vector.setZ(vector.vector.getZ() * d0);
-                                } else {
-                                    vector.vector.setY(-0.05D);
-                                }
+                        if (isSlidingDown(player.clientVelocity, player, i, j, j)) {
+                            if (player.clientVelocity.getY() < -0.13D) {
+                                double d0 = -0.05 / player.clientVelocity.getY();
+                                player.clientVelocity.setX(player.clientVelocity.getX() * d0);
+                                player.clientVelocity.setY(-0.05D);
+                                player.clientVelocity.setZ(player.clientVelocity.getZ() * d0);
+                            } else {
+                                player.clientVelocity.setY(-0.05D);
                             }
                         }
 
