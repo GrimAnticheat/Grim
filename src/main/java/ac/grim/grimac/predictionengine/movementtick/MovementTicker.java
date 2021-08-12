@@ -133,6 +133,10 @@ public class MovementTicker {
         player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.add(player.stuckSpeedMultiplier.getX() < 0.99);
         player.stuckSpeedMultiplier = new Vector(1, 1, 1);
 
+        // 1.15 and older clients use the handleInsideBlocks method for lava
+        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_16))
+            player.wasTouchingLava = false;
+
         Collisions.handleInsideBlocks(player);
 
         if (player.stuckSpeedMultiplier.getX() < 0.9) {

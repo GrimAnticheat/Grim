@@ -111,7 +111,9 @@ public class PlayerBaseTick {
     public void updateInWaterStateAndDoFluidPushing() {
         updateInWaterStateAndDoWaterCurrentPushing();
         double d = player.playerWorld.getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
-        player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
+        // 1.15 and below clients use block collisions to check for being in lava
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16))
+            player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
     }
 
     private void updateFluidOnEyes() {
