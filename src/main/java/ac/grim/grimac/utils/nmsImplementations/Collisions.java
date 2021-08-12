@@ -305,7 +305,7 @@ public class Collisions {
                         player.fallDistance = 0;
                     }
 
-                    if (blockType == HONEY_BLOCK) {
+                    if (blockType == HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15)) {
                         if (isSlidingDown(player.clientVelocity, player, i, j, j)) {
                             if (player.clientVelocity.getY() < -0.13D) {
                                 double d0 = -0.05 / player.clientVelocity.getY();
