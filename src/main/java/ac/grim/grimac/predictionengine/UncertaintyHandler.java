@@ -164,10 +164,6 @@ public class UncertaintyHandler {
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingOnBouncyBlock)
             return 0.28;
 
-        // I don't understand this either.  0.03 in lava just really sucks.
-        if (wasLastGravityUncertain && player.wasTouchingLava)
-            return 0.2;
-
         if (Collections.max(thirtyMillionHardBorder))
             return 0.15;
 

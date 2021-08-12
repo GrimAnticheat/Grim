@@ -22,6 +22,7 @@ import org.bukkit.block.data.type.BubbleColumn;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Collisions {
@@ -137,49 +138,87 @@ public class Collisions {
         return listOfBlocks;
     }
 
+    // Fucking 0.03 forcing us to brute force collision order
+    //
+    // P: 0.0 0.0 0.020059561388734437
+    // A: -0.48999162733548474 0.0 0.020059561388734437
+    // O: 0.48999162733548474 false 0.0
+    //
+    // GOOD JOB MOJANG!
+    //
+    // (issue caused by slightly moving past a block with 0.03 movement
+    // then when we collide properly, we collide with the block so the player can't move past this block)
+    //
+    // Same damn thing happens with Y axis.
     private static Vector collideBoundingBoxLegacy(GrimPlayer player, Vector toCollide, SimpleCollisionBox box, List<SimpleCollisionBox> desiredMovementCollisionBoxes) {
+        Vector bestOrderResult = null;
+        double bestInput = Double.MAX_VALUE;
+
+        // Optimization for running vertical only collision
+        if (toCollide.getX() == 0 && toCollide.getZ() == 0)
+            return collideBoundingBoxLegacy(player, toCollide, box, desiredMovementCollisionBoxes, Arrays.asList(Axis.Y, Axis.X, Axis.Z));
+
+        // X -> Y -> Z
+        // X -> Z -> Y
+        // Y -> X -> Z
+        // Y -> Z -> X
+        // Z -> X -> Y
+        // Z -> Y -> X
+        for (Axis one : Axis.values()) {
+            for (Axis two : Axis.values()) {
+                for (Axis three : Axis.values()) {
+                    // Ensure that we have no duplicate collision orders (Y -> X -> Y)
+                    if (one == two || two == three || one == three) continue;
+                    Vector orderResult = collideBoundingBoxLegacy(player, toCollide, box, desiredMovementCollisionBoxes, Arrays.asList(one, two, three));
+                    double resultAccuracy = orderResult.distanceSquared(player.actualMovement);
+
+                    if (player.onGround != (toCollide.getY() < 0 && toCollide.getY() != orderResult.getY()))
+                        resultAccuracy += 1;
+
+                    if (resultAccuracy < bestInput) {
+                        bestOrderResult = orderResult;
+                        bestInput = resultAccuracy;
+                        if (resultAccuracy < 0.00001 * 0.00001) break;
+                    }
+                }
+            }
+        }
+
+        // Return whatever collision order gives us the closest result to what we want
+        return bestOrderResult;
+    }
+
+    private static double getHorizontalDistanceSqr(Vector vector) {
+        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
+    }
+
+    private static Vector collideBoundingBoxLegacy(GrimPlayer player, Vector toCollide, SimpleCollisionBox box, List<SimpleCollisionBox> desiredMovementCollisionBoxes, List<Axis> order) {
         double x = toCollide.getX();
         double y = toCollide.getY();
         double z = toCollide.getZ();
 
         SimpleCollisionBox setBB = box.copy();
 
-        // First, collisions are ran without any step height, in y -> x -> z order
-        // In 1.14+ clients collision order is Y -> Z -> X, or if Z < X, Y -> X -> Z
-        if (y != 0.0D) {
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                y = bb.collideY(setBB, y);
+        for (Axis axis : order) {
+            if (axis == Axis.X) {
+                for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
+                    x = bb.collideX(setBB, x);
+                }
+                setBB.offset(x, 0.0D, 0.0D);
+            } else if (axis == Axis.Y) {
+                for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
+                    y = bb.collideY(setBB, y);
+                }
+                setBB.offset(0.0D, y, 0.0D);
+            } else if (axis == Axis.Z) {
+                for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
+                    z = bb.collideZ(setBB, z);
+                }
+                setBB.offset(0.0D, 0.0D, z);
             }
-            setBB.offset(0.0D, y, 0.0D);
-        }
-
-        boolean doZFirst = Math.abs(x) < Math.abs(z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
-        if (doZFirst && z != 0.0D) {
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                z = bb.collideZ(setBB, z);
-            }
-            setBB.offset(0.0D, 0.0D, z);
-        }
-
-        if (x != 0.0D) {
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                x = bb.collideX(setBB, x);
-            }
-            setBB.offset(x, 0.0D, 0.0D);
-        }
-
-        if (!doZFirst && z != 0.0D) {
-            for (SimpleCollisionBox bb : desiredMovementCollisionBoxes) {
-                z = bb.collideZ(setBB, z);
-            }
-            setBB.offset(0.0D, 0.0D, z);
         }
 
         return new Vector(x, y, z);
-    }
-
-    private static double getHorizontalDistanceSqr(Vector vector) {
-        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
     public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player) {
@@ -459,5 +498,12 @@ public class Collisions {
         }
 
         return false;
+    }
+
+    // Order it this way to get Y -> X -> Z, and Y -> Z -> X first (the most common vanilla orders)
+    private enum Axis {
+        Y,
+        X,
+        Z
     }
 }

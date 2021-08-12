@@ -32,7 +32,7 @@ public class MovementTicker {
         this.bukkitPlayer = player.bukkitPlayer;
     }
 
-    public void move(Vector nonUncertainVector, Vector inputVel, Vector collide, boolean zeroPointZeroThreeOnGroundGlitch) {
+    public void move(Vector nonUncertainVector, Vector inputVel, Vector collide) {
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.clientVelocity = new Vector();
         }
@@ -41,7 +41,7 @@ public class MovementTicker {
         player.verticalCollision = nonUncertainVector.getY() != Collisions.collide(player, 0, nonUncertainVector.getY(), 0).getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
-        player.isActuallyOnGround = !zeroPointZeroThreeOnGroundGlitch && player.verticalCollision && nonUncertainVector.getY() < 0.0D;
+        player.isActuallyOnGround = player.verticalCollision && nonUncertainVector.getY() < 0.0D;
 
         Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
