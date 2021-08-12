@@ -116,6 +116,8 @@ public class BlockProperties {
 
     public static float getBlockSpeedFactor(GrimPlayer player) {
         if (player.isGliding || player.specialFlying) return 1.0f;
+        // This system was introduces in 1.15 players to add support for honey blocks slowing players down
+        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_15)) return 1.0f;
 
         Material block = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
 
@@ -128,20 +130,12 @@ public class BlockProperties {
 
         float f = 1.0f;
 
-        if (block == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)) f = 0.4F;
-
         if (block == water || block == alsoWater) {
             return f;
         }
 
-        if (f == 1.0) {
-            Material block2 = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y - 0.5000001, player.z);
-            if (block2 == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4))
-                return 0.4F;
-            if (block2 == SOUL_SAND) return 0.4F;
-            return 1.0f;
-        }
-
-        return f;
+        Material block2 = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y - 0.5000001, player.z);
+        if (block2 == SOUL_SAND) return 0.4F;
+        return 1.0f;
     }
 }
