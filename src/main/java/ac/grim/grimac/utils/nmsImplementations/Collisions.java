@@ -35,46 +35,74 @@ public class Collisions {
 
     private static final Material LADDER = XMaterial.LADDER.parseMaterial();
 
+    private static final List<List<Axis>> allAxisCombinations = Arrays.asList(
+            Arrays.asList(Axis.Y, Axis.X, Axis.Z),
+            Arrays.asList(Axis.Y, Axis.Z, Axis.X),
+
+            Arrays.asList(Axis.X, Axis.Y, Axis.Z),
+            Arrays.asList(Axis.X, Axis.Z, Axis.Y),
+
+            Arrays.asList(Axis.Z, Axis.X, Axis.Y),
+            Arrays.asList(Axis.Z, Axis.Y, Axis.X));
+
     public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ) {
         if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
 
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ));
 
-        Vector baseCollision = collideBoundingBoxLegacy(player, new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes);
+        double bestInput = Double.MAX_VALUE;
+        Vector bestOrderResult = null;
 
-        // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
-        boolean movingIntoGround = player.lastOnGround || baseCollision.getY() != desiredY && desiredY < 0.0D;
-        double stepUpHeight = player.getMaxUpStep();
+        for (List<Axis> order : allAxisCombinations) {
+            // Ensure that we have no duplicate collision orders (Y -> X -> Y)
 
-        // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
-        // If not, just return the collisions without stepping up that we calculated earlier
-        if (stepUpHeight > 0.0F && movingIntoGround && (baseCollision.getX() != desiredX || baseCollision.getZ() != desiredZ)) {
-            player.uncertaintyHandler.isStepMovement = true;
+            Vector collisionResult = collideBoundingBoxLegacy(player, new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
-            // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
-            List<SimpleCollisionBox> stepUpCollisionBoxes = getCollisionBoxes(player,
-                    player.boundingBox.copy().expandToCoordinate(desiredX, stepUpHeight, desiredZ));
+            // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
+            boolean movingIntoGround = player.lastOnGround || collisionResult.getY() != desiredY && desiredY < 0.0D;
+            double stepUpHeight = player.getMaxUpStep();
+
+            // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
+            // If not, just return the collisions without stepping up that we calculated earlier
+            if (stepUpHeight > 0.0F && movingIntoGround && (collisionResult.getX() != desiredX || collisionResult.getZ() != desiredZ)) {
+                player.uncertaintyHandler.isStepMovement = true;
+
+                // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
+                List<SimpleCollisionBox> stepUpCollisionBoxes = getCollisionBoxes(player,
+                        player.boundingBox.copy().expandToCoordinate(desiredX, stepUpHeight, desiredZ));
 
 
-            Vector regularStepUp = collideBoundingBoxLegacy(player, new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, stepUpCollisionBoxes);
+                Vector regularStepUp = collideBoundingBoxLegacy(player, new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, stepUpCollisionBoxes, order);
 
-            // 1.7 clients do not have this stepping bug fix
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
-                Vector stepUpBugFix = collideBoundingBoxLegacy(player, new Vector(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), stepUpCollisionBoxes);
-                if (stepUpBugFix.getY() < stepUpHeight) {
-                    Vector stepUpBugFixResult = collideBoundingBoxLegacy(player, new Vector(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), stepUpCollisionBoxes).add(stepUpBugFix);
-                    if (getHorizontalDistanceSqr(stepUpBugFixResult) > getHorizontalDistanceSqr(regularStepUp)) {
-                        regularStepUp = stepUpBugFixResult;
+                // 1.7 clients do not have this stepping bug fix
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
+                    Vector stepUpBugFix = collideBoundingBoxLegacy(player, new Vector(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), stepUpCollisionBoxes, order);
+                    if (stepUpBugFix.getY() < stepUpHeight) {
+                        Vector stepUpBugFixResult = collideBoundingBoxLegacy(player, new Vector(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), stepUpCollisionBoxes, order).add(stepUpBugFix);
+                        if (getHorizontalDistanceSqr(stepUpBugFixResult) > getHorizontalDistanceSqr(regularStepUp)) {
+                            regularStepUp = stepUpBugFixResult;
+                        }
                     }
+                }
+
+                if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(collisionResult)) {
+                    collisionResult = regularStepUp.add(collideBoundingBoxLegacy(player, new Vector(0, -regularStepUp.getY() + desiredY, 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), stepUpCollisionBoxes, order));
                 }
             }
 
-            if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(baseCollision)) {
-                return regularStepUp.add(collideBoundingBoxLegacy(player, new Vector(0, -regularStepUp.getY() + desiredY, 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), stepUpCollisionBoxes));
-            }
-        }
+            double resultAccuracy = collisionResult.distanceSquared(player.actualMovement);
 
-        return baseCollision;
+            if (player.onGround != (desiredY < 0 && desiredY != collisionResult.getY()))
+                resultAccuracy += 1;
+
+            if (resultAccuracy < bestInput) {
+                bestOrderResult = collisionResult;
+                bestInput = resultAccuracy;
+                if (resultAccuracy < 0.00001 * 0.00001) break;
+            }
+
+        }
+        return bestOrderResult;
     }
 
     public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
@@ -138,61 +166,8 @@ public class Collisions {
         return listOfBlocks;
     }
 
-    // Fucking 0.03 forcing us to brute force collision order
-    //
-    // P: 0.0 0.0 0.020059561388734437
-    // A: -0.48999162733548474 0.0 0.020059561388734437
-    // O: 0.48999162733548474 false 0.0
-    //
-    // GOOD JOB MOJANG!
-    //
-    // (issue caused by slightly moving past a block with 0.03 movement
-    // then when we collide properly, we collide with the block so the player can't move past this block)
-    //
-    // Same damn thing happens with Y axis.
-    private static Vector collideBoundingBoxLegacy(GrimPlayer player, Vector toCollide, SimpleCollisionBox box, List<SimpleCollisionBox> desiredMovementCollisionBoxes) {
-        Vector bestOrderResult = null;
-        double bestInput = Double.MAX_VALUE;
-
-        // Optimization for running vertical only collision
-        if (toCollide.getX() == 0 && toCollide.getZ() == 0)
-            return collideBoundingBoxLegacy(player, toCollide, box, desiredMovementCollisionBoxes, Arrays.asList(Axis.Y, Axis.X, Axis.Z));
-
-        // X -> Y -> Z
-        // X -> Z -> Y
-        // Y -> X -> Z
-        // Y -> Z -> X
-        // Z -> X -> Y
-        // Z -> Y -> X
-        for (Axis one : Axis.values()) {
-            for (Axis two : Axis.values()) {
-                for (Axis three : Axis.values()) {
-                    // Ensure that we have no duplicate collision orders (Y -> X -> Y)
-                    if (one == two || two == three || one == three) continue;
-                    Vector orderResult = collideBoundingBoxLegacy(player, toCollide, box, desiredMovementCollisionBoxes, Arrays.asList(one, two, three));
-                    double resultAccuracy = orderResult.distanceSquared(player.actualMovement);
-
-                    if (player.onGround != (toCollide.getY() < 0 && toCollide.getY() != orderResult.getY()))
-                        resultAccuracy += 1;
-
-                    if (resultAccuracy < bestInput) {
-                        bestOrderResult = orderResult;
-                        bestInput = resultAccuracy;
-                        if (resultAccuracy < 0.00001 * 0.00001) break;
-                    }
-                }
-            }
-        }
-
-        // Return whatever collision order gives us the closest result to what we want
-        return bestOrderResult;
-    }
-
-    private static double getHorizontalDistanceSqr(Vector vector) {
-        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
-    }
-
-    private static Vector collideBoundingBoxLegacy(GrimPlayer player, Vector toCollide, SimpleCollisionBox box, List<SimpleCollisionBox> desiredMovementCollisionBoxes, List<Axis> order) {
+    private static Vector collideBoundingBoxLegacy(GrimPlayer player, Vector toCollide, SimpleCollisionBox
+            box, List<SimpleCollisionBox> desiredMovementCollisionBoxes, List<Axis> order) {
         double x = toCollide.getX();
         double y = toCollide.getY();
         double z = toCollide.getZ();
@@ -219,6 +194,10 @@ public class Collisions {
         }
 
         return new Vector(x, y, z);
+    }
+
+    private static double getHorizontalDistanceSqr(Vector vector) {
+        return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
     public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player) {
@@ -368,7 +347,8 @@ public class Collisions {
         }
     }
 
-    private static boolean isSlidingDown(Vector vector, GrimPlayer player, int locationX, int locationY, int locationZ) {
+    private static boolean isSlidingDown(Vector vector, GrimPlayer player, int locationX, int locationY,
+                                         int locationZ) {
         if (player.onGround) {
             return false;
         } else if (player.y > locationY + 0.9375D - 1.0E-7D) {
@@ -480,7 +460,8 @@ public class Collisions {
         return trapdoorUsableAsLadder(player, player.x, player.y, player.z, blockState);
     }
 
-    private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, BaseBlockState blockData) {
+    private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, BaseBlockState
+            blockData) {
         if (!Materials.checkFlag(blockData.getMaterial(), Materials.TRAPDOOR)) return false;
 
         WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(blockData);
@@ -500,10 +481,9 @@ public class Collisions {
         return false;
     }
 
-    // Order it this way to get Y -> X -> Z, and Y -> Z -> X first (the most common vanilla orders)
     private enum Axis {
-        Y,
         X,
+        Y,
         Z
     }
 }
