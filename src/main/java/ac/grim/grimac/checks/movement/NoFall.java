@@ -26,15 +26,11 @@ public class NoFall {
         // If the player claims to be on the ground
         if (data.onGround && !data.isJustTeleported) {
             SimpleCollisionBox feetBB;
-            double distY = data.playerY - player.packetStateData.packetPlayerY;
-            if (distY > 0 && distY < 0.6 && Math.abs(data.playerY % (1 / 64f)) < 0.0001) { // Stepping movement
-                feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(data.playerX, data.playerY, data.playerZ, 0.6, 0.001);
-            } else { // Not stepping movement
-                feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ, 0.6, 0.001);
-                // Don't expand if the player moved more than 10 blocks this tick (stop netty crash exploit)
-                if (new Vector3d(data.playerX, data.playerY, data.playerZ).distanceSquared(new Vector3d(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ)) < 100)
-                    feetBB.expandToCoordinate(data.playerX - player.packetStateData.packetPlayerX, data.playerY - player.packetStateData.packetPlayerY, data.playerZ - player.packetStateData.packetPlayerZ);
-            }
+
+            feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ, 0.6, 0.001);
+            // Don't expand if the player moved more than 10 blocks this tick (stop netty crash exploit)
+            if (new Vector3d(data.playerX, data.playerY, data.playerZ).distanceSquared(new Vector3d(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ)) < 100)
+                feetBB.expandToCoordinate(data.playerX - player.packetStateData.packetPlayerX, data.playerY - player.packetStateData.packetPlayerY, data.playerZ - player.packetStateData.packetPlayerZ);
 
             List<SimpleCollisionBox> boxes = Collisions.getCollisionBoxes(player, feetBB);
 

@@ -21,6 +21,7 @@ public class PlayerToggleElytra implements Listener {
         if (player == null) return;
 
         // 1.15+ clients have client sided elytra start
+        // Use this as a backup to inventory desync
         if (event.isGliding() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15)) {
             player.compensatedElytra.tryAddStatus(player.compensatedElytra.lastToggleElytra, true);
         }
