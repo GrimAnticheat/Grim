@@ -439,7 +439,7 @@ public class MovementCheckRunner {
         player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
 
         // Exempt if the player is offline
-        if (data.isJustTeleported || !player.bukkitPlayer.isOnline()) {
+        if (data.isJustTeleported) {
             // Don't let the player move if they just teleported
             player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
             player.clientVelocity = new Vector();
@@ -574,6 +574,9 @@ public class MovementCheckRunner {
         } else {
             color = ChatColor.RED;
         }
+
+        // Don't check players who are offline
+        if (!player.bukkitPlayer.isOnline()) return;
 
         // Vanilla can desync with riptide status
         // This happens because of the < 0.03 thing
