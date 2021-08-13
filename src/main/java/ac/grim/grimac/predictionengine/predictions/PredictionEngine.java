@@ -268,7 +268,7 @@ public class PredictionEngine {
         Vector uncertainty = new Vector(shiftingInprecision + player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, shiftingInprecision + player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
         return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
-                vector.clone().add(uncertainty).add(new Vector(0, player.canGroundRiptide ? 1.1999999F : 0, 0)));
+                vector.clone().add(uncertainty));
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
@@ -304,10 +304,6 @@ public class PredictionEngine {
             }
         }
 
-        // Gliding status changed, there are a decent amount of edge cases in this scenario so give lenience
-        if (player.isGliding != player.wasGliding)
-            additionHorizontal += 0.05;
-
         double uncertainPiston = 0;
         for (int x = 0; x < player.uncertaintyHandler.pistonPushing.size(); x++) {
             double value = player.uncertaintyHandler.pistonPushing.get(x);
@@ -326,8 +322,8 @@ public class PredictionEngine {
         }
 
         if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack)) {
-            additionHorizontal += 0.1;
-            bonusY += 0.1;
+            additionHorizontal += 0.6;
+            bonusY += 0.6;
         }
 
         if (Collections.max(player.uncertaintyHandler.legacyUnderwaterFlyingHack)) {

@@ -286,7 +286,7 @@ public class Collisions {
                         player.clientVelocity.setZ(player.clientVelocity.getZ() * 0.4D);
                     }
 
-                    if (Materials.checkFlag(blockType, Materials.LAVA) && player.getClientVersion().isOlderThan(ClientVersion.v_1_16)) {
+                    if (Materials.checkFlag(blockType, Materials.LAVA) && player.getClientVersion().isOlderThan(ClientVersion.v_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
                         player.wasTouchingLava = true;
                     }
 
