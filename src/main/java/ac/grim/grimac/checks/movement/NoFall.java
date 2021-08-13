@@ -53,7 +53,7 @@ public class NoFall {
     public boolean checkZeroPointZeroThreeGround(boolean onGround) {
         if (onGround) {
             SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ, 0.6, 0.001);
-            feetBB.expandToCoordinate(0.03, 0.03, 0.03); // 0.03 can be in any direction
+            feetBB.expand(0.03); // 0.03 can be in any direction
 
             List<SimpleCollisionBox> boxes = Collisions.getCollisionBoxes(player, feetBB);
 
