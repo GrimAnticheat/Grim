@@ -63,7 +63,7 @@ public class SimpleCollisionBox implements CollisionBox {
         this.maxX += x;
         this.maxY += y;
         this.maxZ += z;
-        return this;
+        return sort();
     }
 
     public SimpleCollisionBox(BoundingBox box) {
