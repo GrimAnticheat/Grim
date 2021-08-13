@@ -470,6 +470,7 @@ public class MovementCheckRunner {
                 double addedY = Math.min(player.actualMovement.getY(), 1.1999999F);
                 player.lastOnGround = false;
                 player.lastY += addedY;
+                player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
                 player.boundingBox.offset(0, addedY, 0);
             }
