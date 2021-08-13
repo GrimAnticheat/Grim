@@ -83,7 +83,7 @@ public class SimpleCollisionBox implements CollisionBox {
         this.minZ = minZ;
         this.maxX = maxX;
         this.maxY = maxY;
-        this.minZ = maxZ;
+        this.maxZ = maxZ;
 
         return this;
     }
