@@ -115,8 +115,10 @@ public class PlayerBaseTick {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16))
             player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
             // 1.13 and below clients use this stupid method to check if in lava
-        else if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
-            player.wasTouchingLava = player.compensatedWorld.containsLava(player.boundingBox.copy().expand(-0.1F, -0.4F, -0.1F));
+        else if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14)) {
+            SimpleCollisionBox playerBox = player.boundingBox.copy().expand(-0.1F, -0.4F, -0.1F).sort();
+            player.wasTouchingLava = player.compensatedWorld.containsLava(playerBox);
+        }
     }
 
     private void updateFluidOnEyes() {
