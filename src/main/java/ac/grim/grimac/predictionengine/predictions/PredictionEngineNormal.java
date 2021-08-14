@@ -44,10 +44,12 @@ public class PredictionEngineNormal extends PredictionEngine {
             Vector jump = vector.vector.clone();
 
             if (!player.specialFlying) {
+                // Negative jump boost does not allow the player to leave the ground
+                // Negative jump boost doesn't seem to work in water/lava
                 // If the player didn't try to jump
                 // And 0.03 didn't affect onGround status
                 // The player cannot jump
-                if ((!player.lastOnGround || player.onGround) && !(player.uncertaintyHandler.lastPacketWasGroundPacket && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree))
+                if (player.jumpAmplifier >= 0 && (!player.lastOnGround || player.onGround) && !(player.uncertaintyHandler.lastPacketWasGroundPacket && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree))
                     return;
 
                 JumpPower.jumpFromGround(player, jump);
