@@ -272,8 +272,10 @@ public class MovementCheckRunner {
             data.isJustTeleported = true;
         }
 
-        if (!player.inVehicle)
+        if (!player.inVehicle) {
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
+            player.hasGravity = player.playerEntityHasGravity;
+        }
 
         player.firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
         player.likelyKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
@@ -289,6 +291,8 @@ public class MovementCheckRunner {
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.lastTickPosition = player.playerVehicle.position;
             player.playerVehicle.position = new Vector3d(player.x, player.y, player.z);
+
+            player.hasGravity = player.playerVehicle.hasGravity;
 
             ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...

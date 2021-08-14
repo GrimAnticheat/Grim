@@ -14,6 +14,7 @@ public class PacketEntity {
     public int[] passengers = new int[0];
     public boolean isDead = false;
     public boolean isBaby = false;
+    public boolean hasGravity = true;
 
     public PacketEntity(org.bukkit.entity.EntityType type, Vector3d position) {
         this.position = position;
