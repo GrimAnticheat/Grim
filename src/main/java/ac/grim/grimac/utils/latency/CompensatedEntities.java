@@ -85,12 +85,7 @@ public class CompensatedEntities {
             if (metaData.lastTransactionSent > lastTransactionReceived) break;
             importantMetadataQueue.poll();
 
-            PacketEntity entity = getEntity(metaData.entityID);
-
-            // This is impossible without the server sending bad packets, but just to be safe...
-            if (entity == null) continue;
-
-            updateEntityMetadata(entity, metaData.objects);
+            updateEntityMetadata(metaData.entityID, metaData.objects);
         }
 
         // Update entity properties such as movement speed and horse jump height
@@ -316,7 +311,27 @@ public class CompensatedEntities {
         return entityMap.get(entityID);
     }
 
-    private void updateEntityMetadata(PacketEntity entity, List<WrappedWatchableObject> watchableObjects) {
+    private void updateEntityMetadata(int entityID, List<WrappedWatchableObject> watchableObjects) {
+        if (entityID == player.entityID) {
+            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
+                Optional<WrappedWatchableObject> gravity = watchableObjects
+                        .stream().filter(o -> o.getIndex() == (5)).findFirst();
+
+                if (gravity.isPresent()) {
+                    Object gravityObject = gravity.get().getRawValue();
+
+                    if (gravityObject instanceof Boolean) {
+                        // Vanilla uses hasNoGravity, which is a bad name IMO
+                        // hasGravity > hasNoGravity
+                        player.playerEntityHasGravity = !((Boolean) gravityObject);
+                    }
+                }
+            }
+        }
+
+        PacketEntity entity = getEntity(entityID);
+        if (entity == null) return;
+
         // Poses only exist in 1.14+ with the new shifting mechanics
         if (entity instanceof PacketEntityPlayer) {
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
@@ -434,6 +449,21 @@ public class CompensatedEntities {
 
                 ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
                 ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
+            }
+        }
+
+        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
+            Optional<WrappedWatchableObject> gravity = watchableObjects
+                    .stream().filter(o -> o.getIndex() == (5)).findFirst();
+
+            if (gravity.isPresent()) {
+                Object gravityObject = gravity.get().getRawValue();
+
+                if (gravityObject instanceof Boolean) {
+                    // Vanilla uses hasNoGravity, which is a bad name IMO
+                    // hasGravity > hasNoGravity
+                    entity.hasGravity = !((Boolean) gravityObject);
+                }
             }
         }
     }
