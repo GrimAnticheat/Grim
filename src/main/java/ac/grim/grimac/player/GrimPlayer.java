@@ -60,6 +60,7 @@ public class GrimPlayer {
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
     public int riptideSpinAttackTicks = 0;
+    public boolean hasGravity = true;
     public VectorData predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Normal);
     public Vector actualMovement = new Vector();
     public Vector stuckSpeedMultiplier = new Vector(1, 1, 1);

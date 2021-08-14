@@ -48,6 +48,21 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     }
                 }
 
+                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
+                    Optional<WrappedWatchableObject> gravity = entityMetadata.getWatchableObjects()
+                            .stream().filter(o -> o.getIndex() == (5)).findFirst();
+
+                    if (gravity.isPresent()) {
+                        Object gravityObject = gravity.get().getRawValue();
+
+                        if (gravityObject instanceof Boolean) {
+                            // Vanilla uses hasNoGravity, which is a bad name IMO
+                            // hasGravity > hasNoGravity
+                            player.hasGravity = !((Boolean) gravityObject);
+                        }
+                    }
+                }
+
 
                 if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) &&
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {

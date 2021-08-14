@@ -26,11 +26,8 @@ public class PredictionEngineNormal extends PredictionEngine {
             d9 += (0.05 * (double) (player.levitationAmplifier) - vector.getY()) * 0.2;
             // Reset fall distance with levitation
             player.fallDistance = 0;
-        } else if (player.compensatedWorld.getChunk((int) player.x >> 4, (int) player.z >> 4) != null) {
-            // Commenting out hasGravity check because players always have gravity
+        } else if (player.hasGravity) {
             d9 -= player.gravity;
-        } else {
-            d9 = vector.getY() > 0.0 ? -0.1 : 0.0;
         }
 
         vector.setX(vector.getX() * (double) player.friction);
