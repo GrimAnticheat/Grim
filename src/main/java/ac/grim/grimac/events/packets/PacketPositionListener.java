@@ -29,6 +29,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Vector3d pos = position.getPosition();
             player.reach.handleMovement(player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
+            player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
             player.packetStateData.didLastMovementIncludePosition = true;
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, position.isOnGround());
@@ -50,6 +51,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             Vector3d pos = position.getPosition();
             player.reach.handleMovement(position.getYaw(), position.getPitch());
+            player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
             player.packetStateData.didLastMovementIncludePosition = true;
 
             PredictionData data = new PredictionData(player, pos.getX(), pos.getY(), pos.getZ(), position.getYaw(), position.getPitch(), position.isOnGround());
@@ -77,6 +79,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
             if (player == null) return;
 
             player.reach.handleMovement(position.getYaw(), position.getPitch());
+            player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
             player.packetStateData.didLastMovementIncludePosition = false;
             player.packetStateData.packetPlayerXRot = position.getYaw();
             player.packetStateData.packetPlayerYRot = position.getPitch();
@@ -102,6 +105,7 @@ public class PacketPositionListener extends PacketListenerAbstract {
 
             player.timerCheck.processMovementPacket();
             player.reach.handleMovement(player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
+            player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
             player.packetStateData.didLastMovementIncludePosition = false;
 
             if (position.isOnGround() != player.packetStateData.packetPlayerOnGround) {

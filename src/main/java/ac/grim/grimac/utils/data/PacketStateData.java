@@ -27,6 +27,7 @@ public class PacketStateData {
     // Marks when the player received a ground packet
     public boolean didGroundStatusChangeWithoutPositionPacket = false;
     // This works on 1.8 only
+    public boolean didLastLastMovementIncludePosition = false;
     public boolean didLastMovementIncludePosition = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
