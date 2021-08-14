@@ -49,7 +49,10 @@ public class PlayerJoinQuitListener implements Listener {
         player.z = bukkitPlayer.getLocation().getZ();
         player.xRot = bukkitPlayer.getLocation().getYaw();
         player.yRot = bukkitPlayer.getLocation().getPitch();
+
+        player.lastOnGround = bukkitPlayer.isOnGround();
         player.onGround = bukkitPlayer.isOnGround();
+        player.packetStateData.packetPlayerOnGround = bukkitPlayer.isOnGround();
 
         player.packetStateData.packetPlayerX = bukkitPlayer.getLocation().getX();
         player.packetStateData.packetPlayerY = bukkitPlayer.getLocation().getY();

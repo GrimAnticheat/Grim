@@ -170,8 +170,6 @@ public class GrimPlayer {
     public int lastTransactionReceived = 0;
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
-    // For setting the player as teleporting on their first tick
-    public boolean isFirstTick = true;
     // Sync together block placing/breaking by waiting for the main thread
     // This sucks, but it's the only "real" option
     // Either we have to do the work of the server async to figure out whether a block placed, or we wait for the server to do it

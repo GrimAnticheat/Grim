@@ -42,6 +42,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
                 player.timerCheck.processMovementPacket();
             else
                 event.setCancelled(true);
+
+            player.packetStateData.movementPacketsReceived++;
         }
 
         if (packetID == PacketType.Play.Client.POSITION_LOOK) {
@@ -71,6 +73,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
                 player.timerCheck.processMovementPacket();
             else
                 event.setCancelled(true);
+
+            player.packetStateData.movementPacketsReceived++;
         }
 
         if (packetID == PacketType.Play.Client.LOOK) {
@@ -96,6 +100,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
                 player.packetStateData.packetPlayerOnGround = !player.packetStateData.packetPlayerOnGround;
                 player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;
             }
+
+            player.packetStateData.movementPacketsReceived++;
         }
 
         if (packetID == PacketType.Play.Client.FLYING) {
@@ -112,6 +118,8 @@ public class PacketPositionListener extends PacketListenerAbstract {
                 player.packetStateData.packetPlayerOnGround = !player.packetStateData.packetPlayerOnGround;
                 player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;
             }
+
+            player.packetStateData.movementPacketsReceived++;
         }
     }
 }

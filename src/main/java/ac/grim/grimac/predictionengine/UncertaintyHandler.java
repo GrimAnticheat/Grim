@@ -100,7 +100,7 @@ public class UncertaintyHandler {
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
         // First tick movement should always be considered zero point zero three
         // Shifting movement is somewhat buggy because 0.03
-        if (player.isFirstTick || stuckOnEdge || wasAffectedByStuckSpeed())
+        if (stuckOnEdge || wasAffectedByStuckSpeed())
             return true;
 
         // Explicitly is 0.03 movement

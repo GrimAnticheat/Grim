@@ -279,9 +279,11 @@ public class MovementTicker {
 
         // Technically we should only give uncertainty on the axis of which this occurs
         // Unfortunately, for some reason, riding entities break this.
+        //
+        // Also use magic value for gliding, as gliding isn't typical player movement
         if (zAxisCollision && (xAxisPositiveCollision || xAxisNegativeCollision)) {
-            player.uncertaintyHandler.xNegativeUncertainty -= player.speed * 4;
-            player.uncertaintyHandler.xPositiveUncertainty += player.speed * 4;
+            player.uncertaintyHandler.xNegativeUncertainty -= (player.isGliding ? 0.35 : player.speed) * 4;
+            player.uncertaintyHandler.xPositiveUncertainty += (player.isGliding ? 0.35 : player.speed) * 4;
         }
     }
 

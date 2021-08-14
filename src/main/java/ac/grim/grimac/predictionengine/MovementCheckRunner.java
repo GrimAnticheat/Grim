@@ -136,7 +136,8 @@ public class MovementCheckRunner {
 
     public static boolean processAndCheckMovementPacket(PredictionData data) {
         // Client sends junk onGround data when they teleport
-        if (data.isJustTeleported)
+        // The client also send junk onGround status on the first and second tick
+        if (data.player.packetStateData.movementPacketsReceived < 2 || data.isJustTeleported)
             data.onGround = data.player.packetStateData.packetPlayerOnGround;
 
         Column column = data.player.compensatedWorld.getChunk(GrimMathHelper.floor(data.playerX) >> 4, GrimMathHelper.floor(data.playerZ) >> 4);
@@ -596,8 +597,6 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity);
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
-
-        player.isFirstTick = false;
 
         if (player.playerVehicle instanceof PacketEntityRideable) {
             PacketEntityRideable rideable = (PacketEntityRideable) player.playerVehicle;
