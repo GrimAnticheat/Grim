@@ -184,7 +184,6 @@ public class BoatPredictionEngine extends PredictionEngine {
     }
 
     private void floatBoat(GrimPlayer player, Vector vector) {
-        // Removed reference about gravity
         double d1 = player.hasGravity ? -0.04F : 0;
         double d2 = 0.0D;
         float invFriction = 0.05F;

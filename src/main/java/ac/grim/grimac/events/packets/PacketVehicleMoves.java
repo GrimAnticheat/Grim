@@ -74,9 +74,9 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
                 player.likelyExplosions = player.explosionHandler.getPossibleExplosions(player.lastTransactionReceived);
 
                 // Players are unable to take explosions in vehicles
-                player.explosionHandler.handlePlayerExplosion(0);
+                player.explosionHandler.handlePlayerExplosion(0, true);
                 // Players not in control of their vehicle are not responsible for applying knockback to it
-                player.knockbackHandler.handlePlayerKb(0);
+                player.knockbackHandler.handlePlayerKb(0, true);
 
                 // Set position now to support "dummy" riding without control
                 // Warning - on pigs and striders players, can turn into dummies independent of whether they have

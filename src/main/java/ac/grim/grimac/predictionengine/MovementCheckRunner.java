@@ -286,7 +286,7 @@ public class MovementCheckRunner {
         // Check if the player can control their horse, if they are on a horse
         if (player.inVehicle) {
             // Players are unable to take explosions in vehicles
-            player.explosionHandler.handlePlayerExplosion(0);
+            player.explosionHandler.handlePlayerExplosion(0, true);
 
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.lastTickPosition = player.playerVehicle.position;
@@ -395,8 +395,8 @@ public class MovementCheckRunner {
             player.uncertaintyHandler.lastTeleportTicks = 0;
 
             // Teleports mess with explosions and knockback
-            player.explosionHandler.handlePlayerExplosion(0);
-            player.knockbackHandler.handlePlayerKb(0);
+            player.explosionHandler.handlePlayerExplosion(0, true);
+            player.knockbackHandler.handlePlayerKb(0, true);
         }
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
@@ -620,8 +620,8 @@ public class MovementCheckRunner {
         player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
         player.horseJump = data.horseJump;
 
-        player.knockbackHandler.handlePlayerKb(offset);
-        player.explosionHandler.handlePlayerExplosion(offset);
+        player.knockbackHandler.handlePlayerKb(offset, false);
+        player.explosionHandler.handlePlayerExplosion(offset, false);
         player.trigHandler.setOffset(offset);
         player.compensatedRiptide.handleRemoveRiptide();
 

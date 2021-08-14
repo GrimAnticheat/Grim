@@ -74,12 +74,12 @@ public class KnockbackHandler {
         }
     }
 
-    public void handlePlayerKb(double offset) {
+    public void handlePlayerKb(double offset, boolean force) {
         if (player.likelyKB == null && player.firstBreadKB == null) {
             return;
         }
 
-        if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback)) {
+        if (force || player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback)) {
             // Unsure knockback was taken
             if (player.firstBreadKB != null) {
                 player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
