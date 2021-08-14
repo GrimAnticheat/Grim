@@ -177,7 +177,7 @@ public class UncertaintyHandler {
     }
 
     public boolean controlsVerticalMovement() {
-        return player.wasTouchingWater || player.wasTouchingLava || isSteppingOnBouncyBlock || lastFlyingTicks < 3 || player.isGliding;
+        return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || isSteppingOnBouncyBlock || lastFlyingTicks < 3 || player.isGliding;
     }
 
     public boolean canSkipTick(List<VectorData> possibleVelocities) {

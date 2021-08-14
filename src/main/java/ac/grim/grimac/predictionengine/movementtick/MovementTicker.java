@@ -376,8 +376,8 @@ public class MovementTicker {
                     player.clientVelocity.multiply(0.5D);
                 }
 
-                // Removed reference to gravity
-                player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
+                if (player.hasGravity)
+                    player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (player.isGliding) {
                 // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
