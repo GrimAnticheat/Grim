@@ -29,6 +29,8 @@ public class PacketStateData {
     // This works on 1.8 only
     public boolean didLastLastMovementIncludePosition = false;
     public boolean didLastMovementIncludePosition = false;
+    // Just to filter out the first incorrect ground status
+    public int movementPacketsReceived = 0;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
 }
