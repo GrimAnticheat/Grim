@@ -26,12 +26,12 @@ public class ExplosionHandler {
         firstBreadMap.add(new TransactionKnockbackData(breadOne, null, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
-    public void handlePlayerExplosion(double offset) {
+    public void handlePlayerExplosion(double offset, boolean force) {
         if (player.likelyExplosions == null && player.firstBreadExplosion == null) {
             return;
         }
 
-        if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion)) {
+        if (force || player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion)) {
             // Unsure knockback was taken
             if (player.firstBreadExplosion != null) {
                 player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
