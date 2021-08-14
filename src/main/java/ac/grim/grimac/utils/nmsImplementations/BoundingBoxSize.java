@@ -8,6 +8,12 @@ import ac.grim.grimac.utils.enums.EntityType;
 
 public class BoundingBoxSize {
     public static double getWidth(PacketEntity packetEntity) {
+        // Turtles are the only baby animal that don't follow the * 0.5 rule
+        if (packetEntity.type == EntityType.TURTLE && packetEntity.isBaby) return 0.36;
+        return getWidthMinusBaby(packetEntity) * (packetEntity.isBaby ? 0.5 : 1);
+    }
+
+    private static double getWidthMinusBaby(PacketEntity packetEntity) {
         switch (packetEntity.type) {
             case AXOLOTL:
             case PANDA:
@@ -116,6 +122,12 @@ public class BoundingBoxSize {
         }
     }
 
+    public static double getHeight(PacketEntity packetEntity) {
+        // Turtles are the only baby animal that don't follow the * 0.5 rule
+        if (packetEntity.type == EntityType.TURTLE && packetEntity.isBaby) return 0.12;
+        return getHeightMinusBaby(packetEntity) * (packetEntity.isBaby ? 0.5 : 1);
+    }
+
     public static double getMyRidingOffset(PacketEntity packetEntity) {
         switch (packetEntity.type) {
             case PIGLIN:
@@ -182,7 +194,7 @@ public class BoundingBoxSize {
         }
     }
 
-    public static double getHeight(PacketEntity packetEntity) {
+    private static double getHeightMinusBaby(PacketEntity packetEntity) {
         switch (packetEntity.type) {
             case AXOLOTL:
             case BEE:
