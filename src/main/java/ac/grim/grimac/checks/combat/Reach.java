@@ -75,7 +75,7 @@ public class Reach {
             // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
             //
             // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
-            if (!player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
+            if (!player.packetStateData.didLastLastMovementIncludePosition || !player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
                 targetBox.expand(0.03);
 
             Vector eyePos = new Vector(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + (player.packetStateData.isPacketSneaking ? 1.54 : 1.62), player.packetStateData.packetPlayerZ);
@@ -113,12 +113,12 @@ public class Reach {
                 if (vanillaIntercept != null)
                     reach = Math.min(reach, eyePos.distance(vanillaIntercept));
 
-                if (reach < maxReach && !player.packetStateData.didLastMovementIncludePosition) {
+                if (reach < maxReach && (!player.packetStateData.didLastLastMovementIncludePosition || !player.packetStateData.didLastMovementIncludePosition)) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach + " (0.03 = true)");
                 } else if (reach < maxReach) {
                     Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach);
                 } else {
-                    Bukkit.broadcastMessage(ChatColor.RED + "Intersected!  Reach was " + reach);
+                    Bukkit.broadcastMessage(ChatColor.RED + "Intersected!  Reach was " + reach + " 0.03 " + player.packetStateData.didLastLastMovementIncludePosition + " " + player.packetStateData.didLastMovementIncludePosition + " report on discord if false - DefineOutside#4497");
                 }
             }
 
