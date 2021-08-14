@@ -27,8 +27,6 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import io.github.retrooper.packetevents.utils.versionlookup.VersionLookupUtils;
-import io.github.retrooper.packetevents.utils.versionlookup.v_1_7_10.SpigotVersionLookup_1_7;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -208,13 +206,7 @@ public class GrimPlayer {
         isFlying = bukkitPlayer.isFlying();
         wasFlying = bukkitPlayer.isFlying();
 
-        // If we have a protocol hack plugin, use it's API to get the player's version
-        // Otherwise, if we are using 1.7, use the 1.7 class to get the player's protocol version (built-in hack)
-        // Otherwise, the player must be the server's protocol version
-        clientVersion = VersionLookupUtils.isDependencyAvailable() ? ClientVersion.getClientVersion(VersionLookupUtils.getProtocolVersion(bukkitPlayer)) :
-                PacketEvents.get().getServerUtils().getVersion() == ServerVersion.v_1_7_10 ?
-                        ClientVersion.getClientVersion(SpigotVersionLookup_1_7.getProtocolVersion(player)) :
-                        ClientVersion.getClientVersion(PacketEvents.get().getServerUtils().getVersion().getProtocolVersion());
+        clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
 
         if (ViaVersionLookupUtils.isAvailable()) {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
