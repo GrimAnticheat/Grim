@@ -35,6 +35,10 @@ public class Collisions {
 
     private static final Material LADDER = XMaterial.LADDER.parseMaterial();
 
+    private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
+
+    private static final double COLLISION_EPSILON = 1.0E-7;
+
     private static final List<List<Axis>> allAxisCombinations = Arrays.asList(
             Arrays.asList(Axis.Y, Axis.X, Axis.Z),
             Arrays.asList(Axis.Y, Axis.Z, Axis.X),
@@ -107,9 +111,7 @@ public class Collisions {
 
     public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
         List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
-        SimpleCollisionBox expandedBB = wantedBB.copy()
-                .expandMin(-0.26, -0.51, -0.26)
-                .expandMax(0.26, 0.26, 0.26);
+        SimpleCollisionBox expandedBB = wantedBB.copy();
 
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
@@ -137,12 +139,30 @@ public class Collisions {
             }
         }
 
+        int minBlockX = (int) Math.floor(expandedBB.minX - COLLISION_EPSILON) - 1;
+        int maxBlockX = (int) Math.floor(expandedBB.maxX + COLLISION_EPSILON) + 1;
+        int minBlockY = (int) Math.floor(expandedBB.minY - COLLISION_EPSILON) - 1;
+        int maxBlockY = (int) Math.floor(expandedBB.maxY + COLLISION_EPSILON) + 1;
+        int minBlockZ = (int) Math.floor(expandedBB.minZ - COLLISION_EPSILON) - 1;
+        int maxBlockZ = (int) Math.floor(expandedBB.maxZ + COLLISION_EPSILON) + 1;
+
         // Blocks are stored in YZX order
-        for (int y = (int) Math.floor(expandedBB.minY); y < Math.ceil(expandedBB.maxY); y++) {
-            for (int z = (int) Math.floor(expandedBB.minZ) - 1; z < Math.ceil(expandedBB.maxZ); z++) {
-                for (int x = (int) Math.floor(expandedBB.minX); x < Math.ceil(expandedBB.maxX); x++) {
+        for (int y = minBlockY; y <= maxBlockY; y++) {
+            for (int z = minBlockZ; z <= maxBlockZ; z++) {
+                for (int x = minBlockX; x <= maxBlockX; x++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+
+                    // Works on both legacy and modern!  Faster than checking for material types, most common case
+                    if (data.getCombinedId() == 0) continue;
+
+                    int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
+                            ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
+                            ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
+
+                    if (edgeCount != 3 && (edgeCount != 1 || Materials.checkFlag(data.getMaterial(), Materials.SHAPE_EXCEEDS_CUBE))
+                            && (edgeCount != 2 || data.getMaterial() == PISTON_HEAD)) {
+                        CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+                    }
                 }
             }
         }

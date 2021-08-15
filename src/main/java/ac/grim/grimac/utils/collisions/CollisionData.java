@@ -57,7 +57,7 @@ public enum CollisionData {
             boxes.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D));
 
         if (directions.contains(BlockFace.SOUTH))
-            boxes.add(new SimpleCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D, false));
+            boxes.add(new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
 
         return boxes;
 
