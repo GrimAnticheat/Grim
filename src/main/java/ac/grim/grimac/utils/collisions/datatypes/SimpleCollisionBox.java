@@ -206,11 +206,7 @@ public class SimpleCollisionBox implements CollisionBox {
      * calculated offset.  Otherwise return the calculated offset.
      */
     public double collideX(SimpleCollisionBox other, double offsetX) {
-        if (offsetX == 0.0) {
-            return 0.0;
-        }
-
-        if ((other.minY - maxY) < -COLLISION_EPSILON && (other.maxY - minY) > COLLISION_EPSILON &&
+        if (offsetX != 0 && (other.minY - maxY) < -COLLISION_EPSILON && (other.maxY - minY) > COLLISION_EPSILON &&
                 (other.minZ - maxZ) < -COLLISION_EPSILON && (other.maxZ - minZ) > COLLISION_EPSILON) {
 
             if (offsetX >= 0.0) {
@@ -236,11 +232,7 @@ public class SimpleCollisionBox implements CollisionBox {
      * calculated offset.  Otherwise return the calculated offset.
      */
     public double collideY(SimpleCollisionBox other, double offsetY) {
-        if (offsetY == 0.0) {
-            return 0.0;
-        }
-
-        if ((other.minX - maxX) < -COLLISION_EPSILON && (other.maxX - minX) > COLLISION_EPSILON &&
+        if (offsetY != 0 && (other.minX - maxX) < -COLLISION_EPSILON && (other.maxX - minX) > COLLISION_EPSILON &&
                 (other.minZ - maxZ) < -COLLISION_EPSILON && (other.maxZ - minZ) > COLLISION_EPSILON) {
             if (offsetY >= 0.0) {
                 double max_move = minY - other.maxY; // < 0.0 if no strict collision
@@ -265,11 +257,7 @@ public class SimpleCollisionBox implements CollisionBox {
      * calculated offset.  Otherwise return the calculated offset.
      */
     public double collideZ(SimpleCollisionBox other, double offsetZ) {
-        if (offsetZ == 0.0) {
-            return 0.0;
-        }
-
-        if ((other.minX - maxX) < -COLLISION_EPSILON && (other.maxX - minX) > COLLISION_EPSILON &&
+        if (offsetZ != 0 && (other.minX - maxX) < -COLLISION_EPSILON && (other.maxX - minX) > COLLISION_EPSILON &&
                 (other.minY - maxY) < -COLLISION_EPSILON && (other.maxY - minY) > COLLISION_EPSILON) {
             if (offsetZ >= 0.0) {
                 double max_move = minZ - other.maxZ; // < 0.0 if no strict collision
