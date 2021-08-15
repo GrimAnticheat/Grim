@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.TransactionKnockbackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -13,7 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 public class KnockbackHandler {
-    ConcurrentLinkedQueue<TransactionKnockbackData> firstBreadMap = new ConcurrentLinkedQueue<>();
+    ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
 
     ConcurrentLinkedQueue<VelocityData> lastKnockbackKnownTaken = new ConcurrentLinkedQueue<>();
@@ -40,7 +39,7 @@ public class KnockbackHandler {
             knockback.setZ(0D);
         }
 
-        firstBreadMap.add(new TransactionKnockbackData(breadOne, entityID, knockback));
+        firstBreadMap.add(new VelocityData(entityID, breadOne, knockback));
     }
 
     public VelocityData getRequiredKB(int entityID, int transaction) {
@@ -58,13 +57,16 @@ public class KnockbackHandler {
     }
 
     private void tickKnockback(int transactionID) {
-        TransactionKnockbackData data = firstBreadMap.peek();
+        VelocityData data = firstBreadMap.peek();
         while (data != null) {
-            if (data.transactionID == transactionID) { // First bread knockback
-                firstBreadOnlyKnockback = new VelocityData(data.entityID, data.knockback);
+            if (data.transaction == transactionID) { // First bread knockback
+                firstBreadOnlyKnockback = new VelocityData(data.entityID, data.transaction, data.vector);
                 break; // All knockback after this will have not been applied
-            } else if (data.transactionID < transactionID) { // This kb has 100% arrived to the player
-                lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.knockback));
+            } else if (data.transaction < transactionID) { // This kb has 100% arrived to the player
+                if (firstBreadOnlyKnockback != null) // Don't require kb twice
+                    lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.vector, data.offset));
+                else
+                    lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.vector));
                 firstBreadOnlyKnockback = null;
                 firstBreadMap.poll();
                 data = firstBreadMap.peek();
