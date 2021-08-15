@@ -277,6 +277,17 @@ public class MovementTicker {
         boolean xAxisNegativeCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMin(-player.speed, 0, 0));
         boolean zAxisCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(-0.01, -0.01, player.speed));
 
+        // Stupid game!  It thinks you are colliding on the Z axis when your Z movement is below 1e-7
+        // (This code is rounding the small movements causing this bug)
+        // if (Math.abs(p_2124373) < 1.0E-7D) {
+        //     return 0.0D;
+        // }
+        //
+        // While there likely is a better implementation to detect this, have fun with fastmath!
+        //
+        // This combines with the XZ axis bug to create some strange behavior
+        zAxisCollision = zAxisCollision || player.actualMovement.getZ() == 0;
+
         // Technically we should only give uncertainty on the axis of which this occurs
         // Unfortunately, for some reason, riding entities break this.
         //
