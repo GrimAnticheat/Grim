@@ -21,6 +21,9 @@ import org.bukkit.block.data.type.Door;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -65,11 +68,44 @@ public class CompensatedWorldFlat extends CompensatedWorld {
 
                 // Link this global palette ID to the blockdata for the second part of the script
                 globalPaletteToBlockData.add(globalPaletteID, referencedBlockData);
+
+                // We need to pre-compute all the block data stuff on bukkit main thread
+                // This is to avoid a rare ConcurrentModificationException while bukkit goes from NMS -> Bukkit
+                //
+                // Caused by: java.util.ConcurrentModificationException
+                //    at java.base/java.util.HashMap.computeIfAbsent(HashMap.java:1225)
+                //    at org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData.toBukkit(CraftBlockData.java:154)
+                //    at org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData.get(CraftBlockData.java:64)
+                //    at org.bukkit.craftbukkit.v1_17_R1.block.impl.CraftWeatheringCopperSlab.getType(CraftWeatheringCopperSlab.java:22)
+                Method[] methods = referencedBlockData.getClass().getDeclaredMethods();
+                for (Method method : methods) {
+                    if (isGetter(method)) {
+                        try {
+                            // Clone just to avoid any accidental changes to this
+                            method.invoke(referencedBlockData.clone());
+                        } catch (InvocationTargetException | IllegalAccessException ignored) {
+                        }
+                    }
+                }
             }
         } catch (IOException e) {
             System.out.println("Palette reading failed! Unsupported version?");
             e.printStackTrace();
         }
+    }
+
+    // https://asgteach.com/2012/11/finding-getters-and-setters-with-java-reflection/
+    private static boolean isGetter(Method method) {
+        if (Modifier.isPublic(method.getModifiers()) &&
+                method.getParameterTypes().length == 0) {
+            if (method.getName().matches("^get[A-Z].*") &&
+                    !method.getReturnType().equals(void.class))
+                return true;
+            if (method.getName().matches("^is[A-Z].*") &&
+                    method.getReturnType().equals(boolean.class))
+                return true;
+        }
+        return false;
     }
 
     @Override
