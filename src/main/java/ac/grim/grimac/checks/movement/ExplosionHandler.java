@@ -1,7 +1,6 @@
 package ac.grim.grimac.checks.movement;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.TransactionKnockbackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import io.github.retrooper.packetevents.utils.vector.Vector3f;
@@ -12,18 +11,18 @@ import org.bukkit.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class ExplosionHandler {
-    ConcurrentLinkedQueue<TransactionKnockbackData> firstBreadMap = new ConcurrentLinkedQueue<>();
+    ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
 
-    Vector lastExplosionsKnownTaken = null;
-    Vector firstBreadAddedExplosion = null;
+    VelocityData lastExplosionsKnownTaken = null;
+    VelocityData firstBreadAddedExplosion = null;
 
     public ExplosionHandler(GrimPlayer player) {
         this.player = player;
     }
 
     public void addPlayerExplosion(int breadOne, Vector3f explosion) {
-        firstBreadMap.add(new TransactionKnockbackData(breadOne, null, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
+        firstBreadMap.add(new VelocityData(-1, breadOne, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
     public void handlePlayerExplosion(double offset, boolean force) {
@@ -31,7 +30,20 @@ public class ExplosionHandler {
             return;
         }
 
-        if (force || player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion)) {
+        // We must check to see if knockback has overridden this explosion
+        // (Yes, I could make this very simple and exempt on kb, but that allows people to ignore most explosions)
+        //
+        // We do this by finding the minimum explosion transaction that could have been overridden
+        // We then compare this against the maximum velocity transaction that could override
+        //
+        // If velocity is over transaction, exempt
+        int minTrans = Math.min(player.likelyExplosions != null ? player.likelyExplosions.transaction : Integer.MAX_VALUE,
+                player.firstBreadExplosion != null ? player.firstBreadExplosion.transaction : Integer.MAX_VALUE);
+        int kbTrans = Math.max(player.likelyKB != null ? player.likelyKB.transaction : Integer.MIN_VALUE,
+                player.firstBreadKB != null ? player.firstBreadKB.transaction : Integer.MIN_VALUE);
+
+        if (force || player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion) ||
+                (minTrans < kbTrans)) {
             // Unsure knockback was taken
             if (player.firstBreadExplosion != null) {
                 player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
@@ -58,26 +70,30 @@ public class ExplosionHandler {
         if (lastExplosionsKnownTaken == null)
             return null;
 
-        VelocityData returnLastExplosion = new VelocityData(-1, lastExplosionsKnownTaken);
+        VelocityData returnLastExplosion = lastExplosionsKnownTaken;
         lastExplosionsKnownTaken = null;
 
         return returnLastExplosion;
     }
 
     private void handleTransactionPacket(int transactionID) {
-        TransactionKnockbackData data = firstBreadMap.peek();
+        VelocityData data = firstBreadMap.peek();
         while (data != null) {
-            if (data.transactionID == transactionID) { // First bread explosion
+            if (data.transaction == transactionID) { // First bread explosion
                 if (lastExplosionsKnownTaken != null)
-                    firstBreadAddedExplosion = lastExplosionsKnownTaken.clone().add(data.knockback);
+                    firstBreadAddedExplosion = new VelocityData(-1, data.transaction, lastExplosionsKnownTaken.vector.clone().add(data.vector));
                 else
-                    firstBreadAddedExplosion = data.knockback;
+                    firstBreadAddedExplosion = new VelocityData(-1, data.transaction, data.vector);
                 break; // All knockback after this will have not been applied
-            } else if (data.transactionID < transactionID) {
+            } else if (data.transaction < transactionID) {
                 if (lastExplosionsKnownTaken != null)
-                    lastExplosionsKnownTaken.add(data.knockback);
-                else
-                    lastExplosionsKnownTaken = data.knockback;
+                    lastExplosionsKnownTaken.vector.clone().add(data.vector);
+                else {
+                    if (firstBreadAddedExplosion != null) // Bring over the previous offset, don't require explosions twice
+                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.vector, firstBreadAddedExplosion.offset);
+                    else
+                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.vector);
+                }
 
                 firstBreadAddedExplosion = null;
                 firstBreadMap.poll();
@@ -90,8 +106,6 @@ public class ExplosionHandler {
 
     public VelocityData getFirstBreadAddedExplosion(int lastTransaction) {
         handleTransactionPacket(lastTransaction);
-        if (firstBreadAddedExplosion == null)
-            return null;
-        return new VelocityData(-1, firstBreadAddedExplosion);
+        return firstBreadAddedExplosion;
     }
 }
