@@ -35,6 +35,7 @@ public class Materials {
     public static final int CLIENT_SIDE_INTERACTABLE = 0b00000010000000000000000000000;
     public static final int SWORD = 0b00000100000000000000000000000;
     public static final int CAULDRON = 0b00001000000000000000000000000;
+    public static final int SHAPE_EXCEEDS_CUBE = 0b00010000000000000000000000000;
 
     private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
     private static final Material BOW = XMaterial.BOW.parseMaterial();
@@ -154,10 +155,14 @@ public class Materials {
         markAs(XMaterial.CAVE_VINES, CLIMBABLE);
         markAs(XMaterial.CAVE_VINES_PLANT, CLIMBABLE);
 
+        // Piston heads have bounding boxes that exceed their own cube
+        markAs(XMaterial.PISTON_HEAD, SHAPE_EXCEEDS_CUBE);
+
         for (Material mat : Material.values()) {
             if (mat.name().endsWith("_SWORD")) MATERIAL_FLAGS[mat.ordinal()] |= SWORD;
             if (!mat.isBlock()) continue;
             if (mat.name().contains("FENCE") && !mat.name().equalsIgnoreCase("IRON_FENCE")) {
+                MATERIAL_FLAGS[mat.ordinal()] |= SHAPE_EXCEEDS_CUBE;
                 if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
                 else {
                     MATERIAL_FLAGS[mat.ordinal()] |= GATE;
@@ -166,8 +171,10 @@ public class Materials {
                 }
             }
             if (mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
-                    !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
+                    !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH")) {
+                MATERIAL_FLAGS[mat.ordinal()] |= SHAPE_EXCEEDS_CUBE;
                 MATERIAL_FLAGS[mat.ordinal()] |= WALL;
+            }
             if (mat.name().contains("BED") && !mat.name().contains("ROCK")) MATERIAL_FLAGS[mat.ordinal()] |= BED;
             if (mat.name().contains("ICE")) MATERIAL_FLAGS[mat.ordinal()] |= ICE;
             if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
