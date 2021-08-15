@@ -3,6 +3,8 @@ package ac.grim.grimac.checks.movement;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -28,20 +30,36 @@ public class NoFall {
             SimpleCollisionBox feetBB;
 
             feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ, 0.6, 0.001);
-            // Don't expand if the player moved more than 10 blocks this tick (stop netty crash exploit)
-            if (new Vector3d(data.playerX, data.playerY, data.playerZ).distanceSquared(new Vector3d(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ)) < 100)
+            // Don't expand if the player moved more than 50 blocks this tick (stop netty crash exploit)
+            if (new Vector3d(data.playerX, data.playerY, data.playerZ).distanceSquared(new Vector3d(player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY, player.packetStateData.packetPlayerZ)) < 2500)
                 feetBB.expandToCoordinate(data.playerX - player.packetStateData.packetPlayerX, data.playerY - player.packetStateData.packetPlayerY, data.playerZ - player.packetStateData.packetPlayerZ);
 
             List<SimpleCollisionBox> boxes = Collisions.getCollisionBoxes(player, feetBB);
 
             for (SimpleCollisionBox box : boxes) {
-                if (feetBB.collidesVertically(box) && !feetBB.isIntersected(box)) { // If we collide vertically but aren't in the block
+                if (feetBB.collidesVertically(box)) { // If we collide vertically but aren't in the block
                     return false;
                 }
             }
 
-            Bukkit.broadcastMessage(ChatColor.RED + "Player used NoFall! " + feetBB);
+            if (isNearHardEntity(feetBB.expand(4))) return false;
+
+            Bukkit.broadcastMessage(ChatColor.RED + "Player used NoFall! ");
             return true;
+        }
+        return false;
+    }
+
+    // PacketEntities are sync'd to the anticheat thread, not the netty thread
+    // This is technically wrong, but it's fine, not taking the complexity/memory usage to do it properly
+    private boolean isNearHardEntity(SimpleCollisionBox playerBox) {
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) {
+                SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                if (box.isIntersected(playerBox)) {
+                    return true;
+                }
+            }
         }
         return false;
     }
@@ -59,7 +77,9 @@ public class NoFall {
                 }
             }
 
-            Bukkit.broadcastMessage(ChatColor.RED + "Player used NoFall with 0.03! " + feetBB);
+            if (isNearHardEntity(feetBB.expand(4))) return false;
+
+            Bukkit.broadcastMessage(ChatColor.RED + "Player used NoFall with 0.03!");
             return true;
         }
 
