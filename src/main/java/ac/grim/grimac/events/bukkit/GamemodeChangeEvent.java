@@ -10,7 +10,6 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 public class GamemodeChangeEvent implements Listener {
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onGameModeChangeEvent(PlayerGameModeChangeEvent event) {
-        // How can getTo be null?
         GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
         if (player != null) {
             player.sendAndFlushTransactionOrPingPong();
