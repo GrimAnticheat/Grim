@@ -1,10 +1,18 @@
 package ac.grim.grimac.utils.latency;
 
+import io.github.retrooper.packetevents.utils.pair.Pair;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
+// Okay, this is meant to be a MODERN OOP class!
+// Normal grim spaghetti is not allowed here
+// Eventually, a ton more transaction related stuff will be transferred to this class
 public class LatencyUtils {
+    public static ConcurrentLinkedQueue<Pair<Integer, Runnable>> transactionMap = new ConcurrentLinkedQueue<>();
+
     public static boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {
         int bestKey = Integer.MIN_VALUE;
         // This value is always set because one value is always left in the maps
@@ -29,5 +37,22 @@ public class LatencyUtils {
         hashMap.keySet().removeIf(value -> value < finalBestKey);
 
         return bestValue;
+    }
+
+    public void addRealTimeTask(int transaction, Runnable runnable) {
+        transactionMap.add(new Pair<>(transaction, runnable));
+    }
+
+    public void handleTransaction(int transaction) {
+        Pair<Integer, Runnable> next = transactionMap.peek();
+        while (next != null) {
+            if (transaction < next.getFirst())
+                break;
+            transactionMap.poll();
+
+            next.getSecond().run();
+
+            next = transactionMap.peek();
+        }
     }
 }

@@ -160,6 +160,7 @@ public class GrimPlayer {
     public CompensatedEntities compensatedEntities;
     public CompensatedEating compensatedEating;
     public CompensatedPotions compensatedPotions;
+    public LatencyUtils latencyUtils = new LatencyUtils();
     public TrigHandler trigHandler;
     public PacketStateData packetStateData;
     // Keep track of basetick stuff
@@ -318,7 +319,7 @@ public class GrimPlayer {
                     // Must be here as this is required to be real time
                     compensatedEating.handleTransactionPacket(incrementingID);
                     reach.handleTransaction(incrementingID);
-                    compensatedEntities.handleTransaction(incrementingID);
+                    latencyUtils.handleTransaction(incrementingID);
                 }
             } while (data != null && data.getFirst() != id);
         }
