@@ -15,7 +15,7 @@ public class DimensionChangeEvent implements Listener {
             GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
             if (player != null) {
                 player.sendAndFlushTransactionOrPingPong();
-                player.compensatedEntities.teleportWorldQueue.add(player.lastTransactionSent.get());
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isPacketSneaking = false);
             }
         }
     }
