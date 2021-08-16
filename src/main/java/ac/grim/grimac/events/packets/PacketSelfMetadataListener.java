@@ -2,7 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.ServerToClientEating;
+import ac.grim.grimac.utils.data.AlmostBoolean;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -10,6 +10,7 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
 import java.util.Optional;
@@ -77,10 +78,21 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             boolean isActive = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
                             boolean hand = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
 
+                            // Player might have gotten this packet
+                            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
+                                    () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE);
+
+                            // Player has gotten this packet
+                            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
+                                player.packetStateData.slowedByUsingItem = isActive ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
+
+                                if (isActive) {
+                                    player.packetStateData.eatingHand = hand ? Hand.MAIN_HAND : Hand.OFF_HAND;
+                                }
+                            });
+
                             // Yes, we do have to use a transaction for eating as otherwise it can desync much easier
                             event.setPostTask(player::sendAndFlushTransactionOrPingPong);
-
-                            player.compensatedEating.eatingData.add(new ServerToClientEating(player.lastTransactionSent.get() + 1, isActive, hand));
                         }
                     }
                 }

@@ -158,7 +158,6 @@ public class GrimPlayer {
     public ExplosionHandler explosionHandler;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
-    public CompensatedEating compensatedEating;
     public CompensatedPotions compensatedPotions;
     public LatencyUtils latencyUtils = new LatencyUtils();
     public TrigHandler trigHandler;
@@ -227,7 +226,6 @@ public class GrimPlayer {
         knockbackHandler = new KnockbackHandler(this);
         explosionHandler = new ExplosionHandler(this);
         compensatedEntities = new CompensatedEntities(this);
-        compensatedEating = new CompensatedEating(this);
         compensatedPotions = new CompensatedPotions(this);
         trigHandler = new TrigHandler(this);
         timerCheck = new TimerCheck(this);
@@ -317,7 +315,6 @@ public class GrimPlayer {
                     playerClockAtLeast = System.nanoTime() - transactionPing;
 
                     // Must be here as this is required to be real time
-                    compensatedEating.handleTransactionPacket(incrementingID);
                     reach.handleTransaction(incrementingID);
                     latencyUtils.handleTransaction(incrementingID);
                 }
