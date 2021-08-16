@@ -18,7 +18,6 @@ package ac.grim.grimac.checks.combat;
 import ac.grim.grimac.GrimAC;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.ReachMovementData;
 import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
 import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -37,7 +36,6 @@ public class Reach {
 
     public final Int2ObjectLinkedOpenHashMap<PlayerReachEntity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
     private final GrimPlayer player;
-    private final ConcurrentLinkedQueue<ReachMovementData> transactionReachQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
 
     public Reach(GrimPlayer player) {
@@ -57,16 +55,16 @@ public class Reach {
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
             // 1.9 -> 1.8 precision loss in packets
-            // TODO: Figure out this precision loss and implement it properly
             // (ViaVersion is doing some stuff that makes this code difficult)
+            //
+            // This will likely be fixed with PacketEvents 2.0, where our listener is before ViaVersion
+            // Don't attempt to fix it with this version of PacketEvents, it's not worth our time when 2.0 will fix it.
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
-                // Interpolation makes us uncertain of the center of the hitbox, we cannot determine the precision loss!
-                // Well, we could, we would just need a ton of logic for determining offsets position and what ViaVersion is doing.
-                // Anyways, this is an edge case on top of an edge case
                 targetBox.expand(0.03125);
             }
 
             // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
+            // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
             if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
                 targetBox.expand(0.1);
             }
@@ -75,6 +73,8 @@ public class Reach {
             // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
             //
             // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
+            //
+            // Technically I should only have to listen for lastLastMovement, although Tecnio warned me to just use both
             if (!player.packetStateData.didLastLastMovementIncludePosition || !player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
                 targetBox.expand(0.03);
 
@@ -86,7 +86,10 @@ public class Reach {
             Vector vanillaIntercept = null;
 
             // This is how vanilla handles look vectors on 1.8 - it's a tick behind.
-            if (player.getClientVersion().equals(ClientVersion.v_1_8)) {
+            // 1.9+ you have no guarantees of which look vector it is due to 0.03
+            //
+            // The only safe version is 1.7
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
                 Vector vanillaDir = ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
                 Vector vanillaEndPos = eyePos.clone().add(new Vector(vanillaDir.getX() * 6, vanillaDir.getY() * 6, vanillaDir.getZ() * 6));
 
@@ -130,31 +133,6 @@ public class Reach {
         }
     }
 
-    public void handleTransaction(int transactionID) {
-        ReachMovementData nextTrans = transactionReachQueue.peek();
-
-        //GrimAC.staticGetLogger().info("Got packet " + transactionID);
-
-        if (nextTrans != null) {
-            if (transactionID == nextTrans.transactionID) {
-                // Create a bounding box taking the minimums and maximums of the previous packet target and the new target,
-                // meaning that the bounding box will become larger than the player’s actual bounding box.
-                PlayerReachEntity entity = entityMap.get(nextTrans.entityID);
-                //GrimAC.staticGetLogger().info("Handling first bread with pos " + entity.relativeMoveLocation);
-
-                entity.onFirstTransaction(nextTrans.newPos.getX(), nextTrans.newPos.getY(), nextTrans.newPos.getZ());
-
-            } else if (transactionID - 1 == nextTrans.transactionID) {
-                PlayerReachEntity entity = entityMap.get(nextTrans.entityID);
-
-                //GrimAC.staticGetLogger().info("Handling second bread with pos " + entity.relativeMoveLocation);
-
-                entity.onSecondTransaction();
-                transactionReachQueue.poll();
-            }
-        }
-    }
-
     public void handleSpawnPlayer(int playerID, Vector3d spawnPosition) {
         entityMap.put(playerID, new PlayerReachEntity(spawnPosition.getX(), spawnPosition.getY(), spawnPosition.getZ()));
     }
@@ -170,8 +148,10 @@ public class Reach {
                 reachEntity.serverPos = new Vector3d(deltaX, deltaY, deltaZ);
 
             int lastTrans = player.lastTransactionSent.get();
+            Vector3d newPos = reachEntity.serverPos;
 
-            transactionReachQueue.add(new ReachMovementData(lastTrans, entityId, reachEntity.serverPos));
+            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(newPos.getX(), newPos.getY(), newPos.getZ()));
+            player.latencyUtils.addRealTimeTask(lastTrans + 1, reachEntity::onSecondTransaction);
         }
     }
 

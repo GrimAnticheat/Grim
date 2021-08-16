@@ -53,6 +53,7 @@ public class GrimPlayer {
     public final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
     // Sync this to the netty thread because when spamming transactions, they can get out of order... somehow
     public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
+    private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public PredictionData nextTaskToRun;
@@ -165,7 +166,6 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
-    private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
     // For timer checks and fireworks
@@ -309,16 +309,15 @@ public class GrimPlayer {
         if (hasID) {
             do {
                 data = transactionsSent.poll();
-                if (data != null) {
-                    int incrementingID = packetStateData.packetLastTransactionReceived.incrementAndGet();
-                    transactionPing = (int) (System.nanoTime() - data.getSecond());
-                    playerClockAtLeast = System.nanoTime() - transactionPing;
+                if (data == null)
+                    break;
 
-                    // Must be here as this is required to be real time
-                    reach.handleTransaction(incrementingID);
-                    latencyUtils.handleTransaction(incrementingID);
-                }
-            } while (data != null && data.getFirst() != id);
+                int incrementingID = packetStateData.packetLastTransactionReceived.incrementAndGet();
+                transactionPing = (int) (System.nanoTime() - data.getSecond());
+                playerClockAtLeast = System.nanoTime() - transactionPing;
+
+                latencyUtils.handleTransaction(incrementingID);
+            } while (data.getFirst() != id);
         }
 
         // Were we the ones who sent the packet?
