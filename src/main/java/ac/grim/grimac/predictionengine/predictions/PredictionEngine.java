@@ -34,12 +34,25 @@ public class PredictionEngine {
 
         if (player.couldSkipTick) {
             Set<VectorData> zeroStuff = new HashSet<>();
+
             // Allow the player's Y velocity to be 0 if they are in water/lava (0.03 issue)
-            if (player.uncertaintyHandler.controlsVerticalMovement())
-                zeroStuff.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
-            zeroStuff.add(new VectorData(new Vector().setY(player.clientVelocity.getY()), VectorData.VectorType.ZeroPointZeroThree));
+            Vector pointThreeVector = new Vector();
+            if (!player.uncertaintyHandler.controlsVerticalMovement())
+                pointThreeVector.setY(player.clientVelocity.getY());
+
+            VectorData zeroData = new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree);
+            zeroStuff.add(zeroData);
 
             Set<VectorData> jumpingPossibility = new HashSet<>();
+
+            if (player.likelyExplosions != null) {
+                zeroStuff.add(zeroData.returnNewModified(pointThreeVector.clone().add(player.likelyExplosions.vector), VectorData.VectorType.Explosion));
+            }
+
+            if (player.firstBreadExplosion != null) {
+                zeroStuff.add(zeroData.returnNewModified(pointThreeVector.clone().add(player.firstBreadExplosion.vector), VectorData.VectorType.Explosion));
+            }
+
             jumpingPossibility.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
             addJumpsToPossibilities(player, jumpingPossibility);
             // Secure the ability to get predicted a new vector by forcing the player to be able to jump here

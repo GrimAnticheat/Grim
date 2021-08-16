@@ -433,6 +433,7 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
+        player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
         player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.onMaterial(player, BUBBLE_COLUMN, -0.5);
@@ -561,7 +562,7 @@ public class MovementCheckRunner {
         }
 
         // Checking slime is too complicated
-        if (player.uncertaintyHandler.isSteppingOnBouncyBlock) {
+        if (player.uncertaintyHandler.influencedByBouncyBlock()) {
             offset -= 0.03;
         }
 
