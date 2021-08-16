@@ -130,7 +130,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             RayTrace trace = new RayTrace(player, player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.bukkitPlayer.isSleeping(), player.getClientVersion()), player.packetStateData.packetPlayerZ, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
             trace.highlight(player, 60, 0.01);*/
 
-            if (XMaterial.supports(8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR)
+            if (XMaterial.supports(8) && player.packetStateData.gameMode == GameMode.SPECTATOR)
                 return;
 
             // 1.9+ use the use item packet for this
@@ -150,7 +150,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 Material material = item.getType();
                 // 1.14 and below players cannot eat in creative, exceptions are potions or milk
                 if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15) ||
-                        player.bukkitPlayer.getGameMode() != GameMode.CREATIVE && material.isEdible())
+                        player.packetStateData.gameMode != GameMode.CREATIVE && material.isEdible())
                         || material == POTION || material == MILK_BUCKET) {
                     // pre1.9 splash potion
                     if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8) && item.getDurability() > 16384)
@@ -166,7 +166,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     // The other items that do require it
-                    if (item.getType().isEdible() && (event.getPlayer().getFoodLevel() < 20 || player.bukkitPlayer.getGameMode() == GameMode.CREATIVE)) {
+                    if (item.getType().isEdible() && (event.getPlayer().getFoodLevel() < 20 || player.packetStateData.gameMode == GameMode.CREATIVE)) {
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
@@ -203,7 +203,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 // Players in survival can't use a bow without an arrow
                 // Crossbow charge checked previously
                 if (material == BOW || material == CROSSBOW) {
-                    player.packetStateData.slowedByUsingItem = (player.bukkitPlayer.getGameMode() == GameMode.CREATIVE ||
+                    player.packetStateData.slowedByUsingItem = (player.packetStateData.gameMode == GameMode.CREATIVE ||
                             hasItem(player, ARROW) || hasItem(player, TIPPED_ARROW) || hasItem(player, SPECTRAL_ARROW)) ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
                     player.packetStateData.eatingHand = place.getHand();
                 }

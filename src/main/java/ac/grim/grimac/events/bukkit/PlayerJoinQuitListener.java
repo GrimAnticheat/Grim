@@ -59,6 +59,7 @@ public class PlayerJoinQuitListener implements Listener {
         player.packetStateData.packetPlayerZ = bukkitPlayer.getLocation().getZ();
         player.packetStateData.packetPlayerXRot = bukkitPlayer.getLocation().getYaw();
         player.packetStateData.packetPlayerYRot = bukkitPlayer.getLocation().getPitch();
+        player.packetStateData.gameMode = bukkitPlayer.getGameMode();
 
         player.uncertaintyHandler.pistonPushing.add(0d);
         player.uncertaintyHandler.collidingEntities.add(0);

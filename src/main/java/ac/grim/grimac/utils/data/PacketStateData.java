@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import io.github.retrooper.packetevents.utils.player.Hand;
+import org.bukkit.GameMode;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -21,6 +22,7 @@ public class PacketStateData {
     public int lastSlotSelected;
     public Hand eatingHand = Hand.MAIN_HAND;
     public AlmostBoolean slowedByUsingItem = AlmostBoolean.FALSE;
+    public GameMode gameMode;
     public boolean receivedSteerVehicle = false;
     public int horseJump = 0;
     public boolean tryingToRiptide = false;

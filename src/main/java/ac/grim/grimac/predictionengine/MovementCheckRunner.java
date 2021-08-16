@@ -464,11 +464,9 @@ public class MovementCheckRunner {
             // Dead players don't take explosions or knockback
             player.explosionHandler.handlePlayerExplosion(0, true);
             player.knockbackHandler.handlePlayerKb(0, true);
-        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && player.bukkitPlayer.getGameMode() == GameMode.SPECTATOR) {
+        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
-            // ViaVersion plays with 1.7 player flying speed, don't bother checking them
-            // We don't know what ViaVersion is doing as their packet listener is in front of ours
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
             player.clientVelocity = player.actualMovement.clone();
             player.gravity = 0;
