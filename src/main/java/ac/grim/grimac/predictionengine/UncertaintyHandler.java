@@ -54,7 +54,7 @@ public class UncertaintyHandler {
     public boolean wasSteppingOnBouncyBlock = false;
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
-    public boolean stuckOnEdge = false;
+    public int stuckOnEdge = 0;
     public boolean nextTickScaffoldingOnEdge = false;
     public boolean scaffoldingOnEdge = false;
     // Marks whether the player could have landed but without position packet because 0.03
@@ -95,14 +95,13 @@ public class UncertaintyHandler {
         pistonZ = 0;
         gravityUncertainty = 0;
         isStepMovement = false;
-        stuckOnEdge = false;
         slimePistonBounces = new HashSet<>();
     }
 
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
         // First tick movement should always be considered zero point zero three
         // Shifting movement is somewhat buggy because 0.03
-        if (stuckOnEdge || wasAffectedByStuckSpeed() || influencedByBouncyBlock())
+        if (stuckOnEdge == -2 || wasAffectedByStuckSpeed() || influencedByBouncyBlock())
             return true;
 
         // Explicitly is 0.03 movement
@@ -128,23 +127,23 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
-        double pointThree = stuckOnEdge || data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+        double pointThree = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
 
         // 0.03 plus being able to maintain velocity even when shifting is brutal
-        if (stuckOnEdge && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
-            pointThree = Math.max(pointThree, player.speed / 3);
+        if (stuckOnEdge == -2 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
+            pointThree = Math.max(pointThree, player.speed * 2);
 
         if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.influencedByBouncyBlock())
             pointThree = Math.max(pointThree, 0.1);
 
-        if (lastTeleportTicks > -3 || player.lastVehicleSwitch < 6)
+        if (lastTeleportTicks > -3 || player.lastVehicleSwitch < 6 || stuckOnEdge > -3)
             pointThree = Math.max(pointThree, 0.1);
 
         if (wasAffectedByStuckSpeed())
             pointThree = Math.max(pointThree, 0.08);
 
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
-            pointThree = Math.max(pointThree, player.speed * 1.5);
+            pointThree = Math.max(pointThree, player.speed * 1.6);
         }
 
         if (Collections.max(thirtyMillionHardBorder)) {

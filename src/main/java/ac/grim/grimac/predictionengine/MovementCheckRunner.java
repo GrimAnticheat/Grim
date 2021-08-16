@@ -423,8 +423,6 @@ public class MovementCheckRunner {
             if (player.playerVehicle.type != EntityType.PIG && player.playerVehicle.type != EntityType.STRIDER) {
                 player.isClimbing = false;
             }
-
-            player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
         }
 
         // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
@@ -439,6 +437,7 @@ public class MovementCheckRunner {
 
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
+        player.uncertaintyHandler.stuckOnEdge--;
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
@@ -448,7 +447,8 @@ public class MovementCheckRunner {
         player.uncertaintyHandler.checkForHardCollision();
         player.uncertaintyHandler.thirtyMillionHardBorder.add(!player.inVehicle && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D));
 
-        player.uncertaintyHandler.nextTickScaffoldingOnEdge = false;
+        Vector backOff = Collisions.maybeBackOffFromEdge(player.clientVelocity, player, true);
+        player.uncertaintyHandler.nextTickScaffoldingOnEdge = player.clientVelocity.getX() != 0 && player.clientVelocity.getZ() != 0 && backOff.getX() == 0 && backOff.getZ() == 0;
         player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
 
         // Exempt if the player is offline
@@ -494,20 +494,22 @@ public class MovementCheckRunner {
 
             SimpleCollisionBox updatedBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
 
-            if (player.isSneaking || player.wasSneaking) {
-                // Before we do player block placements, determine if the shifting glitch occurred
-                // It's a glitch on 1.14+ and on earlier versions, the 0.03 is just brutal.
-                boolean east = player.actualMovement.angle(new Vector(1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0.1, -0.6, 0));
-                boolean west = player.actualMovement.angle(new Vector(-1, 0, 1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(-0.1, -0.6, 0));
-                boolean south = player.actualMovement.angle(new Vector(0, 0, 1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, 0.1));
-                boolean north = player.actualMovement.angle(new Vector(0, 0, -1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, -0.1));
-
-                player.uncertaintyHandler.stuckOnEdge = (east || west || south || north);
-            }
-
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
             player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = data.didGroundStatusChangeWithoutPositionPacket;
+
+            if ((player.isSneaking || player.wasSneaking) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
+                // Before we do player block placements, determine if the shifting glitch occurred
+                // It's a glitch on 1.14+ and on earlier versions, the 0.03 is just brutal.
+                boolean east = player.actualMovement.angle(new Vector(1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0.1, -0.6, 0));
+                boolean west = player.actualMovement.angle(new Vector(-1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(-0.1, -0.6, 0));
+                boolean south = player.actualMovement.angle(new Vector(0, 0, 1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, 0.1));
+                boolean north = player.actualMovement.angle(new Vector(0, 0, -1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, -0.1));
+
+                if (east || west || south || north)
+                    player.uncertaintyHandler.stuckOnEdge = 0;
+            }
+
 
             // Vehicles don't have jumping or that stupid < 0.03 thing
             // If the player isn't on the ground, a packet in between < 0.03 said they did
@@ -578,7 +580,7 @@ public class MovementCheckRunner {
         // Sneaking near edge cases a ton of issues
         // Don't give this bonus if the Y axis is wrong though.
         // Another temporary permanent hack.
-        if (player.uncertaintyHandler.stuckOnEdge && player.clientVelocity.getY() > 0 && Math.abs(player.clientVelocity.getY() - player.actualMovement.getY()) < 1e-6)
+        if (player.uncertaintyHandler.stuckOnEdge == -2 && player.clientVelocity.getY() > 0 && Math.abs(player.clientVelocity.getY() - player.actualMovement.getY()) < 1e-6)
             offset -= 0.1;
 
         offset = Math.max(0, offset);
@@ -642,7 +644,7 @@ public class MovementCheckRunner {
         if (color == ChatColor.YELLOW || color == ChatColor.RED) {
             player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.wasTouchingLava + " " + player.uncertaintyHandler.gravityUncertainty);
+            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.uncertaintyHandler.stuckOnEdge);
 
             if (player.lastVehicleSwitch < 5) {
                 player.bukkitPlayer.sendMessage("Note that the player would be setback and not punished");
@@ -658,6 +660,6 @@ public class MovementCheckRunner {
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.isSneaking + " " + player.wasSneaking);
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.uncertaintyHandler.stuckOnEdge);
     }
 }

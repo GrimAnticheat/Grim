@@ -220,11 +220,14 @@ public class Collisions {
         return vector.getX() * vector.getX() + vector.getZ() * vector.getZ();
     }
 
-    public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player) {
+    public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player, boolean overrideVersion) {
         if (!player.specialFlying && player.isSneaking && isAboveGround(player)) {
             double x = vec3.getX();
             double z = vec3.getZ();
-            while (x != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, -player.getMaxUpStep(), 0.0))) {
+
+            double maxStepDown = overrideVersion || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_11) ? -player.getMaxUpStep() : -1;
+
+            while (x != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, maxStepDown, 0.0))) {
                 if (x < 0.05D && x >= -0.05D) {
                     x = 0.0D;
                 } else if (x > 0.0D) {
@@ -233,7 +236,7 @@ public class Collisions {
                     x += 0.05D;
                 }
             }
-            while (z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(0.0, -player.getMaxUpStep(), z))) {
+            while (z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(0.0, maxStepDown, z))) {
                 if (z < 0.05D && z >= -0.05D) {
                     z = 0.0D;
                 } else if (z > 0.0D) {
@@ -242,7 +245,7 @@ public class Collisions {
                     z += 0.05D;
                 }
             }
-            while (x != 0.0 && z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, -player.getMaxUpStep(), z))) {
+            while (x != 0.0 && z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, maxStepDown, z))) {
                 if (x < 0.05D && x >= -0.05D) {
                     x = 0.0D;
                 } else if (x > 0.0D) {

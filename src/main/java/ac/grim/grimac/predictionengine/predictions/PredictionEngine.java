@@ -86,9 +86,9 @@ public class PredictionEngine {
         SimpleCollisionBox originalBB = player.boundingBox;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput);
-            Vector backOff = Collisions.maybeBackOffFromEdge(primaryPushMovement, player);
-            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
+            Vector backOff = Collisions.maybeBackOffFromEdge(clientVelAfterInput.vector, player, false);
+            Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput.returnNewModified(backOff, VectorData.VectorType.Normal));
+            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, primaryPushMovement);
 
             boolean flipSneaking = clientVelAfterInput.hasVectorType(VectorData.VectorType.Flip_Sneaking);
             if (flipSneaking) {
@@ -102,12 +102,6 @@ public class PredictionEngine {
             }
 
             Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
-
-            // Scaffolding bug occurred
-            // This is an extension of the sneaking bug
-            if (player.isSneaking && primaryPushMovement.getY() < 0 && backOff.getX() == 0 && backOff.getZ() == 0 && Collisions.onMaterial(player, SCAFFOLDING, -0.04)) {
-                player.uncertaintyHandler.nextTickScaffoldingOnEdge = true;
-            }
 
             Vector handleHardCodedBorder = outputVel;
             if (!player.inVehicle) {
@@ -370,14 +364,13 @@ public class PredictionEngine {
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
-        double shiftingInprecision = player.uncertaintyHandler.stuckOnEdge ? 0.05 : 0;
 
         // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
         // 0.065 was causing issues with fast moving dolphins
         // 0.075 seems safe?
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(shiftingInprecision + player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, shiftingInprecision + player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
+        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
         return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
                 vector.clone().add(uncertainty));
