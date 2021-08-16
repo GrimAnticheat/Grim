@@ -51,6 +51,7 @@ public class UncertaintyHandler {
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
+    public boolean wasSteppingOnBouncyBlock = false;
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
     public boolean stuckOnEdge = false;
@@ -100,7 +101,7 @@ public class UncertaintyHandler {
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
         // First tick movement should always be considered zero point zero three
         // Shifting movement is somewhat buggy because 0.03
-        if (stuckOnEdge || wasAffectedByStuckSpeed())
+        if (stuckOnEdge || wasAffectedByStuckSpeed() || influencedByBouncyBlock())
             return true;
 
         // Explicitly is 0.03 movement
@@ -121,6 +122,10 @@ public class UncertaintyHandler {
         return !stuckMultiplierZeroPointZeroThree.isEmpty() && Collections.max(stuckMultiplierZeroPointZeroThree);
     }
 
+    public boolean influencedByBouncyBlock() {
+        return isSteppingOnBouncyBlock || wasSteppingOnBouncyBlock;
+    }
+
     public double getOffsetHorizontal(VectorData data) {
         double pointThree = stuckOnEdge || data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
 
@@ -128,7 +133,7 @@ public class UncertaintyHandler {
         if (stuckOnEdge && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
             pointThree = Math.max(pointThree, player.speed / 3);
 
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.isSteppingOnBouncyBlock)
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.influencedByBouncyBlock())
             pointThree = Math.max(pointThree, 0.1);
 
         if (lastTeleportTicks > -3 || player.lastVehicleSwitch < 6)
@@ -161,7 +166,7 @@ public class UncertaintyHandler {
         // [10:36:34 INFO]: [GrimAC] DefineOutside A: -1.3529602846240607E-4 -0.11397087614427903 -0.09891504315167055
         // [10:36:34 INFO]: [GrimAC] DefineOutside P: -6.764801675096521E-4 0.15 0.007984975003338945
         // [10:36:34 INFO]: [GrimAC] DefineOutside A: -6.764801675096521E-4 0.2542683097376681 0.007984975003338945
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingOnBouncyBlock)
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && influencedByBouncyBlock())
             return 0.28;
 
         if (Collections.max(thirtyMillionHardBorder))
@@ -170,14 +175,23 @@ public class UncertaintyHandler {
         if (wasLastGravityUncertain)
             return 0.03;
 
-        if (!controlsVerticalMovement() || data.hasVectorType(VectorData.VectorType.Jump))
+        if (!controlsVerticalMovement())
             return 0;
 
         return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.09 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
     }
 
     public boolean controlsVerticalMovement() {
-        return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || isSteppingOnBouncyBlock || lastFlyingTicks < 3 || player.isGliding;
+        return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || influencedByBouncyBlock() || lastFlyingTicks < 3 || player.isGliding;
+    }
+
+    // 0.04 is safe for speed 10, 0.03 is unsafe
+    // 0.0016 is safe for speed 1, 0.09 is unsafe
+    //
+    // Taking these approximate values gives us this, the same 0.03 value for each speed
+    // Don't give bonus for sprinting because sprinting against walls isn't possible
+    public double getZeroPointZeroThreeThreshold() {
+        return 0.096 * (player.speed / (player.isSprinting ? 1.3d : 1)) - 0.008;
     }
 
     public boolean canSkipTick(List<VectorData> possibleVelocities) {
@@ -187,7 +201,7 @@ public class UncertaintyHandler {
         } else if (wasAffectedByStuckSpeed()) {
             gravityUncertainty = -0.08;
             return true;
-        } else if (isSteppingOnBouncyBlock && Math.abs(player.clientVelocity.getY()) < 0.2) {
+        } else if (influencedByBouncyBlock() && Math.abs(player.clientVelocity.getY()) < 0.2) {
             return true;
         } else if (lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket) {
             return true;
@@ -203,15 +217,6 @@ public class UncertaintyHandler {
             }
             return player.couldSkipTick;
         }
-    }
-
-    // 0.04 is safe for speed 10, 0.03 is unsafe
-    // 0.0016 is safe for speed 1, 0.09 is unsafe
-    //
-    // Taking these approximate values gives us this, the same 0.03 value for each speed
-    // Don't give bonus for sprinting because sprinting against walls isn't possible
-    public double getZeroPointZeroThreeThreshold() {
-        return 0.096 * (player.speed / (player.isSprinting ? 1.3d : 1)) - 0.008;
     }
 
     public void checkForHardCollision() {
