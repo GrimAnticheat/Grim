@@ -399,6 +399,10 @@ public class MovementCheckRunner {
             player.knockbackHandler.handlePlayerKb(0, true);
         }
 
+        player.uncertaintyHandler.lastSneakingChangeTicks--;
+        if (player.isSneaking != player.wasSneaking)
+            player.uncertaintyHandler.lastSneakingChangeTicks = 0;
+
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
@@ -649,6 +653,6 @@ public class MovementCheckRunner {
 
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
         GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ));
+        GrimAC.staticGetLogger().info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.isSneaking + " " + player.wasSneaking);
     }
 }

@@ -81,6 +81,7 @@ public class UncertaintyHandler {
     public EvictingList<Boolean> thirtyMillionHardBorder = new EvictingList<>(3);
     public int lastTeleportTicks = 0;
     public int lastFlyingTicks = 0;
+    public int lastSneakingChangeTicks = 0;
     public boolean hasSentValidMovementAfterTeleport = false;
 
     public UncertaintyHandler(GrimPlayer player) {
