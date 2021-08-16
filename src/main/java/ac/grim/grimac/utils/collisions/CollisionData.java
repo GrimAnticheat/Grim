@@ -313,10 +313,14 @@ public enum CollisionData {
         Scaffolding scaffolding = (Scaffolding) ((WrappedFlatBlock) data).getBlockData();
 
         if (player.lastY > y + 1 - 1.0E-5F && !player.isSneaking) {
-            return new HexCollisionBox(0.0D, 14.0D, 0.0D, 16.0D, 16.0D, 16.0D);
+            return new ComplexCollisionBox(new HexCollisionBox(0.0D, 14.0D, 0.0D, 16.0D, 16.0D, 16.0D),
+                    new HexCollisionBox(0.0D, 0.0D, 0.0D, 2.0D, 16.0D, 2.0D),
+                    new HexCollisionBox(14.0D, 0.0D, 0.0D, 16.0D, 16.0D, 2.0D),
+                    new HexCollisionBox(0.0D, 0.0D, 14.0D, 2.0D, 16.0D, 16.0),
+                    new HexCollisionBox(14.0D, 0.0D, 14.0D, 16.0D, 16.0D, 16.0D));
         }
 
-        return scaffolding.getDistance() != 0 && scaffolding.isBottom() && player.lastY > y + (1D / 16D) - (double) 1.0E-5F ?
+        return scaffolding.getDistance() != 0 && scaffolding.isBottom() && player.lastY > y - 1 - (double) 1.0E-5F ?
                 new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D) :
                 NoCollisionBox.INSTANCE;
     }, XMaterial.SCAFFOLDING.parseMaterial()),

@@ -81,7 +81,6 @@ public class PredictionEngine {
         Vector tempClientVelChosen = null;
         Vector originalNonUncertainInput = null;
 
-        boolean originalSneaking = player.isSneaking;
         Pose originalPose = player.pose;
         SimpleCollisionBox originalBB = player.boundingBox;
 
@@ -92,11 +91,9 @@ public class PredictionEngine {
 
             boolean flipSneaking = clientVelAfterInput.hasVectorType(VectorData.VectorType.Flip_Sneaking);
             if (flipSneaking) {
-                player.isSneaking = !originalSneaking;
                 player.pose = originalPose == Pose.STANDING ? Pose.CROUCHING : Pose.STANDING;
                 player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
             } else {
-                player.isSneaking = originalSneaking;
                 player.pose = originalPose;
                 player.boundingBox = originalBB;
             }
@@ -157,12 +154,10 @@ public class PredictionEngine {
 
         boolean flipSneaking = bestCollisionVel.hasVectorType(VectorData.VectorType.Flip_Sneaking);
         if (flipSneaking) {
-            player.isSneaking = !originalSneaking;
             player.pose = originalPose == Pose.STANDING ? Pose.CROUCHING : Pose.STANDING;
             player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
             ;
         } else {
-            player.isSneaking = originalSneaking;
             player.pose = originalPose;
             player.boundingBox = originalBB;
         }
