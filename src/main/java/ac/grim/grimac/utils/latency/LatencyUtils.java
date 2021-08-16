@@ -11,7 +11,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 // Normal grim spaghetti is not allowed here
 // Eventually, a ton more transaction related stuff will be transferred to this class
 public class LatencyUtils {
-    public ConcurrentLinkedQueue<Pair<Integer, Runnable>> transactionMap = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Pair<Integer, Runnable>> nettySyncTransactionMap = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Pair<Integer, Runnable>> anticheatSyncTransactionMap = new ConcurrentLinkedQueue<>();
 
     public static boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {
         int bestKey = Integer.MIN_VALUE;
@@ -40,18 +41,26 @@ public class LatencyUtils {
     }
 
     public void addRealTimeTask(int transaction, Runnable runnable) {
-        transactionMap.add(new Pair<>(transaction, runnable));
+        nettySyncTransactionMap.add(new Pair<>(transaction, runnable));
     }
 
-    public void handleTransaction(int transaction) {
-        Pair<Integer, Runnable> next = transactionMap.peek();
+    public void handleNettySyncTransaction(int transaction) {
+        tickUpdates(nettySyncTransactionMap, transaction);
+    }
+
+    private void tickUpdates(ConcurrentLinkedQueue<Pair<Integer, Runnable>> map, int transaction) {
+        Pair<Integer, Runnable> next = map.peek();
         while (next != null) {
             if (transaction < next.getFirst())
                 break;
 
-            transactionMap.poll();
+            map.poll();
             next.getSecond().run();
-            next = transactionMap.peek();
+            next = map.peek();
         }
+    }
+
+    public void handleAnticheatSyncTransaction(int transaction) {
+        tickUpdates(anticheatSyncTransactionMap, transaction);
     }
 }

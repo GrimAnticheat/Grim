@@ -316,7 +316,7 @@ public class GrimPlayer {
                 transactionPing = (int) (System.nanoTime() - data.getSecond());
                 playerClockAtLeast = System.nanoTime() - transactionPing;
 
-                latencyUtils.handleTransaction(incrementingID);
+                latencyUtils.handleNettySyncTransaction(incrementingID);
             } while (data.getFirst() != id);
         }
 
