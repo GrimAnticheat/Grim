@@ -12,7 +12,6 @@ import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Material;
@@ -23,7 +22,6 @@ import org.bukkit.util.Vector;
 import java.util.*;
 
 public class PredictionEngine {
-    private static final Material SCAFFOLDING = XMaterial.SCAFFOLDING.parseMaterial();
     boolean canRiptide = false;
 
     public void guessBestMovement(float speed, GrimPlayer player) {
