@@ -213,6 +213,7 @@ public class MovementCheckRunner {
             if (player.tasksNotFinished.compareAndSet(0, 1)) {
                 int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
                 player.compensatedWorld.tickUpdates(lastTransaction);
+                player.latencyUtils.handleAnticheatSyncTransaction(lastTransaction);
                 player.compensatedEntities.tickUpdates(lastTransaction, false);
                 player.compensatedFlying.canFlyLagCompensated(lastTransaction);
                 player.compensatedFireworks.getMaxFireworksAppliedPossible();
@@ -237,6 +238,7 @@ public class MovementCheckRunner {
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
+        player.latencyUtils.handleNettySyncTransaction(data.lastTransaction);
 
         player.lastTransactionReceived = data.lastTransaction;
 

@@ -56,6 +56,9 @@ public class PacketVehicleMoves extends PacketListenerAbstract {
                 player.compensatedWorld.tickUpdates(player.lastTransactionReceived);
                 player.compensatedWorld.tickPlayerInPistonPushingArea();
 
+                // Stop transaction leaks
+                player.latencyUtils.handleAnticheatSyncTransaction(player.lastTransactionReceived);
+
                 // Update entities to get current vehicle
                 player.compensatedEntities.tickUpdates(player.packetStateData.packetLastTransactionReceived.get(), true);
 
