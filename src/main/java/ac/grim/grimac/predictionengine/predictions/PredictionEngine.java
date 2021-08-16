@@ -6,12 +6,14 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
+import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -79,10 +81,26 @@ public class PredictionEngine {
         Vector tempClientVelChosen = null;
         Vector originalNonUncertainInput = null;
 
+        boolean originalSneaking = player.isSneaking;
+        Pose originalPose = player.pose;
+        SimpleCollisionBox originalBB = player.boundingBox;
+
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput);
             Vector backOff = Collisions.maybeBackOffFromEdge(primaryPushMovement, player);
             Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
+
+            boolean flipSneaking = clientVelAfterInput.hasVectorType(VectorData.VectorType.Flip_Sneaking);
+            if (flipSneaking) {
+                player.isSneaking = !originalSneaking;
+                player.pose = originalPose == Pose.STANDING ? Pose.CROUCHING : Pose.STANDING;
+                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            } else {
+                player.isSneaking = originalSneaking;
+                player.pose = originalPose;
+                player.boundingBox = originalBB;
+            }
+
             Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
 
             // Scaffolding bug occurred
@@ -142,42 +160,46 @@ public class PredictionEngine {
 
         // The player always has at least one velocity - clientVelocity
         assert bestCollisionVel != null;
+
+        boolean flipSneaking = bestCollisionVel.hasVectorType(VectorData.VectorType.Flip_Sneaking);
+        if (flipSneaking) {
+            player.isSneaking = !originalSneaking;
+            player.pose = originalPose == Pose.STANDING ? Pose.CROUCHING : Pose.STANDING;
+            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            ;
+        } else {
+            player.isSneaking = originalSneaking;
+            player.pose = originalPose;
+            player.boundingBox = originalBB;
+        }
+
         player.clientVelocity = tempClientVelChosen;
         player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
         new MovementTickerPlayer(player).move(originalNonUncertainInput, beforeCollisionMovement, bestCollisionVel.vector);
         endOfTick(player, player.gravity, player.friction);
     }
 
-    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
+    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
+        List<VectorData> returnVectors = new ArrayList<>();
+        loopVectors(player, possibleVectors, speed, returnVectors);
 
-        // Slow movement was determined by the previous pose
-        if (player.isSlowMovement) {
-            bestPossibleX = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getX() / 0.3)), 1f) * 0.3d);
-            bestPossibleZ = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ() / 0.3)), 1f) * 0.3d);
-        } else {
-            bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
-            bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
+        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
+        // It mostly occurs when the player takes damage.
+        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
+        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
+        // If a player in this glitched state lets go of moving forward, then become un-glitched
+        if (player.isSprinting) {
+            player.isSprinting = false;
+            // Flying with sprinting increases speed by 2x
+            if (player.isFlying)
+                speed -= speed / 2;
+            else
+                speed /= 1.3f;
+            loopVectors(player, possibleVectors, speed, returnVectors);
+            player.isSprinting = true;
         }
 
-        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
-            bestPossibleX *= 0.2F;
-            bestPossibleZ *= 0.2F;
-        }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98F);
-
-        // Simulate float rounding imprecision
-        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
-
-        if (inputVector.lengthSquared() > 1) {
-            double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
-            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
-        }
-
-        return inputVector;
+        return returnVectors;
     }
 
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
@@ -240,45 +262,6 @@ public class PredictionEngine {
             return Integer.compare(aScore, bScore);
 
         return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
-    }
-
-    public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> returnVectors = new ArrayList<>();
-        loopVectors(player, possibleVectors, speed, returnVectors);
-
-        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
-        // It mostly occurs when the player takes damage.
-        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
-        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
-        // If a player in this glitched state lets go of moving forward, then become un-glitched
-        if (player.isSprinting) {
-            player.isSprinting = false;
-            // Flying with sprinting increases speed by 2x
-            if (player.isFlying)
-                speed -= speed / 2;
-            else
-                speed /= 1.3f;
-            loopVectors(player, possibleVectors, speed, returnVectors);
-            player.isSprinting = true;
-        }
-
-        return returnVectors;
-    }
-
-    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
-        double shiftingInprecision = player.uncertaintyHandler.stuckOnEdge ? 0.05 : 0;
-
-        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
-        // 0.065 was causing issues with fast moving dolphins
-        // 0.075 seems safe?
-        //
-        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(shiftingInprecision + player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, shiftingInprecision + player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
-        return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement,
-                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
-                vector.clone().add(uncertainty));
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
@@ -384,6 +367,27 @@ public class PredictionEngine {
         return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
+    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
+        double shiftingInprecision = player.uncertaintyHandler.stuckOnEdge ? 0.05 : 0;
+
+        // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
+        // 0.065 was causing issues with fast moving dolphins
+        // 0.075 seems safe?
+        //
+        // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
+        Vector uncertainty = new Vector(shiftingInprecision + player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, shiftingInprecision + player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
+        return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement,
+                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
+                vector.clone().add(uncertainty));
+    }
+
+    public void endOfTick(GrimPlayer player, double d, float friction) {
+        player.canSwimHop = canSwimHop(player);
+        player.lastWasClimbing = 0;
+    }
+
     private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
         // Stop omni-sprint
         // Optimization - Also cuts down scenarios by 2/3
@@ -392,29 +396,57 @@ public class PredictionEngine {
         int zMin = player.isSprinting && !player.isSwimming ? 1 : -1;
 
         AlmostBoolean usingItem = player.isUsingItem;
-        boolean loopAgain = true;
+        boolean loopCrouching = true;
 
         // Loop twice for the using item status if the player is using a trident
         // (Or in the future mojang desync's with another item and we can't be sure)
-        for (int loopUsingItem = 0; loopAgain && loopUsingItem <= 1; loopUsingItem++) {
-            for (VectorData possibleLastTickOutput : possibleVectors) {
-                for (int x = -1; x <= 1; x++) {
-                    for (int z = zMin; z <= 1; z++) {
-                        VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-                        result = result.returnNewModified(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
-                        result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
-                        result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
-                        returnVectors.add(result);
+        //
+        // I tried using delays, vertical collision detection, and other methods for sneaking
+        // But nothing works as well as brute force
+        for (int loopSneaking = 0; loopCrouching && loopSneaking <= 1; loopSneaking++) {
+            boolean loopAgain = true;
+            for (int loopUsingItem = 0; loopAgain && loopUsingItem <= 1; loopUsingItem++) {
+                for (VectorData possibleLastTickOutput : possibleVectors) {
+                    for (int x = -1; x <= 1; x++) {
+                        for (int z = zMin; z <= 1; z++) {
+                            VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
+                            result = result.returnNewModified(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
+                            result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
+                            result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                            // Signal that we need to flip sneaking bounding box
+                            if (loopSneaking == 1)
+                                result = result.returnNewModified(result.vector, VectorData.VectorType.Flip_Sneaking);
+                            returnVectors.add(result);
+                        }
                     }
+                }
+
+
+                // Loop again if the player is using a riptide trident in the rain (as this is too easy to desync)
+                loopAgain = (player.isUsingItem == AlmostBoolean.MAYBE);
+                if (loopAgain) {
+                    player.isUsingItem = AlmostBoolean.FALSE;
                 }
             }
 
-
-            // Loop again if the player is using a riptide trident in the rain (as this is too easy to desync)
-            loopAgain = (player.isUsingItem == AlmostBoolean.MAYBE);
-            if (loopAgain) {
-                player.isUsingItem = AlmostBoolean.FALSE;
+            // The client has this stupid sneaking mechanic that desync's from the server because mojang
+            // is incompetent at modern netcode
+            // The player changed their sneaking within 3 ticks of this
+            // And the player's pose is standing or crouching (no gliding/swimming)
+            loopCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
+                    player.uncertaintyHandler.lastSneakingChangeTicks > -3 &&
+                    (player.pose == Pose.STANDING || player.pose == Pose.CROUCHING);
+            if (loopCrouching) {
+                player.isCrouching = !player.isCrouching;
+                player.isSlowMovement = !player.isSlowMovement;
+                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
             }
+        }
+
+        if (loopCrouching) {
+            player.isCrouching = !player.isCrouching;
+            player.isSlowMovement = !player.isSlowMovement;
+            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
         }
 
         player.isUsingItem = usingItem;
@@ -510,9 +542,36 @@ public class PredictionEngine {
         return new Vector(xResult * f, 0, zResult * f);
     }
 
-    public void endOfTick(GrimPlayer player, double d, float friction) {
-        player.canSwimHop = canSwimHop(player);
-        player.lastWasClimbing = 0;
+    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
+        float bestPossibleX;
+        float bestPossibleZ;
+
+        // Slow movement was determined by the previous pose
+        if (player.isSlowMovement) {
+            bestPossibleX = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getX() / 0.3)), 1f) * 0.3d);
+            bestPossibleZ = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ() / 0.3)), 1f) * 0.3d);
+        } else {
+            bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
+            bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
+        }
+
+        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
+            bestPossibleX *= 0.2F;
+            bestPossibleZ *= 0.2F;
+        }
+
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+        inputVector.multiply(0.98F);
+
+        // Simulate float rounding imprecision
+        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
+
+        if (inputVector.lengthSquared() > 1) {
+            double d0 = ((float) Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ()));
+            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
+        }
+
+        return inputVector;
     }
 
     public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
