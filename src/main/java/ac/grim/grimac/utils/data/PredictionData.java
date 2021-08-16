@@ -20,10 +20,6 @@ public class PredictionData {
     public AlmostBoolean isUsingItem = AlmostBoolean.FALSE;
     public Hand usingHand = Hand.MAIN_HAND;
     public World playerWorld;
-    public int jumpAmplifier;
-    public int levitationAmplifier;
-    public int slowFallingAmplifier;
-    public int dolphinsGraceAmplifier;
     public float flySpeed;
     public float vehicleHorizontal;
     public float vehicleForward;
@@ -64,13 +60,6 @@ public class PredictionData {
         this.usingHand = player.packetStateData.eatingHand;
 
         this.playerWorld = player.bukkitPlayer.getWorld();
-
-        player.compensatedPotions.handleTransactionPacket(player.packetStateData.packetLastTransactionReceived.get());
-        this.jumpAmplifier = player.compensatedPotions.getPotionLevel("JUMP");
-        this.levitationAmplifier = player.compensatedPotions.getPotionLevel("LEVITATION");
-        this.slowFallingAmplifier = player.compensatedPotions.getPotionLevel("SLOW_FALLING");
-        this.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
-
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
 
         minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
@@ -101,12 +90,6 @@ public class PredictionData {
         this.isSneaking = false;
         this.vehicleForward = player.packetStateData.packetVehicleForward;
         this.vehicleHorizontal = player.packetStateData.packetVehicleHorizontal;
-
-        player.compensatedPotions.handleTransactionPacket(player.packetStateData.packetLastTransactionReceived.get());
-        this.jumpAmplifier = player.compensatedPotions.getPotionLevel("JUMP");
-        this.levitationAmplifier = player.compensatedPotions.getPotionLevel("LEVITATION");
-        this.slowFallingAmplifier = player.compensatedPotions.getPotionLevel("SLOW_FALLING");
-        this.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
 
         this.playerWorld = player.bukkitPlayer.getWorld();
 

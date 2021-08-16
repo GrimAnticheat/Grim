@@ -219,7 +219,6 @@ public class MovementCheckRunner {
                 player.compensatedFireworks.getMaxFireworksAppliedPossible();
                 player.compensatedRiptide.getCanRiptide();
                 player.compensatedElytra.isGlidingLagCompensated(lastTransaction);
-                player.compensatedPotions.handleTransactionPacket(lastTransaction);
 
                 // As we incremented the tasks, we must now execute the next task, if there is one
                 executor.queueNext(player);
@@ -430,10 +429,12 @@ public class MovementCheckRunner {
 
         // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
         player.speed += player.isSprinting ? player.speed * 0.3f : 0;
-        player.jumpAmplifier = data.jumpAmplifier;
-        player.levitationAmplifier = data.levitationAmplifier;
-        player.slowFallingAmplifier = data.slowFallingAmplifier;
-        player.dolphinsGraceAmplifier = data.dolphinsGraceAmplifier;
+
+        player.jumpAmplifier = player.compensatedPotions.getPotionLevel("JUMP");
+        player.levitationAmplifier = player.compensatedPotions.getPotionLevel("LEVITATION");
+        player.slowFallingAmplifier = player.compensatedPotions.getPotionLevel("SLOW_FALLING");
+        player.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
+
         player.flySpeed = data.flySpeed;
 
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
