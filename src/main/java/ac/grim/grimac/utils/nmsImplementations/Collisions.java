@@ -222,44 +222,44 @@ public class Collisions {
 
     public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player) {
         if (!player.specialFlying && player.isSneaking && isAboveGround(player)) {
-            double d = vec3.getX();
-            double d2 = vec3.getZ();
-            while (d != 0.0 && isEmpty(player, player.boundingBox.copy().offset(d, -player.getMaxUpStep(), 0.0))) {
-                if (d < 0.05 && d >= -0.05) {
-                    d = 0.0;
-                    continue;
+            double x = vec3.getX();
+            double z = vec3.getZ();
+            while (x != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, -player.getMaxUpStep(), 0.0))) {
+                if (x < 0.05D && x >= -0.05D) {
+                    x = 0.0D;
+                } else if (x > 0.0D) {
+                    x -= 0.05D;
+                } else {
+                    x += 0.05D;
                 }
-                if (d > 0.0) {
-                    d -= 0.05;
-                    continue;
-                }
-                d += 0.05;
             }
-            while (d2 != 0.0 && isEmpty(player, player.boundingBox.copy().offset(0.0, -player.getMaxUpStep(), d2))) {
-                if (d2 < 0.05 && d2 >= -0.05) {
-                    d2 = 0.0;
-                    continue;
+            while (z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(0.0, -player.getMaxUpStep(), z))) {
+                if (z < 0.05D && z >= -0.05D) {
+                    z = 0.0D;
+                } else if (z > 0.0D) {
+                    z -= 0.05D;
+                } else {
+                    z += 0.05D;
                 }
-                if (d2 > 0.0) {
-                    d2 -= 0.05;
-                    continue;
-                }
-                d2 += 0.05;
             }
-            while (d != 0.0 && d2 != 0.0 && isEmpty(player, player.boundingBox.copy().offset(d, -player.getMaxUpStep(), d2))) {
-                d = d < 0.05 && d >= -0.05 ? 0.0 : (d > 0.0 ? d - 0.05 : d + 0.05);
-                if (d2 < 0.05 && d2 >= -0.05) {
-                    d2 = 0.0;
-                    continue;
+            while (x != 0.0 && z != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, -player.getMaxUpStep(), z))) {
+                if (x < 0.05D && x >= -0.05D) {
+                    x = 0.0D;
+                } else if (x > 0.0D) {
+                    x -= 0.05D;
+                } else {
+                    x += 0.05D;
                 }
-                if (d2 > 0.0) {
-                    d2 -= 0.05;
-                    continue;
-                }
-                d2 += 0.05;
-            }
 
-            vec3 = new Vector(d, vec3.getY(), d2);
+                if (z < 0.05D && z >= -0.05D) {
+                    z = 0.0D;
+                } else if (z > 0.0D) {
+                    z -= 0.05D;
+                } else {
+                    z += 0.05D;
+                }
+            }
+            vec3 = new Vector(x, vec3.getY(), z);
         }
         return vec3;
     }
