@@ -122,10 +122,19 @@ public class BlockProperties {
 
         Material block = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
 
+        // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_16_1)) {
+            Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+            if (onBlock == SOUL_SAND && player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+                return 1.0f;
+        }
+
         if (block == HONEY_BLOCK) return 0.4f;
         if (block == SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
-            if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+            // 1.15- players obviously do not get this boost
+            // This new method for detecting soul speed was added in 1.16.2
+            if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16_2) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
         }
@@ -140,7 +149,8 @@ public class BlockProperties {
         if (block2 == HONEY_BLOCK) return 0.4f;
         if (block2 == SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
-            if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+            // This new method for detecting soul speed was added in 1.16.2
+            if (player.bukkitPlayer.getInventory().getBoots() != null && XMaterial.supports(16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16_2) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
         }
