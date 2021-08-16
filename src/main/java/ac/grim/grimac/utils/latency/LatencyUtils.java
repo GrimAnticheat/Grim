@@ -11,7 +11,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 // Normal grim spaghetti is not allowed here
 // Eventually, a ton more transaction related stuff will be transferred to this class
 public class LatencyUtils {
-    public static ConcurrentLinkedQueue<Pair<Integer, Runnable>> transactionMap = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<Pair<Integer, Runnable>> transactionMap = new ConcurrentLinkedQueue<>();
 
     public static boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {
         int bestKey = Integer.MIN_VALUE;
@@ -48,10 +48,9 @@ public class LatencyUtils {
         while (next != null) {
             if (transaction < next.getFirst())
                 break;
+
             transactionMap.poll();
-
             next.getSecond().run();
-
             next = transactionMap.peek();
         }
     }
