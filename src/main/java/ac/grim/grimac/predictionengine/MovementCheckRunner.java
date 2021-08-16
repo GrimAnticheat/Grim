@@ -565,6 +565,10 @@ public class MovementCheckRunner {
             offset -= 1.2;
         }
 
+        if (Collections.max(player.uncertaintyHandler.flyingStatusSwitchHack)) {
+            offset -= 0.25;
+        }
+
         // Checking slime is too complicated
         if (player.uncertaintyHandler.influencedByBouncyBlock()) {
             offset -= 0.03;
