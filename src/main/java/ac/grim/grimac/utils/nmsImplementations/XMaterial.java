@@ -59,7 +59,7 @@ import java.util.*;
 public enum XMaterial {
     ACACIA_BOAT("BOAT_ACACIA"),
     ACACIA_BUTTON("WOOD_BUTTON"),
-    ACACIA_DOOR("ACACIA_DOOR", "ACACIA_DOOR_ITEM"),
+    ACACIA_DOOR,
     ACACIA_FENCE,
     ACACIA_FENCE_GATE,
     ACACIA_LEAVES("LEAVES_2"),
@@ -127,7 +127,7 @@ public enum XMaterial {
     BIG_DRIPLEAF_STEM,
     BIRCH_BOAT("BOAT_BIRCH"),
     BIRCH_BUTTON("WOOD_BUTTON"),
-    BIRCH_DOOR("BIRCH_DOOR", "BIRCH_DOOR_ITEM"),
+    BIRCH_DOOR,
     BIRCH_FENCE,
     BIRCH_FENCE_GATE,
     BIRCH_LEAVES(2, "LEAVES"),
@@ -193,7 +193,7 @@ public enum XMaterial {
     BRAIN_CORAL_FAN(13),
     BRAIN_CORAL_WALL_FAN,
     BREAD,
-    BREWING_STAND("BREWING_STAND", "BREWING_STAND_ITEM"),
+    BREWING_STAND,
     BRICK("CLAY_BRICK"),
     BRICKS("BRICKS", "BRICK"),
     BRICK_SLAB(4, "STEP"),
@@ -322,9 +322,9 @@ public enum XMaterial {
     CRACKED_STONE_BRICKS(2, "SMOOTH_BRICK"),
     CRAFTING_TABLE("WORKBENCH"),
     CREEPER_BANNER_PATTERN,
-    CREEPER_HEAD(4, "SKULL", "SKULL_ITEM"),
+    CREEPER_HEAD(4, "SKULL"),
     CREEPER_SPAWN_EGG(50, "MONSTER_EGG"),
-    CREEPER_WALL_HEAD(4, "SKULL", "SKULL_ITEM"),
+    CREEPER_WALL_HEAD(4, "SKULL"),
     CRIMSON_BUTTON(16),
     CRIMSON_DOOR(16),
     CRIMSON_FENCE(16),
@@ -369,7 +369,7 @@ public enum XMaterial {
     DANDELION("YELLOW_FLOWER"),
     DARK_OAK_BOAT("BOAT_DARK_OAK"),
     DARK_OAK_BUTTON("WOOD_BUTTON"),
-    DARK_OAK_DOOR("DARK_OAK_DOOR", "DARK_OAK_DOOR_ITEM"),
+    DARK_OAK_DOOR,
     DARK_OAK_FENCE,
     DARK_OAK_FENCE_GATE,
     DARK_OAK_LEAVES(4, "LEAVES", "LEAVES_2"),
@@ -454,8 +454,8 @@ public enum XMaterial {
     DONKEY_SPAWN_EGG(32, "MONSTER_EGG"),
     DRAGON_BREATH("DRAGONS_BREATH"),
     DRAGON_EGG,
-    DRAGON_HEAD(5, 9, "SKULL", "SKULL_ITEM"),
-    DRAGON_WALL_HEAD(5, "SKULL", "SKULL_ITEM"),
+    DRAGON_HEAD(5, 9, "SKULL"),
+    DRAGON_WALL_HEAD(5, "SKULL"),
     DRIED_KELP(13),
     DRIED_KELP_BLOCK(13),
     DRIPSTONE_BLOCK,
@@ -517,7 +517,7 @@ public enum XMaterial {
     FLOWERING_AZALEA,
     FLOWERING_AZALEA_LEAVES,
     FLOWER_BANNER_PATTERN,
-    FLOWER_POT("FLOWER_POT", "FLOWER_POT_ITEM"),
+    FLOWER_POT("FLOWER_POT"),
     FOX_SPAWN_EGG(14),
     /**
      * This special material cannot be obtained as an item.
@@ -651,7 +651,7 @@ public enum XMaterial {
     JUKEBOX,
     JUNGLE_BOAT("BOAT_JUNGLE"),
     JUNGLE_BUTTON("WOOD_BUTTON"),
-    JUNGLE_DOOR("JUNGLE_DOOR", "JUNGLE_DOOR_ITEM"),
+    JUNGLE_DOOR,
     JUNGLE_FENCE,
     JUNGLE_FENCE_GATE,
     JUNGLE_LEAVES(3, "LEAVES"),
@@ -825,7 +825,7 @@ public enum XMaterial {
     NETHERITE_SHOVEL(16),
     NETHERITE_SWORD(16),
     NETHERRACK,
-    NETHER_BRICK("NETHER_BRICK_ITEM"),
+    NETHER_BRICK,
     NETHER_BRICKS("NETHER_BRICK"),
     NETHER_BRICK_FENCE("NETHER_FENCE"),
     NETHER_BRICK_SLAB(6, "STEP"),
@@ -916,8 +916,8 @@ public enum XMaterial {
     PINK_WOOL(6, "WOOL"),
     PISTON("PISTON_BASE"),
     PISTON_HEAD("PISTON_EXTENSION"),
-    PLAYER_HEAD(3, "SKULL", "SKULL_ITEM"),
-    PLAYER_WALL_HEAD(3, "SKULL", "SKULL_ITEM"),
+    PLAYER_HEAD(3, "SKULL"),
+    PLAYER_WALL_HEAD(3, "SKULL"),
     PODZOL(2, "DIRT"),
     POINTED_DRIPSTONE,
     POISONOUS_POTATO,
@@ -1119,9 +1119,9 @@ public enum XMaterial {
     SHULKER_SPAWN_EGG(69, "MONSTER_EGG"),
     SILVERFISH_SPAWN_EGG(60, "MONSTER_EGG"),
     SKELETON_HORSE_SPAWN_EGG(28, "MONSTER_EGG"),
-    SKELETON_SKULL("SKULL", "SKULL_ITEM"),
+    SKELETON_SKULL("SKULL"),
     SKELETON_SPAWN_EGG(51, "MONSTER_EGG"),
-    SKELETON_WALL_SKULL("SKULL", "SKULL_ITEM"),
+    SKELETON_WALL_SKULL("SKULL"),
     SKULL_BANNER_PATTERN,
     SLIME_BALL,
     SLIME_BLOCK,
@@ -1161,7 +1161,7 @@ public enum XMaterial {
     SPORE_BLOSSOM,
     SPRUCE_BOAT("BOAT_SPRUCE"),
     SPRUCE_BUTTON("WOOD_BUTTON"),
-    SPRUCE_DOOR("SPRUCE_DOOR", "SPRUCE_DOOR_ITEM"),
+    SPRUCE_DOOR("SPRUCE_DOOR"),
     SPRUCE_FENCE,
     SPRUCE_FENCE_GATE,
     SPRUCE_LEAVES(1, "LEAVES", "LEAVES_2"),
@@ -1341,9 +1341,9 @@ public enum XMaterial {
     WHITE_WOOL("WOOL"),
     WITCH_SPAWN_EGG(66, "MONSTER_EGG"),
     WITHER_ROSE(0, 14),
-    WITHER_SKELETON_SKULL(1, "SKULL", "SKULL_ITEM"),
+    WITHER_SKELETON_SKULL(1, "SKULL"),
     WITHER_SKELETON_SPAWN_EGG(5, "MONSTER_EGG"),
-    WITHER_SKELETON_WALL_SKULL(1, "SKULL", "SKULL_ITEM"),
+    WITHER_SKELETON_WALL_SKULL(1, "SKULL"),
     WOLF_SPAWN_EGG(95, "MONSTER_EGG"),
     WOODEN_AXE("WOOD_AXE"),
     WOODEN_HOE("WOOD_HOE"),
@@ -1368,11 +1368,11 @@ public enum XMaterial {
     YELLOW_WALL_BANNER(11, "WALL_BANNER"),
     YELLOW_WOOL(4, "WOOL"),
     ZOGLIN_SPAWN_EGG(16),
-    ZOMBIE_HEAD(2, "SKULL", "SKULL_ITEM"),
+    ZOMBIE_HEAD(2, "SKULL"),
     ZOMBIE_HORSE_SPAWN_EGG(29, "MONSTER_EGG"),
     ZOMBIE_SPAWN_EGG(54, "MONSTER_EGG"),
     ZOMBIE_VILLAGER_SPAWN_EGG(27, "MONSTER_EGG"),
-    ZOMBIE_WALL_HEAD(2, "SKULL", "SKULL_ITEM"),
+    ZOMBIE_WALL_HEAD(2, "SKULL"),
     ZOMBIFIED_PIGLIN_SPAWN_EGG(57, "MONSTER_EGG", "ZOMBIE_PIGMAN_SPAWN_EGG");
 
 
@@ -1460,10 +1460,10 @@ public enum XMaterial {
         this.data = (byte) data;
         this.version = (byte) version;
 
-        Material mat = null;
-        if ((!Data.ISFLAT && this.isDuplicated()) || (mat = Material.getMaterial(this.name())) == null) {
-            for (int i = legacy.length - 1; i >= 0; i--) {
-                mat = Material.getMaterial(legacy[i]);
+        Material mat = Material.getMaterial(this.name());
+        if (mat == null) {
+            for (String string : legacy) {
+                mat = Material.getMaterial(string);
                 if (mat != null) break;
             }
         }
