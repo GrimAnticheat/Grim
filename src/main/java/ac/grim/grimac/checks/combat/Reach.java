@@ -108,7 +108,7 @@ public class Reach {
             } else if (intercept == null && vanillaIntercept == null) {
                 Bukkit.broadcastMessage(ChatColor.RED + "Player missed hitbox!");
             } else {
-                double maxReach = player.bukkitPlayer.getGameMode() == GameMode.CREATIVE ? 5 : 3;
+                double maxReach = player.packetStateData.gameMode == GameMode.CREATIVE ? 5 : 3;
 
                 double reach = 6;
                 if (intercept != null)

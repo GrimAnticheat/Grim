@@ -158,6 +158,7 @@ public final class GrimAC extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), this);
         Bukkit.getPluginManager().registerEvents(new PlayerConsumeItem(), this);
         Bukkit.getPluginManager().registerEvents(new DimensionChangeEvent(), this);
+        Bukkit.getPluginManager().registerEvents(new GamemodeChangeEvent(), this);
     }
 
     public void registerPackets() {
