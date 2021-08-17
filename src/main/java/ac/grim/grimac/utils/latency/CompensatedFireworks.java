@@ -36,7 +36,7 @@ public class CompensatedFireworks {
         while (iterator.hasNext()) {
             Map.Entry<Integer, FireworkData> firework = iterator.next();
 
-            if (firework.getValue().destroyTick < player.movementPackets) {
+            if (firework.getValue().destroyTick < player.movementPackets + 1) {
                 iterator.remove();
                 continue;
             }
