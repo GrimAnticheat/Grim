@@ -41,7 +41,11 @@ public class MovementTicker {
         player.verticalCollision = nonUncertainVector.getY() != Collisions.collide(player, 0, nonUncertainVector.getY(), 0).getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
-        player.isActuallyOnGround = player.verticalCollision && nonUncertainVector.getY() < 0.0D;
+        // Stepping movement USUALLY means the vehicle in on the ground as vehicles can't jump
+        // Can be wrong with swim hopping into step, but this is rare and difficult to pull off
+        // and would require a huge rewrite to support this rare edge case
+        player.isActuallyOnGround = (player.verticalCollision && nonUncertainVector.getY() < 0.0D)
+                || (player.inVehicle && player.uncertaintyHandler.isStepMovement);
 
         Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
