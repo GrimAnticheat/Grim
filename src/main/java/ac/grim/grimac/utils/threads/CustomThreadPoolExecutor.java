@@ -42,17 +42,14 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
         if (player.tasksNotFinished.getAndDecrement() > 1) {
             PredictionData nextData;
 
-            ConcurrentLinkedQueue<PredictionData> playerQueue = MovementCheckRunner.queuedPredictions.get(player.playerUUID);
-
-            // The player logged out
-            if (playerQueue == null)
-                return;
-
             // We KNOW that there is data in the queue
             // However the other thread increments this value BEFORE adding it to the LinkedQueue
             // Meaning it could increment the value, we read the queue, and it hasn't been added yet
             // So we have to loop until it's added
             do {
+                ConcurrentLinkedQueue<PredictionData> playerQueue = MovementCheckRunner.queuedPredictions.get(player.playerUUID);
+                // Fix race condition where if the player goes offline, it is never added, but yet we are still spinning
+                if (playerQueue == null) return;
                 nextData = playerQueue.poll();
             } while (nextData == null);
 
