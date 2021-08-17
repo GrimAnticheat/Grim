@@ -2,7 +2,9 @@ package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.util.Vector;
 
 public class MovementTickerHorse extends MovementTickerLivingVehicle {
@@ -62,5 +64,11 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
         this.movementInput = new Vector(f, 0, f1);
         if (movementInput.lengthSquared() > 1) movementInput.normalize();
+    }
+
+    @Override
+    public void livingEntityAIStep() {
+        super.livingEntityAIStep();
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) Collisions.handleInsideBlocks(player);
     }
 }
