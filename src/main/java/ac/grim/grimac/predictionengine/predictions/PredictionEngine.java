@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -480,7 +481,8 @@ public class PredictionEngine {
     }
 
     public boolean canSwimHop(GrimPlayer player) {
-        if (player.inVehicle)
+        // Boats cannot swim hop, all other living entities should be able to.
+        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT)
             return false;
 
         // This uses the new bounding box
