@@ -3,11 +3,14 @@ package ac.grim.grimac.manager.init.start;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.bukkit.*;
 import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Bukkit;
 
 public class EventManager implements Initable {
     public void start() {
+        LogUtil.info("Registering events...");
+
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), GrimAPI.INSTANCE.getPlugin());
 
         if (XMaterial.isNewVersion()) {

@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
@@ -132,7 +132,7 @@ public class CompensatedWorld {
         }
 
         // 10 ticks is more than enough for everything that needs to be processed to be processed
-        packetBlockPositions.removeIf(data -> GrimAC.getCurrentTick() - data.tick > 10);
+        packetBlockPositions.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 10);
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {

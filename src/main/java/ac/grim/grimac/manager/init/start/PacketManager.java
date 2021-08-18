@@ -3,12 +3,15 @@ package ac.grim.grimac.manager.init.start;
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.events.packets.worldreader.*;
 import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
 public class PacketManager implements Initable {
     @Override
     public void start() {
+        LogUtil.info("Registering packets...");
+
         PacketEvents.get().registerListener(new PacketPlayerAbilities());
         PacketEvents.get().registerListener(new PacketPingListener());
         PacketEvents.get().registerListener(new PacketPlayerDigging());

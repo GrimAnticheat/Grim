@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data.packetentity.latency;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 
 public class BlockPlayerUpdate {
@@ -11,6 +11,6 @@ public class BlockPlayerUpdate {
     public BlockPlayerUpdate(Vector3i position, int transaction) {
         this.position = position;
         this.transaction = transaction;
-        this.tick = GrimAC.getCurrentTick();
+        this.tick = GrimAPI.INSTANCE.getTickManager().getTick();
     }
 }
