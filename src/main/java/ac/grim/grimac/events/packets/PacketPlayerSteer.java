@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -73,7 +72,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 return;
             } else {
                 // Try and get the player's vehicle to the queue for next time
-                MovementCheckRunner.runTransactionQueue(player);
+                player.movementCheckRunner.runTransactionQueue(player);
             }
 
             player.packetStateData.receivedSteerVehicle = true;

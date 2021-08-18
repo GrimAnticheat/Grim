@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
@@ -20,7 +21,8 @@ public class LargeOffsetHandler extends PostPredictionCheck {
         double offset = predictionComplete.getOffset();
 
         if (offset > 0.01) {
-            Bukkit.broadcastMessage(ChatColor.RED + "Large offset detected! Offset: " + offset);
+            player.teleportUtil.blockMovementsUntilResync(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ), player.xRot, player.yRot, player.clientVelocity, player.vehicle, player.lastTransactionReceived);
+            Bukkit.broadcastMessage(ChatColor.RED + "Large offset detected!  Setting back. Offset: " + offset);
         }
     }
 }
