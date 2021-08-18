@@ -46,7 +46,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
 
                 // Note for the movement check
-                player.lastDummy = true;
+                player.vehicleData.lastDummy = true;
 
                 // Keep a reference of this just in case the next like sets this to null
                 PacketEntity vehicle = player.playerVehicle;

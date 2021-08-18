@@ -46,7 +46,7 @@ public class TeleportUtil {
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
         while (true) {
-            Pair<Integer, Vector3d> teleportPos = player.vehicleTeleports.peek();
+            Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
             if (teleportPos == null) break;
             if (lastTransaction < teleportPos.getFirst()) {
                 break;
@@ -54,11 +54,11 @@ public class TeleportUtil {
 
             Vector3d position = teleportPos.getSecond();
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
-                player.vehicleTeleports.poll();
+                player.vehicleData.vehicleTeleports.poll();
 
                 return true;
             } else if (lastTransaction > teleportPos.getFirst() + 2) {
-                player.vehicleTeleports.poll();
+                player.vehicleData.vehicleTeleports.poll();
 
                 // Ignored teleport!  Do something about this!
                 continue;

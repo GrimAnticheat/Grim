@@ -85,7 +85,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             Vector3d finalPos = new Vector3d(x, y, z);
 
             event.setPostTask(player::sendAndFlushTransactionOrPingPong);
-            player.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
+            player.vehicleData.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
     }
 }

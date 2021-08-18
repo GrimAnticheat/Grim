@@ -92,7 +92,8 @@ public class MovementCheckRunner {
             // Mojang fucked up packet order so we need to fix the current item held
             //
             // Why would you send the item held AFTER you send their movement??? Anyways. fixed. you're welcome
-            nextTask.itemHeld = data.itemHeld;
+            if (!nextTask.inVehicle)
+                nextTask.itemHeld = data.itemHeld;
             // This packet was a duplicate to the current one, ignore it.
             // Thank you 1.17 for sending duplicate positions!
             if (nextTask.playerX == data.playerX && nextTask.playerY == data.playerY && nextTask.playerZ == data.playerZ) {
@@ -162,30 +163,34 @@ public class MovementCheckRunner {
         // Update entities to get current vehicle
         player.compensatedEntities.tickUpdates(data.lastTransaction, false);
 
-        // If the check was for players moving in a vehicle, but after we just updated vehicles
-        // the player isn't in a vehicle, don't check.
-        if (data.inVehicle && player.vehicle == null)
-            return;
-
         // Player was teleported, so therefore they left their vehicle
         if (!data.inVehicle && data.isJustTeleported)
             player.playerVehicle = null;
 
         // The game's movement is glitchy when switching between vehicles
-        player.lastVehicleSwitch++;
+        player.vehicleData.lastVehicleSwitch++;
         if (player.lastVehicle != player.playerVehicle) {
-            player.lastVehicleSwitch = 0;
+            player.vehicleData.lastVehicleSwitch = 0;
         }
         // It is also glitchy when switching between client vs server vehicle control
-        if (player.lastDummy) {
-            player.lastVehicleSwitch = 0;
+        if (player.vehicleData.lastDummy) {
+            player.vehicleData.lastVehicleSwitch = 0;
         }
-        player.lastDummy = false;
+        player.vehicleData.lastDummy = false;
 
         // Tick player vehicle after we update the packet entity state
         player.lastVehicle = player.playerVehicle;
         player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
         player.inVehicle = player.playerVehicle != null;
+
+        // If the check was for players moving in a vehicle, but after we just updated vehicles
+        // the player isn't in a vehicle, don't check.
+        if (data.inVehicle && player.vehicle == null)
+            return;
+
+        // If the check was for a player out of a vehicle but the player is in a vehicle
+        if (!data.inVehicle && player.vehicle != null)
+            return;
 
         if (player.playerVehicle != player.lastVehicle) {
             data.isJustTeleported = true;
@@ -224,6 +229,9 @@ public class MovementCheckRunner {
                         (newMainHand == null || newMainHand.getType() != requiredItem)) {
                     // TODO: Setback
                     Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity!");
+                } else if (player.playerVehicle != player.lastVehicle) {
+                    // Hack with boostable ticking without us (why does it do this?)
+                    ((PacketEntityRideable) player.playerVehicle).currentBoostTime += 4;
                 }
             }
 
@@ -495,6 +503,13 @@ public class MovementCheckRunner {
             offset -= 0.03;
         }
 
+        // I can't figure out how the client exactly tracks boost time
+        if (player.playerVehicle instanceof PacketEntityRideable) {
+            PacketEntityRideable vehicle = (PacketEntityRideable) player.playerVehicle;
+            if (vehicle.currentBoostTime < vehicle.boostTimeMax + 20)
+                offset -= 0.01;
+        }
+
         // Sneaking near edge cases a ton of issues
         // Don't give this bonus if the Y axis is wrong though.
         // Another temporary permanent hack.
@@ -550,9 +565,9 @@ public class MovementCheckRunner {
         player.lastOnGround = player.onGround;
         player.lastClimbing = player.isClimbing;
 
-        player.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
-        player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
-        player.horseJump = data.horseJump;
+        player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
+        player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
+        player.vehicleData.horseJump = data.horseJump;
 
         player.checkManager.getKnockbackHandler().handlePlayerKb(offset, false);
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset, false);
@@ -564,7 +579,7 @@ public class MovementCheckRunner {
             player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
             player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.uncertaintyHandler.stuckOnEdge);
 
-            if (player.lastVehicleSwitch < 5) {
+            if (player.vehicleData.lastVehicleSwitch < 5) {
                 player.bukkitPlayer.sendMessage("Note that the player would be setback and not punished");
             }
 

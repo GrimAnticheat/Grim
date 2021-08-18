@@ -22,24 +22,24 @@ public class BoatPredictionEngine extends PredictionEngine {
     private static final Material LILY_PAD = XMaterial.LILY_PAD.parseMaterial();
 
     public BoatPredictionEngine(GrimPlayer player) {
-        player.boatData.midTickY = 0;
+        player.vehicleData.midTickY = 0;
 
         // This does stuff like getting the boat's movement on the water
-        player.boatData.oldStatus = player.boatData.status;
-        player.boatData.status = getStatus(player);
+        player.vehicleData.oldStatus = player.vehicleData.status;
+        player.vehicleData.status = getStatus(player);
     }
 
     private static BoatEntityStatus getStatus(GrimPlayer player) {
         BoatEntityStatus boatentity$status = isUnderwater(player);
         if (boatentity$status != null) {
-            player.boatData.waterLevel = player.boundingBox.maxY;
+            player.vehicleData.waterLevel = player.boundingBox.maxY;
             return boatentity$status;
         } else if (checkInWater(player)) {
             return BoatEntityStatus.IN_WATER;
         } else {
             float f = getGroundFriction(player);
             if (f > 0.0F) {
-                player.boatData.landFriction = f;
+                player.vehicleData.landFriction = f;
                 return BoatEntityStatus.ON_LAND;
             } else {
                 return BoatEntityStatus.IN_AIR;
@@ -85,7 +85,7 @@ public class BoatPredictionEngine extends PredictionEngine {
         int i1 = GrimMathHelper.floor(axisalignedbb.minZ);
         int j1 = GrimMathHelper.ceil(axisalignedbb.maxZ);
         boolean flag = false;
-        grimPlayer.boatData.waterLevel = Double.MIN_VALUE;
+        grimPlayer.vehicleData.waterLevel = Double.MIN_VALUE;
 
         for (int k1 = i; k1 < j; ++k1) {
             for (int l1 = k; l1 < l; ++l1) {
@@ -93,7 +93,7 @@ public class BoatPredictionEngine extends PredictionEngine {
                     double level = grimPlayer.compensatedWorld.getWaterFluidLevelAt(k1, l1, i2);
                     if (level > 0) {
                         float f = (float) ((float) l1 + level);
-                        grimPlayer.boatData.waterLevel = Math.max(f, grimPlayer.boatData.waterLevel);
+                        grimPlayer.vehicleData.waterLevel = Math.max(f, grimPlayer.vehicleData.waterLevel);
                         flag |= axisalignedbb.minY < (double) f;
                     }
                 }
@@ -167,7 +167,7 @@ public class BoatPredictionEngine extends PredictionEngine {
     // It's push-like movement because it doesn't affect subsequent client velocity
     @Override
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
-        vector = vector.clone().add(new Vector(0, player.boatData.midTickY, 0));
+        vector = vector.clone().add(new Vector(0, player.vehicleData.midTickY, 0));
 
         return vector;
     }
@@ -188,38 +188,38 @@ public class BoatPredictionEngine extends PredictionEngine {
         double d2 = 0.0D;
         float invFriction = 0.05F;
 
-        if (player.boatData.oldStatus == BoatEntityStatus.IN_AIR && player.boatData.status != BoatEntityStatus.IN_AIR && player.boatData.status != BoatEntityStatus.ON_LAND) {
-            player.boatData.waterLevel = player.lastY + player.boundingBox.maxY - player.boundingBox.minY;
+        if (player.vehicleData.oldStatus == BoatEntityStatus.IN_AIR && player.vehicleData.status != BoatEntityStatus.IN_AIR && player.vehicleData.status != BoatEntityStatus.ON_LAND) {
+            player.vehicleData.waterLevel = player.lastY + player.boundingBox.maxY - player.boundingBox.minY;
 
-            player.boatData.midTickY = getWaterLevelAbove(player) - player.boundingBox.maxY - player.boundingBox.minY + 0.101D + player.boundingBox.minY;
-            player.boundingBox.offset(0, player.boatData.midTickY, 0);
+            player.vehicleData.midTickY = getWaterLevelAbove(player) - player.boundingBox.maxY - player.boundingBox.minY + 0.101D + player.boundingBox.minY;
+            player.boundingBox.offset(0, player.vehicleData.midTickY, 0);
 
             vector.setY(0);
 
-            player.boatData.lastYd = 0.0D;
-            player.boatData.status = BoatEntityStatus.IN_WATER;
+            player.vehicleData.lastYd = 0.0D;
+            player.vehicleData.status = BoatEntityStatus.IN_WATER;
         } else {
-            if (player.boatData.status == BoatEntityStatus.IN_WATER) {
-                d2 = (player.boatData.waterLevel - player.lastY) / (player.boundingBox.maxY - player.boundingBox.minY);
+            if (player.vehicleData.status == BoatEntityStatus.IN_WATER) {
+                d2 = (player.vehicleData.waterLevel - player.lastY) / (player.boundingBox.maxY - player.boundingBox.minY);
                 invFriction = 0.9F;
-            } else if (player.boatData.status == BoatEntityStatus.UNDER_FLOWING_WATER) {
+            } else if (player.vehicleData.status == BoatEntityStatus.UNDER_FLOWING_WATER) {
                 d1 = -7.0E-4D;
                 invFriction = 0.9F;
-            } else if (player.boatData.status == BoatEntityStatus.UNDER_WATER) {
+            } else if (player.vehicleData.status == BoatEntityStatus.UNDER_WATER) {
                 d2 = 0.01F;
                 invFriction = 0.45F;
-            } else if (player.boatData.status == BoatEntityStatus.IN_AIR) {
+            } else if (player.vehicleData.status == BoatEntityStatus.IN_AIR) {
                 invFriction = 0.9F;
-            } else if (player.boatData.status == BoatEntityStatus.ON_LAND) {
-                invFriction = player.boatData.landFriction;
-                player.boatData.landFriction /= 2.0F;
+            } else if (player.vehicleData.status == BoatEntityStatus.ON_LAND) {
+                invFriction = player.vehicleData.landFriction;
+                player.vehicleData.landFriction /= 2.0F;
             }
 
             vector.setX(vector.getX() * invFriction);
             vector.setY(vector.getY() + d1);
             vector.setZ(vector.getZ() * invFriction);
 
-            player.boatData.deltaRotation *= invFriction;
+            player.vehicleData.deltaRotation *= invFriction;
             if (d2 > 0.0D) {
                 double yVel = vector.getY();
                 vector.setY((yVel + d2 * 0.06153846016296973D) * 0.75D);
@@ -232,7 +232,7 @@ public class BoatPredictionEngine extends PredictionEngine {
         int i = (int) Math.floor(axisalignedbb.minX);
         int j = (int) Math.ceil(axisalignedbb.maxX);
         int k = (int) Math.floor(axisalignedbb.maxY);
-        int l = (int) Math.ceil(axisalignedbb.maxY - player.boatData.lastYd);
+        int l = (int) Math.ceil(axisalignedbb.maxY - player.vehicleData.lastYd);
         int i1 = (int) Math.floor(axisalignedbb.minZ);
         int j1 = (int) Math.ceil(axisalignedbb.maxZ);
 
@@ -262,24 +262,24 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     private void controlBoat(GrimPlayer player, Vector vector) {
         float f = 0.0F;
-        if (player.vehicleHorizontal < -0.01) {
-            --player.boatData.deltaRotation;
+        if (player.vehicleData.vehicleHorizontal < -0.01) {
+            --player.vehicleData.deltaRotation;
         }
 
-        if (player.vehicleHorizontal > 0.01) {
-            ++player.boatData.deltaRotation;
+        if (player.vehicleData.vehicleHorizontal > 0.01) {
+            ++player.vehicleData.deltaRotation;
         }
 
-        if (player.vehicleHorizontal != 0 && player.vehicleForward == 0) {
+        if (player.vehicleData.vehicleHorizontal != 0 && player.vehicleData.vehicleForward == 0) {
             f += 0.005F;
         }
 
         //player.boatData.yRot += player.boatData.deltaRotation;
-        if (player.vehicleForward > 0.1) {
+        if (player.vehicleData.vehicleForward > 0.1) {
             f += 0.04F;
         }
 
-        if (player.vehicleForward < -0.01) {
+        if (player.vehicleData.vehicleForward < -0.01) {
             f -= 0.005F;
         }
 
