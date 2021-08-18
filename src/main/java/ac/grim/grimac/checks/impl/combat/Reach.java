@@ -89,7 +89,7 @@ public class Reach extends PacketCheck {
             }
         }
 
-        if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
+        if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK || packetID == PacketType.Play.Server.ENTITY_LOOK) {
             WrappedPacketOutEntity.WrappedPacketOutRelEntityMove move = new WrappedPacketOutEntity.WrappedPacketOutRelEntityMove(event.getNMSPacket());
 
             if (entityMap.containsKey(move.getEntityId())) {
