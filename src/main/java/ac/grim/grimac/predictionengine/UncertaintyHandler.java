@@ -113,7 +113,7 @@ public class UncertaintyHandler {
         if ((lastFlyingTicks < 3) && Math.abs(predicted.vector.getY()) < 0.2 && predicted.vector.getY() != 0 && player.actualMovement.lengthSquared() < 0.2)
             return true;
 
-        if (player.couldSkipTick && predicted.hasVectorType(VectorData.VectorType.Trident))
+        if (player.riptideSpinAttackTicks > 18)
             return true;
 
         return isSteppingOnIce && lastTickWasNearGroundZeroPointZeroThree && player.actualMovement.clone().setY(0).lengthSquared() < 0.01;

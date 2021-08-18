@@ -32,6 +32,7 @@ public class CheckManager {
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(NoFall.class, new NoFall(player))
+                .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class to process
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
                 .put(PredictionRunner.class, new PredictionRunner(player))

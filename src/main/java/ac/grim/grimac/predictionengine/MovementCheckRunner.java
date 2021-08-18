@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerHorse;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPig;
@@ -33,8 +34,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.Collections;
-import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 // This class is how we manage to safely do everything async
 // AtomicInteger allows us to make decisions safely - we can get and set values in one processor instruction
@@ -49,18 +52,21 @@ import java.util.concurrent.*;
 // When the player sends a packet and we have to add him to the queue:
 // If stage 0 - Add one and add the data to the workers
 // If stage 1 - Add the data to the queue and add one
-public class MovementCheckRunner {
+public class MovementCheckRunner extends PositionCheck {
     private static final Material CARROT_ON_A_STICK = XMaterial.CARROT_ON_A_STICK.parseMaterial();
     private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
 
-    public static ConcurrentHashMap<UUID, ConcurrentLinkedQueue<PredictionData>> queuedPredictions = new ConcurrentHashMap<>();
     public static CustomThreadPoolExecutor executor =
             new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
-    public static void processAndCheckMovementPacket(PredictionData data) {
+    public MovementCheckRunner(GrimPlayer player) {
+        super(player);
+    }
+
+    public void processAndCheckMovementPacket(PredictionData data) {
         // Client sends junk onGround data when they teleport
         // The client also send junk onGround status on the first and second tick
         if (data.player.packetStateData.movementPacketsReceived < 2 || data.isJustTeleported)
@@ -104,7 +110,7 @@ public class MovementCheckRunner {
         }
     }
 
-    private static void addData(PredictionData data) {
+    private void addData(PredictionData data) {
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
             executor.runCheck(data);
         } else {
@@ -112,7 +118,7 @@ public class MovementCheckRunner {
         }
     }
 
-    public static void runTransactionQueue(GrimPlayer player) {
+    public void runTransactionQueue(GrimPlayer player) {
         // This takes < 0.01 ms to run world and entity updates
         // It stops a memory leak from all the lag compensation queue'ing and never ticking
         CompletableFuture.runAsync(() -> {
@@ -138,7 +144,7 @@ public class MovementCheckRunner {
         }, executor);
     }
 
-    public static void check(PredictionData data) {
+    public void check(PredictionData data) {
         GrimPlayer player = data.player;
 
         data.isCheckNotReady = data.minimumTickRequiredToContinue > GrimAPI.INSTANCE.getTickManager().getTick();
@@ -510,9 +516,6 @@ public class MovementCheckRunner {
             offset -= 0.1;
 
         offset = Math.max(0, offset);
-
-        if (offset > 0.1)
-            offset = offset;
 
         // Don't check players who are offline
         if (!player.bukkitPlayer.isOnline()) return;

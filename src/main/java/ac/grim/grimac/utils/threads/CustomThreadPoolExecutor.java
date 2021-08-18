@@ -16,7 +16,7 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
 
     public void runCheck(PredictionData data) {
         long startTime = System.nanoTime();
-        CompletableFuture.runAsync(() -> MovementCheckRunner.check(data), this).whenComplete((s, t) -> {
+        CompletableFuture.runAsync(() -> data.player.movementCheckRunner.check(data), this).whenComplete((s, t) -> {
             if (!data.isCheckNotReady) {
                 long timeTaken = System.nanoTime() - startTime;
                 computeTimes.add(timeTaken);

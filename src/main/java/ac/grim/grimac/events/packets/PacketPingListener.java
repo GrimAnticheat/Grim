@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -59,7 +58,7 @@ public class PacketPingListener extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Client.KEEP_ALIVE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
-            MovementCheckRunner.runTransactionQueue(player);
+            player.movementCheckRunner.runTransactionQueue(player);
         }
     }
 

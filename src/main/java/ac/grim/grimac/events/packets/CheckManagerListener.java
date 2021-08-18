@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.TeleportUtil;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
@@ -70,7 +69,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 Vector3d position = flying.getPosition();
                 player.packetStateData.packetPosition = position;
 
-                final boolean isTeleport = TeleportUtil.checkTeleportQueue(player, position.getX(), position.getY(), position.getZ());
+                final boolean isTeleport = player.teleportUtil.checkTeleportQueue(position.getX(), position.getY(), position.getZ());
                 player.packetStateData.lastPacketWasTeleport = isTeleport;
 
                 final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, flying.isOnGround(), isTeleport);
@@ -97,7 +96,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
             Vector3d position = move.getPosition();
 
-            final boolean isTeleport = TeleportUtil.checkVehicleTeleportQueue(player, position.getX(), position.getY(), position.getZ());
+            final boolean isTeleport = player.teleportUtil.checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
             final VehiclePositionUpdate update = new VehiclePositionUpdate(player.packetStateData.packetPosition, position, move.getYaw(), move.getPitch(), isTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 

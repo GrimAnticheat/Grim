@@ -10,8 +10,12 @@ import org.bukkit.ChatColor;
 public class Check<T> {
     protected final GrimPlayer player;
     private double buffer;
+    private double setback;
+    private double flagCooldown;
+    private double vlMultiplier;
 
     private String checkName;
+    private String configName;
     private long reset;
 
     public Check(final GrimPlayer player) {
@@ -22,8 +26,12 @@ public class Check<T> {
         if (checkClass.isAnnotationPresent(CheckData.class)) {
             final CheckData checkData = checkClass.getAnnotation(CheckData.class);
             this.checkName = checkData.name();
+            this.configName = checkData.configName();
+            this.flagCooldown = checkData.flagCooldown();
             this.buffer = checkData.buffer();
+            this.vlMultiplier = checkData.vlMultiplier();
             this.reset = checkData.reset();
+            this.setback = checkData.setback();
         }
     }
 

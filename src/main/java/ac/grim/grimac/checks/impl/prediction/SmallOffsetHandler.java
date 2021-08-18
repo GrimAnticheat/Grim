@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
@@ -28,7 +29,8 @@ public class SmallOffsetHandler extends PostPredictionCheck {
         }
 
         if (getBuffer() == 0) {
-            Bukkit.broadcastMessage(ChatColor.RED + "Small buffer has run out!");
+            player.teleportUtil.blockMovementsUntilResync(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ), player.xRot, player.yRot, player.clientVelocity, player.vehicle, player.lastTransactionReceived);
+            Bukkit.broadcastMessage(ChatColor.RED + "Small buffer has run out!  Setting back");
         }
 
         if (getBuffer() > 5) {

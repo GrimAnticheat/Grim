@@ -1,6 +1,8 @@
 package ac.grim.grimac.player;
 
 import ac.grim.grimac.manager.CheckManager;
+import ac.grim.grimac.manager.TeleportUtil;
+import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
@@ -166,6 +168,8 @@ public class GrimPlayer {
     public VelocityData firstBreadExplosion = null;
     public VelocityData likelyExplosions = null;
     public CheckManager checkManager;
+    public MovementCheckRunner movementCheckRunner;
+    public TeleportUtil teleportUtil;
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
@@ -218,6 +222,8 @@ public class GrimPlayer {
         packetStateData.lastSlotSelected = bukkitPlayer.getInventory().getHeldItemSlot();
 
         checkManager = new CheckManager(this);
+        movementCheckRunner = new MovementCheckRunner(this);
+        teleportUtil = new TeleportUtil(this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
