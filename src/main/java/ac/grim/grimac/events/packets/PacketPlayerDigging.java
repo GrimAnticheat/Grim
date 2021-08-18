@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
@@ -51,7 +51,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         byte packetID = event.getPacketId();
 
         if (packetID == PacketType.Play.Client.BLOCK_DIG) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
 
             if (player == null) return;
 
@@ -88,7 +88,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         if (packetID == PacketType.Play.Client.HELD_ITEM_SLOT) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             WrappedPacketInHeldItemSlot slot = new WrappedPacketInHeldItemSlot(event.getNMSPacket());
@@ -100,7 +100,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         if (packetID == PacketType.Play.Client.USE_ITEM) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             WrappedPacketInUseItem item = new WrappedPacketInUseItem(event.getNMSPacket());
@@ -111,7 +111,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             // This is code for detecting a desync caused by buckets

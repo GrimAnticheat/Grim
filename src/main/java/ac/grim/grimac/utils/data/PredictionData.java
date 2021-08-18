@@ -25,7 +25,7 @@ public class PredictionData {
     public float flySpeed;
     public float vehicleHorizontal;
     public float vehicleForward;
-    public boolean isJustTeleported = false;
+    public boolean isJustTeleported;
     public int minimumTickRequiredToContinue;
     public int lastTransaction;
     public int itemHeld;
@@ -40,8 +40,8 @@ public class PredictionData {
     public boolean isCheckNotReady;
 
     // For regular movement
-    public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround) {
-        // Don't allow players to move past the hard coded border
+    public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround, boolean isJustTeleported) {
+        // Don't allow players to move past the hard coded border as we hardcode this border into the checks
         playerX = GrimMathHelper.clamp(playerX, -2.9999999E7D, 2.9999999E7D);
         playerZ = GrimMathHelper.clamp(playerZ, -2.9999999E7D, 2.9999999E7D);
 
@@ -52,6 +52,7 @@ public class PredictionData {
         this.xRot = xRot;
         this.yRot = yRot;
         this.onGround = onGround;
+        this.isJustTeleported = isJustTeleported;
 
         this.isSprinting = player.packetStateData.isPacketSprinting;
         this.isSneaking = player.packetStateData.isPacketSneaking;
@@ -81,13 +82,15 @@ public class PredictionData {
     }
 
     // For riding entity movement while in control
-    public PredictionData(GrimPlayer player, double boatX, double boatY, double boatZ, float xRot, float yRot) {
+    public PredictionData(GrimPlayer player, double boatX, double boatY, double boatZ, float xRot, float yRot, boolean isJustTeleported) {
         this.player = player;
         this.playerX = boatX;
         this.playerY = boatY;
         this.playerZ = boatZ;
         this.xRot = xRot;
         this.yRot = yRot;
+        this.isJustTeleported = isJustTeleported;
+
         this.onGround = true;
         this.isSprinting = false;
         this.isSneaking = false;

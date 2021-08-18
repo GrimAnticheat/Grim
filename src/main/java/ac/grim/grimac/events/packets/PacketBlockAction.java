@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
@@ -28,7 +28,7 @@ public class PacketBlockAction extends PacketListenerAbstract {
         byte packetID = event.getPacketId();
 
         if (packetID == PacketType.Play.Server.BLOCK_ACTION) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             WrappedPacketOutBlockAction blockAction = new WrappedPacketOutBlockAction(event.getNMSPacket());

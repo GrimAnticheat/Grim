@@ -1,12 +1,13 @@
 package ac.grim.grimac.events.bukkit;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.packets.patch.AntiBucketDesync;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.MovementCheckRunner;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -15,13 +16,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
-import java.util.concurrent.ConcurrentLinkedQueue;
-
 public class PlayerJoinQuitListener implements Listener {
 
     public static boolean isViaLegacyUpdated = true;
 
-    // Allow other plugins to modify login location or flight status
     @EventHandler(priority = EventPriority.MONITOR)
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player bukkitPlayer = event.getPlayer();
@@ -32,33 +30,37 @@ public class PlayerJoinQuitListener implements Listener {
 
         // We can't send transaction packets to this player, disable the anticheat for them
         if (!isViaLegacyUpdated && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_16_4)) {
-            GrimAC.staticGetLogger().warning(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
-            GrimAC.staticGetLogger().warning(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
-            GrimAC.staticGetLogger().warning(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
-            GrimAC.staticGetLogger().warning(ChatColor.RED + "Supported version: " + ChatColor.WHITE + "https://github.com/ViaVersion/ViaBackwards/actions/runs/1039987269");
+            LogUtil.warn(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
+            LogUtil.warn(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
+            LogUtil.warn(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
+            LogUtil.warn(ChatColor.RED + "Supported version: " + ChatColor.WHITE + "https://github.com/ViaVersion/ViaBackwards/actions/runs/1039987269");
             return;
         }
 
-        player.lastX = bukkitPlayer.getLocation().getX();
-        player.lastY = bukkitPlayer.getLocation().getY();
-        player.lastZ = bukkitPlayer.getLocation().getZ();
-        player.lastXRot = bukkitPlayer.getLocation().getYaw();
-        player.lastYRot = bukkitPlayer.getLocation().getPitch();
         player.x = bukkitPlayer.getLocation().getX();
         player.y = bukkitPlayer.getLocation().getY();
         player.z = bukkitPlayer.getLocation().getZ();
         player.xRot = bukkitPlayer.getLocation().getYaw();
         player.yRot = bukkitPlayer.getLocation().getPitch();
 
-        player.lastOnGround = bukkitPlayer.isOnGround();
+        player.lastX = bukkitPlayer.getLocation().getX();
+        player.lastY = bukkitPlayer.getLocation().getY();
+        player.lastZ = bukkitPlayer.getLocation().getZ();
+        player.lastXRot = bukkitPlayer.getLocation().getYaw();
+        player.lastYRot = bukkitPlayer.getLocation().getPitch();
+
         player.onGround = bukkitPlayer.isOnGround();
+        player.lastOnGround = bukkitPlayer.isOnGround();
         player.packetStateData.packetPlayerOnGround = bukkitPlayer.isOnGround();
 
-        player.packetStateData.packetPlayerX = bukkitPlayer.getLocation().getX();
-        player.packetStateData.packetPlayerY = bukkitPlayer.getLocation().getY();
-        player.packetStateData.packetPlayerZ = bukkitPlayer.getLocation().getZ();
+        player.packetStateData.packetPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
         player.packetStateData.packetPlayerXRot = bukkitPlayer.getLocation().getYaw();
         player.packetStateData.packetPlayerYRot = bukkitPlayer.getLocation().getPitch();
+
+        player.packetStateData.lastPacketPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
+        player.packetStateData.lastPacketPlayerXRot = bukkitPlayer.getLocation().getYaw();
+        player.packetStateData.lastPacketPlayerYRot = bukkitPlayer.getLocation().getPitch();
+
         player.packetStateData.gameMode = bukkitPlayer.getGameMode();
 
         player.uncertaintyHandler.pistonPushing.add(0d);
@@ -71,17 +73,12 @@ public class PlayerJoinQuitListener implements Listener {
         player.uncertaintyHandler.thirtyMillionHardBorder.add(false);
 
         player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8);
-
-        GrimAC.playerGrimHashMap.put(event.getPlayer(), player);
-
-        MovementCheckRunner.queuedPredictions.put(event.getPlayer().getUniqueId(), new ConcurrentLinkedQueue<>());
+        GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(player);
     }
 
-    // Better compatibility with other plugins that use our API
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void playerQuitEvent(PlayerQuitEvent event) {
-        MovementCheckRunner.queuedPredictions.remove(event.getPlayer().getUniqueId());
-        GrimAC.playerGrimHashMap.remove(event.getPlayer());
+        GrimAPI.INSTANCE.getPlayerDataManager().remove(event.getPlayer());
         AntiBucketDesync.resyncNeeded.remove(event.getPlayer());
     }
 }

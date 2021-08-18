@@ -1,27 +1,30 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.position.WrappedPacketOutPosition;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
-public class PacketPlayerTeleport extends PacketListenerAbstract {
+public class PacketServerTeleport extends PacketListenerAbstract {
 
-    public PacketPlayerTeleport() {
+    public PacketServerTeleport() {
         super(PacketListenerPriority.LOW);
     }
 
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
-        if (event.getPacketId() == PacketType.Play.Server.POSITION) {
+        byte packetID = event.getPacketId();
+
+        if (packetID == PacketType.Play.Server.POSITION) {
             WrappedPacketOutPosition teleport = new WrappedPacketOutPosition(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
 
             // Occurs on login
             if (player == null) return;
@@ -35,24 +38,22 @@ public class PacketPlayerTeleport extends PacketListenerAbstract {
             // We have to do this because 1.8 players on 1.9+ get teleports changed by ViaVersion
             // Additionally, velocity is kept after relative teleports making predictions difficult
             // The added complexity isn't worth a feature that I have never seen used
+            //
+            // If you do actually need this make an issue on GitHub with an explanation for why
             if ((relative & 1) == 1)
-                pos = pos.add(new Vector3d(player.packetStateData.packetPlayerX, 0, 0));
+                pos = pos.add(new Vector3d(player.packetStateData.packetPosition.x, 0, 0));
 
             if ((relative >> 1 & 1) == 1)
-                pos = pos.add(new Vector3d(0, player.packetStateData.packetPlayerY, 0));
+                pos = pos.add(new Vector3d(0, player.packetStateData.packetPosition.y, 0));
 
             if ((relative >> 2 & 1) == 1)
-                pos = pos.add(new Vector3d(0, 0, player.packetStateData.packetPlayerZ));
+                pos = pos.add(new Vector3d(0, 0, player.packetStateData.packetPosition.z));
 
             if ((relative >> 3 & 1) == 1)
                 yaw += player.packetStateData.packetPlayerXRot;
 
             if ((relative >> 3 & 1) == 1)
                 pitch += player.packetStateData.packetPlayerYRot;
-
-            // Stop bad packets false by sending angles over 360
-            yaw %= 360;
-            pitch %= 360;
 
             teleport.setPosition(pos);
             teleport.setYaw(yaw);
@@ -67,8 +68,24 @@ public class PacketPlayerTeleport extends PacketListenerAbstract {
 
             Vector3d finalPos = pos;
 
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             player.teleports.add(new Pair<>(lastTransactionSent, finalPos));
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+        }
+
+        if (packetID == PacketType.Play.Server.VEHICLE_MOVE) {
+            WrappedPacket vehicleMove = new WrappedPacket(event.getNMSPacket());
+            double x = vehicleMove.readDouble(0);
+            double y = vehicleMove.readDouble(1);
+            double z = vehicleMove.readDouble(2);
+
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
+            int lastTransactionSent = player.lastTransactionSent.get();
+            Vector3d finalPos = new Vector3d(x, y, z);
+
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            player.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
     }
 }

@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import io.github.retrooper.packetevents.utils.player.Hand;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.GameMode;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,12 +14,14 @@ public class PacketStateData {
     public float packetVehicleHorizontal = 0;
     public float packetVehicleForward = 0;
     public AtomicInteger packetLastTransactionReceived = new AtomicInteger(0);
-    public double packetPlayerX;
-    public double packetPlayerY;
-    public double packetPlayerZ;
+    public Vector3d lastPacketPosition;
+    public Vector3d packetPosition;
+    public float lastPacketPlayerXRot;
+    public float lastPacketPlayerYRot;
     public float packetPlayerXRot;
     public float packetPlayerYRot;
     public boolean packetPlayerOnGround = false;
+    public boolean lastPacketWasTeleport = false;
     public int lastSlotSelected;
     public Hand eatingHand = Hand.MAIN_HAND;
     public AlmostBoolean slowedByUsingItem = AlmostBoolean.FALSE;

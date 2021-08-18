@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.bukkit;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
@@ -11,7 +11,6 @@ import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -25,13 +24,9 @@ import org.bukkit.event.player.PlayerInteractEvent;
 
 public class MagicPlayerBlockBreakPlace implements Listener {
 
-    private static final Material BUCKET = XMaterial.BUCKET.parseMaterial();
-    private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
-    private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
-
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
-        GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player == null) return;
 
         // This code fixes an issue where a 1.9 player places a block inside themselves
@@ -86,7 +81,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockBreakEvent(BlockBreakEvent event) {
-        GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player == null) return;
         Block block = event.getBlock();
 
@@ -102,7 +97,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
     public void onBlockInteractEvent(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
-        GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player == null) return;
 
         Block block = event.getClickedBlock();

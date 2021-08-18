@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.bukkit;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -12,7 +12,7 @@ public class DimensionChangeEvent implements Listener {
     public void onPlayerTeleportEvent(PlayerTeleportEvent event) {
         // How can getTo be null?
         if (event.getTo() != null && event.getFrom().getWorld() != event.getTo().getWorld()) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player != null) {
                 player.sendAndFlushTransactionOrPingPong();
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isPacketSneaking = false);

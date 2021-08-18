@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -48,7 +48,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY_SPAWN || packetID == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
             WrappedPacketOutSpawnEntityLiving packetOutEntity = new WrappedPacketOutSpawnEntityLiving(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             Entity entity = packetOutEntity.getEntity();
@@ -63,7 +63,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY) {
             WrappedPacketOutSpawnEntity packetOutEntity = new WrappedPacketOutSpawnEntity(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             Entity entity = packetOutEntity.getEntity();
@@ -78,7 +78,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
             WrappedPacketOutNamedEntitySpawn spawn = new WrappedPacketOutNamedEntitySpawn(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             Entity entity = spawn.getEntity();
@@ -88,51 +88,35 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             }
 
             player.compensatedEntities.addEntity(spawn.getEntityId(), type, spawn.getPosition());
-
-            player.reach.handleSpawnPlayer(spawn.getEntityId(), spawn.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
             WrappedPacketOutEntity.WrappedPacketOutRelEntityMove move = new WrappedPacketOutEntity.WrappedPacketOutRelEntityMove(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             if (move.getDeltaX() != 0 || move.getDeltaY() != 0 || move.getDeltaZ() != 0)
                 player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(move.getEntityId(),
                         move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), player.lastTransactionSent.get(), true));
-
-
-            if (player.reach.entityMap.containsKey(move.getEntityId())) {
-                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
-                player.reach.handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
-            }
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
             WrappedPacketOutEntityTeleport teleport = new WrappedPacketOutEntityTeleport(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             Vector3d position = teleport.getPosition();
 
             player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(teleport.getEntityId(),
                     position.getX(), position.getY(), position.getZ(), player.lastTransactionSent.get(), false));
-
-            if (player.reach.entityMap.containsKey(teleport.getEntityId())) {
-                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
-                player.reach.handleMoveEntity(teleport.getEntityId(), teleport.getPosition().getX(),
-                        teleport.getPosition().getY(), teleport.getPosition().getZ(), false);
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
-            }
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_METADATA) {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects(), player.lastTransactionSent.get()));
@@ -141,7 +125,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.ENTITY_EFFECT) {
             WrappedPacketOutEntityEffect effect = new WrappedPacketOutEntityEffect(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             PotionEffectType type = PotionEffectType.getById(effect.getEffectId());
@@ -172,7 +156,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.REMOVE_ENTITY_EFFECT) {
             WrappedPacketOutRemoveEntityEffect effect = new WrappedPacketOutRemoveEntityEffect(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             event.setPostTask(player::sendAndFlushTransactionOrPingPong);
@@ -182,7 +166,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.UPDATE_ATTRIBUTES) {
             WrappedPacketOutUpdateAttributes attributes = new WrappedPacketOutUpdateAttributes(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             int entityID = attributes.getEntityId();
@@ -199,7 +183,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             // This hasn't changed from 1.7.2 to 1.17
             // Needed to exempt players on dead vehicles, as dead entities have strange physics.
             if (status.getEntityStatus() == 3) {
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
                 if (player == null) return;
 
                 PacketEntity entity = player.compensatedEntities.getEntity(status.getEntityId());
@@ -212,7 +196,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.MOUNT) {
             WrappedPacketOutMount mount = new WrappedPacketOutMount(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             int vehicleID = mount.getEntityId();
@@ -227,7 +211,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             // This packet was replaced by the mount packet on 1.9+ servers - to support multiple passengers on one vehicle
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) return;
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             // If this is mounting rather than leashing
@@ -241,7 +225,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.ENTITY_DESTROY) {
             WrappedPacketOutEntityDestroy destroy = new WrappedPacketOutEntityDestroy(event.getNMSPacket());
 
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             int lastTransactionSent = player.lastTransactionSent.get();

@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
@@ -26,14 +26,13 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         if (event.getPacketId() == PacketType.Play.Client.USE_ENTITY) {
             WrappedPacketInUseEntity action = new WrappedPacketInUseEntity(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
 
             if (player == null) return;
 
             if (action.getAction() == WrappedPacketInUseEntity.EntityUseAction.ATTACK) {
                 ItemStack heldItem = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
                 Entity attackedEntity = action.getEntity();
-                player.reach.checkReach(action.getEntityId());
 
                 // You don't get a release use item with block hitting with a sword?
                 if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {

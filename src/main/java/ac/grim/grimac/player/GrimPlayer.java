@@ -1,10 +1,6 @@
 package ac.grim.grimac.player;
 
-import ac.grim.grimac.checks.combat.Reach;
-import ac.grim.grimac.checks.movement.ExplosionHandler;
-import ac.grim.grimac.checks.movement.KnockbackHandler;
-import ac.grim.grimac.checks.movement.NoFall;
-import ac.grim.grimac.checks.movement.TimerCheck;
+import ac.grim.grimac.manager.CheckManager;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
@@ -56,6 +52,7 @@ public class GrimPlayer {
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
+    public ConcurrentLinkedQueue<PredictionData> queuedPredictions = new ConcurrentLinkedQueue<>();
     public PredictionData nextTaskToRun;
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
@@ -155,8 +152,6 @@ public class GrimPlayer {
     public CompensatedFireworks compensatedFireworks;
     public CompensatedRiptide compensatedRiptide;
     public CompensatedElytra compensatedElytra;
-    public KnockbackHandler knockbackHandler;
-    public ExplosionHandler explosionHandler;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
     public CompensatedPotions compensatedPotions;
@@ -179,9 +174,7 @@ public class GrimPlayer {
     public VelocityData likelyKB = null;
     public VelocityData firstBreadExplosion = null;
     public VelocityData likelyExplosions = null;
-    public TimerCheck timerCheck;
-    public Reach reach;
-    public NoFall noFall;
+    public CheckManager checkManager;
     public float horseJump = 0;
     public boolean horseJumping = false;
     public boolean tryingToRiptide = false;
@@ -223,18 +216,15 @@ public class GrimPlayer {
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedRiptide = new CompensatedRiptide(this);
         compensatedElytra = new CompensatedElytra(this);
-        knockbackHandler = new KnockbackHandler(this);
-        explosionHandler = new ExplosionHandler(this);
         compensatedEntities = new CompensatedEntities(this);
         compensatedPotions = new CompensatedPotions(this);
         trigHandler = new TrigHandler(this);
-        timerCheck = new TimerCheck(this);
-        reach = new Reach(this);
-        noFall = new NoFall(this);
         uncertaintyHandler = new UncertaintyHandler(this);
 
         packetStateData = new PacketStateData();
         packetStateData.lastSlotSelected = bukkitPlayer.getInventory().getHeldItemSlot();
+
+        checkManager = new CheckManager(this);
     }
 
     public Set<VectorData> getPossibleVelocities() {

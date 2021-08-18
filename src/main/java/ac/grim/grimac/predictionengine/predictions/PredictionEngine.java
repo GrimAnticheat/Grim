@@ -155,7 +155,6 @@ public class PredictionEngine {
         if (flipSneaking) {
             player.pose = originalPose == Pose.STANDING ? Pose.CROUCHING : Pose.STANDING;
             player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
-            ;
         } else {
             player.pose = originalPose;
             player.boundingBox = originalBB;

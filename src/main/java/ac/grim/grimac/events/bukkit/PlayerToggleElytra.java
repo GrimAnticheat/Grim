@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.bukkit;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.entity.Player;
@@ -16,7 +16,7 @@ public class PlayerToggleElytra implements Listener {
     public void onElytraToggleEvent(EntityToggleGlideEvent event) {
         if (!(event.getEntity() instanceof Player)) return;
 
-        GrimPlayer player = GrimAC.playerGrimHashMap.get((Player) event.getEntity());
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getEntity());
 
         if (player == null) return;
 

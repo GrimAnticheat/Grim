@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -20,7 +20,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
     public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
         if (event.getPacketId() == PacketType.Play.Client.ABILITIES) {
             WrappedPacketInAbilities abilities = new WrappedPacketInAbilities(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             // In one tick you can do the following
@@ -51,7 +51,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         if (event.getPacketId() == PacketType.Play.Server.ABILITIES) {
             WrappedPacketOutAbilities abilities = new WrappedPacketOutAbilities(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
 
             // Occurs on login - we set if the player can fly on PlayerJoinEvent
             if (player == null) return;

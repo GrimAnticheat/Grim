@@ -1,41 +1,63 @@
 package ac.grim.grimac.checks;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.player.GrimPlayer;
+import lombok.Getter;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+// Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
+@Getter
+public class Check<T> {
+    protected final GrimPlayer player;
+    private double buffer;
 
-// Inspired heavily by https://github.com/HawkAnticheat/Hawk/blob/master/src/me/islandscout/hawk/check/Check.java
-public class Check {
-    protected static GrimAC grim;
-    protected final Map<UUID, Long> lastFlagTimes = new HashMap<>();
-    // TODO: Write the base check class
-    protected boolean enabled;
-    protected int cancelThreshold;
-    protected int flagThreshold;
-    protected double vlPassMultiplier;
-    protected long flagCooldown; //in milliseconds
-    protected String permission;
-    protected String name;
-    protected String configPath;
-    protected String flag;
-    protected List<String> punishCommands;
+    private String checkName;
+    private int threshold;
+    private long reset;
 
-    /**
-     * Default values set in these constructors. Configuration may override them.
-     *
-     * @param name             name of check
-     * @param enabled          enable check
-     * @param cancelThreshold  VL required to cancel
-     * @param flagThreshold    VL required to flag
-     * @param vlPassMultiplier VL pass multiplier (eg: 0.95)
-     * @param flagCooldown     flag cooldown duration (in milliseconds)
-     * @param flag             flag message
-     * @param punishCommands   list of commands to run
-     */
-    /*Check(String name, boolean enabled, int cancelThreshold, int flagThreshold, double vlPassMultiplier, long flagCooldown, String flag, List<String> punishCommands) {
+    public Check(final GrimPlayer player) {
+        this.player = player;
 
-    }*/
+        final Class<?> checkClass = this.getClass();
+
+        if (checkClass.isAnnotationPresent(CheckData.class)) {
+            final CheckData checkData = checkClass.getAnnotation(CheckData.class);
+            this.checkName = checkData.name();
+            this.threshold = checkData.threshold();
+            this.reset = checkData.reset();
+        }
+    }
+
+    public final double increaseBuffer() {
+        return increaseBuffer(1);
+    }
+
+    public final double increaseBuffer(final double amount) {
+        return buffer = Math.min(10000, buffer + amount);
+    }
+
+    public final double decreaseBuffer() {
+        return decreaseBuffer(1);
+    }
+
+    public final double decreaseBuffer(final double amount) {
+        return buffer = Math.max(0, buffer - amount);
+    }
+
+    public final void setBuffer(final double amount) {
+        buffer = amount;
+    }
+
+    public final void multiplyBuffer(final double multiplier) {
+        buffer *= multiplier;
+    }
+
+    public final void debug(final Object object) {
+        player.bukkitPlayer.sendMessage(ChatColor.AQUA + "[GrimDebug] " + ChatColor.GREEN + object);
+    }
+
+    public final void broadcast(final Object object) {
+        Bukkit.broadcastMessage(ChatColor.AQUA + "[GrimBroadcast] " + ChatColor.GRAY + object);
+    }
 }
+
