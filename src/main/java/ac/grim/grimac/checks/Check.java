@@ -12,7 +12,6 @@ public class Check<T> {
     private double buffer;
 
     private String checkName;
-    private int threshold;
     private long reset;
 
     public Check(final GrimPlayer player) {
@@ -23,7 +22,7 @@ public class Check<T> {
         if (checkClass.isAnnotationPresent(CheckData.class)) {
             final CheckData checkData = checkClass.getAnnotation(CheckData.class);
             this.checkName = checkData.name();
-            this.threshold = checkData.threshold();
+            this.buffer = checkData.buffer();
             this.reset = checkData.reset();
         }
     }
@@ -53,11 +52,11 @@ public class Check<T> {
     }
 
     public final void debug(final Object object) {
-        player.bukkitPlayer.sendMessage(ChatColor.AQUA + "[GrimDebug] " + ChatColor.GREEN + object);
+        player.bukkitPlayer.sendMessage(ChatColor.AQUA + "[Debug] " + ChatColor.GREEN + object);
     }
 
     public final void broadcast(final Object object) {
-        Bukkit.broadcastMessage(ChatColor.AQUA + "[GrimBroadcast] " + ChatColor.GRAY + object);
+        Bukkit.broadcastMessage(ChatColor.AQUA + "[GrimAC] " + ChatColor.GRAY + object);
     }
 }
 

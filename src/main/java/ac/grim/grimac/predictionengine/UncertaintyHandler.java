@@ -113,6 +113,9 @@ public class UncertaintyHandler {
         if ((lastFlyingTicks < 3) && Math.abs(predicted.vector.getY()) < 0.2 && predicted.vector.getY() != 0 && player.actualMovement.lengthSquared() < 0.2)
             return true;
 
+        if (player.couldSkipTick && predicted.hasVectorType(VectorData.VectorType.Trident))
+            return true;
+
         return isSteppingOnIce && lastTickWasNearGroundZeroPointZeroThree && player.actualMovement.clone().setY(0).lengthSquared() < 0.01;
     }
 
@@ -139,6 +142,9 @@ public class UncertaintyHandler {
 
         if (wasAffectedByStuckSpeed())
             pointThree = Math.max(pointThree, 0.08);
+
+        if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
+            pointThree = Math.max(pointThree, 0.06);
 
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
             pointThree = Math.max(pointThree, player.speed * 1.6);
@@ -169,6 +175,9 @@ public class UncertaintyHandler {
 
         if (Collections.max(thirtyMillionHardBorder))
             return 0.15;
+
+        if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
+            return 0.06;
 
         if (wasLastGravityUncertain)
             return 0.03;

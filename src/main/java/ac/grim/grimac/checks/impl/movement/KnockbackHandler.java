@@ -3,7 +3,6 @@ package ac.grim.grimac.checks.impl.movement;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
-import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
@@ -21,7 +20,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
 @CheckData(name = "AntiKB")
-public class KnockbackHandler extends PacketCheck implements PostPredictionCheck {
+public class KnockbackHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
 
