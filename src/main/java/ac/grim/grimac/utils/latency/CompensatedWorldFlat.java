@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
@@ -41,10 +41,10 @@ public class CompensatedWorldFlat extends CompensatedWorld {
         // The global palette only exists in 1.13+, 1.12- uses magic values for everything
         getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
 
-        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.staticGetResource(XMaterial.getVersion() + ".txt"))));
+        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAPI.INSTANCE.getPlugin().getResource(XMaterial.getVersion() + ".txt"))));
         int paletteSize = (int) paletteReader.lines().count();
         // Reset the reader after counting
-        paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAC.staticGetResource(XMaterial.getVersion() + ".txt"))));
+        paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAPI.INSTANCE.getPlugin().getResource(XMaterial.getVersion() + ".txt"))));
 
         globalPaletteToBlockData = new ArrayList<>(paletteSize);
 

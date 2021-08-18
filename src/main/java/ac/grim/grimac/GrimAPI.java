@@ -15,6 +15,13 @@ public enum GrimAPI {
 
     private GrimAC plugin;
 
+    public void load(final GrimAC plugin) {
+        this.plugin = plugin;
+        assert plugin != null : "Something went wrong! The plugin was null. (Load)";
+
+        initManager.load();
+    }
+
     public void start(final GrimAC plugin) {
         this.plugin = plugin;
         assert plugin != null : "Something went wrong! The plugin was null. (Startup)";
@@ -25,5 +32,7 @@ public enum GrimAPI {
     public void stop(final GrimAC plugin) {
         this.plugin = plugin;
         assert plugin != null : "Something went wrong! The plugin was null. (Shutdown)";
+
+        initManager.stop();
     }
 }

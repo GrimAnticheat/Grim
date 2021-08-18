@@ -3,6 +3,7 @@ package ac.grim.grimac.manager.init.start;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.bukkit.PlayerJoinQuitListener;
 import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -13,6 +14,8 @@ import java.util.logging.Logger;
 public class ViaBackwardsManager implements Initable {
     @Override
     public void start() {
+        LogUtil.info("Checking ViaBackwards Compatibility...");
+
         // We have a more accurate version of this patch
         System.setProperty("com.viaversion.ignorePaperBlockPlacePatch", "true");
 

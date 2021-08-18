@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.data;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import io.github.retrooper.packetevents.utils.player.Hand;
@@ -66,7 +66,7 @@ public class PredictionData {
         this.gameMode = player.packetStateData.gameMode;
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
 
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
+        minimumTickRequiredToContinue = GrimAPI.INSTANCE.getTickManager().getTick() + 3;
         lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
         itemHeld = player.packetStateData.lastSlotSelected;
@@ -100,7 +100,7 @@ public class PredictionData {
         this.playerWorld = player.bukkitPlayer.getWorld();
         this.gameMode = player.packetStateData.gameMode;
 
-        minimumTickRequiredToContinue = GrimAC.getCurrentTick() + 3;
+        minimumTickRequiredToContinue = GrimAPI.INSTANCE.getTickManager().getTick() + 3;
         lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
         itemHeld = player.packetStateData.lastSlotSelected;
