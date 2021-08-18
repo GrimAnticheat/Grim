@@ -101,9 +101,8 @@ public class CompensatedWorldFlat extends CompensatedWorld {
             if (method.getName().matches("^get[A-Z].*") &&
                     !method.getReturnType().equals(void.class))
                 return true;
-            if (method.getName().matches("^is[A-Z].*") &&
-                    method.getReturnType().equals(boolean.class))
-                return true;
+            return method.getName().matches("^is[A-Z].*") &&
+                    method.getReturnType().equals(boolean.class);
         }
         return false;
     }

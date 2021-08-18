@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets.worldreader;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.seven.SevenChunk;
@@ -42,7 +42,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
         // Time to dump chunk data for 1.7 - 0.04 ms
         if (packetID == PacketType.Play.Server.MAP_CHUNK) {
             WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             try {
@@ -98,7 +98,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
         // Exists on 1.7 and 1.8 only
         // Purposefully left this
         if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             try {
@@ -153,7 +153,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
             WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             try {
@@ -182,7 +182,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
 
         if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
             WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             try {

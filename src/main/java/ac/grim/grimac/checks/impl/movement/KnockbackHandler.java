@@ -1,17 +1,27 @@
-package ac.grim.grimac.checks.movement;
+package ac.grim.grimac.checks.impl.movement;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
+import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
-public class KnockbackHandler {
+@CheckData(name = "AntiKB")
+public class KnockbackHandler extends PacketCheck implements PostPredictionCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
 
@@ -19,10 +29,41 @@ public class KnockbackHandler {
     VelocityData firstBreadOnlyKnockback = null;
 
     public KnockbackHandler(GrimPlayer player) {
+        super(player);
         this.player = player;
     }
 
-    public void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
+    @Override
+    public void onPacketSend(final PacketPlaySendEvent event) {
+        byte packetID = event.getPacketId();
+
+        if (packetID == PacketType.Play.Server.ENTITY_VELOCITY) {
+            WrappedPacketOutEntityVelocity velocity = new WrappedPacketOutEntityVelocity(event.getNMSPacket());
+            int entityId = velocity.getEntityId();
+
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
+            Entity playerVehicle = player.bukkitPlayer.getVehicle();
+
+            // Useless velocity packet, cancel to save bandwidth, transactions, and grim processing power
+            if ((playerVehicle == null && entityId != player.entityID) || (playerVehicle != null && entityId != playerVehicle.getEntityId())) {
+                event.setCancelled(true);
+                return;
+            }
+
+            // If the player isn't in a vehicle and the ID is for the player, the player will take kb
+            // If the player is in a vehicle and the ID is for the player's vehicle, the player will take kb
+            Vector3d playerVelocity = velocity.getVelocity();
+
+            // Wrap velocity between two transactions
+            player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+            addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
+            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+        }
+    }
+
+    private void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
         double minimumMovement = 0.003D;
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             minimumMovement = 0.005D;

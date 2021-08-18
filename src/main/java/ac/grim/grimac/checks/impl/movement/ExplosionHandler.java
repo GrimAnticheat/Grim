@@ -1,8 +1,14 @@
-package ac.grim.grimac.checks.movement;
+package ac.grim.grimac.checks.impl.movement;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
+import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
 import io.github.retrooper.packetevents.utils.vector.Vector3f;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,7 +16,8 @@ import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class ExplosionHandler {
+@CheckData(name = "AntiExplosion")
+public class ExplosionHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
 
@@ -18,7 +25,26 @@ public class ExplosionHandler {
     VelocityData firstBreadAddedExplosion = null;
 
     public ExplosionHandler(GrimPlayer player) {
+        super(player);
         this.player = player;
+    }
+
+    @Override
+    public void onPacketSend(final PacketPlaySendEvent event) {
+        if (event.getPacketId() == PacketType.Play.Server.EXPLOSION) {
+            WrappedPacketOutExplosion explosion = new WrappedPacketOutExplosion(event.getNMSPacket());
+
+            Vector3f velocity = explosion.getPlayerVelocity();
+
+            if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+                if (player == null) return;
+
+                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+                addPlayerExplosion(player.lastTransactionSent.get(), velocity);
+                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            }
+        }
     }
 
     public void addPlayerExplosion(int breadOne, Vector3f explosion) {

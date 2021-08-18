@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.bukkit;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
@@ -27,7 +27,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
-        GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player == null) return;
         Block block = event.getBlock();
 
@@ -37,7 +37,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockBreakEvent(BlockBreakEvent event) {
-        GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player == null) return;
         Block block = event.getBlock();
 
@@ -52,7 +52,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
     public void onBlockInteractEvent(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
-        GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player == null) return;
 
         Block block = event.getClickedBlock();

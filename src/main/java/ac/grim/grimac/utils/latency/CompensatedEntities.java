@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.*;
@@ -196,7 +197,7 @@ public class CompensatedEntities {
             for (int entityID : spawnEntity.right()) {
                 entityMap.remove(entityID);
                 player.compensatedPotions.removeEntity(entityID);
-                player.reach.removeEntity(entityID);
+                ((Reach) player.checkManager.getPacketCheck(Reach.class)).removeEntity(entityID);
                 if (playerVehicle != null && playerVehicle == entityID)
                     player.vehicle = null;
             }

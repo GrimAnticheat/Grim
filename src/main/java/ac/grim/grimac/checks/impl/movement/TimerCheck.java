@@ -1,14 +1,17 @@
-package ac.grim.grimac.checks.movement;
+package ac.grim.grimac.checks.impl.movement;
 
-import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class TimerCheck extends Check {
+@CheckData(name = "Timer (A)")
+public class TimerCheck extends PositionCheck {
     public int exempt = 200; // Exempt for 10 seconds on login
     GrimPlayer player;
 
@@ -39,12 +42,15 @@ public class TimerCheck extends Check {
     //
     // Tested 10/20/30 fps and f3 + t spamming for lag spikes at 0 ping localhost/200 ping clumsy, no falses
     public TimerCheck(GrimPlayer player) {
+        super(player);
         this.player = player;
     }
 
-    public void processMovementPacket() {
+    public void onPositionUpdate(final PositionUpdate positionUpdate) {
         player.movementPackets++;
         long currentNanos = System.nanoTime();
+
+        if (positionUpdate.isTeleport()) return;
 
         // Teleporting sends its own packet (We could handle this, but it's not worth the complexity)
         if (exempt-- > 0) {

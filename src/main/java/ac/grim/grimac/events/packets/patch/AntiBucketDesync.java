@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets.patch;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -32,7 +32,7 @@ public class AntiBucketDesync extends PacketListenerAbstract {
         byte packetID = event.getPacketId();
 
         if (packetID == PacketType.Play.Client.BLOCK_PLACE || packetID == PacketType.Play.Client.USE_ITEM) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
             // 1.17 players don't have this desync, mojang finally managed to patch it
@@ -61,7 +61,7 @@ public class AntiBucketDesync extends PacketListenerAbstract {
         byte packetID = event.getPacketId();
 
         if (PacketType.Play.Client.Util.isInstanceOfFlying(packetID)) {
-            GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
         }
     }

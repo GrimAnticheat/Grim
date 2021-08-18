@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -27,7 +27,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.ENTITY_METADATA) {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
             if (entityMetadata.getEntityId() == event.getPlayer().getEntityId()) {
-                GrimPlayer player = GrimAC.playerGrimHashMap.get(event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
 
                 if (player == null)
                     return;

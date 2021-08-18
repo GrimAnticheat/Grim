@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerHorse;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPig;
@@ -20,7 +21,6 @@ import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -60,80 +60,6 @@ public class MovementCheckRunner {
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
-    public static boolean checkTeleportQueue(PredictionData data, double x, double y, double z) {
-        // Support teleports without teleport confirmations
-        // If the player is in a vehicle when teleported, they will exit their vehicle
-        while (true) {
-            Pair<Integer, Vector3d> teleportPos = data.player.teleports.peek();
-            if (teleportPos == null) break;
-
-            Vector3d position = teleportPos.getSecond();
-
-            if (data.lastTransaction < teleportPos.getFirst()) {
-                break;
-            }
-
-            // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
-            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
-                data.player.teleports.poll();
-                data.isJustTeleported = true;
-
-                Bukkit.broadcastMessage(ChatColor.AQUA + data.player.bukkitPlayer.getName() + " just teleported! to " + position);
-
-                // Exempt for the next tick for all teleports
-                data.player.timerCheck.exempt++;
-
-                // Long distance teleport
-                if (position.distanceSquared(new Vector3d(x, y, z)) > 32 * 32)
-                    data.player.timerCheck.exempt = Math.max(data.player.timerCheck.exempt, 150); // Exempt for 7.5 seconds on teleport
-
-                // Teleports remove the player from their vehicle
-                data.player.vehicle = null;
-
-                return true;
-            } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
-                data.player.teleports.poll();
-                Bukkit.broadcastMessage(ChatColor.RED + data.player.bukkitPlayer.getName() + " ignored teleport! " + position);
-                continue;
-            }
-
-            break;
-        }
-
-        return false;
-    }
-
-    public static void checkVehicleTeleportQueue(PredictionData data) {
-        // Handle similar teleports for players in vehicles
-        while (true) {
-            Pair<Integer, Vector3d> teleportPos = data.player.vehicleTeleports.peek();
-            if (teleportPos == null) break;
-            if (data.lastTransaction < teleportPos.getFirst()) {
-                break;
-            }
-
-            Vector3d position = teleportPos.getSecond();
-            if (position.getX() == data.playerX && position.getY() == data.playerY && position.getZ() == data.playerZ) {
-                data.player.vehicleTeleports.poll();
-                data.isJustTeleported = true;
-
-                // Exempt for the next tick for all teleports
-                data.player.timerCheck.exempt++;
-
-                // Long distance teleport
-                if (position.distanceSquared(new Vector3d(data.playerX, data.playerY, data.playerZ)) > 32 * 32)
-                    data.player.timerCheck.exempt = Math.max(data.player.timerCheck.exempt, 150); // Exempt for 7.5 seconds on long teleport
-
-                continue;
-            } else if (data.lastTransaction > teleportPos.getFirst() + 2) {
-                data.player.vehicleTeleports.poll();
-                continue;
-            }
-
-            break;
-        }
-    }
-
     public static boolean processAndCheckMovementPacket(PredictionData data) {
         // Client sends junk onGround data when they teleport
         // The client also send junk onGround status on the first and second tick
@@ -141,14 +67,6 @@ public class MovementCheckRunner {
             data.onGround = data.player.packetStateData.packetPlayerOnGround;
 
         Column column = data.player.compensatedWorld.getChunk(GrimMathHelper.floor(data.playerX) >> 4, GrimMathHelper.floor(data.playerZ) >> 4);
-
-        data.player.packetStateData.packetPlayerXRot = data.xRot;
-        data.player.packetStateData.packetPlayerYRot = data.yRot;
-        data.player.packetStateData.packetPlayerOnGround = data.onGround;
-
-        data.player.packetStateData.packetPlayerX = data.playerX;
-        data.player.packetStateData.packetPlayerY = data.playerY;
-        data.player.packetStateData.packetPlayerZ = data.playerZ;
 
         // The player is in an unloaded chunk
         if (!data.isJustTeleported && column == null) {
@@ -196,7 +114,7 @@ public class MovementCheckRunner {
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
             executor.runCheck(data);
         } else {
-            queuedPredictions.get(data.player.playerUUID).add(data);
+            data.player.queuedPredictions.add(data);
         }
     }
 
@@ -229,7 +147,7 @@ public class MovementCheckRunner {
     public static void check(PredictionData data) {
         GrimPlayer player = data.player;
 
-        data.isCheckNotReady = data.minimumTickRequiredToContinue > GrimAC.getCurrentTick();
+        data.isCheckNotReady = data.minimumTickRequiredToContinue > GrimAPI.INSTANCE.getTickManager().getTick();
         if (data.isCheckNotReady) {
             return;
         }
@@ -278,16 +196,16 @@ public class MovementCheckRunner {
             player.hasGravity = player.playerEntityHasGravity;
         }
 
-        player.firstBreadKB = player.knockbackHandler.getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
-        player.likelyKB = player.knockbackHandler.getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+        player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+        player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
 
-        player.firstBreadExplosion = player.explosionHandler.getFirstBreadAddedExplosion(data.lastTransaction);
-        player.likelyExplosions = player.explosionHandler.getPossibleExplosions(data.lastTransaction);
+        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(data.lastTransaction);
+        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(data.lastTransaction);
 
         // Check if the player can control their horse, if they are on a horse
         if (player.inVehicle) {
             // Players are unable to take explosions in vehicles
-            player.explosionHandler.handlePlayerExplosion(0, true);
+            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
 
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.lastTickPosition = player.playerVehicle.position;
@@ -396,8 +314,8 @@ public class MovementCheckRunner {
             player.uncertaintyHandler.lastTeleportTicks = 0;
 
             // Teleports mess with explosions and knockback
-            player.explosionHandler.handlePlayerExplosion(0, true);
-            player.knockbackHandler.handlePlayerKb(0, true);
+            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
+            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
         }
 
         player.uncertaintyHandler.lastSneakingChangeTicks--;
@@ -462,8 +380,8 @@ public class MovementCheckRunner {
             player.clientVelocity = new Vector();
 
             // Dead players don't take explosions or knockback
-            player.explosionHandler.handlePlayerExplosion(0, true);
-            player.knockbackHandler.handlePlayerKb(0, true);
+            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
+            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
@@ -636,8 +554,8 @@ public class MovementCheckRunner {
         player.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
         player.horseJump = data.horseJump;
 
-        player.knockbackHandler.handlePlayerKb(offset, false);
-        player.explosionHandler.handlePlayerExplosion(offset, false);
+        player.checkManager.getKnockbackHandler().handlePlayerKb(offset, false);
+        player.checkManager.getExplosionHandler().handlePlayerExplosion(offset, false);
         player.trigHandler.setOffset(offset);
         player.compensatedRiptide.handleRemoveRiptide();
 

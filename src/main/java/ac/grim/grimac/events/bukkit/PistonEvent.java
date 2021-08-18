@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.bukkit;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
@@ -54,7 +54,7 @@ public class PistonEvent implements Listener {
                         piston.getY() + event.getDirection().getModY(),
                         piston.getZ() + event.getDirection().getModZ()));
 
-        for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
                 player.compensatedWorld.pistonData.add(new PistonData(event.getDirection(), boxes, player.lastTransactionAtStartOfTick, true, hasSlimeBlock, hasHoneyBlock));
             }
@@ -106,7 +106,7 @@ public class PistonEvent implements Listener {
             }
         }
 
-        for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
                 player.compensatedWorld.pistonData.add(new PistonData(event.getBlocks().isEmpty() ? event.getDirection().getOppositeFace() : event.getDirection(), boxes, player.lastTransactionAtStartOfTick, false, hasSlimeBlock, hasHoneyBlock));
             }

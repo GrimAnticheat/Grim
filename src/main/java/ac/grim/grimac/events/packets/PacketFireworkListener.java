@@ -1,6 +1,6 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAC;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -46,7 +46,7 @@ public class PacketFireworkListener extends PacketListenerAbstract {
                 OptionalInt attachedEntityID = (OptionalInt) fireworkWatchableObject.get().getRawValue();
 
                 if (attachedEntityID.isPresent()) {
-                    for (GrimPlayer player : GrimAC.playerGrimHashMap.values()) {
+                    for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
                         if (player.entityID == attachedEntityID.getAsInt()) {
                             player.compensatedFireworks.addNewFirework(entityMetadata.getEntityId());
                         }
@@ -59,7 +59,7 @@ public class PacketFireworkListener extends PacketListenerAbstract {
             WrappedPacketOutEntityDestroy destroy = new WrappedPacketOutEntityDestroy(event.getNMSPacket());
 
             for (int entity : destroy.getEntityIds()) {
-                for (GrimPlayer grimPlayer : GrimAC.playerGrimHashMap.values()) {
+                for (GrimPlayer grimPlayer : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
                     grimPlayer.compensatedFireworks.removeFirework(entity);
                 }
             }
