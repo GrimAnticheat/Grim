@@ -39,7 +39,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.latencyUtils.handleAnticheatSyncTransaction(player.lastTransactionReceived);
 
                 // Update entities to get current vehicle
-                player.compensatedEntities.tickUpdates(player.packetStateData.packetLastTransactionReceived.get(), true);
+                player.compensatedEntities.tickUpdates(player.packetStateData.packetLastTransactionReceived.get());
 
                 // Not responsible for applying knockback/explosions
                 player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);

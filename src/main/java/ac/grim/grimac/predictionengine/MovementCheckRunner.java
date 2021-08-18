@@ -8,7 +8,7 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
-import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
@@ -126,7 +126,7 @@ public class MovementCheckRunner {
                 int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
                 player.compensatedWorld.tickUpdates(lastTransaction);
                 player.latencyUtils.handleAnticheatSyncTransaction(lastTransaction);
-                player.compensatedEntities.tickUpdates(lastTransaction, false);
+                player.compensatedEntities.tickUpdates(lastTransaction);
                 player.compensatedFlying.canFlyLagCompensated(lastTransaction);
                 player.compensatedFireworks.getMaxFireworksAppliedPossible();
                 player.compensatedRiptide.getCanRiptide();
@@ -154,7 +154,7 @@ public class MovementCheckRunner {
         player.lastTransactionReceived = data.lastTransaction;
 
         // Update entities to get current vehicle
-        player.compensatedEntities.tickUpdates(data.lastTransaction, false);
+        player.compensatedEntities.tickUpdates(data.lastTransaction);
 
         // Player was teleported, so therefore they left their vehicle
         if (!data.inVehicle && data.isJustTeleported)
@@ -566,26 +566,5 @@ public class MovementCheckRunner {
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset, false);
         player.trigHandler.setOffset(offset);
         player.compensatedRiptide.handleRemoveRiptide();
-
-        if (color == ChatColor.YELLOW || color == ChatColor.RED) {
-            player.bukkitPlayer.sendMessage("P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
-            player.bukkitPlayer.sendMessage("A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-            player.bukkitPlayer.sendMessage("O: " + color + offset + " " + player.uncertaintyHandler.stuckOnEdge);
-
-            if (player.vehicleData.lastVehicleSwitch < 5) {
-                player.bukkitPlayer.sendMessage("Note that the player would be setback and not punished");
-            }
-
-            if (!player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity) && !player.horizontalCollision && player.clientControlledHorizontalCollision) {
-                player.bukkitPlayer.sendMessage("Horizontal collision desync!");
-            }
-            if (!player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity) && !player.uncertaintyHandler.isStepMovement && !player.verticalCollision && player.clientControlledVerticalCollision) {
-                player.bukkitPlayer.sendMessage("Vertical collision desync!");
-            }
-        }
-
-        LogUtil.info(player.bukkitPlayer.getName() + " P: " + color + player.predictedVelocity.vector.getX() + " " + player.predictedVelocity.vector.getY() + " " + player.predictedVelocity.vector.getZ());
-        LogUtil.info(player.bukkitPlayer.getName() + " A: " + color + player.actualMovement.getX() + " " + player.actualMovement.getY() + " " + player.actualMovement.getZ());
-        LogUtil.info(player.bukkitPlayer.getName() + " O: " + color + offset + " " + player.uncertaintyHandler.stuckOnEdge);
     }
 }
