@@ -65,8 +65,6 @@ public class UncertaintyHandler {
     public boolean lastLastMovementWasZeroPointZeroThree = false;
     // The player sent a ground packet in order to change their ground status
     public boolean didGroundStatusChangeWithoutPositionPacket = false;
-    // How many entities are very likely to be colliding with the player's bounding box?
-    public EvictingList<Integer> strictCollidingEntities = new EvictingList<>(3);
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
