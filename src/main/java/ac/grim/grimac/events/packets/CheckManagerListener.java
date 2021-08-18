@@ -49,10 +49,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             lastPosLook = System.currentTimeMillis();
 
+            if (!hasPosition && flying.isOnGround() != player.packetStateData.packetPlayerOnGround)
+                player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;
+
             player.packetStateData.lastPacketPlayerXRot = player.packetStateData.packetPlayerXRot;
             player.packetStateData.lastPacketPlayerYRot = player.packetStateData.packetPlayerYRot;
             player.packetStateData.lastPacketPosition = player.packetStateData.packetPosition;
             player.packetStateData.lastPacketWasTeleport = false;
+            player.packetStateData.packetPlayerOnGround = flying.isOnGround();
 
             if (hasLook) {
                 float xRot = flying.getYaw();

@@ -2,12 +2,14 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.movement.*;
-import ac.grim.grimac.checks.type.PacketCheck;
-import ac.grim.grimac.checks.type.PositionCheck;
-import ac.grim.grimac.checks.type.RotationCheck;
-import ac.grim.grimac.checks.type.VehicleCheck;
+import ac.grim.grimac.checks.impl.prediction.DebugHandler;
+import ac.grim.grimac.checks.impl.prediction.LargeOffsetHandler;
+import ac.grim.grimac.checks.impl.prediction.NoFallChecker;
+import ac.grim.grimac.checks.impl.prediction.SmallOffsetHandler;
+import ac.grim.grimac.checks.type.*;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import com.google.common.collect.ClassToInstanceMap;
@@ -20,6 +22,8 @@ public class CheckManager {
     ClassToInstanceMap<PositionCheck> positionCheck;
     ClassToInstanceMap<RotationCheck> rotationCheck;
     ClassToInstanceMap<VehicleCheck> vehicleCheck;
+
+    ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
 
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
@@ -37,6 +41,13 @@ public class CheckManager {
                 .build();
         vehicleCheck = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
                 .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))
+                .build();
+
+        postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
+                .put(NoFallChecker.class, new NoFallChecker(player))
+                .put(SmallOffsetHandler.class, new SmallOffsetHandler(player))
+                .put(LargeOffsetHandler.class, new LargeOffsetHandler(player))
+                .put(DebugHandler.class, new DebugHandler(player))
                 .build();
     }
 
@@ -70,6 +81,10 @@ public class CheckManager {
 
     public void onVehiclePositionUpdate(final VehiclePositionUpdate update) {
         vehicleCheck.values().forEach(vehicleCheck -> vehicleCheck.process(update));
+    }
+
+    public void onPredictionFinish(final PredictionComplete complete) {
+        postPredictionCheck.values().forEach(predictionCheck -> predictionCheck.onPredictionComplete(complete));
     }
 
     public ExplosionHandler getExplosionHandler() {

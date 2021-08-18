@@ -10,11 +10,9 @@ import java.lang.annotation.Target;
 public @interface CheckData {
     String name() default "UNKNOWN";
 
-    int threshold() default 5;
+    double buffer() default 5;
 
     long reset() default 9000L;
 
     long flagCooldown() default Long.MAX_VALUE;
-
-
 }

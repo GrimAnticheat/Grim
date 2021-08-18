@@ -368,7 +368,7 @@ public class MovementCheckRunner {
 
         Vector backOff = Collisions.maybeBackOffFromEdge(player.clientVelocity, player, true);
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = player.clientVelocity.getX() != 0 && player.clientVelocity.getZ() != 0 && backOff.getX() == 0 && backOff.getZ() == 0;
-        player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
+        player.canGroundRiptide = false;
 
         // Exempt if the player is offline
         if (data.isJustTeleported) {
@@ -400,35 +400,11 @@ public class MovementCheckRunner {
                 player.depthStriderLevel = 0;
             }
 
-            if (player.canGroundRiptide) {
-                double addedY = Math.min(player.actualMovement.getY(), 1.1999999F);
-                player.lastOnGround = false;
-                player.lastY += addedY;
-                player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-
-                player.boundingBox.offset(0, addedY, 0);
-            }
-
-            new PlayerBaseTick(player).doBaseTick();
-
             SimpleCollisionBox updatedBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
 
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
             player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = data.didGroundStatusChangeWithoutPositionPacket;
-
-            if ((player.isSneaking || player.wasSneaking) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
-                // Before we do player block placements, determine if the shifting glitch occurred
-                // It's a glitch on 1.14+ and on earlier versions, the 0.03 is just brutal.
-                boolean east = player.actualMovement.angle(new Vector(1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0.1, -0.6, 0));
-                boolean west = player.actualMovement.angle(new Vector(-1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(-0.1, -0.6, 0));
-                boolean south = player.actualMovement.angle(new Vector(0, 0, 1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, 0.1));
-                boolean north = player.actualMovement.angle(new Vector(0, 0, -1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, -0.1));
-
-                if (east || west || south || north)
-                    player.uncertaintyHandler.stuckOnEdge = 0;
-            }
-
 
             // Vehicles don't have jumping or that stupid < 0.03 thing
             // If the player isn't on the ground, a packet in between < 0.03 said they did
@@ -445,6 +421,30 @@ public class MovementCheckRunner {
                 player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
             }
 
+            player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
+
+            if (player.canGroundRiptide) {
+                double addedY = Math.min(player.actualMovement.getY(), 1.1999999F);
+                player.lastOnGround = false;
+                player.lastY += addedY;
+                player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+
+                player.boundingBox.offset(0, addedY, 0);
+            }
+
+            if ((player.isSneaking || player.wasSneaking) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
+                // Before we do player block placements, determine if the shifting glitch occurred
+                // It's a glitch on 1.14+ and on earlier versions, the 0.03 is just brutal.
+                boolean east = player.actualMovement.angle(new Vector(1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0.1, -0.6, 0));
+                boolean west = player.actualMovement.angle(new Vector(-1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(-0.1, -0.6, 0));
+                boolean south = player.actualMovement.angle(new Vector(0, 0, 1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, 0.1));
+                boolean north = player.actualMovement.angle(new Vector(0, 0, -1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, -0.1));
+
+                if (east || west || south || north)
+                    player.uncertaintyHandler.stuckOnEdge = 0;
+            }
+
+            new PlayerBaseTick(player).doBaseTick();
             new MovementTickerPlayer(player).livingEntityAIStep();
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
             // The player and server are both on a version with client controlled entities
@@ -511,28 +511,13 @@ public class MovementCheckRunner {
 
         offset = Math.max(0, offset);
 
-        ChatColor color;
-
-        if (offset <= 0) {
-            color = ChatColor.GRAY;
-        } else if (offset < 0.0001) {
-            color = ChatColor.GREEN;
-        } else if (offset < 0.01) {
-            color = ChatColor.YELLOW;
-        } else {
-            color = ChatColor.RED;
-        }
+        if (offset > 0.1)
+            offset = offset;
 
         // Don't check players who are offline
         if (!player.bukkitPlayer.isOnline()) return;
 
-        // Vanilla can desync with riptide status
-        // This happens because of the < 0.03 thing
-        // It also happens at random, especially when close to exiting water (because minecraft netcode sucks)
-        //
-        // We can recover from the near water desync, but we cannot recover from the rain desync and must set the player back
-        if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() && player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident) && !player.compensatedWorld.containsWater(GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3)))
-            Bukkit.broadcastMessage(ChatColor.LIGHT_PURPLE + "DESYNC IN RIPTIDE! // todo: setback and exempt player until setback");
+        player.checkManager.onPredictionFinish(new PredictionComplete(offset));
 
         player.riptideSpinAttackTicks--;
         if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))
