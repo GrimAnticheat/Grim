@@ -19,8 +19,8 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         player.speed = horsePacket.movementSpeedAttribute;
 
         // Setup player inputs
-        float f = player.vehicleHorizontal * 0.5F;
-        float f1 = player.vehicleForward;
+        float f = player.vehicleData.vehicleHorizontal * 0.5F;
+        float f1 = player.vehicleData.vehicleForward;
 
         if (f1 <= 0.0F) {
             f1 *= 0.25F;
@@ -28,10 +28,10 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
 
         // If the player wants to jump on a horse
         // Listen to Entity Action -> start jump with horse, stop jump with horse
-        if (player.horseJump > 0.0F && !player.horseJumping && player.lastOnGround) {
+        if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
             // Safe to use attributes as entity riding is server sided on 1.8
             // Not using bukkit API getJumpStrength() because the API changes around 1.11
-            double d0 = horsePacket.jumpStrength * player.horseJump * JumpPower.getPlayerJumpFactor(player);
+            double d0 = horsePacket.jumpStrength * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
 
             // This doesn't even work because vehicle jump boost has (likely) been
@@ -45,21 +45,21 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
             }
 
             player.clientVelocity.setY(d1 / 0.98);
-            player.horseJumping = true;
+            player.vehicleData.horseJumping = true;
 
             if (f1 > 0.0F) {
                 float f2 = player.trigHandler.sin(player.xRot * ((float) Math.PI / 180F));
                 float f3 = player.trigHandler.cos(player.xRot * ((float) Math.PI / 180F));
-                player.baseTickAddVector(new Vector(-0.4F * f2 * player.horseJump, 0.0D, 0.4F * f3 * player.horseJump).multiply(1 / 0.98));
+                player.baseTickAddVector(new Vector(-0.4F * f2 * player.vehicleData.horseJump, 0.0D, 0.4F * f3 * player.vehicleData.horseJump).multiply(1 / 0.98));
             }
 
-            player.horseJump = 0.0F;
+            player.vehicleData.horseJump = 0.0F;
         }
 
         // More jumping stuff
         if (player.lastOnGround) {
-            player.horseJump = 0.0F;
-            player.horseJumping = false;
+            player.vehicleData.horseJump = 0.0F;
+            player.vehicleData.horseJumping = false;
         }
 
         this.movementInput = new Vector(f, 0, f1);

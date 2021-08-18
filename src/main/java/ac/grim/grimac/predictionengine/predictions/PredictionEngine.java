@@ -257,7 +257,7 @@ public class PredictionEngine {
         double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
         double additionVertical = player.uncertaintyHandler.getVerticalOffset(vector);
 
-        if (player.playerVehicle instanceof PacketEntityRideable && player.lastVehicleSwitch < 5) {
+        if (player.playerVehicle instanceof PacketEntityRideable && player.vehicleData.lastVehicleSwitch < 5) {
             Vector3d playerPosition = player.playerVehicle.position;
             SimpleCollisionBox uncertainBox = new SimpleCollisionBox(playerPosition, playerPosition);
             for (Vector3d possiblePosition : ((PacketEntityRideable) player.playerVehicle).entityPositions) {
@@ -279,7 +279,7 @@ public class PredictionEngine {
             player.uncertaintyHandler.xPositiveUncertainty -= playerPosition.getX() - uncertainBox.maxX;
             player.uncertaintyHandler.zPositiveUncertainty -= playerPosition.getZ() - uncertainBox.maxZ;
 
-            if (player.lastVehicleSwitch < 6) {
+            if (player.vehicleData.lastVehicleSwitch < 6) {
                 player.uncertaintyHandler.yNegativeUncertainty -= 0.5;
             }
         }

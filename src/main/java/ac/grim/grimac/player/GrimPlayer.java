@@ -111,15 +111,7 @@ public class GrimPlayer {
     public int dolphinsGraceAmplifier;
     public float depthStriderLevel;
     public float flySpeed;
-    public boolean inVehicle;
-    public Integer vehicle = null;
-    public PacketEntity playerVehicle;
-    public PacketEntity lastVehicle;
-    public int lastVehicleSwitch = 1000;
-    public boolean lastDummy = false;
-    public float vehicleHorizontal = 0f;
-    public float vehicleForward = 0f;
-    public BoatData boatData = new BoatData();
+    public VehicleData vehicleData = new VehicleData();
     // We determine this
     public boolean isActuallyOnGround;
     // Set from base tick
@@ -132,7 +124,6 @@ public class GrimPlayer {
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
     public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> teleports = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
     // Set after checks
     public double lastX;
     public double lastY;
@@ -175,8 +166,6 @@ public class GrimPlayer {
     public VelocityData firstBreadExplosion = null;
     public VelocityData likelyExplosions = null;
     public CheckManager checkManager;
-    public float horseJump = 0;
-    public boolean horseJumping = false;
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
@@ -184,6 +173,10 @@ public class GrimPlayer {
     private ClientVersion clientVersion;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
+    public boolean inVehicle;
+    public Integer vehicle = null;
+    public PacketEntity playerVehicle;
+    public PacketEntity lastVehicle;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
