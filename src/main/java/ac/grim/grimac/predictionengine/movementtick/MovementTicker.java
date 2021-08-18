@@ -207,7 +207,6 @@ public class MovementTicker {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             return;
 
-        int collidingEntities = 0;
         int possibleCollidingEntities = 0;
 
         // Players in vehicles do not have collisions
@@ -218,9 +217,11 @@ public class MovementTicker {
             SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
 
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.position.distanceSquared(playerPos) < 12 && entity.riding == null || entity.riding != player.lastVehicle) {
-
-                    if ((!(EntityType.isLivingEntity(entity.bukkitEntityType)) && entity.type != EntityType.BOAT && !(EntityType.isMinecart(entity.type))) || entity.type == EntityType.ARMOR_STAND)
+                if (entity.position.distanceSquared(playerPos) < 12) {
+                    // Players can only push living entities
+                    // Players can also push boats or minecarts
+                    // The one exemption to a living entity is an armor stand
+                    if ((!EntityType.isLivingEntity(entity.bukkitEntityType) && entity.type != EntityType.BOAT && !EntityType.isMinecart(entity.type)) || entity.type == EntityType.ARMOR_STAND)
                         continue;
 
                     double width = BoundingBoxSize.getWidth(entity);
@@ -252,8 +253,6 @@ public class MovementTicker {
                         xDist *= -0.05F;
                         zDist *= -0.05F;
 
-                        collidingEntities++;
-
                         if (xDist > 0) {
                             player.uncertaintyHandler.xNegativeUncertainty += xDist;
                         } else {
@@ -270,7 +269,6 @@ public class MovementTicker {
             }
         }
 
-        player.uncertaintyHandler.strictCollidingEntities.add(collidingEntities);
         player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
 
         // Work around a bug introduced in 1.14 where a player colliding with an X and Z wall maintains X momentum

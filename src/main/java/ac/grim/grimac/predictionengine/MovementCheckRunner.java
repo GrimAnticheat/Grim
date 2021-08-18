@@ -60,7 +60,7 @@ public class MovementCheckRunner {
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
-    public static boolean processAndCheckMovementPacket(PredictionData data) {
+    public static void processAndCheckMovementPacket(PredictionData data) {
         // Client sends junk onGround data when they teleport
         // The client also send junk onGround status on the first and second tick
         if (data.player.packetStateData.movementPacketsReceived < 2 || data.isJustTeleported)
@@ -71,12 +71,12 @@ public class MovementCheckRunner {
         // The player is in an unloaded chunk
         if (!data.isJustTeleported && column == null) {
             data.player.nextTaskToRun = null;
-            return false;
+            return;
         }
         // The player has not loaded this chunk yet
         if (!data.isJustTeleported && column.transaction > data.player.packetStateData.packetLastTransactionReceived.get()) {
             data.player.nextTaskToRun = null;
-            return false;
+            return;
         }
 
         boolean forceAddThisTask = data.inVehicle || data.isJustTeleported;
@@ -92,23 +92,16 @@ public class MovementCheckRunner {
             // Mojang fucked up packet order so we need to fix the current item held
             //
             // Why would you send the item held AFTER you send their movement??? Anyways. fixed. you're welcome
-            if (!nextTask.inVehicle)
-                nextTask.itemHeld = data.itemHeld;
+            nextTask.itemHeld = data.itemHeld;
             // This packet was a duplicate to the current one, ignore it.
             // Thank you 1.17 for sending duplicate positions!
-            if (nextTask.playerX == data.playerX && nextTask.playerY == data.playerY && nextTask.playerZ == data.playerZ) {
-                return false;
-            } else {
+            if (nextTask.playerX != data.playerX || nextTask.playerY != data.playerY || nextTask.playerZ != data.playerZ) {
                 data.player.nextTaskToRun = data;
                 addData(nextTask);
             }
         } else {
             data.player.nextTaskToRun = data;
         }
-
-        // Was this mojang sending duplicate packets because 1.17?  If so, then don't pass into timer check.
-        // (This can happen multiple times a tick, the player can send us infinite movement packets a second!)
-        return true;
     }
 
     private static void addData(PredictionData data) {

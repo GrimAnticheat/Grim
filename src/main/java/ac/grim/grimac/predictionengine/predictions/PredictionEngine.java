@@ -252,7 +252,7 @@ public class PredictionEngine {
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.strictCollidingEntities);
+        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
 
         double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
         double additionVertical = player.uncertaintyHandler.getVerticalOffset(vector);
