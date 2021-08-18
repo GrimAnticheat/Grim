@@ -13,9 +13,12 @@ import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 public class CheckManagerListener extends PacketListenerAbstract {
+
+    long lastPosLook = 0;
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
@@ -33,6 +36,18 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             boolean hasPosition = packetID == PacketType.Play.Client.POSITION || packetID == PacketType.Play.Client.POSITION_LOOK;
             boolean hasLook = packetID == PacketType.Play.Client.LOOK || packetID == PacketType.Play.Client.POSITION_LOOK;
+
+            // Don't check duplicate 1.17 packets (Why would you do this mojang?)
+            // Don't check rotation since it changes between these packets, with the second being irrelevant.
+            if (hasPosition && hasLook) {
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && System.currentTimeMillis() - lastPosLook < 750 &&
+                        player.packetStateData.packetPosition.equals(flying.getPosition())) {
+                    lastPosLook = System.currentTimeMillis();
+                    return;
+                }
+            }
+
+            lastPosLook = System.currentTimeMillis();
 
             player.packetStateData.lastPacketPlayerXRot = player.packetStateData.packetPlayerXRot;
             player.packetStateData.lastPacketPlayerYRot = player.packetStateData.packetPlayerYRot;
