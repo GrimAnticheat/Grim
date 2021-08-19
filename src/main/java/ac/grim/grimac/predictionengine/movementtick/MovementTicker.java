@@ -64,32 +64,36 @@ public class MovementTicker {
             player.onGround = player.isActuallyOnGround;
         }
 
+        double testX = inputVel.getX() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+        double testY = inputVel.getY() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+        double testZ = inputVel.getZ() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+        Vector plusCollide = Collisions.collide(player, testX, testY, testZ);
+
+        if (testX != plusCollide.getX()) {
+            player.clientVelocity.setX(0);
+        }
+
+        if (testZ != plusCollide.getZ()) {
+            player.clientVelocity.setZ(0);
+        }
+
         // This is around the place where the new bounding box gets set
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
         if (!player.wasTouchingWater) {
             new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
-
-            if (player.onGround) {
-                player.fallDistance = 0;
-            } else if (collide.getY() < 0) {
-                player.fallDistance = (player.fallDistance) - collide.getY();
-            }
         }
+
+        if (player.onGround) {
+            player.fallDistance = 0;
+        } else if (collide.getY() < 0) {
+            player.fallDistance = (player.fallDistance) - collide.getY();
+        }
+
         // Striders call the method for inside blocks AGAIN!
         if (player.playerVehicle instanceof PacketEntityStrider) {
             Collisions.handleInsideBlocks(player);
-        }
-
-        if (inputVel.getX() != collide.getX()) {
-            player.clientVelocity.setX(0);
-        }
-
-        // Strangely, collision on the Z axis resets X set to zero.  Is this a bug or a feature?  Doesn't matter.
-        // This is patched elsewhere
-        if (inputVel.getZ() != collide.getZ()) {
-            player.clientVelocity.setZ(0);
         }
 
         if (inputVel.getY() != collide.getY()) {
