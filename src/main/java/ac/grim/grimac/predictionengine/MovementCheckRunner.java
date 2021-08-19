@@ -152,6 +152,9 @@ public class MovementCheckRunner extends PositionCheck {
             return;
         }
 
+        // Note this before any updates
+        boolean byGround = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
+
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
@@ -420,8 +423,7 @@ public class MovementCheckRunner extends PositionCheck {
             //
             // Give some lenience and update the onGround status
             if (player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket && !player.lastOnGround
-                    && (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree
-                    || !Collisions.isEmpty(player, player.boundingBox.copy().offset(0, -0.03, 0)))) {
+                    && (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree || byGround)) {
                 player.lastOnGround = true;
                 player.uncertaintyHandler.wasLastOnGroundUncertain = true;
                 player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
