@@ -82,14 +82,13 @@ public class MovementTicker {
             Collisions.handleInsideBlocks(player);
         }
 
-        double xBeforeZero = player.clientVelocity.getX();
         if (inputVel.getX() != collide.getX()) {
             player.clientVelocity.setX(0);
         }
 
         // Strangely, collision on the Z axis resets X set to zero.  Is this a bug or a feature?  Doesn't matter.
+        // This is patched elsewhere
         if (inputVel.getZ() != collide.getZ()) {
-            player.clientVelocity.setX(xBeforeZero);
             player.clientVelocity.setZ(0);
         }
 

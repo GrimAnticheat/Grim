@@ -58,8 +58,6 @@ public class Collisions {
         Vector bestOrderResult = null;
 
         for (List<Axis> order : allAxisCombinations) {
-            // Ensure that we have no duplicate collision orders (Y -> X -> Y)
-
             Vector collisionResult = collideBoundingBoxLegacy(player, new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
