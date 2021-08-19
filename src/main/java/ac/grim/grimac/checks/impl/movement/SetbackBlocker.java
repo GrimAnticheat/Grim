@@ -11,6 +11,9 @@ public class SetbackBlocker extends PacketCheck {
     }
 
     public void onPacketReceive(final PacketPlayReceiveEvent event) {
+        // Don't block teleport packets
+        if (player.packetStateData.lastPacketWasTeleport) return;
+
         if (PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId())) {
             // The player must obey setbacks
             if (player.teleportUtil.shouldBlockMovement())
