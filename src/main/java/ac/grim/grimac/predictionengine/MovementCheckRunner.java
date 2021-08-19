@@ -499,6 +499,11 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 0.25;
         }
 
+        // Left stuck speed, give some lenience
+        if (player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.getFirst() && player.stuckSpeedMultiplier.getX() == 1) {
+            offset -= 0.03;
+        }
+
         // Checking slime is too complicated
         if (player.uncertaintyHandler.influencedByBouncyBlock()) {
             offset -= 0.03;
