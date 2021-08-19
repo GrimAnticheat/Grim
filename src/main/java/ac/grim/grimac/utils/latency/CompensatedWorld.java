@@ -59,7 +59,8 @@ public class CompensatedWorld {
     });
     public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> unloadChunkQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPositions = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPlaces = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockBreaks = new ConcurrentLinkedQueue<>();
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
 
@@ -132,7 +133,8 @@ public class CompensatedWorld {
         }
 
         // 10 ticks is more than enough for everything that needs to be processed to be processed
-        packetBlockPositions.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 10);
+        packetBlockPlaces.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 10);
+        packetBlockBreaks.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 10);
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {

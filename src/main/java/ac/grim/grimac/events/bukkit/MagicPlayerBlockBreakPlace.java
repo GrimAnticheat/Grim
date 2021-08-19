@@ -22,6 +22,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import java.util.concurrent.ConcurrentLinkedQueue;
+
 public class MagicPlayerBlockBreakPlace implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -60,15 +62,15 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         int combinedID = materialID + (blockData << 12);
 
-        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation()), block.getX(), block.getY(), block.getZ(), combinedID);
+        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.worldChangedBlockQueue.add(data);
 
     }
 
-    public static int getPlayerTransactionForPosition(GrimPlayer player, Location location) {
+    public static int getPlayerTransactionForPosition(GrimPlayer player, Location location, ConcurrentLinkedQueue<BlockPlayerUpdate> updates) {
         int transaction = player.lastTransactionAtStartOfTick;
 
-        for (BlockPlayerUpdate update : player.compensatedWorld.packetBlockPositions) {
+        for (BlockPlayerUpdate update : updates) {
             if (update.position.getX() == location.getBlockX()
                     && update.position.getY() == location.getBlockY()
                     && update.position.getZ() == location.getBlockZ()) {
@@ -87,7 +89,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         // Even when breaking waterlogged stuff, the client assumes it will turn into air (?)
         // So in 1.12 everything probably turns into air when broken
-        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), 0);
+        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation(), player.compensatedWorld.packetBlockBreaks), block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
@@ -105,7 +107,7 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         // Client side interactable -> Door, trapdoor, gate
         if (Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
-            PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ());
+            PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ());
             player.compensatedWorld.worldChangedBlockQueue.add(data);
         }
     }
