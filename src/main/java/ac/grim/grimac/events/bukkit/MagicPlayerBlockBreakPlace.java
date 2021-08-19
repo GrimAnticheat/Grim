@@ -22,6 +22,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class MagicPlayerBlockBreakPlace implements Listener {
@@ -64,17 +65,19 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.worldChangedBlockQueue.add(data);
-
     }
 
     public static int getPlayerTransactionForPosition(GrimPlayer player, Location location, ConcurrentLinkedQueue<BlockPlayerUpdate> updates) {
         int transaction = player.lastTransactionAtStartOfTick;
 
-        for (BlockPlayerUpdate update : updates) {
+        for (Iterator<BlockPlayerUpdate> it = updates.iterator(); it.hasNext(); ) {
+            BlockPlayerUpdate update = it.next();
             if (update.position.getX() == location.getBlockX()
                     && update.position.getY() == location.getBlockY()
                     && update.position.getZ() == location.getBlockZ()) {
                 transaction = update.transaction;
+                it.remove();
+                break;
             }
         }
 

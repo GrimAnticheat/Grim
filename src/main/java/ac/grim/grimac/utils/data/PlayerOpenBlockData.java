@@ -1,18 +1,11 @@
 package ac.grim.grimac.utils.data;
 
-import com.google.common.base.Objects;
 import org.apache.commons.lang.NotImplementedException;
-
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class PlayerOpenBlockData extends BasePlayerChangeBlockData {
 
-    private static final AtomicInteger id = new AtomicInteger(0);
-    private final int uniqueID;
-
     public PlayerOpenBlockData(int transaction, int blockX, int blockY, int blockZ) {
         super(transaction, blockX, blockY, blockZ);
-        uniqueID = id.getAndIncrement();
     }
 
     @Override
@@ -22,7 +15,7 @@ public class PlayerOpenBlockData extends BasePlayerChangeBlockData {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(super.hashCode(), uniqueID);
+        return uniqueID;
     }
 
     @Override

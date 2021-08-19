@@ -12,4 +12,18 @@ public class ChangeBlockData extends BasePlayerChangeBlockData {
     public int getCombinedID() {
         return combinedID;
     }
+
+    @Override
+    public int hashCode() {
+        return uniqueID;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ChangeBlockData)) return false;
+        if (!super.equals(o)) return false;
+        ChangeBlockData that = (ChangeBlockData) o;
+        return combinedID == that.combinedID;
+    }
 }
