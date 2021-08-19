@@ -37,8 +37,23 @@ public class MovementTicker {
             player.clientVelocity = new Vector();
         }
 
+        Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+
+        double testX = inputVel.getX() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+        double testY = nonUncertainVector.getY() - SimpleCollisionBox.COLLISION_EPSILON;
+        double testZ = inputVel.getZ() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+        Vector plusCollide = Collisions.collide(player, testX, testY, testZ);
+
+        if (testX != plusCollide.getX()) {
+            player.clientVelocity.setX(0);
+        }
+
+        if (testZ != plusCollide.getZ()) {
+            player.clientVelocity.setZ(0);
+        }
+
         player.horizontalCollision = !GrimMathHelper.equal(inputVel.getX(), collide.getX()) || !GrimMathHelper.equal(inputVel.getZ(), collide.getZ());
-        player.verticalCollision = nonUncertainVector.getY() != Collisions.collide(player, 0, nonUncertainVector.getY(), 0).getY();
+        player.verticalCollision = nonUncertainVector.getY() - SimpleCollisionBox.COLLISION_EPSILON != plusCollide.getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
         // Stepping movement USUALLY means the vehicle in on the ground as vehicles can't jump
@@ -46,8 +61,6 @@ public class MovementTicker {
         // and would require a huge rewrite to support this rare edge case
         player.isActuallyOnGround = (player.verticalCollision && nonUncertainVector.getY() < 0.0D)
                 || (player.inVehicle && player.uncertaintyHandler.isStepMovement);
-
-        Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
         // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them
@@ -62,19 +75,6 @@ public class MovementTicker {
                 Bukkit.broadcastMessage("Desync " + player.onGround);
 
             player.onGround = player.isActuallyOnGround;
-        }
-
-        double testX = inputVel.getX() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-        double testY = inputVel.getY() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-        double testZ = inputVel.getZ() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-        Vector plusCollide = Collisions.collide(player, testX, testY, testZ);
-
-        if (testX != plusCollide.getX()) {
-            player.clientVelocity.setX(0);
-        }
-
-        if (testZ != plusCollide.getZ()) {
-            player.clientVelocity.setZ(0);
         }
 
         // This is around the place where the new bounding box gets set
