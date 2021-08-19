@@ -194,7 +194,7 @@ public class UncertaintyHandler {
     }
 
     public boolean controlsVerticalMovement() {
-        return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || influencedByBouncyBlock() || lastFlyingTicks < 3 || player.isGliding;
+        return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || influencedByBouncyBlock() || lastFlyingTicks < 3 || player.isGliding || player.isClimbing || player.lastWasClimbing != 0;
     }
 
     // 0.04 is safe for speed 10, 0.03 is unsafe

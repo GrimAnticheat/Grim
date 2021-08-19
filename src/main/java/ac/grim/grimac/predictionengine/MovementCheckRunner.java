@@ -9,6 +9,7 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -67,11 +68,6 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     public void processAndCheckMovementPacket(PredictionData data) {
-        // Client sends junk onGround data when they teleport
-        // The client also send junk onGround status on the first and second tick
-        if (data.player.packetStateData.movementPacketsReceived < 2 || data.isJustTeleported)
-            data.onGround = data.player.packetStateData.packetPlayerOnGround;
-
         Column column = data.player.compensatedWorld.getChunk(GrimMathHelper.floor(data.playerX) >> 4, GrimMathHelper.floor(data.playerZ) >> 4);
 
         // The player is in an unloaded chunk
@@ -165,9 +161,34 @@ public class MovementCheckRunner extends PositionCheck {
         // Update entities to get current vehicle
         player.compensatedEntities.tickUpdates(data.lastTransaction);
 
-        // Player was teleported, so therefore they left their vehicle
+        // Player was teleported, so they left their vehicle
         if (!data.inVehicle && data.isJustTeleported)
             player.playerVehicle = null;
+
+        // Teleporting is not a tick, don't run anything that we don't need to, to avoid falses
+        player.uncertaintyHandler.lastTeleportTicks--;
+        if (data.isJustTeleported) {
+            player.x = data.playerX;
+            player.y = data.playerY;
+            player.z = data.playerZ;
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.lastZ = player.z;
+            player.uncertaintyHandler.lastTeleportTicks = 0;
+
+            // Reset velocities
+            player.clientVelocity = new Vector();
+            player.lastWasClimbing = 0;
+            player.canSwimHop = false;
+
+            // Teleports mess with explosions and knockback
+            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
+            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
+
+            LogUtil.info(ChatColor.AQUA + "Player teleported!");
+
+            return;
+        }
 
         // The game's movement is glitchy when switching between vehicles
         player.vehicleData.lastVehicleSwitch++;
@@ -316,18 +337,6 @@ public class MovementCheckRunner extends PositionCheck {
         // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
         player.clientControlledHorizontalCollision = Math.min(GrimMathHelper.distanceToHorizontalCollision(player.x), GrimMathHelper.distanceToHorizontalCollision(player.z)) < 1e-6;
 
-        player.uncertaintyHandler.lastTeleportTicks--;
-        if (data.isJustTeleported) {
-            player.lastX = player.x;
-            player.lastY = player.y;
-            player.lastZ = player.z;
-            player.uncertaintyHandler.lastTeleportTicks = 0;
-
-            // Teleports mess with explosions and knockback
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
-            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
-        }
-
         player.uncertaintyHandler.lastSneakingChangeTicks--;
         if (player.isSneaking != player.wasSneaking)
             player.uncertaintyHandler.lastSneakingChangeTicks = 0;
@@ -381,11 +390,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.canGroundRiptide = false;
 
         // Exempt if the player is offline
-        if (data.isJustTeleported) {
-            // Don't let the player move if they just teleported
-            player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Teleport);
-            player.clientVelocity = new Vector();
-        } else if (player.bukkitPlayer.isDead() || (player.playerVehicle != null && player.playerVehicle.isDead)) {
+        if (player.bukkitPlayer.isDead() || (player.playerVehicle != null && player.playerVehicle.isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
