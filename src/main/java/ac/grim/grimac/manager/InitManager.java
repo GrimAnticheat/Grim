@@ -3,10 +3,7 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
 import ac.grim.grimac.manager.init.load.PaletteInit;
-import ac.grim.grimac.manager.init.start.EventManager;
-import ac.grim.grimac.manager.init.start.PacketManager;
-import ac.grim.grimac.manager.init.start.TickRunner;
-import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
+import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
@@ -27,6 +24,7 @@ public class InitManager {
                 .put(PacketManager.class, new PacketManager())
                 .put(ViaBackwardsManager.class, new ViaBackwardsManager())
                 .put(TickRunner.class, new TickRunner())
+                .put(TickEndEvent.class, new TickEndEvent())
                 .build();
 
         initializersOnStop = new ImmutableClassToInstanceMap.Builder<Initable>()
