@@ -31,7 +31,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         if (player == null) return;
         Block block = event.getBlock();
 
-        PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation()), block.getX(), block.getY(), block.getZ(), block.getBlockData());
+        PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ(), block.getBlockData());
         player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
@@ -42,7 +42,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         Block block = event.getBlock();
 
         // Even when breaking waterlogged stuff, the client assumes it will turn into air - which is fine with me
-        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation()), block.getX(), block.getY(), block.getZ(), 0);
+        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation(), player.compensatedWorld.packetBlockBreaks), block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
@@ -60,7 +60,7 @@ public class FlatPlayerBlockBreakPlace implements Listener {
 
         // Client side interactable -> Door, trapdoor, gate
         if (Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
-            PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation()), block.getX(), block.getY(), block.getZ());
+            PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ());
             player.compensatedWorld.worldChangedBlockQueue.add(data);
         }
     }

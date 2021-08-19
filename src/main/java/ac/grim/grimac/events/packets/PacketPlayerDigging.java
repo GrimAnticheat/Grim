@@ -57,7 +57,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
 
-            player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(dig.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
+            player.compensatedWorld.packetBlockBreaks.add(new BlockPlayerUpdate(dig.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
 
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
 
@@ -105,7 +105,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrappedPacketInUseItem item = new WrappedPacketInUseItem(event.getNMSPacket());
 
-            player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(item.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
+            player.compensatedWorld.packetBlockPlaces.add(new BlockPlayerUpdate(item.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
         }
 
         if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
@@ -136,7 +136,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // 1.9+ use the use item packet for this
             if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
                 // Support interacting with blocks, such as fence gates, and also placing blocks
-                player.compensatedWorld.packetBlockPositions.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
+                player.compensatedWorld.packetBlockPlaces.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
             }
 
             // This was an interaction with a block, not a use item
