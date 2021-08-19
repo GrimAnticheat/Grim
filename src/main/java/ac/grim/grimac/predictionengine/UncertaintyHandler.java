@@ -54,6 +54,8 @@ public class UncertaintyHandler {
     public boolean wasSteppingOnBouncyBlock = false;
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
+    // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
+    public boolean claimingLeftStuckSpeed = false;
     public int stuckOnEdge = 0;
     public boolean nextTickScaffoldingOnEdge = false;
     public boolean scaffoldingOnEdge = false;
@@ -139,6 +141,9 @@ public class UncertaintyHandler {
 
         if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6 || stuckOnEdge > -3)
             pointThree = Math.max(pointThree, 0.1);
+
+        if (player.uncertaintyHandler.claimingLeftStuckSpeed)
+            pointThree = Math.max(pointThree, 0.15);
 
         if (wasAffectedByStuckSpeed())
             pointThree = Math.max(pointThree, 0.08);
