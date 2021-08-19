@@ -484,7 +484,7 @@ public class Collisions {
     }
 
     public static boolean onMaterial(GrimPlayer player, Material material, double offset) {
-        SimpleCollisionBox playerBB = player.boundingBox.copy().offset(0, -1, 0);
+        SimpleCollisionBox playerBB = player.boundingBox.copy().expand(0.03).offset(0, -1, 0);
 
         // Blocks are stored in YZX order
         for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {

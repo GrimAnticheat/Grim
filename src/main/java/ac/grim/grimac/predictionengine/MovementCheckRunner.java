@@ -505,6 +505,10 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 0.25;
         }
 
+        if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
+            offset -= 0.06;
+        }
+
         // Checking slime is too complicated
         if (player.uncertaintyHandler.influencedByBouncyBlock()) {
             offset -= 0.03;
