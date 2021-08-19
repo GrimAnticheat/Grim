@@ -385,6 +385,41 @@ public class Collisions {
         }
     }
 
+    // 0.03 hack
+    public static boolean checkStuckSpeed(GrimPlayer player) {
+        // Use the bounding box for after the player's movement is applied
+        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-0.001);
+
+        Location blockPos = new Location(player.playerWorld, aABB.minX, aABB.minY, aABB.minZ);
+        Location blockPos2 = new Location(player.playerWorld, aABB.maxX, aABB.maxY, aABB.maxZ);
+
+        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
+            return false;
+
+        for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
+            for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
+                for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
+                    BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(i, j, k);
+                    Material blockType = block.getMaterial();
+
+                    if (blockType == COBWEB) {
+                        return true;
+                    }
+
+                    if (blockType == SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
+                        return true;
+                    }
+
+                    if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
     public static boolean isEmpty(GrimPlayer player, SimpleCollisionBox playerBB) {
         for (CollisionBox collisionBox : getCollisionBoxes(player, playerBB)) {
             if (collisionBox.isCollided(playerBB)) return false;

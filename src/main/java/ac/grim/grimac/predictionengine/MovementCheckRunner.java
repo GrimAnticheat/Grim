@@ -374,6 +374,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
         player.uncertaintyHandler.checkForHardCollision();
         player.uncertaintyHandler.thirtyMillionHardBorder.add(!player.inVehicle && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D));
+        player.uncertaintyHandler.claimingLeftStuckSpeed = player.stuckSpeedMultiplier.getX() < 1 && !Collisions.checkStuckSpeed(player);
 
         Vector backOff = Collisions.maybeBackOffFromEdge(player.clientVelocity, player, true);
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = player.clientVelocity.getX() != 0 && player.clientVelocity.getZ() != 0 && backOff.getX() == 0 && backOff.getZ() == 0;
@@ -497,11 +498,6 @@ public class MovementCheckRunner extends PositionCheck {
 
         if (Collections.max(player.uncertaintyHandler.flyingStatusSwitchHack)) {
             offset -= 0.25;
-        }
-
-        // Left stuck speed, give some lenience
-        if (player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.getFirst() && player.stuckSpeedMultiplier.getX() == 1) {
-            offset -= 0.03;
         }
 
         // Checking slime is too complicated
