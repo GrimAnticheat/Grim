@@ -268,8 +268,6 @@ public class Collisions {
     }
 
     private static boolean isAboveGround(GrimPlayer player) {
-        //Player bukkitPlayer = player.bukkitPlayer;
-
         return player.lastOnGround || player.fallDistance < player.getMaxUpStep() &&
                 !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0));
     }

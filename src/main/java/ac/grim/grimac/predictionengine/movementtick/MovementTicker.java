@@ -70,6 +70,12 @@ public class MovementTicker {
         // By running fluid pushing for the player
         if (!player.wasTouchingWater) {
             new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
+
+            if (player.onGround) {
+                player.fallDistance = 0;
+            } else if (collide.getY() < 0) {
+                player.fallDistance = (player.fallDistance) - collide.getY();
+            }
         }
         // Striders call the method for inside blocks AGAIN!
         if (player.playerVehicle instanceof PacketEntityStrider) {
