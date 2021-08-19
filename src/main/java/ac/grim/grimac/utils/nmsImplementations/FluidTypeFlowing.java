@@ -159,7 +159,9 @@ public class FluidTypeFlowing {
                     isSolid = pistonHead.getDirection() == direction;
                 } else if (blockMaterial == COMPOSTER) {
                     isSolid = true;
-                } else if (blockMaterial == SOUL_SAND || blockMaterial == ICE) {
+                } else if (blockMaterial == SOUL_SAND) {
+                    isSolid = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
+                } else if (blockMaterial == ICE) {
                     isSolid = false;
                 } else {
                     isSolid = CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
