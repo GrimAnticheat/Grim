@@ -66,7 +66,15 @@ public class PredictionEngine {
 
             double yVelocity = player.clientVelocity.getY();
 
-            if (Math.abs(yVelocity) < 0.03) {
+            // Vertical 0.03 where you collide upwards into a block
+            // TRAPDOOR
+            // AIR
+            // AIR
+            // STONE
+            // Jump from the stone into the trapdoor, and you just collided with the trapdoor in 0.03!
+            if (!Collisions.isEmpty(player, player.boundingBox.copy().offset(0, 0.03, 0))) {
+                player.uncertaintyHandler.gravityUncertainty -= 0.25;
+            } else if (Math.abs(yVelocity) < 0.03) {
                 // Falses with -0.16
                 player.uncertaintyHandler.gravityUncertainty -= 0.2;
             }
