@@ -525,7 +525,7 @@ public class MovementCheckRunner extends PositionCheck {
         //
         // I can't solve this.  This is on Mojang to fix.
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
-                (player.pose == Pose.SWIMMING || !Collisions.isEmpty(player, player.boundingBox)) && player.isClimbing
+                (player.pose == Pose.SWIMMING || !Collisions.isEmpty(player, player.boundingBox.copy().expand(-SimpleCollisionBox.COLLISION_EPSILON))) && player.isClimbing
                 && player.actualMovement.getY() < 0.1177 && player.actualMovement.getY() > -0.1501) {
             offset -= 0.06;
         }
