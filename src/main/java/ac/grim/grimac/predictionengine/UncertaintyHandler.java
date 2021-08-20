@@ -132,32 +132,31 @@ public class UncertaintyHandler {
     public double getOffsetHorizontal(VectorData data) {
         double pointThree = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
 
-        // 0.03 plus being able to maintain velocity even when shifting is brutal
-        if (stuckOnEdge == -2 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
-            pointThree = Math.max(pointThree, player.speed * 2);
-
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.influencedByBouncyBlock())
-            pointThree = Math.max(pointThree, 0.1);
-
-        if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6 || stuckOnEdge > -3)
-            pointThree = Math.max(pointThree, 0.1);
-
-        if (player.uncertaintyHandler.claimingLeftStuckSpeed)
-            pointThree = Math.max(pointThree, 0.15);
+        if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
+            pointThree = 0.06;
 
         if (wasAffectedByStuckSpeed())
-            pointThree = Math.max(pointThree, 0.08);
+            pointThree = 0.08;
 
-        if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
-            pointThree = Math.max(pointThree, 0.06);
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.influencedByBouncyBlock())
+            pointThree = 0.1;
+
+        if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6 || stuckOnEdge > -3)
+            pointThree = 0.1;
+
+        if (player.uncertaintyHandler.claimingLeftStuckSpeed)
+            pointThree = 0.15;
+
+        if (Collections.max(thirtyMillionHardBorder))
+            pointThree = 0.15;
 
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
             pointThree = Math.max(pointThree, player.speed * 1.6);
         }
 
-        if (Collections.max(thirtyMillionHardBorder)) {
-            pointThree = Math.max(pointThree, 0.15);
-        }
+        // 0.03 plus being able to maintain velocity even when shifting is brutal
+        if (stuckOnEdge == -2 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
+            pointThree = Math.max(pointThree, player.speed * 2);
 
         return pointThree;
     }
@@ -180,6 +179,9 @@ public class UncertaintyHandler {
 
         if (Collections.max(thirtyMillionHardBorder))
             return 0.15;
+
+        if (influencedByBouncyBlock() && player.actualMovement.getY() < 0.2)
+            return 0.1;
 
         if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
             return 0.06;
@@ -227,6 +229,7 @@ public class UncertaintyHandler {
                 for (VectorData data : possibleVelocities)
                     player.couldSkipTick = player.couldSkipTick || data.vector.lengthSquared() < threshold;
             }
+
             return player.couldSkipTick;
         }
     }
