@@ -196,6 +196,11 @@ public class MovementCheckRunner extends PositionCheck {
             data.isJustTeleported = true;
         }
 
+        if (player.isInBed != player.lastInBed) {
+            data.isJustTeleported = true;
+        }
+        player.lastInBed = player.isInBed;
+
         // Teleporting is not a tick, don't run anything that we don't need to, to avoid falses
         player.uncertaintyHandler.lastTeleportTicks--;
         if (data.isJustTeleported) {
@@ -220,6 +225,9 @@ public class MovementCheckRunner extends PositionCheck {
 
             return;
         }
+
+        // Don't check sleeping players
+        if (player.isInBed) return;
 
         if (!player.inVehicle) {
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
