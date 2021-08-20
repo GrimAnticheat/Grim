@@ -430,8 +430,9 @@ public class PredictionEngine {
             // is incompetent at modern netcode
             // The player changed their sneaking within 3 ticks of this
             // And the player's pose is standing or crouching (no gliding/swimming)
+            // Falses when set to -4, so therefore set to -5
             loopCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
-                    player.uncertaintyHandler.lastSneakingChangeTicks > -3 &&
+                    player.uncertaintyHandler.lastSneakingChangeTicks > -5 &&
                     (player.pose == Pose.STANDING || player.pose == Pose.CROUCHING);
             if (loopCrouching) {
                 player.isCrouching = !player.isCrouching;
