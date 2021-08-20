@@ -72,10 +72,10 @@ public class PredictionEngine {
             // AIR
             // STONE
             // Jump from the stone into the trapdoor, and you just collided with the trapdoor in 0.03!
-            if (!Collisions.isEmpty(player, player.boundingBox.copy().offset(0, 0.03, 0))) {
+            if (yVelocity > 0 && !Collisions.isEmpty(player, player.boundingBox.copy().expand(-SimpleCollisionBox.COLLISION_EPSILON).offset(0, 0.03, 0))) {
                 // Wow, this can really mess things up!
                 // Allow the player's Y velocity to get set back to 0, minus the normal gravity uncertainty
-                player.uncertaintyHandler.gravityUncertainty += (-player.clientVelocity.getY() - 0.2);
+                player.uncertaintyHandler.gravityUncertainty += (-yVelocity - 0.2);
             } else if (Math.abs(yVelocity) < 0.03) {
                 // Falses with -0.16
                 player.uncertaintyHandler.gravityUncertainty -= 0.2;
@@ -125,7 +125,7 @@ public class PredictionEngine {
             double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
 
             // Magic Values - prioritize knockback/explosion velocities over normal ones
-            if (player.likelyKB != null && player.likelyKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
+            /*if (player.likelyKB != null && player.likelyKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
                 resultAccuracy += 0.001;
 
             if (player.firstBreadKB != null && player.firstBreadKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
@@ -135,7 +135,7 @@ public class PredictionEngine {
                 resultAccuracy += 0.001;
 
             if (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
-                resultAccuracy += 0.001;
+                resultAccuracy += 0.001;*/
 
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
