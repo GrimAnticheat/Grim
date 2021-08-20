@@ -29,7 +29,7 @@ public class SmallOffsetHandler extends PostPredictionCheck {
         }
 
         if (getBuffer() == 0) {
-            player.teleportUtil.blockMovementsUntilResync(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ), player.xRot, player.yRot, player.clientVelocity, player.vehicle, player.lastTransactionReceived);
+            player.teleportUtil.blockMovementsUntilResync(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, player.clientVelocity, player.vehicle, player.lastTransactionReceived);
             Bukkit.broadcastMessage(ChatColor.RED + "Small buffer has run out!  Setting back");
         }
 

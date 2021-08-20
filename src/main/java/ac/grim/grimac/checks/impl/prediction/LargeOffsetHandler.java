@@ -21,7 +21,7 @@ public class LargeOffsetHandler extends PostPredictionCheck {
         double offset = predictionComplete.getOffset();
 
         if (offset > 0.01) {
-            player.teleportUtil.blockMovementsUntilResync(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ), player.xRot, player.yRot, player.clientVelocity, player.vehicle, player.lastTransactionReceived);
+            player.teleportUtil.blockMovementsUntilResync(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, player.clientVelocity, player.vehicle, player.lastTransactionReceived);
             Bukkit.broadcastMessage(ChatColor.RED + "Large offset detected!  Setting back. Offset: " + offset);
         }
     }
