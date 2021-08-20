@@ -73,7 +73,9 @@ public class PredictionEngine {
             // STONE
             // Jump from the stone into the trapdoor, and you just collided with the trapdoor in 0.03!
             if (!Collisions.isEmpty(player, player.boundingBox.copy().offset(0, 0.03, 0))) {
-                player.uncertaintyHandler.gravityUncertainty -= 0.25;
+                // Wow, this can really mess things up!
+                // Allow the player's Y velocity to get set back to 0, minus the normal gravity uncertainty
+                player.uncertaintyHandler.gravityUncertainty += (-player.clientVelocity.getY() - 0.2);
             } else if (Math.abs(yVelocity) < 0.03) {
                 // Falses with -0.16
                 player.uncertaintyHandler.gravityUncertainty -= 0.2;
