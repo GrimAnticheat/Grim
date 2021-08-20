@@ -107,6 +107,8 @@ public class GrimPlayer {
     // Determining slow movement has to be done before pose is updated
     public boolean isSlowMovement = false;
     public World playerWorld;
+    public boolean isInBed = false;
+    public boolean lastInBed = false;
     public int jumpAmplifier;
     public int levitationAmplifier;
     public int slowFallingAmplifier;
@@ -173,14 +175,14 @@ public class GrimPlayer {
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
-    PacketTracker packetTracker;
-    private ClientVersion clientVersion;
-    private int transactionPing = 0;
-    private long playerClockAtLeast = 0;
     public boolean inVehicle;
     public Integer vehicle = null;
     public PacketEntity playerVehicle;
     public PacketEntity lastVehicle;
+    PacketTracker packetTracker;
+    private ClientVersion clientVersion;
+    private int transactionPing = 0;
+    private long playerClockAtLeast = 0;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;

@@ -55,7 +55,7 @@ public class PlayerBaseTick {
 
         player.isCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
                 && ((player.isCrouching || player.getClientVersion().isNewerThan(ClientVersion.v_1_14_4) ? player.wasSneaking : player.isSneaking)
-                || player.bukkitPlayer.isSleeping() || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
+                || player.isInBed || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
                 : player.isSneaking; // Sneaking on 1.7-1.13 is just the status the player sends us.  Nothing complicated.
         player.isSlowMovement = player.isCrouching || (player.pose == Pose.SWIMMING && !player.wasTouchingWater);
 
@@ -74,12 +74,46 @@ public class PlayerBaseTick {
         updatePlayerPose();
     }
 
+    private void updateFluidOnEyes() {
+        player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
+        player.fluidOnEyes = null;
+        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.isInBed, player.getClientVersion()) - 0.1111111119389534D;
+
+        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+            return;
+        }
+
+        double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
+        if (d1 > d0) {
+            player.fluidOnEyes = FluidTag.WATER;
+            return;
+        }
+
+        d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
+        if (d1 > d0) {
+            player.fluidOnEyes = FluidTag.LAVA;
+        }
+    }
+
+    public void updateInWaterStateAndDoFluidPushing() {
+        updateInWaterStateAndDoWaterCurrentPushing();
+        double d = player.playerWorld.getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
+        // 1.15 and below clients use block collisions to check for being in lava
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16))
+            player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
+            // 1.13 and below clients use this stupid method to check if in lava
+        else if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14)) {
+            SimpleCollisionBox playerBox = player.boundingBox.copy().expand(-0.1F, -0.4F, -0.1F);
+            player.wasTouchingLava = player.compensatedWorld.containsLava(playerBox);
+        }
+    }
+
     protected void updatePlayerPose() {
         if (canEnterPose(player, Pose.SWIMMING, player.x, player.y, player.z)) {
             Pose pose;
             if (player.isGliding) {
                 pose = Pose.FALL_FLYING;
-            } else if (player.bukkitPlayer.isSleeping()) {
+            } else if (player.isInBed) {
                 pose = Pose.SLEEPING;
             } else if (player.isSwimming) {
                 pose = Pose.SWIMMING;
@@ -105,40 +139,6 @@ public class PlayerBaseTick {
             }
 
             player.pose = pose;
-        }
-    }
-
-    public void updateInWaterStateAndDoFluidPushing() {
-        updateInWaterStateAndDoWaterCurrentPushing();
-        double d = player.playerWorld.getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
-        // 1.15 and below clients use block collisions to check for being in lava
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16))
-            player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
-            // 1.13 and below clients use this stupid method to check if in lava
-        else if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14)) {
-            SimpleCollisionBox playerBox = player.boundingBox.copy().expand(-0.1F, -0.4F, -0.1F);
-            player.wasTouchingLava = player.compensatedWorld.containsLava(playerBox);
-        }
-    }
-
-    private void updateFluidOnEyes() {
-        player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
-        player.fluidOnEyes = null;
-        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.bukkitPlayer.isSleeping(), player.getClientVersion()) - 0.1111111119389534D;
-
-        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
-            return;
-        }
-
-        double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
-        if (d1 > d0) {
-            player.fluidOnEyes = FluidTag.WATER;
-            return;
-        }
-
-        d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
-        if (d1 > d0) {
-            player.fluidOnEyes = FluidTag.LAVA;
         }
     }
 
