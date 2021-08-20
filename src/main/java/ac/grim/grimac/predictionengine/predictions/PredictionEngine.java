@@ -124,16 +124,16 @@ public class PredictionEngine {
 
             // Magic Values - prioritize knockback/explosion velocities over normal ones
             if (player.likelyKB != null && player.likelyKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
-                resultAccuracy += 0.0005;
+                resultAccuracy += 0.001;
 
             if (player.firstBreadKB != null && player.firstBreadKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
-                resultAccuracy += 0.0005;
+                resultAccuracy += 0.001;
 
             if (player.likelyExplosions != null && player.likelyExplosions.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
-                resultAccuracy += 0.0005;
+                resultAccuracy += 0.001;
 
             if (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
-                resultAccuracy += 0.0005;
+                resultAccuracy += 0.001;
 
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);

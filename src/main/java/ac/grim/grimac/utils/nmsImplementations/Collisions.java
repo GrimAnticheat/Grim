@@ -61,7 +61,16 @@ public class Collisions {
             Vector collisionResult = collideBoundingBoxLegacy(player, new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
-            boolean movingIntoGround = player.lastOnGround || collisionResult.getY() != desiredY && desiredY < 0.0D;
+            boolean movingIntoGround = player.lastOnGround || (collisionResult.getY() != desiredY && desiredY < 0D) ||
+                    // If the player is claiming that they were stepping
+                    // And the player's Y velocity is "close enough" to being downwards
+                    // And the last movement was 0.03 messing up stepping
+                    // Using 0.0009 as a magic value does not allow 1.8- clients to step onto 1.25 blocks!
+                    // As the max Y in jumping is 1.249 blocks in 1.8-, and 1.252 blocks in 1.9+
+                    // Unless 0.03 was combining with something to allow this
+                    // I don't know what client would even have a cheat like this, as highjump and most steps wouldn't work.
+                    (player.actualMovement.getY() > 0 && desiredY > 0 && desiredY < 0.0009 && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree
+                            && player.uncertaintyHandler.lastMovementWasZeroPointZeroThree);
             double stepUpHeight = player.getMaxUpStep();
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
