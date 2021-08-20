@@ -215,7 +215,7 @@ public class UncertaintyHandler {
         } else if (wasAffectedByStuckSpeed()) {
             gravityUncertainty = -0.08;
             return true;
-        } else if (influencedByBouncyBlock() && Math.abs(player.clientVelocity.getY()) < 0.2) {
+        } else if (player.wasTouchingLava || (influencedByBouncyBlock() && Math.abs(player.clientVelocity.getY()) < 0.2)) {
             return true;
         } else if (lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket) {
             return true;
