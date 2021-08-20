@@ -501,13 +501,13 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 0.25;
         }
 
-        if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
-            offset -= 0.06;
+        // Checking slime is too complicated
+        if (player.uncertaintyHandler.influencedByBouncyBlock() && player.actualMovement.length() < 0.418) {
+            offset -= 0.1;
         }
 
-        // Checking slime is too complicated
-        if (player.uncertaintyHandler.influencedByBouncyBlock()) {
-            offset -= 0.03;
+        if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
+            offset -= 0.06;
         }
 
         // I can't figure out how the client exactly tracks boost time
