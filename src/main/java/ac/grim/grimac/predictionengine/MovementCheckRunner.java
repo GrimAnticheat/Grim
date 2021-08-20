@@ -166,31 +166,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (!data.inVehicle && data.isJustTeleported)
             player.playerVehicle = null;
 
-        // Teleporting is not a tick, don't run anything that we don't need to, to avoid falses
-        player.uncertaintyHandler.lastTeleportTicks--;
-        if (data.isJustTeleported) {
-            player.x = data.playerX;
-            player.y = data.playerY;
-            player.z = data.playerZ;
-            player.lastX = player.x;
-            player.lastY = player.y;
-            player.lastZ = player.z;
-            player.uncertaintyHandler.lastTeleportTicks = 0;
-
-            // Reset velocities
-            player.clientVelocity = new Vector();
-            player.lastWasClimbing = 0;
-            player.canSwimHop = false;
-
-            // Teleports mess with explosions and knockback
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
-            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
-
-            LogUtil.info(ChatColor.AQUA + "Player teleported!");
-
-            return;
-        }
-
         // The game's movement is glitchy when switching between vehicles
         player.vehicleData.lastVehicleSwitch++;
         if (player.lastVehicle != player.playerVehicle) {
@@ -216,8 +191,34 @@ public class MovementCheckRunner extends PositionCheck {
         if (!data.inVehicle && player.vehicle != null)
             return;
 
+        // TODO: Sanity check vehicle position to stop a theoretical teleport bypass
         if (player.playerVehicle != player.lastVehicle) {
             data.isJustTeleported = true;
+        }
+
+        // Teleporting is not a tick, don't run anything that we don't need to, to avoid falses
+        player.uncertaintyHandler.lastTeleportTicks--;
+        if (data.isJustTeleported) {
+            player.x = data.playerX;
+            player.y = data.playerY;
+            player.z = data.playerZ;
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.lastZ = player.z;
+            player.uncertaintyHandler.lastTeleportTicks = 0;
+
+            // Reset velocities
+            player.clientVelocity = new Vector();
+            player.lastWasClimbing = 0;
+            player.canSwimHop = false;
+
+            // Teleports mess with explosions and knockback
+            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
+            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
+
+            LogUtil.info(ChatColor.AQUA + "Player teleported!");
+
+            return;
         }
 
         if (!player.inVehicle) {
