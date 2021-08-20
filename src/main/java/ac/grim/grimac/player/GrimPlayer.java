@@ -109,6 +109,7 @@ public class GrimPlayer {
     public World playerWorld;
     public boolean isInBed = false;
     public boolean lastInBed = false;
+    public boolean isDead = false;
     public int jumpAmplifier;
     public int levitationAmplifier;
     public int slowFallingAmplifier;
@@ -139,7 +140,6 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean clientControlledHorizontalCollision;
     public boolean clientControlledVerticalCollision;
-    public boolean lastClimbing;
     public boolean couldSkipTick = false;
     public boolean canGroundRiptide = false;
     // You cannot initialize everything here for some reason

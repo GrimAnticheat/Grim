@@ -114,7 +114,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
     @Override
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
-        if (player.lastClimbing) {
+        if (player.isClimbing) {
             // Reset fall distance when climbing
             player.fallDistance = 0;
 

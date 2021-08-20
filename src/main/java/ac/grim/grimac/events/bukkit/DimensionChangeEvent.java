@@ -8,7 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class DimensionChangeEvent implements Listener {
-    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerTeleportEvent(PlayerTeleportEvent event) {
         // How can getTo be null?
         if (event.getTo() != null && event.getFrom().getWorld() != event.getTo().getWorld()) {

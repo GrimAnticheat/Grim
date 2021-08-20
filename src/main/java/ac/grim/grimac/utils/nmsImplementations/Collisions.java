@@ -515,8 +515,8 @@ public class Collisions {
         return false;
     }
 
-    public static boolean onClimbable(GrimPlayer player) {
-        BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(player.x, player.y, player.z);
+    public static boolean onClimbable(GrimPlayer player, double x, double y, double z) {
+        BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
         Material blockMaterial = blockState.getMaterial();
 
         if (Materials.checkFlag(blockMaterial, Materials.CLIMBABLE)) {
@@ -528,7 +528,7 @@ public class Collisions {
             return true;
         }
 
-        return trapdoorUsableAsLadder(player, player.x, player.y, player.z, blockState);
+        return trapdoorUsableAsLadder(player, x, y, z, blockState);
     }
 
     private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, BaseBlockState
