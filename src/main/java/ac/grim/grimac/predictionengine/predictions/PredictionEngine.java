@@ -107,6 +107,10 @@ public class PredictionEngine {
                 player.boundingBox = originalBB;
             }
 
+            // Fix stepping issue with uncertain gravity from the last tick
+            if (player.actualMovement.getY() > 0 && additionalPushMovement.getY() < 0 && player.uncertaintyHandler.wasLastGravityUncertain)
+                additionalPushMovement.setY(additionalPushMovement.getY() - 0.3);
+
             Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
 
             Vector handleHardCodedBorder = outputVel;

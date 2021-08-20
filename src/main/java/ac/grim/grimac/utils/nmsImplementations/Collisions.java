@@ -74,11 +74,7 @@ public class Collisions {
                             && player.uncertaintyHandler.lastMovementWasZeroPointZeroThree)
                     // Fix a false with cobwebs on top of soul sand (0.03)
                     || (player.uncertaintyHandler.wasAffectedByStuckSpeed() && desiredY < 0 && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
-                    || ((player.wasTouchingWater || player.wasTouchingLava) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
-                    // Fix a false with 0.03 onto slab movement
-                    || (player.uncertaintyHandler.wasLastGravityUncertain &&
-                    collideBoundingBoxLegacy(player, new Vector(0, -SimpleCollisionBox.COLLISION_EPSILON * 2, 0), newBB, desiredMovementCollisionBoxes, order).getY()
-                            != SimpleCollisionBox.COLLISION_EPSILON);
+                    || ((player.wasTouchingWater || player.wasTouchingLava) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree);
             double stepUpHeight = player.getMaxUpStep();
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
