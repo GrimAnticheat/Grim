@@ -138,7 +138,7 @@ public class UncertaintyHandler {
         if (wasAffectedByStuckSpeed())
             pointThree = 0.08;
 
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && player.uncertaintyHandler.influencedByBouncyBlock())
+        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && (influencedByBouncyBlock() || isSteppingOnIce))
             pointThree = 0.1;
 
         if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6 || stuckOnEdge > -3)
@@ -199,15 +199,6 @@ public class UncertaintyHandler {
         return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || influencedByBouncyBlock() || lastFlyingTicks < 3 || player.isGliding || player.isClimbing || player.lastWasClimbing != 0;
     }
 
-    // 0.04 is safe for speed 10, 0.03 is unsafe
-    // 0.0016 is safe for speed 1, 0.09 is unsafe
-    //
-    // Taking these approximate values gives us this, the same 0.03 value for each speed
-    // Don't give bonus for sprinting because sprinting against walls isn't possible
-    public double getZeroPointZeroThreeThreshold() {
-        return 0.096 * (player.speed / (player.isSprinting ? 1.3d : 1)) - 0.008;
-    }
-
     public boolean canSkipTick(List<VectorData> possibleVelocities) {
         // 0.03 is very bad with stuck speed multipliers
         if (player.inVehicle) {
@@ -232,6 +223,15 @@ public class UncertaintyHandler {
 
             return player.couldSkipTick;
         }
+    }
+
+    // 0.04 is safe for speed 10, 0.03 is unsafe
+    // 0.0016 is safe for speed 1, 0.09 is unsafe
+    //
+    // Taking these approximate values gives us this, the same 0.03 value for each speed
+    // Don't give bonus for sprinting because sprinting against walls isn't possible
+    public double getZeroPointZeroThreeThreshold() {
+        return 0.096 * (player.speed / (player.isSprinting ? 1.3d : 1)) - 0.008;
     }
 
     public void checkForHardCollision() {
