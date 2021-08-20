@@ -132,8 +132,8 @@ public class CompensatedWorld {
             activePistons.add(data);
         }
 
-        // 5 ticks is more than enough for everything that needs to be processed to be processed
-        packetBlockPlaces.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 5);
+        // 3 ticks is enough for everything that needs to be processed to be processed
+        packetBlockPlaces.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
         packetBlockBreaks.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 5);
     }
 
