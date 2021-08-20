@@ -32,7 +32,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.retrooper:packetevents:4bbf43e'
+    implementation 'com.github.retrooper:packetevents:d01fdce'
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.4'
     implementation 'fr.mrmicky:FastParticles:2.0.0'

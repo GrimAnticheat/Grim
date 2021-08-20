@@ -485,12 +485,8 @@ public class MovementCheckRunner extends PositionCheck {
         Vector offsetVector = player.predictedVelocity.vector.clone().subtract(player.actualMovement);
         double offset = offsetVector.length();
 
-        // Exempt 1.7 players from piston checks by giving them 1 block of lenience for any piston pushing
-        // ViaVersion is modifying their movement which messes us up
-        //
-        // This does NOT apply for 1.8 and above players
-        // Anyways, 1.7 clients are more used on arena PvP servers or other gamemodes without pistons
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && Collections.max(player.uncertaintyHandler.pistonPushing) > 0) {
+        // Exempt players from piston checks by giving them 1 block of lenience for any piston pushing
+        if (Collections.max(player.uncertaintyHandler.pistonPushing) > 0) {
             offset -= 1;
         }
 
