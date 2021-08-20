@@ -53,6 +53,7 @@ public class Collisions {
         if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
 
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ));
+        SimpleCollisionBox newBB = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).expand(-SimpleCollisionBox.COLLISION_EPSILON);
 
         double bestInput = Double.MAX_VALUE;
         Vector bestOrderResult = null;
@@ -71,9 +72,13 @@ public class Collisions {
                     // I don't know what client would even have a cheat like this, as highjump and most steps wouldn't work.
                     (player.actualMovement.getY() > 0 && desiredY > 0 && desiredY < 0.0009 && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree
                             && player.uncertaintyHandler.lastMovementWasZeroPointZeroThree)
-                    // Fix a false with cobwebs on top of soul sand
+                    // Fix a false with cobwebs on top of soul sand (0.03)
                     || (player.uncertaintyHandler.wasAffectedByStuckSpeed() && desiredY < 0 && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
-                    || ((player.wasTouchingWater || player.wasTouchingLava) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree);
+                    || ((player.wasTouchingWater || player.wasTouchingLava) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
+                    // Fix a false with 0.03 onto slab movement
+                    || (player.uncertaintyHandler.wasLastGravityUncertain &&
+                    collideBoundingBoxLegacy(player, new Vector(0, -SimpleCollisionBox.COLLISION_EPSILON * 2, 0), newBB, desiredMovementCollisionBoxes, order).getY()
+                            != SimpleCollisionBox.COLLISION_EPSILON);
             double stepUpHeight = player.getMaxUpStep();
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
