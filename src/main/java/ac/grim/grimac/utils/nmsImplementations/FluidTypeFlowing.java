@@ -160,7 +160,7 @@ public class FluidTypeFlowing {
                 } else if (blockMaterial == COMPOSTER) {
                     isSolid = true;
                 } else if (blockMaterial == SOUL_SAND) {
-                    isSolid = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
+                    isSolid = player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
                 } else if (blockMaterial == ICE) {
                     isSolid = false;
                 } else {
