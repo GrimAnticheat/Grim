@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
@@ -20,7 +21,7 @@ public class PistonEvent implements Listener {
     Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
     Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPistonPushEvent(BlockPistonExtendEvent event) {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;
@@ -71,7 +72,7 @@ public class PistonEvent implements Listener {
     // But as this is insanely gitchy due to bukkit I don't care.
     // The lenience is never actually given because of collisions hitting the piston base
     // Blocks outside the piston head give only as much lenience as needed
-    @EventHandler
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPistonRetractEvent(BlockPistonRetractEvent event) {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;

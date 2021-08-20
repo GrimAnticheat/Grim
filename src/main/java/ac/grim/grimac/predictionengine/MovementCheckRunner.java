@@ -328,9 +328,9 @@ public class MovementCheckRunner extends PositionCheck {
         player.isSprinting = data.isSprinting;
         player.wasSneaking = player.isSneaking;
         player.isSneaking = data.isSneaking;
+        player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
 
         player.isFlying = player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
-        player.isClimbing = Collisions.onClimbable(player);
         player.isGliding = player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction) && !player.isFlying;
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
         player.isRiptidePose = player.compensatedRiptide.getPose(data.lastTransaction);
@@ -574,7 +574,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.lastXRot = player.xRot;
         player.lastYRot = player.yRot;
         player.lastOnGround = player.onGround;
-        player.lastClimbing = player.isClimbing;
 
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
