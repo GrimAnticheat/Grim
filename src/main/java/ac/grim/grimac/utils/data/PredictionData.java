@@ -5,7 +5,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import org.bukkit.GameMode;
-import org.bukkit.World;
 
 public class PredictionData {
     public GrimPlayer player;
@@ -20,7 +19,6 @@ public class PredictionData {
     public boolean isTryingToRiptide = false;
     public AlmostBoolean isUsingItem = AlmostBoolean.FALSE;
     public Hand usingHand = Hand.MAIN_HAND;
-    public World playerWorld;
     public GameMode gameMode;
     public float flySpeed;
     public float vehicleHorizontal;
@@ -62,7 +60,6 @@ public class PredictionData {
         this.isUsingItem = player.packetStateData.slowedByUsingItem;
         this.usingHand = player.packetStateData.eatingHand;
 
-        this.playerWorld = player.bukkitPlayer.getWorld();
         this.gameMode = player.packetStateData.gameMode;
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
 
@@ -97,7 +94,6 @@ public class PredictionData {
         this.vehicleForward = player.packetStateData.packetVehicleForward;
         this.vehicleHorizontal = player.packetStateData.packetVehicleHorizontal;
 
-        this.playerWorld = player.bukkitPlayer.getWorld();
         this.gameMode = player.packetStateData.gameMode;
 
         minimumTickRequiredToContinue = GrimAPI.INSTANCE.getTickManager().getTick() + 3;
