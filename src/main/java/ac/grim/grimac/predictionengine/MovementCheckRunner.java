@@ -333,7 +333,6 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.minPlayerAttackSlow = data.minPlayerAttackSlow;
         player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
-        player.playerWorld = data.playerWorld;
 
         player.clientControlledVerticalCollision = Math.abs(player.y % (1 / 64D)) < 0.00001;
         // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
@@ -540,6 +539,8 @@ public class MovementCheckRunner extends PositionCheck {
 
         // Don't check players who are offline
         if (!player.bukkitPlayer.isOnline()) return;
+        // Don't check players who just switched worlds
+        if (player.playerWorld != player.bukkitPlayer.getWorld()) return;
 
         player.checkManager.onPredictionFinish(new PredictionComplete(offset));
 

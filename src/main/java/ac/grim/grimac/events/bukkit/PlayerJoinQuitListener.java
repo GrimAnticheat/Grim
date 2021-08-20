@@ -37,6 +37,7 @@ public class PlayerJoinQuitListener implements Listener {
             return;
         }
 
+        player.playerWorld = bukkitPlayer.getLocation().getWorld();
         player.x = bukkitPlayer.getLocation().getX();
         player.y = bukkitPlayer.getLocation().getY();
         player.z = bukkitPlayer.getLocation().getZ();

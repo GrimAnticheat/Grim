@@ -16,6 +16,7 @@ public class DimensionChangeEvent implements Listener {
             if (player != null) {
                 player.sendAndFlushTransactionOrPingPong();
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isPacketSneaking = false);
+                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.playerWorld = event.getTo().getWorld());
             }
         }
     }
