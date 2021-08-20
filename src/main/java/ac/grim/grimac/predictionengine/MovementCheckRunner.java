@@ -19,6 +19,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
+import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMathHelper;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
@@ -507,6 +508,17 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
+            offset -= 0.06;
+        }
+
+        // ... how does the player get the swimming pose while climbing?
+        // It's a combination of client/server desync
+        // desync caused by 0.03 and the lack of an idle packet
+        //
+        // I can't solve this.  This is on Mojang to fix.
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
+                (player.pose == Pose.SWIMMING || !Collisions.isEmpty(player, player.boundingBox)) && player.isClimbing
+                && player.actualMovement.getY() < 0.1177 && player.actualMovement.getY() > -0.1501) {
             offset -= 0.06;
         }
 
