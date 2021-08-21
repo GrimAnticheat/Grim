@@ -90,6 +90,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
             player.packetStateData.didLastMovementIncludePosition = hasPosition;
             player.packetStateData.movementPacketsReceived++;
+            player.teleportUtil.tryResendExpiredSetback();
         }
 
         if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
@@ -101,6 +102,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;
+            player.teleportUtil.tryResendExpiredSetback();
         }
 
         // Call the packet checks last as they can modify the contents of the packet
