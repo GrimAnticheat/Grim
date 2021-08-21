@@ -399,7 +399,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.canGroundRiptide = false;
 
         // Exempt if the player is offline
-        if (player.bukkitPlayer.isDead() || (player.playerVehicle != null && player.playerVehicle.isDead)) {
+        if (player.isDead || (player.playerVehicle != null && player.playerVehicle.isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
@@ -469,9 +469,6 @@ public class MovementCheckRunner extends PositionCheck {
 
             new PlayerBaseTick(player).doBaseTick();
             new MovementTickerPlayer(player).livingEntityAIStep();
-
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2))
-                new PlayerBaseTick(player).updatePlayerSize();
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities

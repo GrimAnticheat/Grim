@@ -75,6 +75,8 @@ public class PlayerBaseTick {
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
             updatePlayerPose();
+        else
+            updatePlayerSize();
     }
 
     private void updateFluidOnEyes() {
