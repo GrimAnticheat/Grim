@@ -12,6 +12,8 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
+import java.util.List;
+
 public class PlayerBaseTick {
     GrimPlayer player;
 
@@ -71,12 +73,14 @@ public class PlayerBaseTick {
         float f = BlockProperties.getBlockSpeedFactor(player);
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
 
-        updatePlayerPose();
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
+            updatePlayerPose();
     }
 
     private void updateFluidOnEyes() {
         player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
         player.fluidOnEyes = null;
+
         double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.isInBed, player.getClientVersion()) - 0.1111111119389534D;
 
         if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
@@ -108,6 +112,7 @@ public class PlayerBaseTick {
         }
     }
 
+    // 1.14
     protected void updatePlayerPose() {
         if (canEnterPose(player, Pose.SWIMMING, player.x, player.y, player.z)) {
             Pose pose;
@@ -139,6 +144,41 @@ public class PlayerBaseTick {
             }
 
             player.pose = pose;
+        }
+    }
+
+    // 1.13 and below
+    public void updatePlayerSize() {
+        Pose pose;
+        if (player.isGliding) {
+            pose = Pose.FALL_FLYING;
+        } else if (player.isInBed) {
+            pose = Pose.SLEEPING;
+        } else if (!player.isSwimming && !player.isRiptidePose) {
+            if (player.isSneaking && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+                pose = Pose.NINE_CROUCHING;
+            } else {
+                pose = Pose.STANDING;
+            }
+        } else {
+            pose = Pose.SWIMMING;
+        }
+
+        // 1.13 actually compares widths and heights etc. but this should also work.
+        if (pose != player.pose) {
+            Pose oldPose = player.pose;
+            player.pose = pose;
+
+            SimpleCollisionBox box = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
+            List<SimpleCollisionBox> intersect = Collisions.getCollisionBoxes(player, box);
+
+            for (SimpleCollisionBox box2 : intersect) {
+                if (box2.isIntersected(box)) {
+                    // Revert, the player does not have room to enter this new pose
+                    player.pose = oldPose;
+                    return;
+                }
+            }
         }
     }
 

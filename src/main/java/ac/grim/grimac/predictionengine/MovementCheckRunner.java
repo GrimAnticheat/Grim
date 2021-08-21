@@ -469,6 +469,9 @@ public class MovementCheckRunner extends PositionCheck {
 
             new PlayerBaseTick(player).doBaseTick();
             new MovementTickerPlayer(player).livingEntityAIStep();
+
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2))
+                new PlayerBaseTick(player).updatePlayerSize();
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
@@ -517,6 +520,12 @@ public class MovementCheckRunner extends PositionCheck {
 
         if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
             offset -= 0.06;
+        }
+
+        // I can't figure out what 1.13 is doing with swimming, and it isn't worth my time to figure it out.
+        if (player.wasTouchingWater && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
+            if (player.compensatedWorld.containsWater(player.boundingBox.copy().expand(2)))
+                offset -= 0.01;
         }
 
         // ... how does the player get the swimming pose while climbing?
