@@ -8,7 +8,6 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -62,51 +61,9 @@ public class TeleportUtil {
             break;
         }
 
-        return false;
-    }
-
-    public boolean checkVehicleTeleportQueue(double x, double y, double z) {
-        int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
-
-        while (true) {
-            Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
-            if (teleportPos == null) break;
-            if (lastTransaction < teleportPos.getFirst()) {
-                break;
-            }
-
-            Vector3d position = teleportPos.getSecond();
-            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
-                player.vehicleData.vehicleTeleports.poll();
-
-                // Note the latest teleport accepted
-                ignoreTransBeforeThis = lastTransaction;
-                // Player has accepted their setback!
-                if (hasSetBackTask.get() && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
-                    hasSetBackTask.set(false);
-                }
-
-                return true;
-            } else if (lastTransaction > teleportPos.getFirst() + 2) {
-                player.vehicleData.vehicleTeleports.poll();
-
-                // Vehicles have terrible netcode so just ignore it if the teleport wasn't from us setting the player back
-                // Players don't have to respond to vehicle teleports if they aren't controlling the entity anyways
-                //
-                // If it was us, transition the
-                if (requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
-                    hasSetBackTask.set(false);
-                    // Don't allow players to get the velocity that the vehicles should have gotten
-                    // Eject the player from the vehicle by teleporting them
-                    requiredSetBack.setVehicle(null);
-                    requiredSetBack.setVelocity(new Vector());
-                    blockMovementsUntilResync(requiredSetBack.getWorld(), requiredSetBack.getPosition(), requiredSetBack.getXRot(), requiredSetBack.getYRot(), requiredSetBack.getVelocity(), null, requiredSetBack.getTrans());
-                }
-
-                continue;
-            }
-
-            break;
+        if (hasSetBackTask.get() && requiredSetBack.getTrans() < player.packetStateData.packetLastTransactionReceived.get()) {
+            hasSetBackTask.set(false);
+            blockMovementsUntilResync(requiredSetBack.getWorld(), requiredSetBack.getPosition(), requiredSetBack.getXRot(), requiredSetBack.getYRot(), requiredSetBack.getVelocity(), requiredSetBack.getVehicle(), player.lastTransactionSent.get());
         }
 
         return false;
@@ -125,23 +82,49 @@ public class TeleportUtil {
             requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, trans);
 
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                if (vehicle != null) {
-                    Entity bukkitVehicle = player.bukkitPlayer.getVehicle();
-
-                    // Don't teleport the player if they are not in a vehicle or are in a separate vehicle
-                    if (bukkitVehicle != null && bukkitVehicle.getEntityId() == vehicle) {
-                        player.bukkitPlayer.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), xRot, yRot));
-                    }
-                }
-
-                if (vehicle == null) {
-                    // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
-                    player.bukkitPlayer.eject();
-                    player.bukkitPlayer.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), xRot, yRot));
-                    player.bukkitPlayer.setVelocity(velocity);
-                }
+                // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
+                player.bukkitPlayer.eject();
+                player.bukkitPlayer.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), xRot, yRot));
+                player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
             });
         }
+    }
+
+    public boolean checkVehicleTeleportQueue(double x, double y, double z) {
+        int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
+
+        if (hasSetBackTask.get() && requiredSetBack.getTrans() < player.packetStateData.packetLastTransactionReceived.get()) {
+            hasSetBackTask.set(false);
+            blockMovementsUntilResync(requiredSetBack.getWorld(), requiredSetBack.getPosition(), requiredSetBack.getXRot(), requiredSetBack.getYRot(), requiredSetBack.getVelocity(), requiredSetBack.getVehicle(), player.lastTransactionSent.get());
+        }
+
+        while (true) {
+            Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
+            if (teleportPos == null) break;
+            if (lastTransaction < teleportPos.getFirst()) {
+                break;
+            }
+
+            Vector3d position = teleportPos.getSecond();
+            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
+                player.vehicleData.vehicleTeleports.poll();
+
+                // Note the latest teleport accepted
+                ignoreTransBeforeThis = lastTransaction;
+
+                return true;
+            } else if (lastTransaction > teleportPos.getFirst() + 2) {
+                player.vehicleData.vehicleTeleports.poll();
+
+                // Vehicles have terrible netcode so just ignore it if the teleport wasn't from us setting the player back
+                // Players don't have to respond to vehicle teleports if they aren't controlling the entity anyways
+                continue;
+            }
+
+            break;
+        }
+
+        return false;
     }
 
     public boolean shouldBlockMovement() {
