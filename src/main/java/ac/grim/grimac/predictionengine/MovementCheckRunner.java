@@ -407,14 +407,19 @@ public class MovementCheckRunner extends PositionCheck {
             // Dead players don't take explosions or knockback
             player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
             player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
-        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) {
+        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR || player.specialFlying) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
+            //
+            // TODO: Re-implement flying support
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
             player.clientVelocity = player.actualMovement.clone();
             player.gravity = 0;
             player.friction = 0.91f;
             PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
+
+            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
+            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
         } else if (player.playerVehicle == null) {
             // Depth strider was added in 1.8
             ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
