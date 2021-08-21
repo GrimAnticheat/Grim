@@ -55,7 +55,7 @@ public class GetBoundingBox {
             return 0.4;
         } else if (isSleeping) {
             // I'm not sure if this is correct.  I'm guessing based on some code.  It doesn't matter.
-            return 0.17;
+            return 0.2;
         } else if (isShifting && clientVersion.isNewerThanOrEquals(ClientVersion.v_1_14)) {
             return 1.27;
         } else if (isShifting) {

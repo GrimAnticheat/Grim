@@ -20,20 +20,6 @@ public class PlayerJoinQuitListener implements Listener {
 
     public static boolean isViaLegacyUpdated = true;
 
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void checkVersionJoin(PlayerJoinEvent event) {
-        ClientVersion playerVersion = PacketEvents.get().getPlayerUtils().getClientVersion(event.getPlayer());
-        // So basically 1.13 is a bad combination between 1.12 and 1.14 clients
-        // We have to figure out how to deal with the strange fluid mechanics in 1.13, which I can't figure out
-        // 1.13 and 1.14 are very different technically, and so are 1.12 and 1.13.
-        //
-        // Eventually I'll bother going through 1.13 vs 1.14 line by line to figure it out,
-        // but I can't seem to figure out 1.13
-        if (playerVersion.isNewerThanOrEquals(ClientVersion.v_1_13) &&
-                playerVersion.isOlderThanOrEquals(ClientVersion.v_1_13_2))
-            event.getPlayer().kickPlayer("You cannot connect with 1.13-1.13.2 clients!");
-    }
-
     @EventHandler(priority = EventPriority.MONITOR)
     public void playerJoinEvent(PlayerJoinEvent event) {
         Player bukkitPlayer = event.getPlayer();
