@@ -22,6 +22,13 @@ public class TeleportUtil {
         this.player = player;
     }
 
+    public void tryResendExpiredSetback() {
+        if (hasSetBackTask.get() && requiredSetBack.getTrans() < player.packetStateData.packetLastTransactionReceived.get()) {
+            hasSetBackTask.set(false);
+            blockMovementsUntilResync(requiredSetBack.getWorld(), requiredSetBack.getPosition(), requiredSetBack.getXRot(), requiredSetBack.getYRot(), requiredSetBack.getVelocity(), requiredSetBack.getVehicle(), player.lastTransactionSent.get());
+        }
+    }
+
     public boolean checkTeleportQueue(double x, double y, double z) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
@@ -61,11 +68,6 @@ public class TeleportUtil {
             break;
         }
 
-        if (hasSetBackTask.get() && requiredSetBack.getTrans() < player.packetStateData.packetLastTransactionReceived.get()) {
-            hasSetBackTask.set(false);
-            blockMovementsUntilResync(requiredSetBack.getWorld(), requiredSetBack.getPosition(), requiredSetBack.getXRot(), requiredSetBack.getYRot(), requiredSetBack.getVelocity(), requiredSetBack.getVehicle(), player.lastTransactionSent.get());
-        }
-
         return false;
     }
 
@@ -92,11 +94,6 @@ public class TeleportUtil {
 
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
-
-        if (hasSetBackTask.get() && requiredSetBack.getTrans() < player.packetStateData.packetLastTransactionReceived.get()) {
-            hasSetBackTask.set(false);
-            blockMovementsUntilResync(requiredSetBack.getWorld(), requiredSetBack.getPosition(), requiredSetBack.getXRot(), requiredSetBack.getYRot(), requiredSetBack.getVelocity(), requiredSetBack.getVehicle(), player.lastTransactionSent.get());
-        }
 
         while (true) {
             Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
