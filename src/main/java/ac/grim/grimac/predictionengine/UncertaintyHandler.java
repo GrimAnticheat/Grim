@@ -180,7 +180,7 @@ public class UncertaintyHandler {
         if (Collections.max(thirtyMillionHardBorder))
             return 0.15;
 
-        if (influencedByBouncyBlock() && player.actualMovement.getY() < 0.2)
+        if (influencedByBouncyBlock() && Math.abs(player.actualMovement.getY()) < 0.2)
             return 0.1;
 
         if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
