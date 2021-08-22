@@ -79,6 +79,8 @@ public class PlayerBaseTick {
             updatePlayerSize();
     }
 
+    // 1.16 eye in water is a tick behind
+    // 1.15 eye in water is the most recent result
     private void updateFluidOnEyes() {
         player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
         player.fluidOnEyes = null;
@@ -92,8 +94,13 @@ public class PlayerBaseTick {
         double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
         if (d1 > d0) {
             player.fluidOnEyes = FluidTag.WATER;
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2))
+                player.wasEyeInWater = true;
             return;
         }
+
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2))
+            player.wasEyeInWater = false;
 
         d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
         if (d1 > d0) {
