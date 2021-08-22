@@ -491,7 +491,9 @@ public class PredictionEngine {
             f2 = f2 * (f5 / f4);
             f3 = f3 * (f5 / f4);
 
-            existingVelocities.add(new VectorData(player.clientVelocity.clone().add(new Vector(f1, f2, f3)), VectorData.VectorType.Trident));
+            // If the player collided vertically with the 1.199999F pushing movement, then the Y additional movement was added
+            // (We switched the order around as our prediction engine isn't designed for the proper implementation)
+            existingVelocities.add(new VectorData(player.clientVelocity.clone().add(new Vector(f1, player.verticalCollision ? 0 : f2, f3)), VectorData.VectorType.Trident));
         }
     }
 

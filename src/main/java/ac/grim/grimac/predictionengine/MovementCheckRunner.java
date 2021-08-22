@@ -452,12 +452,15 @@ public class MovementCheckRunner extends PositionCheck {
             player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
 
             if (player.canGroundRiptide) {
-                double addedY = Math.min(player.actualMovement.getY(), 1.1999999F);
+                Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
+                player.verticalCollision = pushingMovement.getY() != 1.1999999F;
+
                 player.lastOnGround = false;
-                player.lastY += addedY;
+                player.boundingBox.offset(0, pushingMovement.getY(), 0);
+                player.lastY += pushingMovement.getY();
                 player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
-                player.boundingBox.offset(0, addedY, 0);
+                Collisions.handleInsideBlocks(player);
             }
 
             if ((player.isSneaking || player.wasSneaking) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {

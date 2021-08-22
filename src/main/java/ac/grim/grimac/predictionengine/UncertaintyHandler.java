@@ -192,6 +192,9 @@ public class UncertaintyHandler {
         if (!controlsVerticalMovement())
             return 0;
 
+        if (player.isSwimming && data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
+            return 0.15;
+
         return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.09 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
     }
 
