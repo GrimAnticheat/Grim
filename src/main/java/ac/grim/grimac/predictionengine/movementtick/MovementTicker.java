@@ -69,7 +69,8 @@ public class MovementTicker {
         // Trust the onGround status if the player is near the ground and they sent a ground packet
         if (player.inVehicle || ((Collections.max(player.uncertaintyHandler.pistonPushing) == 0 && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.influencedByBouncyBlock()
-                && player.uncertaintyHandler.lastTeleportTicks < -2) && !Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)) {
+                && player.uncertaintyHandler.lastTeleportTicks < -2) && !Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)
+                && !Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack)) {
 
             if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
                 Bukkit.broadcastMessage("Desync " + player.onGround);
