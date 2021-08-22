@@ -514,6 +514,11 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 1.2;
         }
 
+        // There seems to be some issue with stepping while exiting elytra
+        // (which isn't surprising considering our stepping code)
+        if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack))
+            offset -= 0.6;
+
         if (Collections.max(player.uncertaintyHandler.flyingStatusSwitchHack)) {
             offset -= 0.25;
         }

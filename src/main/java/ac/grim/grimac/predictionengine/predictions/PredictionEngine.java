@@ -317,8 +317,8 @@ public class PredictionEngine {
         }
 
         if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack)) {
-            additionHorizontal += 0.6;
-            bonusY += 0.6;
+            additionHorizontal += 0.1;
+            bonusY += 0.1;
         }
 
         if (Collections.max(player.uncertaintyHandler.legacyUnderwaterFlyingHack)) {
