@@ -40,7 +40,8 @@ public class MovementTicker {
         Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
         double testX = inputVel.getX() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-        double testY = nonUncertainVector.getY() - SimpleCollisionBox.COLLISION_EPSILON;
+        // If the player doesn't have gravity, they will have no downwards momentum
+        double testY = nonUncertainVector.getY() - (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
         double testZ = inputVel.getZ() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
         Vector plusCollide = Collisions.collide(player, testX, testY, testZ);
 
@@ -53,13 +54,13 @@ public class MovementTicker {
         }
 
         player.horizontalCollision = !GrimMathHelper.equal(inputVel.getX(), collide.getX()) || !GrimMathHelper.equal(inputVel.getZ(), collide.getZ());
-        player.verticalCollision = nonUncertainVector.getY() - SimpleCollisionBox.COLLISION_EPSILON != plusCollide.getY();
+        player.verticalCollision = testY != plusCollide.getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
         // Stepping movement USUALLY means the vehicle in on the ground as vehicles can't jump
         // Can be wrong with swim hopping into step, but this is rare and difficult to pull off
         // and would require a huge rewrite to support this rare edge case
-        player.isActuallyOnGround = (player.verticalCollision && nonUncertainVector.getY() < 0.0D)
+        player.isActuallyOnGround = (player.verticalCollision && testY < 0.0D)
                 || (player.inVehicle && player.uncertaintyHandler.isStepMovement);
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
