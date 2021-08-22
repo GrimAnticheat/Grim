@@ -521,7 +521,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
-            offset -= 0.06;
+            offset -= 0.09;
         }
 
         // ... how does the player get the swimming pose while climbing?
