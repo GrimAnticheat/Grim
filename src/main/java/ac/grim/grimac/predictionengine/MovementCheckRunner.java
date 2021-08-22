@@ -516,7 +516,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         // Checking slime is too complicated
-        if (player.uncertaintyHandler.influencedByBouncyBlock() && player.actualMovement.length() < 0.418) {
+        if (player.uncertaintyHandler.influencedByBouncyBlock() && Math.abs(player.actualMovement.getY()) < 0.418) {
             offset -= 0.1;
         }
 
