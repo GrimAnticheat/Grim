@@ -188,6 +188,8 @@ public class PlayerBaseTick {
                     return;
                 }
             }
+
+            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
         }
     }
 
@@ -351,6 +353,9 @@ public class PlayerBaseTick {
                         fluidHeight = player.compensatedWorld.getLavaFluidLevelAt(x, y, z);
                     }
 
+                    if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
+                        fluidHeight = Math.min(fluidHeight, 8 / 9D);
+
                     if (fluidHeight == 0 || (fluidHeightToWorld = (float) y + fluidHeight) < aABB.minY)
                         continue;
 
@@ -369,6 +374,7 @@ public class PlayerBaseTick {
                 }
             }
         }
+
         if (vec3.lengthSquared() > 0.0) {
             if (n7 > 0) {
                 vec3 = vec3.multiply(1.0 / (double) n7);

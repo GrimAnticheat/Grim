@@ -70,7 +70,6 @@ public class FluidTypeFlowing {
                 }
             }
         }
-
         return normalizeVectorWithoutNaN(vec3d);
     }
 
@@ -94,6 +93,9 @@ public class FluidTypeFlowing {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
                     // 1.13 exempts stairs, pistons, sticky pistons, and piston heads.
                     // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
+                    //
+                    // Everything is hardcoded, and I have attempted by best at figuring out things, although it's not perfect
+                    // Report bugs on GitHub, as always.  1.13 is an odd version and issues could be lurking here.
                     if (Materials.checkFlag(blockMaterial, Materials.STAIRS) || Materials.checkFlag(blockMaterial, Materials.LEAVES)
                             || Materials.checkFlag(blockMaterial, Materials.SHULKER) || Materials.checkFlag(blockMaterial, Materials.GLASS_BLOCK)
                             || Materials.checkFlag(blockMaterial, Materials.TRAPDOOR))
@@ -106,7 +108,8 @@ public class FluidTypeFlowing {
                     if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON || blockMaterial == PISTON_HEAD)
                         continue;
 
-                    isSolid = CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
+                    isSolid = blockMaterial == SOUL_SAND;
+                    isSolid = isSolid || CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
 
                 } else if (blockMaterial == SNOW) {
                     WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
