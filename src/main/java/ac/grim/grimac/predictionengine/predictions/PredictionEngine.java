@@ -76,6 +76,10 @@ public class PredictionEngine {
                 // Wow, this can really mess things up!
                 // Allow the player's Y velocity to get set back to 0, minus the normal gravity uncertainty
                 player.uncertaintyHandler.gravityUncertainty += (-yVelocity - 0.2);
+            } else if ((player.firstBreadKB != null && Math.abs(player.firstBreadKB.vector.getY()) < 0.03)
+                    || (player.likelyKB != null && Math.abs(player.likelyKB.vector.getY()) < 0.03)) {
+                // If the player knockback was likely to cause 0.03 missing tick
+                player.uncertaintyHandler.gravityUncertainty -= 0.2;
             } else if (Math.abs(yVelocity) < 0.03) {
                 // Falses with -0.16
                 player.uncertaintyHandler.gravityUncertainty -= 0.2;
@@ -128,6 +132,13 @@ public class PredictionEngine {
 
             double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
 
+            // This allows us to always check the percentage of knockback taken
+            // A player cannot simply ignore knockback without us measuring how off it was
+            if (clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
+                player.checkManager.getKnockbackHandler().handlePredictionAnalysis(resultAccuracy);
+            if (clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
+                player.checkManager.getExplosionHandler().handlePredictionAnalysis(resultAccuracy);
+
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
                 beforeCollisionMovement = additionalPushMovement;
@@ -148,10 +159,6 @@ public class PredictionEngine {
                 //
                 // This should likely be the value for the predictions to flag the movement as invalid
                 if (resultAccuracy < 0.00001 * 0.00001) break;
-                // Another magic value to try and give priority to explosions/knockback
-                if (bestCollisionVel.hasVectorType(VectorData.VectorType.Knockback) ||
-                        bestCollisionVel.hasVectorType(VectorData.VectorType.Explosion) &&
-                                resultAccuracy < 0.0001 * 0.0001) break;
             }
         }
 

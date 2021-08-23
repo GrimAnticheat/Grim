@@ -116,6 +116,16 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
+    public void handlePredictionAnalysis(double offset) {
+        if (player.firstBreadKB != null) {
+            player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
+        }
+
+        if (player.likelyKB != null) {
+            player.likelyKB.offset = Math.min(player.likelyKB.offset, offset);
+        }
+    }
+
     public void handlePlayerKb(double offset, boolean force) {
         if (player.likelyKB == null && player.firstBreadKB == null) {
             return;
@@ -135,7 +145,7 @@ public class KnockbackHandler extends PacketCheck {
 
         if (player.likelyKB != null) {
             ChatColor color = ChatColor.GREEN;
-            if (player.likelyKB.offset > 0.05) {
+            if (player.likelyKB.offset > 0.0001) {
                 color = ChatColor.RED;
             }
             // Add offset to violations
