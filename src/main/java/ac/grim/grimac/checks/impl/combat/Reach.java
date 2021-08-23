@@ -224,7 +224,7 @@ public class Reach extends PacketCheck {
         ignoreThisPacket = true;
         for (Pair<ReachEntityMoveData, SendableWrapper> moveData : moveQueue) {
             handleMoveEntity(moveData.getFirst().getEntityID(), moveData.getFirst().getX(), moveData.getFirst().getY(), moveData.getFirst().getZ(), moveData.getFirst().isRelative());
-            PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer, moveData.getSecond());
+            PacketEvents.get().getPlayerUtils().writePacket(player.bukkitPlayer, moveData.getSecond());
         }
         ignoreThisPacket = false;
         moveQueue.clear();
