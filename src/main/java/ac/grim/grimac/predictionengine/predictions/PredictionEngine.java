@@ -128,19 +128,6 @@ public class PredictionEngine {
 
             double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
 
-            // Magic Values - prioritize knockback/explosion velocities over normal ones
-            if (player.likelyKB != null && player.likelyKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
-                resultAccuracy += 0.001;
-
-            if (player.firstBreadKB != null && player.firstBreadKB.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
-                resultAccuracy += 0.001;
-
-            if (player.likelyExplosions != null && player.likelyExplosions.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
-                resultAccuracy += 0.001;
-
-            if (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > 1 && !clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
-                resultAccuracy += 0.001;
-
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
                 beforeCollisionMovement = additionalPushMovement;
@@ -148,6 +135,7 @@ public class PredictionEngine {
                 tempClientVelChosen = primaryPushMovement.clone();
 
                 bestInput = resultAccuracy;
+
                 // Optimization - Close enough, other inputs won't get closer
                 // This works as knockback and explosions are run first
                 //
@@ -160,6 +148,10 @@ public class PredictionEngine {
                 //
                 // This should likely be the value for the predictions to flag the movement as invalid
                 if (resultAccuracy < 0.00001 * 0.00001) break;
+                // Another magic value to try and give priority to explosions/knockback
+                if (bestCollisionVel.hasVectorType(VectorData.VectorType.Knockback) ||
+                        bestCollisionVel.hasVectorType(VectorData.VectorType.Explosion) &&
+                                resultAccuracy < 0.0001 * 0.0001) break;
             }
         }
 
@@ -242,16 +234,16 @@ public class PredictionEngine {
         // Put explosions and knockback first so they are applied to the player
         // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
         if (a.hasVectorType(VectorData.VectorType.Explosion))
-            aScore++;
+            aScore--;
 
         if (a.hasVectorType(VectorData.VectorType.Knockback))
-            aScore++;
+            aScore--;
 
         if (b.hasVectorType(VectorData.VectorType.Explosion))
-            bScore++;
+            bScore--;
 
         if (b.hasVectorType(VectorData.VectorType.Knockback))
-            bScore++;
+            bScore--;
 
         // If the player is on the ground but the vector leads the player off the ground
         if (player.onGround && a.vector.getY() >= 0)

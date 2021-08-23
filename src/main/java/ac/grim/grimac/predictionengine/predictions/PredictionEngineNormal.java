@@ -99,7 +99,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         //
         // Force 1.13.2 and below players to have something to collide with horizontally to climb
         if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5)))) {
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
 
             // Calculate the Y velocity after friction
             Vector hackyClimbVector = player.clientVelocity.clone().setY(0.2);
