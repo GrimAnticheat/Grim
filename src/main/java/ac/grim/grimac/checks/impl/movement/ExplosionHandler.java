@@ -51,6 +51,16 @@ public class ExplosionHandler extends PacketCheck {
         firstBreadMap.add(new VelocityData(-1, breadOne, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
+    public void handlePredictionAnalysis(double offset) {
+        if (player.firstBreadExplosion != null) {
+            player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
+        }
+
+        if (player.likelyExplosions != null) {
+            player.likelyExplosions.offset = Math.min(player.likelyExplosions.offset, offset);
+        }
+    }
+
     public void handlePlayerExplosion(double offset, boolean force) {
         if (player.likelyExplosions == null && player.firstBreadExplosion == null) {
             return;
