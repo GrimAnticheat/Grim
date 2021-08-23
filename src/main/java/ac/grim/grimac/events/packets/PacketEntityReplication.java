@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityPropertiesData;
+import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -53,6 +54,13 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
             Entity entity = packetOutEntity.getEntity();
             EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
+            // Try a second time
+            if (entity == null)
+                PacketEvents.get().getServerUtils().getEntityById(packetOutEntity.getEntityId());
+            // Final attempt to get this entity, otherwise it likely doesn't exist
+            if (entity == null)
+                PacketEvents.get().getServerUtils().getEntityById(packetOutEntity.getEntityId());
+
             if (entity != null) {
                 type = entity.getType();
             }
@@ -68,6 +76,13 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
             Entity entity = packetOutEntity.getEntity();
             EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
+            // Try a second time
+            if (entity == null)
+                PacketEvents.get().getServerUtils().getEntityById(packetOutEntity.getEntityId());
+            // Final attempt to get this entity, otherwise it likely doesn't exist
+            if (entity == null)
+                PacketEvents.get().getServerUtils().getEntityById(packetOutEntity.getEntityId());
+
             if (entity != null) {
                 type = entity.getType();
             }
@@ -83,6 +98,13 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
             Entity entity = spawn.getEntity();
             EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
+            // Try a second time
+            if (entity == null)
+                PacketEvents.get().getServerUtils().getEntityById(spawn.getEntityId());
+            // Final attempt to get this entity, otherwise it likely doesn't exist
+            if (entity == null)
+                PacketEvents.get().getServerUtils().getEntityById(spawn.getEntityId());
+
             if (entity != null) {
                 type = entity.getType();
             }
