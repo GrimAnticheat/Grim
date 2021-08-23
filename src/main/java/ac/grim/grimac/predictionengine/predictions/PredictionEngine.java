@@ -315,11 +315,6 @@ public class PredictionEngine {
             bonusY += 0.3;
         }
 
-        if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack)) {
-            additionHorizontal += 0.1;
-            bonusY += 0.1;
-        }
-
         if (Collections.max(player.uncertaintyHandler.legacyUnderwaterFlyingHack)) {
             bonusY += 0.2;
         }

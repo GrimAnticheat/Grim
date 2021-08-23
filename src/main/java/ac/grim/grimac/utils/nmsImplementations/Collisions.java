@@ -56,7 +56,6 @@ public class Collisions {
         if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
 
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ));
-        SimpleCollisionBox newBB = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).expand(-SimpleCollisionBox.COLLISION_EPSILON);
 
         double bestInput = Double.MAX_VALUE;
         Vector bestOrderResult = null;

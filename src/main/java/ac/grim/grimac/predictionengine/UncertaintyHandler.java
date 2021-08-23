@@ -71,7 +71,7 @@ public class UncertaintyHandler {
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
     public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(5);
-    public EvictingList<Boolean> glidingStatusSwitchHack = new EvictingList<>(3);
+    public EvictingList<Boolean> glidingStatusSwitchHack = new EvictingList<>(6);
     public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
     public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
@@ -148,6 +148,9 @@ public class UncertaintyHandler {
             pointThree = 0.15;
 
         if (Collections.max(thirtyMillionHardBorder))
+            pointThree = 0.15;
+
+        if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack))
             pointThree = 0.15;
 
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
