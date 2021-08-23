@@ -37,6 +37,9 @@ public class Collisions {
 
     private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
 
+    private static final Material OBSERVER = XMaterial.OBSERVER.parseMaterial();
+    private static final Material REDSTONE_BLOCK = XMaterial.REDSTONE_BLOCK.parseMaterial();
+
     private static final double COLLISION_EPSILON = 1.0E-7;
 
     private static final List<List<Axis>> allAxisCombinations = Arrays.asList(
@@ -447,9 +450,17 @@ public class Collisions {
             for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
                 for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
                     BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+                    Material mat = data.getMaterial();
 
-                    if (!data.getMaterial().isOccluding()) continue;
-                    CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
+                    // 1.13- players can not be pushed by blocks that can emit power, for some reason.
+                    if ((mat == OBSERVER || mat == REDSTONE_BLOCK) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2))
+                        continue;
+
+                    // Thankfully I don't believe mojang changes this cross version?
+                    // Anyways, these are exempt from pushing
+                    if (Materials.checkFlag(mat, Materials.LEAVES) || Materials.checkFlag(mat, Materials.GLASS_BLOCK) || Materials.checkFlag(mat, Materials.ICE))
+                        continue;
+                    CollisionBox box = CollisionData.getData(mat).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
                     if (!box.isFullBlock()) continue;
 
                     box.downCast(listOfBlocks);

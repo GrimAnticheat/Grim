@@ -216,6 +216,15 @@ public class PlayerBaseTick {
 
 
     private void moveTowardsClosestSpace(double xPosition, double zPosition) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
+            moveTowardsClosestSpaceModern(xPosition, zPosition);
+        } else {
+            moveTowardsClosestSpaceLegacy(xPosition, zPosition);
+        }
+    }
+
+    // 1.14+
+    private void moveTowardsClosestSpaceModern(double xPosition, double zPosition) {
         int blockX = (int) Math.floor(xPosition);
         int blockZ = (int) Math.floor(zPosition);
 
@@ -259,6 +268,10 @@ public class PlayerBaseTick {
                 player.clientVelocity.setZ(0.1 * (double) direction.getModZ());
             }
         }
+    }
+
+    private void moveTowardsClosestSpaceLegacy(double x, double z) {
+        // TODO:
     }
 
     public void updateInWaterStateAndDoWaterCurrentPushing() {
@@ -410,7 +423,6 @@ public class PlayerBaseTick {
 
     private boolean suffocatesAt(int x, int z) {
         SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(x, player.boundingBox.minY, z, x + 1.0, player.boundingBox.maxY, z + 1.0, false).expand(-1.0E-7);
-
         return Collisions.suffocatesAt(player, axisAlignedBB);
     }
 }
