@@ -52,15 +52,15 @@ public class CheckManager {
                 .build();
     }
 
-    public PositionCheck getPositionCheck(Class<? extends PositionCheck> check) {
+    private PositionCheck getPositionCheck(Class<? extends PositionCheck> check) {
         return positionCheck.get(check);
     }
 
-    public RotationCheck getRotationCheck(Class<? extends RotationCheck> check) {
+    private RotationCheck getRotationCheck(Class<? extends RotationCheck> check) {
         return rotationCheck.get(check);
     }
 
-    public VehicleCheck getVehicleCheck(Class<? extends VehicleCheck> check) {
+    private VehicleCheck getVehicleCheck(Class<? extends VehicleCheck> check) {
         return vehicleCheck.get(check);
     }
 
@@ -92,7 +92,11 @@ public class CheckManager {
         return (ExplosionHandler) getPacketCheck(ExplosionHandler.class);
     }
 
-    public PacketCheck getPacketCheck(Class<? extends PacketCheck> check) {
+    public Reach getReach() {
+        return (Reach) getPacketCheck(Reach.class);
+    }
+
+    private PacketCheck getPacketCheck(Class<? extends PacketCheck> check) {
         return packetChecks.get(check);
     }
 

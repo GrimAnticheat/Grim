@@ -19,15 +19,19 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.ReachEntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
 import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
+import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.in.useentity.WrappedPacketInUseEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityteleport.WrappedPacketOutEntityTeleport;
 import io.github.retrooper.packetevents.packetwrappers.play.out.namedentityspawn.WrappedPacketOutNamedEntitySpawn;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -40,13 +44,19 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 // You may not copy the check unless you are licensed under GPL
 public class Reach extends PacketCheck {
 
+    public static final ExecutorService posSender = Executors.newSingleThreadExecutor();
     public final Int2ObjectLinkedOpenHashMap<PlayerReachEntity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
     private final GrimPlayer player;
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Pair<ReachEntityMoveData, NMSPacket>> moveQueue = new ConcurrentLinkedQueue<>();
+
+    private boolean ignorePackets = false;
 
     public Reach(GrimPlayer player) {
         super(player);
@@ -74,63 +84,6 @@ public class Reach extends PacketCheck {
     public void checkReach(int entityID) {
         if (entityMap.containsKey(entityID))
             playerAttackQueue.add(entityID);
-    }
-
-    @Override
-    public void onPacketSend(final PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
-            WrappedPacketOutNamedEntitySpawn spawn = new WrappedPacketOutNamedEntitySpawn(event.getNMSPacket());
-            Entity entity = spawn.getEntity();
-
-            if (entity != null && entity.getType() == EntityType.PLAYER) {
-                handleSpawnPlayer(spawn.getEntityId(), spawn.getPosition());
-            }
-        }
-
-        if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK || packetID == PacketType.Play.Server.ENTITY_LOOK) {
-            WrappedPacketOutEntity.WrappedPacketOutRelEntityMove move = new WrappedPacketOutEntity.WrappedPacketOutRelEntityMove(event.getNMSPacket());
-
-            if (entityMap.containsKey(move.getEntityId())) {
-                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
-                handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
-            }
-        }
-
-        if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
-            WrappedPacketOutEntityTeleport teleport = new WrappedPacketOutEntityTeleport(event.getNMSPacket());
-
-            if (entityMap.containsKey(teleport.getEntityId())) {
-                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
-                handleMoveEntity(teleport.getEntityId(), teleport.getPosition().getX(),
-                        teleport.getPosition().getY(), teleport.getPosition().getZ(), false);
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
-            }
-        }
-    }
-
-    private void handleSpawnPlayer(int playerID, Vector3d spawnPosition) {
-        entityMap.put(playerID, new PlayerReachEntity(spawnPosition.getX(), spawnPosition.getY(), spawnPosition.getZ()));
-    }
-
-    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, boolean isRelative) {
-        PlayerReachEntity reachEntity = entityMap.get(entityId);
-
-        if (reachEntity != null) {
-            // Update the tracked server's entity position
-            if (isRelative)
-                reachEntity.serverPos = reachEntity.serverPos.add(new Vector3d(deltaX, deltaY, deltaZ));
-            else
-                reachEntity.serverPos = new Vector3d(deltaX, deltaY, deltaZ);
-
-            int lastTrans = player.lastTransactionSent.get();
-            Vector3d newPos = reachEntity.serverPos;
-
-            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(newPos.getX(), newPos.getY(), newPos.getZ()));
-            player.latencyUtils.addRealTimeTask(lastTrans + 1, reachEntity::onSecondTransaction);
-        }
     }
 
     private void tickFlying() {
@@ -210,6 +163,87 @@ public class Reach extends PacketCheck {
 
         for (PlayerReachEntity entity : entityMap.values()) {
             entity.onMovement(player.getClientVersion().isNewerThan(ClientVersion.v_1_8));
+        }
+    }
+
+    @Override
+    public void onPacketSend(final PacketPlaySendEvent event) {
+        byte packetID = event.getPacketId();
+
+        // This reach check is the one sending these packets
+        if (ignorePackets) return;
+
+        if (packetID == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
+            WrappedPacketOutNamedEntitySpawn spawn = new WrappedPacketOutNamedEntitySpawn(event.getNMSPacket());
+            Entity entity = spawn.getEntity();
+
+            if (entity != null && entity.getType() == EntityType.PLAYER) {
+                handleSpawnPlayer(spawn.getEntityId(), spawn.getPosition());
+            }
+        }
+
+        if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK || packetID == PacketType.Play.Server.ENTITY_LOOK) {
+            WrappedPacketOutEntity.WrappedPacketOutRelEntityMove move = new WrappedPacketOutEntity.WrappedPacketOutRelEntityMove(event.getNMSPacket());
+
+            if (entityMap.containsKey(move.getEntityId())) {
+                event.setCancelled(true);
+                ReachEntityMoveData moveData = new ReachEntityMoveData(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
+                moveQueue.add(new Pair<>(moveData, event.getNMSPacket()));
+            }
+        }
+
+        if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
+            WrappedPacketOutEntityTeleport teleport = new WrappedPacketOutEntityTeleport(event.getNMSPacket());
+
+            if (entityMap.containsKey(teleport.getEntityId())) {
+                event.setCancelled(true);
+                Vector3d position = teleport.getPosition();
+                ReachEntityMoveData moveData = new ReachEntityMoveData(teleport.getEntityId(), position.getX(), position.getY(), position.getZ(), false);
+                moveQueue.add(new Pair<>(moveData, event.getNMSPacket()));
+            }
+        }
+    }
+
+    private void handleSpawnPlayer(int playerID, Vector3d spawnPosition) {
+        entityMap.put(playerID, new PlayerReachEntity(spawnPosition.getX(), spawnPosition.getY(), spawnPosition.getZ()));
+    }
+
+    public void onEndOfTickEvent() {
+        ConcurrentLinkedQueue<Pair<ReachEntityMoveData, NMSPacket>> queue = moveQueue;
+        moveQueue = new ConcurrentLinkedQueue<>();
+
+        posSender.submit(() -> {
+            player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+
+            ignorePackets = true;
+            Object playerChannel = PacketEvents.get().getPlayerUtils().getChannel(player.bukkitPlayer);
+
+            for (Pair<ReachEntityMoveData, NMSPacket> moveData : queue) {
+                handleMoveEntity(moveData.getFirst().getEntityID(), moveData.getFirst().getX(), moveData.getFirst().getY(), moveData.getFirst().getZ(), moveData.getFirst().isRelative());
+                PacketEvents.get().getInjector().writePacket(playerChannel, moveData.getSecond());
+            }
+
+            ignorePackets = false;
+
+            player.sendAndFlushTransactionOrPingPong();
+        });
+    }
+
+    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, boolean isRelative) {
+        PlayerReachEntity reachEntity = entityMap.get(entityId);
+
+        if (reachEntity != null) {
+            // Update the tracked server's entity position
+            if (isRelative)
+                reachEntity.serverPos = reachEntity.serverPos.add(new Vector3d(deltaX, deltaY, deltaZ));
+            else
+                reachEntity.serverPos = new Vector3d(deltaX, deltaY, deltaZ);
+
+            int lastTrans = player.lastTransactionSent.get();
+            Vector3d newPos = reachEntity.serverPos;
+
+            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(newPos.getX(), newPos.getY(), newPos.getZ()));
+            player.latencyUtils.addRealTimeTask(lastTrans + 1, reachEntity::onSecondTransaction);
         }
     }
 
