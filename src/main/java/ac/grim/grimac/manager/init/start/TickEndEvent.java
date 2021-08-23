@@ -63,7 +63,7 @@ public class TickEndEvent implements Initable {
             }
 
             hasTicked = false;
-        }, 1, 1);
+        }, 2, 1); // give the server a chance to tick, delay by 2 ticks
     }
 
     private void tickRelMove() {
