@@ -223,6 +223,64 @@ public class PlayerBaseTick {
         }
     }
 
+    // Mojang is incompetent and this will push the player out a lot when using elytras
+    private void moveTowardsClosestSpaceLegacy(double x, double z) {
+        int floorX = GrimMathHelper.floor(x);
+        int floorZ = GrimMathHelper.floor(z);
+        int floorY = GrimMathHelper.floor(player.lastY + 0.5);
+
+        double d0 = x - floorX;
+        double d1 = z - floorZ;
+
+        boolean suffocates;
+
+        if (player.isSwimming) {
+            SimpleCollisionBox blockPos = new SimpleCollisionBox(floorX, floorY, floorZ, floorX + 1.0, floorY + 1, floorZ + 1.0, false).expand(-1.0E-7);
+            suffocates = Collisions.suffocatesAt(player, blockPos);
+        } else {
+            suffocates = !clearAbove(floorX, floorY, floorZ);
+        }
+
+        if (suffocates) {
+            int i = -1;
+            double d2 = 9999.0D;
+            if (clearAbove(floorX - 1, floorY, floorZ) && d0 < d2) {
+                d2 = d0;
+                i = 0;
+            }
+
+            if (clearAbove(floorX + 1, floorY, floorZ) && 1.0D - d0 < d2) {
+                d2 = 1.0D - d0;
+                i = 1;
+            }
+
+            if (clearAbove(floorX, floorY, floorZ - 1) && d1 < d2) {
+                d2 = d1;
+                i = 4;
+            }
+
+            if (clearAbove(floorX, floorY, floorZ + 1) && 1.0D - d1 < d2) {
+                i = 5;
+            }
+
+            if (i == 0) {
+                player.clientVelocity.setX(-0.1F);
+            }
+
+            if (i == 1) {
+                player.clientVelocity.setX(0.1F);
+            }
+
+            if (i == 4) {
+                player.clientVelocity.setZ(-0.1F);
+            }
+
+            if (i == 5) {
+                player.clientVelocity.setZ(0.1F);
+            }
+        }
+    }
+
     // 1.14+
     private void moveTowardsClosestSpaceModern(double xPosition, double zPosition) {
         int blockX = (int) Math.floor(xPosition);
@@ -268,10 +326,6 @@ public class PlayerBaseTick {
                 player.clientVelocity.setZ(0.1 * (double) direction.getModZ());
             }
         }
-    }
-
-    private void moveTowardsClosestSpaceLegacy(double x, double z) {
-        // TODO:
     }
 
     public void updateInWaterStateAndDoWaterCurrentPushing() {
@@ -424,5 +478,10 @@ public class PlayerBaseTick {
     private boolean suffocatesAt(int x, int z) {
         SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(x, player.boundingBox.minY, z, x + 1.0, player.boundingBox.maxY, z + 1.0, false).expand(-1.0E-7);
         return Collisions.suffocatesAt(player, axisAlignedBB);
+    }
+
+    private boolean clearAbove(int x, int y, int z) {
+        SimpleCollisionBox axisAlignedBB = new SimpleCollisionBox(x, y, z, x + 1.0, y + 1, z + 1.0, false).expand(-1.0E-7);
+        return !Collisions.suffocatesAt(player, axisAlignedBB) && !Collisions.suffocatesAt(player, axisAlignedBB.offset(0, 1, 0));
     }
 }
