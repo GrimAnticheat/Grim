@@ -72,11 +72,14 @@ public class Collisions {
                     // As the max Y in jumping is 1.249 blocks in 1.8-, and 1.252 blocks in 1.9+
                     // Unless 0.03 was combining with something to allow this
                     // I don't know what client would even have a cheat like this, as highjump and most steps wouldn't work.
-                    (player.actualMovement.getY() > 0 && desiredY > 0 && desiredY < 0.0009 && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree
-                            && player.uncertaintyHandler.lastMovementWasZeroPointZeroThree)
-                    // Fix a false with cobwebs on top of soul sand (0.03)
-                    || (player.uncertaintyHandler.wasAffectedByStuckSpeed() && desiredY < 0 && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
-                    || ((player.wasTouchingWater || player.wasTouchingLava) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree);
+                    //
+                    // Additionally, the player must be stepping onto a block for this to work
+                    // not a "perfect" method to detect stepping, but it should cover this 0.03 edge case with small movement
+                    (player.actualMovement.getY() > 0 && desiredY < 0.0009 && !Collisions.isEmpty(player, GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).offset(0, -COLLISION_EPSILON, 0)))
+                    // Fix a false with cobwebs on top of soul sand (0.03) - We don't detect that the player actually would touch the ground this tick
+                    || (player.uncertaintyHandler.wasAffectedByStuckSpeed() && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
+                    // Fix a false when stepping underwater with high uncertainty (require fluid on eyes to stop players from exiting water with stepping movement)
+                    || ((player.fluidOnEyes != null) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree);
             double stepUpHeight = player.getMaxUpStep();
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
