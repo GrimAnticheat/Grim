@@ -52,7 +52,12 @@ public class Collisions {
             Arrays.asList(Axis.Z, Axis.X, Axis.Y),
             Arrays.asList(Axis.Z, Axis.Y, Axis.X));
 
+    // Call this when there isn't uncertainty on the Y axis
     public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ) {
+        return collide(player, desiredX, desiredY, desiredZ, desiredY);
+    }
+
+    public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ, double clientVelY) {
         if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
 
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ));
@@ -64,7 +69,8 @@ public class Collisions {
             Vector collisionResult = collideBoundingBoxLegacy(player, new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
-            boolean movingIntoGround = player.lastOnGround || (collisionResult.getY() != desiredY && desiredY < 0D) ||
+            // Also allow the non uncertain vector to be below 0 to attempt to fix false positives
+            boolean movingIntoGround = player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0)) ||
                     // If the player is claiming that they were stepping
                     // And the player's Y velocity is "close enough" to being downwards
                     // And the last movement was 0.03 messing up stepping
@@ -230,6 +236,14 @@ public class Collisions {
         }
 
         return new Vector(x, y, z);
+    }
+
+    public static boolean isEmpty(GrimPlayer player, SimpleCollisionBox playerBB) {
+        for (CollisionBox collisionBox : getCollisionBoxes(player, playerBB)) {
+            if (collisionBox.isCollided(playerBB)) return false;
+        }
+
+        return true;
     }
 
     private static double getHorizontalDistanceSqr(Vector vector) {
@@ -434,14 +448,6 @@ public class Collisions {
         }
 
         return false;
-    }
-
-    public static boolean isEmpty(GrimPlayer player, SimpleCollisionBox playerBB) {
-        for (CollisionBox collisionBox : getCollisionBoxes(player, playerBB)) {
-            if (collisionBox.isCollided(playerBB)) return false;
-        }
-
-        return true;
     }
 
     public static boolean suffocatesAt(GrimPlayer player, SimpleCollisionBox playerBB) {
