@@ -181,7 +181,6 @@ public class CompensatedWorldFlat extends CompensatedWorld {
         }
 
         // These blocks are also considered source blocks
-
         return Materials.checkFlag(bukkitBlock.getMaterial(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? Materials.WATER_SOURCE : Materials.WATER_SOURCE_LEGACY);
     }
 

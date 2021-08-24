@@ -32,9 +32,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -379,6 +377,16 @@ public class GrimPlayer {
 
     public Pose getSneakingPose() {
         return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
+    }
+
+    public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
+        if (getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) { // Elytra, sneaking (1.14), standing
+            return Arrays.asList(0.4, 1.27, 1.62);
+        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) { // Elytra, sneaking, standing
+            return Arrays.asList(0.4, 1.54, 1.62);
+        } else { // Only sneaking or standing
+            return Arrays.asList(1.54, 1.62);
+        }
     }
 
     public int getKeepAlivePing() {

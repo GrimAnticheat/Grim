@@ -302,6 +302,7 @@ public class SimpleCollisionBox implements CollisionBox {
      * returned) or null if no intersection
      */
     // Copied from hawk lol
+    // I would like to point out that this is magic to me and I have not attempted to understand this code
     public Vector intersectsRay(Ray ray, float minDist, float maxDist) {
         Vector invDir = new Vector(1f / ray.getDirection().getX(), 1f / ray.getDirection().getY(), 1f / ray.getDirection().getZ());
 
