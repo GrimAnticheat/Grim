@@ -155,7 +155,7 @@ public class MovementCheckRunner extends PositionCheck {
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
-        player.latencyUtils.handleNettySyncTransaction(data.lastTransaction);
+        player.latencyUtils.handleAnticheatSyncTransaction(data.lastTransaction);
 
         player.lastTransactionReceived = data.lastTransaction;
 
