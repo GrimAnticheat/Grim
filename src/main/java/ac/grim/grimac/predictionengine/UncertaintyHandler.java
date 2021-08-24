@@ -188,9 +188,6 @@ public class UncertaintyHandler {
         if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack) && !player.isActuallyOnGround)
             return 0.15;
 
-        if (influencedByBouncyBlock() && Math.abs(player.actualMovement.getY()) < 0.2)
-            return 0.1;
-
         if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
             return 0.06;
 
