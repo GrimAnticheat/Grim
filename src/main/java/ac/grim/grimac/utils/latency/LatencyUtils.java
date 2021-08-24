@@ -45,7 +45,7 @@ public class LatencyUtils {
     }
 
     public void addAnticheatSyncTask(int transaction, Runnable runnable) {
-        nettySyncTransactionMap.add(new Pair<>(transaction, runnable));
+        anticheatSyncTransactionMap.add(new Pair<>(transaction, runnable));
     }
 
     public void handleNettySyncTransaction(int transaction) {
