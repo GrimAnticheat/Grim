@@ -158,7 +158,8 @@ public class UncertaintyHandler {
         }
 
         // 0.03 plus being able to maintain velocity even when shifting is brutal
-        if (stuckOnEdge == -2 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
+        // Value patched - I have no idea why these things are different in liquid vs in air
+        if (stuckOnEdge == ((player.wasTouchingWater || player.wasTouchingLava) ? 0 : -2))
             pointThree = Math.max(pointThree, player.speed * 2);
 
         return pointThree;
@@ -198,7 +199,7 @@ public class UncertaintyHandler {
             return 0;
 
         if (player.isSwimming && data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
-            return 0.15;
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? 0.15 : 0.09;
 
         return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.09 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
     }
