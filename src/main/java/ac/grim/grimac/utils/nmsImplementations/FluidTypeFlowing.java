@@ -77,7 +77,6 @@ public class FluidTypeFlowing {
         return isEmpty(player, x2, y2, z2) || isSame(player, originalX, originalY, originalZ, x2, y2, z2);
     }
 
-    // TODO: Stairs might be broken, can't be sure until I finish the dynamic bounding boxes
     protected static boolean isSolidFace(GrimPlayer player, int originalX, int originalY, int originalZ, BlockFace direction) {
         int x = originalX + direction.getModX();
         int z = originalZ + direction.getModZ();
