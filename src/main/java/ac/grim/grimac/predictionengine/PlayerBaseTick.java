@@ -122,8 +122,8 @@ public class PlayerBaseTick {
     }
 
     // 1.14
-    protected void updatePlayerPose() {
-        if (canEnterPose(player, Pose.SWIMMING, player.x, player.y, player.z)) {
+    public void updatePlayerPose() {
+        if (canEnterPose(player, Pose.SWIMMING, player.lastX, player.lastY, player.lastZ)) {
             Pose pose;
             if (player.isGliding) {
                 pose = Pose.FALL_FLYING;
@@ -178,7 +178,7 @@ public class PlayerBaseTick {
             Pose oldPose = player.pose;
             player.pose = pose;
 
-            SimpleCollisionBox box = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
+            SimpleCollisionBox box = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
             List<SimpleCollisionBox> intersect = Collisions.getCollisionBoxes(player, box);
 
             for (SimpleCollisionBox box2 : intersect) {

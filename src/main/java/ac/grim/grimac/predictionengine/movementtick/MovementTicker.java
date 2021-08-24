@@ -41,7 +41,10 @@ public class MovementTicker {
 
         double testX = inputVel.getX() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
         // If the player doesn't have gravity, they will have no downwards momentum
-        double testY = nonUncertainVector.getY() - (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
+        double testY = nonUncertainVector.getY() - (player.hasGravity
+                // For some reason the player has no gravity when trying to swim but their feet aren't in water! (1.17 bug only)
+                && !(player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && player.wasEyeInWater && player.isSprinting & !player.isSwimming)
+                ? SimpleCollisionBox.COLLISION_EPSILON : 0);
         double testZ = inputVel.getZ() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
         Vector plusCollide = Collisions.collide(player, testX, testY, testZ);
 

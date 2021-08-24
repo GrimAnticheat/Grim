@@ -105,7 +105,7 @@ public class PredictionEngine {
 
             boolean flipSneaking = clientVelAfterInput.hasVectorType(VectorData.VectorType.Flip_Sneaking);
             if (flipSneaking) {
-                player.pose = originalPose == Pose.STANDING ? Pose.CROUCHING : Pose.STANDING;
+                player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
                 player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
             } else {
                 player.pose = originalPose;
@@ -168,7 +168,7 @@ public class PredictionEngine {
 
         boolean flipSneaking = bestCollisionVel.hasVectorType(VectorData.VectorType.Flip_Sneaking);
         if (flipSneaking) {
-            player.pose = originalPose == Pose.STANDING ? Pose.CROUCHING : Pose.STANDING;
+            player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
             player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
         } else {
             player.pose = originalPose;
@@ -430,9 +430,17 @@ public class PredictionEngine {
             // The player changed their sneaking within 3 ticks of this
             // And the player's pose is standing or crouching (no gliding/swimming)
             // Falses when set to -4, so therefore set to -5
-            loopCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
-                    player.uncertaintyHandler.lastSneakingChangeTicks > -5 &&
-                    (player.pose == Pose.STANDING || player.pose == Pose.CROUCHING);
+            //
+            // Also desync's because 1.9-1.13 lack of idle packet... NICE ONE MOJANG!
+            // Also less terrible because it only desync's for one tick instead of a large number of ticks...
+            loopCrouching = ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
+                    player.uncertaintyHandler.lastSneakingChangeTicks > -5)
+
+                    || player.getClientVersion().isOlderThan(ClientVersion.v_1_14) &&
+                    player.uncertaintyHandler.lastSneakingChangeTicks > -1) &&
+
+                    (player.pose == Pose.STANDING || player.pose == Pose.CROUCHING || player.pose == Pose.NINE_CROUCHING);
+
             if (loopCrouching) {
                 player.isCrouching = !player.isCrouching;
                 player.isSlowMovement = !player.isSlowMovement;
