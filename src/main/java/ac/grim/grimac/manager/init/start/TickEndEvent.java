@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -66,9 +67,11 @@ public class TickEndEvent implements Initable {
         }, 2, 1); // give the server a chance to tick, delay by 2 ticks
     }
 
-    private void tickRelMove() {
-        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            player.checkManager.getReach().onEndOfTickEvent();
-        }
+    private void tickRelMove() { // Don't send packets on the main thread.
+        Reach.posSender.submit(() -> {
+            for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+                player.checkManager.getReach().onEndOfTickEvent();
+            }
+        });
     }
 }

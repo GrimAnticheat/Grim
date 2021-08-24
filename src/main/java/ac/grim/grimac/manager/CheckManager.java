@@ -74,6 +74,8 @@ public class CheckManager {
 
     public void onPositionUpdate(final PositionUpdate position) {
         positionCheck.values().forEach(positionCheck -> positionCheck.onPositionUpdate(position));
+        // Allow the reach check to listen to filtered position packets
+        packetChecks.values().forEach(packetCheck -> packetCheck.onPositionUpdate(position));
     }
 
     public void onRotationUpdate(final RotationUpdate rotation) {
