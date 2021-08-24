@@ -1,7 +1,6 @@
 package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.events.packets.patch.AntiBucketDesync;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
@@ -81,6 +80,5 @@ public class PlayerJoinQuitListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void playerQuitEvent(PlayerQuitEvent event) {
         GrimAPI.INSTANCE.getPlayerDataManager().remove(event.getPlayer());
-        AntiBucketDesync.resyncNeeded.remove(event.getPlayer());
     }
 }

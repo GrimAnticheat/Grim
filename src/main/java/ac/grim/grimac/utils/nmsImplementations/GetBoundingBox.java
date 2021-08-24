@@ -50,11 +50,10 @@ public class GetBoundingBox {
     }
 
     // TODO: This should probably just be done in the player's pose
-    public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isSleeping, ClientVersion clientVersion) {
-        if (isGliding || isSwimming) {
+    public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isRiptiding, boolean isSleeping, ClientVersion clientVersion) {
+        if (isGliding || isSwimming || isRiptiding) {
             return 0.4;
         } else if (isSleeping) {
-            // I'm not sure if this is correct.  I'm guessing based on some code.  It doesn't matter.
             return 0.2;
         } else if (isShifting && clientVersion.isNewerThanOrEquals(ClientVersion.v_1_14)) {
             return 1.27;

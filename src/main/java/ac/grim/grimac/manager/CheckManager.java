@@ -7,6 +7,7 @@ import ac.grim.grimac.checks.impl.prediction.LargeOffsetHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallChecker;
 import ac.grim.grimac.checks.impl.prediction.SmallOffsetHandler;
 import ac.grim.grimac.checks.type.*;
+import ac.grim.grimac.events.packets.patch.AntiBucketDesync;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -32,6 +33,7 @@ public class CheckManager {
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(NoFall.class, new NoFall(player))
+                .put(AntiBucketDesync.class, new AntiBucketDesync(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class to process
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
