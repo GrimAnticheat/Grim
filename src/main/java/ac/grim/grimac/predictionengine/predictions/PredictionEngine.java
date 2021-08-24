@@ -253,6 +253,12 @@ public class PredictionEngine {
         if (b.hasVectorType(VectorData.VectorType.Knockback))
             bScore--;
 
+        // Large uncertainty possibilities shouldn't be prioritized, as uncertainty can cause the next tick to receive the wrong velocity
+        if (a.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
+            aScore++;
+        if (b.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
+            bScore++;
+
         // If the player is on the ground but the vector leads the player off the ground
         if (player.onGround && a.vector.getY() >= 0)
             aScore += 2;
@@ -586,7 +592,7 @@ public class PredictionEngine {
         int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
 
         if (maxFireworks <= 0) return vector;
-        if (!player.isGliding) return vector;
+        if (!player.isGliding && !player.wasGliding) return vector;
 
         Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
         Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
