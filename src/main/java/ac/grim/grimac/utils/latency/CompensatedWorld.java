@@ -63,6 +63,7 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockBreaks = new ConcurrentLinkedQueue<>();
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
+    public boolean sendTransaction = true;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;

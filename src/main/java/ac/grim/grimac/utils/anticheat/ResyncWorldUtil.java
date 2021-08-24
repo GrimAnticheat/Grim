@@ -43,20 +43,30 @@ public class ResyncWorldUtil {
             }
         }
 
-        // Maybe in the future chunk changes could be sent, but those have a decent amount of version differences
-        // Works for now, maybe will fix later, maybe won't.
-        for (int x = minX; x <= maxX; x++) {
-            for (int y = minY; y <= maxY; y++) {
-                for (int z = minZ; z <= maxZ; z++) {
-                    if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
-                        FlatBlockState state = new FlatBlockState(blocks[x - minX][y - minY][z - minZ]);
-                        player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getBlockData());
-                    } else {
-                        MagicBlockState state = new MagicBlockState(blocks[x - minX][y - minY][z - minZ]);
-                        player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getMaterial(), (byte) state.getBlockData());
+        try {
+            player.compensatedWorld.sendTransaction = false;
+
+            // Maybe in the future chunk changes could be sent, but those have a decent amount of version differences
+            // Works for now, maybe will fix later, maybe won't.
+            //
+            // Currently, neither Bukkit nor PacketEvents supports sending these packets
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+                            FlatBlockState state = new FlatBlockState(blocks[x - minX][y - minY][z - minZ]);
+                            player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getBlockData());
+                        } else {
+                            MagicBlockState state = new MagicBlockState(blocks[x - minX][y - minY][z - minZ]);
+                            player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getMaterial(), (byte) state.getBlockData());
+                        }
                     }
                 }
             }
+        } finally {
+            player.compensatedWorld.sendTransaction = true;
         }
+
+        player.sendAndFlushTransactionOrPingPong();
     }
 }
