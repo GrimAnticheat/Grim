@@ -25,7 +25,7 @@ public class SmallOffsetHandler extends PostPredictionCheck {
         if (offset > 0.0001) {
             decreaseBuffer(1);
         } else {
-            increaseBuffer(0.125);
+            increaseBuffer(0.25);
         }
 
         if (getBuffer() == 0) {
@@ -33,8 +33,8 @@ public class SmallOffsetHandler extends PostPredictionCheck {
             Bukkit.broadcastMessage(ChatColor.RED + "Small buffer has run out!  Setting back");
         }
 
-        if (getBuffer() > 5) {
-            setBuffer(5);
+        if (getBuffer() > 50) {
+            setBuffer(50);
         }
     }
 }

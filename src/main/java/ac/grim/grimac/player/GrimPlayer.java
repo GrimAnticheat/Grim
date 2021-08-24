@@ -377,6 +377,10 @@ public class GrimPlayer {
         return clientVersion;
     }
 
+    public Pose getSneakingPose() {
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
+    }
+
     public int getKeepAlivePing() {
         return PacketEvents.get().getPlayerUtils().getPing(bukkitPlayer);
     }
