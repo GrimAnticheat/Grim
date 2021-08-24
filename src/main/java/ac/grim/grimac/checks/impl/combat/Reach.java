@@ -18,6 +18,7 @@ package ac.grim.grimac.checks.impl.combat;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachEntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
@@ -78,10 +79,11 @@ public class Reach extends PacketCheck {
                 checkReach(action.getEntityId());
             }
         }
+    }
 
-        if (PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId())) {
-            tickFlying();
-        }
+    @Override
+    public void onPositionUpdate(final PositionUpdate positionUpdate) {
+        tickFlying();
     }
 
     public void checkReach(int entityID) {
