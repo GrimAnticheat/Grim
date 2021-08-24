@@ -367,6 +367,11 @@ public class PredictionEngine {
             maxVector.setY(0);
         }
 
+        // Initial end of tick levitation gets hidden by missing idle packet
+        if (player.levitationAmplifier > 0 && player.clientVelocity.getY() < 0.1) {
+            maxVector.setY(maxVector.getY() + 0.1);
+        }
+
         return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
