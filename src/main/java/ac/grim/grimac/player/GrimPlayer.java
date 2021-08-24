@@ -258,7 +258,7 @@ public class GrimPlayer {
         }
 
         if (lastWasClimbing != 0) {
-            possibleMovements.add(new VectorData(clientVelocity.clone().setY(lastWasClimbing).add(baseTickAddition), VectorData.VectorType.Climbable));
+            possibleMovements.add(new VectorData(clientVelocity.clone().setY(lastWasClimbing + baseTickAddition.getY()), VectorData.VectorType.Climbable));
         }
 
         // Knockback takes precedence over piston pushing in my testing
