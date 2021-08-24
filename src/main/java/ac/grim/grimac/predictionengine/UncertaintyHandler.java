@@ -183,6 +183,11 @@ public class UncertaintyHandler {
         if (Collections.max(thirtyMillionHardBorder))
             return 0.15;
 
+        // Don't allow this uncertainty to be spoofed - use isActuallyOnGround
+        // (Players control their onGround when this hack is active)
+        if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack) && !player.isActuallyOnGround)
+            return 0.15;
+
         if (influencedByBouncyBlock() && Math.abs(player.actualMovement.getY()) < 0.2)
             return 0.1;
 
