@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -11,6 +12,8 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Location;
 
+import java.util.function.Predicate;
+
 @UtilityClass
 public class ResyncWorldUtil {
     public void resyncPositions(GrimPlayer player, SimpleCollisionBox box) {
@@ -19,10 +22,10 @@ public class ResyncWorldUtil {
 
     public void resyncPositions(GrimPlayer player, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
         resyncPositions(player, GrimMathHelper.floor(minX), GrimMathHelper.floor(minY), GrimMathHelper.floor(minZ),
-                GrimMathHelper.floor(maxX), GrimMathHelper.floor(maxY), GrimMathHelper.floor(maxZ));
+                GrimMathHelper.floor(maxX), GrimMathHelper.floor(maxY), GrimMathHelper.floor(maxZ), material -> true);
     }
 
-    public void resyncPositions(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+    public void resyncPositions(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, Predicate<BaseBlockState> shouldSend) {
         int[][][] blocks = new int[maxX - minX + 1][maxY - minY + 1][maxZ - minZ + 1];
 
         for (int x = minX; x <= maxX; x++) {
@@ -49,16 +52,18 @@ public class ResyncWorldUtil {
             // Maybe in the future chunk changes could be sent, but those have a decent amount of version differences
             // Works for now, maybe will fix later, maybe won't.
             //
-            // Currently, neither Bukkit nor PacketEvents supports sending these packets
+            // Currently, neither Bukkit nor PacketEvents supports sending these packets (Bukkit broke this in 1.16 (?) making this method useless to us)
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     for (int z = minZ; z <= maxZ; z++) {
                         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
                             FlatBlockState state = new FlatBlockState(blocks[x - minX][y - minY][z - minZ]);
-                            player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getBlockData());
+                            if (shouldSend.test(state))
+                                player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getBlockData());
                         } else {
                             MagicBlockState state = new MagicBlockState(blocks[x - minX][y - minY][z - minZ]);
-                            player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getMaterial(), (byte) state.getBlockData());
+                            if (shouldSend.test(state))
+                                player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getMaterial(), (byte) state.getBlockData());
                         }
                     }
                 }
