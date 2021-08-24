@@ -382,9 +382,10 @@ public class MovementTicker {
 
             doWaterMove(swimSpeed, isFalling, swimFriction);
 
-            // 1.12 and below players can't climb ladders while touching water
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isClimbing) {
-                player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.16)).getY();
+            // 1.13 and below players can't climb ladders while touching water
+            // yes, 1.13 players cannot climb ladders underwater
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.isClimbing) {
+                player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
             }
 
         } else {
@@ -392,8 +393,8 @@ public class MovementTicker {
 
                 doLavaMove();
 
-                // Unsure which client version that lava movement changed but it's most likely 1.13
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.slightlyTouchingLava) {
+                // Lava movement changed in 1.16
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16) && player.slightlyTouchingLava) {
                     player.clientVelocity = player.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
                     player.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity);
                 } else {

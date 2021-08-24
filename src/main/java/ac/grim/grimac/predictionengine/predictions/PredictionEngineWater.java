@@ -1,8 +1,11 @@
 package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.FluidFallingAdjustedMovement;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -70,6 +73,12 @@ public class PredictionEngineWater extends PredictionEngine {
 
     @Override
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
+        // "hacky" climbing where player enters ladder within 0.03 movement
+        if (player.lastWasClimbing == 0 && player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
+            player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
+        }
+
         Set<VectorData> baseVelocities = super.fetchPossibleStartTickVectors(player);
         Set<VectorData> swimmingVelocities = new HashSet<>();
 
