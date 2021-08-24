@@ -93,6 +93,7 @@ public class PredictionEngine {
         Vector beforeCollisionMovement = null;
         Vector tempClientVelChosen = null;
         Vector originalNonUncertainInput = null;
+        Vector originalClientVel = player.clientVelocity;
 
         Pose originalPose = player.pose;
         SimpleCollisionBox originalBB = player.boundingBox;
@@ -115,7 +116,7 @@ public class PredictionEngine {
             if (player.actualMovement.getY() > 0 && additionalPushMovement.getY() < 0 && player.uncertaintyHandler.wasLastGravityUncertain)
                 additionalPushMovement.setY(additionalPushMovement.getY() - 0.3);
 
-            Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ());
+            Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ(), originalClientVel.getY());
 
             Vector handleHardCodedBorder = outputVel;
             if (!player.inVehicle) {
