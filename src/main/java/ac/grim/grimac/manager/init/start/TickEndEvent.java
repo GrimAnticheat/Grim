@@ -16,7 +16,6 @@ import java.util.List;
 
 public class TickEndEvent implements Initable {
     static Class<?> tickEnd = null;
-    boolean hasTicked = true;
 
     static {
         try {
@@ -32,6 +31,8 @@ public class TickEndEvent implements Initable {
             e.printStackTrace();
         }
     }
+
+    boolean hasTicked = true;
 
     @Override
     public void start() {
