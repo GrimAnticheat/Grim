@@ -450,7 +450,7 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
             player.canGroundRiptide = (player.clientClaimsLastOnGround && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
-                    && player.tryingToRiptide && !player.inVehicle;
+                    && player.tryingToRiptide && player.compensatedRiptide.getCanRiptide() && !player.inVehicle;
 
             // If the player's last tick was on the ground and the player is near the ground
             if (player.canGroundRiptide) {

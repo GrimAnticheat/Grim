@@ -80,25 +80,28 @@ public class PredictionEngineWater extends PredictionEngine {
         }
 
         Set<VectorData> baseVelocities = super.fetchPossibleStartTickVectors(player);
+
+        return transformSwimmingVectors(player, baseVelocities);
+    }
+
+    public static Set<VectorData> transformSwimmingVectors(GrimPlayer player, Set<VectorData> base) {
         Set<VectorData> swimmingVelocities = new HashSet<>();
 
         if (player.isSwimming && player.playerVehicle == null) {
-            for (VectorData vector : baseVelocities) {
+            for (VectorData vector : base) {
                 double d = getLookAngle(player).getY();
                 double d5 = d < -0.2 ? 0.085 : 0.06;
 
                 // The player can always press jump and activate this
-                swimmingVelocities.add(new VectorData(new Vector(vector.vector.getX(), vector.vector.getY() + ((d - vector.vector.getY()) * d5), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
+                swimmingVelocities.add(vector.returnNewModified(new Vector(vector.vector.getX(), vector.vector.getY() + ((d - vector.vector.getY()) * d5), vector.vector.getZ()), VectorData.VectorType.SwimmingSpace));
 
                 // This scenario will occur if the player does not press jump and the other conditions are met
                 if (d > 0.0 && player.compensatedWorld.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
-                    swimmingVelocities.add(new VectorData(vector.vector, vector, VectorData.VectorType.SurfaceSwimming));
+                    swimmingVelocities.add(vector.returnNewModified(vector.vector, VectorData.VectorType.SurfaceSwimming));
                 }
             }
-
             return swimmingVelocities;
         }
-
-        return baseVelocities;
+        return base;
     }
 }

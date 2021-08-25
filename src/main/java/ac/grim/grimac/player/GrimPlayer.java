@@ -249,7 +249,7 @@ public class GrimPlayer {
         possibleMovements.add(new VectorData(clientVelocity, VectorData.VectorType.Normal));
 
         if (canSwimHop) {
-            possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f), VectorData.VectorType.Swimhop));
+            possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f + baseTickAddition.getY()), VectorData.VectorType.Swimhop));
         }
 
         // If the player has that client sided riptide thing and has colliding with an entity this tick

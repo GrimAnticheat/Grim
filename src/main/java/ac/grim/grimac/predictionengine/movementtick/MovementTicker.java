@@ -310,8 +310,22 @@ public class MovementTicker {
         //
         // Also use magic value for gliding, as gliding isn't typical player movement
         if (zAxisCollision && (xAxisPositiveCollision || xAxisNegativeCollision)) {
-            player.uncertaintyHandler.xNegativeUncertainty -= (player.isGliding ? 0.4 : player.speed) * 4;
-            player.uncertaintyHandler.xPositiveUncertainty += (player.isGliding ? 0.4 : player.speed) * 4;
+            double playerSpeed = player.speed;
+
+            if (player.wasTouchingWater) {
+                float swimSpeed = 0.02F;
+                if (player.depthStriderLevel > 0.0F) {
+                    swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
+                }
+                playerSpeed = swimSpeed;
+            } else if (player.wasTouchingLava) {
+                playerSpeed = 0.02F;
+            } else if (player.isGliding) {
+                playerSpeed = 0.4;
+            }
+
+            player.uncertaintyHandler.xNegativeUncertainty -= playerSpeed * 4;
+            player.uncertaintyHandler.xPositiveUncertainty += playerSpeed * 4;
         }
     }
 
