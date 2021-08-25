@@ -44,6 +44,10 @@ public class PredictionEngine {
             VectorData zeroData = new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree);
             zeroStuff.add(zeroData);
 
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
+                zeroStuff = PredictionEngineWater.transformSwimmingVectors(player, zeroStuff);
+            }
+
             Set<VectorData> jumpingPossibility = new HashSet<>();
 
             if (player.likelyExplosions != null) {
@@ -55,6 +59,11 @@ public class PredictionEngine {
             }
 
             jumpingPossibility.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
+
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
+                jumpingPossibility = PredictionEngineWater.transformSwimmingVectors(player, jumpingPossibility);
+            }
+
             addJumpsToPossibilities(player, jumpingPossibility);
             // Secure the ability to get predicted a new vector by forcing the player to be able to jump here
             // Adding jumps to possibilities is a secure method
@@ -372,6 +381,11 @@ public class PredictionEngine {
             maxVector.setY(maxVector.getY() + 0.1);
         }
 
+        // Handle 0.03 with fluid pushing players downwards
+        if (player.baseTickAddition.getY() < 0 && player.wasTouchingWater && vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree)) {
+            minVector.setY(minVector.getY() + player.baseTickAddition.getY());
+        }
+
         return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 
@@ -517,7 +531,7 @@ public class PredictionEngine {
             return false;
 
         // This uses the new bounding box
-        boolean canCollideHorizontally = !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+        boolean canCollideHorizontally = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8).expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
 
         if (!canCollideHorizontally)
@@ -542,7 +556,7 @@ public class PredictionEngine {
         // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
         // Just give a high lenience to this... not worth the risk of falses
 
-        SimpleCollisionBox oldBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
+        SimpleCollisionBox oldBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6, 1.8);
 
         // This uses the old bounding box
         // (Water/lava checked before movement)

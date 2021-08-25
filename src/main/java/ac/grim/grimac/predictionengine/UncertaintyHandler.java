@@ -104,6 +104,10 @@ public class UncertaintyHandler {
         if (predicted.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
             return true;
 
+        // Uncertainty was given here for 0.03-influenced movement
+        if (predicted.hasVectorType(VectorData.VectorType.Swimhop))
+            return true;
+
         // Movement is too low to determine whether this is zero point zero three
         if (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01)
             return true;
@@ -127,7 +131,11 @@ public class UncertaintyHandler {
 
     public double getOffsetHorizontal(VectorData data) {
         boolean has003 = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
-        double pointThree = has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+        double pointThree = has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+
+        // This swim hop could be 0.03-influenced movement
+        if (data.hasVectorType(VectorData.VectorType.Swimhop))
+            pointThree = 0.03;
 
         if (has003 && (influencedByBouncyBlock() || isSteppingOnIce))
             pointThree = 0.1;
@@ -158,9 +166,6 @@ public class UncertaintyHandler {
 
     public double getVerticalOffset(VectorData data) {
         boolean has003 = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
-        // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
-        if ((lastFlyingTicks < 5) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
-            return 0.06;
 
         if (has003 && isSteppingNearBubbleColumn)
             return 0.35;
@@ -181,13 +186,22 @@ public class UncertaintyHandler {
         if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack) && !player.isActuallyOnGround)
             return 0.15;
 
+        // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
+        if ((lastFlyingTicks < 5) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
+            return 0.06;
+
+        // This swim hop could be 0.03-influenced movement
+        if (data.hasVectorType(VectorData.VectorType.Swimhop))
+            return 0.03;
+
+        if (controlsVerticalMovement()) {
+            return has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree || wasLastGravityUncertain ? 0.03 : 0;
+        }
+
         if (wasLastGravityUncertain)
             return 0.03;
 
-        if (!controlsVerticalMovement())
-            return 0;
-
-        return has003 ? 0.09 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+        return 0;
     }
 
     public boolean controlsVerticalMovement() {
