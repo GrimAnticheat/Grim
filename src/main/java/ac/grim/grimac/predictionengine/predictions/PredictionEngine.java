@@ -382,8 +382,13 @@ public class PredictionEngine {
         }
 
         // Handle 0.03 with fluid pushing players downwards
-        if (player.baseTickAddition.getY() < 0 && player.wasTouchingWater && vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree)) {
+        if (player.baseTickAddition.getY() < 0 && player.wasTouchingWater &&
+                (vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) || vector.hasVectorType(VectorData.VectorType.Swimhop))) {
             minVector.setY(minVector.getY() + player.baseTickAddition.getY());
+        }
+
+        if (player.isClimbing && vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree)) {
+            minVector.setY(minVector.getY() - 0.02);
         }
 
         return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
