@@ -75,7 +75,7 @@ public class MovementTicker {
         if (player.inVehicle || ((Collections.max(player.uncertaintyHandler.pistonPushing) == 0 && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.influencedByBouncyBlock()
                 && player.uncertaintyHandler.lastTeleportTicks < -2) && !Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)
-                && !Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack)) {
+                && player.uncertaintyHandler.lastGlidingChangeTicks < -3) {
 
             if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
                 Bukkit.broadcastMessage("Desync " + player.onGround);
@@ -171,7 +171,6 @@ public class MovementTicker {
 
     public void livingEntityAIStep() {
         player.uncertaintyHandler.flyingStatusSwitchHack.add(player.isFlying != player.wasFlying);
-        player.uncertaintyHandler.glidingStatusSwitchHack.add(player.isGliding != player.wasGliding);
 
         player.uncertaintyHandler.legacyUnderwaterFlyingHack.add(player.specialFlying &&
                 player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox));
