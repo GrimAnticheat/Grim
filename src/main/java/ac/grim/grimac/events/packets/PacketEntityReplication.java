@@ -31,7 +31,6 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
-import it.unimi.dsi.fastutil.Pair;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.potion.PotionEffectType;
@@ -253,17 +252,11 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             int lastTransactionSent = player.lastTransactionSent.get();
             int[] destroyEntityIds = destroy.getEntityIds();
 
-            player.compensatedEntities.destroyEntityQueue.add(new Pair<Integer, int[]>() {
-                @Override
-                public Integer left() {
-                    return lastTransactionSent;
-                }
-
-                @Override
-                public int[] right() {
-                    return destroyEntityIds;
-                }
-            });
+            for (int integer : destroyEntityIds) {
+                PacketEntity entity = player.compensatedEntities.getEntity(integer);
+                if (entity == null) continue;
+                entity.setDestroyed(lastTransactionSent + 1);
+            }
         }
     }
 }

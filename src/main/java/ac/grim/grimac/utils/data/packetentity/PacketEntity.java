@@ -15,6 +15,7 @@ public class PacketEntity {
     public boolean isDead = false;
     public boolean isBaby = false;
     public boolean hasGravity = true;
+    public int removeTrans = Integer.MAX_VALUE;
 
     public PacketEntity(org.bukkit.entity.EntityType type, Vector3d position) {
         this.position = position;
@@ -28,5 +29,10 @@ public class PacketEntity {
             if (passenger == entityID) return true;
         }
         return false;
+    }
+
+    public void setDestroyed(int trans) {
+        if (removeTrans != Integer.MAX_VALUE) return; // Already marked for removal
+        removeTrans = trans;
     }
 }
