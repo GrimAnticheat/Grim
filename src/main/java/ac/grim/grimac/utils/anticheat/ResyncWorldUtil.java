@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BasePlayerChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerOpenBlockData;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Location;
@@ -21,8 +21,8 @@ public class ResyncWorldUtil {
     }
 
     public void resyncPositions(GrimPlayer player, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
-        resyncPositions(player, GrimMathHelper.floor(minX), GrimMathHelper.floor(minY), GrimMathHelper.floor(minZ),
-                GrimMathHelper.floor(maxX), GrimMathHelper.floor(maxY), GrimMathHelper.floor(maxZ), material -> true);
+        resyncPositions(player, GrimMath.floor(minX), GrimMath.floor(minY), GrimMath.floor(minZ),
+                GrimMath.floor(maxX), GrimMath.floor(maxY), GrimMath.floor(maxZ), material -> true);
     }
 
     public void resyncPositions(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, Predicate<BaseBlockState> shouldSend) {

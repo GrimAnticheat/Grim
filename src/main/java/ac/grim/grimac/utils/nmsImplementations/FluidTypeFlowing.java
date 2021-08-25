@@ -18,6 +18,7 @@ public class FluidTypeFlowing {
     private static final Material STICKY_PISTON = XMaterial.STICKY_PISTON.parseMaterial();
     private static final Material PISTON = XMaterial.PISTON.parseMaterial();
     private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
+    private static final Material LADDER = XMaterial.LADDER.parseMaterial();
 
     private static final Material BEACON = XMaterial.BEACON.parseMaterial();
     private static final Material GLOWSTONE = XMaterial.GLOWSTONE.parseMaterial();
@@ -88,6 +89,8 @@ public class FluidTypeFlowing {
             BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
             Material blockMaterial = blockState.getMaterial();
 
+            // This method is terrible!  Use a cache or something... anything but this!
+            // Unless this is bad for performance... due to version differences, I doubt I will ever fix this.
             if (!isSame(player, x, y, z, originalX, originalY, originalZ)) {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
                     // 1.13 exempts stairs, pistons, sticky pistons, and piston heads.
@@ -165,6 +168,14 @@ public class FluidTypeFlowing {
                     isSolid = player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
                 } else if (blockMaterial == ICE) {
                     isSolid = false;
+                } else if (Materials.checkFlag(blockMaterial, Materials.TRAPDOOR)) {
+                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+                    WrappedTrapdoor trapdoor = (WrappedTrapdoor) dataValue;
+                    isSolid = trapdoor.getDirection().getOppositeFace() == direction && trapdoor.isOpen();
+                } else if (blockMaterial == LADDER) {
+                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+                    WrappedDirectional ladder = (WrappedDirectional) dataValue;
+                    isSolid = ladder.getDirection().getOppositeFace() == direction;
                 } else {
                     isSolid = CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
                 }

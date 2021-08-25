@@ -19,7 +19,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -68,7 +68,7 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     public void processAndCheckMovementPacket(PredictionData data) {
-        Column column = data.player.compensatedWorld.getChunk(GrimMathHelper.floor(data.playerX) >> 4, GrimMathHelper.floor(data.playerZ) >> 4);
+        Column column = data.player.compensatedWorld.getChunk(GrimMath.floor(data.playerX) >> 4, GrimMath.floor(data.playerZ) >> 4);
 
         // The player is in an unloaded chunk
         if (!data.isJustTeleported && column == null) {
@@ -343,7 +343,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.clientControlledVerticalCollision = Math.abs(player.y % (1 / 64D)) < 0.00001;
         // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
-        player.clientControlledHorizontalCollision = Math.min(GrimMathHelper.distanceToHorizontalCollision(player.x), GrimMathHelper.distanceToHorizontalCollision(player.z)) < 1e-6;
+        player.clientControlledHorizontalCollision = Math.min(GrimMath.distanceToHorizontalCollision(player.x), GrimMath.distanceToHorizontalCollision(player.z)) < 1e-6;
 
         player.uncertaintyHandler.lastSneakingChangeTicks--;
         if (player.isSneaking != player.wasSneaking)

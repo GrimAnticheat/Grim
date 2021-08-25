@@ -18,6 +18,7 @@ public class EventManager implements Initable {
         } else {
             Bukkit.getPluginManager().registerEvents(new MagicPlayerBlockBreakPlace(), GrimAPI.INSTANCE.getPlugin());
         }
+        Bukkit.getPluginManager().registerEvents(new BucketEvent(), GrimAPI.INSTANCE.getPlugin());
 
         if (XMaterial.supports(9)) {
             Bukkit.getPluginManager().registerEvents(new PlayerToggleElytra(), GrimAPI.INSTANCE.getPlugin());

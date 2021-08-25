@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerOpenBlockData;
+import ac.grim.grimac.utils.data.TransPosData;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
@@ -22,6 +23,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
+import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class MagicPlayerBlockBreakPlace implements Listener {
@@ -109,5 +111,17 @@ public class MagicPlayerBlockBreakPlace implements Listener {
             PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ());
             player.compensatedWorld.worldChangedBlockQueue.add(data);
         }
+    }
+
+    public static int getPlayerTransactionForBucket(GrimPlayer player, Location pos) {
+        for (Iterator<TransPosData> it = player.compensatedWorld.packetBucket.iterator(); it.hasNext(); ) {
+            TransPosData posData = it.next();
+            if (posData.getPosX() == pos.getX() && posData.getPosY() == pos.getY() && posData.getPosZ() == pos.getZ()) {
+                it.remove();
+                return posData.getTrans();
+            }
+        }
+
+        return player.lastTransactionAtStartOfTick;
     }
 }

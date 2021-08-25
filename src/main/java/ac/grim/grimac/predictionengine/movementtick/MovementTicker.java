@@ -9,7 +9,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -56,7 +56,7 @@ public class MovementTicker {
             player.clientVelocity.setZ(0);
         }
 
-        player.horizontalCollision = !GrimMathHelper.equal(inputVel.getX(), collide.getX()) || !GrimMathHelper.equal(inputVel.getZ(), collide.getZ());
+        player.horizontalCollision = !GrimMath.equal(inputVel.getX(), collide.getX()) || !GrimMath.equal(inputVel.getZ(), collide.getZ());
         player.verticalCollision = testY != plusCollide.getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
@@ -126,8 +126,8 @@ public class MovementTicker {
         }
 
         if (!player.inVehicle) {
-            double d0 = GrimMathHelper.clamp(player.lastX + collide.getX(), -2.9999999E7D, 2.9999999E7D);
-            double d1 = GrimMathHelper.clamp(player.lastZ + collide.getZ(), -2.9999999E7D, 2.9999999E7D);
+            double d0 = GrimMath.clamp(player.lastX + collide.getX(), -2.9999999E7D, 2.9999999E7D);
+            double d1 = GrimMath.clamp(player.lastZ + collide.getZ(), -2.9999999E7D, 2.9999999E7D);
             if (d0 != player.lastX + collide.getX()) {
                 collide = new Vector(d0 - player.lastX, collide.getY(), collide.getZ());
             }
@@ -359,7 +359,7 @@ public class MovementTicker {
 
         double lavaLevel = 0;
         if (canStandOnLava())
-            lavaLevel = player.compensatedWorld.getLavaFluidLevelAt(GrimMathHelper.floor(player.lastX), GrimMathHelper.floor(player.lastY), GrimMathHelper.floor(player.lastZ));
+            lavaLevel = player.compensatedWorld.getLavaFluidLevelAt(GrimMath.floor(player.lastX), GrimMath.floor(player.lastY), GrimMath.floor(player.lastZ));
 
         if (player.wasTouchingWater && !player.specialFlying) {
             // 0.8F seems hardcoded in

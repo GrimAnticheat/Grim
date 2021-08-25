@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
@@ -120,8 +120,8 @@ public class PredictionEngine {
 
             Vector handleHardCodedBorder = outputVel;
             if (!player.inVehicle) {
-                double d0 = GrimMathHelper.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
-                double d1 = GrimMathHelper.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
+                double d0 = GrimMath.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
+                double d1 = GrimMath.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
                 if (d0 != player.lastX + handleHardCodedBorder.getX()) {
                     handleHardCodedBorder = new Vector(d0 - player.lastX, handleHardCodedBorder.getY(), handleHardCodedBorder.getZ());
                 }
@@ -273,7 +273,7 @@ public class PredictionEngine {
     }
 
     private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
+        double avgColliding = GrimMath.calculateAverage(player.uncertaintyHandler.collidingEntities);
 
         double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
         double additionVertical = player.uncertaintyHandler.getVerticalOffset(vector);
@@ -377,7 +377,7 @@ public class PredictionEngine {
 
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        double avgColliding = GrimMathHelper.calculateAverage(player.uncertaintyHandler.collidingEntities);
+        double avgColliding = GrimMath.calculateAverage(player.uncertaintyHandler.collidingEntities);
 
         // 0.03 was falsing when colliding with https://i.imgur.com/7obfxG6.png
         // 0.065 was causing issues with fast moving dolphins

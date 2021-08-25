@@ -15,13 +15,10 @@ import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.BasePlayerChangeBlockData;
-import ac.grim.grimac.utils.data.PistonData;
-import ac.grim.grimac.utils.data.PlayerOpenBlockData;
-import ac.grim.grimac.utils.data.ShulkerData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.pair.Pair;
@@ -61,6 +58,7 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPlaces = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockBreaks = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<TransPosData> packetBucket = new ConcurrentLinkedQueue<>();
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
     public boolean sendTransaction = true;
@@ -135,7 +133,8 @@ public class CompensatedWorld {
 
         // 3 ticks is enough for everything that needs to be processed to be processed
         packetBlockPlaces.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
-        packetBlockBreaks.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 5);
+        packetBlockBreaks.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
+        packetBucket.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getTick() > 3);
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
@@ -427,7 +426,7 @@ public class CompensatedWorld {
     }
 
     public double getWaterFluidLevelAt(double x, double y, double z) {
-        return getWaterFluidLevelAt(GrimMathHelper.floor(x), GrimMathHelper.floor(y), GrimMathHelper.floor(z));
+        return getWaterFluidLevelAt(GrimMath.floor(x), GrimMath.floor(y), GrimMath.floor(z));
     }
 
     public double getWaterFluidLevelAt(int x, int y, int z) {
