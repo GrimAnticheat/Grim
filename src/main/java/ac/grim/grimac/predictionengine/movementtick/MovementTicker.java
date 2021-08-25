@@ -65,6 +65,7 @@ public class MovementTicker {
         // and would require a huge rewrite to support this rare edge case
         player.isActuallyOnGround = (player.verticalCollision && testY < 0.0D)
                 || (player.inVehicle && player.uncertaintyHandler.isStepMovement);
+        player.clientClaimsLastOnGround = player.onGround;
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
         // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them

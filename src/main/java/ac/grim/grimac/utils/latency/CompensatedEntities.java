@@ -182,7 +182,8 @@ public class CompensatedEntities {
         // Remove entities when the client despawns them
         // We do it in this strange way to avoid despawning the wrong entity
         for (Int2ObjectMap.Entry<PacketEntity> entry : entityMap.int2ObjectEntrySet()) {
-            if (entry.getValue().removeTrans > lastTransactionReceived) break;
+            PacketEntity entity = entry.getValue();
+            if (entity == null) continue;
 
             int entityID = entry.getIntKey();
 

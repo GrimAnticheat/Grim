@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.lists.EvictingList;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.block.BlockFace;
 
@@ -75,14 +74,11 @@ public class UncertaintyHandler {
     public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
     public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
-    // "Temporary" thirty million hard border workaround
-    // There is nothing as permanent as temporary!!!
-    // https://i.imgur.com/9pDMCKz.png
+    // Temporary thirty million hard border workaround
     public EvictingList<Boolean> thirtyMillionHardBorder = new EvictingList<>(3);
     public int lastTeleportTicks = 0;
     public int lastFlyingTicks = 0;
     public int lastSneakingChangeTicks = 0;
-    public boolean hasSentValidMovementAfterTeleport = false;
 
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
@@ -130,15 +126,10 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
-        double pointThree = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+        boolean has003 = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
+        double pointThree = has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
 
-        if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
-            pointThree = 0.06;
-
-        if (wasAffectedByStuckSpeed())
-            pointThree = 0.08;
-
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && (influencedByBouncyBlock() || isSteppingOnIce))
+        if (has003 && (influencedByBouncyBlock() || isSteppingOnIce))
             pointThree = 0.1;
 
         if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6 || stuckOnEdge > -3)
@@ -166,11 +157,12 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
+        boolean has003 = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
         if ((lastFlyingTicks < 5) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
             return 0.06;
 
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && isSteppingNearBubbleColumn)
+        if (has003 && isSteppingNearBubbleColumn)
             return 0.35;
 
         // Debug output when bouncing on a bed with 0.03-like movement
@@ -178,7 +170,7 @@ public class UncertaintyHandler {
         // [10:36:34 INFO]: [GrimAC] DefineOutside A: -1.3529602846240607E-4 -0.11397087614427903 -0.09891504315167055
         // [10:36:34 INFO]: [GrimAC] DefineOutside P: -6.764801675096521E-4 0.15 0.007984975003338945
         // [10:36:34 INFO]: [GrimAC] DefineOutside A: -6.764801675096521E-4 0.2542683097376681 0.007984975003338945
-        if (data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) && influencedByBouncyBlock())
+        if (has003 && influencedByBouncyBlock())
             return 0.28;
 
         if (Collections.max(thirtyMillionHardBorder))
@@ -189,19 +181,13 @@ public class UncertaintyHandler {
         if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack) && !player.isActuallyOnGround)
             return 0.15;
 
-        if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Trident))
-            return 0.06;
-
         if (wasLastGravityUncertain)
             return 0.03;
 
         if (!controlsVerticalMovement())
             return 0;
 
-        if (player.isSwimming && data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
-            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? 0.15 : 0.09;
-
-        return data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) ? 0.09 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+        return has003 ? 0.09 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
     }
 
     public boolean controlsVerticalMovement() {
@@ -290,27 +276,5 @@ public class UncertaintyHandler {
         }
 
         player.uncertaintyHandler.hardCollidingLerpingEntity.add(hasHardCollision);
-    }
-
-    @Override
-    public String toString() {
-        return "UncertaintyHandler{" +
-                "pistonX=" + pistonX +
-                ", pistonY=" + pistonY +
-                ", pistonZ=" + pistonZ +
-                ", isStepMovement=" + isStepMovement +
-                ", xNegativeUncertainty=" + xNegativeUncertainty +
-                ", xPositiveUncertainty=" + xPositiveUncertainty +
-                ", zNegativeUncertainty=" + zNegativeUncertainty +
-                ", zPositiveUncertainty=" + zPositiveUncertainty +
-                ", wasLastGravityUncertain=" + wasLastGravityUncertain +
-                ", gravityUncertainty=" + gravityUncertainty +
-                ", wasLastOnGroundUncertain=" + wasLastOnGroundUncertain +
-                ", lastPacketWasGroundPacket=" + lastPacketWasGroundPacket +
-                ", lastLastPacketWasGroundPacket=" + lastLastPacketWasGroundPacket +
-                ", lastTickWasNearGroundZeroPointZeroThree=" + lastTickWasNearGroundZeroPointZeroThree +
-                ", lastMovementWasZeroPointZeroThree=" + lastMovementWasZeroPointZeroThree +
-                ", lastLastMovementWasZeroPointZeroThree=" + lastLastMovementWasZeroPointZeroThree +
-                '}';
     }
 }
