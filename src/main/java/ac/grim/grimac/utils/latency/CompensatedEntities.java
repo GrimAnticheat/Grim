@@ -18,8 +18,8 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.block.BlockFace;
 
 import java.util.Collection;
@@ -31,7 +31,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class CompensatedEntities {
     public final Int2ObjectLinkedOpenHashMap<PacketEntity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
 
-    public ConcurrentLinkedQueue<Pair<Integer, int[]>> destroyEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMoveData> moveEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMountData> mountVehicleQueue = new ConcurrentLinkedQueue<>();
@@ -181,21 +180,19 @@ public class CompensatedEntities {
         }
 
         // Remove entities when the client despawns them
-        while (true) {
-            Pair<Integer, int[]> spawnEntity = destroyEntityQueue.peek();
-            if (spawnEntity == null) break;
+        // We do it in this strange way to avoid despawning the wrong entity
+        for (Int2ObjectMap.Entry<PacketEntity> entry : entityMap.int2ObjectEntrySet()) {
+            if (entry.getValue().removeTrans > lastTransactionReceived) break;
 
-            if (spawnEntity.left() >= lastTransactionReceived) break;
-            destroyEntityQueue.poll();
+            int entityID = entry.getIntKey();
 
             Integer playerVehicle = player.vehicle;
-            for (int entityID : spawnEntity.right()) {
-                entityMap.remove(entityID);
-                player.compensatedPotions.removeEntity(entityID);
-                player.checkManager.getReach().removeEntity(entityID);
-                if (playerVehicle != null && playerVehicle == entityID)
-                    player.vehicle = null;
-            }
+
+            entityMap.remove(entityID);
+            player.compensatedPotions.removeEntity(entityID);
+            player.checkManager.getReach().removeEntity(entityID);
+            if (playerVehicle != null && playerVehicle == entityID)
+                player.vehicle = null;
         }
 
         // Update riding positions - server should send teleport after dismount
