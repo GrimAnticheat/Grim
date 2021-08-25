@@ -22,6 +22,7 @@ import org.bukkit.block.data.Levelled;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
+import java.util.Collections;
 import java.util.List;
 
 public class AntiBucketDesync extends PacketCheck {
@@ -118,29 +119,30 @@ public class AntiBucketDesync extends PacketCheck {
             if (resyncEmptyBucket) {
                 resyncEmptyBucket = false;
 
-                for (double eyeHeight : player.getPossibleEyeHeights()) {
-                    Vector startPos = new Vector(pos.getX(), pos.getY() + eyeHeight, pos.getZ());
-                    Ray trace = new Ray(player, pos.getX(), pos.getY() + eyeHeight, pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
-                    Vector endPos = trace.getPointAtDistance(6);
+                double minEye = Collections.min(player.getPossibleEyeHeights());
+                double maxEye = Collections.max(player.getPossibleEyeHeights());
 
-                    SimpleCollisionBox box = new SimpleCollisionBox(startPos, endPos).sort();
+                Vector startPos = new Vector(pos.getX(), pos.getY() + minEye, pos.getZ());
+                Ray trace = new Ray(player, pos.getX(), pos.getY() + minEye, pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
+                Vector endPos = trace.getPointAtDistance(6);
 
-                    ResyncWorldUtil.resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
-                            GrimMath.floor(box.maxX), GrimMath.floor(box.maxY), GrimMath.floor(box.maxZ),
+                SimpleCollisionBox box = new SimpleCollisionBox(startPos, endPos).sort().expandMax(0, maxEye - minEye, 0);
 
-                            // Only resend source blocks, other blocks couldn't have been desync'd by this bug
-                            state -> {
-                                if (!Materials.checkFlag(state.getMaterial(), Materials.WATER) && !Materials.checkFlag(state.getMaterial(), Materials.LAVA))
-                                    return false;
-                                if (state instanceof MagicBlockState) {
-                                    // Source block
-                                    return (((MagicBlockState) state).getBlockData() & 0x7) == 0;
-                                } else {
-                                    BlockData flatData = ((FlatBlockState) state).getBlockData();
-                                    return flatData instanceof Levelled && ((Levelled) flatData).getLevel() == 0;
-                                }
-                            });
-                }
+                ResyncWorldUtil.resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
+                        GrimMath.floor(box.maxX), GrimMath.floor(box.maxY), GrimMath.floor(box.maxZ),
+
+                        // Only resend source blocks, other blocks couldn't have been desync'd by this bug
+                        state -> {
+                            if (!Materials.checkFlag(state.getMaterial(), Materials.WATER) && !Materials.checkFlag(state.getMaterial(), Materials.LAVA))
+                                return false;
+                            if (state instanceof MagicBlockState) {
+                                // Source block
+                                return (((MagicBlockState) state).getBlockData() & 0x7) == 0;
+                            } else {
+                                BlockData flatData = ((FlatBlockState) state).getBlockData();
+                                return flatData instanceof Levelled && ((Levelled) flatData).getLevel() == 0;
+                            }
+                        });
             }
         }
     }
