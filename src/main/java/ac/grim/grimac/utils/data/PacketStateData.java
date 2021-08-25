@@ -22,6 +22,7 @@ public class PacketStateData {
     public float packetPlayerYRot;
     public boolean packetPlayerOnGround = false;
     public boolean lastPacketWasTeleport = false;
+    public boolean lastPacketWasOnePointSeventeenDuplicate = false;
     public int lastSlotSelected;
     public Hand eatingHand = Hand.MAIN_HAND;
     public AlmostBoolean slowedByUsingItem = AlmostBoolean.FALSE;

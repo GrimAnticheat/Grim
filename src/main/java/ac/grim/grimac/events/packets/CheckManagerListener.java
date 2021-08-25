@@ -42,6 +42,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && System.currentTimeMillis() - lastPosLook < 750 &&
                         player.packetStateData.packetPosition.equals(flying.getPosition())) {
                     lastPosLook = System.currentTimeMillis();
+                    player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
                     return;
                 }
             }
@@ -55,6 +56,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketPlayerYRot = player.packetStateData.packetPlayerYRot;
             player.packetStateData.lastPacketPosition = player.packetStateData.packetPosition;
             player.packetStateData.lastPacketWasTeleport = false;
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
             player.packetStateData.packetPlayerOnGround = flying.isOnGround();
 
             if (hasLook) {
