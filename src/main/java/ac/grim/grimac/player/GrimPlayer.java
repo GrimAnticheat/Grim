@@ -117,6 +117,8 @@ public class GrimPlayer {
     public VehicleData vehicleData = new VehicleData();
     // We determine this
     public boolean isActuallyOnGround;
+    // The client claims this
+    public boolean clientClaimsLastOnGround;
     // Set from base tick
     public boolean wasTouchingWater = false;
     public boolean wasTouchingLava = false;

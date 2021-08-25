@@ -446,10 +446,13 @@ public class MovementCheckRunner extends PositionCheck {
                 player.lastOnGround = true;
                 player.uncertaintyHandler.wasLastOnGroundUncertain = true;
                 player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
+                player.clientClaimsLastOnGround = true;
             }
 
-            player.canGroundRiptide = player.lastOnGround && player.tryingToRiptide && !player.inVehicle;
+            player.canGroundRiptide = (player.clientClaimsLastOnGround && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
+                    && player.tryingToRiptide && !player.inVehicle;
 
+            // If the player's last tick was on the ground and the player is near the ground
             if (player.canGroundRiptide) {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
