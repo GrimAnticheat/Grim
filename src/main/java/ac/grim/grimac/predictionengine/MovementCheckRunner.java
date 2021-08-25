@@ -151,12 +151,49 @@ public class MovementCheckRunner extends PositionCheck {
         // Note this before any updates
         boolean byGround = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
 
+        player.uncertaintyHandler.stuckOnEdge--;
+        player.uncertaintyHandler.lastStuckEast--;
+        player.uncertaintyHandler.lastStuckWest--;
+        player.uncertaintyHandler.lastStuckSouth--;
+        player.uncertaintyHandler.lastStuckNorth--;
+
+        // This must be done before updating the world to support bridging and sneaking at the edge of it
+        if ((player.isSneaking || player.wasSneaking) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
+            // Before we do player block placements, determine if the shifting glitch occurred
+            // The 0.03 and maintaining velocity is just brutal
+            boolean isEast = Collisions.maybeBackOffFromEdge(new Vector(0.1, 0, 0), player, false).getX() != 0.1;
+            boolean isWest = Collisions.maybeBackOffFromEdge(new Vector(-0.1, 0, 0), player, false).getX() != -0.1;
+            boolean isSouth = Collisions.maybeBackOffFromEdge(new Vector(0, 0, 0.1), player, false).getZ() != 0.1;
+            boolean isNorth = Collisions.maybeBackOffFromEdge(new Vector(0, 0, -0.1), player, false).getZ() != -0.1;
+
+            if (isEast) player.uncertaintyHandler.lastStuckEast = 0;
+            if (isWest) player.uncertaintyHandler.lastStuckWest = 0;
+            if (isSouth) player.uncertaintyHandler.lastStuckSouth = 0;
+            if (isNorth) player.uncertaintyHandler.lastStuckNorth = 0;
+
+            if (player.uncertaintyHandler.lastStuckEast > -3)
+                player.uncertaintyHandler.xPositiveUncertainty += player.speed;
+
+            if (player.uncertaintyHandler.lastStuckWest > -3)
+                player.uncertaintyHandler.xNegativeUncertainty -= player.speed;
+
+            if (player.uncertaintyHandler.lastStuckNorth > -3)
+                player.uncertaintyHandler.zNegativeUncertainty -= player.speed;
+
+            if (player.uncertaintyHandler.lastStuckSouth > -3)
+                player.uncertaintyHandler.zPositiveUncertainty += player.speed;
+
+            if (isEast || isWest || isSouth || isNorth) {
+                player.uncertaintyHandler.stuckOnEdge = 0;
+            }
+        }
+
+        player.lastTransactionReceived = data.lastTransaction;
+
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
         player.latencyUtils.handleAnticheatSyncTransaction(data.lastTransaction);
-
-        player.lastTransactionReceived = data.lastTransaction;
 
         // Update entities to get current vehicle
         player.compensatedEntities.tickUpdates(data.lastTransaction);
@@ -385,7 +422,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastGlidingChangeTicks--;
         if (player.isGliding != player.wasGliding) player.uncertaintyHandler.lastGlidingChangeTicks = 0;
 
-        player.uncertaintyHandler.stuckOnEdge--;
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
@@ -431,8 +467,6 @@ public class MovementCheckRunner extends PositionCheck {
                 player.depthStriderLevel = 0;
             }
 
-            SimpleCollisionBox updatedBox = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z);
-
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
             player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = data.didGroundStatusChangeWithoutPositionPacket;
@@ -466,18 +500,6 @@ public class MovementCheckRunner extends PositionCheck {
                 player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
                 Collisions.handleInsideBlocks(player);
-            }
-
-            if ((player.isSneaking || player.wasSneaking) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
-                // Before we do player block placements, determine if the shifting glitch occurred
-                // It's a glitch on 1.14+ and on earlier versions, the 0.03 is just brutal.
-                boolean east = player.actualMovement.angle(new Vector(1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0.1, -0.6, 0));
-                boolean west = player.actualMovement.angle(new Vector(-1, 0, 0)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(-0.1, -0.6, 0));
-                boolean south = player.actualMovement.angle(new Vector(0, 0, 1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, 0.1));
-                boolean north = player.actualMovement.angle(new Vector(0, 0, -1)) < 60 && Collisions.isEmpty(player, updatedBox.copy().offset(0, -0.6, -0.1));
-
-                if (east || west || south || north)
-                    player.uncertaintyHandler.stuckOnEdge = 0;
             }
 
             new PlayerBaseTick(player).doBaseTick();

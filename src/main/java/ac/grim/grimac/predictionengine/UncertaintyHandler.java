@@ -55,7 +55,11 @@ public class UncertaintyHandler {
     public boolean isSteppingNearBubbleColumn = false;
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
     public boolean claimingLeftStuckSpeed = false;
-    public int stuckOnEdge = 0;
+    public int stuckOnEdge = -100;
+    public int lastStuckNorth = -100;
+    public int lastStuckSouth = -100;
+    public int lastStuckWest = -100;
+    public int lastStuckEast = -100;
     public boolean nextTickScaffoldingOnEdge = false;
     public boolean scaffoldingOnEdge = false;
     // Marks whether the player could have landed but without position packet because 0.03
@@ -104,6 +108,9 @@ public class UncertaintyHandler {
         if (predicted.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
             return true;
 
+        if (player.uncertaintyHandler.stuckOnEdge > -3)
+            return true;
+
         // Uncertainty was given here for 0.03-influenced movement
         if (predicted.hasVectorType(VectorData.VectorType.Swimhop))
             return true;
@@ -140,7 +147,7 @@ public class UncertaintyHandler {
         if (has003 && (influencedByBouncyBlock() || isSteppingOnIce))
             pointThree = 0.1;
 
-        if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6 || stuckOnEdge > -3)
+        if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6)
             pointThree = 0.1;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
@@ -158,8 +165,9 @@ public class UncertaintyHandler {
 
         // 0.03 plus being able to maintain velocity even when shifting is brutal
         // Value patched - I have no idea why these things are different in liquid vs in air
-        if (stuckOnEdge == ((player.wasTouchingWater || player.wasTouchingLava) ? 0 : -2))
+        if (stuckOnEdge == ((player.wasTouchingWater || player.wasTouchingLava) ? 0 : -1)) {
             pointThree = Math.max(pointThree, player.speed * 2);
+        }
 
         return pointThree;
     }
