@@ -9,7 +9,7 @@ import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
 import ac.grim.grimac.utils.data.packetentity.latency.EntityPropertiesData;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeModifierWrapper;
@@ -234,7 +234,7 @@ public class CompensatedEntities {
                 d1 *= 1.0D + attributemodifier.getAmount();
         }
 
-        return GrimMathHelper.clampFloat((float) d1, (float) minValue, (float) maxValue);
+        return GrimMath.clampFloat((float) d1, (float) minValue, (float) maxValue);
     }
 
     private void tickPassenger(PacketEntity riding, PacketEntity passenger) {

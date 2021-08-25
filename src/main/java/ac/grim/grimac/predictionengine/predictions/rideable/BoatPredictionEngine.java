@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -50,12 +50,12 @@ public class BoatPredictionEngine extends PredictionEngine {
     private static BoatEntityStatus isUnderwater(GrimPlayer player) {
         SimpleCollisionBox axisalignedbb = player.boundingBox;
         double d0 = axisalignedbb.maxY + 0.001D;
-        int i = GrimMathHelper.floor(axisalignedbb.minX);
-        int j = GrimMathHelper.ceil(axisalignedbb.maxX);
-        int k = GrimMathHelper.floor(axisalignedbb.maxY);
-        int l = GrimMathHelper.ceil(d0);
-        int i1 = GrimMathHelper.floor(axisalignedbb.minZ);
-        int j1 = GrimMathHelper.ceil(axisalignedbb.maxZ);
+        int i = GrimMath.floor(axisalignedbb.minX);
+        int j = GrimMath.ceil(axisalignedbb.maxX);
+        int k = GrimMath.floor(axisalignedbb.maxY);
+        int l = GrimMath.ceil(d0);
+        int i1 = GrimMath.floor(axisalignedbb.minZ);
+        int j1 = GrimMath.ceil(axisalignedbb.maxZ);
         boolean flag = false;
 
         for (int k1 = i; k1 < j; ++k1) {
@@ -78,12 +78,12 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     private static boolean checkInWater(GrimPlayer grimPlayer) {
         SimpleCollisionBox axisalignedbb = grimPlayer.boundingBox;
-        int i = GrimMathHelper.floor(axisalignedbb.minX);
-        int j = GrimMathHelper.ceil(axisalignedbb.maxX);
-        int k = GrimMathHelper.floor(axisalignedbb.minY);
-        int l = GrimMathHelper.ceil(axisalignedbb.minY + 0.001D);
-        int i1 = GrimMathHelper.floor(axisalignedbb.minZ);
-        int j1 = GrimMathHelper.ceil(axisalignedbb.maxZ);
+        int i = GrimMath.floor(axisalignedbb.minX);
+        int j = GrimMath.ceil(axisalignedbb.maxX);
+        int k = GrimMath.floor(axisalignedbb.minY);
+        int l = GrimMath.ceil(axisalignedbb.minY + 0.001D);
+        int i1 = GrimMath.floor(axisalignedbb.minZ);
+        int j1 = GrimMath.ceil(axisalignedbb.maxZ);
         boolean flag = false;
         grimPlayer.vehicleData.waterLevel = Double.MIN_VALUE;
 

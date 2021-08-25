@@ -6,8 +6,6 @@ import ac.grim.grimac.utils.data.ChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -20,10 +18,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import static ac.grim.grimac.events.bukkit.MagicPlayerBlockBreakPlace.getPlayerTransactionForPosition;
 
 public class FlatPlayerBlockBreakPlace implements Listener {
-
-    private static final Material BUCKET = XMaterial.BUCKET.parseMaterial();
-    private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
-    private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
@@ -50,13 +44,13 @@ public class FlatPlayerBlockBreakPlace implements Listener {
     // This event is broken again.
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockInteractEvent(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player == null) return;
 
         Block block = event.getClickedBlock();
         if (block == null) return;
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         // Client side interactable -> Door, trapdoor, gate
         if (Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {

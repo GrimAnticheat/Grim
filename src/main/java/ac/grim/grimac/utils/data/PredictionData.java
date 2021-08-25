@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import org.bukkit.GameMode;
 
@@ -40,8 +40,8 @@ public class PredictionData {
     // For regular movement
     public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround, boolean isJustTeleported) {
         // Don't allow players to move past the hard coded border as we hardcode this border into the checks
-        playerX = GrimMathHelper.clamp(playerX, -2.9999999E7D, 2.9999999E7D);
-        playerZ = GrimMathHelper.clamp(playerZ, -2.9999999E7D, 2.9999999E7D);
+        playerX = GrimMath.clamp(playerX, -2.9999999E7D, 2.9999999E7D);
+        playerZ = GrimMath.clamp(playerZ, -2.9999999E7D, 2.9999999E7D);
 
         this.player = player;
         this.playerX = playerX;

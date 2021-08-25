@@ -7,14 +7,14 @@ import ac.grim.grimac.utils.anticheat.ResyncWorldUtil;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.data.TransPosData;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.Ray;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -27,8 +27,7 @@ import java.util.List;
 public class AntiBucketDesync extends PacketCheck {
 
     private static final Material BUCKET = XMaterial.BUCKET.parseMaterial();
-    private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
-    private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
+
     public boolean resyncBucket = false;
     public boolean resyncEmptyBucket = false;
 
@@ -44,26 +43,33 @@ public class AntiBucketDesync extends PacketCheck {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            // 1.17 players don't have this desync, mojang finally managed to patch it (partially)
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) return;
-
             boolean isBucket = false;
             boolean isEmptyBucket = false;
 
             ItemStack main = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
-            if (main != null && (main.getType() == WATER_BUCKET || main.getType() == LAVA_BUCKET))
+            if (main != null && Materials.isPlaceableLiquidBucket(main.getType()))
                 isBucket = true;
             if (main != null && main.getType() == BUCKET)
                 isEmptyBucket = true;
 
             if (XMaterial.supports(9)) {
                 ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
-                if (off.getType() == WATER_BUCKET || off.getType() == LAVA_BUCKET)
+                if (Materials.isPlaceableLiquidBucket(off.getType()))
                     isBucket = true;
                 if (off.getType() == BUCKET)
                     isEmptyBucket = true;
             }
 
+            if (isBucket || isEmptyBucket) {
+                player.compensatedWorld.packetBucket.add(
+                        new TransPosData(player.packetStateData.packetPosition.getX(),
+                                player.packetStateData.packetPosition.getY(),
+                                player.packetStateData.packetPosition.getZ(),
+                                player.packetStateData.packetLastTransactionReceived.get(),
+                                GrimAPI.INSTANCE.getTickManager().getTick()));
+            }
+
+            // Mojang is incompetent and while this is mostly patched in 1.17, it desync's at high ping.
             if (isBucket) {
                 resyncBucket = true;
             }
@@ -119,8 +125,8 @@ public class AntiBucketDesync extends PacketCheck {
 
                     SimpleCollisionBox box = new SimpleCollisionBox(startPos, endPos).sort();
 
-                    ResyncWorldUtil.resyncPositions(player, GrimMathHelper.floor(box.minX), GrimMathHelper.floor(box.minY), GrimMathHelper.floor(box.minZ),
-                            GrimMathHelper.floor(box.maxX), GrimMathHelper.floor(box.maxY), GrimMathHelper.floor(box.maxZ),
+                    ResyncWorldUtil.resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
+                            GrimMath.floor(box.maxX), GrimMath.floor(box.maxY), GrimMath.floor(box.maxZ),
 
                             // Only resend source blocks, other blocks couldn't have been desync'd by this bug
                             state -> {
@@ -131,7 +137,7 @@ public class AntiBucketDesync extends PacketCheck {
                                     return (((MagicBlockState) state).getBlockData() & 0x7) == 0;
                                 } else {
                                     BlockData flatData = ((FlatBlockState) state).getBlockData();
-                                    return flatData instanceof Levelled && ((Levelled) flatData).getLevel() == ((Levelled) flatData).getMaximumLevel();
+                                    return flatData instanceof Levelled && ((Levelled) flatData).getLevel() == 0;
                                 }
                             });
                 }

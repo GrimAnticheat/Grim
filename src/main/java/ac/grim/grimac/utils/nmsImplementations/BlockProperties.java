@@ -4,7 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -102,10 +102,10 @@ public class BlockProperties {
     }
 
     public static Material getOnBlock(GrimPlayer player, double x, double y, double z) {
-        Material block1 = player.compensatedWorld.getBukkitMaterialAt(GrimMathHelper.floor(x), GrimMathHelper.floor(y - 0.2F), GrimMathHelper.floor(z));
+        Material block1 = player.compensatedWorld.getBukkitMaterialAt(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
 
         if (Materials.checkFlag(block1, Materials.AIR)) {
-            Material block2 = player.compensatedWorld.getBukkitMaterialAt(GrimMathHelper.floor(x), GrimMathHelper.floor(y - 1.2F), GrimMathHelper.floor(z));
+            Material block2 = player.compensatedWorld.getBukkitMaterialAt(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
 
             if (Materials.checkFlag(block2, Materials.FENCE) || Materials.checkFlag(block2, Materials.WALL) || Materials.checkFlag(block2, Materials.GATE)) {
                 return block2;

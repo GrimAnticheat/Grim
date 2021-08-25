@@ -3,7 +3,7 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -119,8 +119,8 @@ public class PredictionEngineNormal extends PredictionEngine {
             // Reset fall distance when climbing
             player.fallDistance = 0;
 
-            vector.setX(GrimMathHelper.clamp(vector.getX(), -0.15F, 0.15F));
-            vector.setZ(GrimMathHelper.clamp(vector.getZ(), -0.15F, 0.15F));
+            vector.setX(GrimMath.clamp(vector.getX(), -0.15F, 0.15F));
+            vector.setZ(GrimMath.clamp(vector.getZ(), -0.15F, 0.15F));
             vector.setY(Math.max(vector.getY(), -0.15F));
 
             // Yes, this uses shifting not crouching

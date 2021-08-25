@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.math;
 
 import java.util.List;
 
-public class GrimMathHelper {
+public class GrimMath {
     public static int floor(double d) {
         return (int) Math.floor(d);
     }

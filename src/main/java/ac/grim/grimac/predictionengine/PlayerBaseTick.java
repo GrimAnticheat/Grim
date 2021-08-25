@@ -5,7 +5,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
-import ac.grim.grimac.utils.math.GrimMathHelper;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.World;
@@ -225,9 +225,9 @@ public class PlayerBaseTick {
 
     // Mojang is incompetent and this will push the player out a lot when using elytras
     private void moveTowardsClosestSpaceLegacy(double x, double z) {
-        int floorX = GrimMathHelper.floor(x);
-        int floorZ = GrimMathHelper.floor(z);
-        int floorY = GrimMathHelper.floor(player.lastY + 0.5);
+        int floorX = GrimMath.floor(x);
+        int floorZ = GrimMath.floor(z);
+        int floorY = GrimMath.floor(player.lastY + 0.5);
 
         double d0 = x - floorX;
         double d1 = z - floorZ;
@@ -345,12 +345,12 @@ public class PlayerBaseTick {
     public boolean updateFluidHeightAndDoFluidPushingLegacy(FluidTag tag, double multiplier) {
         SimpleCollisionBox aABB = player.boundingBox.copy().expand(0, -0.4, 0).expand(-0.001);
 
-        int floorX = GrimMathHelper.floor(aABB.minX);
-        int ceilX = GrimMathHelper.ceil(aABB.maxX);
-        int floorY = GrimMathHelper.floor(aABB.minY);
-        int ceilY = GrimMathHelper.ceil(aABB.maxY);
-        int floorZ = GrimMathHelper.floor(aABB.minZ);
-        int ceilZ = GrimMathHelper.ceil(aABB.maxZ);
+        int floorX = GrimMath.floor(aABB.minX);
+        int ceilX = GrimMath.ceil(aABB.maxX);
+        int floorY = GrimMath.floor(aABB.minY);
+        int ceilY = GrimMath.ceil(aABB.maxY);
+        int floorZ = GrimMath.floor(aABB.minZ);
+        int ceilZ = GrimMath.ceil(aABB.maxZ);
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }
@@ -394,12 +394,12 @@ public class PlayerBaseTick {
     public boolean updateFluidHeightAndDoFluidPushingModern(FluidTag tag, double multiplier) {
         SimpleCollisionBox aABB = player.boundingBox.copy().expand(-0.001);
 
-        int floorX = GrimMathHelper.floor(aABB.minX);
-        int ceilX = GrimMathHelper.ceil(aABB.maxX);
-        int floorY = GrimMathHelper.floor(aABB.minY);
-        int ceilY = GrimMathHelper.ceil(aABB.maxY);
-        int floorZ = GrimMathHelper.floor(aABB.minZ);
-        int ceilZ = GrimMathHelper.ceil(aABB.maxZ);
+        int floorX = GrimMath.floor(aABB.minX);
+        int ceilX = GrimMath.ceil(aABB.maxX);
+        int floorY = GrimMath.floor(aABB.minY);
+        int ceilY = GrimMath.ceil(aABB.maxY);
+        int floorZ = GrimMath.floor(aABB.minZ);
+        int ceilZ = GrimMath.ceil(aABB.maxZ);
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, floorX, floorY, floorZ, ceilX, ceilY, ceilZ)) {
             return false;
         }

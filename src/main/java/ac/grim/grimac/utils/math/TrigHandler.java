@@ -29,7 +29,7 @@ public class TrigHandler {
 
         // Try and identify the math system within 0.5 seconds (At best) of joining
         // Switch systems in 1.5 seconds (At best) if the player changes their math system
-        buffer = GrimMathHelper.clamp(buffer, -20, 10);
+        buffer = GrimMath.clamp(buffer, -20, 10);
     }
 
     public float sin(float f) {

@@ -46,6 +46,14 @@ public class Materials {
     private static final Material SOUL_LANTERN = XMaterial.SOUL_LANTERN.parseMaterial();
     private static final Material SMALL_DRIPLEAF = XMaterial.SMALL_DRIPLEAF.parseMaterial();
 
+    private static final Material AXOLOTL_BUCKET = XMaterial.AXOLOTL_BUCKET.parseMaterial();
+    private static final Material COD_BUCKET = XMaterial.COD_BUCKET.parseMaterial();
+    private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
+    private static final Material PUFFERFISH_BUCKET = XMaterial.PUFFERFISH_BUCKET.parseMaterial();
+    private static final Material SALMON_BUCKET = XMaterial.SALMON_BUCKET.parseMaterial();
+    private static final Material TROPICAL_FISH_BUCKET = XMaterial.TROPICAL_FISH_BUCKET.parseMaterial();
+    private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
+
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
 
     static {
@@ -235,6 +243,7 @@ public class Materials {
                 || material == TRIDENT || material == SHIELD);
     }
 
+
     public static boolean checkFlag(Material material, int flag) {
         return (MATERIAL_FLAGS[material.ordinal()] & flag) == flag;
     }
@@ -258,6 +267,11 @@ public class Materials {
             return false;
 
         return blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged();
+    }
+
+    public static boolean isPlaceableLiquidBucket(Material mat) {
+        return mat == AXOLOTL_BUCKET || mat == COD_BUCKET || mat == LAVA_BUCKET || mat == PUFFERFISH_BUCKET
+                || mat == SALMON_BUCKET || mat == TROPICAL_FISH_BUCKET || mat == WATER_BUCKET;
     }
 
     public static boolean isWaterMagic(ClientVersion clientVersion, BaseBlockState state) {
