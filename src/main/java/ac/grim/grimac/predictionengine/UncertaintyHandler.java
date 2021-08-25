@@ -70,7 +70,6 @@ public class UncertaintyHandler {
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
     public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(5);
-    public EvictingList<Boolean> glidingStatusSwitchHack = new EvictingList<>(6);
     public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
     public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
     public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
@@ -79,6 +78,7 @@ public class UncertaintyHandler {
     public int lastTeleportTicks = 0;
     public int lastFlyingTicks = 0;
     public int lastSneakingChangeTicks = 0;
+    public int lastGlidingChangeTicks = -100;
 
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
@@ -149,7 +149,7 @@ public class UncertaintyHandler {
         if (Collections.max(thirtyMillionHardBorder))
             pointThree = 0.15;
 
-        if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack))
+        if (player.uncertaintyHandler.lastGlidingChangeTicks > -3)
             pointThree = 0.15;
 
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
@@ -183,7 +183,7 @@ public class UncertaintyHandler {
 
         // Don't allow this uncertainty to be spoofed - use isActuallyOnGround
         // (Players control their onGround when this hack is active)
-        if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack) && !player.isActuallyOnGround)
+        if (player.uncertaintyHandler.lastGlidingChangeTicks > -3 && !player.isActuallyOnGround)
             return 0.15;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks

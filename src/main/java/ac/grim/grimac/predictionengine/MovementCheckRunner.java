@@ -382,6 +382,9 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
+        player.uncertaintyHandler.lastGlidingChangeTicks--;
+        if (player.isGliding != player.wasGliding) player.uncertaintyHandler.lastGlidingChangeTicks = 0;
+
         player.uncertaintyHandler.stuckOnEdge--;
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
@@ -516,8 +519,8 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 1.2;
         }
 
-        if (Collections.max(player.uncertaintyHandler.glidingStatusSwitchHack))
-            offset -= 0.05;
+        if (player.uncertaintyHandler.lastGlidingChangeTicks > -6)
+            offset -= 0.25;
 
         if (Collections.max(player.uncertaintyHandler.flyingStatusSwitchHack)) {
             offset -= 0.25;
