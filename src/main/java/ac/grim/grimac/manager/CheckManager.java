@@ -6,13 +6,11 @@ import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.LargeOffsetHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallChecker;
 import ac.grim.grimac.checks.impl.prediction.SmallOffsetHandler;
+import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
 import ac.grim.grimac.checks.type.*;
 import ac.grim.grimac.events.packets.patch.AntiBucketDesync;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
-import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
-import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
+import ac.grim.grimac.utils.anticheat.update.*;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -23,6 +21,8 @@ public class CheckManager {
     ClassToInstanceMap<PositionCheck> positionCheck;
     ClassToInstanceMap<RotationCheck> rotationCheck;
     ClassToInstanceMap<VehicleCheck> vehicleCheck;
+
+    ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
 
     ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
 
@@ -51,6 +51,10 @@ public class CheckManager {
                 .put(SmallOffsetHandler.class, new SmallOffsetHandler(player))
                 .put(LargeOffsetHandler.class, new LargeOffsetHandler(player))
                 .put(DebugHandler.class, new DebugHandler(player))
+                .build();
+
+        blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
+                .put(AirLiquidPlace.class, new AirLiquidPlace(player))
                 .build();
     }
 
@@ -90,6 +94,10 @@ public class CheckManager {
 
     public void onPredictionFinish(final PredictionComplete complete) {
         postPredictionCheck.values().forEach(predictionCheck -> predictionCheck.onPredictionComplete(complete));
+    }
+
+    public void onBlockPlace(final BlockPlace place) {
+        blockPlaceCheck.values().forEach(check -> check.onBlockPlace(place));
     }
 
     public ExplosionHandler getExplosionHandler() {

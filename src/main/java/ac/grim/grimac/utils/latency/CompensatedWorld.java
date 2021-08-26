@@ -64,7 +64,12 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPlaces = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockBreaks = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<TransPosData> packetBucket = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> possibleInteractedBlock = new ConcurrentLinkedQueue<>();
+
+    public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> likelyDesyncBlockPositions = new ConcurrentLinkedQueue<>();
+
+    // Packet locations for blocks
+    public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> packetLevelBlockLocations = new ConcurrentLinkedQueue<>();
+
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
     public boolean sendTransaction = true;
@@ -141,6 +146,17 @@ public class CompensatedWorld {
         packetBlockPlaces.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
         packetBlockBreaks.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
         packetBucket.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getTick() > 3);
+
+        packetLevelBlockLocations.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getFirst() > 3);
+    }
+
+    public boolean hasPacketBlockAt(int x, int y, int z) {
+        Vector3i pos = new Vector3i(x, y, z);
+        for (Pair<Integer, Vector3i> block : packetLevelBlockLocations) {
+            if (block.getSecond().equals(pos)) return true;
+        }
+
+        return false;
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {

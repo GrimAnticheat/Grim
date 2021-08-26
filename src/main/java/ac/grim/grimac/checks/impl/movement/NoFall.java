@@ -6,6 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.EntityType;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -18,7 +19,6 @@ import org.bukkit.ChatColor;
 import java.util.List;
 
 // This check is UNFINISHED!
-// TODO: Must make client placed blocks work.
 // TODO: If chunk is marked for removal, player could have switched worlds, so exempt
 @CheckData(name = "NoFall")
 public class NoFall extends PacketCheck {
@@ -70,7 +70,19 @@ public class NoFall extends PacketCheck {
                     }
                 }
 
-                if (isNearHardEntity(feetBB.expand(4))) return;
+                if (isNearHardEntity(feetBB.copy().expand(4))) return;
+
+                feetBB.expand(1);
+
+                // Check for packet blocks
+                // TODO: This is extremely inefficient
+                for (int x = GrimMath.floor(feetBB.minX); x <= feetBB.maxX; x++) {
+                    for (int y = GrimMath.floor(feetBB.minY); y <= feetBB.maxY; y++) {
+                        for (int z = GrimMath.floor(feetBB.minZ); z <= feetBB.maxZ; z++) {
+                            if (player.compensatedWorld.hasPacketBlockAt(x, y, z)) return;
+                        }
+                    }
+                }
 
                 // TODO: We actually need to pass this into a post prediction check to double check boats/shulkers
                 // also, stepping on legacy versions needs to be checked correctly
