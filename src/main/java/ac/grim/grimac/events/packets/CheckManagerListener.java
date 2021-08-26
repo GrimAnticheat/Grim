@@ -35,6 +35,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             boolean hasPosition = packetID == PacketType.Play.Client.POSITION || packetID == PacketType.Play.Client.POSITION_LOOK;
             boolean hasLook = packetID == PacketType.Play.Client.LOOK || packetID == PacketType.Play.Client.POSITION_LOOK;
+            boolean onGround = flying.isOnGround();
 
             // Don't check duplicate 1.17 packets (Why would you do this mojang?)
             // Don't check rotation since it changes between these packets, with the second being irrelevant.
@@ -49,7 +50,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             lastPosLook = System.currentTimeMillis();
 
-            if (!hasPosition && flying.isOnGround() != player.packetStateData.packetPlayerOnGround)
+            if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround)
                 player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;
 
             player.packetStateData.lastPacketPlayerXRot = player.packetStateData.packetPlayerXRot;
@@ -57,7 +58,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketPosition = player.packetStateData.packetPosition;
             player.packetStateData.lastPacketWasTeleport = false;
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
-            player.packetStateData.packetPlayerOnGround = flying.isOnGround();
+
+            // First and second onGround packets are wrong (teleport and idk why second is wrong)
+            // Go test with a 1.8 client on a 1.17 server, and you will see
+            if (player.packetStateData.movementPacketsReceived > 2) {
+                player.packetStateData.packetPlayerOnGround = onGround;
+            } else {
+                onGround = player.packetStateData.packetPlayerOnGround;
+            }
 
             if (hasLook) {
                 float xRot = flying.getYaw();
@@ -74,7 +82,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 final boolean isTeleport = player.teleportUtil.checkTeleportQueue(position.getX(), position.getY(), position.getZ());
                 player.packetStateData.lastPacketWasTeleport = isTeleport;
 
-                final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, flying.isOnGround(), isTeleport);
+                final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, onGround, isTeleport);
                 player.checkManager.onPositionUpdate(update);
             }
 
