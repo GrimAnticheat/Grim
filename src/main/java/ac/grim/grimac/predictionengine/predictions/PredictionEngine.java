@@ -110,14 +110,6 @@ public class PredictionEngine {
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput);
             Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(backOff, player, false);
-
-            // Fix issue with sneaking 0.03 uncertainty being eaten by maybeBackOffFromEdge
-            // This is needed because backOffFromEdge is quite imprecise
-            if (player.uncertaintyHandler.stuckOnEdge > -3 && clientVelAfterInput.hasVectorType(VectorData.VectorType.ZeroPointZeroThree)) {
-                Vector uncertainty = new Vector(0.06, 0, 0.06);
-                primaryPushMovement = VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, backOff.clone().add(uncertainty), backOff.clone().subtract(uncertainty));
-            }
-
             Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, primaryPushMovement);
 
             boolean flipSneaking = clientVelAfterInput.hasVectorType(VectorData.VectorType.Flip_Sneaking);

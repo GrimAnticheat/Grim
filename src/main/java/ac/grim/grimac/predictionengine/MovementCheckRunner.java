@@ -161,10 +161,10 @@ public class MovementCheckRunner extends PositionCheck {
         if ((player.isSneaking || player.wasSneaking) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
             // Before we do player block placements, determine if the shifting glitch occurred
             // The 0.03 and maintaining velocity is just brutal
-            boolean isEast = Collisions.maybeBackOffFromEdge(new Vector(0.1, 0, 0), player, false).getX() != 0.1;
-            boolean isWest = Collisions.maybeBackOffFromEdge(new Vector(-0.1, 0, 0), player, false).getX() != -0.1;
-            boolean isSouth = Collisions.maybeBackOffFromEdge(new Vector(0, 0, 0.1), player, false).getZ() != 0.1;
-            boolean isNorth = Collisions.maybeBackOffFromEdge(new Vector(0, 0, -0.1), player, false).getZ() != -0.1;
+            boolean isEast = Collisions.maybeBackOffFromEdge(new Vector(0.1, 0, 0), player, true).getX() != 0.1;
+            boolean isWest = Collisions.maybeBackOffFromEdge(new Vector(-0.1, 0, 0), player, true).getX() != -0.1;
+            boolean isSouth = Collisions.maybeBackOffFromEdge(new Vector(0, 0, 0.1), player, true).getZ() != 0.1;
+            boolean isNorth = Collisions.maybeBackOffFromEdge(new Vector(0, 0, -0.1), player, true).getZ() != -0.1;
 
             if (isEast) player.uncertaintyHandler.lastStuckEast = 0;
             if (isWest) player.uncertaintyHandler.lastStuckWest = 0;
@@ -555,6 +555,10 @@ public class MovementCheckRunner extends PositionCheck {
 
         if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
             offset -= 0.09;
+        }
+
+        if (player.uncertaintyHandler.stuckOnEdge > -3) {
+            offset -= 0.05;
         }
 
         // Errors are caused by a combination of client/server desync while climbing
