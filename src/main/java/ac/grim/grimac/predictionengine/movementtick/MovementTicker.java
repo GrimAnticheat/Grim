@@ -41,10 +41,7 @@ public class MovementTicker {
 
         double testX = inputVel.getX() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
         // If the player doesn't have gravity, they will have no downwards momentum
-        double testY = nonUncertainVector.getY() - (player.hasGravity
-                // For some reason the player has no gravity when trying to swim but their feet aren't in water! (1.17 bug only)
-                && !(player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && player.wasEyeInWater && player.isSprinting & !player.isSwimming)
-                ? SimpleCollisionBox.COLLISION_EPSILON : 0);
+        double testY = inputVel.getY() - (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
         double testZ = inputVel.getZ() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
         Vector plusCollide = Collisions.collide(player, testX, testY, testZ);
 
@@ -75,10 +72,13 @@ public class MovementTicker {
         if (player.inVehicle || ((Collections.max(player.uncertaintyHandler.pistonPushing) == 0 && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.influencedByBouncyBlock()
                 && player.uncertaintyHandler.lastTeleportTicks < -2) && !Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)
-                && player.uncertaintyHandler.lastGlidingChangeTicks < -3) {
+                && player.uncertaintyHandler.lastGlidingChangeTicks < -3 &&
+                // The player has 0 vertical velocity, but might be on the ground, or might not.  They are 1e-7 on the ground
+                // so there is little room for abuse.
+                !(testY == -SimpleCollisionBox.COLLISION_EPSILON && plusCollide.getY() == 0)) {
 
             if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
-                Bukkit.broadcastMessage("Desync " + player.onGround);
+                Bukkit.broadcastMessage("Desync " + player.onGround + " " + nonUncertainVector.getY() + " " + testY);
 
             player.onGround = player.isActuallyOnGround;
         }

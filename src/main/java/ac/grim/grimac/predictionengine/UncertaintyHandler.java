@@ -8,12 +8,12 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.lists.EvictingList;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.block.BlockFace;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
 public class UncertaintyHandler {
     private final GrimPlayer player;
@@ -53,6 +53,7 @@ public class UncertaintyHandler {
     public boolean wasSteppingOnBouncyBlock = false;
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
+    public boolean isNearGlitchyBlock = false;
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
     public boolean claimingLeftStuckSpeed = false;
     public int stuckOnEdge = -100;
@@ -83,6 +84,7 @@ public class UncertaintyHandler {
     public int lastFlyingTicks = 0;
     public int lastSneakingChangeTicks = 0;
     public int lastGlidingChangeTicks = -100;
+    public int lastMetadataDesync = 0;
 
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
@@ -194,6 +196,9 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.lastGlidingChangeTicks > -3 && !player.isActuallyOnGround)
             return 0.15;
 
+        if (player.uncertaintyHandler.claimingLeftStuckSpeed)
+            return 0.06;
+
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
         if ((lastFlyingTicks < 5) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
             return 0.06;
@@ -270,9 +275,9 @@ public class UncertaintyHandler {
 
             // Stiders can walk on top of other striders
             if (player.playerVehicle instanceof PacketEntityStrider) {
-                for (Int2ObjectMap.Entry<PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+                for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.entrySet()) {
                     PacketEntity entity = entityPair.getValue();
-                    if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getIntKey())) {
+                    if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
                         SimpleCollisionBox box = GetBoundingBox.getPacketEntityBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity);
                         if (box.isIntersected(expandedBB)) {
                             hasHardCollision = true;
@@ -284,9 +289,9 @@ public class UncertaintyHandler {
 
             // Boats can collide with quite literally anything
             if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
-                for (Int2ObjectMap.Entry<PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+                for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.entrySet()) {
                     PacketEntity entity = entityPair.getValue();
-                    if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getIntKey())) {
+                    if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
                         SimpleCollisionBox box = GetBoundingBox.getPacketEntityBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity);
                         if (box.isIntersected(expandedBB)) {
                             hasHardCollision = true;

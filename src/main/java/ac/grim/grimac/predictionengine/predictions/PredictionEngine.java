@@ -39,7 +39,7 @@ public class PredictionEngine {
             // Allow the player's Y velocity to be 0 if they are in water/lava (0.03 issue)
             Vector pointThreeVector = new Vector();
             if (!player.uncertaintyHandler.controlsVerticalMovement())
-                pointThreeVector.setY(player.clientVelocity.getY());
+                pointThreeVector.setY(player.clientVelocity.getY() * player.stuckSpeedMultiplier.getY());
 
             VectorData zeroData = new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree);
             zeroStuff.add(zeroData);
@@ -92,6 +92,8 @@ public class PredictionEngine {
             } else if (Math.abs(yVelocity) < 0.03) {
                 // Falses with -0.16
                 player.uncertaintyHandler.gravityUncertainty -= 0.2;
+            } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
+                player.uncertaintyHandler.gravityUncertainty -= 0.1;
             }
         }
 
@@ -120,10 +122,6 @@ public class PredictionEngine {
                 player.pose = originalPose;
                 player.boundingBox = originalBB;
             }
-
-            // Fix stepping issue with uncertain gravity from the last tick
-            if (player.actualMovement.getY() > 0 && additionalPushMovement.getY() < 0 && player.uncertaintyHandler.wasLastGravityUncertain)
-                additionalPushMovement.setY(additionalPushMovement.getY() - 0.3);
 
             Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ(), originalClientVel.getY());
 

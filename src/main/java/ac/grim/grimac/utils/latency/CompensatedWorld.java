@@ -50,6 +50,11 @@ public class CompensatedWorld {
     public ConcurrentSkipListSet<BasePlayerChangeBlockData> worldChangedBlockQueue = new ConcurrentSkipListSet<>((a, b) -> {
         // We can't have elements with equal comparisons, otherwise they won't be added
         if (a.transaction == b.transaction) {
+            boolean aOpenBlock = a instanceof PlayerOpenBlockData;
+            boolean bOpenBlock = b instanceof PlayerOpenBlockData;
+
+            if (aOpenBlock != bOpenBlock) return Boolean.compare(aOpenBlock, bOpenBlock);
+
             return Integer.compare(a.hashCode(), b.hashCode());
         }
         return Integer.compare(a.transaction, b.transaction);
@@ -59,6 +64,7 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPlaces = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockBreaks = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<TransPosData> packetBucket = new ConcurrentLinkedQueue<>();
+    public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> possibleInteractedBlock = new ConcurrentLinkedQueue<>();
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
     public boolean sendTransaction = true;

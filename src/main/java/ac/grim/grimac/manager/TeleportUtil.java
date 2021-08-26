@@ -17,6 +17,7 @@ public class TeleportUtil {
     SetBackData requiredSetBack;
     AtomicBoolean hasSetBackTask = new AtomicBoolean(false);
     int ignoreTransBeforeThis = 0;
+    double teleportEpsilon = 0.5;
 
     public TeleportUtil(GrimPlayer player) {
         this.player = player;
@@ -45,7 +46,7 @@ public class TeleportUtil {
             }
 
             // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
-            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
+            if (Math.abs(position.getX() - x) < teleportEpsilon && Math.abs(position.getY() - y) < teleportEpsilon && Math.abs(position.getZ() - z) < teleportEpsilon) {
                 player.teleports.poll();
 
                 // Teleports remove the player from their vehicle
@@ -53,6 +54,7 @@ public class TeleportUtil {
 
                 // Note the latest teleport accepted
                 ignoreTransBeforeThis = lastTransaction;
+
                 // Player has accepted their setback!
                 if (hasSetBackTask.get() && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
                     hasSetBackTask.set(false);

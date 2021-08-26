@@ -58,6 +58,10 @@ public class MovementCheckRunner extends PositionCheck {
     private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
 
+    private static final Material ANVIL = XMaterial.ANVIL.parseMaterial();
+    private static final Material CHIPPED_ANVIL = XMaterial.CHIPPED_ANVIL.parseMaterial();
+    private static final Material DAMAGED_ANVIL = XMaterial.DAMAGED_ANVIL.parseMaterial();
+
     public static CustomThreadPoolExecutor executor =
             new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
@@ -426,7 +430,9 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
-        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.onMaterial(player, BUBBLE_COLUMN, -0.5);
+        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.onMaterial(player, BUBBLE_COLUMN, -1);
+        // TODO: Make this work for chests, anvils, and client interacted blocks (door, trapdoor, etc.)
+        player.uncertaintyHandler.isNearGlitchyBlock = false;
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
         player.uncertaintyHandler.checkForHardCollision();
         player.uncertaintyHandler.thirtyMillionHardBorder.add(!player.inVehicle && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D));
@@ -548,6 +554,10 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 0.25;
         }
 
+        if (player.uncertaintyHandler.isNearGlitchyBlock) {
+            offset -= 0.15;
+        }
+
         // Checking slime is too complicated
         if (player.uncertaintyHandler.influencedByBouncyBlock() && Math.abs(player.actualMovement.getY()) < 0.418) {
             offset -= 0.1;
@@ -607,6 +617,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity);
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
+        player.uncertaintyHandler.lastMetadataDesync--;
 
         if (player.playerVehicle instanceof PacketEntityRideable) {
             PacketEntityRideable rideable = (PacketEntityRideable) player.playerVehicle;
