@@ -123,7 +123,7 @@ public class PlayerBaseTick {
 
     // 1.14
     public void updatePlayerPose() {
-        if (canEnterPose(player, Pose.SWIMMING, player.lastX, player.lastY, player.lastZ)) {
+        if (canEnterPose(player, Pose.SWIMMING, player.x, player.y, player.z)) {
             Pose pose;
             if (player.isGliding) {
                 pose = Pose.FALL_FLYING;
@@ -153,6 +153,7 @@ public class PlayerBaseTick {
             }
 
             player.pose = pose;
+            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
         }
     }
 

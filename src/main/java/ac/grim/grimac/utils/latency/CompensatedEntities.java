@@ -18,18 +18,14 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import org.bukkit.block.BlockFace;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class CompensatedEntities {
-    public final Int2ObjectLinkedOpenHashMap<PacketEntity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
+    public final ConcurrentHashMap<Integer, PacketEntity> entityMap = new ConcurrentHashMap<>();
 
     public ConcurrentLinkedQueue<EntityMoveData> moveEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
@@ -181,11 +177,11 @@ public class CompensatedEntities {
 
         // Remove entities when the client despawns them
         // We do it in this strange way to avoid despawning the wrong entity
-        for (Int2ObjectMap.Entry<PacketEntity> entry : entityMap.int2ObjectEntrySet()) {
+        for (Map.Entry<Integer, PacketEntity> entry : entityMap.entrySet()) {
             PacketEntity entity = entry.getValue();
             if (entity == null) continue;
-
-            int entityID = entry.getIntKey();
+            if (entity.removeTrans > lastTransactionReceived) continue;
+            int entityID = entry.getKey();
 
             Integer playerVehicle = player.vehicle;
 

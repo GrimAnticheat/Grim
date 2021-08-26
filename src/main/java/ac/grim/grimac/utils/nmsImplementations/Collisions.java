@@ -81,7 +81,7 @@ public class Collisions {
                     //
                     // Additionally, the player must be stepping onto a block for this to work
                     // not a "perfect" method to detect stepping, but it should cover this 0.03 edge case with small movement
-                    (player.actualMovement.getY() > 0 && desiredY < 0.0009 && !Collisions.isEmpty(player, GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).offset(0, -COLLISION_EPSILON, 0)))
+                    (player.actualMovement.getY() > 0 && desiredY < 0.1 && !Collisions.isEmpty(player, GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).offset(0, -COLLISION_EPSILON, 0)))
                     // Fix a false with cobwebs on top of soul sand (0.03) - We don't detect that the player actually would touch the ground this tick
                     || (player.uncertaintyHandler.wasAffectedByStuckSpeed() && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
                     // Fix a false when stepping underwater with high uncertainty (require fluid on eyes to stop players from exiting water with stepping movement)
@@ -494,10 +494,10 @@ public class Collisions {
     // so I can automatically map honey -> slime and other important ViaVersion replacement blocks
     public static boolean hasSlimeBlock(GrimPlayer player) {
         return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
-                && (onMaterial(player, SLIME_BLOCK, -0.04) ||
+                && (onMaterial(player, SLIME_BLOCK, -1) ||
                 (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
-                        && onMaterial(player, HONEY_BLOCK, -0.04)));
+                        && onMaterial(player, HONEY_BLOCK, -1)));
     }
 
     public static boolean onMaterialType(GrimPlayer player, int material) {
@@ -516,8 +516,9 @@ public class Collisions {
         return false;
     }
 
+
     public static boolean onMaterial(GrimPlayer player, Material material, double offset) {
-        SimpleCollisionBox playerBB = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
+        SimpleCollisionBox playerBB = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).expand(0.03).offset(0, offset, 0);
 
         // Blocks are stored in YZX order
         for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
