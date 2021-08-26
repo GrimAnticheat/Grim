@@ -255,7 +255,7 @@ public class Collisions {
             double x = vec3.getX();
             double z = vec3.getZ();
 
-            double maxStepDown = overrideVersion || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_11) ? -player.getMaxUpStep() : -1;
+            double maxStepDown = overrideVersion || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_11) ? -player.getMaxUpStep() : -1 + COLLISION_EPSILON;
 
             while (x != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, maxStepDown, 0.0))) {
                 if (x < 0.05D && x >= -0.05D) {
@@ -298,8 +298,9 @@ public class Collisions {
     }
 
     private static boolean isAboveGround(GrimPlayer player) {
-        return player.lastOnGround || player.fallDistance < player.getMaxUpStep() &&
-                !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0));
+        // https://bugs.mojang.com/browse/MC-2404
+        return player.lastOnGround || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16_2) && (player.fallDistance < player.getMaxUpStep() &&
+                !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0))));
     }
 
     public static void handleInsideBlocks(GrimPlayer player) {
