@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
@@ -10,10 +11,14 @@ import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 
 public class CheckManagerListener extends PacketListenerAbstract {
 
@@ -113,6 +118,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             player.packetStateData.receivedSteerVehicle = false;
             player.teleportUtil.tryResendExpiredSetback();
+        }
+
+        if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId())) {
+            WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
+            Vector3i blockPosition = place.getBlockPosition();
+            Direction face = place.getDirection();
+            BlockPlace blockPlace = new BlockPlace(blockPosition, face);
+
+            player.checkManager.onBlockPlace(blockPlace);
+
+            if (!blockPlace.isCancelled()) {
+                player.compensatedWorld.packetLevelBlockLocations.add(new Pair<>(GrimAPI.INSTANCE.getTickManager().getTick(), blockPlace.getPlacedBlockPos()));
+            }
         }
 
         // Call the packet checks last as they can modify the contents of the packet

@@ -8,6 +8,8 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class Materials {
     public static final int SOLID = 0b00000000000000000000000000001;
@@ -55,6 +57,7 @@ public class Materials {
     private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
 
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
+    private static final Set<Material> NO_PLACE_LIQUIDS = new HashSet<>();
 
     static {
         for (int i = 0; i < MATERIAL_FLAGS.length; i++) {
@@ -166,6 +169,11 @@ public class Materials {
         // Piston heads have bounding boxes that exceed their own cube
         markAs(XMaterial.PISTON_HEAD, SHAPE_EXCEEDS_CUBE);
 
+        NO_PLACE_LIQUIDS.add(XMaterial.WATER.parseMaterial());
+        NO_PLACE_LIQUIDS.add(XMaterial.LAVA.parseMaterial());
+        NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_WATER.parseMaterial());
+        NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_LAVA.parseMaterial());
+
         for (Material mat : Material.values()) {
             if (mat.name().endsWith("_SWORD")) MATERIAL_FLAGS[mat.ordinal()] |= SWORD;
             if (!mat.isBlock()) continue;
@@ -272,6 +280,10 @@ public class Materials {
     public static boolean isPlaceableLiquidBucket(Material mat) {
         return mat == AXOLOTL_BUCKET || mat == COD_BUCKET || mat == LAVA_BUCKET || mat == PUFFERFISH_BUCKET
                 || mat == SALMON_BUCKET || mat == TROPICAL_FISH_BUCKET || mat == WATER_BUCKET;
+    }
+
+    public static boolean isNoPlaceLiquid(Material material) {
+        return NO_PLACE_LIQUIDS.contains(material);
     }
 
     public static boolean isWaterMagic(ClientVersion clientVersion, BaseBlockState state) {

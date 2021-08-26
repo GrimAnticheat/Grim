@@ -675,7 +675,7 @@ public enum XMaterial {
     LAPIS_ORE,
     LARGE_AMETHYST_BUD,
     LARGE_FERN(3, "DOUBLE_PLANT"),
-    LAVA("STATIONARY_LAVA"),
+    LAVA, // Don't let this be STATIONARY_LAVA
     LAVA_BUCKET,
     LAVA_CAULDRON,
     LEAD("LEASH"),
