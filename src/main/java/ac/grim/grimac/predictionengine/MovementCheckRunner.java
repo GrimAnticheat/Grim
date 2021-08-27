@@ -532,8 +532,8 @@ public class MovementCheckRunner extends PositionCheck {
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
-        Vector offsetVector = player.predictedVelocity.vector.clone().subtract(player.actualMovement);
-        double offset = offsetVector.length();
+        // No, don't comment about the sqrt call.  It doesn't matter at all on modern CPU's.
+        double offset = player.predictedVelocity.vector.distance(player.actualMovement);
 
         // Exempt players from piston checks by giving them 1 block of lenience for any piston pushing
         if (Collections.max(player.uncertaintyHandler.pistonPushing) > 0) {
@@ -601,7 +601,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         offset = Math.max(0, offset);
 
-        double horizontalOffset = player.actualMovement.clone().setY(0).distanceSquared(player.predictedVelocity.vector.clone().setY(0));
+        double horizontalOffset = player.actualMovement.clone().setY(0).distance(player.predictedVelocity.vector.clone().setY(0));
         double verticalOffset = player.actualMovement.getY() - player.predictedVelocity.vector.getY();
         double totalOffset = horizontalOffset + verticalOffset;
 
