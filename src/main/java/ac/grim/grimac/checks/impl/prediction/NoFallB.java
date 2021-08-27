@@ -18,8 +18,7 @@ public class NoFallB extends PostPredictionCheck {
                 || player.uncertaintyHandler.pistonZ != 0 || player.uncertaintyHandler.isSteppingOnSlime
                 || player.isFlying || player.uncertaintyHandler.isStepMovement) return;
 
-        // If the player says they were on the ground, but their (1 / 64) didn't match
-        boolean invalid = player.clientClaimsLastOnGround != player.clientControlledVerticalCollision;
+        boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 
         if (invalid) Bukkit.broadcastMessage("Ground is invalid!");
     }
