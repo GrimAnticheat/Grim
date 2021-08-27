@@ -1,10 +1,11 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.checks.impl.combat.Reach;
+import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.movement.*;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.LargeOffsetHandler;
-import ac.grim.grimac.checks.impl.prediction.NoFallChecker;
+import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.SmallOffsetHandler;
 import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
 import ac.grim.grimac.checks.type.*;
@@ -32,7 +33,7 @@ public class CheckManager {
                 .put(Reach.class, new Reach(player))
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
-                .put(NoFall.class, new NoFall(player))
+                .put(NoFallA.class, new NoFallA(player))
                 .put(AntiBucketDesync.class, new AntiBucketDesync(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class to process
                 .build();
@@ -47,7 +48,7 @@ public class CheckManager {
                 .build();
 
         postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
-                .put(NoFallChecker.class, new NoFallChecker(player))
+                .put(NoFallB.class, new NoFallB(player))
                 .put(SmallOffsetHandler.class, new SmallOffsetHandler(player))
                 .put(LargeOffsetHandler.class, new LargeOffsetHandler(player))
                 .put(DebugHandler.class, new DebugHandler(player))
@@ -58,16 +59,20 @@ public class CheckManager {
                 .build();
     }
 
-    private PositionCheck getPositionCheck(Class<? extends PositionCheck> check) {
+    public PositionCheck getPositionCheck(Class<? extends PositionCheck> check) {
         return positionCheck.get(check);
     }
 
-    private RotationCheck getRotationCheck(Class<? extends RotationCheck> check) {
+    public RotationCheck getRotationCheck(Class<? extends RotationCheck> check) {
         return rotationCheck.get(check);
     }
 
-    private VehicleCheck getVehicleCheck(Class<? extends VehicleCheck> check) {
+    public VehicleCheck getVehicleCheck(Class<? extends VehicleCheck> check) {
         return vehicleCheck.get(check);
+    }
+
+    public PostPredictionCheck getPostPredictionCheck(Class<? extends PostPredictionCheck> check) {
+        return postPredictionCheck.get(check);
     }
 
     public void onPacketReceive(final PacketPlayReceiveEvent packet) {
