@@ -58,9 +58,7 @@ public class MovementCheckRunner extends PositionCheck {
     private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
 
-    private static final Material ANVIL = XMaterial.ANVIL.parseMaterial();
-    private static final Material CHIPPED_ANVIL = XMaterial.CHIPPED_ANVIL.parseMaterial();
-    private static final Material DAMAGED_ANVIL = XMaterial.DAMAGED_ANVIL.parseMaterial();
+    private static final Material TRIDENT = XMaterial.TRIDENT.parseMaterial();
 
     public static CustomThreadPoolExecutor executor =
             new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
@@ -492,7 +490,9 @@ public class MovementCheckRunner extends PositionCheck {
                 player.clientClaimsLastOnGround = true;
             }
 
-            player.canGroundRiptide = (player.clientClaimsLastOnGround && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
+            // This is wrong and the engine was not designed around stuff like this
+            player.canGroundRiptide = ((player.clientClaimsLastOnGround && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
+                    || (player.uncertaintyHandler.isSteppingOnSlime && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree))
                     && player.tryingToRiptide && player.compensatedRiptide.getCanRiptide() && !player.inVehicle;
 
             // If the player's last tick was on the ground and the player is near the ground
