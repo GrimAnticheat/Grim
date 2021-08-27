@@ -385,10 +385,6 @@ public class PredictionEngine {
             minVector.setY(minVector.getY() + player.baseTickAddition.getY());
         }
 
-        if (player.isClimbing && vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree)) {
-            minVector.setY(minVector.getY() - 0.02);
-        }
-
         return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
     }
 

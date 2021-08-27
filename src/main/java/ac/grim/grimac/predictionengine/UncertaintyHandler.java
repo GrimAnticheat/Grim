@@ -143,7 +143,7 @@ public class UncertaintyHandler {
         double pointThree = has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
 
         // This swim hop could be 0.03-influenced movement
-        if (data.hasVectorType(VectorData.VectorType.Swimhop))
+        if (data.hasVectorType(VectorData.VectorType.Swimhop) || data.hasVectorType(VectorData.VectorType.Trident))
             pointThree = 0.03;
 
         if (has003 && (influencedByBouncyBlock() || isSteppingOnIce))
@@ -204,7 +204,7 @@ public class UncertaintyHandler {
             return 0.06;
 
         // This swim hop could be 0.03-influenced movement
-        if (data.hasVectorType(VectorData.VectorType.Swimhop))
+        if (data.hasVectorType(VectorData.VectorType.Swimhop) || data.hasVectorType(VectorData.VectorType.Trident))
             return 0.03;
 
         if (controlsVerticalMovement()) {
