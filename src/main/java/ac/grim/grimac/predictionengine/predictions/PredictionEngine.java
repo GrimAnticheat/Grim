@@ -285,6 +285,9 @@ public class PredictionEngine {
         double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
         double additionVertical = player.uncertaintyHandler.getVerticalOffset(vector);
 
+        additionHorizontal += player.uncertaintyHandler.lastHorizontalOffset;
+        additionVertical += player.uncertaintyHandler.lastVerticalOffset;
+
         if (player.playerVehicle instanceof PacketEntityRideable && player.vehicleData.lastVehicleSwitch < 5) {
             Vector3d playerPosition = player.playerVehicle.position;
             SimpleCollisionBox uncertainBox = new SimpleCollisionBox(playerPosition, playerPosition);

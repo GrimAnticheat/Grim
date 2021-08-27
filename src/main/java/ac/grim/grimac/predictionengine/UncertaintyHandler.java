@@ -86,6 +86,9 @@ public class UncertaintyHandler {
     public int lastGlidingChangeTicks = -100;
     public int lastMetadataDesync = 0;
 
+    public double lastHorizontalOffset = 0;
+    public double lastVerticalOffset = 0;
+
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
         reset();
