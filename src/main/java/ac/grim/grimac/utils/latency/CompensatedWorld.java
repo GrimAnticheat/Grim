@@ -16,9 +16,12 @@ import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
+import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.pair.Pair;
@@ -86,6 +89,18 @@ public class CompensatedWorld {
         }
     }
 
+    public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) {
+                SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                if (box.isIntersected(playerBox)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     public void tickUpdates(int lastTransactionReceived) {
         while (true) {
             Pair<Integer, Vector3i> data = unloadChunkQueue.peek();
@@ -150,10 +165,14 @@ public class CompensatedWorld {
         packetLevelBlockLocations.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getFirst() > 3);
     }
 
-    public boolean hasPacketBlockAt(int x, int y, int z) {
-        Vector3i pos = new Vector3i(x, y, z);
+    public boolean hasPacketBlockAt(SimpleCollisionBox box) {
         for (Pair<Integer, Vector3i> block : packetLevelBlockLocations) {
-            if (block.getSecond().equals(pos)) return true;
+            Vector3i pos = block.getSecond();
+
+            if (pos.getX() >= box.minX && pos.getX() <= box.maxX &&
+                    pos.getY() >= box.minY && pos.getY() <= box.maxY &&
+                    pos.getZ() >= box.minZ && pos.getZ() <= box.maxZ)
+                return true;
         }
 
         return false;
@@ -190,15 +209,6 @@ public class CompensatedWorld {
             }
         } catch (Exception ignored) {
         }
-    }
-
-    public Column getChunk(int chunkX, int chunkZ) {
-        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        return chunks.get(chunkPosition);
-    }
-
-    public static long chunkPositionToLong(int x, int z) {
-        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
 
     public void tickOpenable(PlayerOpenBlockData blockToOpen) {
@@ -332,6 +342,15 @@ public class CompensatedWorld {
         return airData;
     }
 
+    public Column getChunk(int chunkX, int chunkZ) {
+        long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
+        return chunks.get(chunkPosition);
+    }
+
+    public static long chunkPositionToLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
+    }
+
     public boolean isChunkLoaded(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
 
@@ -364,24 +383,6 @@ public class CompensatedWorld {
         MagicBlockState bukkitBlock = (MagicBlockState) getWrappedBlockStateAt(x, y, z);
 
         return ((bukkitBlock.getBlockData() & 0x8) == 8);
-    }
-
-    public double getLavaFluidLevelAt(int x, int y, int z) {
-        MagicBlockState magicBlockState = (MagicBlockState) getWrappedBlockStateAt(x, y, z);
-
-        if (!Materials.checkFlag(magicBlockState.getMaterial(), Materials.LAVA)) return 0;
-
-        // If it is lava or flowing lava
-        if (magicBlockState.getId() == 10 || magicBlockState.getId() == 11) {
-            int magicData = magicBlockState.getBlockData();
-
-            // Falling lava has a level of 8
-            if ((magicData & 0x8) == 8) return 8 / 9f;
-
-            return (8 - magicData) / 9f;
-        }
-
-        return 0;
     }
 
     public boolean isWaterSourceBlock(int x, int y, int z) {
@@ -426,6 +427,24 @@ public class CompensatedWorld {
         }
 
         return false;
+    }
+
+    public double getLavaFluidLevelAt(int x, int y, int z) {
+        MagicBlockState magicBlockState = (MagicBlockState) getWrappedBlockStateAt(x, y, z);
+
+        if (!Materials.checkFlag(magicBlockState.getMaterial(), Materials.LAVA)) return 0;
+
+        // If it is lava or flowing lava
+        if (magicBlockState.getId() == 10 || magicBlockState.getId() == 11) {
+            int magicData = magicBlockState.getBlockData();
+
+            // Falling lava has a level of 8
+            if ((magicData & 0x8) == 8) return 8 / 9f;
+
+            return (8 - magicData) / 9f;
+        }
+
+        return 0;
     }
 
     public boolean containsLava(SimpleCollisionBox var0) {

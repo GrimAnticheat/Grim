@@ -1,0 +1,102 @@
+package ac.grim.grimac.checks.impl.groundspoof;
+
+import ac.grim.grimac.checks.CheckData;
+import ac.grim.grimac.checks.type.PacketCheck;
+import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
+import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+
+import java.util.List;
+
+// Catches NoFalls that obey the (1 / 64) rule
+@CheckData(name = "NoFall A")
+public class NoFallA extends PacketCheck {
+
+    private final GrimPlayer player;
+
+    public NoFallA(GrimPlayer player) {
+        super(player);
+        this.player = player;
+    }
+
+    @Override
+    public void onPacketReceive(PacketPlayReceiveEvent event) {
+        byte packetID = event.getPacketId();
+
+        if (PacketType.Play.Client.Util.isInstanceOfFlying(packetID)) {
+            WrappedPacketInFlying flying = new WrappedPacketInFlying(event.getNMSPacket());
+
+            // Force teleports to have onGround set to false, might patch NoFall on some version.
+            if (player.packetStateData.lastPacketWasTeleport) {
+                flying.setOnGround(false);
+                return;
+            }
+
+            // If the player claims to be on the ground
+            if (flying.isOnGround()) {
+                boolean hasPosition = packetID == PacketType.Play.Client.POSITION || packetID == PacketType.Play.Client.POSITION_LOOK;
+
+                if (!hasPosition) {
+                    checkZeroPointZeroThreeGround(flying.isOnGround());
+                    return;
+                }
+
+                SimpleCollisionBox feetBB;
+
+                Vector3d position = player.packetStateData.packetPosition;
+                Vector3d lastPos = player.packetStateData.lastPacketPosition;
+
+                feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(position.getX(), position.getY(), position.getZ(), 0.6, 0.001);
+
+                // Don't expand if the player moved more than 50 blocks this tick (stop netty crash exploit)
+                if (position.distanceSquared(lastPos) < 2500)
+                    feetBB.expandToAbsoluteCoordinates(lastPos.getX(), position.getX(), lastPos.getZ());
+
+                // This is to support stepping movement (Not blatant, we need to wait on prediction engine to flag this)
+                // This check mainly serves to correct blatant onGround cheats
+                feetBB.expandMin(0, -4, 0);
+
+                if (checkForBoxes(feetBB)) return;
+
+                // also, stepping on legacy versions needs to be checked correctly
+                Bukkit.broadcastMessage(ChatColor.RED + "Player used NoFall! ");
+            }
+        }
+    }
+
+    public void checkZeroPointZeroThreeGround(boolean onGround) {
+        if (onGround) {
+            Vector3d pos = player.packetStateData.packetPosition;
+            SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(pos.getX(), pos.getY(), pos.getZ(), 0.6, 0.001);
+            feetBB.expand(0.03); // 0.03 can be in any direction
+
+            if (checkForBoxes(feetBB)) return;
+
+            Bukkit.broadcastMessage(ChatColor.RED + "Player used NoFall with 0.03!");
+        }
+    }
+
+    private boolean checkForBoxes(SimpleCollisionBox playerBB) {
+        List<SimpleCollisionBox> boxes = Collisions.getCollisionBoxes(player, playerBB);
+
+        for (SimpleCollisionBox box : boxes) {
+            if (playerBB.collidesVertically(box)) { // If we collide vertically but aren't in the block
+                return true;
+            }
+        }
+
+        SimpleCollisionBox expanded = playerBB.expand(1);
+
+        // Check for packet blocks
+        if (player.compensatedWorld.hasPacketBlockAt(expanded)) return true;
+
+        return player.compensatedWorld.isNearHardEntity(playerBB.copy().expand(4));
+    }
+}
