@@ -68,7 +68,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.z = vehicle.position.getZ();
 
                 player.packetStateData.packetPosition = vehicle.position;
-                player.teleportUtil.tryResendExpiredSetback();
+                player.setbackTeleportUtil.tryResendExpiredSetback();
 
                 return;
             } else {

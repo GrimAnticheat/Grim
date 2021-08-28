@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.SetBackData;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -11,6 +12,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.position.Wrapped
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Location;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
@@ -33,6 +35,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             Vector3d pos = teleport.getPosition();
             float pitch = teleport.getPitch();
             float yaw = teleport.getYaw();
+
 
             // Convert relative teleports to normal teleports
             // We have to do this because 1.8 players on 1.9+ get teleports changed by ViaVersion
@@ -69,7 +72,30 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             Vector3d finalPos = pos;
 
             player.teleports.add(new Pair<>(lastTransactionSent, finalPos));
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+
+            event.setPostTask(() -> {
+                player.sendAndFlushTransactionOrPingPong();
+
+                Vector3d setbackPos = player.setbackTeleportUtil.getRequiredSetBack().getPosition();
+
+                if (setbackPos == null || finalPos.equals(setbackPos)) return;
+
+                // Fucking spigot doesn't call the god-damn teleport event for the vanilla anticheat
+                // Stupid spigot, otherwise we could just cancel the event!
+                //
+                // Without this, the player could flag the vanilla anticheat in order to teleport past our setback
+                // The solution to this issue is to send ANOTHER teleport after the vanilla one to set the player back
+                // before the vanilla anticheat set back
+                //
+                // This is why it's a post task, the player already was sent this teleport
+                Location playerLoc = player.bukkitPlayer.getLocation();
+                if (relative == 0 && finalPos.getX() == playerLoc.getX() && finalPos.getY() == playerLoc.getY() && finalPos.getZ() == playerLoc.getZ()) {
+                    SetBackData setBackData = player.setbackTeleportUtil.getRequiredSetBack();
+                    if (setBackData != null && !setBackData.isComplete()) {
+                        player.setbackTeleportUtil.resendSetback(true);
+                    }
+                }
+            });
         }
 
         if (packetID == PacketType.Play.Server.VEHICLE_MOVE) {
