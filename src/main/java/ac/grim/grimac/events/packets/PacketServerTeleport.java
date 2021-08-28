@@ -76,8 +76,10 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             event.setPostTask(() -> {
                 player.sendAndFlushTransactionOrPingPong();
 
-                Vector3d setbackPos = player.setbackTeleportUtil.getRequiredSetBack().getPosition();
+                SetBackData data = player.setbackTeleportUtil.getRequiredSetBack();
+                if (data == null) return;
 
+                Vector3d setbackPos = data.getPosition();
                 if (setbackPos == null || finalPos.equals(setbackPos)) return;
 
                 // Fucking spigot doesn't call the god-damn teleport event for the vanilla anticheat

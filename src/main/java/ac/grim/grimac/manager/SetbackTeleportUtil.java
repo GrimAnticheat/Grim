@@ -50,6 +50,14 @@ public class SetbackTeleportUtil {
         // Don't teleport cross world, it will break more than it fixes.
         if (world != player.bukkitPlayer.getWorld()) return;
 
+        // A teleport has made this point in transaction history irrelevant
+        // Meaning:
+        // movement - movement - this point in time - movement - movement - teleport
+        // or something similar, setting back would be obnoxious
+        //
+        // However, the need to block vanilla anticheat teleports can override this.
+        if (trans < ignoreTransBeforeThis && !force) return;
+
         SetBackData setBack = requiredSetBack;
         if (force || setBack == null || setBack.isComplete()) {
             requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, trans);

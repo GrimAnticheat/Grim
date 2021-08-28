@@ -16,6 +16,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.Wrapped
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 
@@ -45,53 +46,18 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            try {
-                int chunkX = packet.getChunkX();
-                int chunkZ = packet.getChunkZ();
+            int chunkX = packet.getChunkX();
+            int chunkZ = packet.getChunkZ();
 
-                BaseChunk[] chunks = new SevenChunk[16];
-
-                // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
-                // Optional is only empty on 1.17 and above
-                if (packet.readInt(5) == 0 && packet.isGroundUpContinuous().get()) {
-                    player.compensatedWorld.removeChunkLater(chunkX, chunkZ);
-                    event.setPostTask(player::sendAndFlushTransactionOrPingPong);
-                    return;
-                }
-
-                if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
-                    Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
-                    ChunkSnapshot snapshot = sentChunk.getChunkSnapshot();
-
-                    int highestBlock = 0;
-
-                    for (int z = 0; z < 16; z++) {
-                        for (int x = 0; x < 16; x++) {
-                            highestBlock = Math.max(highestBlock, snapshot.getHighestBlockYAt(x, z));
-                        }
-                    }
-
-                    // 1.7 chunk section logic is complicated and custom forks make it worse
-                    // Just use the bukkit API as it copies all the data we need into an array
-                    Field ids = Reflection.getField(snapshot.getClass(), "blockids");
-                    Field data = Reflection.getField(snapshot.getClass(), "blockdata");
-
-                    short[][] blockids = (short[][]) ids.get(snapshot);
-                    byte[][] blockdata = (byte[][]) data.get(snapshot);
-
-                    for (int x = 0; x < 16; x++) {
-                        if (!snapshot.isSectionEmpty(x)) {
-                            chunks[x] = new SevenChunk(blockids[x], blockdata[x]);
-                        }
-                    }
-                }
-
-                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+            // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
+            // Optional is only empty on 1.17 and above
+            if (packet.readInt(5) == 0 && packet.isGroundUpContinuous().get()) {
+                player.compensatedWorld.removeChunkLater(chunkX, chunkZ);
+                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                return;
             }
 
+            addChunkToCache(player, chunkX, chunkZ, false);
             event.setPostTask(player::sendAndFlushTransactionOrPingPong);
         }
 
@@ -101,51 +67,15 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            try {
-                WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-                int[] chunkXArray = (int[]) packet.readAnyObject(0);
-                int[] chunkZArray = (int[]) packet.readAnyObject(1);
+            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+            int[] chunkXArray = (int[]) packet.readAnyObject(0);
+            int[] chunkZArray = (int[]) packet.readAnyObject(1);
 
-                for (int i = 0; i < chunkXArray.length; i++) {
+            for (int i = 0; i < chunkXArray.length; i++) {
+                int chunkX = chunkXArray[i];
+                int chunkZ = chunkZArray[i];
 
-                    int chunkX = chunkXArray[i];
-                    int chunkZ = chunkZArray[i];
-
-                    BaseChunk[] chunks = new SevenChunk[16];
-
-                    if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
-                        Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
-                        ChunkSnapshot snapshot = sentChunk.getChunkSnapshot();
-
-                        int highestBlock = 0;
-
-                        for (int z = 0; z < 16; z++) {
-                            for (int x = 0; x < 16; x++) {
-                                highestBlock = Math.max(highestBlock, snapshot.getHighestBlockYAt(x, z));
-                            }
-                        }
-
-                        // 1.7 chunk section logic is complicated and custom forks make it worse
-                        // Just use the bukkit API as it copies all the data we need into an array
-                        Field ids = Reflection.getField(snapshot.getClass(), "blockids");
-                        Field data = Reflection.getField(snapshot.getClass(), "blockdata");
-
-                        short[][] blockids = (short[][]) ids.get(snapshot);
-                        byte[][] blockdata = (byte[][]) data.get(snapshot);
-
-                        for (int x = 0; x < 16; x++) {
-                            if (!snapshot.isSectionEmpty(x)) {
-                                chunks[x] = new SevenChunk(blockids[x], blockdata[x]);
-                            }
-                        }
-                    }
-
-                    Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-                    player.compensatedWorld.addToCache(column, chunkX, chunkZ);
-
-                }
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                addChunkToCache(player, chunkX, chunkZ, false);
             }
 
             event.setPostTask(player::sendAndFlushTransactionOrPingPong);
@@ -222,6 +152,53 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
                 }
             } catch (IllegalAccessException | NoSuchFieldException exception) {
                 exception.printStackTrace();
+            }
+        }
+    }
+
+    private void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ, boolean isSync) {
+        boolean wasAdded = false;
+        try {
+            if (isSync || player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                BaseChunk[] chunks = new SevenChunk[16];
+
+                Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+                ChunkSnapshot snapshot = sentChunk.getChunkSnapshot();
+
+                int highestBlock = 0;
+
+                for (int z = 0; z < 16; z++) {
+                    for (int x = 0; x < 16; x++) {
+                        highestBlock = Math.max(highestBlock, snapshot.getHighestBlockYAt(x, z));
+                    }
+                }
+
+                // 1.7 chunk section logic is complicated and custom forks make it worse
+                // Just use the bukkit API as it copies all the data we need into an array
+                Field ids = Reflection.getField(snapshot.getClass(), "blockids");
+                Field data = Reflection.getField(snapshot.getClass(), "blockdata");
+
+                short[][] blockids = (short[][]) ids.get(snapshot);
+                byte[][] blockdata = (byte[][]) data.get(snapshot);
+
+                for (int x = 0; x < 16; x++) {
+                    if (!snapshot.isSectionEmpty(x)) {
+                        chunks[x] = new SevenChunk(blockids[x], blockdata[x]);
+                    }
+                }
+
+                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
+                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+                wasAdded = true;
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } finally {
+            // If we fail on the main thread, we can't recover from this.
+            if (!wasAdded && !isSync) {
+                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                    addChunkToCache(player, chunkX, chunkZ, true);
+                });
             }
         }
     }
