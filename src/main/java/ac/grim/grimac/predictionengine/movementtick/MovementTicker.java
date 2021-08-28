@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -76,9 +75,6 @@ public class MovementTicker {
                 // The player has 0 vertical velocity, but might be on the ground, or might not.  They are 1e-7 on the ground
                 // so there is little room for abuse.
                 !(testY == -SimpleCollisionBox.COLLISION_EPSILON && plusCollide.getY() == 0)) {
-
-            if (!player.inVehicle && player.isActuallyOnGround != player.onGround)
-                Bukkit.broadcastMessage("Desync " + player.onGround + " " + nonUncertainVector.getY() + " " + testY);
 
             player.onGround = player.isActuallyOnGround;
         }

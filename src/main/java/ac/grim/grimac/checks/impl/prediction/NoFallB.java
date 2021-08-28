@@ -16,7 +16,9 @@ public class NoFallB extends PostPredictionCheck {
         if (player.inVehicle || player.wasTouchingWater || player.wasTouchingLava
                 || player.uncertaintyHandler.pistonX != 0 || player.uncertaintyHandler.pistonY != 0
                 || player.uncertaintyHandler.pistonZ != 0 || player.uncertaintyHandler.isSteppingOnSlime
-                || player.isFlying || player.uncertaintyHandler.isStepMovement) return;
+                || player.isFlying || player.uncertaintyHandler.isStepMovement
+                || player.uncertaintyHandler.lastTeleportTicks > -3 || player.isDead
+                || player.isInBed || player.lastInBed) return;
 
         boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 

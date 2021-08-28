@@ -10,12 +10,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
 public class TeleportUtil {
     GrimPlayer player;
-    SetBackData requiredSetBack;
-    AtomicBoolean hasSetBackTask = new AtomicBoolean(false);
+    SetBackData requiredSetBack = null;
     int ignoreTransBeforeThis = 0;
     double teleportEpsilon = 0.5;
 
@@ -24,9 +21,32 @@ public class TeleportUtil {
     }
 
     public void tryResendExpiredSetback() {
-        if (hasSetBackTask.get() && requiredSetBack.getTrans() < player.packetStateData.packetLastTransactionReceived.get()) {
-            hasSetBackTask.set(false);
+        SetBackData setBack = requiredSetBack;
+
+        if (setBack != null && !setBack.isComplete() && setBack.getTrans() < player.packetStateData.packetLastTransactionReceived.get()) {
             blockMovementsUntilResync(requiredSetBack.getWorld(), requiredSetBack.getPosition(), requiredSetBack.getXRot(), requiredSetBack.getYRot(), requiredSetBack.getVelocity(), requiredSetBack.getVehicle(), player.lastTransactionSent.get());
+        }
+    }
+
+    public void blockMovementsUntilResync(World world, Vector3d position, float xRot, float yRot, Vector velocity, Integer vehicle, int trans) {
+        // Don't teleport cross world, it will break more than it fixes.
+        if (world != player.bukkitPlayer.getWorld()) return;
+        // A teleport has made this point in transaction history irrelevant
+        // Meaning:
+        // movement - movement - this point in time - movement - movement - teleport
+        // or something similar, setting back would be obnoxious.
+        if (trans < ignoreTransBeforeThis) return;
+
+        SetBackData setBack = requiredSetBack;
+        if (setBack == null || setBack.isComplete()) {
+            requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, trans);
+
+            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
+                player.bukkitPlayer.eject();
+                player.bukkitPlayer.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), xRot, yRot));
+                player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
+            });
         }
     }
 
@@ -55,9 +75,11 @@ public class TeleportUtil {
                 // Note the latest teleport accepted
                 ignoreTransBeforeThis = lastTransaction;
 
+                SetBackData setBack = requiredSetBack;
+
                 // Player has accepted their setback!
-                if (hasSetBackTask.get() && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
-                    hasSetBackTask.set(false);
+                if (setBack != null && setBack.isComplete() && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
+                    setBack.setComplete(false);
                 }
 
                 return true;
@@ -71,27 +93,6 @@ public class TeleportUtil {
         }
 
         return false;
-    }
-
-    public void blockMovementsUntilResync(World world, Vector3d position, float xRot, float yRot, Vector velocity, Integer vehicle, int trans) {
-        // Don't teleport cross world, it will break more than it fixes.
-        if (world != player.bukkitPlayer.getWorld()) return;
-        // A teleport has made this point in transaction history irrelevant
-        // Meaning:
-        // movement - movement - this point in time - movement - movement - teleport
-        // or something similar, setting back would be obnoxious.
-        if (trans < ignoreTransBeforeThis) return;
-
-        if (hasSetBackTask.compareAndSet(false, true)) {
-            requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, trans);
-
-            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
-                player.bukkitPlayer.eject();
-                player.bukkitPlayer.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), xRot, yRot));
-                player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
-            });
-        }
     }
 
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
@@ -127,6 +128,7 @@ public class TeleportUtil {
     }
 
     public boolean shouldBlockMovement() {
-        return hasSetBackTask.get();
+        SetBackData setBack = requiredSetBack;
+        return setBack != null && !setBack.isComplete();
     }
 }
