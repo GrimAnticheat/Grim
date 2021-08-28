@@ -16,6 +16,7 @@ import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 
 import java.lang.reflect.Array;
@@ -57,8 +58,8 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
                     return;
                 }
 
-                addChunkToCache(player, chunkX, chunkZ);
-            } catch (NoSuchFieldException | IllegalAccessException | InvocationTargetException e) {
+                addChunkToCache(player, chunkX, chunkZ, false);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
                 e.printStackTrace();
             }
 
@@ -70,19 +71,15 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            try {
-                WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-                int[] chunkXArray = (int[]) packet.readAnyObject(0);
-                int[] chunkZArray = (int[]) packet.readAnyObject(1);
+            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+            int[] chunkXArray = (int[]) packet.readAnyObject(0);
+            int[] chunkZArray = (int[]) packet.readAnyObject(1);
 
-                for (int i = 0; i < chunkXArray.length; i++) {
-                    int chunkX = chunkXArray[i];
-                    int chunkZ = chunkZArray[i];
+            for (int i = 0; i < chunkXArray.length; i++) {
+                int chunkX = chunkXArray[i];
+                int chunkZ = chunkZArray[i];
 
-                    addChunkToCache(player, chunkX, chunkZ);
-                }
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
+                addChunkToCache(player, chunkX, chunkZ, false);
             }
 
             event.setPostTask(player::sendAndFlushTransactionOrPingPong);
@@ -160,34 +157,48 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
         }
     }
 
-    public void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ) throws InvocationTargetException, IllegalAccessException {
-        EightChunk[] chunks = new EightChunk[16];
+    public void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ, boolean isSync) {
+        boolean wasAdded = false;
 
-        if (player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
-            Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
+        try {
+            EightChunk[] chunks = new EightChunk[16];
 
-            Method handle = Reflection.getMethod(sentChunk.getClass(), "getHandle", 0);
-            Object nmsChunk = handle.invoke(sentChunk);
-            Method sections = Reflection.getMethod(nmsChunk.getClass(), "getSections", 0);
-            Object sectionsArray = sections.invoke(nmsChunk);
+            if (isSync || player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
+                Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
 
-            int arrayLength = Array.getLength(sectionsArray);
+                Method handle = Reflection.getMethod(sentChunk.getClass(), "getHandle", 0);
+                Object nmsChunk = handle.invoke(sentChunk);
+                Method sections = Reflection.getMethod(nmsChunk.getClass(), "getSections", 0);
+                Object sectionsArray = sections.invoke(nmsChunk);
 
-            Object zeroElement = Array.get(sectionsArray, 0);
-            if (zeroElement == null)
-                return;
+                int arrayLength = Array.getLength(sectionsArray);
 
-            Method getIds = Reflection.getMethod(zeroElement.getClass(), "getIdArray", 0);
+                Object zeroElement = Array.get(sectionsArray, 0);
+                if (zeroElement == null)
+                    return;
 
-            for (int x = 0; x < arrayLength; x++) {
-                Object section = Array.get(sectionsArray, x);
-                if (section == null) break;
+                Method getIds = Reflection.getMethod(zeroElement.getClass(), "getIdArray", 0);
 
-                chunks[x] = new EightChunk((char[]) getIds.invoke(section));
+                for (int x = 0; x < arrayLength; x++) {
+                    Object section = Array.get(sectionsArray, x);
+                    if (section == null) break;
+
+                    chunks[x] = new EightChunk((char[]) getIds.invoke(section));
+                }
+
+                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
+                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+                wasAdded = true;
+            }
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
+        } finally {
+            // If we fail on the main thread, we can't recover from this.
+            if (!wasAdded && !isSync) {
+                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                    addChunkToCache(player, chunkX, chunkZ, true);
+                });
             }
         }
-
-        Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-        player.compensatedWorld.addToCache(column, chunkX, chunkZ);
     }
 }
