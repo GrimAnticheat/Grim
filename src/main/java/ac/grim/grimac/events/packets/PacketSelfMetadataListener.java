@@ -72,15 +72,17 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 // - Server: Okay, got it.
                 //
                 // Why mojang, why.  Why are you so incompetent at netcode.
-                List<Object> metadata = entityMetadata.readList(0);
+                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
+                    List<Object> metadata = entityMetadata.readList(0);
 
-                metadata.removeIf(element -> {
-                    Object dataWatcherObject = new WrappedPacket(new NMSPacket(element)).readAnyObject(0);
-                    WrappedPacket wrappedDataWatcher = new WrappedPacket(new NMSPacket(dataWatcherObject));
-                    return wrappedDataWatcher.readInt(0) == 6;
-                });
+                    metadata.removeIf(element -> {
+                        Object dataWatcherObject = new WrappedPacket(new NMSPacket(element)).readAnyObject(0);
+                        WrappedPacket wrappedDataWatcher = new WrappedPacket(new NMSPacket(dataWatcherObject));
+                        return wrappedDataWatcher.readInt(0) == 6;
+                    });
 
-                entityMetadata.write(List.class, 0, metadata);
+                    entityMetadata.write(List.class, 0, metadata);
+                }
 
                 if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) &&
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {

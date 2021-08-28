@@ -20,6 +20,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -65,9 +66,14 @@ public class Reach extends PacketCheck {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
 
             if (player == null) return;
+            if (player.packetStateData.gameMode == GameMode.CREATIVE) return;
 
             if (action.getAction() == WrappedPacketInUseEntity.EntityUseAction.ATTACK) {
                 checkReach(action.getEntityId());
+
+                if (isKnownInvalid(action.getEntityId())) {
+                    event.setCancelled(true);
+                }
             }
         }
 
@@ -82,6 +88,117 @@ public class Reach extends PacketCheck {
     public void checkReach(int entityID) {
         if (entityMap.containsKey(entityID))
             playerAttackQueue.add(entityID);
+    }
+
+    // This method finds the most optimal point at which the user should be aiming at
+    // and then measures the distance between the player's eyes and this target point
+    //
+    // It will not cancel every invalid attack but should cancel 3.05+ or so in real-time
+    // Let the post look check measure the distance, as it will always return equal or higher
+    // than this method.  If this method flags, the other method WILL flag.
+    //
+    // Meaning that the other check should be the only one that flags.
+    private boolean isKnownInvalid(int entityID) {
+        PlayerReachEntity reachEntity = entityMap.get(entityID);
+        boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
+
+        if (reachEntity != null) {
+            double lowest = 6;
+            for (double eyes : player.getPossibleEyeHeights()) {
+                SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+                Vector from = VectorUtils.fromVec3d(player.packetStateData.packetPosition).add(new Vector(0, eyes, 0));
+                Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
+                lowest = Math.min(lowest, closestPoint.distance(from));
+            }
+
+            return lowest > 3 + (zeroThree ? 0.03 : 0);
+        }
+
+        return false;
+    }
+
+    private void tickFlying() {
+        double maxReach = 3;
+
+        Integer attackQueue = playerAttackQueue.poll();
+        while (attackQueue != null) {
+            PlayerReachEntity reachEntity = entityMap.get((int) attackQueue);
+            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+
+            // 1.9 -> 1.8 precision loss in packets
+            // (ViaVersion is doing some stuff that makes this code difficult)
+            //
+            // This will likely be fixed with PacketEvents 2.0, where our listener is before ViaVersion
+            // Don't attempt to fix it with this version of PacketEvents, it's not worth our time when 2.0 will fix it.
+            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+                targetBox.expand(0.03125);
+            }
+
+            // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
+            // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+                targetBox.expand(0.1);
+            }
+
+            // This is better than adding to the reach, as 0.03 can cause a player to miss their target
+            // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
+            //
+            // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
+            if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
+                targetBox.expand(0.03);
+
+            Vector3d from = player.packetStateData.lastPacketPosition;
+            Vector attackerDirection = ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
+
+            double minDistance = Double.MAX_VALUE;
+
+            for (double eye : player.getPossibleEyeHeights()) {
+                Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
+                Vector endReachPos = eyePos.clone().add(new Vector(attackerDirection.getX() * 6, attackerDirection.getY() * 6, attackerDirection.getZ() * 6));
+
+                Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
+                Vector vanillaIntercept = null;
+
+                if (ReachUtils.isVecInside(targetBox, eyePos)) {
+                    minDistance = 0;
+                    break;
+                }
+
+                // This is how vanilla handles look vectors on 1.8 - it's a tick behind.
+                // 1.9+ you have no guarantees of which look vector it is due to 0.03
+                //
+                // The only safe version is 1.7
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
+                    Vector vanillaDir = ReachUtils.getLook(player, player.packetStateData.lastPacketPlayerXRot, player.packetStateData.lastPacketPlayerYRot);
+                    Vector vanillaEndPos = eyePos.clone().add(new Vector(vanillaDir.getX() * 6, vanillaDir.getY() * 6, vanillaDir.getZ() * 6));
+
+                    vanillaIntercept = ReachUtils.calculateIntercept(targetBox, eyePos, vanillaEndPos);
+                }
+
+                if (intercept != null) {
+                    minDistance = Math.min(eyePos.distance(intercept), minDistance);
+                }
+                if (vanillaIntercept != null) {
+                    minDistance = Math.min(eyePos.distance(vanillaIntercept), minDistance);
+                }
+            }
+
+            if (minDistance == Double.MAX_VALUE) {
+                Bukkit.broadcastMessage(ChatColor.RED + "Player missed hitbox");
+            } else if (minDistance < maxReach && (!player.packetStateData.didLastLastMovementIncludePosition || !player.packetStateData.didLastMovementIncludePosition)) {
+                Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + minDistance + " (0.03 = true)");
+            } else if (minDistance < maxReach) {
+                Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + minDistance);
+            } else {
+                Bukkit.broadcastMessage(ChatColor.RED + "Intersected!  Reach was " + minDistance);
+            }
+
+            attackQueue = playerAttackQueue.poll();
+        }
+
+        for (PlayerReachEntity entity : entityMap.values()) {
+            entity.onMovement(player.getClientVersion().isNewerThan(ClientVersion.v_1_8));
+        }
     }
 
     @Override
@@ -112,86 +229,6 @@ public class Reach extends PacketCheck {
                 Vector3d pos = teleport.getPosition();
                 handleMoveEntity(teleport.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), false);
             }
-        }
-    }
-
-    private void tickFlying() {
-        Integer attackQueue = playerAttackQueue.poll();
-        while (attackQueue != null) {
-            PlayerReachEntity reachEntity = entityMap.get((int) attackQueue);
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-            Vector3d from = player.packetStateData.lastPacketPosition;
-
-            // 1.9 -> 1.8 precision loss in packets
-            // (ViaVersion is doing some stuff that makes this code difficult)
-            //
-            // This will likely be fixed with PacketEvents 2.0, where our listener is before ViaVersion
-            // Don't attempt to fix it with this version of PacketEvents, it's not worth our time when 2.0 will fix it.
-            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
-                targetBox.expand(0.03125);
-            }
-
-            // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
-            // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
-            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
-                targetBox.expand(0.1);
-            }
-
-            // This is better than adding to the reach, as 0.03 can cause a player to miss their target
-            // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
-            //
-            // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
-            //
-            // Technically I should only have to listen for lastLastMovement, although Tecnio warned me to just use both
-            if (!player.packetStateData.didLastLastMovementIncludePosition || !player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
-                targetBox.expand(0.03);
-
-            // TODO: Support complex 1.14+ get eye height
-            Vector eyePos = new Vector(from.getX(), from.getY() + (player.packetStateData.isPacketSneaking ? 1.54 : 1.62), from.getZ());
-            Vector attackerDirection = ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
-            Vector endReachPos = eyePos.clone().add(new Vector(attackerDirection.getX() * 6, attackerDirection.getY() * 6, attackerDirection.getZ() * 6));
-
-            Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
-            Vector vanillaIntercept = null;
-
-            // This is how vanilla handles look vectors on 1.8 - it's a tick behind.
-            // 1.9+ you have no guarantees of which look vector it is due to 0.03
-            //
-            // The only safe version is 1.7
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
-                Vector vanillaDir = ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
-                Vector vanillaEndPos = eyePos.clone().add(new Vector(vanillaDir.getX() * 6, vanillaDir.getY() * 6, vanillaDir.getZ() * 6));
-
-                vanillaIntercept = ReachUtils.calculateIntercept(targetBox, eyePos, vanillaEndPos);
-            }
-
-            if (!ReachUtils.isVecInside(targetBox, eyePos)) {
-                if (intercept == null && vanillaIntercept == null) {
-                    Bukkit.broadcastMessage(ChatColor.RED + "Player missed hitbox!");
-                } else {
-                    double maxReach = player.packetStateData.gameMode == GameMode.CREATIVE ? 5 : 3;
-
-                    double reach = 6;
-                    if (intercept != null)
-                        reach = eyePos.distance(intercept);
-                    if (vanillaIntercept != null)
-                        reach = Math.min(reach, eyePos.distance(vanillaIntercept));
-
-                    if (reach < maxReach && (!player.packetStateData.didLastLastMovementIncludePosition || !player.packetStateData.didLastMovementIncludePosition)) {
-                        Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach + " (0.03 = true)");
-                    } else if (reach < maxReach) {
-                        Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + reach);
-                    } else {
-                        Bukkit.broadcastMessage(ChatColor.RED + "Intersected!  Reach was " + reach + " 0.03 " + player.packetStateData.didLastLastMovementIncludePosition + " " + player.packetStateData.didLastMovementIncludePosition + " report on discord if false - DefineOutside#4497");
-                    }
-                }
-            }
-
-            attackQueue = playerAttackQueue.poll();
-        }
-
-        for (PlayerReachEntity entity : entityMap.values()) {
-            entity.onMovement(player.getClientVersion().isNewerThan(ClientVersion.v_1_8));
         }
     }
 
