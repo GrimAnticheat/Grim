@@ -388,7 +388,7 @@ public class PredictionEngine {
             minVector.setY(minVector.getY() + player.baseTickAddition.getY());
         }
 
-        return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, minVector, maxVector);
+        return VectorUtils.cutBoxToVector(player.actualMovement, minVector, maxVector);
     }
 
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
@@ -401,7 +401,7 @@ public class PredictionEngine {
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
-        return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement,
+        return VectorUtils.cutBoxToVector(player.actualMovement,
                 vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.wasLastOnGroundUncertain ? -0.03 : 0, 0)),
                 vector.clone().add(uncertainty));
     }
@@ -626,10 +626,10 @@ public class PredictionEngine {
             boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
         }
 
-        Vector cutOne = VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, boostOne, vector);
-        Vector cutTwo = VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, boostTwo, vector);
+        Vector cutOne = VectorUtils.cutBoxToVector(player.actualMovement, boostOne, vector);
+        Vector cutTwo = VectorUtils.cutBoxToVector(player.actualMovement, boostTwo, vector);
 
-        return VectorUtils.cutVectorsToPlayerMovement(player.actualMovement, cutOne, cutTwo);
+        return VectorUtils.cutBoxToVector(player.actualMovement, cutOne, cutTwo);
     }
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {

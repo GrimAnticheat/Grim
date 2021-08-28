@@ -1,15 +1,21 @@
 package ac.grim.grimac.utils.math;
 
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.util.Vector;
 
 public class VectorUtils {
-    public static Vector cutVectorsToPlayerMovement(Vector vectorToCutTo, Vector vectorOne, Vector vectorTwo) {
-        double xMin = Math.min(vectorOne.getX(), vectorTwo.getX());
-        double xMax = Math.max(vectorOne.getX(), vectorTwo.getX());
-        double yMin = Math.min(vectorOne.getY(), vectorTwo.getY());
-        double yMax = Math.max(vectorOne.getY(), vectorTwo.getY());
-        double zMin = Math.min(vectorOne.getZ(), vectorTwo.getZ());
-        double zMax = Math.max(vectorOne.getZ(), vectorTwo.getZ());
+    public static Vector cutBoxToVector(Vector vectorCutTo, SimpleCollisionBox box) {
+        return cutBoxToVector(vectorCutTo, box.min(), box.max());
+    }
+
+    public static Vector cutBoxToVector(Vector vectorToCutTo, Vector min, Vector max) {
+        double xMin = Math.min(min.getX(), max.getX());
+        double xMax = Math.max(min.getX(), max.getX());
+        double yMin = Math.min(min.getY(), max.getY());
+        double yMax = Math.max(min.getY(), max.getY());
+        double zMin = Math.min(min.getZ(), max.getZ());
+        double zMax = Math.max(min.getZ(), max.getZ());
 
         Vector cutCloned = vectorToCutTo.clone();
 
@@ -38,5 +44,9 @@ public class VectorUtils {
         }
 
         return cutCloned;
+    }
+
+    public static Vector fromVec3d(Vector3d vector3d) {
+        return new Vector(vector3d.getX(), vector3d.getY(), vector3d.getZ());
     }
 }
