@@ -601,16 +601,21 @@ public class MovementCheckRunner extends PositionCheck {
 
         offset = Math.max(0, offset);
 
-        double horizontalOffset = player.actualMovement.clone().setY(0).distance(player.predictedVelocity.vector.clone().setY(0));
-        double verticalOffset = player.actualMovement.getY() - player.predictedVelocity.vector.getY();
-        double totalOffset = horizontalOffset + verticalOffset;
+        if (offset > 0.0001) {
+            double horizontalOffset = player.actualMovement.clone().setY(0).distance(player.predictedVelocity.vector.clone().setY(0));
+            double verticalOffset = player.actualMovement.getY() - player.predictedVelocity.vector.getY();
+            double totalOffset = horizontalOffset + verticalOffset;
 
-        double percentHorizontalOffset = horizontalOffset / totalOffset;
-        double percentVerticalOffset = verticalOffset / totalOffset;
+            double percentHorizontalOffset = horizontalOffset / totalOffset;
+            double percentVerticalOffset = verticalOffset / totalOffset;
 
-        // Normalize offsets
-        player.uncertaintyHandler.lastHorizontalOffset = offset > 0.0001 ? offset * percentHorizontalOffset : 0;
-        player.uncertaintyHandler.lastVerticalOffset = offset > 0.0001 ? offset * percentVerticalOffset : 0;
+            // Normalize offsets
+            player.uncertaintyHandler.lastHorizontalOffset = offset * percentHorizontalOffset;
+            player.uncertaintyHandler.lastVerticalOffset = offset * percentVerticalOffset;
+        } else {
+            player.uncertaintyHandler.lastHorizontalOffset = 0;
+            player.uncertaintyHandler.lastVerticalOffset = 0;
+        }
 
         // Don't check players who are offline
         if (!player.bukkitPlayer.isOnline()) return;
