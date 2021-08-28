@@ -1,7 +1,7 @@
 package ac.grim.grimac.player;
 
 import ac.grim.grimac.manager.CheckManager;
-import ac.grim.grimac.manager.TeleportUtil;
+import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -171,7 +171,7 @@ public class GrimPlayer {
     public VelocityData likelyExplosions = null;
     public CheckManager checkManager;
     public MovementCheckRunner movementCheckRunner;
-    public TeleportUtil teleportUtil;
+    public SetbackTeleportUtil setbackTeleportUtil;
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
@@ -225,7 +225,7 @@ public class GrimPlayer {
 
         checkManager = new CheckManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
-        teleportUtil = new TeleportUtil(this);
+        setbackTeleportUtil = new SetbackTeleportUtil(this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
@@ -369,16 +369,16 @@ public class GrimPlayer {
         return this.fluidOnEyes == tag;
     }
 
+    public Pose getSneakingPose() {
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
+    }
+
     public ClientVersion getClientVersion() {
         // There seems to be some issues with getting client version on 1.8 with ViaVersion early on join?
         if (clientVersion.getProtocolVersion() == -1) {
             clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
         }
         return clientVersion;
-    }
-
-    public Pose getSneakingPose() {
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
     }
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height

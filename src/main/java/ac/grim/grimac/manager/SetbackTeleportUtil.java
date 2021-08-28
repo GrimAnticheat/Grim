@@ -10,35 +10,48 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-public class TeleportUtil {
+public class SetbackTeleportUtil {
     GrimPlayer player;
     SetBackData requiredSetBack = null;
     int ignoreTransBeforeThis = 0;
     double teleportEpsilon = 0.5;
 
-    public TeleportUtil(GrimPlayer player) {
+    public SetbackTeleportUtil(GrimPlayer player) {
         this.player = player;
     }
 
-    public void tryResendExpiredSetback() {
-        SetBackData setBack = requiredSetBack;
+    public void executeSetback() {
+        Vector setbackVel = new Vector();
 
-        if (setBack != null && !setBack.isComplete() && setBack.getTrans() < player.packetStateData.packetLastTransactionReceived.get()) {
-            blockMovementsUntilResync(requiredSetBack.getWorld(), requiredSetBack.getPosition(), requiredSetBack.getXRot(), requiredSetBack.getYRot(), requiredSetBack.getVelocity(), requiredSetBack.getVehicle(), player.lastTransactionSent.get());
+        if (player.firstBreadKB != null) {
+            setbackVel = player.firstBreadKB.vector;
         }
+
+        if (player.likelyKB != null) {
+            setbackVel = player.likelyKB.vector;
+        }
+
+        if (player.firstBreadExplosion != null) {
+            setbackVel.add(player.firstBreadExplosion.vector);
+        }
+
+        if (player.likelyExplosions != null) {
+            setbackVel.add(player.likelyExplosions.vector);
+        }
+
+        if (setbackVel.equals(new Vector())) setbackVel = player.clientVelocity;
+
+        blockMovementsUntilResync(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ),
+                player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, setbackVel,
+                player.vehicle, player.lastTransactionReceived, false);
     }
 
-    public void blockMovementsUntilResync(World world, Vector3d position, float xRot, float yRot, Vector velocity, Integer vehicle, int trans) {
+    private void blockMovementsUntilResync(World world, Vector3d position, float xRot, float yRot, Vector velocity, Integer vehicle, int trans, boolean force) {
         // Don't teleport cross world, it will break more than it fixes.
         if (world != player.bukkitPlayer.getWorld()) return;
-        // A teleport has made this point in transaction history irrelevant
-        // Meaning:
-        // movement - movement - this point in time - movement - movement - teleport
-        // or something similar, setting back would be obnoxious.
-        if (trans < ignoreTransBeforeThis) return;
 
         SetBackData setBack = requiredSetBack;
-        if (setBack == null || setBack.isComplete()) {
+        if (force || setBack == null || setBack.isComplete()) {
             requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, trans);
 
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
@@ -47,6 +60,22 @@ public class TeleportUtil {
                 player.bukkitPlayer.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), xRot, yRot));
                 player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
             });
+        }
+    }
+
+    public void tryResendExpiredSetback() {
+        SetBackData setBack = requiredSetBack;
+
+        if (setBack != null && !setBack.isComplete() && setBack.getTrans() + 2 < player.packetStateData.packetLastTransactionReceived.get()) {
+            resendSetback(true);
+        }
+    }
+
+    public void resendSetback(boolean force) {
+        SetBackData setBack = requiredSetBack;
+
+        if (setBack != null && (!setBack.isComplete() || force)) {
+            blockMovementsUntilResync(setBack.getWorld(), setBack.getPosition(), setBack.getXRot(), setBack.getYRot(), setBack.getVelocity(), setBack.getVehicle(), player.lastTransactionSent.get(), force);
         }
     }
 
@@ -78,8 +107,8 @@ public class TeleportUtil {
                 SetBackData setBack = requiredSetBack;
 
                 // Player has accepted their setback!
-                if (setBack != null && setBack.isComplete() && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
-                    setBack.setComplete(false);
+                if (setBack != null && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
+                    setBack.setComplete(true);
                 }
 
                 return true;
@@ -130,5 +159,9 @@ public class TeleportUtil {
     public boolean shouldBlockMovement() {
         SetBackData setBack = requiredSetBack;
         return setBack != null && !setBack.isComplete();
+    }
+
+    public SetBackData getRequiredSetBack() {
+        return requiredSetBack;
     }
 }
