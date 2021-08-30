@@ -3,7 +3,6 @@ package ac.grim.grimac.checks.impl.prediction;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import org.bukkit.Bukkit;
 
 public class NoFallB extends PostPredictionCheck {
 
@@ -22,6 +21,8 @@ public class NoFallB extends PostPredictionCheck {
 
         boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 
-        if (invalid) Bukkit.broadcastMessage("Ground is invalid!");
+        if (invalid) {
+            // TODO: Punish!
+        }
     }
 }

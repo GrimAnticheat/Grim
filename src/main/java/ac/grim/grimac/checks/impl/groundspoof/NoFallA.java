@@ -6,12 +6,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 
 import java.util.List;
 
@@ -44,7 +43,7 @@ public class NoFallA extends PacketCheck {
                 boolean hasPosition = packetID == PacketType.Play.Client.POSITION || packetID == PacketType.Play.Client.POSITION_LOOK;
 
                 if (!hasPosition) {
-                    checkZeroPointZeroThreeGround(flying.isOnGround());
+                    if (!is003OnGround(flying.isOnGround())) flying.setOnGround(false);
                     return;
                 }
 
@@ -59,28 +58,30 @@ public class NoFallA extends PacketCheck {
                 if (position.distanceSquared(lastPos) < 2500)
                     feetBB.expandToAbsoluteCoordinates(lastPos.getX(), position.getX(), lastPos.getZ());
 
+                // Shulkers have weird BB's that the player might be standing on
+                if (Collisions.hasMaterial(player, feetBB, material -> Materials.checkFlag(material, Materials.SHULKER)))
+                    return;
+
                 // This is to support stepping movement (Not blatant, we need to wait on prediction engine to flag this)
                 // This check mainly serves to correct blatant onGround cheats
                 feetBB.expandMin(0, -4, 0);
 
                 if (checkForBoxes(feetBB)) return;
 
-                // also, stepping on legacy versions needs to be checked correctly
-                Bukkit.broadcastMessage(ChatColor.RED + "Player used NoFall! ");
+                flying.setOnGround(false);
             }
         }
     }
 
-    public void checkZeroPointZeroThreeGround(boolean onGround) {
+    public boolean is003OnGround(boolean onGround) {
         if (onGround) {
             Vector3d pos = player.packetStateData.packetPosition;
             SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(pos.getX(), pos.getY(), pos.getZ(), 0.6, 0.001);
             feetBB.expand(0.03); // 0.03 can be in any direction
 
-            if (checkForBoxes(feetBB)) return;
-
-            Bukkit.broadcastMessage(ChatColor.RED + "Player used NoFall with 0.03!");
+            return checkForBoxes(feetBB);
         }
+        return true;
     }
 
     private boolean checkForBoxes(SimpleCollisionBox playerBB) {

@@ -29,6 +29,7 @@ public class PredictionData {
     public int itemHeld;
     public float horseJump = 0;
     public boolean inVehicle = false;
+    public boolean acceptedSetback;
 
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
@@ -68,6 +69,8 @@ public class PredictionData {
 
         itemHeld = player.packetStateData.lastSlotSelected;
         player.packetStateData.horseJump = 0;
+
+        acceptedSetback = player.packetStateData.wasSetbackLocation;
 
         didGroundStatusChangeWithoutPositionPacket = player.packetStateData.didGroundStatusChangeWithoutPositionPacket;
         player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;
@@ -114,6 +117,7 @@ public class PredictionData {
         player.packetStateData.horseJump = 0;
         player.packetStateData.tryingToRiptide = false;
 
+        acceptedSetback = player.packetStateData.wasSetbackLocation;
         player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;
 
         player.packetStateData.minPlayerAttackSlow = 0;

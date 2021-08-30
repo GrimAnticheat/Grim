@@ -10,7 +10,7 @@ import org.bukkit.ChatColor;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-@CheckData(name = "Timer (A)")
+@CheckData(name = "Timer (A)", flagCooldown = 1000)
 public class TimerCheck extends PositionCheck {
     public int exempt = 200; // Exempt for 10 seconds on login
     GrimPlayer player;
@@ -21,6 +21,8 @@ public class TimerCheck extends PositionCheck {
     long timeSinceLastProcessedMovement = 0;
     // Default value is real time minus max keep-alive time
     long transactionsReceivedAtEndOfLastCheck = (long) (System.nanoTime() - 6e10);
+
+    long lastLongLagSpike = 0;
 
     ConcurrentLinkedQueue<Pair<Long, Long>> lagSpikeToRealTimeFloor = new ConcurrentLinkedQueue<>();
 
@@ -58,26 +60,34 @@ public class TimerCheck extends PositionCheck {
         }
         exempt = 0;
 
-        timerBalanceRealTime += 5e7;
+        timerBalanceRealTime += 50e6;
 
         if (timerBalanceRealTime > currentNanos) {
-            Bukkit.broadcastMessage(ChatColor.RED + "THE PLAYER HAS TIMER! (report on discord if not timer)");
-            // Reset the violation by 1 movement
-            timerBalanceRealTime -= 5e7;
-        }
+            decreaseBuffer(1);
 
-        /*Bukkit.broadcastMessage("==================");
-        Bukkit.broadcastMessage("Timer: " + (System.currentTimeMillis() - timerBalanceRealTime));
-        Bukkit.broadcastMessage("Received: " + (System.currentTimeMillis() - player.getPlayerClockAtLeast()));
-        Bukkit.broadcastMessage("==================");*/
+            if (getBuffer() == 0) {
+                Bukkit.broadcastMessage(ChatColor.RED + "Failed timer!");
+            }
+
+            // Reset the violation by 1 movement
+            timerBalanceRealTime -= 50e6;
+        } else {
+            // Decrease buffer as to target 1.005 timer
+            increaseBuffer(0.005);
+        }
 
         // Calculate time since last transaction - affected by 50 ms delay movement packets and
         timeSinceLastProcessedMovement = currentNanos + (currentNanos - transactionsReceivedAtEndOfLastCheck);
+
         // As we don't check players standing still, cap this at 1000 ms
         // A second is more than enough time for all packets from the lag spike to arrive
-        // Exempting over a 30 second lag spike will lead to bypasses where the player can catch up movement
+        // Exempting over a 30-second lag spike will lead to bypasses where the player can catch up movement
         // packets that were lost by standing still
         timeSinceLastProcessedMovement = (long) Math.min(timeSinceLastProcessedMovement, currentNanos + 1e9);
+
+        if (timeSinceLastProcessedMovement > 1e9) {
+            lastLongLagSpike = System.nanoTime();
+        }
 
         // Add this into a queue so that new lag spikes do not override previous lag spikes
         lagSpikeToRealTimeFloor.add(new Pair<>(timeSinceLastProcessedMovement, transactionsReceivedAtEndOfLastCheck));

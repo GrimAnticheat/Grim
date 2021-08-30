@@ -10,6 +10,7 @@ import org.bukkit.ChatColor;
 public class Check<T> {
     protected final GrimPlayer player;
     private double buffer;
+    private double maxBuffer;
     private double setback;
     private double flagCooldown;
     private double vlMultiplier;
@@ -40,7 +41,7 @@ public class Check<T> {
     }
 
     public final double increaseBuffer(final double amount) {
-        return buffer = Math.min(10000, buffer + amount);
+        return buffer = Math.min(maxBuffer, buffer + amount);
     }
 
     public final double decreaseBuffer() {
