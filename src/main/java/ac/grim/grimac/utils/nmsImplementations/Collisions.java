@@ -24,6 +24,7 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class Collisions {
     private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
@@ -486,7 +487,7 @@ public class Collisions {
     }
 
     public static boolean hasBouncyBlock(GrimPlayer player) {
-        return hasSlimeBlock(player) || onMaterialType(player, Materials.BED);
+        return hasSlimeBlock(player) || hasMaterial(player, Materials.BED);
     }
 
     // Has slime block, or honey with the ViaVersion replacement block
@@ -494,37 +495,28 @@ public class Collisions {
     // so I can automatically map honey -> slime and other important ViaVersion replacement blocks
     public static boolean hasSlimeBlock(GrimPlayer player) {
         return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
-                && (onMaterial(player, SLIME_BLOCK, -1) ||
+                && (hasMaterial(player, SLIME_BLOCK, -1) ||
                 (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
-                        && onMaterial(player, HONEY_BLOCK, -1)));
+                        && hasMaterial(player, HONEY_BLOCK, -1)));
     }
 
-    public static boolean onMaterialType(GrimPlayer player, int material) {
+    public static boolean hasMaterial(GrimPlayer player, int materialType) {
         SimpleCollisionBox playerBB = player.boundingBox.copy().expand(0.03).offset(0, -0.04, 0);
-
-        // Blocks are stored in YZX order
-        for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
-            for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
-                for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
-                    if (Materials.checkFlag(player.compensatedWorld.getBukkitMaterialAt(x, y, z), material))
-                        return true;
-                }
-            }
-        }
-
-        return false;
+        return hasMaterial(player, playerBB, material -> Materials.checkFlag(material, materialType));
     }
 
-
-    public static boolean onMaterial(GrimPlayer player, Material material, double offset) {
+    public static boolean hasMaterial(GrimPlayer player, Material searchMat, double offset) {
         SimpleCollisionBox playerBB = GetBoundingBox.getPlayerBoundingBox(player, player.x, player.y, player.z).expand(0.03).offset(0, offset, 0);
+        return hasMaterial(player, playerBB, material -> material == searchMat);
+    }
 
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Material> searchingFor) {
         // Blocks are stored in YZX order
-        for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
-            for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
-                for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
-                    if (player.compensatedWorld.getBukkitMaterialAt(x, y, z) == material) return true;
+        for (int y = (int) Math.floor(checkBox.minY); y <= Math.ceil(checkBox.maxY); y++) {
+            for (int z = (int) Math.floor(checkBox.minZ); z <= Math.ceil(checkBox.maxZ); z++) {
+                for (int x = (int) Math.floor(checkBox.minX); x <= Math.ceil(checkBox.maxX); x++) {
+                    if (searchingFor.test(player.compensatedWorld.getBukkitMaterialAt(x, y, z))) return true;
                 }
             }
         }

@@ -21,12 +21,12 @@ public class SmallOffsetHandler extends PostPredictionCheck {
 
         if (offset > 0.0001) {
             decreaseBuffer(1);
+
+            if (getBuffer() == 0) {
+                player.getSetbackTeleportUtil().executeSetback();
+            }
         } else {
             increaseBuffer(0.25);
-        }
-
-        if (getBuffer() == 0) {
-            player.setbackTeleportUtil.executeSetback();
         }
 
         if (getBuffer() > 50) {

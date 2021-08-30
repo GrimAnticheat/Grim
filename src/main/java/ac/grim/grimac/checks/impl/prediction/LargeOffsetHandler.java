@@ -18,7 +18,7 @@ public class LargeOffsetHandler extends PostPredictionCheck {
         double offset = predictionComplete.getOffset();
 
         if (offset > 0.01) {
-            player.setbackTeleportUtil.executeSetback();
+            player.getSetbackTeleportUtil().executeSetback();
         }
     }
 }

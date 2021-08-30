@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.movement.EntityControl;
 import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerHorse;
@@ -26,7 +27,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -279,6 +279,13 @@ public class MovementCheckRunner extends PositionCheck {
         player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(data.lastTransaction);
 
         // Check if the player can control their horse, if they are on a horse
+        //
+        // Player cannot control entities if other players are doing so, although the server will just
+        // ignore these bad packets
+        // Players cannot control stacked vehicles
+        // Again, the server knows to ignore this
+        //
+        // Therefore, we just assume that the client and server are modded or whatever.
         if (player.inVehicle) {
             // Players are unable to take explosions in vehicles
             player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
@@ -293,29 +300,25 @@ public class MovementCheckRunner extends PositionCheck {
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
             ItemStack newMainHand = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             if (player.playerVehicle instanceof PacketEntityRideable) {
+                EntityControl control = ((EntityControl) player.checkManager.getPostPredictionCheck(EntityControl.class));
+
                 Material requiredItem = player.playerVehicle.type == EntityType.PIG ? CARROT_ON_A_STICK : WARPED_FUNGUS_ON_A_STICK;
                 if ((mainHand == null || mainHand.getType() != requiredItem) &&
                         (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)
                                 && player.bukkitPlayer.getInventory().getItemInOffHand().getType() != requiredItem) &&
                         (newMainHand == null || newMainHand.getType() != requiredItem)) {
-                    // TODO: Setback
-                    Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity!");
-                } else if (player.playerVehicle != player.lastVehicle) {
+                    // Entity control cheats!  Set the player back
+                    if (control.flag()) {
+                        player.getSetbackTeleportUtil().executeSetback();
+                    }
+                } else {
+                    control.reward();
+                }
+
+                if (player.playerVehicle != player.lastVehicle) {
                     // Hack with boostable ticking without us (why does it do this?)
                     ((PacketEntityRideable) player.playerVehicle).currentBoostTime += 4;
                 }
-            }
-
-            // Player cannot control entities if other players are doing so, although the server will just
-            // ignore these bad packets
-            if (player.playerVehicle.passengers.length > 0 && player.playerVehicle.passengers[0] != player.entityID) {
-                Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity! (second passenger)");
-            }
-
-            // Players cannot control stacked vehicles
-            // Again, the server knows to ignore this
-            if (player.playerVehicle.riding != null) {
-                Bukkit.broadcastMessage(ChatColor.RED + "Player cannot control this entity! (stacked)");
             }
         }
 
@@ -428,7 +431,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
-        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.onMaterial(player, BUBBLE_COLUMN, -1);
+        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.hasMaterial(player, BUBBLE_COLUMN, -1);
         // TODO: Make this work for chests, anvils, and client interacted blocks (door, trapdoor, etc.)
         player.uncertaintyHandler.isNearGlitchyBlock = false;
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
@@ -601,6 +604,13 @@ public class MovementCheckRunner extends PositionCheck {
 
         offset = Math.max(0, offset);
 
+        // Don't check players who are offline
+        if (!player.bukkitPlayer.isOnline()) return;
+        // Don't check players who just switched worlds
+        if (player.playerWorld != player.bukkitPlayer.getWorld()) return;
+
+        player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
+
         if (offset > 0.0001) {
             double horizontalOffset = player.actualMovement.clone().setY(0).distance(player.predictedVelocity.vector.clone().setY(0));
             double verticalOffset = player.actualMovement.getY() - player.predictedVelocity.vector.getY();
@@ -609,6 +619,12 @@ public class MovementCheckRunner extends PositionCheck {
             double percentHorizontalOffset = horizontalOffset / totalOffset;
             double percentVerticalOffset = verticalOffset / totalOffset;
 
+            // Don't let players carry more than 0.001 offset into the next tick
+            // (I was seeing cheats try to carry 1,000,000,000 offset into the next tick!)
+            //
+            // This value so that setting back with high ping doesn't allow players to gather high client velocity
+            offset = Math.min(offset, 0.001);
+
             // Normalize offsets
             player.uncertaintyHandler.lastHorizontalOffset = offset * percentHorizontalOffset;
             player.uncertaintyHandler.lastVerticalOffset = offset * percentVerticalOffset;
@@ -616,13 +632,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastHorizontalOffset = 0;
             player.uncertaintyHandler.lastVerticalOffset = 0;
         }
-
-        // Don't check players who are offline
-        if (!player.bukkitPlayer.isOnline()) return;
-        // Don't check players who just switched worlds
-        if (player.playerWorld != player.bukkitPlayer.getWorld()) return;
-
-        player.checkManager.onPredictionFinish(new PredictionComplete(offset));
 
         player.riptideSpinAttackTicks--;
         if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))

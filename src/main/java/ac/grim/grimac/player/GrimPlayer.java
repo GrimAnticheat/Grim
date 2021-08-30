@@ -225,7 +225,6 @@ public class GrimPlayer {
 
         checkManager = new CheckManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
-        setbackTeleportUtil = new SetbackTeleportUtil(this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
@@ -401,5 +400,9 @@ public class GrimPlayer {
 
     public long getPlayerClockAtLeast() {
         return playerClockAtLeast;
+    }
+
+    public SetbackTeleportUtil getSetbackTeleportUtil() {
+        return checkManager.getSetbackUtil();
     }
 }

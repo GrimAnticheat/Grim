@@ -35,7 +35,7 @@ public class CheckManager {
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(NoFallA.class, new NoFallA(player))
                 .put(AntiBucketDesync.class, new AntiBucketDesync(player))
-                .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class to process
+                .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
                 .put(PredictionRunner.class, new PredictionRunner(player))
@@ -52,6 +52,7 @@ public class CheckManager {
                 .put(SmallOffsetHandler.class, new SmallOffsetHandler(player))
                 .put(LargeOffsetHandler.class, new LargeOffsetHandler(player))
                 .put(DebugHandler.class, new DebugHandler(player))
+                .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .build();
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
@@ -119,5 +120,9 @@ public class CheckManager {
 
     public KnockbackHandler getKnockbackHandler() {
         return (KnockbackHandler) getPacketCheck(KnockbackHandler.class);
+    }
+
+    public SetbackTeleportUtil getSetbackUtil() {
+        return ((SetbackTeleportUtil) getPostPredictionCheck(SetbackTeleportUtil.class));
     }
 }

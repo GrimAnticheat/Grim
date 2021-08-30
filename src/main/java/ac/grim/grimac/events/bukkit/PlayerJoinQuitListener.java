@@ -72,6 +72,8 @@ public class PlayerJoinQuitListener implements Listener {
         player.uncertaintyHandler.hardCollidingLerpingEntity.add(false);
         player.uncertaintyHandler.thirtyMillionHardBorder.add(false);
 
+        player.getSetbackTeleportUtil().setSafeTeleportPosition(new Vector3d(player.x, player.y, player.z));
+
         player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8);
         GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(player);
     }

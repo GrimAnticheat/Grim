@@ -14,6 +14,8 @@ public @interface CheckData {
 
     double buffer() default 5;
 
+    double maxBuffer() default 20;
+
     double vlMultiplier() default 0.95;
 
     long reset() default 9000L;

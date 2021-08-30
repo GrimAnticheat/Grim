@@ -84,7 +84,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 Vector3d position = flying.getPosition();
                 player.packetStateData.packetPosition = position;
 
-                final boolean isTeleport = player.setbackTeleportUtil.checkTeleportQueue(position.getX(), position.getY(), position.getZ());
+                final boolean isTeleport = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
                 player.packetStateData.lastPacketWasTeleport = isTeleport;
 
                 final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, onGround, isTeleport);
@@ -105,19 +105,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
             player.packetStateData.didLastMovementIncludePosition = hasPosition;
             player.packetStateData.movementPacketsReceived++;
-            player.setbackTeleportUtil.tryResendExpiredSetback();
+            player.getSetbackTeleportUtil().tryResendExpiredSetback();
         }
 
         if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
             WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
             Vector3d position = move.getPosition();
 
-            final boolean isTeleport = player.setbackTeleportUtil.checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
+            final boolean isTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
             final VehiclePositionUpdate update = new VehiclePositionUpdate(player.packetStateData.packetPosition, position, move.getYaw(), move.getPitch(), isTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;
-            player.setbackTeleportUtil.tryResendExpiredSetback();
+            player.getSetbackTeleportUtil().tryResendExpiredSetback();
         }
 
         if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId())) {

@@ -35,6 +35,8 @@ public class PacketStateData {
     // This works on 1.8 only
     public boolean didLastLastMovementIncludePosition = false;
     public boolean didLastMovementIncludePosition = false;
+    // Note whether we are currently blocking movement packets (to determine if a position is "safe" to teleport back to
+    public boolean wasSetbackLocation = false;
     // Just to filter out the first incorrect ground status
     public int movementPacketsReceived = 0;
     public int minPlayerAttackSlow = 0;

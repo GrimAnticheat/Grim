@@ -16,12 +16,12 @@ public class SetbackBlocker extends PacketCheck {
 
         if (PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId())) {
             // The player must obey setbacks
-            if (player.setbackTeleportUtil.shouldBlockMovement())
+            if (player.getSetbackTeleportUtil().shouldBlockMovement())
                 event.setCancelled(true);
         }
 
         if (event.getPacketId() == PacketType.Play.Client.VEHICLE_MOVE) {
-            if (player.setbackTeleportUtil.shouldBlockMovement())
+            if (player.getSetbackTeleportUtil().shouldBlockMovement())
                 event.setCancelled(true);
         }
     }

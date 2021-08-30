@@ -1,7 +1,9 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.SetBackData;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -10,14 +12,35 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
-public class SetbackTeleportUtil {
-    GrimPlayer player;
+public class SetbackTeleportUtil extends PostPredictionCheck {
+    // This required setback data is sync to the netty thread
     SetBackData requiredSetBack = null;
-    int ignoreTransBeforeThis = 0;
     double teleportEpsilon = 0.5;
 
+    // This boolean and safe teleport position is sync to the anticheat thread
+    // Although referencing this position from other threads is safe and encouraged
+    boolean hasAcceptedSetbackPosition = false;
+    Vector3d safeTeleportPosition;
+
     public SetbackTeleportUtil(GrimPlayer player) {
-        this.player = player;
+        super(player);
+    }
+
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        // We must first check if the player has accepted their setback
+        if (predictionComplete.getData().acceptedSetback) {
+            hasAcceptedSetbackPosition = true;
+            safeTeleportPosition = new Vector3d(player.x, player.y, player.z);
+        } else if (hasAcceptedSetbackPosition) {
+            // Do NOT accept teleports as valid setback positions if the player has a current setback
+            // This is due to players being able to trigger new teleports with the vanilla anticheat
+            // Thanks Mojang... it's quite ironic that your anticheat makes anticheats harder to write.
+            if (predictionComplete.getData().isJustTeleported) {
+                safeTeleportPosition = new Vector3d(player.x, player.y, player.z);
+            } else {
+                safeTeleportPosition = new Vector3d(player.lastX, player.lastY, player.lastZ);
+            }
+        }
     }
 
     public void executeSetback() {
@@ -41,7 +64,7 @@ public class SetbackTeleportUtil {
 
         if (setbackVel.equals(new Vector())) setbackVel = player.clientVelocity;
 
-        blockMovementsUntilResync(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ),
+        blockMovementsUntilResync(player.playerWorld, safeTeleportPosition,
                 player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, setbackVel,
                 player.vehicle, player.lastTransactionReceived, false);
     }
@@ -56,11 +79,12 @@ public class SetbackTeleportUtil {
         // or something similar, setting back would be obnoxious
         //
         // However, the need to block vanilla anticheat teleports can override this.
-        if (trans < ignoreTransBeforeThis && !force) return;
+        //if (trans < ignoreTransBeforeThis && !force) return;
 
         SetBackData setBack = requiredSetBack;
         if (force || setBack == null || setBack.isComplete()) {
             requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, trans);
+            hasAcceptedSetbackPosition = false;
 
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
                 // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
@@ -91,6 +115,7 @@ public class SetbackTeleportUtil {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
+        player.packetStateData.wasSetbackLocation = false;
 
         while (true) {
             Pair<Integer, Vector3d> teleportPos = player.teleports.peek();
@@ -109,13 +134,11 @@ public class SetbackTeleportUtil {
                 // Teleports remove the player from their vehicle
                 player.vehicle = null;
 
-                // Note the latest teleport accepted
-                ignoreTransBeforeThis = lastTransaction;
-
                 SetBackData setBack = requiredSetBack;
 
                 // Player has accepted their setback!
                 if (setBack != null && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
+                    player.packetStateData.wasSetbackLocation = true;
                     setBack.setComplete(true);
                 }
 
@@ -134,6 +157,7 @@ public class SetbackTeleportUtil {
 
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
+        player.packetStateData.wasSetbackLocation = false;
 
         while (true) {
             Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
@@ -145,9 +169,6 @@ public class SetbackTeleportUtil {
             Vector3d position = teleportPos.getSecond();
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
                 player.vehicleData.vehicleTeleports.poll();
-
-                // Note the latest teleport accepted
-                ignoreTransBeforeThis = lastTransaction;
 
                 return true;
             } else if (lastTransaction > teleportPos.getFirst() + 2) {
@@ -171,5 +192,9 @@ public class SetbackTeleportUtil {
 
     public SetBackData getRequiredSetBack() {
         return requiredSetBack;
+    }
+
+    public void setSafeTeleportPosition(Vector3d position) {
+        this.safeTeleportPosition = position;
     }
 }

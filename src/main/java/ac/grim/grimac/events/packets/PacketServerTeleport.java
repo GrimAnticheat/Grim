@@ -76,7 +76,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             event.setPostTask(() -> {
                 player.sendAndFlushTransactionOrPingPong();
 
-                SetBackData data = player.setbackTeleportUtil.getRequiredSetBack();
+                SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
                 if (data == null) return;
 
                 Vector3d setbackPos = data.getPosition();
@@ -92,9 +92,9 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 // This is why it's a post task, the player already was sent this teleport
                 Location playerLoc = player.bukkitPlayer.getLocation();
                 if (relative == 0 && finalPos.getX() == playerLoc.getX() && finalPos.getY() == playerLoc.getY() && finalPos.getZ() == playerLoc.getZ()) {
-                    SetBackData setBackData = player.setbackTeleportUtil.getRequiredSetBack();
+                    SetBackData setBackData = player.getSetbackTeleportUtil().getRequiredSetBack();
                     if (setBackData != null && !setBackData.isComplete()) {
-                        player.setbackTeleportUtil.resendSetback(true);
+                        player.getSetbackTeleportUtil().resendSetback(true);
                     }
                 }
             });
