@@ -12,12 +12,7 @@ public class NoFallB extends PostPredictionCheck {
 
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // Exemptions
-        if (player.inVehicle || player.wasTouchingWater || player.wasTouchingLava
-                || player.uncertaintyHandler.pistonX != 0 || player.uncertaintyHandler.pistonY != 0
-                || player.uncertaintyHandler.pistonZ != 0 || player.uncertaintyHandler.isSteppingOnSlime
-                || player.isFlying || player.uncertaintyHandler.isStepMovement
-                || player.uncertaintyHandler.lastTeleportTicks > -3 || player.isDead
-                || player.isInBed || player.lastInBed) return;
+        if (player.exemptOnGround()) return;
 
         boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 

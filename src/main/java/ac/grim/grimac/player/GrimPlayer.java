@@ -404,4 +404,13 @@ public class GrimPlayer {
     public SetbackTeleportUtil getSetbackTeleportUtil() {
         return checkManager.getSetbackUtil();
     }
+
+    public boolean exemptOnGround() {
+        return inVehicle || wasTouchingWater || wasTouchingLava
+                || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
+                || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isSteppingOnSlime
+                || isFlying || uncertaintyHandler.isStepMovement
+                || uncertaintyHandler.lastTeleportTicks > -3 || isDead
+                || isInBed || lastInBed;
+    }
 }

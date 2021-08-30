@@ -10,6 +10,7 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
@@ -21,7 +22,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // Although referencing this position from other threads is safe and encouraged
     boolean hasAcceptedSetbackPosition = true;
     boolean wasLastMovementSafe = true;
+    // Generally safe teleport position
     Vector3d safeTeleportPosition;
+    // This makes it more difficult to abuse setbacks to allow impossible jumps etc.
+    Vector3d lastGroundTeleportPosition;
 
     public SetbackTeleportUtil(GrimPlayer player) {
         super(player);
@@ -31,27 +35,32 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // We must first check if the player has accepted their setback
         if (predictionComplete.getData().acceptedSetback) {
             // If there is a new pending setback, don't desync from the netty thread
-            if (requiredSetBack.isComplete()) {
-                hasAcceptedSetbackPosition = true;
-            }
+            if (requiredSetBack.isComplete()) hasAcceptedSetbackPosition = true;
 
             safeTeleportPosition = new Vector3d(player.x, player.y, player.z);
+            if ((player.onGround || player.exemptOnGround()) && player.uncertaintyHandler.lastTeleportTicks < -3) {
+                lastGroundTeleportPosition = new Vector3d(player.x, player.y, player.z);
+            }
         } else if (hasAcceptedSetbackPosition) {
             // Do NOT accept teleports as valid setback positions if the player has a current setback
             // This is due to players being able to trigger new teleports with the vanilla anticheat
             // Thanks Mojang... it's quite ironic that your anticheat makes anticheats harder to write.
             if (predictionComplete.getData().isJustTeleported) {
-                Bukkit.broadcastMessage("1) Setting safe position to " + player.y);
                 safeTeleportPosition = new Vector3d(player.x, player.y, player.z);
+                if ((player.onGround || player.exemptOnGround()) && player.uncertaintyHandler.lastTeleportTicks < -3) {
+                    lastGroundTeleportPosition = new Vector3d(player.x, player.y, player.z);
+                }
             } else if (wasLastMovementSafe) {
-                Bukkit.broadcastMessage("2) Setting safe position to " + player.lastY);
                 safeTeleportPosition = new Vector3d(player.lastX, player.lastY, player.lastZ);
+                if ((player.onGround || player.exemptOnGround()) && player.uncertaintyHandler.lastTeleportTicks < -3) {
+                    lastGroundTeleportPosition = new Vector3d(player.lastX, player.lastY, player.lastZ);
+                }
             }
         }
         wasLastMovementSafe = hasAcceptedSetbackPosition;
     }
 
-    public void executeSetback() {
+    public void executeSetback(boolean allowTeleportToGround) {
         Vector setbackVel = new Vector();
 
         if (player.firstBreadKB != null) {
@@ -70,7 +79,19 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             setbackVel.add(player.likelyExplosions.vector);
         }
 
-        blockMovementsUntilResync(player.playerWorld, safeTeleportPosition,
+        Vector3d target;
+        if (!allowTeleportToGround) {
+            // Don't use ground setback location for non-anticheat thread setbacks
+            target = safeTeleportPosition;
+        } else if (Math.abs(player.predictedVelocity.vector.getY() - player.actualMovement.getY()) > 0.01 && player.y > lastGroundTeleportPosition.getY()) {
+            // The player is likely to be using vertical movement cheats
+            // And the player is currently above the setback location (avoids VoidTP cheats)
+            target = lastGroundTeleportPosition;
+        } else {
+            target = safeTeleportPosition;
+        }
+
+        blockMovementsUntilResync(player.playerWorld, target,
                 player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, setbackVel,
                 player.vehicle, player.lastTransactionReceived, false);
     }
@@ -94,7 +115,14 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
                 // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
+                Entity playerVehicle = player.bukkitPlayer.getVehicle();
                 player.bukkitPlayer.eject();
+
+                if (playerVehicle != null) {
+                    // Stop the player from being able to teleport vehicles and simply re-enter them to continue
+                    playerVehicle.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), playerVehicle.getLocation().getYaw(), playerVehicle.getLocation().getPitch()));
+                }
+
                 player.bukkitPlayer.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), xRot, yRot));
                 player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
             });
@@ -202,5 +230,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
     public void setSafeTeleportPosition(Vector3d position) {
         this.safeTeleportPosition = position;
+        this.lastGroundTeleportPosition = position;
     }
 }
