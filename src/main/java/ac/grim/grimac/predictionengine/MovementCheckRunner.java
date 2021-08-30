@@ -308,7 +308,7 @@ public class MovementCheckRunner extends PositionCheck {
                         (newMainHand == null || newMainHand.getType() != requiredItem)) {
                     // Entity control cheats!  Set the player back
                     if (control.flag()) {
-                        player.getSetbackTeleportUtil().executeSetback();
+                        player.getSetbackTeleportUtil().executeSetback(false);
                     }
                 } else {
                     control.reward();
