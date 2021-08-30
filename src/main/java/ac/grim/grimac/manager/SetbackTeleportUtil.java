@@ -19,7 +19,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
     // This boolean and safe teleport position is sync to the anticheat thread
     // Although referencing this position from other threads is safe and encouraged
-    boolean hasAcceptedSetbackPosition = false;
+    boolean hasAcceptedSetbackPosition = true;
+    boolean wasLastMovementSafe = true;
     Vector3d safeTeleportPosition;
 
     public SetbackTeleportUtil(GrimPlayer player) {
@@ -29,18 +30,25 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // We must first check if the player has accepted their setback
         if (predictionComplete.getData().acceptedSetback) {
-            hasAcceptedSetbackPosition = true;
+            // If there is a new pending setback, don't desync from the netty thread
+            if (requiredSetBack.isComplete()) {
+                hasAcceptedSetbackPosition = true;
+            }
+
             safeTeleportPosition = new Vector3d(player.x, player.y, player.z);
         } else if (hasAcceptedSetbackPosition) {
             // Do NOT accept teleports as valid setback positions if the player has a current setback
             // This is due to players being able to trigger new teleports with the vanilla anticheat
             // Thanks Mojang... it's quite ironic that your anticheat makes anticheats harder to write.
             if (predictionComplete.getData().isJustTeleported) {
+                Bukkit.broadcastMessage("1) Setting safe position to " + player.y);
                 safeTeleportPosition = new Vector3d(player.x, player.y, player.z);
-            } else {
+            } else if (wasLastMovementSafe) {
+                Bukkit.broadcastMessage("2) Setting safe position to " + player.lastY);
                 safeTeleportPosition = new Vector3d(player.lastX, player.lastY, player.lastZ);
             }
         }
+        wasLastMovementSafe = hasAcceptedSetbackPosition;
     }
 
     public void executeSetback() {
@@ -61,8 +69,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (player.likelyExplosions != null) {
             setbackVel.add(player.likelyExplosions.vector);
         }
-
-        if (setbackVel.equals(new Vector())) setbackVel = player.clientVelocity;
 
         blockMovementsUntilResync(player.playerWorld, safeTeleportPosition,
                 player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, setbackVel,

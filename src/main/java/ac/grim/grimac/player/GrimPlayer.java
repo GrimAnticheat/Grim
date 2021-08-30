@@ -171,7 +171,6 @@ public class GrimPlayer {
     public VelocityData likelyExplosions = null;
     public CheckManager checkManager;
     public MovementCheckRunner movementCheckRunner;
-    public SetbackTeleportUtil setbackTeleportUtil;
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;

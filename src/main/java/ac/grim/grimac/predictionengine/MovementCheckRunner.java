@@ -10,7 +10,6 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -27,7 +26,6 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -259,7 +257,8 @@ public class MovementCheckRunner extends PositionCheck {
             player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
             player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
 
-            LogUtil.info(ChatColor.AQUA + "Player teleported!");
+            // Manually call prediction complete to handle teleport
+            player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, data));
 
             return;
         }
