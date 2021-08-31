@@ -294,7 +294,7 @@ public class PlayerBaseTick {
         double relativeZMovement = zPosition - blockZ;
         BlockFace direction = null;
         double lowestValue = Double.MAX_VALUE;
-        for (BlockFace direction2 : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
+        for (BlockFace direction2 : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
             double d6;
             double d7 = direction2 == BlockFace.WEST || direction2 == BlockFace.EAST ? relativeXMovement : relativeZMovement;
             d6 = direction2 == BlockFace.EAST || direction2 == BlockFace.SOUTH ? 1.0 - d7 : d7;
