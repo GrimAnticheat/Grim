@@ -8,7 +8,9 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.BasePlayerChangeBlockData;
 import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.math.GrimMath;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Location;
 
@@ -58,12 +60,16 @@ public class ResyncWorldUtil {
                     for (int z = minZ; z <= maxZ; z++) {
                         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
                             FlatBlockState state = new FlatBlockState(blocks[x - minX][y - minY][z - minZ]);
-                            if (shouldSend.test(state))
+                            if (shouldSend.test(state)) {
                                 player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getBlockData());
+                                player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(x, y, z)));
+                            }
                         } else {
                             MagicBlockState state = new MagicBlockState(blocks[x - minX][y - minY][z - minZ]);
-                            if (shouldSend.test(state))
+                            if (shouldSend.test(state)) {
                                 player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getMaterial(), (byte) state.getBlockData());
+                                player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(x, y, z)));
+                            }
                         }
                     }
                 }
