@@ -25,6 +25,8 @@ public class FluidTypeFlowing {
     private static final Material SEA_LANTERN = XMaterial.SEA_LANTERN.parseMaterial();
     private static final Material CONDUIT = XMaterial.CONDUIT.parseMaterial();
 
+    private static final Material LILY_PAD = XMaterial.LILY_PAD.parseMaterial();
+
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
 
@@ -32,7 +34,7 @@ public class FluidTypeFlowing {
 
         double d0 = 0.0D;
         double d1 = 0.0D;
-        for (BlockFace enumdirection : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
+        for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
             int modifiedX = originalX + enumdirection.getModX();
             int modifiedZ = originalZ + enumdirection.getModZ();
 
@@ -40,7 +42,9 @@ public class FluidTypeFlowing {
                 float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
                 float f1 = 0.0F;
                 if (f == 0.0F) {
-                    if (!Materials.checkFlag(player.compensatedWorld.getBukkitMaterialAt(modifiedX, originalY, modifiedZ), Materials.SOLID)) {
+                    Material mat = player.compensatedWorld.getBukkitMaterialAt(modifiedX, originalY, modifiedZ);
+                    // What the fuck Mojang?  Why is a lilypad not a solid blocking material?
+                    if (!Materials.checkFlag(mat, Materials.SOLID) || mat == LILY_PAD) {
                         if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
                             f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
                             if (f > 0.0F) {
@@ -64,7 +68,7 @@ public class FluidTypeFlowing {
         // Fluid level 1-7 is for regular fluid heights
         // Fluid level 8-15 is for falling fluids
         if (player.compensatedWorld.isFluidFalling(originalX, originalY, originalZ)) {
-            for (BlockFace enumdirection : new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH}) {
+            for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
                 if (isSolidFace(player, originalX, originalY, originalZ, enumdirection)) {
                     vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector(0.0D, -6.0D, 0.0D));
                     break;
