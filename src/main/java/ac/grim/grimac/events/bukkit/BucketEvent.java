@@ -20,6 +20,7 @@ import org.bukkit.event.player.PlayerBucketFillEvent;
 public class BucketEvent implements Listener {
 
     private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
+    private static final Material SNOW_BUCKET = XMaterial.POWDER_SNOW_BUCKET.parseMaterial();
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBucketFill(PlayerBucketFillEvent event) {
@@ -46,6 +47,8 @@ public class BucketEvent implements Listener {
             BlockData newData;
             if (event.getBucket() == LAVA_BUCKET) {
                 newData = Material.LAVA.createBlockData();
+            } else if (event.getBucket() == SNOW_BUCKET) {
+                newData = Material.POWDER_SNOW.createBlockData();
             } else {
                 newData = Material.WATER.createBlockData();
             }
