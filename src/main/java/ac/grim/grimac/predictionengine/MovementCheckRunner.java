@@ -606,6 +606,19 @@ public class MovementCheckRunner extends PositionCheck {
 
         offset = Math.max(0, offset);
 
+        // If the player is trying to riptide
+        // But the server has rejected this movement
+        // And there isn't water nearby (tries to solve most vanilla issues with this desync)
+        //
+        // Set back the player to disallow them to use riptide anywhere, even outside rain or water
+        if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() &&
+                player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident) &&
+                !player.compensatedWorld.containsWater(GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3))) {
+            offset = 0;
+            player.getSetbackTeleportUtil().executeSetback(false);
+            blockOffsets = true;
+        }
+
         if (offset > 0.001) {
             // Deal with stupidity when towering upwards, or other high ping desync's that I can't deal with
             // Seriously, blocks disappear and reappear when towering at high ping on modern versions...
