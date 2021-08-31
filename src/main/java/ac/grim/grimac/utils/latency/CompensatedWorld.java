@@ -75,7 +75,7 @@ public class CompensatedWorld {
 
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
-    public boolean sendTransaction = true;
+    public boolean isResync = true;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;

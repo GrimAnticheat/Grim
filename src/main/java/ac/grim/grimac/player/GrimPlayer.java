@@ -1,5 +1,6 @@
 package ac.grim.grimac.player;
 
+import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.manager.CheckManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
@@ -403,6 +404,10 @@ public class GrimPlayer {
 
     public SetbackTeleportUtil getSetbackTeleportUtil() {
         return checkManager.getSetbackUtil();
+    }
+
+    public ResyncWorldUtil getResyncWorldUtil() {
+        return checkManager.getResyncWorldUtil();
     }
 
     public boolean exemptOnGround() {

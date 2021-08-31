@@ -27,6 +27,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // This makes it more difficult to abuse setbacks to allow impossible jumps etc.
     Vector3d lastGroundTeleportPosition;
 
+    long lastWorldResync = 0;
+
     public SetbackTeleportUtil(GrimPlayer player) {
         super(player);
     }
@@ -112,6 +114,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (force || setBack == null || setBack.isComplete()) {
             requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, trans);
             hasAcceptedSetbackPosition = false;
+
+            // Deal with ghost blocks near the player (from anticheat/netty thread)
+            // Only let us full resync once every two seconds to prevent unneeded netty load
+            if (System.nanoTime() - lastWorldResync > 2e-9) {
+                player.getResyncWorldUtil().resyncPositions(player, player.boundingBox.copy().expand(1));
+                lastWorldResync = System.nanoTime();
+            }
 
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
                 // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
