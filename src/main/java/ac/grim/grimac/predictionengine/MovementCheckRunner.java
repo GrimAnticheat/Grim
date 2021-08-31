@@ -71,13 +71,13 @@ public class MovementCheckRunner extends PositionCheck {
         Column column = data.player.compensatedWorld.getChunk(GrimMath.floor(data.playerX) >> 4, GrimMath.floor(data.playerZ) >> 4);
 
         // The player is in an unloaded chunk
-        if (!data.isJustTeleported && column == null) {
+        if (!data.isJustTeleported && (column == null || column.transaction > player.packetStateData.packetLastTransactionReceived.get())) {
             data.player.nextTaskToRun = null;
-            return;
-        }
-        // The player has not loaded this chunk yet
-        if (!data.isJustTeleported && column.transaction > data.player.packetStateData.packetLastTransactionReceived.get()) {
-            data.player.nextTaskToRun = null;
+
+            // Teleport the player back to avoid players being able to simply ignore transactions
+            player.getSetbackTeleportUtil().executeSetback(false);
+            blockOffsets = true;
+
             return;
         }
 
