@@ -9,7 +9,8 @@ import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.SmallOffsetHandler;
 import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
 import ac.grim.grimac.checks.type.*;
-import ac.grim.grimac.events.packets.patch.AntiBucketDesync;
+import ac.grim.grimac.events.packets.patch.AntiUseItemDesync;
+import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
 import com.google.common.collect.ClassToInstanceMap;
@@ -34,7 +35,8 @@ public class CheckManager {
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(NoFallA.class, new NoFallA(player))
-                .put(AntiBucketDesync.class, new AntiBucketDesync(player))
+                .put(AntiUseItemDesync.class, new AntiUseItemDesync(player))
+                .put(ResyncWorldUtil.class, new ResyncWorldUtil(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
@@ -124,5 +126,9 @@ public class CheckManager {
 
     public SetbackTeleportUtil getSetbackUtil() {
         return ((SetbackTeleportUtil) getPostPredictionCheck(SetbackTeleportUtil.class));
+    }
+
+    public ResyncWorldUtil getResyncWorldUtil() {
+        return ((ResyncWorldUtil) getPacketCheck(ResyncWorldUtil.class));
     }
 }

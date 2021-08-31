@@ -85,6 +85,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
             WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
+            if (player.compensatedWorld.isResync) return;
 
             try {
                 // 1.7 includes the block data right in the packet
@@ -100,7 +101,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
                 Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
                 int range = (player.getTransactionPing() / 100) + 16;
-                if (player.compensatedWorld.sendTransaction && Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
+                if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
                     event.setPostTask(player::sendAndFlushTransactionOrPingPong);
 
                 player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));

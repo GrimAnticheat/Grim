@@ -606,21 +606,49 @@ public class MovementCheckRunner extends PositionCheck {
 
         offset = Math.max(0, offset);
 
-        // Deal with stupidity when towering upwards, or other high ping desync's that I can't deal with
-        // Seriously, blocks disappear and reappear when towering at high ping on modern versions...
-        //
-        // I also can't deal with clients guessing what block connections will be with all the version differences
-        // I can with 1.7-1.12 clients as connections are all client sided, but client AND server sided is too much
-        // As these connections are all server sided at low ping, the desync's just appear at high ping
-        if (offset > 0.01) {
+        if (offset > 0.001) {
+            // Deal with stupidity when towering upwards, or other high ping desync's that I can't deal with
+            // Seriously, blocks disappear and reappear when towering at high ping on modern versions...
+            //
+            // I also can't deal with clients guessing what block connections will be with all the version differences
+            // I can with 1.7-1.12 clients as connections are all client sided, but client AND server sided is too much
+            // As these connections are all server sided at low ping, the desync's just appear at high ping
             SimpleCollisionBox playerBox = player.boundingBox.copy().expand(1);
             for (Pair<Integer, Vector3i> pair : player.compensatedWorld.likelyDesyncBlockPositions) {
                 Vector3i pos = pair.getSecond();
                 if (playerBox.isCollided(new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1))) {
-                    player.getSetbackTeleportUtil().executeSetback(true);
+                    player.getSetbackTeleportUtil().executeSetback(false);
                     // This status gets reset on teleport
                     // This is safe as this cannot be called on a teleport, as teleports are returned farther upwards in this code
                     blockOffsets = true;
+                }
+            }
+
+            // Reliable way to check if the player is colliding vertically with a block that doesn't exist
+            if (player.clientControlledVerticalCollision && Collisions.collide(player, 0, -SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == -SimpleCollisionBox.COLLISION_EPSILON) {
+                blockOffsets = true;
+                player.getSetbackTeleportUtil().executeSetback(false);
+            }
+
+            // Somewhat reliable way to detect if the player is colliding in the X negative/X positive axis on a ghost block
+            if (GrimMath.distanceToHorizontalCollision(player.x) < 1e-6) {
+                boolean xPosCol = Collisions.collide(player, SimpleCollisionBox.COLLISION_EPSILON, 0, 0).getX() != SimpleCollisionBox.COLLISION_EPSILON;
+                boolean xNegCol = Collisions.collide(player, -SimpleCollisionBox.COLLISION_EPSILON, 0, 0).getX() != -SimpleCollisionBox.COLLISION_EPSILON;
+
+                if (!xPosCol && !xNegCol) {
+                    blockOffsets = true;
+                    player.getSetbackTeleportUtil().executeSetback(false);
+                }
+            }
+
+            // Somewhat reliable way to detect if the player is colliding in the Z negative/Z positive axis on a ghost block
+            if (GrimMath.distanceToHorizontalCollision(player.z) < 1e-6) {
+                boolean zPosCol = Collisions.collide(player, 0, 0, SimpleCollisionBox.COLLISION_EPSILON).getZ() != SimpleCollisionBox.COLLISION_EPSILON;
+                boolean zNegCol = Collisions.collide(player, 0, 0, -SimpleCollisionBox.COLLISION_EPSILON).getZ() != -SimpleCollisionBox.COLLISION_EPSILON;
+
+                if (!zPosCol && !zNegCol) {
+                    blockOffsets = true;
+                    player.getSetbackTeleportUtil().executeSetback(false);
                 }
             }
         }
