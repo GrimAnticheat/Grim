@@ -135,6 +135,8 @@ public class CompensatedWorld {
 
             it.remove();
 
+            likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ)));
+
             if (changeBlockData instanceof PlayerOpenBlockData) {
                 tickOpenable((PlayerOpenBlockData) changeBlockData);
                 continue;
@@ -161,6 +163,7 @@ public class CompensatedWorld {
         packetBlockPlaces.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
         packetBlockBreaks.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
         packetBucket.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getTick() > 3);
+        likelyDesyncBlockPositions.removeIf(data -> player.packetStateData.packetLastTransactionReceived.get() > data.getFirst());
 
         packetLevelBlockLocations.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getFirst() > 3);
     }

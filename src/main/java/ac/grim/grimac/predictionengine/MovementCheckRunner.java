@@ -23,9 +23,11 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -55,13 +57,11 @@ public class MovementCheckRunner extends PositionCheck {
     private static final Material CARROT_ON_A_STICK = XMaterial.CARROT_ON_A_STICK.parseMaterial();
     private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
-
-    private static final Material TRIDENT = XMaterial.TRIDENT.parseMaterial();
-
     public static CustomThreadPoolExecutor executor =
             new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
+    private boolean blockOffsets = false;
 
     public MovementCheckRunner(GrimPlayer player) {
         super(player);
@@ -259,6 +259,9 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Manually call prediction complete to handle teleport
             player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, data));
+
+            // Issues with ghost blocks should now be resolved
+            blockOffsets = false;
 
             return;
         }
@@ -602,6 +605,28 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 0.1;
 
         offset = Math.max(0, offset);
+
+        // Deal with stupidity when towering upwards, or other high ping desync's that I can't deal with
+        // Seriously, blocks disappear and reappear when towering at high ping on modern versions...
+        //
+        // I also can't deal with clients guessing what block connections will be with all the version differences
+        // I can with 1.7-1.12 clients as connections are all client sided, but client AND server sided is too much
+        // As these connections are all server sided at low ping, the desync's just appear at high ping
+        if (offset > 0.01) {
+            SimpleCollisionBox playerBox = player.boundingBox.copy().expand(1);
+            for (Pair<Integer, Vector3i> pair : player.compensatedWorld.likelyDesyncBlockPositions) {
+                Vector3i pos = pair.getSecond();
+                if (playerBox.isCollided(new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1))) {
+                    player.getSetbackTeleportUtil().executeSetback(true);
+                    // This status gets reset on teleport
+                    // This is safe as this cannot be called on a teleport, as teleports are returned farther upwards in this code
+                    blockOffsets = true;
+                }
+            }
+        }
+
+        // This status gets reset on teleports
+        if (blockOffsets) offset = 0;
 
         // Don't check players who are offline
         if (!player.bukkitPlayer.isOnline()) return;
