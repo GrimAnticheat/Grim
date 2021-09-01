@@ -7,3 +7,7 @@ softdepend:
   - ViaVersion
 api-version: 1.13
 load: POSTWORLD
+permissions:
+  grim.alerts:
+    description: Receieve alerts for violations
+    default: op

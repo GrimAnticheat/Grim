@@ -4,9 +4,8 @@ import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.movement.*;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
-import ac.grim.grimac.checks.impl.prediction.LargeOffsetHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
-import ac.grim.grimac.checks.impl.prediction.SmallOffsetHandler;
+import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
 import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
 import ac.grim.grimac.checks.type.*;
 import ac.grim.grimac.events.packets.patch.AntiUseItemDesync;
@@ -51,8 +50,7 @@ public class CheckManager {
 
         postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
                 .put(NoFallB.class, new NoFallB(player))
-                .put(SmallOffsetHandler.class, new SmallOffsetHandler(player))
-                .put(LargeOffsetHandler.class, new LargeOffsetHandler(player))
+                .put(OffsetHandler.class, new OffsetHandler(player))
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .build();

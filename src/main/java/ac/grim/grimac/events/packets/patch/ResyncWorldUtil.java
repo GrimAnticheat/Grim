@@ -42,6 +42,9 @@ public class ResyncWorldUtil extends PacketCheck {
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     for (int z = minZ; z <= maxZ; z++) {
+                        // Don't resend blocks if the chunk isn't loaded
+                        if (!player.compensatedWorld.isChunkLoaded(x >> 4, z >> 4)) return;
+
                         blocks[x - minX][y - minY][z - minZ] = player.compensatedWorld.getWrappedBlockStateAt(x, y, z).getCombinedId();
                     }
                 }

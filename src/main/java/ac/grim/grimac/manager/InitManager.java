@@ -17,6 +17,7 @@ public class InitManager {
         initializersOnLoad = new ImmutableClassToInstanceMap.Builder<Initable>()
                 .put(PaletteInit.class, new PaletteInit())
                 .put(PacketEventsInit.class, new PacketEventsInit())
+                .put(DefaultConfigGenerator.class, new DefaultConfigGenerator())
                 .build();
 
         initializersOnStart = new ImmutableClassToInstanceMap.Builder<Initable>()

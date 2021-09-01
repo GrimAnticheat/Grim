@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
-import fr.mrmicky.fastparticles.ParticleType;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import org.bukkit.util.Vector;
 
@@ -49,14 +48,6 @@ public class Ray implements Cloneable {
 
     public String toString() {
         return "origin: " + origin + " direction: " + direction;
-    }
-
-    public void highlight(GrimPlayer player, double blocksAway, double accuracy) {
-        for (double x = 0; x < blocksAway; x += accuracy) {
-            Vector point = getPointAtDistance(x);
-            ParticleType flame = ParticleType.of("REDSTONE");
-            flame.spawn(player.bukkitPlayer, point.getX(), point.getY(), point.getZ(), 1);
-        }
     }
 
     public Vector getPointAtDistance(double distance) {
