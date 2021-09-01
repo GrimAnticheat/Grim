@@ -31,9 +31,10 @@ public class OffsetHandler extends PostPredictionCheck {
                 double violations = offsetHandler.getViolations();
 
                 if (violations > offsetHandler.getThreshold()) {
+                    // Patch LiquidBounce Spartan NoFall
+                    player.bukkitPlayer.setFallDistance((float) player.fallDistance);
                     setback();
                 }
-
 
                 if (violations > offsetHandler.getAlertMin()) {
                     int diff = GrimMath.floor(violations) - GrimMath.floor(offsetHandler.getAlertMin());
