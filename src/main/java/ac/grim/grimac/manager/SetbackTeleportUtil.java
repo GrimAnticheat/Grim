@@ -16,7 +16,6 @@ import org.bukkit.util.Vector;
 public class SetbackTeleportUtil extends PostPredictionCheck {
     // This required setback data is sync to the netty thread
     SetBackData requiredSetBack = null;
-    double teleportEpsilon = 0.5;
 
     // This boolean and safe teleport position is sync to the anticheat thread
     // Although referencing this position from other threads is safe and encouraged
@@ -177,7 +176,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             }
 
             // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
-            if (Math.abs(position.getX() - x) < teleportEpsilon && Math.abs(position.getY() - y) < teleportEpsilon && Math.abs(position.getZ() - z) < teleportEpsilon) {
+            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
                 player.teleports.poll();
 
                 // Teleports remove the player from their vehicle
