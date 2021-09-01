@@ -1,9 +1,13 @@
 package ac.grim.grimac.checks;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.ColorUtil;
+import ac.grim.grimac.utils.math.GrimMath;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
@@ -35,6 +39,8 @@ public class Check<T> {
             this.reset = checkData.reset();
             this.setback = checkData.setback();
         }
+
+        reload();
     }
 
     public final double increaseBuffer() {
@@ -67,6 +73,29 @@ public class Check<T> {
 
     public final void broadcast(final Object object) {
         Bukkit.broadcastMessage(ChatColor.AQUA + "[GrimAC] " + ChatColor.GRAY + object);
+    }
+
+    public void reload() {
+
+    }
+
+    public void alert(String verbose, String checkName, double violations) {
+        String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) %check-verbose%");
+        alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrimAC &f»"));
+        alertString = alertString.replace("%player%", player.bukkitPlayer.getName());
+        alertString = alertString.replace("%check_name%", checkName);
+        alertString = alertString.replace("%vl%", GrimMath.floor(violations) + "");
+        alertString = alertString.replace("%verbose%", verbose);
+
+        Bukkit.broadcast(ColorUtil.format(alertString), "grim.alerts");
+    }
+
+    public FileConfiguration getConfig() {
+        return GrimAPI.INSTANCE.getPlugin().getConfig();
+    }
+
+    public void setback() {
+        player.getSetbackTeleportUtil().executeSetback(true);
     }
 }
 

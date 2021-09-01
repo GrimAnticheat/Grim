@@ -32,11 +32,9 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.retrooper:packetevents:d01fdce'
+    implementation 'com.github.retrooper:packetevents:9172cd3'
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.4'
-    implementation 'fr.mrmicky:FastParticles:2.0.0'
-    implementation 'org.mariuszgromada.math:MathParser.org-mXparser:4.4.2'
 
     compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
 

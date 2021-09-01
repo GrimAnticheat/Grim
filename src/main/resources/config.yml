@@ -1,0 +1,47 @@
+# GrimAC main configuration
+# Source code: https://github.com/MWHunter/Grim
+# Copyright DefineOutside, Licensed under GPLv3
+
+prefix: '&bGrimAC &f»'
+
+alerts:
+  # Valid placeholders:
+  # %prefix%
+  # %player%
+  # %check_name%
+  # %vl% - violations
+  # %check-verbose% - extra information from the check such as offsets, not all checks will add information
+  format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) %verbose%"
+
+# GrimAC can usually check movement within 0.00000001 precision
+# It is usually safe to check movement to 0.0001 with very few falses
+Prediction:
+  # There isn't much point checking this small of precision to catch 0.1% speed increases,
+  # but it would be a waste of a prediction engine to not check this far
+  Small:
+    # How large of an offset from the player's movement should we create a violation for?
+    threshold: 0.0001
+    # Setback vl: How many times should the player have to go over this threshold to set them back?
+    setbackvl: 40
+    # Decay: How many violations should be reduced from the player for being below this threshold
+    decay: 0.125
+    # Alert vl: How many violations does the player need before they trigger alerts?
+    dont-alert-until: 20
+    # Alert interval: Reduce violation spam in the check.
+    alert-interval: 10
+  # The vast majority of cheats flag in this offset range, 0.01-0.6
+  Medium:
+    threshold: 0.01
+    setbackvl: 15
+    decay: 0.05
+    alertvl: 20
+    dont-alert-until: 10
+    alert-interval: 10
+  # This is to stop players from launching themselves extremely far in one tick
+  Large:
+    threshold: 0.6
+    setbackvl: 1
+    decay: 0.001
+    alertvl: 20
+    dont-alert-until: 3
+    alert-interval: 1
