@@ -29,15 +29,19 @@ repositories {
     maven {
         url = uri('https://repo.viaversion.com')
     }
+
+    maven {
+        url = "https://repo.aikar.co/content/groups/aikar/"
+    }
 }
 
 dependencies {
     implementation 'com.github.retrooper:packetevents:9172cd3'
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'it.unimi.dsi:fastutil:8.5.4'
+    implementation 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
 
     compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
-
     compileOnly 'com.viaversion:viaversion-api:4.0.0'
 
     compileOnly 'org.projectlombok:lombok:1.18.20'
@@ -61,3 +65,10 @@ shadowJar {
     minimize()
 }
 
+compileJava {
+    options.compilerArgs += ["-parameters"]
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+}
+
+build.dependsOn shadowJar
