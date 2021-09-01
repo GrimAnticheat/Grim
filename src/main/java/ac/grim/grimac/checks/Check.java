@@ -30,6 +30,7 @@ public class Check<T> {
             this.configName = checkData.configName();
             this.flagCooldown = checkData.flagCooldown();
             this.buffer = checkData.buffer();
+            this.maxBuffer = checkData.maxBuffer();
             this.vlMultiplier = checkData.vlMultiplier();
             this.reset = checkData.reset();
             this.setback = checkData.setback();

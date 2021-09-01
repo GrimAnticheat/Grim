@@ -20,7 +20,10 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PredictionEngine {
     boolean canRiptide = false;
@@ -327,16 +330,16 @@ public class PredictionEngine {
         // Difficult as there are a ton of edge cases and version differences with flying
         // For example, try toggling not using elytra to flying without this hack
         double bonusY = 0;
-        if (Collections.max(player.uncertaintyHandler.flyingStatusSwitchHack)) {
+        if (player.uncertaintyHandler.lastFlyingStatusChange > -5) {
             additionHorizontal += 0.3;
             bonusY += 0.3;
         }
 
-        if (Collections.max(player.uncertaintyHandler.legacyUnderwaterFlyingHack)) {
+        if (player.uncertaintyHandler.lastUnderwaterFlyingHack > -10) {
             bonusY += 0.2;
         }
 
-        if (Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)) {
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3) {
             additionHorizontal += 0.1;
             bonusY += 0.1;
         }
