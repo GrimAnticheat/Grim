@@ -26,6 +26,7 @@ public class InitManager {
                 .put(ViaBackwardsManager.class, new ViaBackwardsManager())
                 .put(TickRunner.class, new TickRunner())
                 .put(TickEndEvent.class, new TickEndEvent())
+                .put(CommandRegister.class, new CommandRegister())
                 .build();
 
         initializersOnStop = new ImmutableClassToInstanceMap.Builder<Initable>()

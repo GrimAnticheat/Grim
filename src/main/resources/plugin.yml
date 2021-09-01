@@ -11,3 +11,6 @@ permissions:
   grim.alerts:
     description: Receieve alerts for violations
     default: op
+  grim.performance:
+    description: Check performance metrics
+    default: op
