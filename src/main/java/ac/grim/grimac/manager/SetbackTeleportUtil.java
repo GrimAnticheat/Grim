@@ -88,7 +88,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (!allowTeleportToGround) {
             // Don't use ground setback location for non-anticheat thread setbacks
             data = safeTeleportPosition;
-        } else if (Math.abs(player.predictedVelocity.vector.getY() - player.actualMovement.getY()) > 0.01 && player.y > lastGroundTeleportPosition.position.getY()) {
+        } else if (Math.abs(player.predictedVelocity.vector.getY() - player.actualMovement.getY()) > 0.01 && player.lastY > lastGroundTeleportPosition.position.getY()) {
             // The player is likely to be using vertical movement cheats
             // And the player is currently above the setback location (avoids VoidTP cheats)
             data = lastGroundTeleportPosition;
