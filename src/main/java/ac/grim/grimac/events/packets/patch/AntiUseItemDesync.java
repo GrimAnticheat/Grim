@@ -126,7 +126,7 @@ public class AntiUseItemDesync extends PacketCheck {
 
                     SimpleCollisionBox box = new SimpleCollisionBox(bestBlock, bestBlock);
 
-                    player.getResyncWorldUtil().resyncPositions(player, box.expand(1));
+                    player.getResyncWorldUtil().resyncPositions(player, box.expand(1), true);
                 }
             }
 
@@ -159,7 +159,7 @@ public class AntiUseItemDesync extends PacketCheck {
                                 BlockData flatData = ((FlatBlockState) state).getBlockData();
                                 return flatData instanceof Levelled && ((Levelled) flatData).getLevel() == 0;
                             }
-                        });
+                        }, true);
             }
 
             if (resyncLilyPad) {
@@ -191,7 +191,7 @@ public class AntiUseItemDesync extends PacketCheck {
                                 BlockData flatData = ((FlatBlockState) state).getBlockData();
                                 return flatData instanceof Levelled && ((Levelled) flatData).getLevel() == 0;
                             }
-                        });
+                        }, true);
             }
 
             // You can too easily place stuff on ghost blocks with this, resend all blocks
@@ -209,7 +209,7 @@ public class AntiUseItemDesync extends PacketCheck {
                 SimpleCollisionBox box = new SimpleCollisionBox(startPos, endPos).sort().expandMax(0, maxEye - minEye, 0).expand(1);
 
                 player.getResyncWorldUtil().resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
-                        GrimMath.floor(box.maxX), GrimMath.floor(box.maxY), GrimMath.floor(box.maxZ), state -> true);
+                        GrimMath.floor(box.maxX), GrimMath.floor(box.maxY), GrimMath.floor(box.maxZ), state -> true, true);
             }
         }
     }

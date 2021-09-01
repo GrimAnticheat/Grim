@@ -100,7 +100,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         blockMovementsUntilResync(player.playerWorld, data.position,
                 player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, setbackVel,
-                player.vehicle, player.lastTransactionReceived, false);
+                player.vehicle, player.lastTransactionSent.get(), false);
     }
 
     private void blockMovementsUntilResync(World world, Vector3d position, float xRot, float yRot, Vector velocity, Integer vehicle, int trans, boolean force) {
@@ -123,7 +123,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // Deal with ghost blocks near the player (from anticheat/netty thread)
             // Only let us full resync once every two seconds to prevent unneeded netty load
             if (System.nanoTime() - lastWorldResync > 2e-9) {
-                player.getResyncWorldUtil().resyncPositions(player, player.boundingBox.copy().expand(1));
+                player.getResyncWorldUtil().resyncPositions(player, player.boundingBox.copy().expand(1), false);
                 lastWorldResync = System.nanoTime();
             }
 
@@ -193,6 +193,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 return true;
             } else if (lastTransaction > teleportPos.getFirst() + 2) {
                 player.teleports.poll();
+
                 // Ignored teleport!  We should really do something about this!
                 continue;
             }

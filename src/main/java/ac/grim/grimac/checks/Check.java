@@ -3,7 +3,6 @@ package ac.grim.grimac.checks;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.ColorUtil;
-import ac.grim.grimac.utils.math.GrimMath;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -79,12 +78,12 @@ public class Check<T> {
 
     }
 
-    public void alert(String verbose, String checkName, double violations) {
+    public void alert(String verbose, String checkName, String violations) {
         String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) %check-verbose%");
         alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrimAC &f»"));
         alertString = alertString.replace("%player%", player.bukkitPlayer.getName());
         alertString = alertString.replace("%check_name%", checkName);
-        alertString = alertString.replace("%vl%", GrimMath.floor(violations) + "");
+        alertString = alertString.replace("%vl%", violations);
         alertString = alertString.replace("%verbose%", verbose);
 
         Bukkit.broadcast(ColorUtil.format(alertString), "grim.alerts");

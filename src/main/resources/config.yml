@@ -27,7 +27,7 @@ Prediction:
     decay: 0.125
     # Alert vl: How many violations does the player need before they trigger alerts?
     dont-alert-until: 20
-    # Alert interval: Reduce violation spam in the check.
+    # Alert interval: Instead of sending 10 alerts for 10 flags, we send 1 alert every 10 flags
     alert-interval: 10
   # The vast majority of cheats flag in this offset range, 0.01-0.6
   Medium:

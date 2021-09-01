@@ -85,7 +85,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 }
 
                 if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) &&
-                        player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+                        player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
                     Optional<WrappedWatchableObject> riptide = entityMetadata.getWatchableObjects()
                             .stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 8 : 7)).findFirst();
 
@@ -95,7 +95,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                         player.compensatedRiptide.setPose(isRiptiding);
 
-                        // 1.9 eating:
+                        // 1.13 eating:
                         // - Client: I am starting to eat
                         // - Client: I am no longer eating
                         // - Server: Got that, you are eating!
@@ -113,16 +113,25 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             boolean isActive = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
                             boolean hand = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
 
+                            player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+
                             // Player might have gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
                                     () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE);
 
+                            int markedTransaction = player.lastTransactionSent.get();
+
                             // Player has gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-                                player.packetStateData.slowedByUsingItem = isActive ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
+                                // If the player hasn't overridden this packet by using or stopping using an item
+                                // Vanilla update order: Receive this -> process new interacts
+                                // Grim update order: Process new interacts -> receive this
+                                if (player.packetStateData.slowedByUsingItemTransaction < markedTransaction) {
+                                    player.packetStateData.slowedByUsingItem = isActive ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
 
-                                if (isActive) {
-                                    player.packetStateData.eatingHand = hand ? Hand.MAIN_HAND : Hand.OFF_HAND;
+                                    if (isActive) {
+                                        player.packetStateData.eatingHand = hand ? Hand.MAIN_HAND : Hand.OFF_HAND;
+                                    }
                                 }
                             });
 

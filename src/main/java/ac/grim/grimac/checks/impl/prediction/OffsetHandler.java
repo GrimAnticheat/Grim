@@ -39,7 +39,9 @@ public class OffsetHandler extends PostPredictionCheck {
                 if (violations > offsetHandler.getAlertMin()) {
                     int diff = GrimMath.floor(violations) - GrimMath.floor(offsetHandler.getAlertMin());
                     if (diff % offsetHandler.getAlertInterval() == 0) {
-                        alert("offset: " + offset, getCheckName() + "-" + offsetHandler.getName(), offsetHandler.getViolations());
+                        String formatOffset = offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
+
+                        alert("o: " + formatOffset, getCheckName() + "-" + offsetHandler.getName(), GrimMath.floor(violations) + "");
                     }
                 }
 
