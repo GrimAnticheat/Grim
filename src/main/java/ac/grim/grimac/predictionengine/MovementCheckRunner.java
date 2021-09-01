@@ -671,6 +671,12 @@ public class MovementCheckRunner extends PositionCheck {
                 player.getSetbackTeleportUtil().executeSetback(false);
             }
 
+            // Player is colliding upwards into a ghost block
+            if (player.y > player.lastY && Math.abs((player.y + player.pose.height) % (1 / 64D)) < 0.00001 && Collisions.collide(player, 0, SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == SimpleCollisionBox.COLLISION_EPSILON) {
+                blockOffsets = true;
+                player.getSetbackTeleportUtil().executeSetback(false);
+            }
+
             // Somewhat reliable way to detect if the player is colliding in the X negative/X positive axis on a ghost block
             if (GrimMath.distanceToHorizontalCollision(player.x) < 1e-6) {
                 boolean xPosCol = Collisions.collide(player, SimpleCollisionBox.COLLISION_EPSILON, 0, 0).getX() != SimpleCollisionBox.COLLISION_EPSILON;
