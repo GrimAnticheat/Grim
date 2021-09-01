@@ -226,6 +226,8 @@ public class CompensatedWorld {
             if (otherDoor.getMaterial() == data.getMaterial()) {
                 // The doors are probably connected
                 boolean isBottom = door.isBottom();
+                // Add the other door part to the likely to desync positions
+                player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 1 : -1), blockToOpen.blockZ)));
                 // 1.12- stores door data in the bottom door
                 if (!isBottom)
                     data = otherDoor;

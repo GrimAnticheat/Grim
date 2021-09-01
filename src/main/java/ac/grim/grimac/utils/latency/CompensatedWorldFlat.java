@@ -8,8 +8,10 @@ import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.data.Bisected;
@@ -114,6 +116,9 @@ public class CompensatedWorldFlat extends CompensatedWorld {
         if (data.getBlockData() instanceof Door) {
             Door door = (Door) data.getBlockData();
             FlatBlockState otherDoorState = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ);
+
+            // Add the other door part to the likely to desync positions
+            player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ)));
 
             if (otherDoorState.getBlockData() instanceof Door) {
                 Door otherDoor = (Door) otherDoorState.getBlockData().clone();
