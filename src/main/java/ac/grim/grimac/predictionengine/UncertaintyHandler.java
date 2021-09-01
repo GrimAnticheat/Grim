@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.lists.EvictingList;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import org.bukkit.block.BlockFace;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -74,17 +73,17 @@ public class UncertaintyHandler {
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
-    public EvictingList<Boolean> flyingStatusSwitchHack = new EvictingList<>(5);
-    public EvictingList<Boolean> legacyUnderwaterFlyingHack = new EvictingList<>(10);
-    public EvictingList<Boolean> stuckMultiplierZeroPointZeroThree = new EvictingList<>(5);
-    public EvictingList<Boolean> hardCollidingLerpingEntity = new EvictingList<>(3);
-    // Temporary thirty million hard border workaround
-    public EvictingList<Boolean> thirtyMillionHardBorder = new EvictingList<>(3);
-    public int lastTeleportTicks = 0;
-    public int lastFlyingTicks = 0;
-    public int lastSneakingChangeTicks = 0;
+
+    public int lastTeleportTicks = -100;
+    public int lastFlyingTicks = -100;
+    public int lastSneakingChangeTicks = -100;
     public int lastGlidingChangeTicks = -100;
-    public int lastMetadataDesync = 0;
+    public int lastMetadataDesync = -100;
+    public int lastFlyingStatusChange = -100;
+    public int lastUnderwaterFlyingHack = -100;
+    public int lastStuckSpeedMultiplier = -100;
+    public int lastHardCollidingLerpingEntity = -100;
+    public int lastThirtyMillionHardBorder = -100;
 
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
@@ -134,7 +133,7 @@ public class UncertaintyHandler {
     }
 
     public boolean wasAffectedByStuckSpeed() {
-        return !stuckMultiplierZeroPointZeroThree.isEmpty() && Collections.max(stuckMultiplierZeroPointZeroThree);
+        return lastStuckSpeedMultiplier > -5;
     }
 
     public boolean influencedByBouncyBlock() {
@@ -158,7 +157,7 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             pointThree = 0.15;
 
-        if (Collections.max(thirtyMillionHardBorder))
+        if (lastThirtyMillionHardBorder > -3)
             pointThree = 0.15;
 
         if (player.uncertaintyHandler.lastGlidingChangeTicks > -3)
@@ -191,7 +190,7 @@ public class UncertaintyHandler {
         if (has003 && influencedByBouncyBlock())
             return 0.28;
 
-        if (Collections.max(thirtyMillionHardBorder))
+        if (lastThirtyMillionHardBorder > -3)
             return 0.15;
 
         // Don't allow this uncertainty to be spoofed - use isActuallyOnGround
@@ -305,6 +304,7 @@ public class UncertaintyHandler {
             }
         }
 
-        player.uncertaintyHandler.hardCollidingLerpingEntity.add(hasHardCollision);
+        player.uncertaintyHandler.lastHardCollidingLerpingEntity--;
+        if (hasHardCollision) player.uncertaintyHandler.lastHardCollidingLerpingEntity = 0;
     }
 }

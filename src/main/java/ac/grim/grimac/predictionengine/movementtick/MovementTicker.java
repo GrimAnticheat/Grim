@@ -70,7 +70,7 @@ public class MovementTicker {
         // Trust the onGround status if the player is near the ground and they sent a ground packet
         if (player.inVehicle || ((Collections.max(player.uncertaintyHandler.pistonPushing) == 0 && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.influencedByBouncyBlock()
-                && player.uncertaintyHandler.lastTeleportTicks < -2) && !Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)
+                && player.uncertaintyHandler.lastTeleportTicks < -2) && player.uncertaintyHandler.lastHardCollidingLerpingEntity < -3
                 && player.uncertaintyHandler.lastGlidingChangeTicks < -3 &&
                 // The player has 0 vertical velocity, but might be on the ground, or might not.  They are 1e-7 on the ground
                 // so there is little room for abuse.
@@ -145,7 +145,11 @@ public class MovementTicker {
         player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
-        player.uncertaintyHandler.stuckMultiplierZeroPointZeroThree.add(player.stuckSpeedMultiplier.getX() < 0.99);
+        player.uncertaintyHandler.lastStuckSpeedMultiplier--;
+        if (player.stuckSpeedMultiplier.getX() < 0.99) {
+            player.uncertaintyHandler.lastStuckSpeedMultiplier = 0;
+        }
+
         player.stuckSpeedMultiplier = new Vector(1, 1, 1);
 
         // 1.15 and older clients use the handleInsideBlocks method for lava
@@ -166,11 +170,6 @@ public class MovementTicker {
     }
 
     public void livingEntityAIStep() {
-        player.uncertaintyHandler.flyingStatusSwitchHack.add(player.isFlying != player.wasFlying);
-
-        player.uncertaintyHandler.legacyUnderwaterFlyingHack.add(player.specialFlying &&
-                player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox));
-
         double minimumMovement = 0.003D;
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
             minimumMovement = 0.005D;

@@ -438,7 +438,20 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.isNearGlitchyBlock = false;
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
         player.uncertaintyHandler.checkForHardCollision();
-        player.uncertaintyHandler.thirtyMillionHardBorder.add(!player.inVehicle && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D));
+
+        player.uncertaintyHandler.lastFlyingStatusChange--;
+        if (player.isFlying != player.wasFlying) player.uncertaintyHandler.lastFlyingStatusChange = 0;
+
+        player.uncertaintyHandler.lastThirtyMillionHardBorder--;
+        if (!player.inVehicle && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D)) {
+            player.uncertaintyHandler.lastThirtyMillionHardBorder = 0;
+        }
+
+        player.uncertaintyHandler.lastUnderwaterFlyingHack--;
+        if (player.specialFlying && player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
+            player.uncertaintyHandler.lastUnderwaterFlyingHack = 0;
+        }
+
         player.uncertaintyHandler.claimingLeftStuckSpeed = player.stuckSpeedMultiplier.getX() < 1 && !Collisions.checkStuckSpeed(player);
 
         Vector backOff = Collisions.maybeBackOffFromEdge(player.clientVelocity, player, true);
@@ -548,14 +561,14 @@ public class MovementCheckRunner extends PositionCheck {
         // Boats are too glitchy to check.
         // Yes, they have caused an insane amount of uncertainty!
         // Even 1 block offset reduction isn't enough... damn it mojang
-        if (Collections.max(player.uncertaintyHandler.hardCollidingLerpingEntity)) {
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3) {
             offset -= 1.2;
         }
 
         if (player.uncertaintyHandler.lastGlidingChangeTicks > -6)
             offset -= 0.25;
 
-        if (Collections.max(player.uncertaintyHandler.flyingStatusSwitchHack)) {
+        if (player.uncertaintyHandler.lastFlyingStatusChange > -5) {
             offset -= 0.25;
         }
 
@@ -614,6 +627,21 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() &&
                 player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident) &&
                 !player.compensatedWorld.containsWater(GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3))) {
+            offset = 0;
+            player.getSetbackTeleportUtil().executeSetback(false);
+            blockOffsets = true;
+        }
+
+        // Riptide tridents are still very glitchy, and sometimes we mispredict when near the ground
+        // (This scenario is decently rare, but we still should resync)
+        if (player.riptideSpinAttackTicks > 0 && offset > 0.001) {
+            offset = 0;
+            player.getSetbackTeleportUtil().executeSetback(false);
+            blockOffsets = true;
+        }
+
+        // Don't let elytra glitchiness get the player banned
+        if (player.uncertaintyHandler.lastGlidingChangeTicks > -20 && offset > 0.001) {
             offset = 0;
             player.getSetbackTeleportUtil().executeSetback(false);
             blockOffsets = true;
