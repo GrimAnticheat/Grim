@@ -63,11 +63,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             if (type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND && player.packetStateData.slowedByUsingItem == AlmostBoolean.TRUE) {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
+                player.packetStateData.slowedByUsingItemTransaction = player.packetStateData.packetLastTransactionReceived.get();
                 player.packetStateData.eatingHand = player.packetStateData.eatingHand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND;
             }
 
             if (type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                player.packetStateData.slowedByUsingItemTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
                 if (XMaterial.supports(13)) {
                     ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
@@ -114,22 +116,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            // This is code for detecting a desync caused by buckets
-            // TODO: We need to wait on movement to fix the desync
-            /*boolean isBucket = false;
-            if (place.getHand() == Hand.MAIN_HAND) {
-                ItemStack main = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
-                if (main != null && (main.getType() == BUCKET || main.getType() == WATER_BUCKET || main.getType() == LAVA_BUCKET))
-                    isBucket = true;
-            } else {
-                ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
-                if (off.getType() == BUCKET || off.getType() == WATER_BUCKET || off.getType() == LAVA_BUCKET)
-                    isBucket = true;
-            }
-
-            RayTrace trace = new RayTrace(player, player.packetStateData.packetPlayerX, player.packetStateData.packetPlayerY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.bukkitPlayer.isSleeping(), player.getClientVersion()), player.packetStateData.packetPlayerZ, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
-            trace.highlight(player, 60, 0.01);*/
-
             if (XMaterial.supports(8) && player.packetStateData.gameMode == GameMode.SPECTATOR)
                 return;
 
@@ -142,6 +128,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // This was an interaction with a block, not a use item
             if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9) && place.getDirection() != Direction.OTHER)
                 return;
+
+            player.packetStateData.slowedByUsingItemTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
             // https://github.com/Updated-NoCheatPlus/NoCheatPlus/blob/master/NCPCompatProtocolLib/src/main/java/fr/neatmonster/nocheatplus/checks/net/protocollib/NoSlow.java

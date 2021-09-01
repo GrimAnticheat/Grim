@@ -135,7 +135,9 @@ public class CompensatedWorld {
 
             it.remove();
 
-            likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ)));
+            if (changeBlockData instanceof PlayerChangeBlockData || changeBlockData instanceof PlayerOpenBlockData) {
+                likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ)));
+            }
 
             if (changeBlockData instanceof PlayerOpenBlockData) {
                 tickOpenable((PlayerOpenBlockData) changeBlockData);

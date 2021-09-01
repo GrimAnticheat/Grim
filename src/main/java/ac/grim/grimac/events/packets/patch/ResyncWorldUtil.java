@@ -26,16 +26,18 @@ public class ResyncWorldUtil extends PacketCheck {
         super(playerData);
     }
 
-    public void resyncPositions(GrimPlayer player, SimpleCollisionBox box) {
-        resyncPositions(player, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+    public void resyncPositions(GrimPlayer player, SimpleCollisionBox box, boolean likelyDesync) {
+        resyncPositions(player, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ, likelyDesync);
     }
 
-    public void resyncPositions(GrimPlayer player, double minX, double minY, double minZ, double maxX, double maxY, double maxZ) {
+    public void resyncPositions(GrimPlayer player, double minX, double minY, double minZ, double maxX, double maxY, double maxZ, boolean likelyDesync) {
         resyncPositions(player, GrimMath.floor(minX), GrimMath.floor(minY), GrimMath.floor(minZ),
-                GrimMath.floor(maxX), GrimMath.floor(maxY), GrimMath.floor(maxZ), material -> true);
+                GrimMath.floor(maxX), GrimMath.floor(maxY), GrimMath.floor(maxZ), material -> true, likelyDesync);
     }
 
-    public void resyncPositions(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, Predicate<Pair<BaseBlockState, Vector3i>> shouldSend) {
+    public void resyncPositions(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, Predicate<Pair<BaseBlockState, Vector3i>> shouldSend, boolean likelyDesync) {
+        if (likelyDesync) new Exception().printStackTrace();
+
         toExecute.add(() -> {
             int[][][] blocks = new int[maxX - minX + 1][maxY - minY + 1][maxZ - minZ + 1];
 
@@ -74,13 +76,15 @@ public class ResyncWorldUtil extends PacketCheck {
                                 FlatBlockState state = new FlatBlockState(blocks[x - minX][y - minY][z - minZ]);
                                 if (shouldSend.test(new Pair<>(state, new Vector3i(x, y, z)))) {
                                     player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getBlockData());
-                                    player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(x, y, z)));
+                                    if (likelyDesync)
+                                        player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(x, y, z)));
                                 }
                             } else {
                                 MagicBlockState state = new MagicBlockState(blocks[x - minX][y - minY][z - minZ]);
                                 if (shouldSend.test(new Pair<>(state, new Vector3i(x, y, z)))) {
                                     player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), state.getMaterial(), (byte) state.getBlockData());
-                                    player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(x, y, z)));
+                                    if (likelyDesync)
+                                        player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(x, y, z)));
                                 }
                             }
                         }

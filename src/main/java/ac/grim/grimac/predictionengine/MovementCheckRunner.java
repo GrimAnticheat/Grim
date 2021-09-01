@@ -262,6 +262,8 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Issues with ghost blocks should now be resolved
             blockOffsets = false;
+            player.uncertaintyHandler.lastHorizontalOffset = 0;
+            player.uncertaintyHandler.lastVerticalOffset = 0;
 
             return;
         }
@@ -647,6 +649,13 @@ public class MovementCheckRunner extends PositionCheck {
             blockOffsets = true;
         }
 
+        // Don't ban a player who just switched out of flying
+        if (player.uncertaintyHandler.lastFlyingStatusChange > -20 && offset > 0.001) {
+            offset = 0;
+            player.getSetbackTeleportUtil().executeSetback(false);
+            blockOffsets = true;
+        }
+
         if (offset > 0.001) {
             // Deal with stupidity when towering upwards, or other high ping desync's that I can't deal with
             // Seriously, blocks disappear and reappear when towering at high ping on modern versions...
@@ -722,11 +731,11 @@ public class MovementCheckRunner extends PositionCheck {
             // (I was seeing cheats try to carry 1,000,000,000 offset into the next tick!)
             //
             // This value so that setting back with high ping doesn't allow players to gather high client velocity
-            offset = Math.min(offset, 0.001);
+            double minimizedOffset = Math.min(offset, 0.001);
 
             // Normalize offsets
-            player.uncertaintyHandler.lastHorizontalOffset = offset * percentHorizontalOffset;
-            player.uncertaintyHandler.lastVerticalOffset = offset * percentVerticalOffset;
+            player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset * percentHorizontalOffset;
+            player.uncertaintyHandler.lastVerticalOffset = minimizedOffset * percentVerticalOffset;
         } else {
             player.uncertaintyHandler.lastHorizontalOffset = 0;
             player.uncertaintyHandler.lastVerticalOffset = 0;
