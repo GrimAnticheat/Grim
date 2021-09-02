@@ -370,6 +370,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.lastSprinting = player.isSprinting;
         player.wasFlying = player.isFlying;
         player.wasGliding = player.isGliding;
+        player.wasSwimming = player.isSwimming;
         player.isSprinting = data.isSprinting;
         player.wasSneaking = player.isSneaking;
         player.isSneaking = data.isSneaking;

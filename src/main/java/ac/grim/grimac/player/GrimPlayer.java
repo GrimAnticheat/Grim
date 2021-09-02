@@ -96,6 +96,7 @@ public class GrimPlayer {
     // Or if the player is flying - the player is flying during movement
     public boolean specialFlying;
     public boolean isSwimming;
+    public boolean wasSwimming;
     public boolean isClimbing;
     public boolean isGliding;
     public boolean wasGliding;
