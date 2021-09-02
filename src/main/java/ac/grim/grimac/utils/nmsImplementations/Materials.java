@@ -56,6 +56,13 @@ public class Materials {
     private static final Material TROPICAL_FISH_BUCKET = XMaterial.TROPICAL_FISH_BUCKET.parseMaterial();
     private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
 
+    private static final Material ANVIL = XMaterial.ANVIL.parseMaterial();
+    private static final Material CHIPPED_ANVIL = XMaterial.CHIPPED_ANVIL.parseMaterial();
+    private static final Material DAMAGED_ANVIL = XMaterial.DAMAGED_ANVIL.parseMaterial();
+
+    private static final Material CHEST = XMaterial.CHEST.parseMaterial();
+    private static final Material TRAPPED_CHEST = XMaterial.TRAPPED_CHEST.parseMaterial();
+
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
     private static final Set<Material> NO_PLACE_LIQUIDS = new HashSet<>();
 
@@ -280,6 +287,14 @@ public class Materials {
     public static boolean isPlaceableLiquidBucket(Material mat) {
         return mat == AXOLOTL_BUCKET || mat == COD_BUCKET || mat == LAVA_BUCKET || mat == PUFFERFISH_BUCKET
                 || mat == SALMON_BUCKET || mat == TROPICAL_FISH_BUCKET || mat == WATER_BUCKET;
+    }
+
+    public static boolean isAnvil(Material mat) {
+        return mat == ANVIL || mat == CHIPPED_ANVIL || mat == DAMAGED_ANVIL;
+    }
+
+    public static boolean isWoodenChest(Material mat) {
+        return mat == CHEST || mat == TRAPPED_CHEST;
     }
 
     public static boolean isNoPlaceLiquid(Material material) {

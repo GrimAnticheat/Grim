@@ -19,6 +19,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
+import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
@@ -441,8 +442,24 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE);
         player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.hasMaterial(player, BUBBLE_COLUMN, -1);
-        // TODO: Make this work for chests, anvils, and client interacted blocks (door, trapdoor, etc.)
-        player.uncertaintyHandler.isNearGlitchyBlock = false;
+
+        SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001, 0.001);
+
+        // Don't expand if the player moved more than 50 blocks this tick (stop netty crash exploit)
+        if (player.actualMovement.lengthSquared() < 2500)
+            expandedBB.expandToAbsoluteCoordinates(player.x, player.y, player.z);
+
+        expandedBB.expand(Pose.STANDING.width / 2, 0, Pose.STANDING.width / 2);
+        expandedBB.expandMax(0, Pose.STANDING.height, 0);
+
+        // if the player is using a version with glitched chest and anvil bounding boxes,
+        // and they are intersecting with these glitched bounding boxes
+        // give them a decent amount of uncertainty and don't ban them for mojang's stupid mistake
+        boolean isGlitchy = player.uncertaintyHandler.isNearGlitchyBlock;
+        player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.v_1_9) && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03), material -> Materials.isAnvil(material) || Materials.isWoodenChest(material));
+
+        isGlitchy = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
+
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
         player.uncertaintyHandler.checkForHardCollision();
 
@@ -579,7 +596,7 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 0.25;
         }
 
-        if (player.uncertaintyHandler.isNearGlitchyBlock) {
+        if (isGlitchy) {
             offset -= 0.15;
         }
 
@@ -677,6 +694,12 @@ public class MovementCheckRunner extends PositionCheck {
                     // This is safe as this cannot be called on a teleport, as teleports are returned farther upwards in this code
                     blockOffsets = true;
                 }
+            }
+
+            // Player is on glitchy block (1.8 client on anvil/wooden chest)
+            if (isGlitchy) {
+                blockOffsets = true;
+                player.getSetbackTeleportUtil().executeSetback(false);
             }
 
             // Reliable way to check if the player is colliding vertically with a block that doesn't exist
