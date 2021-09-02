@@ -24,6 +24,8 @@ public class ExplosionHandler extends PacketCheck {
     VelocityData lastExplosionsKnownTaken = null;
     VelocityData firstBreadAddedExplosion = null;
 
+    boolean wasKbZeroPointZeroThree = false;
+
     public ExplosionHandler(GrimPlayer player) {
         super(player);
         this.player = player;
@@ -51,7 +53,10 @@ public class ExplosionHandler extends PacketCheck {
         firstBreadMap.add(new VelocityData(-1, breadOne, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
-    public void handlePredictionAnalysis(double offset) {
+    public void handlePredictionAnalysis(double offset, Vector vector) {
+        if (vector.lengthSquared() < player.uncertaintyHandler.getZeroPointZeroThreeThreshold())
+            wasKbZeroPointZeroThree = true;
+
         if (player.firstBreadExplosion != null) {
             player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
         }
@@ -62,6 +67,9 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     public void handlePlayerExplosion(double offset, boolean force) {
+        boolean wasZero = wasKbZeroPointZeroThree;
+        wasKbZeroPointZeroThree = false;
+
         if (player.likelyExplosions == null && player.firstBreadExplosion == null) {
             return;
         }
@@ -78,7 +86,7 @@ public class ExplosionHandler extends PacketCheck {
         int kbTrans = Math.max(player.likelyKB != null ? player.likelyKB.transaction : Integer.MIN_VALUE,
                 player.firstBreadKB != null ? player.firstBreadKB.transaction : Integer.MIN_VALUE);
 
-        if (force || player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion) ||
+        if (force || wasZero || player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion) ||
                 (minTrans < kbTrans)) {
             // Unsure knockback was taken
             if (player.firstBreadExplosion != null) {

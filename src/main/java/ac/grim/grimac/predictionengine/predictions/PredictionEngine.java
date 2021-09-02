@@ -146,9 +146,9 @@ public class PredictionEngine {
             // This allows us to always check the percentage of knockback taken
             // A player cannot simply ignore knockback without us measuring how off it was
             if (clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
-                player.checkManager.getKnockbackHandler().handlePredictionAnalysis(resultAccuracy);
+                player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy), handleHardCodedBorder);
             if (clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
-                player.checkManager.getExplosionHandler().handlePredictionAnalysis(resultAccuracy);
+                player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy), handleHardCodedBorder);
 
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);

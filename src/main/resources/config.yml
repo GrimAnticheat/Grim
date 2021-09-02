@@ -45,3 +45,7 @@ Prediction:
     alertvl: 20
     dont-alert-until: 3
     alert-interval: 1
+
+Knockback:
+  # How much of an offset is "cheating"
+  threshold: 0.0000000001
