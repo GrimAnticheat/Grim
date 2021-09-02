@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
@@ -211,6 +212,16 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
                 if (entity == null) return;
                 entity.isDead = true;
+            }
+
+            if (status.getEntityStatus() == 9) {
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+                if (player == null) return;
+
+                if (status.getEntityId() != player.entityID) return;
+
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
+                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
             }
         }
 

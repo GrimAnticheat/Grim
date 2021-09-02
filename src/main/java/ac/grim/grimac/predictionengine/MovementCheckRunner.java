@@ -336,7 +336,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (data.isUsingItem == AlmostBoolean.TRUE && (mainHand == null || !Materials.isUsable(mainHand.getType())) &&
                 (offHand == null || !Materials.isUsable(offHand.getType()))) {
             data.isUsingItem = AlmostBoolean.MAYBE;
-            //Bukkit.broadcastMessage(ChatColor.RED + "Player is no longer using an item!");
         }
 
         player.ticksSinceLastSlotSwitch++;
