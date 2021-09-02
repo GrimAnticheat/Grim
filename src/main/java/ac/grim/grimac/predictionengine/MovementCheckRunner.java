@@ -16,6 +16,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
@@ -703,7 +704,7 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
             // Reliable way to check if the player is colliding vertically with a block that doesn't exist
-            if (player.clientControlledVerticalCollision && Collisions.collide(player, 0, -SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == -SimpleCollisionBox.COLLISION_EPSILON) {
+            if (player.clientClaimsLastOnGround && player.clientControlledVerticalCollision && Collisions.collide(player, 0, -SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == -SimpleCollisionBox.COLLISION_EPSILON) {
                 blockOffsets = true;
                 player.getSetbackTeleportUtil().executeSetback(false);
             }
@@ -733,6 +734,25 @@ public class MovementCheckRunner extends PositionCheck {
                 if (!zPosCol && !zNegCol) {
                     blockOffsets = true;
                     player.getSetbackTeleportUtil().executeSetback(false);
+                }
+            }
+
+            // Boats are moved client sided by 1.7/1.8 players, and have a mind of their own
+            // Simply setback, don't ban, if a player gets a violation by a boat.
+            // Note that we allow setting back to the ground for this one, to try and mitigate
+            // the effect that this buggy behavior has on players
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+                SimpleCollisionBox largeExpandedBB = player.boundingBox.copy().expand(12, 0.5, 12);
+
+                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                    if (entity.type == EntityType.BOAT) {
+                        SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                        if (box.isIntersected(largeExpandedBB)) {
+                            blockOffsets = true;
+                            player.getSetbackTeleportUtil().executeSetback(true);
+                            break;
+                        }
+                    }
                 }
             }
         }
