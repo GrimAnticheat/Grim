@@ -18,6 +18,12 @@ public class Check<T> {
     private double flagCooldown;
     private double vlMultiplier;
 
+    private double violations;
+    private double reward;
+
+    private double alertMin;
+    private double alertInterval;
+
     private String checkName;
     private String configName;
     private long reset;
@@ -40,6 +46,14 @@ public class Check<T> {
         }
 
         reload();
+    }
+
+    public final void increaseViolations() {
+        violations++;
+    }
+
+    public final void reward() {
+        violations -= reward;
     }
 
     public final double increaseBuffer() {

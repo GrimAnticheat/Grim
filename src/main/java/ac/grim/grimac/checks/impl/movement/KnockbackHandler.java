@@ -27,6 +27,8 @@ public class KnockbackHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> lastKnockbackKnownTaken = new ConcurrentLinkedQueue<>();
     VelocityData firstBreadOnlyKnockback = null;
 
+    boolean wasExplosionZeroPointZeroThree = false;
+
     public KnockbackHandler(GrimPlayer player) {
         super(player);
         this.player = player;
@@ -116,7 +118,10 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public void handlePredictionAnalysis(double offset) {
+    public void handlePredictionAnalysis(double offset, Vector vector) {
+        if (vector.lengthSquared() < player.uncertaintyHandler.getZeroPointZeroThreeThreshold())
+            wasExplosionZeroPointZeroThree = true;
+
         if (player.firstBreadKB != null) {
             player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
         }
@@ -127,11 +132,14 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     public void handlePlayerKb(double offset, boolean force) {
+        boolean wasZero = wasExplosionZeroPointZeroThree;
+        wasExplosionZeroPointZeroThree = false;
+
         if (player.likelyKB == null && player.firstBreadKB == null) {
             return;
         }
 
-        if (force || player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback)) {
+        if (force || wasZero || player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback)) {
             // Unsure knockback was taken
             if (player.firstBreadKB != null) {
                 player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
@@ -145,9 +153,11 @@ public class KnockbackHandler extends PacketCheck {
 
         if (player.likelyKB != null) {
             ChatColor color = ChatColor.GREEN;
+
             if (player.likelyKB.offset > 0.0001) {
                 color = ChatColor.RED;
             }
+
             // Add offset to violations
             Bukkit.broadcastMessage(color + "Kb offset is " + player.likelyKB.offset);
         }

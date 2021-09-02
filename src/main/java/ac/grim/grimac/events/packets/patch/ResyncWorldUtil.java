@@ -36,8 +36,6 @@ public class ResyncWorldUtil extends PacketCheck {
     }
 
     public void resyncPositions(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, Predicate<Pair<BaseBlockState, Vector3i>> shouldSend, boolean likelyDesync) {
-        if (likelyDesync) new Exception().printStackTrace();
-
         toExecute.add(() -> {
             int[][][] blocks = new int[maxX - minX + 1][maxY - minY + 1][maxZ - minZ + 1];
 

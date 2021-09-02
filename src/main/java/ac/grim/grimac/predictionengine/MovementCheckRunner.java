@@ -319,7 +319,7 @@ public class MovementCheckRunner extends PositionCheck {
                         player.getSetbackTeleportUtil().executeSetback(false);
                     }
                 } else {
-                    control.reward();
+                    control.rewardPlayer();
                 }
 
                 if (player.playerVehicle != player.lastVehicle) {
