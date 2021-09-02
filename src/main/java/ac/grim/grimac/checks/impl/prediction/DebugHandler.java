@@ -33,7 +33,7 @@ public class DebugHandler extends PostPredictionCheck {
 
         String p = color + "P: " + predicted.getX() + " " + predicted.getY() + " " + predicted.getZ();
         String a = color + "A: " + actually.getX() + " " + actually.getY() + " " + actually.getZ();
-        String o = color + "O: " + offset + " " + player.isSwimming + " " + player.pose;
+        String o = color + "O: " + offset + " " + player.isUsingItem + " " + player.tickSinceLastOffhand;
 
         LogUtil.info(p);
         LogUtil.info(a);

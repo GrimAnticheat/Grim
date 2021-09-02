@@ -25,6 +25,7 @@ import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -339,14 +340,19 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         player.ticksSinceLastSlotSwitch++;
+        player.tickSinceLastOffhand++;
         // Switching items results in the player no longer using an item
-        if (data.itemHeld != player.lastSlotSelected || data.usingHand != player.lastHand) {
+        if (data.itemHeld != player.lastSlotSelected && data.usingHand == Hand.MAIN_HAND) {
             player.ticksSinceLastSlotSwitch = 0;
         }
 
         // See shields without this, there's a bit of a delay before the slow applies.  Not sure why.  I blame Mojang.
-        if (player.ticksSinceLastSlotSwitch < 3)
+        if (player.ticksSinceLastSlotSwitch < 3 || player.tickSinceLastOffhand < 5)
             data.isUsingItem = AlmostBoolean.MAYBE;
+
+        // Temporary hack so players can get slowed speed even when not using an item, when we aren't certain
+        // TODO: This shouldn't be needed if we latency compensate inventories
+        if (data.isUsingItem == AlmostBoolean.FALSE) data.isUsingItem = AlmostBoolean.MAYBE;
 
         player.isUsingItem = data.isUsingItem;
 
@@ -380,7 +386,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
         player.isRiptidePose = player.compensatedRiptide.getPose(data.lastTransaction);
 
-        player.lastHand = data.usingHand;
         player.lastSlotSelected = data.itemHeld;
         player.tryingToRiptide = data.isTryingToRiptide;
 
