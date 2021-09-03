@@ -176,6 +176,10 @@ public class Materials {
         // Piston heads have bounding boxes that exceed their own cube
         markAs(XMaterial.PISTON_HEAD, SHAPE_EXCEEDS_CUBE);
 
+        // Stupid 1.8 pane names
+        markAs(XMaterial.GLASS_PANE, GLASS_PANE);
+        markAs(XMaterial.IRON_BARS, GLASS_PANE);
+
         NO_PLACE_LIQUIDS.add(XMaterial.WATER.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.LAVA.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_WATER.parseMaterial());

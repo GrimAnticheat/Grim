@@ -30,7 +30,9 @@ import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * <b>XMaterial</b> - Data Values/Pre-flattening<br>
@@ -1385,52 +1387,11 @@ public enum XMaterial {
     public static final XMaterial[] VALUES = values();
 
     /**
-     * The maximum data value in the pre-flattening update which belongs to {@link #VILLAGER_SPAWN_EGG}<br>
-     * https://minecraftitemids.com/types/spawn-egg
-     *
-     * @since 8.0.0
-     */
-    private static final byte MAX_DATA_VALUE = 120;
-    /**
-     * Used to tell the system that the passed object's (name or material) data value
-     * is not provided or is invalid.
-     *
-     * @since 8.0.0
-     */
-    private static final byte UNKNOWN_DATA_VALUE = -1;
-    /**
      * The maximum material ID before the pre-flattening update which belongs to {@link #MUSIC_DISC_WAIT}
      *
      * @since 8.1.0
      */
     private static final short MAX_ID = 2267;
-    /**
-     * <b>XMaterial Paradox (Duplication Check)</b>
-     * <p>
-     * A set of duplicated material names in 1.13 and 1.12 that will conflict with the legacy names.
-     * Values are the new material names. This map also contains illegal elements. Check the static initializer for more info.
-     * <p>
-     * Duplications are not useful at all in versions above the flattening update {@link Data#ISFLAT}
-     * This set is only used for matching materials, for parsing refer to {@link #isDuplicated()}
-     *
-     * @since 3.0.0
-     */
-    private static final Set<String> DUPLICATED;
-
-    static {
-        if (Data.ISFLAT) {
-            // It's not needed at all if it's the newer version. We can save some memory.
-            DUPLICATED = null;
-        } else {
-            // MELON_SLICE, CARROTS, POTATOES, BEETROOTS, GRASS_BLOCK, BRICKS, NETHER_BRICKS, BROWN_MUSHROOM
-            // Using the constructor to add elements will decide to allocate more size which we don't need.
-            DUPLICATED = new HashSet<>(4);
-            DUPLICATED.add(GRASS.name());
-            DUPLICATED.add(MELON.name());
-            DUPLICATED.add(BRICK.name());
-            DUPLICATED.add(NETHER_BRICK.name());
-        }
-    }
 
     /**
      * The data value of this material https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening
@@ -1460,54 +1421,23 @@ public enum XMaterial {
         this.data = (byte) data;
         this.version = (byte) version;
 
+        boolean isBlock;
         Material mat = Material.getMaterial(this.name());
-        if (mat == null) {
+        isBlock = mat != null && mat.isBlock();
+        if (!isBlock) {
             for (String string : legacy) {
-                mat = Material.getMaterial(string);
-                if (mat != null) break;
+                Material nextMat = Material.getMaterial(string);
+                boolean nextBlock = nextMat != null && nextMat.isBlock();
+
+                mat = nextMat;
+
+                // We found a block
+                if (nextBlock) {
+                    break;
+                }
             }
         }
         this.material = mat;
-    }
-
-    /**
-     * This method is needed due to Java enum initialization limitations.
-     * It's really inefficient yes, but it's only used for initialization.
-     * <p>
-     * Yes there are many other ways like comparing the hardcoded ordinal or using a boolean in the enum constructor,
-     * but it's not really a big deal.
-     * <p>
-     * This method should not be called if the version is after the flattening update {@link Data#ISFLAT}
-     * and is only used for parsing materials, not matching, for matching check {@link #DUPLICATED}
-     */
-    private boolean isDuplicated() {
-        switch (this.name()) {
-            case "MELON":
-            case "CARROT":
-            case "POTATO":
-            case "GRASS":
-            case "BRICK":
-            case "NETHER_BRICK":
-
-                // Illegal Elements
-                // Since both 1.12 and 1.13 have <type>_DOOR XMaterial will use it
-                // for 1.12 to parse the material, but it needs <type>_DOOR_ITEM.
-                // We'll trick XMaterial into thinking this needs to be parsed
-                // using the old methods.
-                // Some of these materials have their enum name added to the legacy list as well.
-            case "DARK_OAK_DOOR":
-            case "ACACIA_DOOR":
-            case "BIRCH_DOOR":
-            case "JUNGLE_DOOR":
-            case "SPRUCE_DOOR":
-            case "MAP":
-            case "CAULDRON":
-            case "BREWING_STAND":
-            case "FLOWER_POT":
-                return true;
-            default:
-                return false;
-        }
     }
 
     XMaterial(int version) {
