@@ -61,3 +61,10 @@ Explosion:
   decay: 0.025
   alertvl: 5
   alert-interval: 1
+
+TimerA:
+  # Target 1.005 timer
+  decay: 0.005
+  setbackvl: 10
+  alertvl: 5
+  alert-interval: 5
