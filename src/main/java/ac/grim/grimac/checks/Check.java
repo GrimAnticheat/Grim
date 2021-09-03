@@ -54,6 +54,7 @@ public class Check<T> {
 
     public final void increaseViolations() {
         violations++;
+        setbackIfAboveSetbackVL();
     }
 
     public final void reward() {
@@ -97,13 +98,16 @@ public class Check<T> {
         alertVL = getConfig().getDouble(configName + ".dont-alert-until");
         alertInterval = getConfig().getInt(configName + ".alert-interval");
         setbackVL = getConfig().getDouble(configName + ".setbackVL");
+
+        if (alertVL == -1) alertVL = Double.MAX_VALUE;
+        if (setbackVL == -1) alertVL = Double.MAX_VALUE;
     }
 
     public void alert(String verbose, String checkName, String violations) {
         // Not enough alerts to be sure that the player is cheating
         if (getViolations() < alertVL) return;
         // To reduce spam, some checks only alert 10% of the time
-        if (alertCount++ % alertInterval != 0) return;
+        if (alertInterval != 0 && alertCount++ % alertInterval != 0) return;
 
         String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) %check-verbose%");
         alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrimAC &f»"));

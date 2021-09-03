@@ -64,7 +64,6 @@ public class TimerCheck extends PacketCheck {
 
         if (timerBalanceRealTime > currentNanos) {
             increaseViolations();
-            setbackIfAboveSetbackVL();
             alert("", "Timer (experimental)", formatViolations());
 
             // Reset the violation by 1 movement

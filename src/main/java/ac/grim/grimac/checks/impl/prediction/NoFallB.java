@@ -17,7 +17,12 @@ public class NoFallB extends PostPredictionCheck {
         boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 
         if (invalid) {
-            // TODO: Punish!
+            increaseViolations();
+            alert("claimed " + player.clientClaimsLastOnGround, "GroundSpoof (Prediction)", formatViolations());
+
+            if (player.onGround && getViolations() > getSetbackVL()) {
+                player.checkManager.getNoFall().playerUsingNoGround = true;
+            }
         }
     }
 }

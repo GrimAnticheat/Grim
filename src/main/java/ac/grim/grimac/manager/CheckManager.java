@@ -114,6 +114,10 @@ public class CheckManager {
         return (Reach) getPacketCheck(Reach.class);
     }
 
+    public NoFallA getNoFall() {
+        return (NoFallA) getPacketCheck(NoFallA.class);
+    }
+
     private PacketCheck getPacketCheck(Class<? extends PacketCheck> check) {
         return packetChecks.get(check);
     }

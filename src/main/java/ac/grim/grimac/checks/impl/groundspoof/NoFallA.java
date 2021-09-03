@@ -19,6 +19,7 @@ import java.util.List;
 public class NoFallA extends PacketCheck {
 
     private final GrimPlayer player;
+    public boolean playerUsingNoGround = false;
 
     public NoFallA(GrimPlayer player) {
         super(player);
@@ -35,6 +36,15 @@ public class NoFallA extends PacketCheck {
             // Force teleports to have onGround set to false, might patch NoFall on some version.
             if (player.packetStateData.lastPacketWasTeleport) {
                 flying.setOnGround(false);
+                return;
+            }
+
+            // The prediction based NoFall check wants us to make the player take fall damage - patches NoGround NoFall
+            // NoGround works because if you never touch the ground, you never take fall damage
+            // So we make the player touch the ground, and therefore they take fall damage
+            if (playerUsingNoGround) {
+                playerUsingNoGround = false;
+                flying.setOnGround(true);
                 return;
             }
 
