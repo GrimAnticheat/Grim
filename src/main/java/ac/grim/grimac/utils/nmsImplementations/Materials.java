@@ -38,6 +38,7 @@ public class Materials {
     public static final int SWORD = 0b00000100000000000000000000000;
     public static final int CAULDRON = 0b00001000000000000000000000000;
     public static final int SHAPE_EXCEEDS_CUBE = 0b00010000000000000000000000000;
+    public static final int LEGACY_SOLID_BLACKLIST = 0b00100000000000000000000000000;
 
     private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
     private static final Material BOW = XMaterial.BOW.parseMaterial();
@@ -180,6 +181,26 @@ public class Materials {
         markAs(XMaterial.GLASS_PANE, GLASS_PANE);
         markAs(XMaterial.IRON_BARS, GLASS_PANE);
 
+        // 1.11.2 and below solid blacklist
+        markAs(XMaterial.DEAD_BUSH, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.COCOA, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.NETHER_WART, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.SUGAR_CANE, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.TALL_GRASS, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.VINE, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.FLOWER_POT, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.LADDER, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.RAIL, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.ACTIVATOR_RAIL, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.DETECTOR_RAIL, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.POWERED_RAIL, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.REDSTONE, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.REDSTONE_WIRE, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.TORCH, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.TRIPWIRE, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.TRIPWIRE_HOOK, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.SNOW, LEGACY_SOLID_BLACKLIST);
+
         NO_PLACE_LIQUIDS.add(XMaterial.WATER.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.LAVA.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_WATER.parseMaterial());
@@ -207,6 +228,7 @@ public class Materials {
             if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] |= GATE;
             if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= AIR;
+            if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= LEGACY_SOLID_BLACKLIST;
             if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR")) {
                 MATERIAL_FLAGS[mat.ordinal()] |= TRAPDOOR;
                 if (!mat.name().contains("IRON"))
@@ -231,6 +253,9 @@ public class Materials {
             if (mat.name().contains("CANDLE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             // 1.17 separates the types of cauldrons
             if (mat.name().contains("CAULDRON")) MATERIAL_FLAGS[mat.ordinal()] |= CAULDRON;
+            if (mat.name().contains("BUTTON")) MATERIAL_FLAGS[mat.ordinal()] |= LEGACY_SOLID_BLACKLIST;
+            if (mat.name().contains("SKULL")) MATERIAL_FLAGS[mat.ordinal()] |= LEGACY_SOLID_BLACKLIST;
+            if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] |= LEGACY_SOLID_BLACKLIST;
         }
     }
 
