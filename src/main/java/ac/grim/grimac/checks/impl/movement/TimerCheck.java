@@ -1,28 +1,23 @@
 package ac.grim.grimac.checks.impl.movement;
 
 import ac.grim.grimac.checks.CheckData;
-import ac.grim.grimac.checks.type.PositionCheck;
+import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
+import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
+import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.utils.pair.Pair;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-@CheckData(name = "Timer (A)", flagCooldown = 1000)
-public class TimerCheck extends PositionCheck {
+@CheckData(name = "Timer (Experimental)", configName = "TimerA", flagCooldown = 1000, maxBuffer = 5)
+public class TimerCheck extends PacketCheck {
     public int exempt = 200; // Exempt for 10 seconds on login
     GrimPlayer player;
 
     long timerBalanceRealTime = 0;
 
-    // To patch out lag spikes
-    long timeSinceLastProcessedMovement = 0;
     // Default value is real time minus max keep-alive time
-    long transactionsReceivedAtEndOfLastCheck = (long) (System.nanoTime() - 6e10);
-
-    long lastLongLagSpike = 0;
+    long knownPlayerClockTime = (long) (System.nanoTime() - 6e10);
 
     ConcurrentLinkedQueue<Pair<Long, Long>> lagSpikeToRealTimeFloor = new ConcurrentLinkedQueue<>();
 
@@ -48,11 +43,16 @@ public class TimerCheck extends PositionCheck {
         this.player = player;
     }
 
-    public void onPositionUpdate(final PositionUpdate positionUpdate) {
-        player.movementPackets++;
+    public void onPacketReceive(final PacketPlayReceiveEvent event) {
         long currentNanos = System.nanoTime();
 
-        if (positionUpdate.isTeleport()) return;
+        // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
+        if (!PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId()) ||
+                player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+            return;
+        }
+        player.movementPackets++;
+        knownPlayerClockTime = player.getPlayerClockAtLeast();
 
         // Teleporting sends its own packet (We could handle this, but it's not worth the complexity)
         if (exempt-- > 0) {
@@ -63,34 +63,22 @@ public class TimerCheck extends PositionCheck {
         timerBalanceRealTime += 50e6;
 
         if (timerBalanceRealTime > currentNanos) {
-            decreaseBuffer(1);
-
-            if (getBuffer() == 0) {
-                Bukkit.broadcastMessage(ChatColor.RED + "Failed timer!");
-            }
+            increaseViolations();
+            setbackIfAboveSetbackVL();
+            alert("", "Timer (experimental)", formatViolations());
 
             // Reset the violation by 1 movement
             timerBalanceRealTime -= 50e6;
         } else {
-            // Decrease buffer as to target 1.005 timer
-            increaseBuffer(0.005);
+            // Decrease buffer as to target 1.005 timer - 0.005
+            reward();
         }
 
         // Calculate time since last transaction - affected by 50 ms delay movement packets and
-        timeSinceLastProcessedMovement = currentNanos + (currentNanos - transactionsReceivedAtEndOfLastCheck);
-
-        // As we don't check players standing still, cap this at 1000 ms
-        // A second is more than enough time for all packets from the lag spike to arrive
-        // Exempting over a 30-second lag spike will lead to bypasses where the player can catch up movement
-        // packets that were lost by standing still
-        timeSinceLastProcessedMovement = (long) Math.min(timeSinceLastProcessedMovement, currentNanos + 1e9);
-
-        if (timeSinceLastProcessedMovement > 1e9) {
-            lastLongLagSpike = System.nanoTime();
-        }
+        long timeSinceLastProcessedMovement = currentNanos + (currentNanos - knownPlayerClockTime);
 
         // Add this into a queue so that new lag spikes do not override previous lag spikes
-        lagSpikeToRealTimeFloor.add(new Pair<>(timeSinceLastProcessedMovement, transactionsReceivedAtEndOfLastCheck));
+        lagSpikeToRealTimeFloor.add(new Pair<>(timeSinceLastProcessedMovement, knownPlayerClockTime));
 
         // Find the safe floor, lag spikes affect transactions, which is bad.
         Pair<Long, Long> lagSpikePair = lagSpikeToRealTimeFloor.peek();
@@ -106,7 +94,5 @@ public class TimerCheck extends PositionCheck {
                 }
             } while (lagSpikePair != null);
         }
-
-        transactionsReceivedAtEndOfLastCheck = player.getPlayerClockAtLeast();
     }
 }

@@ -34,13 +34,13 @@ public class CheckManager {
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(NoFallA.class, new NoFallA(player))
+                .put(TimerCheck.class, new TimerCheck(player))
                 .put(AntiUseItemDesync.class, new AntiUseItemDesync(player))
                 .put(ResyncWorldUtil.class, new ResyncWorldUtil(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
                 .put(PredictionRunner.class, new PredictionRunner(player))
-                .put(TimerCheck.class, new TimerCheck(player))
                 .build();
         rotationCheck = new ImmutableClassToInstanceMap.Builder<RotationCheck>()
                 .build();

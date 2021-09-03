@@ -3,6 +3,7 @@ package ac.grim.grimac.checks;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.ColorUtil;
+import ac.grim.grimac.utils.math.GrimMath;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -124,6 +125,10 @@ public class Check<T> {
 
     public String formatOffset(double offset) {
         return offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
+    }
+
+    public String formatViolations() {
+        return GrimMath.ceil(violations) + "";
     }
 }
 
