@@ -6,17 +6,16 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
+import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
 import io.github.retrooper.packetevents.utils.vector.Vector3f;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-@CheckData(name = "AntiExplosion")
+@CheckData(name = "AntiExplosion", configName = "Explosion")
 public class ExplosionHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
@@ -25,6 +24,9 @@ public class ExplosionHandler extends PacketCheck {
     VelocityData firstBreadAddedExplosion = null;
 
     boolean wasKbZeroPointZeroThree = false;
+
+    double offsetToFlag;
+    double setbackVL;
 
     public ExplosionHandler(GrimPlayer player) {
         super(player);
@@ -100,12 +102,15 @@ public class ExplosionHandler extends PacketCheck {
 
         // 100% known kb was taken
         if (player.likelyExplosions != null) {
-            ChatColor color = ChatColor.GREEN;
-            if (player.likelyExplosions.offset > 0.05) {
-                color = ChatColor.RED;
+            if (player.likelyExplosions.offset > offsetToFlag) {
+                increaseViolations();
+                setbackIfAboveSetbackVL();
+
+                String formatOffset = formatOffset(offset);
+                alert("o: " + formatOffset, "AntiExplosion", GrimMath.floor(violations) + "");
+            } else {
+                reward();
             }
-            // Add offset to violations
-            Bukkit.broadcastMessage(color + "Explosion offset is " + player.likelyExplosions.offset);
         }
     }
 
@@ -151,5 +156,13 @@ public class ExplosionHandler extends PacketCheck {
     public VelocityData getFirstBreadAddedExplosion(int lastTransaction) {
         handleTransactionPacket(lastTransaction);
         return firstBreadAddedExplosion;
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+
+        offsetToFlag = getConfig().getDouble("Knockback.threshold", 0.00001);
+        setbackVL = getConfig().getDouble("Knockback.setbackvl", 10);
     }
 }

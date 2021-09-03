@@ -20,6 +20,7 @@ Prediction:
   # but it would be a waste of a prediction engine to not check this far
   Small:
     # How large of an offset from the player's movement should we create a violation for?
+    # Measured in blocks (not squared) from the possible movement
     threshold: 0.0001
     # Setback vl: How many times should the player have to go over this threshold to set them back?
     setbackvl: 40
@@ -34,7 +35,6 @@ Prediction:
     threshold: 0.01
     setbackvl: 15
     decay: 0.05
-    alertvl: 20
     dont-alert-until: 10
     alert-interval: 10
   # This is to stop players from launching themselves extremely far in one tick
@@ -42,10 +42,22 @@ Prediction:
     threshold: 0.6
     setbackvl: 1
     decay: 0.001
-    alertvl: 20
     dont-alert-until: 3
     alert-interval: 1
 
 Knockback:
   # How much of an offset is "cheating"
-  threshold: 0.0000000001
+  # By default this is 1e-5, which is safe and sane
+  # Measured in blocks (not squared) from the possible movement
+  threshold: 0.00001
+  setbackvl: 10
+  decay: 0.025
+  alertvl: 5
+  alert-interval: 1
+
+Explosion:
+  threshold: 0.00001
+  setbackvl: 10
+  decay: 0.025
+  alertvl: 5
+  alert-interval: 1

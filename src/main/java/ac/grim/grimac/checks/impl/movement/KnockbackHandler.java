@@ -6,20 +6,19 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
+import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
-@CheckData(name = "AntiKB")
+@CheckData(name = "AntiKB", configName = "Knockback")
 public class KnockbackHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
     GrimPlayer player;
@@ -28,6 +27,10 @@ public class KnockbackHandler extends PacketCheck {
     VelocityData firstBreadOnlyKnockback = null;
 
     boolean wasExplosionZeroPointZeroThree = false;
+
+    double offsetToFlag;
+    double setbackVL;
+    double decay;
 
     public KnockbackHandler(GrimPlayer player) {
         super(player);
@@ -152,14 +155,13 @@ public class KnockbackHandler extends PacketCheck {
         }
 
         if (player.likelyKB != null) {
-            ChatColor color = ChatColor.GREEN;
+            if (player.likelyKB.offset > offsetToFlag) {
+                increaseViolations();
+                setbackIfAboveSetbackVL();
 
-            if (player.likelyKB.offset > 0.0001) {
-                color = ChatColor.RED;
+                String formatOffset = formatOffset(offset);
+                alert("o: " + formatOffset, "AntiKB", GrimMath.floor(violations) + "");
             }
-
-            // Add offset to violations
-            Bukkit.broadcastMessage(color + "Kb offset is " + player.likelyKB.offset);
         }
     }
 
@@ -168,5 +170,12 @@ public class KnockbackHandler extends PacketCheck {
         if (firstBreadOnlyKnockback != null && firstBreadOnlyKnockback.entityID == entityID)
             return firstBreadOnlyKnockback;
         return null;
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+        offsetToFlag = getConfig().getDouble("Knockback.threshold", 0.00001);
+        setbackVL = getConfig().getDouble("Knockback.setbackvl", 10);
     }
 }
