@@ -91,62 +91,52 @@ public class FluidTypeFlowing {
         WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
         Material blockMaterial = blockState.getMaterial();
 
-        // This method is terrible!  Use a cache or something... anything but this!
-        // Unless this is bad for performance... due to version differences, I doubt I will ever fix this.
-        if (!isSame(player, x, y, z, originalX, y, originalZ)) {
-            if (blockMaterial == ICE) return false;
+        if (isSame(player, x, y, z, originalX, y, originalZ)) return false;
+        if (blockMaterial == ICE) return false;
 
-            // 1.11 and below clients use a different method to determine solid faces
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12)) {
-                if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON) {
-                    WrappedPistonBase pistonBase = (WrappedPistonBase) dataValue;
-                    return pistonBase.getDirection().getOppositeFace() == direction ||
-                            CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
-                } else if (blockMaterial == PISTON_HEAD) {
-                    WrappedPiston pistonHead = (WrappedPiston) dataValue;
-                    return pistonHead.getDirection() == direction;
-                }
+        // 1.11 and below clients use a different method to determine solid faces
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12)) {
+            if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON) {
+                WrappedPistonBase pistonBase = (WrappedPistonBase) dataValue;
+                return pistonBase.getDirection().getOppositeFace() == direction ||
+                        CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
+            } else if (blockMaterial == PISTON_HEAD) {
+                WrappedPiston pistonHead = (WrappedPiston) dataValue;
+                return pistonHead.getDirection() == direction;
             }
+        }
 
-            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
-                if (Materials.checkFlag(blockMaterial, Materials.CAULDRON)) return true;
-            }
+        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_12)) {
+            // No bush, cocoa, wart, reed
+            // No double grass, tall grass, or vine
+            // No button, flower pot, ladder, lever, rail, redstone, redstone wire, skull, torch, trip wire, or trip wire hook
+            // No carpet
+            // No snow
+            // Otherwise, solid
+            return !Materials.checkFlag(blockMaterial, Materials.LEGACY_SOLID_BLACKLIST);
+        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
+            // 1.12/1.13 exempts stairs, pistons, sticky pistons, and piston heads.
+            // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
+            //
+            // Everything is hardcoded, and I have attempted by best at figuring out things, although it's not perfect
+            // Report bugs on GitHub, as always.  1.13 is an odd version and issues could be lurking here.
+            if (Materials.checkFlag(blockMaterial, Materials.STAIRS) || Materials.checkFlag(blockMaterial, Materials.LEAVES)
+                    || Materials.checkFlag(blockMaterial, Materials.SHULKER) || Materials.checkFlag(blockMaterial, Materials.GLASS_BLOCK)
+                    || Materials.checkFlag(blockMaterial, Materials.TRAPDOOR))
+                return false;
 
+            if (blockMaterial == BEACON || Materials.checkFlag(blockMaterial, Materials.CAULDRON)
+                    || blockMaterial == GLOWSTONE || blockMaterial == SEA_LANTERN || blockMaterial == CONDUIT)
+                return false;
+
+            if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON || blockMaterial == PISTON_HEAD)
+                return false;
+
+            return blockMaterial == SOUL_SAND || (CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, x, y, z).isFullBlock());
+        } else {
             if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
                 // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2);
-            }
-
-            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_12)) {
-                // No bush, cocoa, wart, reed
-                // No double grass, tall grass, or vine
-                // No button, flower pot, ladder, lever, rail, redstone, redstone wire, skull, torch, trip wire, or trip wire hook
-                // No carpet
-                // No snow
-                // Otherwise, solid
-            }
-
-            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_12)) {
-                return false;
-            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
-                // 1.12/1.13 exempts stairs, pistons, sticky pistons, and piston heads.
-                // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
-                //
-                // Everything is hardcoded, and I have attempted by best at figuring out things, although it's not perfect
-                // Report bugs on GitHub, as always.  1.13 is an odd version and issues could be lurking here.
-                if (Materials.checkFlag(blockMaterial, Materials.STAIRS) || Materials.checkFlag(blockMaterial, Materials.LEAVES)
-                        || Materials.checkFlag(blockMaterial, Materials.SHULKER) || Materials.checkFlag(blockMaterial, Materials.GLASS_BLOCK)
-                        || Materials.checkFlag(blockMaterial, Materials.TRAPDOOR))
-                    return false;
-
-                if (blockMaterial == BEACON || Materials.checkFlag(blockMaterial, Materials.CAULDRON)
-                        || blockMaterial == GLOWSTONE || blockMaterial == SEA_LANTERN || blockMaterial == CONDUIT)
-                    return false;
-
-                if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON || blockMaterial == PISTON_HEAD)
-                    return false;
-
-                return blockMaterial == SOUL_SAND;
             } else if (blockMaterial == SNOW) {
                 WrappedSnow snow = (WrappedSnow) dataValue;
                 return snow.getLayers() == 8;
@@ -171,10 +161,10 @@ public class FluidTypeFlowing {
                     return dir.getOppositeFace() == direction;
                 }
             }
-        }
 
-        // Explicitly a full block, therefore it has a full face
-        return (CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, x, y, z).isFullBlock());
+            // Explicitly a full block, therefore it has a full face
+            return (CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, x, y, z).isFullBlock());
+        }
     }
 
     private static Vector normalizeVectorWithoutNaN(Vector vector) {
