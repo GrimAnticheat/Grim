@@ -18,11 +18,14 @@ public class Check<T> {
     private double flagCooldown;
     private double vlMultiplier;
 
-    private double violations;
-    private double reward;
+    public double violations;
+    public double decay;
 
-    private double alertMin;
-    private double alertInterval;
+    public double setbackVL;
+
+    public double alertVL;
+    public int alertInterval;
+    public int alertCount;
 
     private String checkName;
     private String configName;
@@ -53,7 +56,7 @@ public class Check<T> {
     }
 
     public final void reward() {
-        violations -= reward;
+        violations -= decay;
     }
 
     public final double increaseBuffer() {
@@ -89,10 +92,18 @@ public class Check<T> {
     }
 
     public void reload() {
-
+        decay = getConfig().getDouble(configName + ".decay");
+        alertVL = getConfig().getDouble(configName + ".dont-alert-until");
+        alertInterval = getConfig().getInt(configName + ".alert-interval");
+        setbackVL = getConfig().getDouble(configName + ".setbackVL");
     }
 
     public void alert(String verbose, String checkName, String violations) {
+        // Not enough alerts to be sure that the player is cheating
+        if (getViolations() < alertVL) return;
+        // To reduce spam, some checks only alert 10% of the time
+        if (alertCount++ % alertInterval != 0) return;
+
         String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) %check-verbose%");
         alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrimAC &f»"));
         alertString = alertString.replace("%player%", player.bukkitPlayer.getName());
@@ -107,8 +118,12 @@ public class Check<T> {
         return GrimAPI.INSTANCE.getPlugin().getConfig();
     }
 
-    public void setback() {
-        player.getSetbackTeleportUtil().executeSetback(true);
+    public void setbackIfAboveSetbackVL() {
+        if (getViolations() > setbackVL) player.getSetbackTeleportUtil().executeSetback(true);
+    }
+
+    public String formatOffset(double offset) {
+        return offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
     }
 }
 

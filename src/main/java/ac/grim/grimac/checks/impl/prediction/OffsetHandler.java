@@ -33,13 +33,13 @@ public class OffsetHandler extends PostPredictionCheck {
                 if (violations > offsetHandler.getThreshold()) {
                     // Patch LiquidBounce Spartan NoFall
                     player.bukkitPlayer.setFallDistance((float) player.fallDistance);
-                    setback();
+                    player.getSetbackTeleportUtil().executeSetback(true);
                 }
 
                 if (violations > offsetHandler.getAlertMin()) {
                     int diff = GrimMath.floor(violations) - GrimMath.floor(offsetHandler.getAlertMin());
                     if (diff % offsetHandler.getAlertInterval() == 0) {
-                        String formatOffset = offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
+                        String formatOffset = formatOffset(offset);
 
                         alert("o: " + formatOffset, getCheckName() + "-" + offsetHandler.getName(), GrimMath.floor(violations) + "");
                     }
@@ -80,6 +80,8 @@ public class OffsetHandler extends PostPredictionCheck {
         offsets.sort(Collections.reverseOrder(Comparator.comparingDouble(offset -> offset.threshold)));
 
         this.offsets = offsets;
+        this.alertVL = -1;
+        this.alertInterval = 1;
     }
 }
 
