@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
@@ -19,9 +20,23 @@ public class DoorHandler implements CollisionFactory {
     protected static final CollisionBox WEST_AABB = new HexCollisionBox(13.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D);
     protected static final CollisionBox EAST_AABB = new HexCollisionBox(0.0D, 0.0D, 0.0D, 3.0D, 16.0D, 16.0D);
 
-
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+        switch (fetchDirection(player, version, block, x, y, z)) {
+            case NORTH:
+                return NORTH_AABB.copy();
+            case SOUTH:
+                return SOUTH_AABB.copy();
+            case EAST:
+                return EAST_AABB.copy();
+            case WEST:
+                return WEST_AABB.copy();
+        }
+
+        return NoCollisionBox.INSTANCE;
+    }
+
+    public BlockFace fetchDirection(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         WrappedDoor door = (WrappedDoor) block;
         Material doorMaterial = player.compensatedWorld.getBukkitMaterialAt(x, y, z);
 
@@ -62,13 +77,13 @@ public class DoorHandler implements CollisionFactory {
         switch (direction) {
             case EAST:
             default:
-                return flag ? EAST_AABB.copy() : (flag1 ? NORTH_AABB.copy() : SOUTH_AABB.copy());
+                return flag ? BlockFace.EAST : (flag1 ? BlockFace.NORTH : BlockFace.SOUTH);
             case SOUTH:
-                return flag ? SOUTH_AABB.copy() : (flag1 ? EAST_AABB.copy() : WEST_AABB.copy());
+                return flag ? BlockFace.SOUTH : (flag1 ? BlockFace.EAST : BlockFace.WEST);
             case WEST:
-                return flag ? WEST_AABB.copy() : (flag1 ? SOUTH_AABB.copy() : NORTH_AABB.copy());
+                return flag ? BlockFace.WEST : (flag1 ? BlockFace.SOUTH : BlockFace.NORTH);
             case NORTH:
-                return flag ? NORTH_AABB.copy() : (flag1 ? WEST_AABB.copy() : EAST_AABB.copy());
+                return flag ? BlockFace.NORTH : (flag1 ? BlockFace.WEST : BlockFace.EAST);
         }
     }
 }
