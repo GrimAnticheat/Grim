@@ -33,8 +33,6 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -54,6 +52,9 @@ public class Reach extends PacketCheck {
 
     private boolean hasSentPreWavePacket = false; // Not required to be atomic - sync'd to one thread
 
+    private boolean cancelImpossibleHits = true;
+    private double threshold = 0.0005;
+
     public Reach(GrimPlayer player) {
         super(player);
         this.player = player;
@@ -67,11 +68,12 @@ public class Reach extends PacketCheck {
 
             if (player == null) return;
             if (player.packetStateData.gameMode == GameMode.CREATIVE) return;
+            if (player.vehicle != null) return;
 
             if (action.getAction() == WrappedPacketInUseEntity.EntityUseAction.ATTACK) {
                 checkReach(action.getEntityId());
 
-                if (isKnownInvalid(action.getEntityId())) {
+                if (cancelImpossibleHits && isKnownInvalid(action.getEntityId())) {
                     event.setCancelled(true);
                 }
             }
@@ -83,38 +85,6 @@ public class Reach extends PacketCheck {
                 return;
             tickFlying();
         }
-    }
-
-    public void checkReach(int entityID) {
-        if (entityMap.containsKey(entityID))
-            playerAttackQueue.add(entityID);
-    }
-
-    // This method finds the most optimal point at which the user should be aiming at
-    // and then measures the distance between the player's eyes and this target point
-    //
-    // It will not cancel every invalid attack but should cancel 3.05+ or so in real-time
-    // Let the post look check measure the distance, as it will always return equal or higher
-    // than this method.  If this method flags, the other method WILL flag.
-    //
-    // Meaning that the other check should be the only one that flags.
-    private boolean isKnownInvalid(int entityID) {
-        PlayerReachEntity reachEntity = entityMap.get(entityID);
-        boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
-
-        if (reachEntity != null) {
-            double lowest = 6;
-            for (double eyes : player.getPossibleEyeHeights()) {
-                SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-                Vector from = VectorUtils.fromVec3d(player.packetStateData.packetPosition).add(new Vector(0, eyes, 0));
-                Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
-                lowest = Math.min(lowest, closestPoint.distance(from));
-            }
-
-            return lowest > 3 + (zeroThree ? 0.03 : 0);
-        }
-
-        return false;
     }
 
     private void tickFlying() {
@@ -139,6 +109,8 @@ public class Reach extends PacketCheck {
             if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
                 targetBox.expand(0.1);
             }
+
+            targetBox.expand(threshold);
 
             // This is better than adding to the reach, as 0.03 can cause a player to miss their target
             // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
@@ -184,13 +156,11 @@ public class Reach extends PacketCheck {
             }
 
             if (minDistance == Double.MAX_VALUE) {
-                Bukkit.broadcastMessage(ChatColor.RED + "Player missed hitbox");
-            } else if (minDistance < maxReach && (!player.packetStateData.didLastLastMovementIncludePosition || !player.packetStateData.didLastMovementIncludePosition)) {
-                Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + minDistance + " (0.03 = true)");
-            } else if (minDistance < maxReach) {
-                Bukkit.broadcastMessage(ChatColor.GREEN + "Intersected!  Reach was " + minDistance);
-            } else {
-                Bukkit.broadcastMessage(ChatColor.RED + "Intersected!  Reach was " + minDistance);
+                increaseViolations();
+                alert("Missed hitbox", "Reach", formatViolations());
+            } else if (minDistance > maxReach) {
+                increaseViolations();
+                alert(minDistance + " blocks", "Reach", formatViolations());
             }
 
             attackQueue = playerAttackQueue.poll();
@@ -199,6 +169,45 @@ public class Reach extends PacketCheck {
         for (PlayerReachEntity entity : entityMap.values()) {
             entity.onMovement(player.getClientVersion().isNewerThan(ClientVersion.v_1_8));
         }
+    }
+
+    public void checkReach(int entityID) {
+        if (entityMap.containsKey(entityID))
+            playerAttackQueue.add(entityID);
+    }
+
+    // This method finds the most optimal point at which the user should be aiming at
+    // and then measures the distance between the player's eyes and this target point
+    //
+    // It will not cancel every invalid attack but should cancel 3.05+ or so in real-time
+    // Let the post look check measure the distance, as it will always return equal or higher
+    // than this method.  If this method flags, the other method WILL flag.
+    //
+    // Meaning that the other check should be the only one that flags.
+    private boolean isKnownInvalid(int entityID) {
+        PlayerReachEntity reachEntity = entityMap.get(entityID);
+        boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
+
+        if (reachEntity != null) {
+            double lowest = 6;
+            for (double eyes : player.getPossibleEyeHeights()) {
+                SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+                Vector from = VectorUtils.fromVec3d(player.packetStateData.packetPosition).add(new Vector(0, eyes, 0));
+                Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
+                lowest = Math.min(lowest, closestPoint.distance(from));
+            }
+
+            return lowest > 3 + (zeroThree ? 0.03 : 0);
+        }
+
+        return false;
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+        this.cancelImpossibleHits = getConfig().getBoolean("Reach.block-impossible-hits", true);
+        this.threshold = getConfig().getDouble("Reach.threshold", 0.0005);
     }
 
     @Override

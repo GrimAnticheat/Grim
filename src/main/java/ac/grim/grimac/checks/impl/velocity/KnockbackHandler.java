@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.movement;
+package ac.grim.grimac.checks.impl.velocity;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
