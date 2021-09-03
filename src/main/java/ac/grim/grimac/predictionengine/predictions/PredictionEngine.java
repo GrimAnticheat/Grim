@@ -391,6 +391,12 @@ public class PredictionEngine {
             minVector.setY(minVector.getY() + player.baseTickAddition.getY());
         }
 
+        // Handle 0.03 with fluid pushing players upwards (the player moved out of the pushing inside 0.03 movement)
+        if (player.couldSkipTick && player.baseTickAddition.getY() > 0 && player.wasTouchingWater &&
+                (vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) || vector.hasVectorType(VectorData.VectorType.Swimhop))) {
+            maxVector.setY(maxVector.getY() + player.baseTickAddition.getY());
+        }
+
         return VectorUtils.cutBoxToVector(player.actualMovement, minVector, maxVector);
     }
 
