@@ -230,16 +230,16 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
             switch (data.getBlockData() & (1 << 2) - 1) {
                 case 0:
-                    setDirection(BlockFace.NORTH);
-                    break;
-                case 1:
-                    setDirection(BlockFace.EAST);
-                    break;
-                case 2:
                     setDirection(BlockFace.SOUTH);
                     break;
-                case 3:
+                case 1:
                     setDirection(BlockFace.WEST);
+                    break;
+                case 2:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.EAST);
                     break;
             }
 
@@ -284,7 +284,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
 
         }
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE") && !mat.name().equalsIgnoreCase("IRON_FENCE"))
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE") && !mat.name().contains("IRON_FENCE"))
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about panes, 1.13+ does
@@ -297,7 +297,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
 
         }
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().contains("IRON_BARS"))
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().contains("IRON_BARS") || mat.name().contains("IRON_FENCE") || mat.name().contains("THIN_GLASS"))
             .toArray(Material[]::new)),
 
     // 1.12 doesn't store any data about walls, 1.13+ does

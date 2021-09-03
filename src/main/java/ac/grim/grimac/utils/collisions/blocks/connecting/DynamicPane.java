@@ -7,6 +7,8 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
+import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
@@ -14,7 +16,6 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
-@SuppressWarnings("Duplicates")
 public class DynamicPane extends DynamicConnecting implements CollisionFactory {
 
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F, true);
@@ -46,7 +47,32 @@ public class DynamicPane extends DynamicConnecting implements CollisionFactory {
             north = south = east = west = true;
         }
 
-        return COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy();
+        if (version.isNewerThanOrEquals(ClientVersion.v_1_9)) {
+            return COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy();
+        } else { // 1.8 and below clients have pane bounding boxes one pixel less
+            ComplexCollisionBox boxes = new ComplexCollisionBox();
+            if ((!west || !east) && (west || east || north || south)) {
+                if (west) {
+                    boxes.add(new SimpleCollisionBox(0.0F, 0.0F, 0.4375F, 0.5F, 1.0F, 0.5625F));
+                } else if (east) {
+                    boxes.add(new SimpleCollisionBox(0.5F, 0.0F, 0.4375F, 1.0F, 1.0F, 0.5625F));
+                }
+            } else {
+                boxes.add(new SimpleCollisionBox(0.0F, 0.0F, 0.4375F, 1.0F, 1.0F, 0.5625F));
+            }
+
+            if ((!north || !south) && (west || east || north || south)) {
+                if (north) {
+                    boxes.add(new SimpleCollisionBox(0.4375F, 0.0F, 0.0F, 0.5625F, 1.0F, 0.5F));
+                } else if (south) {
+                    boxes.add(new SimpleCollisionBox(0.4375F, 0.0F, 0.5F, 0.5625F, 1.0F, 1.0F));
+                }
+            } else {
+                boxes.add(new SimpleCollisionBox(0.4375F, 0.0F, 0.0F, 0.5625F, 1.0F, 1.0F));
+            }
+
+            return boxes;
+        }
     }
 
 

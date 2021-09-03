@@ -532,11 +532,11 @@ public enum CollisionData {
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
             .toArray(Material[]::new)),
 
-    FENCE(new DynamicFence(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE") && !mat.name().equalsIgnoreCase("IRON_FENCE"))
+    FENCE(new DynamicFence(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && !mat.name().contains("GATE") && !mat.name().contains("IRON_FENCE"))
             .toArray(Material[]::new)),
 
 
-    PANE(new DynamicPane(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().equals("IRON_BARS") || mat.name().equalsIgnoreCase("IRON_FENCE"))
+    PANE(new DynamicPane(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GLASS_PANE") || mat.name().contains("IRON_BARS") || mat.name().contains("IRON_FENCE") || mat.name().equalsIgnoreCase("THIN_GLASS"))
             .toArray(Material[]::new)),
 
     SNOW((player, version, data, x, y, z) -> {
