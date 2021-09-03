@@ -118,9 +118,10 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            if (move.getDeltaX() != 0 || move.getDeltaY() != 0 || move.getDeltaZ() != 0)
+            if (move.getDeltaX() != 0 || move.getDeltaY() != 0 || move.getDeltaZ() != 0) {
                 player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(move.getEntityId(),
                         move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), player.lastTransactionSent.get(), true));
+            }
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {

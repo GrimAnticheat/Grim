@@ -22,6 +22,7 @@ public class EventManager implements Initable {
 
         if (XMaterial.supports(9)) {
             Bukkit.getPluginManager().registerEvents(new PlayerToggleElytra(), GrimAPI.INSTANCE.getPlugin());
+            Bukkit.getPluginManager().registerEvents(new PlayerOffhandEvent(), GrimAPI.INSTANCE.getPlugin());
         }
 
         if (XMaterial.supports(13)) {
@@ -33,6 +34,6 @@ public class EventManager implements Initable {
         Bukkit.getPluginManager().registerEvents(new GamemodeChangeEvent(), GrimAPI.INSTANCE.getPlugin());
         Bukkit.getPluginManager().registerEvents(new BedEvent(), GrimAPI.INSTANCE.getPlugin());
         Bukkit.getPluginManager().registerEvents(new DeathEvent(), GrimAPI.INSTANCE.getPlugin());
-        Bukkit.getPluginManager().registerEvents(new PlayerOffhandEvent(), GrimAPI.INSTANCE.getPlugin());
+        Bukkit.getPluginManager().registerEvents(new VehicleExitEventListener(), GrimAPI.INSTANCE.getPlugin());
     }
 }
