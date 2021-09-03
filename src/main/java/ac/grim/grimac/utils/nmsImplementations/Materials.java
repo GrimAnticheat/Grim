@@ -182,14 +182,26 @@ public class Materials {
         markAs(XMaterial.IRON_BARS, GLASS_PANE);
 
         // 1.11.2 and below solid blacklist
+        // Button, skull, air, and carpet are all exempted in the loop
+        // Exempted:
+        // Liquid (done in material loop), Logic, Portal, Transparent
+        // Logic has categories of plants, vine, circuits, carpet, and snow
+        // Exempt as plants
+        markAs(XMaterial.CHORUS_PLANT, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.CHORUS_FLOWER, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.DEAD_BUSH, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.COCOA, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.NETHER_WART, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.SUGAR_CANE, LEGACY_SOLID_BLACKLIST);
+        // Exempt as vine
         markAs(XMaterial.TALL_GRASS, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.VINE, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.LARGE_FERN, LEGACY_SOLID_BLACKLIST);
+        // Exempt as circuits
+        markAs(XMaterial.END_ROD, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.FLOWER_POT, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.LADDER, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.LEVER, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.RAIL, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.ACTIVATOR_RAIL, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.DETECTOR_RAIL, LEGACY_SOLID_BLACKLIST);
@@ -199,7 +211,14 @@ public class Materials {
         markAs(XMaterial.TORCH, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.TRIPWIRE, LEGACY_SOLID_BLACKLIST);
         markAs(XMaterial.TRIPWIRE_HOOK, LEGACY_SOLID_BLACKLIST);
+        // Exempt as snow
         markAs(XMaterial.SNOW, LEGACY_SOLID_BLACKLIST);
+        // Transparent
+        markAs(XMaterial.FIRE, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.STRUCTURE_VOID, LEGACY_SOLID_BLACKLIST);
+        // Portals are exempted
+        markAs(XMaterial.NETHER_PORTAL, LEGACY_SOLID_BLACKLIST);
+        markAs(XMaterial.END_PORTAL, LEGACY_SOLID_BLACKLIST);
 
         NO_PLACE_LIQUIDS.add(XMaterial.WATER.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.LAVA.parseMaterial());
@@ -209,6 +228,8 @@ public class Materials {
         for (Material mat : Material.values()) {
             if (mat.name().endsWith("_SWORD")) MATERIAL_FLAGS[mat.ordinal()] |= SWORD;
             if (!mat.isBlock()) continue;
+            if (checkFlag(mat, WATER_LEGACY)) MATERIAL_FLAGS[mat.ordinal()] |= LEGACY_SOLID_BLACKLIST;
+            if (checkFlag(mat, LAVA)) MATERIAL_FLAGS[mat.ordinal()] |= LEGACY_SOLID_BLACKLIST;
             if (mat.name().contains("FENCE") && !mat.name().equalsIgnoreCase("IRON_FENCE")) {
                 MATERIAL_FLAGS[mat.ordinal()] |= SHAPE_EXCEEDS_CUBE;
                 if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
