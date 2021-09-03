@@ -23,10 +23,12 @@ Prediction:
     # Measured in blocks (not squared) from the possible movement
     threshold: 0.0001
     # Setback vl: How many times should the player have to go over this threshold to set them back?
+    # Set to -1 to disable setbacks
     setbackvl: 40
     # Decay: How many violations should be reduced from the player for being below this threshold
     decay: 0.125
     # Alert vl: How many violations does the player need before they trigger alerts?
+    # Set to -1 to disable alerts
     dont-alert-until: 20
     # Alert interval: Instead of sending 10 alerts for 10 flags, we send 1 alert every 10 flags
     alert-interval: 10
@@ -44,6 +46,18 @@ Prediction:
     decay: 0.001
     dont-alert-until: 3
     alert-interval: 1
+
+# Prediction-based ground spoof check
+# Extremely stable
+GroundSpoof:
+  setbackvl: 10
+  decay: 0.01
+  alertvl: 5
+  alert-interval: 1
+
+# Real time NoFall check that is unstable
+# It works fine 99% of the time but everything this catches will be caught by the extremely stable
+# prediction based check.  It exists to enforce fall damage for the player
 
 Knockback:
   # How much of an offset is "cheating"

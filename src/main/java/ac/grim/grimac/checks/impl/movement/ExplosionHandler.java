@@ -104,7 +104,6 @@ public class ExplosionHandler extends PacketCheck {
         if (player.likelyExplosions != null) {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 increaseViolations();
-                setbackIfAboveSetbackVL();
 
                 String formatOffset = formatOffset(offset);
                 alert("o: " + formatOffset, "AntiExplosion", GrimMath.floor(violations) + "");
