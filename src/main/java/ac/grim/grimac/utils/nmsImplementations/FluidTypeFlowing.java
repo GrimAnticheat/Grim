@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
+import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -69,7 +70,7 @@ public class FluidTypeFlowing {
         // Fluid level 8-15 is for falling fluids
         if (player.compensatedWorld.isFluidFalling(originalX, originalY, originalZ)) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
-                if (isSolidFace(player, originalX, originalY, originalZ, enumdirection)) {
+                if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
                     vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector(0.0D, -6.0D, 0.0D));
                     break;
                 }
@@ -82,114 +83,98 @@ public class FluidTypeFlowing {
         return isEmpty(player, x2, y2, z2) || isSame(player, originalX, originalY, originalZ, x2, y2, z2);
     }
 
-    protected static boolean isSolidFace(GrimPlayer player, int originalX, int originalY, int originalZ, BlockFace direction) {
+    protected static boolean isSolidFace(GrimPlayer player, int originalX, int y, int originalZ, BlockFace direction) {
         int x = originalX + direction.getModX();
         int z = originalZ + direction.getModZ();
 
-        boolean isSolid = false;
+        BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+        Material blockMaterial = blockState.getMaterial();
 
-        for (int modifyY = 0; modifyY <= 1; modifyY++) {
-            int y = originalY + modifyY;
-            BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-            Material blockMaterial = blockState.getMaterial();
+        // This method is terrible!  Use a cache or something... anything but this!
+        // Unless this is bad for performance... due to version differences, I doubt I will ever fix this.
+        if (!isSame(player, x, y, z, originalX, y, originalZ)) {
+            if (blockMaterial == ICE) return false;
 
-            // This method is terrible!  Use a cache or something... anything but this!
-            // Unless this is bad for performance... due to version differences, I doubt I will ever fix this.
-            if (!isSame(player, x, y, z, originalX, originalY, originalZ)) {
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
-                    // 1.13 exempts stairs, pistons, sticky pistons, and piston heads.
-                    // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
-                    //
-                    // Everything is hardcoded, and I have attempted by best at figuring out things, although it's not perfect
-                    // Report bugs on GitHub, as always.  1.13 is an odd version and issues could be lurking here.
-                    if (Materials.checkFlag(blockMaterial, Materials.STAIRS) || Materials.checkFlag(blockMaterial, Materials.LEAVES)
-                            || Materials.checkFlag(blockMaterial, Materials.SHULKER) || Materials.checkFlag(blockMaterial, Materials.GLASS_BLOCK)
-                            || Materials.checkFlag(blockMaterial, Materials.TRAPDOOR))
-                        continue;
-
-                    if (blockMaterial == BEACON || Materials.checkFlag(blockMaterial, Materials.CAULDRON) || blockMaterial == GLOWSTONE
-                            || blockMaterial == SEA_LANTERN || blockMaterial == CONDUIT || blockMaterial == ICE)
-                        continue;
-
-                    if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON || blockMaterial == PISTON_HEAD)
-                        continue;
-
-                    isSolid = blockMaterial == SOUL_SAND;
-                    isSolid = isSolid || CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
-
-                } else if (blockMaterial == SNOW) {
-                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
-
-                    WrappedSnow snow = (WrappedSnow) dataValue;
-
-                    isSolid = snow.getLayers() == 8;
-                } else if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
-                    // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
-                    isSolid = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2);
-                } else if (Materials.checkFlag(blockMaterial, Materials.STAIRS)) {
-                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
-                    WrappedStairs stairs = (WrappedStairs) dataValue;
-                    isSolid = stairs.getDirection() == direction;
-                } else if (Materials.checkFlag(blockMaterial, Materials.DOOR)) {
-                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
-                    WrappedDoor door = (WrappedDoor) dataValue;
-                    BlockFace realBBDirection;
-
-                    // Thankfully we only have to do this for 1.13+ clients
-                    // Meaning we don't have to grab the data below the door for 1.12- players
-                    // as 1.12- players do not run this code
-                    boolean flag = !door.getOpen();
-                    boolean flag1 = door.isRightHinge();
-                    switch (door.getDirection()) {
-                        case EAST:
-                        default:
-                            realBBDirection = flag ? BlockFace.EAST : (flag1 ? BlockFace.NORTH : BlockFace.SOUTH);
-                            break;
-                        case SOUTH:
-                            realBBDirection = flag ? BlockFace.SOUTH : (flag1 ? BlockFace.EAST : BlockFace.WEST);
-                            break;
-                        case WEST:
-                            realBBDirection = flag ? BlockFace.WEST : (flag1 ? BlockFace.SOUTH : BlockFace.NORTH);
-                            break;
-                        case NORTH:
-                            realBBDirection = flag ? BlockFace.NORTH : (flag1 ? BlockFace.WEST : BlockFace.EAST);
-                            break;
-                    }
-
-                    isSolid = realBBDirection.getOppositeFace() == direction;
-                } else if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON) {
-                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
+            // 1.11 and below clients use a different method to determine solid faces
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12)) {
+                if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON) {
                     WrappedPistonBase pistonBase = (WrappedPistonBase) dataValue;
-                    isSolid = pistonBase.getDirection().getOppositeFace() == direction ||
+                    return pistonBase.getDirection().getOppositeFace() == direction ||
                             CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
                 } else if (blockMaterial == PISTON_HEAD) {
-                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
                     WrappedPiston pistonHead = (WrappedPiston) dataValue;
-                    isSolid = pistonHead.getDirection() == direction;
-                } else if (blockMaterial == COMPOSTER) {
-                    isSolid = true;
-                } else if (blockMaterial == SOUL_SAND) {
-                    isSolid = player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
-                } else if (blockMaterial == ICE) {
-                    isSolid = false;
-                } else if (Materials.checkFlag(blockMaterial, Materials.TRAPDOOR)) {
-                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
-                    WrappedTrapdoor trapdoor = (WrappedTrapdoor) dataValue;
-                    isSolid = trapdoor.getDirection().getOppositeFace() == direction && trapdoor.isOpen();
-                } else if (blockMaterial == LADDER) {
-                    WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
-                    WrappedDirectional ladder = (WrappedDirectional) dataValue;
-                    isSolid = ladder.getDirection().getOppositeFace() == direction;
-                } else {
-                    isSolid = CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
+                    return pistonHead.getDirection() == direction;
                 }
             }
 
-            if (isSolid)
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+                if (Materials.checkFlag(blockMaterial, Materials.CAULDRON)) return true;
+            }
+
+            if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
+                // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
+                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2);
+            }
+
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_12)) {
+                // No bush, cocoa, wart, reed
+                // No double grass, tall grass, or vine
+                // No button, flower pot, ladder, lever, rail, redstone, redstone wire, skull, torch, trip wire, or trip wire hook
+                // No carpet
+                // No snow
+                // Otherwise, solid
+            }
+
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_12)) {
+                return false;
+            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
+                // 1.12/1.13 exempts stairs, pistons, sticky pistons, and piston heads.
+                // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
+                //
+                // Everything is hardcoded, and I have attempted by best at figuring out things, although it's not perfect
+                // Report bugs on GitHub, as always.  1.13 is an odd version and issues could be lurking here.
+                if (Materials.checkFlag(blockMaterial, Materials.STAIRS) || Materials.checkFlag(blockMaterial, Materials.LEAVES)
+                        || Materials.checkFlag(blockMaterial, Materials.SHULKER) || Materials.checkFlag(blockMaterial, Materials.GLASS_BLOCK)
+                        || Materials.checkFlag(blockMaterial, Materials.TRAPDOOR))
+                    return false;
+
+                if (blockMaterial == BEACON || Materials.checkFlag(blockMaterial, Materials.CAULDRON)
+                        || blockMaterial == GLOWSTONE || blockMaterial == SEA_LANTERN || blockMaterial == CONDUIT)
+                    return false;
+
+                if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON || blockMaterial == PISTON_HEAD)
+                    return false;
+
+                return blockMaterial == SOUL_SAND;
+            } else if (blockMaterial == SNOW) {
+                WrappedSnow snow = (WrappedSnow) dataValue;
+                return snow.getLayers() == 8;
+            } else if (Materials.checkFlag(blockMaterial, Materials.STAIRS)) {
+                WrappedStairs stairs = (WrappedStairs) dataValue;
+                return stairs.getDirection() == direction;
+            } else if (blockMaterial == COMPOSTER) {
                 return true;
+            } else if (blockMaterial == SOUL_SAND) {
+                return player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
+            } else if (blockMaterial == LADDER) {
+                WrappedDirectional ladder = (WrappedDirectional) dataValue;
+                return ladder.getDirection().getOppositeFace() == direction;
+            } else if (Materials.checkFlag(blockMaterial, Materials.TRAPDOOR)) {
+                WrappedTrapdoor trapdoor = (WrappedTrapdoor) dataValue;
+                return trapdoor.getDirection().getOppositeFace() == direction && trapdoor.isOpen();
+            } else if (Materials.checkFlag(blockMaterial, Materials.DOOR)) {
+                CollisionData data = CollisionData.getData(blockMaterial);
+
+                if (data.dynamic instanceof DoorHandler) {
+                    BlockFace dir = ((DoorHandler) data.dynamic).fetchDirection(player, player.getClientVersion(), dataValue, x, y, z);
+                    return dir.getOppositeFace() == direction;
+                }
+            }
         }
 
-        return false;
+        // Explicitly a full block, therefore it has a full face
+        return (CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, x, y, z).isFullBlock());
     }
 
     private static Vector normalizeVectorWithoutNaN(Vector vector) {

@@ -973,7 +973,7 @@ public enum CollisionData {
 
     private final Material[] materials;
     private CollisionBox box;
-    private CollisionFactory dynamic;
+    public CollisionFactory dynamic;
 
     CollisionData(CollisionBox box, Material... materials) {
         this.box = box;
