@@ -97,7 +97,7 @@ public class Check<T> {
         decay = getConfig().getDouble(configName + ".decay");
         alertVL = getConfig().getDouble(configName + ".dont-alert-until");
         alertInterval = getConfig().getInt(configName + ".alert-interval");
-        setbackVL = getConfig().getDouble(configName + ".setbackVL");
+        setbackVL = getConfig().getDouble(configName + ".setbackVL", Double.MAX_VALUE);
 
         if (alertVL == -1) alertVL = Double.MAX_VALUE;
         if (setbackVL == -1) alertVL = Double.MAX_VALUE;
