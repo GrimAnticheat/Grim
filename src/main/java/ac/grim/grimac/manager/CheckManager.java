@@ -2,10 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
-import ac.grim.grimac.checks.impl.movement.PredictionRunner;
-import ac.grim.grimac.checks.impl.movement.SetbackBlocker;
-import ac.grim.grimac.checks.impl.movement.TimerCheck;
-import ac.grim.grimac.checks.impl.movement.VehiclePredictionRunner;
+import ac.grim.grimac.checks.impl.movement.*;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
@@ -57,6 +54,7 @@ public class CheckManager {
                 .put(NoFallB.class, new NoFallB(player))
                 .put(OffsetHandler.class, new OffsetHandler(player))
                 .put(DebugHandler.class, new DebugHandler(player))
+                .put(EntityControl.class, new EntityControl(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .build();
 

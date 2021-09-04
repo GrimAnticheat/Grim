@@ -153,7 +153,7 @@ public class PlayerBaseTick {
             }
 
             player.pose = pose;
-            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
         }
     }
 
@@ -179,7 +179,7 @@ public class PlayerBaseTick {
             Pose oldPose = player.pose;
             player.pose = pose;
 
-            SimpleCollisionBox box = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            SimpleCollisionBox box = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             List<SimpleCollisionBox> intersect = Collisions.getCollisionBoxes(player, box);
 
             for (SimpleCollisionBox box2 : intersect) {
@@ -190,7 +190,7 @@ public class PlayerBaseTick {
                 }
             }
 
-            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
         }
     }
 

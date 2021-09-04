@@ -1427,12 +1427,12 @@ public enum XMaterial {
         if (!isBlock) {
             for (String string : legacy) {
                 Material nextMat = Material.getMaterial(string);
-                boolean nextBlock = nextMat != null && nextMat.isBlock();
+                if (nextMat == null) continue;
 
                 mat = nextMat;
 
                 // We found a block
-                if (nextBlock) {
+                if (mat.isBlock()) {
                     break;
                 }
             }
