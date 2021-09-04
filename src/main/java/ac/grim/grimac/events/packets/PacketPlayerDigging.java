@@ -61,12 +61,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
 
-            if (type == WrappedPacketInBlockDig.PlayerDigType.SWAP_ITEM_WITH_OFFHAND && player.packetStateData.slowedByUsingItem == AlmostBoolean.TRUE) {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
-                player.packetStateData.slowedByUsingItemTransaction = player.packetStateData.packetLastTransactionReceived.get();
-                player.packetStateData.eatingHand = player.packetStateData.eatingHand == Hand.MAIN_HAND ? Hand.OFF_HAND : Hand.MAIN_HAND;
-            }
-
             if (type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 player.packetStateData.slowedByUsingItemTransaction = player.packetStateData.packetLastTransactionReceived.get();
