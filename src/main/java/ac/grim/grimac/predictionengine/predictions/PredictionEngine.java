@@ -120,7 +120,7 @@ public class PredictionEngine {
             boolean flipSneaking = clientVelAfterInput.hasVectorType(VectorData.VectorType.Flip_Sneaking);
             if (flipSneaking) {
                 player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
-                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+                player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             } else {
                 player.pose = originalPose;
                 player.boundingBox = originalBB;
@@ -179,7 +179,7 @@ public class PredictionEngine {
         boolean flipSneaking = bestCollisionVel.hasVectorType(VectorData.VectorType.Flip_Sneaking);
         if (flipSneaking) {
             player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
-            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
         } else {
             player.pose = originalPose;
             player.boundingBox = originalBB;
@@ -480,14 +480,14 @@ public class PredictionEngine {
             if (loopCrouching) {
                 player.isCrouching = !player.isCrouching;
                 player.isSlowMovement = !player.isSlowMovement;
-                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+                player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             }
         }
 
         if (loopCrouching) {
             player.isCrouching = !player.isCrouching;
             player.isSlowMovement = !player.isSlowMovement;
-            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
         }
 
         player.isUsingItem = usingItem;
