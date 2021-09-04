@@ -217,23 +217,28 @@ public class MovementCheckRunner extends PositionCheck {
         player.vehicleData.lastDummy = false;
 
         // Tick player vehicle after we update the packet entity state
-        player.lastVehicle = player.playerVehicle;
         player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
         player.inVehicle = player.playerVehicle != null;
 
+        // Wtf, why does the player send vehicle packets when not in vehicle, I don't understand this part of shitty netcode
+
         // If the check was for players moving in a vehicle, but after we just updated vehicles
         // the player isn't in a vehicle, don't check.
-        if (data.inVehicle && player.vehicle == null)
+        if (data.inVehicle && player.vehicle == null) {
             return;
+        }
 
         // If the check was for a player out of a vehicle but the player is in a vehicle
-        if (!data.inVehicle && player.vehicle != null)
+        if (!data.inVehicle && player.vehicle != null) {
             return;
+        }
 
         // TODO: Sanity check vehicle position to stop a theoretical teleport bypass
         if (player.playerVehicle != player.lastVehicle) {
             data.isJustTeleported = true;
         }
+
+        player.lastVehicle = player.playerVehicle;
 
         if (player.isInBed != player.lastInBed) {
             data.isJustTeleported = true;
