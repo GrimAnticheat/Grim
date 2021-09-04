@@ -49,7 +49,6 @@ public class GetBoundingBox {
         return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
     }
 
-    // TODO: This should probably just be done in the player's pose
     public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isRiptiding, boolean isSleeping, ClientVersion clientVersion) {
         if (isGliding || isSwimming || isRiptiding) {
             return 0.4;

@@ -14,11 +14,6 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
 public class DynamicFence extends DynamicConnecting implements CollisionFactory {
-    // TODO: 1.9-1.11 clients don't have BARRIER exemption
-    // https://bugs.mojang.com/browse/MC-9565
-    // TODO: 1.4-1.11 clients don't check for fence gate direction
-    // https://bugs.mojang.com/browse/MC-94016
-
     private static final Material NETHER_BRICK_FENCE = XMaterial.NETHER_BRICK_FENCE.parseMaterial();
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(2.0F, 2.0F, 24.0F, 0.0F, 24.0F, true);
 

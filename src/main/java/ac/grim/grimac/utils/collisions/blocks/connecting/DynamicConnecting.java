@@ -53,17 +53,6 @@ public class DynamicConnecting {
         return avoxelshape;
     }
 
-    boolean isBlacklisted(Material m) {
-        if (Materials.checkFlag(m, Materials.LEAVES)) return true;
-        if (Materials.checkFlag(m, Materials.SHULKER)) return true;
-        if (Materials.checkFlag(m, Materials.TRAPDOOR)) return true;
-
-
-        return m == BARRIER || m == CARVED_PUMPKIN || m == JACK_O_LANTERN || m == PUMPKIN || m == MELON ||
-                m == BEACON || Materials.checkFlag(m, Materials.CAULDRON) || m == GLOWSTONE || m == SEA_LANTERN || m == ICE
-                || m == PISTON || m == STICKY_PISTON || m == PISTON_HEAD || !canConnectToGlassBlock() && Materials.checkFlag(m, Materials.GLASS_BLOCK);
-    }
-
     public boolean connectsTo(GrimPlayer player, ClientVersion v, int currX, int currY, int currZ, BlockFace direction) {
         BaseBlockState targetBlock = player.compensatedWorld.getWrappedBlockStateAt(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
         BaseBlockState currBlock = player.compensatedWorld.getWrappedBlockStateAt(currX, currY, currZ);
@@ -72,6 +61,12 @@ public class DynamicConnecting {
 
         if (!Materials.checkFlag(target, Materials.FENCE) && isBlacklisted(target))
             return false;
+
+        // 1.9-1.11 clients don't have BARRIER exemption
+        // https://bugs.mojang.com/browse/MC-9565
+        if (target == BARRIER) return player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) ||
+                player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) &&
+                        player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_11_1);
 
         if (Materials.checkFlag(target, Materials.STAIRS)) {
             // 1.12 clients generate their own data, 1.13 clients use the server's data
@@ -83,6 +78,10 @@ public class DynamicConnecting {
             return stairs.getDirection() == direction;
         } else if (canConnectToGate() && Materials.checkFlag(target, Materials.GATE)) {
             WrappedFenceGate gate = (WrappedFenceGate) WrappedBlockData.getMaterialData(targetBlock);
+            // 1.4-1.11 clients don't check for fence gate direction
+            // https://bugs.mojang.com/browse/MC-94016
+            if (v.isOlderThanOrEquals(ClientVersion.v_1_11_1)) return true;
+
             BlockFace f1 = gate.getDirection();
             BlockFace f2 = f1.getOppositeFace();
             return direction == f1 || direction == f2;
@@ -91,6 +90,17 @@ public class DynamicConnecting {
 
             return checkCanConnect(player, targetBlock, target, fence);
         }
+    }
+
+    boolean isBlacklisted(Material m) {
+        if (Materials.checkFlag(m, Materials.LEAVES)) return true;
+        if (Materials.checkFlag(m, Materials.SHULKER)) return true;
+        if (Materials.checkFlag(m, Materials.TRAPDOOR)) return true;
+
+
+        return m == CARVED_PUMPKIN || m == JACK_O_LANTERN || m == PUMPKIN || m == MELON ||
+                m == BEACON || Materials.checkFlag(m, Materials.CAULDRON) || m == GLOWSTONE || m == SEA_LANTERN || m == ICE
+                || m == PISTON || m == STICKY_PISTON || m == PISTON_HEAD || !canConnectToGlassBlock() && Materials.checkFlag(m, Materials.GLASS_BLOCK);
     }
 
     protected int getAABBIndex(boolean north, boolean east, boolean south, boolean west) {
