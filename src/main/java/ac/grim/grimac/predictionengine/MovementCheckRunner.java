@@ -677,12 +677,6 @@ public class MovementCheckRunner extends PositionCheck {
             blockOffsets = true;
         }
 
-        // Fucking pigs can fly mojang, fix your damn netcode
-        if (player.vehicleData.lastVehicleSwitch < 6 && offset > 0.01) {
-            player.getSetbackTeleportUtil().executeSetback(false);
-            blockOffsets = true;
-        }
-
         // Riptide tridents are still very glitchy, and sometimes we mispredict when near the ground
         // (This scenario is decently rare, but we still should resync)
         if (player.riptideSpinAttackTicks > 0 && offset > 0.001) {

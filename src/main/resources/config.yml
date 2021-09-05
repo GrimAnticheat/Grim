@@ -47,6 +47,29 @@ Prediction:
     dont-alert-until: 3
     alert-interval: 1
 
+# Vehicles are client sided in 1.9+, and server sided in 1.8 and below. This section only applies to 1.9+ servers
+# Vehicles are less stable than regular predictions as netcode for vehicles is significantly flawed
+Vehicle:
+  Small:
+    threshold: 0.005
+    setbackvl: 40
+    decay: 0.125
+    dont-alert-until: 40
+    alert-interval: 30
+  Medium:
+    threshold: 0.05
+    setbackvl: 20
+    decay: 0.05
+    dont-alert-until: 30
+    alert-interval: 20
+  Large:
+    threshold: 1
+    setbackvl: 1
+    decay: 0.001
+    dont-alert-until: 5
+    alert-interval: 10
+
+
 # Prediction-based ground spoof check
 # Extremely stable
 GroundSpoof:

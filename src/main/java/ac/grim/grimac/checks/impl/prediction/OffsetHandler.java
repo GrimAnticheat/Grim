@@ -16,7 +16,8 @@ import java.util.List;
 
 @CheckData(name = "Prediction", buffer = 0)
 public class OffsetHandler extends PostPredictionCheck {
-    List<OffsetData> offsets;
+    List<OffsetData> regularOffsets;
+    List<OffsetData> vehicleOffsets;
 
     public OffsetHandler(GrimPlayer player) {
         super(player);
@@ -25,12 +26,14 @@ public class OffsetHandler extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         double offset = predictionComplete.getOffset();
 
-        for (OffsetData offsetHandler : offsets) {
+        boolean vehicle = predictionComplete.getData().inVehicle;
+
+        for (OffsetData offsetHandler : (vehicle ? vehicleOffsets : regularOffsets)) {
             if (offset > offsetHandler.getThreshold()) {
                 offsetHandler.flag();
                 double violations = offsetHandler.getViolations();
 
-                if (violations > offsetHandler.getThreshold()) {
+                if (violations > offsetHandler.getSetbackVL()) {
                     // Patch LiquidBounce Spartan NoFall
                     player.bukkitPlayer.setFallDistance((float) player.fallDistance);
                     player.getSetbackTeleportUtil().executeSetback(true);
@@ -41,7 +44,7 @@ public class OffsetHandler extends PostPredictionCheck {
                     if (diff % offsetHandler.getAlertInterval() == 0) {
                         String formatOffset = formatOffset(offset);
 
-                        alert("o: " + formatOffset, getCheckName() + "-" + offsetHandler.getName(), GrimMath.floor(violations) + "");
+                        alert("o: " + formatOffset, (vehicle ? "Prediction" : "Vehicle Prediction") + "-" + offsetHandler.getName(), GrimMath.floor(violations) + "");
                     }
                 }
 
@@ -56,16 +59,27 @@ public class OffsetHandler extends PostPredictionCheck {
     @Override
     public void reload() {
         List<OffsetData> offsets = new ArrayList<>();
+        loadOffsets(offsets, "Prediction");
+        this.regularOffsets = offsets;
 
+        List<OffsetData> vehicleOffsets = new ArrayList<>();
+        loadOffsets(vehicleOffsets, "Vehicle");
+        this.vehicleOffsets = vehicleOffsets;
+
+        this.alertVL = -1;
+        this.alertInterval = 1;
+    }
+
+    public void loadOffsets(List<OffsetData> offsets, String configName) {
         try {
-            ConfigurationSection section = getConfig().getConfigurationSection("Prediction");
+            ConfigurationSection section = getConfig().getConfigurationSection(configName);
 
             for (String key : section.getKeys(false)) {
-                double threshold = getConfig().getDouble("Prediction." + key + ".threshold");
-                double setbackVL = getConfig().getDouble("Prediction." + key + ".setbackvl");
-                double reward = getConfig().getDouble("Prediction." + key + ".decay");
-                double alertMin = getConfig().getDouble("Prediction." + key + ".dont-alert-until");
-                double alertInterval = getConfig().getDouble("Prediction." + key + ".alert-interval");
+                double threshold = getConfig().getDouble(configName + "." + key + ".threshold");
+                double setbackVL = getConfig().getDouble(configName + "." + key + ".setbackvl");
+                double reward = getConfig().getDouble(configName + "." + key + ".decay");
+                double alertMin = getConfig().getDouble(configName + "." + key + ".dont-alert-until");
+                double alertInterval = getConfig().getDouble(configName + "." + key + ".alert-interval");
 
                 offsets.add(new OffsetData(key, threshold, setbackVL, reward, alertMin, alertInterval));
             }
@@ -78,10 +92,6 @@ public class OffsetHandler extends PostPredictionCheck {
 
         // Order based on highest offset to the lowest offset
         offsets.sort(Collections.reverseOrder(Comparator.comparingDouble(offset -> offset.threshold)));
-
-        this.offsets = offsets;
-        this.alertVL = -1;
-        this.alertInterval = 1;
     }
 }
 

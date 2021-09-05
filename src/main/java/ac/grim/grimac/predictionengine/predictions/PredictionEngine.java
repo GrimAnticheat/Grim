@@ -298,18 +298,10 @@ public class PredictionEngine {
                 uncertainBox.expandToAbsoluteCoordinates(possiblePosition.getX(), possiblePosition.getY(), possiblePosition.getZ());
             }
 
-            // Don't give uncertainty on the Y axis, it's not worth the risk of flight exploits
-            // Rare case where better to force resync the client than it is to allow bypasses
-            //
-            // Yes, fucking mojang - They will fix their netcode when pigs fly.
-            // Okay, pigs are flying because of your netcode Mojang, fix it.
-            //
-            // Reproduce by having high ping, stepping upwards continually,
-            // and going off a cliff switching between carrot on a stick and an empty hand
-            //
-            // You will start flying on the pig.  Nope, we are not allowing that.  Fix your damn game.
             player.uncertaintyHandler.xNegativeUncertainty -= playerPosition.getX() - uncertainBox.minX;
             player.uncertaintyHandler.zNegativeUncertainty -= playerPosition.getZ() - uncertainBox.minZ;
+            player.uncertaintyHandler.yNegativeUncertainty -= playerPosition.getY() - uncertainBox.minY;
+            player.uncertaintyHandler.yPositiveUncertainty -= playerPosition.getY() - uncertainBox.maxY;
             player.uncertaintyHandler.xPositiveUncertainty -= playerPosition.getX() - uncertainBox.maxX;
             player.uncertaintyHandler.zPositiveUncertainty -= playerPosition.getZ() - uncertainBox.maxZ;
 
