@@ -142,6 +142,15 @@ public class KnockbackHandler extends PacketCheck {
             return;
         }
 
+        if (!force && !wasZero && player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) &&
+                player.likelyKB == null && player.firstBreadKB != null) {
+            // The player took this knockback, this tick, 100%
+            // Fixes exploit that would allow players to take knockback an infinite number of times
+            if (player.firstBreadKB.offset < offsetToFlag) {
+                firstBreadOnlyKnockback = null;
+            }
+        }
+
         if (force || wasZero || player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback)) {
             // Unsure knockback was taken
             if (player.firstBreadKB != null) {
