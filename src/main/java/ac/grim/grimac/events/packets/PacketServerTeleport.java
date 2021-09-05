@@ -71,6 +71,10 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             player.teleports.add(new Pair<>(lastTransactionSent, finalPos));
 
+            // Dismounting vehicles on teleport changes a lot between client/server versions
+            // unsure of whether ViaVersion would account for this, so deal with it here
+            player.bukkitPlayer.eject();
+
             event.setPostTask(() -> {
                 player.sendAndFlushTransactionOrPingPong();
 
