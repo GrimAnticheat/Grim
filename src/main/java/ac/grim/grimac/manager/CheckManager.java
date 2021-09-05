@@ -37,6 +37,7 @@ public class CheckManager {
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(NoFallA.class, new NoFallA(player))
                 .put(TimerCheck.class, new TimerCheck(player))
+                .put(VehicleTimer.class, new VehicleTimer(player))
                 .put(AntiUseItemDesync.class, new AntiUseItemDesync(player))
                 .put(ResyncWorldUtil.class, new ResyncWorldUtil(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets

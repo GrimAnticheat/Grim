@@ -45,8 +45,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Don't check duplicate 1.17 packets (Why would you do this mojang?)
             // Don't check rotation since it changes between these packets, with the second being irrelevant.
             if (hasPosition && hasLook) {
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && System.currentTimeMillis() - lastPosLook < 750 &&
-                        player.packetStateData.packetPosition.equals(flying.getPosition())) {
+                if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && System.currentTimeMillis() - lastPosLook < 750 &&
+                        player.packetStateData.packetPosition.equals(flying.getPosition()))) {
                     lastPosLook = System.currentTimeMillis();
                     player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
                     return;
@@ -113,6 +113,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d position = move.getPosition();
 
             final boolean isTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
+            player.packetStateData.lastPacketWasTeleport = isTeleport;
             final VehiclePositionUpdate update = new VehiclePositionUpdate(player.packetStateData.packetPosition, position, move.getYaw(), move.getPitch(), isTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 
