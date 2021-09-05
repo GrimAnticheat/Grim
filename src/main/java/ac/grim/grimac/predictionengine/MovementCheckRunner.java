@@ -201,10 +201,6 @@ public class MovementCheckRunner extends PositionCheck {
         // Update entities to get current vehicle
         player.compensatedEntities.tickUpdates(data.lastTransaction);
 
-        // Player was teleported, so they left their vehicle
-        if (!data.inVehicle && data.isJustTeleported)
-            player.playerVehicle = null;
-
         // Tick player vehicle after we update the packet entity state
         player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
         player.inVehicle = player.playerVehicle != null;
