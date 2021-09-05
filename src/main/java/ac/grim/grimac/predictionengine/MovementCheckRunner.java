@@ -205,6 +205,10 @@ public class MovementCheckRunner extends PositionCheck {
         if (!data.inVehicle && data.isJustTeleported)
             player.playerVehicle = null;
 
+        // Tick player vehicle after we update the packet entity state
+        player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
+        player.inVehicle = player.playerVehicle != null;
+
         // The game's movement is glitchy when switching between vehicles
         player.vehicleData.lastVehicleSwitch++;
         if (player.lastVehicle != player.playerVehicle) {
@@ -215,10 +219,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.vehicleData.lastVehicleSwitch = 0;
         }
         player.vehicleData.lastDummy = false;
-
-        // Tick player vehicle after we update the packet entity state
-        player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
-        player.inVehicle = player.playerVehicle != null;
 
         // Wtf, why does the player send vehicle packets when not in vehicle, I don't understand this part of shitty netcode
 
