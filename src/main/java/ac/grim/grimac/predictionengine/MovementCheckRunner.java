@@ -233,9 +233,22 @@ public class MovementCheckRunner extends PositionCheck {
             return;
         }
 
-        // TODO: Sanity check vehicle position to stop a theoretical teleport bypass
         if (player.playerVehicle != player.lastVehicle) {
             data.isJustTeleported = true;
+
+            if (player.playerVehicle != null) {
+                Vector3d pos = new Vector3d(data.playerX, data.playerY, data.playerZ);
+                double distOne = pos.distance(player.playerVehicle.position);
+                double distTwo = pos.distance(player.playerVehicle.lastTickPosition);
+
+                // Stop players from teleporting when they enter a vehicle
+                // Is this a cheat?  Do we have to lower this threshold?
+                // Until I see evidence that this cheat exists, I am keeping this lenient.
+                if (distOne > 1 && distTwo > 1) {
+                    blockOffsets = true;
+                    player.getSetbackTeleportUtil().executeSetback(false);
+                }
+            }
         }
 
         player.lastVehicle = player.playerVehicle;
