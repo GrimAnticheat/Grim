@@ -40,6 +40,13 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 // Update entities to get current vehicle
                 player.compensatedEntities.tickUpdates(player.packetStateData.packetLastTransactionReceived.get());
 
+                // Update knockback and explosions after getting the vehicle
+                player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
+                player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
+
+                player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived);
+                player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived);
+
                 // Not responsible for applying knockback/explosions
                 player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
                 player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);

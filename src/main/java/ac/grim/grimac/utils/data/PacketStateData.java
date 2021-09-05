@@ -42,4 +42,5 @@ public class PacketStateData {
     public int movementPacketsReceived = 0;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
+    public Integer sendingSyncVehicle = null;
 }

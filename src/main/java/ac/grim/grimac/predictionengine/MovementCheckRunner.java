@@ -205,6 +205,13 @@ public class MovementCheckRunner extends PositionCheck {
         player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
         player.inVehicle = player.playerVehicle != null;
 
+        // Update knockback and explosions after getting the vehicle
+        player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+        player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+
+        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(data.lastTransaction);
+        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(data.lastTransaction);
+
         // The game's movement is glitchy when switching between vehicles
         player.vehicleData.lastVehicleSwitch++;
         if (player.lastVehicle != player.playerVehicle) {
@@ -215,6 +222,11 @@ public class MovementCheckRunner extends PositionCheck {
             player.vehicleData.lastVehicleSwitch = 0;
         }
         player.vehicleData.lastDummy = false;
+
+        if (player.vehicleData.lastVehicleSwitch < 5) {
+            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
+            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
+        }
 
         // Wtf, why does the player send vehicle packets when not in vehicle, I don't understand this part of shitty netcode
 
@@ -292,12 +304,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
             player.hasGravity = player.playerEntityHasGravity;
         }
-
-        player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
-        player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
-
-        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(data.lastTransaction);
-        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(data.lastTransaction);
 
         // Check if the player can control their horse, if they are on a horse
         //
@@ -667,6 +673,12 @@ public class MovementCheckRunner extends PositionCheck {
                 player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident) &&
                 !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3))) {
             offset = 0;
+            player.getSetbackTeleportUtil().executeSetback(false);
+            blockOffsets = true;
+        }
+
+        // Fucking pigs can fly mojang, fix your damn netcode
+        if (player.vehicleData.lastVehicleSwitch < 6 && offset > 0.01) {
             player.getSetbackTeleportUtil().executeSetback(false);
             blockOffsets = true;
         }

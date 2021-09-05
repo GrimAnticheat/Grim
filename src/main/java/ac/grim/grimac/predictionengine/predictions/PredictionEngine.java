@@ -313,9 +313,7 @@ public class PredictionEngine {
             player.uncertaintyHandler.xPositiveUncertainty -= playerPosition.getX() - uncertainBox.maxX;
             player.uncertaintyHandler.zPositiveUncertainty -= playerPosition.getZ() - uncertainBox.maxZ;
 
-            if (player.vehicleData.lastVehicleSwitch < 6) {
-                player.uncertaintyHandler.yNegativeUncertainty -= 0.5;
-            }
+            player.uncertaintyHandler.yNegativeUncertainty -= 0.5;
         }
 
         double uncertainPiston = 0;
