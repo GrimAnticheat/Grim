@@ -787,7 +787,8 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
 
-        if (offset > 0.0001) {
+        // If the player flags the check, give leniency so that it doesn't also flag the next tick
+        if (player.checkManager.getOffsetHandler().doesOffsetFlag(offset)) {
             double horizontalOffset = player.actualMovement.clone().setY(0).distance(player.predictedVelocity.vector.clone().setY(0));
             double verticalOffset = player.actualMovement.getY() - player.predictedVelocity.vector.getY();
             double totalOffset = horizontalOffset + verticalOffset;

@@ -93,6 +93,13 @@ public class OffsetHandler extends PostPredictionCheck {
         // Order based on highest offset to the lowest offset
         offsets.sort(Collections.reverseOrder(Comparator.comparingDouble(offset -> offset.threshold)));
     }
+
+    public boolean doesOffsetFlag(double offset) {
+        if (player.inVehicle) {
+            return !vehicleOffsets.isEmpty() && vehicleOffsets.get(vehicleOffsets.size() - 1).getThreshold() < offset;
+        }
+        return !regularOffsets.isEmpty() && regularOffsets.get(regularOffsets.size() - 1).getThreshold() < offset;
+    }
 }
 
 @Getter
