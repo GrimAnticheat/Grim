@@ -133,6 +133,10 @@ public class CheckManager {
         return ((SetbackTeleportUtil) getPostPredictionCheck(SetbackTeleportUtil.class));
     }
 
+    public OffsetHandler getOffsetHandler() {
+        return ((OffsetHandler) getPostPredictionCheck(OffsetHandler.class));
+    }
+
     public ResyncWorldUtil getResyncWorldUtil() {
         return ((ResyncWorldUtil) getPacketCheck(ResyncWorldUtil.class));
     }
