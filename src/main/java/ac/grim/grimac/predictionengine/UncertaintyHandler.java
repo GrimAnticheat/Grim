@@ -155,7 +155,7 @@ public class UncertaintyHandler {
         if (has003 && (influencedByBouncyBlock() || isSteppingOnIce))
             pointThree = 0.1;
 
-        if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6)
+        if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 5)
             pointThree = 0.1;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
@@ -203,6 +203,9 @@ public class UncertaintyHandler {
             return 0.15;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
+            return 0.06;
+
+        if (player.vehicleData.lastVehicleSwitch < 5)
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
