@@ -46,11 +46,8 @@ public class TimerCheck extends PacketCheck {
     public void onPacketReceive(final PacketPlayReceiveEvent event) {
         long currentNanos = System.nanoTime();
 
-        // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
-        if (!PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId()) ||
-                player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-            return;
-        }
+        if (checkReturnPacketType(event.getPacketId())) return;
+
         player.movementPackets++;
         knownPlayerClockTime = player.getPlayerClockAtLeast();
 
@@ -64,7 +61,7 @@ public class TimerCheck extends PacketCheck {
 
         if (timerBalanceRealTime > currentNanos) {
             increaseViolations();
-            alert("", "Timer (experimental)", formatViolations());
+            alert("", getCheckName(), formatViolations());
 
             // Reset the violation by 1 movement
             timerBalanceRealTime -= 50e6;
@@ -93,5 +90,11 @@ public class TimerCheck extends PacketCheck {
                 }
             } while (lagSpikePair != null);
         }
+    }
+
+    public boolean checkReturnPacketType(byte packetType) {
+        // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
+        return !PacketType.Play.Client.Util.isInstanceOfFlying(packetType) ||
+                player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate;
     }
 }
