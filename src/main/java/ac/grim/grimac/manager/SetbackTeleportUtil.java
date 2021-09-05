@@ -14,20 +14,26 @@ import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
-    // This required setback data is sync to the netty thread
+    // Sync to NETTY (Why does the bukkit thread have to modify this, can we avoid it?)
+    // I think it should be safe enough because the worst that can happen is we overwrite another plugin teleport
+    //
+    // This is required because the required setback position is not sync to bukkit, and we must avoid
+    // setting the player back to a position where they were cheating
+    public boolean hasAcceptedSetbackPosition = false;
+    // Sync to BUKKIT, referenced by only bukkit!  Don't overwrite another plugin's teleport
+    public int lastOtherPluginTeleport = 0;
+    // This required setback data is sync to the BUKKIT MAIN THREAD (!)
     SetBackData requiredSetBack = null;
-
-    // This boolean and safe teleport position is sync to the anticheat thread
-    // Although referencing this position from other threads is safe and encouraged
-    boolean hasAcceptedSetbackPosition = true;
+    // Sync to the anticheat thread
+    // The anticheat thread MUST be the only thread that controls these safe setback position variables
     boolean wasLastMovementSafe = true;
-    // Generally safe teleport position
+    // Generally safe teleport position (ANTICHEAT THREAD!)
     SetbackLocationVelocity safeTeleportPosition;
-    // This makes it more difficult to abuse setbacks to allow impossible jumps etc.
+    // This makes it more difficult to abuse setbacks to allow impossible jumps etc. (ANTICHEAT THREAD!)
     SetbackLocationVelocity lastGroundTeleportPosition;
-
+    // Sync to anticheat thread
     Vector lastMovementVel = new Vector();
-
+    // Sync to anything, worst that can happen is sending an extra world update (which won't be noticed)
     long lastWorldResync = 0;
 
     public SetbackTeleportUtil(GrimPlayer player) {
@@ -38,7 +44,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // We must first check if the player has accepted their setback
         if (predictionComplete.getData().acceptedSetback) {
             // If there is a new pending setback, don't desync from the netty thread
-            if (requiredSetBack.isComplete()) hasAcceptedSetbackPosition = true;
+            if (!requiredSetBack.isComplete()) return;
+
+            hasAcceptedSetbackPosition = true;
 
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
             // Discard ground setback location to avoid "glitchiness" when setting back
@@ -100,26 +108,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         blockMovementsUntilResync(player.playerWorld, data.position,
                 player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, setbackVel,
-                player.vehicle, player.lastTransactionSent.get(), false);
+                player.vehicle, false);
     }
 
-    private void blockMovementsUntilResync(World world, Vector3d position, float xRot, float yRot, Vector velocity, Integer vehicle, int trans, boolean force) {
+    private void blockMovementsUntilResync(World world, Vector3d position, float xRot, float yRot, Vector velocity, Integer vehicle, boolean force) {
         // Don't teleport cross world, it will break more than it fixes.
         if (world != player.bukkitPlayer.getWorld()) return;
 
-        // A teleport has made this point in transaction history irrelevant
-        // Meaning:
-        // movement - movement - this point in time - movement - movement - teleport
-        // or something similar, setting back would be obnoxious
-        //
-        // However, the need to block vanilla anticheat teleports can override this.
-        //if (trans < ignoreTransBeforeThis && !force) return;
-
         SetBackData setBack = requiredSetBack;
         if (force || setBack == null || setBack.isComplete()) {
-            requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, trans);
-            hasAcceptedSetbackPosition = false;
-
             // Deal with ghost blocks near the player (from anticheat/netty thread)
             // Only let us full resync once every two seconds to prevent unneeded netty load
             if (System.nanoTime() - lastWorldResync > 2e-9) {
@@ -127,7 +124,17 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 lastWorldResync = System.nanoTime();
             }
 
+            hasAcceptedSetbackPosition = false;
+            int transaction = player.lastTransactionReceived;
+
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                // A plugin teleport has overridden this teleport
+                if (lastOtherPluginTeleport >= transaction) {
+                    return;
+                }
+
+                requiredSetBack = new SetBackData(world, position, xRot, yRot, velocity, vehicle, player.lastTransactionSent.get());
+
                 // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
                 Entity playerVehicle = player.bukkitPlayer.getVehicle();
                 player.bukkitPlayer.eject();
@@ -155,7 +162,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         SetBackData setBack = requiredSetBack;
 
         if (setBack != null && (!setBack.isComplete() || force)) {
-            blockMovementsUntilResync(setBack.getWorld(), setBack.getPosition(), setBack.getXRot(), setBack.getYRot(), setBack.getVelocity(), setBack.getVehicle(), player.lastTransactionSent.get(), force);
+            blockMovementsUntilResync(setBack.getWorld(), setBack.getPosition(), setBack.getXRot(), setBack.getYRot(), setBack.getVelocity(), setBack.getVehicle(), force);
         }
     }
 
@@ -243,7 +250,16 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return requiredSetBack;
     }
 
-    public void setSafeTeleportPosition(Vector3d position) {
+    public void setSetback(Vector3d position) {
+        setSafeTeleportPositionFromTeleport(position);
+
+        requiredSetBack = new SetBackData(player.bukkitPlayer.getWorld(), position, player.packetStateData.packetPlayerXRot,
+                player.packetStateData.packetPlayerYRot, new Vector(), null, player.lastTransactionSent.get());
+        hasAcceptedSetbackPosition = false;
+        lastOtherPluginTeleport = player.lastTransactionSent.get();
+    }
+
+    public void setSafeTeleportPositionFromTeleport(Vector3d position) {
         this.safeTeleportPosition = new SetbackLocationVelocity(position);
         this.lastGroundTeleportPosition = new SetbackLocationVelocity(position);
     }
