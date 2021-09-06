@@ -278,7 +278,11 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastTeleportTicks = 0;
 
             // Reset velocities
-            player.clientVelocity = new Vector();
+            // Teleporting a vehicle does not reset its velocity
+            if (!player.inVehicle) {
+                player.clientVelocity = new Vector();
+            }
+
             player.lastWasClimbing = 0;
             player.canSwimHop = false;
 
