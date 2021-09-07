@@ -44,7 +44,7 @@ public class OffsetHandler extends PostPredictionCheck {
                     if (diff % offsetHandler.getAlertInterval() == 0) {
                         String formatOffset = formatOffset(offset);
 
-                        alert("o: " + formatOffset, (vehicle ? "Prediction" : "Vehicle Prediction") + "-" + offsetHandler.getName(), GrimMath.floor(violations) + "");
+                        alert("o: " + formatOffset, (vehicle ? "Vehicle Prediction" : "Prediction") + "-" + offsetHandler.getName(), GrimMath.floor(violations) + "");
                     }
                 }
 
