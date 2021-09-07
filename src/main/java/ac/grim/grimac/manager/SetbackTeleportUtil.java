@@ -186,9 +186,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
                 player.teleports.poll();
 
-                // Teleports remove the player from their vehicle
-                player.vehicle = null;
-
                 SetBackData setBack = requiredSetBack;
 
                 // Player has accepted their setback!
