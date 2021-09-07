@@ -30,6 +30,7 @@ public class FluidTypeFlowing {
 
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
+        ClientVersion version = player.getClientVersion();
 
         if (fluidLevel == 0) return new Vector();
 
@@ -44,8 +45,11 @@ public class FluidTypeFlowing {
                 float f1 = 0.0F;
                 if (f == 0.0F) {
                     Material mat = player.compensatedWorld.getBukkitMaterialAt(modifiedX, originalY, modifiedZ);
-                    // What the fuck Mojang?  Why is a lilypad not a solid blocking material?
-                    if (!Materials.checkFlag(mat, Materials.SOLID) || mat == LILY_PAD) {
+
+                    // Grim's definition of solid is whether the block has a hitbox
+                    // Minecraft is... it's whatever Mojang was feeling like, but it's very consistent
+                    // Use method call to support 1.13-1.15 clients and banner oddity
+                    if (Materials.isSolidBlockingBlacklist(mat, version)) {
                         if (affectsFlow(player, originalX, originalY, originalZ, modifiedX, originalY - 1, modifiedZ)) {
                             f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY - 1, modifiedZ), 8 / 9D);
                             if (f > 0.0F) {
@@ -53,6 +57,7 @@ public class FluidTypeFlowing {
                             }
                         }
                     }
+
                 } else if (f > 0.0F) {
                     f1 = fluidLevel - f;
                 }
@@ -113,7 +118,7 @@ public class FluidTypeFlowing {
             // No carpet
             // No snow
             // Otherwise, solid
-            return !Materials.checkFlag(blockMaterial, Materials.LEGACY_SOLID_BLACKLIST);
+            return !Materials.checkFlag(blockMaterial, Materials.SOLID_BLACKLIST);
         } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
             // 1.12/1.13 exempts stairs, pistons, sticky pistons, and piston heads.
             // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.

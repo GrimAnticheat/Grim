@@ -468,7 +468,7 @@ public class Collisions {
 
                     // Thankfully I don't believe mojang changes this cross version?
                     // Anyways, these are exempt from pushing
-                    if (Materials.checkFlag(mat, Materials.LEAVES) || Materials.checkFlag(mat, Materials.GLASS_BLOCK) || Materials.checkFlag(mat, Materials.ICE))
+                    if (Materials.checkFlag(mat, Materials.LEAVES) || Materials.checkFlag(mat, Materials.GLASS_BLOCK) || Materials.checkFlag(mat, Materials.ICE_BLOCKS))
                         continue;
                     CollisionBox box = CollisionData.getData(mat).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
                     if (!box.isFullBlock()) continue;
