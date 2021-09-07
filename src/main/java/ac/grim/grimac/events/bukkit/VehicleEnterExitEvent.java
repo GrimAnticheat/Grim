@@ -22,9 +22,13 @@ public class VehicleEnterExitEvent implements Listener {
         SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
 
         // Pending setback, don't let the player mount the vehicle
-        if (data != null && !data.isComplete()) {
+        // Don't block if this is another plugin teleport and not a setback
+        if (data != null && !data.isComplete() && player.getSetbackTeleportUtil().lastOtherPluginTeleport != data.getTrans()) {
             event.setCancelled(true);
+            return;
         }
+
+        player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = event.getVehicle().getEntityId());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -37,10 +41,13 @@ public class VehicleEnterExitEvent implements Listener {
         // Update the position of this entity to stop glitchy behavior
         // We do this by sending the player an entity teleport packet for this boat the next tick
         // (If we send it this tick, the player will ignore it!)
+        // This is required due to ViaVersion incorrectly handling version differences
         Bukkit.getScheduler().runTaskLater(GrimAPI.INSTANCE.getPlugin(),
                 () -> PacketEvents.get().getPlayerUtils().sendPacket(player.bukkitPlayer,
                         new WrappedPacketOutEntityTeleport(event.getVehicle().getEntityId(), event.getVehicle().getLocation(),
                                 event.getVehicle().isOnGround())), 1);
         event.getVehicle().teleport(event.getVehicle().getLocation());
+
+        player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = null);
     }
 }

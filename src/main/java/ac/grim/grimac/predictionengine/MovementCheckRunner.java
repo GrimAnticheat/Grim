@@ -15,6 +15,7 @@ import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.PredictionData;
+import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -782,7 +783,11 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         // This status gets reset on teleports
-        if (blockOffsets) offset = 0;
+        //
+        // Prevent desync by only removing offset when we are both blocking offsets AND
+        // we have a pending setback with a transaction greater than ours
+        SetBackData setbackData = player.getSetbackTeleportUtil().getRequiredSetBack();
+        if (blockOffsets && setbackData != null && setbackData.getTrans() - 1 > data.lastTransaction) offset = 0;
 
         // Don't check players who are offline
         if (!player.bukkitPlayer.isOnline()) return;

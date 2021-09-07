@@ -12,6 +12,7 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -47,9 +48,9 @@ public class KnockbackHandler extends PacketCheck {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            // Useless velocity packet
-            if ((player.packetStateData.sendingSyncVehicle == null && entityId == player.entityID) ||
-                    (player.packetStateData.sendingSyncVehicle != null && entityId != player.packetStateData.sendingSyncVehicle)) {
+            // Detect whether this knockback packet affects the player or if it is useless
+            Entity playerVehicle = player.bukkitPlayer.getVehicle();
+            if ((playerVehicle == null && entityId != player.entityID) || (playerVehicle != null && entityId != playerVehicle.getEntityId())) {
                 return;
             }
 

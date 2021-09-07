@@ -155,23 +155,6 @@ public class CompensatedEntities {
                 passenger.riding = vehicle;
             }
 
-            // Handle the player itself mounting and unmounting a vehicle
-            if (player.vehicle != null && player.vehicle == mountVehicle.vehicleID)
-                player.vehicle = null;
-
-            if (mountVehicle.passengers != null) {
-                for (int entityID : mountVehicle.passengers) {
-                    // Handle scenario transferring from entity to entity with the following packet order:
-                    // Player boards the new entity and a packet is sent for that
-                    // Player is removed from the old entity
-                    // Without the second check the player wouldn't be riding anything
-                    if (player.entityID == entityID) {
-                        player.vehicle = mountVehicle.vehicleID;
-                        break;
-                    }
-                }
-            }
-
             vehicle.passengers = mountVehicle.passengers;
         }
 
@@ -183,13 +166,9 @@ public class CompensatedEntities {
             if (entity.removeTrans > lastTransactionReceived) continue;
             int entityID = entry.getKey();
 
-            Integer playerVehicle = player.vehicle;
-
             entityMap.remove(entityID);
             player.compensatedPotions.removeEntity(entityID);
             player.checkManager.getReach().removeEntity(entityID);
-            if (playerVehicle != null && playerVehicle == entityID)
-                player.vehicle = null;
         }
 
         // Update riding positions - server should send teleport after dismount
