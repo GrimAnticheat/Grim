@@ -76,10 +76,6 @@ public class CheckManager {
         return vehicleCheck.get(check);
     }
 
-    public PostPredictionCheck getPostPredictionCheck(Class<? extends PostPredictionCheck> check) {
-        return postPredictionCheck.get(check);
-    }
-
     public void onPacketReceive(final PacketPlayReceiveEvent packet) {
         packetChecks.values().forEach(packetCheck -> packetCheck.onPacketReceive(packet));
     }
@@ -114,16 +110,16 @@ public class CheckManager {
         return (ExplosionHandler) getPacketCheck(ExplosionHandler.class);
     }
 
+    private PacketCheck getPacketCheck(Class<? extends PacketCheck> check) {
+        return packetChecks.get(check);
+    }
+
     public Reach getReach() {
         return (Reach) getPacketCheck(Reach.class);
     }
 
     public NoFallA getNoFall() {
         return (NoFallA) getPacketCheck(NoFallA.class);
-    }
-
-    private PacketCheck getPacketCheck(Class<? extends PacketCheck> check) {
-        return packetChecks.get(check);
     }
 
     public KnockbackHandler getKnockbackHandler() {
@@ -134,8 +130,16 @@ public class CheckManager {
         return ((SetbackTeleportUtil) getPostPredictionCheck(SetbackTeleportUtil.class));
     }
 
+    public DebugHandler getDebugHandler() {
+        return ((DebugHandler) getPostPredictionCheck(DebugHandler.class));
+    }
+
     public OffsetHandler getOffsetHandler() {
         return ((OffsetHandler) getPostPredictionCheck(OffsetHandler.class));
+    }
+
+    public PostPredictionCheck getPostPredictionCheck(Class<? extends PostPredictionCheck> check) {
+        return postPredictionCheck.get(check);
     }
 
     public ResyncWorldUtil getResyncWorldUtil() {

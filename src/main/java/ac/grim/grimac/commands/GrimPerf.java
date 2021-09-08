@@ -9,7 +9,7 @@ import co.aikar.commands.annotation.Subcommand;
 import org.bukkit.entity.Player;
 
 @CommandAlias("grim|grimac")
-public class GrimBaseCommand extends BaseCommand {
+public class GrimPerf extends BaseCommand {
     @Subcommand("perf|performance")
     @CommandPermission("grim.performance")
     public void onPerformance(Player player) {
