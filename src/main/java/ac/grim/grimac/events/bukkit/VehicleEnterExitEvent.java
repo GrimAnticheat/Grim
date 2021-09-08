@@ -5,13 +5,20 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.SetBackData;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityteleport.WrappedPacketOutEntityTeleport;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.vehicle.VehicleDestroyEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.vehicle.VehicleExitEvent;
+
+import java.util.Collections;
+import java.util.List;
 
 public class VehicleEnterExitEvent implements Listener {
     @EventHandler(priority = EventPriority.LOW)
@@ -25,13 +32,19 @@ public class VehicleEnterExitEvent implements Listener {
         // Don't block if this is another plugin teleport and not a setback
         if (data != null && !data.isComplete() && player.getSetbackTeleportUtil().lastOtherPluginTeleport != data.getTrans()) {
             event.setCancelled(true);
-            return;
         }
+    }
 
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onVehicleEnter(VehicleEnterEvent event) {
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getEntered());
+        if (player == null) return;
+
+        player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
         player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = event.getVehicle().getEntityId());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerExitVehicleEvent(VehicleExitEvent event) {
         if (!(event.getExited() instanceof Player)) return;
 
@@ -48,6 +61,28 @@ public class VehicleEnterExitEvent implements Listener {
                                 event.getVehicle().isOnGround())), 1);
         event.getVehicle().teleport(event.getVehicle().getLocation());
 
+        player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
         player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = null);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onVehicleDestroy(VehicleDestroyEvent event) {
+        for (final Entity entity : getPassengers(event.getVehicle())) {
+            if (entity instanceof Player) {
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) entity);
+                if (player == null) continue;
+
+                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = null);
+            }
+        }
+    }
+
+    private List<Entity> getPassengers(Vehicle vehicle) {
+        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
+            return vehicle.getPassengers();
+        } else {
+            return Collections.singletonList(vehicle.getPassenger());
+        }
     }
 }

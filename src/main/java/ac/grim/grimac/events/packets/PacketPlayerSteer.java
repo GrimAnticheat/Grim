@@ -40,17 +40,6 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 // Update entities to get current vehicle
                 player.compensatedEntities.tickUpdates(player.packetStateData.packetLastTransactionReceived.get());
 
-                // Update knockback and explosions after getting the vehicle
-                player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
-                player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
-
-                player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived);
-                player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived);
-
-                // Not responsible for applying knockback/explosions
-                player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
-                player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
-
                 // Note for the movement check
                 player.vehicleData.lastDummy = true;
 
@@ -61,6 +50,17 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.lastVehicle = player.playerVehicle;
                 player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
                 player.inVehicle = player.playerVehicle != null;
+
+                // Update knockback and explosions after getting the vehicle
+                player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
+                player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
+
+                player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived);
+                player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived);
+
+                // Not responsible for applying knockback/explosions
+                player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
+                player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
 
                 // Set position now to support "dummy" riding without control
                 // Warning - on pigs and striders players, can turn into dummies independent of whether they have
