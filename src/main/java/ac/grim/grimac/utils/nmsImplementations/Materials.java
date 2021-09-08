@@ -66,6 +66,11 @@ public class Materials {
     private static final Material CHEST = XMaterial.CHEST.parseMaterial();
     private static final Material TRAPPED_CHEST = XMaterial.TRAPPED_CHEST.parseMaterial();
 
+    private static final Material RAIL = XMaterial.RAIL.parseMaterial();
+    private static final Material ACTIVATOR_RAIL = XMaterial.ACTIVATOR_RAIL.parseMaterial();
+    private static final Material DETECTOR_RAIL = XMaterial.DETECTOR_RAIL.parseMaterial();
+    private static final Material POWERED_RAIL = XMaterial.POWERED_RAIL.parseMaterial();
+
     private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
     private static final Set<Material> NO_PLACE_LIQUIDS = new HashSet<>();
 
@@ -379,11 +384,17 @@ public class Materials {
         }
     }
 
+    public static Material matchLegacy(String material) {
+        if (XMaterial.isNewVersion()) {
+            return null;
+        }
+        return Material.getMaterial(material.replace("LEGACY_", ""));
+    }
+
     private static void markAsSolid(Material material) {
         // Set the flag only if the version has the material
         MATERIAL_FLAGS[material.ordinal()] |= Materials.SOLID;
     }
-
 
     public static int getBitmask(Material material) {
         return MATERIAL_FLAGS[material.ordinal()];
@@ -394,7 +405,6 @@ public class Materials {
                 || material == CROSSBOW || material == BOW || checkFlag(material, SWORD)
                 || material == TRIDENT || material == SHIELD);
     }
-
 
     public static boolean checkFlag(Material material, int flag) {
         return (MATERIAL_FLAGS[material.ordinal()] & flag) == flag;
@@ -410,12 +420,17 @@ public class Materials {
 
         FlatBlockState flat = (FlatBlockState) state;
         BlockData blockData = flat.getBlockData();
+        Material mat = blockData.getMaterial();
 
         // Waterlogged lanterns were added in 1.16.2
-        if (clientVersion.isOlderThan(ClientVersion.v_1_16_2) && (blockData.getMaterial() == LANTERN || blockData.getMaterial() == SOUL_LANTERN))
+        if (clientVersion.isOlderThan(ClientVersion.v_1_16_2) && (mat == LANTERN || mat == SOUL_LANTERN))
             return false;
         // ViaVersion small dripleaf -> fern (not waterlogged)
-        if (clientVersion.isOlderThan(ClientVersion.v_1_17) && blockData.getMaterial() == SMALL_DRIPLEAF)
+        if (clientVersion.isOlderThan(ClientVersion.v_1_17) && mat == SMALL_DRIPLEAF)
+            return false;
+        // Waterlogged rails were added in 1.17
+        if (clientVersion.isOlderThan(ClientVersion.v_1_17) &&
+                (mat == RAIL || mat == POWERED_RAIL || mat == ACTIVATOR_RAIL || mat == DETECTOR_RAIL))
             return false;
 
         return blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged();
@@ -461,12 +476,5 @@ public class Materials {
 
     public static boolean isWaterMagic(ClientVersion clientVersion, BaseBlockState state) {
         return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY);
-    }
-
-    public static Material matchLegacy(String material) {
-        if (XMaterial.isNewVersion()) {
-            return null;
-        }
-        return Material.getMaterial(material.replace("LEGACY_", ""));
     }
 }
