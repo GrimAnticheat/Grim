@@ -1,7 +1,8 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.commands.GrimBaseCommand;
+import ac.grim.grimac.commands.GrimDebug;
+import ac.grim.grimac.commands.GrimPerf;
 import ac.grim.grimac.manager.init.Initable;
 import co.aikar.commands.PaperCommandManager;
 
@@ -14,6 +15,7 @@ public class CommandRegister implements Initable {
 
         commandManager.enableUnstableAPI("brigadier");
 
-        commandManager.registerCommand(new GrimBaseCommand());
+        commandManager.registerCommand(new GrimPerf());
+        commandManager.registerCommand(new GrimDebug());
     }
 }
