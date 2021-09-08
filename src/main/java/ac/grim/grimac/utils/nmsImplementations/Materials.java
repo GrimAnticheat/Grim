@@ -186,7 +186,7 @@ public class Materials {
 
         // The solid blacklist affects water pushing code
         // It's vanilla name is "Solid"
-        // The code for this has rarely changed, except with 1.16 for a few things which are marked in the method itself
+        // The code for this has rarely changed except with that banner oddity
         //
         // Solid has nothing to do with collision in Vanilla, unlike in Grim
         // (This is due to the Materials system in vanilla being much different from our system, as supporting

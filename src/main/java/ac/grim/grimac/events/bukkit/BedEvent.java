@@ -21,7 +21,7 @@ public class BedEvent implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerBedExitEvent(PlayerBedLeaveEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-        if (player != null && !event.isCancelled()) {
+        if (player != null) {
             player.sendAndFlushTransactionOrPingPong();
             player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.isInBed = false);
         }
