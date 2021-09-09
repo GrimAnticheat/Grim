@@ -39,7 +39,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 Optional<WrappedWatchableObject> watchable = entityMetadata.getWatchableObjects()
                         .stream().filter(o -> o.getIndex() == (0)).findFirst();
 
-                // This one has always been present but I guess some jar could mess it up
                 if (watchable.isPresent()) {
                     Object zeroBitField = watchable.get().getRawValue();
 
@@ -48,8 +47,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
                         boolean isSwimming = (field & 0x10) == 0x10;
 
-                        int transactionSent = player.lastTransactionSent.get() + 1;
-                        event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                        int transactionSent = player.lastTransactionSent.get();
                         player.compensatedElytra.tryAddStatus(transactionSent, isGliding);
 
                         player.latencyUtils.addAnticheatSyncTask(transactionSent, () -> {
@@ -74,6 +72,8 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 //
                 // Why mojang, why.  Why are you so incompetent at netcode.
                 if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
+                    // Use a new arraylist to avoid a concurrent modification exception, although
+                    // I'm not sure what is causing it... but this fixes it
                     List<Object> metadata = new ArrayList<>(entityMetadata.readList(0));
 
                     metadata.removeIf(element -> {
@@ -96,7 +96,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                         player.compensatedRiptide.setPose(isRiptiding);
 
-                        // 1.13 eating:
+                        // 1.9 eating:
                         // - Client: I am starting to eat
                         // - Client: I am no longer eating
                         // - Server: Got that, you are eating!
