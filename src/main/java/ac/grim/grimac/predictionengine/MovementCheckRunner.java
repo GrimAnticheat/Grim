@@ -563,17 +563,22 @@ public class MovementCheckRunner extends PositionCheck {
                     || (player.uncertaintyHandler.isSteppingOnSlime && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree))
                     && player.tryingToRiptide && player.compensatedRiptide.getCanRiptide() && !player.inVehicle;
 
-            // If the player's last tick was on the ground and the player is near the ground
+            // Riptiding while on the ground moves the hitbox upwards before any movement code runs
+            // It's a pain to support and this is my best attempt
             if (player.canGroundRiptide) {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
 
-                player.lastOnGround = false;
-                player.boundingBox.offset(0, pushingMovement.getY(), 0);
-                player.lastY += pushingMovement.getY();
-                player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+                // If the player was very likely to have used riptide on the ground
+                // (Patches issues with slime and other desync's)
+                if (likelyGroundRiptide(pushingMovement)) {
+                    player.lastOnGround = false;
+                    player.boundingBox.offset(0, pushingMovement.getY(), 0);
+                    player.lastY += pushingMovement.getY();
+                    player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
-                Collisions.handleInsideBlocks(player);
+                    Collisions.handleInsideBlocks(player);
+                }
             }
 
             new PlayerBaseTick(player).doBaseTick();
@@ -851,5 +856,50 @@ public class MovementCheckRunner extends PositionCheck {
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset, false);
         player.trigHandler.setOffset(offset);
         player.compensatedRiptide.handleRemoveRiptide();
+    }
+
+    /**
+     * Computes the movement from the riptide, and then uses it to determine whether the player
+     * was more likely to be on or off of the ground when they started to riptide
+     * <p>
+     * A player on ground when riptiding will move upwards by 1.2f
+     * We don't know whether the player was on the ground, however, which is why
+     * we must attempt to guess here
+     * <p>
+     * Very reliable.
+     *
+     * @param pushingMovement The collision result when trying to move the player upwards by 1.2f
+     * @return Whether it is more likely that this player was on the ground the tick they riptided
+     */
+    private boolean likelyGroundRiptide(Vector pushingMovement) {
+        ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
+        ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
+
+        int j;
+        if (main.getType() == Material.TRIDENT) {
+            j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
+        } else if (off.getType() == Material.TRIDENT) {
+            j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
+        } else {
+            return false;
+        }
+
+        float f7 = player.xRot;
+        float f = player.yRot;
+        float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
+        float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
+        float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
+        float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
+        float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
+
+        // Y velocity gets reset if the player collides vertically
+        double riptideYResult = player.verticalCollision ? 0 : f2 * (f5 / f4);
+
+        double riptideDiffToBase = Math.abs(player.actualMovement.getY() - riptideYResult);
+        double riptideDiffToGround = Math.abs(player.actualMovement.getY() - riptideYResult - pushingMovement.getY());
+
+        // If the player was very likely to have used riptide on the ground
+        // (Patches issues with slime and other desync's)
+        return riptideDiffToGround < riptideDiffToBase;
     }
 }
