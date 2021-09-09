@@ -160,7 +160,7 @@ public class Reach extends PacketCheck {
                 alert("Missed hitbox", "Reach", formatViolations());
             } else if (minDistance > maxReach) {
                 increaseViolations();
-                alert(minDistance + " blocks", "Reach", formatViolations());
+                alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
             }
 
             attackQueue = playerAttackQueue.poll();

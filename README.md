@@ -1,10 +1,9 @@
 # GrimAC
 
-**Warning: This project isn't complete and it currently is incapable of functioning as an anticheat**
+**Warning: This project is too buggy to be used in production**
 
 GrimAC is an open source anticheat designed for 1.17 and supporting 1.7-1.17. It will be sold for $15 on SpigotMC and
-other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats. It is
-planning to release either June or July 2021.
+other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats.
 
 **Discord:** https://discord.gg/FNRrcGAybJ
 
@@ -57,4 +56,3 @@ Here are the main cores that make grim stand out against other anticheats
 
 * All systems are designed to be highly secure and mathematically impossible to bypass
 * For example, the prediction engine knows all possible movements and cannot be bypassed
-* Shortcuts have not been taken and all possible scenarios are implemented without exemptions.
