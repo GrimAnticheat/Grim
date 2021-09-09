@@ -15,6 +15,7 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
