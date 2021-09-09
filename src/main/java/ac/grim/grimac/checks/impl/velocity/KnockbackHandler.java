@@ -165,8 +165,13 @@ public class KnockbackHandler extends PacketCheck {
             if (player.likelyKB.offset > offsetToFlag) {
                 increaseViolations();
 
-                String formatOffset = formatOffset(offset);
-                alert("o: " + formatOffset, "AntiKB", GrimMath.floor(violations) + "");
+                String formatOffset = "o: " + formatOffset(offset);
+
+                if (player.likelyKB.offset == Integer.MAX_VALUE) {
+                    formatOffset = "ignored knockback";
+                }
+
+                alert(formatOffset, "AntiKB", GrimMath.floor(violations) + "");
             }
         }
     }
