@@ -26,4 +26,8 @@ public class PlayerDataManager {
     public Collection<GrimPlayer> getEntries() {
         return playerDataMap.values();
     }
+
+    public int size() {
+        return playerDataMap.size();
+    }
 }
