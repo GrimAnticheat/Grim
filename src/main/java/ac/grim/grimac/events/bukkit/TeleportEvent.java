@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class TeleportEvent implements Listener {
@@ -21,5 +22,14 @@ public class TeleportEvent implements Listener {
             if (player == null) return;
             player.getSetbackTeleportUtil().setSetback(new Vector3d(to.getX(), to.getY(), to.getZ()));
         }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPlayerRespawnEvent(PlayerRespawnEvent event) {
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+        if (player == null) return;
+
+        Location loc = event.getRespawnLocation();
+        player.getSetbackTeleportUtil().setSetback(new Vector3d(loc.getX(), loc.getY(), loc.getZ()));
     }
 }
