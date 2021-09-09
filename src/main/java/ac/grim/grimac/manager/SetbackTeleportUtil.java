@@ -40,8 +40,12 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         super(player);
     }
 
+    /**
+     * Generates safe setback locations by looking at the current prediction
+     */
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // We must first check if the player has accepted their setback
+        // If the setback isn't complete, then this position is illegitimate
         if (predictionComplete.getData().acceptedSetback) {
             // If there is a new pending setback, don't desync from the netty thread
             if (!requiredSetBack.isComplete()) return;
@@ -62,7 +66,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             } else if (wasLastMovementSafe) {
                 safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ), lastMovementVel);
 
-                if ((player.onGround || player.exemptOnGround()) && player.uncertaintyHandler.lastTeleportTicks < -3) {
+                if ((player.onGround || player.exemptOnGround() || player.isGliding) && player.uncertaintyHandler.lastTeleportTicks < -3) {
                     // Avoid setting velocity when teleporting players back to the ground
                     lastGroundTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ));
                 }
@@ -158,6 +162,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         }
     }
 
+    /**
+     * @param force - Should we setback the player to the last position regardless of if they have
+     *              accepted the teleport, useful for overriding vanilla anticheat teleports.
+     */
     public void resendSetback(boolean force) {
         SetBackData setBack = requiredSetBack;
 
@@ -166,6 +174,12 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         }
     }
 
+    /**
+     * @param x - Player X position
+     * @param y - Player Y position
+     * @param z - Player Z position
+     * @return - Whether the player has completed a teleport by being at this position
+     */
     public boolean checkTeleportQueue(double x, double y, double z) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
@@ -208,6 +222,12 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return false;
     }
 
+    /**
+     * @param x - Player X position
+     * @param y - Player Y position
+     * @param z - Player Z position
+     * @return - Whether the player has completed a teleport by being at this position
+     */
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
         player.packetStateData.wasSetbackLocation = false;
@@ -238,15 +258,27 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return false;
     }
 
+    /**
+     * @return Whether the current setback has been completed
+     */
     public boolean shouldBlockMovement() {
         SetBackData setBack = requiredSetBack;
         return setBack != null && !setBack.isComplete();
     }
 
+    /**
+     * @return The current data for the setback, regardless of whether it is complete or not
+     */
     public SetBackData getRequiredSetBack() {
         return requiredSetBack;
     }
 
+    /**
+     * This method is unsafe to call outside the bukkit thread
+     * This method sets a plugin teleport at this location
+     *
+     * @param position Position of the teleport
+     */
     public void setSetback(Vector3d position) {
         setSafeTeleportPositionFromTeleport(position);
 
@@ -256,6 +288,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         lastOtherPluginTeleport = player.lastTransactionSent.get();
     }
 
+    /**
+     * This method is unsafe to call outside the bukkit thread
+     *
+     * @param position A safe setback location
+     */
     public void setSafeTeleportPositionFromTeleport(Vector3d position) {
         this.safeTeleportPosition = new SetbackLocationVelocity(position);
         this.lastGroundTeleportPosition = new SetbackLocationVelocity(position);

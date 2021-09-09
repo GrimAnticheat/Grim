@@ -114,8 +114,13 @@ public class ExplosionHandler extends PacketCheck {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 increaseViolations();
 
-                String formatOffset = formatOffset(offset);
-                alert("o: " + formatOffset, "AntiExplosion", GrimMath.floor(violations) + "");
+                String formatOffset = "o: " + formatOffset(offset);
+
+                if (player.likelyKB.offset == Integer.MAX_VALUE) {
+                    formatOffset = "ignored explosion";
+                }
+
+                alert(formatOffset, "AntiExplosion", GrimMath.floor(violations) + "");
             } else {
                 reward();
             }
