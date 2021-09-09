@@ -15,6 +15,7 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -73,7 +74,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 //
                 // Why mojang, why.  Why are you so incompetent at netcode.
                 if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
-                    List<Object> metadata = entityMetadata.readList(0);
+                    List<Object> metadata = new ArrayList<>(entityMetadata.readList(0));
 
                     metadata.removeIf(element -> {
                         Object dataWatcherObject = new WrappedPacket(new NMSPacket(element)).readAnyObject(0);
