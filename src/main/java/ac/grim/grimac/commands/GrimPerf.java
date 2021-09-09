@@ -13,8 +13,13 @@ public class GrimPerf extends BaseCommand {
     @Subcommand("perf|performance")
     @CommandPermission("grim.performance")
     public void onPerformance(Player player) {
+        double nano = MovementCheckRunner.executor.getLongComputeTime() * 20 * GrimAPI.INSTANCE.getPlayerDataManager().size();
+        // Convert this into seconds
+        double seconds = nano / 1e9;
+
         player.sendMessage("Nanoseconds per prediction: " + MovementCheckRunner.executor.getComputeTime());
+        player.sendMessage("Estimated load (threads): " + seconds);
         player.sendMessage("Prediction threads: " + MovementCheckRunner.executor.getPoolSize());
-        player.sendMessage("Players online: " + GrimAPI.INSTANCE.getPlayerDataManager().getEntries().size());
+        player.sendMessage("Players online: " + GrimAPI.INSTANCE.getPlayerDataManager().size());
     }
 }

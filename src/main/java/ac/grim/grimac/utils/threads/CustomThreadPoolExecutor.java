@@ -8,6 +8,8 @@ import java.util.concurrent.*;
 
 public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
     private static double computeTime = 0;
+    // Assume predictions take 1 millisecond (they should take 0.3 ms)
+    private static double longComputeTime = 1e6;
 
     public CustomThreadPoolExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, ThreadFactory threadFactory) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue, threadFactory);
@@ -19,6 +21,7 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
             if (!data.isCheckNotReady) {
                 long timeTaken = System.nanoTime() - startTime;
                 computeTime = (computeTime * 499 / 500d) + (timeTaken * (1 / 500d));
+                longComputeTime = (computeTime * 2499 / 2500d) + (timeTaken * (1 / 2500d));
             }
             if (t != null) {
                 t.printStackTrace();
@@ -58,6 +61,10 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
 
     public double getComputeTime() {
         return computeTime;
+    }
+
+    public double getLongComputeTime() {
+        return longComputeTime;
     }
 
     @Override
