@@ -2,7 +2,7 @@
 # Source code: https://github.com/MWHunter/Grim
 # Copyright DefineOutside, Licensed under GPLv3
 
-prefix: '&bGrimAC &f»'
+prefix: "&bGrim &8»"
 
 alerts:
   # Valid placeholders:
@@ -11,7 +11,7 @@ alerts:
   # %check_name%
   # %vl% - violations
   # %check-verbose% - extra information from the check such as offsets, not all checks will add information
-  format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) %verbose%"
+  format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 # GrimAC can usually check movement within 0.00000001 precision
 # It is usually safe to check movement to 0.0001 with very few falses

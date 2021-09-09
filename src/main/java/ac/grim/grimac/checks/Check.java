@@ -109,8 +109,8 @@ public class Check<T> {
         // To reduce spam, some checks only alert 10% of the time
         if (alertInterval != 0 && alertCount++ % alertInterval != 0) return;
 
-        String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) %check-verbose%");
-        alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrimAC &f»"));
+        String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+        alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrim &8»"));
         alertString = alertString.replace("%player%", player.bukkitPlayer.getName());
         alertString = alertString.replace("%check_name%", checkName);
         alertString = alertString.replace("%vl%", violations);
