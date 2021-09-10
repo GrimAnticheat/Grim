@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
+import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -14,6 +15,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.W
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import org.bukkit.Material;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +49,10 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
                         boolean isSwimming = (field & 0x10) == 0x10;
 
+                        player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+
+                        // Send transaction BEFORE gliding so that any transition stuff will get removed
+                        // by the uncertainty from switching with an elytra
                         int transactionSent = player.lastTransactionSent.get();
                         player.compensatedElytra.tryAddStatus(transactionSent, isGliding);
 
