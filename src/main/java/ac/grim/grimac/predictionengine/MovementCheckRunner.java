@@ -620,9 +620,6 @@ public class MovementCheckRunner extends PositionCheck {
             offset -= 1.2;
         }
 
-        if (player.uncertaintyHandler.lastGlidingChangeTicks > -6)
-            offset -= 0.25;
-
         if (player.uncertaintyHandler.lastFlyingStatusChange > -5) {
             offset -= 0.25;
         }
@@ -690,13 +687,6 @@ public class MovementCheckRunner extends PositionCheck {
         // Riptide tridents are still very glitchy, and sometimes we mispredict when near the ground
         // (This scenario is decently rare, but we still should resync)
         if (player.riptideSpinAttackTicks > 0 && offset > 0.001) {
-            offset = 0;
-            player.getSetbackTeleportUtil().executeSetback(false);
-            blockOffsets = true;
-        }
-
-        // Don't let elytra glitchiness get the player banned
-        if (player.uncertaintyHandler.lastGlidingChangeTicks > -20 && offset > 0.001) {
             offset = 0;
             player.getSetbackTeleportUtil().executeSetback(false);
             blockOffsets = true;

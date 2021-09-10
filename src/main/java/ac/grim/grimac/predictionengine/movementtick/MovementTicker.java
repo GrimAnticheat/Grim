@@ -70,8 +70,7 @@ public class MovementTicker {
         // Trust the onGround status if the player is near the ground and they sent a ground packet
         if (player.inVehicle || ((Collections.max(player.uncertaintyHandler.pistonPushing) == 0 && !player.uncertaintyHandler.isStepMovement
                 && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.influencedByBouncyBlock()
-                && player.uncertaintyHandler.lastTeleportTicks < -2) && player.uncertaintyHandler.lastHardCollidingLerpingEntity < -3
-                && player.uncertaintyHandler.lastGlidingChangeTicks < -3 &&
+                && player.uncertaintyHandler.lastTeleportTicks < -2) && player.uncertaintyHandler.lastHardCollidingLerpingEntity < -3 &&
                 // The player has 0 vertical velocity, but might be on the ground, or might not.  They are 1e-7 on the ground
                 // so there is little room for abuse.
                 !(testY == -SimpleCollisionBox.COLLISION_EPSILON && plusCollide.getY() == 0)) {

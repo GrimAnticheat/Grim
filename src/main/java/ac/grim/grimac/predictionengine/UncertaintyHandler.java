@@ -163,10 +163,6 @@ public class UncertaintyHandler {
 
         if (lastThirtyMillionHardBorder > -3)
             pointThree = 0.15;
-
-        if (player.uncertaintyHandler.lastGlidingChangeTicks > -3)
-            pointThree = 0.15;
-
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
             pointThree = Math.max(pointThree, player.speed * 1.6);
         }
@@ -195,11 +191,6 @@ public class UncertaintyHandler {
             return 0.28;
 
         if (lastThirtyMillionHardBorder > -3)
-            return 0.15;
-
-        // Don't allow this uncertainty to be spoofed - use isActuallyOnGround
-        // (Players control their onGround when this hack is active)
-        if (player.uncertaintyHandler.lastGlidingChangeTicks > -3 && !player.isActuallyOnGround)
             return 0.15;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
