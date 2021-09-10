@@ -116,7 +116,7 @@ public class ExplosionHandler extends PacketCheck {
 
                 String formatOffset = "o: " + formatOffset(offset);
 
-                if (player.likelyKB.offset == Integer.MAX_VALUE) {
+                if (player.likelyExplosions.offset == Integer.MAX_VALUE) {
                     formatOffset = "ignored explosion";
                 }
 
