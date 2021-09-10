@@ -68,6 +68,17 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
+    public void forceExempt() {
+        // Unsure explosion was taken
+        if (player.firstBreadExplosion != null) {
+            player.firstBreadExplosion.offset = 0;
+        }
+
+        if (player.likelyExplosions != null) {
+            player.likelyExplosions.offset = 0;
+        }
+    }
+
     public void handlePlayerExplosion(double offset, boolean force) {
         boolean wasZero = wasKbZeroPointZeroThree;
         wasKbZeroPointZeroThree = false;
