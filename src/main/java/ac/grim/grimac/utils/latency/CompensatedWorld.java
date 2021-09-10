@@ -28,8 +28,6 @@ import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMap;
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
@@ -49,7 +47,7 @@ public class CompensatedWorld {
     public static BaseBlockState airData;
     public static Method getByCombinedID;
     public final GrimPlayer player;
-    private final Long2ObjectMap<Column> chunks = new Long2ObjectOpenHashMap<>();
+    private final ConcurrentHashMap<Long, Column> chunks = new ConcurrentHashMap<>();
     public ConcurrentSkipListSet<BasePlayerChangeBlockData> worldChangedBlockQueue = new ConcurrentSkipListSet<>((a, b) -> {
         // We can't have elements with equal comparisons, otherwise they won't be added
         if (a.transaction == b.transaction) {
