@@ -80,6 +80,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void executeSetback(boolean allowTeleportToGround) {
         Vector setbackVel = new Vector();
 
+        new Exception().printStackTrace();
+        LogUtil.info("Setback " + player.bukkitPlayer.getName());
+
         if (player.firstBreadKB != null) {
             setbackVel = player.firstBreadKB.vector;
         }

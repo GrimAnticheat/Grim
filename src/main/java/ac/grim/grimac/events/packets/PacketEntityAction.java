@@ -8,6 +8,7 @@ import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.entityaction.WrappedPacketInEntityAction;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -41,6 +42,9 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     player.packetStateData.isPacketSneaking = false;
                     break;
                 case START_FALL_FLYING:
+                    // Starting fall flying is client sided on 1.14 and below
+                    if (player.getClientVersion().isOlderThan(ClientVersion.v_1_15)) return;
+
                     player.compensatedElytra.lastToggleElytra = player.packetStateData.packetLastTransactionReceived.get();
                     ItemStack chestPlate = player.bukkitPlayer.getInventory().getChestplate();
                     // I have a bad feeling that there might be a way to fly without durability using this

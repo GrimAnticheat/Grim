@@ -59,7 +59,11 @@ public class PlayerBaseTick {
                 && ((player.isCrouching || player.getClientVersion().isNewerThan(ClientVersion.v_1_14_4) ? player.wasSneaking : player.isSneaking)
                 || player.isInBed || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
                 : player.isSneaking; // Sneaking on 1.7-1.13 is just the status the player sends us.  Nothing complicated.
-        player.isSlowMovement = player.isCrouching || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.pose == Pose.SWIMMING && !player.wasTouchingWater);
+        player.isSlowMovement = player.isCrouching || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
+                // If the player is in the swimming pose
+                // Or if the player is not gliding, and the player's pose is fall flying
+                // and the player is not touching water (yes, this also can override the gliding slowness)
+                (player.pose == Pose.SWIMMING || (!player.isGliding && player.pose == Pose.FALL_FLYING)) && !player.wasTouchingWater);
 
 
         // Players in boats don't care about being in blocks
