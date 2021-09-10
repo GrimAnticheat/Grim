@@ -23,6 +23,8 @@ import java.util.List;
 public class VehicleEnterExitEvent implements Listener {
     @EventHandler(priority = EventPriority.LOW)
     public void onPlayerVehicleEnterEvent(VehicleEnterEvent event) {
+        if (!(event.getEntered() instanceof Player)) return;
+
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getEntered());
         if (player == null) return;
 
@@ -37,6 +39,8 @@ public class VehicleEnterExitEvent implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onVehicleEnter(VehicleEnterEvent event) {
+        if (!(event.getEntered() instanceof Player)) return;
+
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getEntered());
         if (player == null) return;
 
