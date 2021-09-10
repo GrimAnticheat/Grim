@@ -119,6 +119,17 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
+    public void forceExempt() {
+        // Unsure knockback was taken
+        if (player.firstBreadKB != null) {
+            player.firstBreadKB.offset = 0;
+        }
+
+        if (player.likelyKB != null) {
+            player.likelyKB.offset = 0;
+        }
+    }
+
     public void handlePredictionAnalysis(double offset, Vector vector) {
         if (vector.lengthSquared() < player.uncertaintyHandler.getZeroPointZeroThreeThreshold())
             wasExplosionZeroPointZeroThree = true;
