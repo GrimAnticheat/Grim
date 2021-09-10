@@ -45,7 +45,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     ItemStack chestPlate = player.bukkitPlayer.getInventory().getChestplate();
                     // I have a bad feeling that there might be a way to fly without durability using this
                     // The server SHOULD resync by telling the client to stop using the elytra if they can't fly!
-                    if (chestPlate != null && chestPlate.getType() == elytra) {
+                    if (chestPlate != null && chestPlate.getType() == elytra && chestPlate.getDurability() > 1) {
                         player.compensatedElytra.tryAddStatus(player.packetStateData.packetLastTransactionReceived.get(), true);
                     }
                     break;
