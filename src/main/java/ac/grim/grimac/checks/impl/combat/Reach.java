@@ -32,12 +32,12 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.namedentityspawn
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -46,9 +46,10 @@ import java.util.concurrent.Executors;
 public class Reach extends PacketCheck {
 
     public static final ExecutorService posSender = Executors.newSingleThreadExecutor();
-    public final Int2ObjectLinkedOpenHashMap<PlayerReachEntity> entityMap = new Int2ObjectLinkedOpenHashMap<>();
-    private final GrimPlayer player;
+    // Concurrent to support weird entity trackers
+    public final ConcurrentHashMap<Integer, PlayerReachEntity> entityMap = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
+    private final GrimPlayer player;
 
     private boolean hasSentPreWavePacket = false; // Not required to be atomic - sync'd to one thread
 
@@ -92,7 +93,7 @@ public class Reach extends PacketCheck {
 
         Integer attackQueue = playerAttackQueue.poll();
         while (attackQueue != null) {
-            PlayerReachEntity reachEntity = entityMap.get((int) attackQueue);
+            PlayerReachEntity reachEntity = entityMap.get(attackQueue);
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
             // 1.9 -> 1.8 precision loss in packets
