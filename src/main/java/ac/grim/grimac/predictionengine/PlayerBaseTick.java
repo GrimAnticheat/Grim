@@ -77,10 +77,11 @@ public class PlayerBaseTick {
         float f = BlockProperties.getBlockSpeedFactor(player);
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
 
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14))
-            updatePlayerPose();
-        else
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
+            if (!player.isGliding) updatePlayerPose();
+        } else {
             updatePlayerSize();
+        }
     }
 
     // 1.16 eye in water is a tick behind
