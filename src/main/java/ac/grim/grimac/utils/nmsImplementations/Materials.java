@@ -185,10 +185,6 @@ public class Materials {
         // Piston heads have bounding boxes that exceed their own cube
         markAs(XMaterial.PISTON_HEAD, SHAPE_EXCEEDS_CUBE);
 
-        // Stupid 1.8 pane names
-        markAs(XMaterial.GLASS_PANE, GLASS_PANE);
-        markAs(XMaterial.IRON_BARS, GLASS_PANE);
-
         // The solid blacklist affects water pushing code
         // It's vanilla name is "Solid"
         // The code for this has rarely changed except with that banner oddity
@@ -338,9 +334,10 @@ public class Materials {
             if (mat.name().contains("_DOOR") && !mat.name().contains("IRON"))
                 MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
             if (mat.name().contains("SHULKER_BOX")) MATERIAL_FLAGS[mat.ordinal()] |= SHULKER;
-            if (mat.name().contains("GLASS") && !mat.name().contains("PANE"))
+            if (mat.name().contains("GLASS") && !mat.name().contains("PANE") && !mat.name().contains("THIN_GLASS"))
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_BLOCK;
-            if (mat.name().contains("GLASS") && mat.name().contains("PANE"))
+            // THIN_GLASS and IRON_FENCE are 1.8 names for these materials
+            if ((mat.name().contains("GLASS") && mat.name().contains("PANE")) || mat.name().contains("THIN_GLASS") || mat.name().contains("IRON_FENCE"))
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_PANE;
             if (mat.name().contains("SKULL") || mat.name().contains("HEAD"))
                 MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
