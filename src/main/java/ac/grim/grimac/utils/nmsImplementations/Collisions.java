@@ -42,6 +42,16 @@ public class Collisions {
     private static final Material OBSERVER = XMaterial.OBSERVER.parseMaterial();
     private static final Material REDSTONE_BLOCK = XMaterial.REDSTONE_BLOCK.parseMaterial();
 
+    private static final Material ICE = XMaterial.ICE.parseMaterial();
+    private static final Material FROSTED_ICE = XMaterial.FROSTED_ICE.parseMaterial();
+
+    private static final Material TNT = XMaterial.TNT.parseMaterial();
+    private static final Material FARMLAND = XMaterial.FARMLAND.parseMaterial();
+    private static final Material DIRT_PATH = XMaterial.DIRT_PATH.parseMaterial();
+    private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
+    private static final Material PISTON_BASE = XMaterial.PISTON.parseMaterial();
+    private static final Material STICKY_PISTON_BASE = XMaterial.STICKY_PISTON.parseMaterial();
+
     private static final double COLLISION_EPSILON = 1.0E-7;
     private static final int absoluteMaxSize = 29999984;
 
@@ -462,37 +472,49 @@ public class Collisions {
     }
 
     public static boolean suffocatesAt(GrimPlayer player, SimpleCollisionBox playerBB) {
-        List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
-
         // Blocks are stored in YZX order
         for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
             for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
                 for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
-                    BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-                    Material mat = data.getMaterial();
-
-                    // 1.13- players can not be pushed by blocks that can emit power, for some reason.
-                    if ((mat == OBSERVER || mat == REDSTONE_BLOCK) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2))
-                        continue;
-
-                    // Thankfully I don't believe mojang changes this cross version?
-                    // Anyways, these are exempt from pushing
-                    if (Materials.checkFlag(mat, Materials.LEAVES) || Materials.checkFlag(mat, Materials.GLASS_BLOCK) || Materials.checkFlag(mat, Materials.ICE_BLOCKS))
-                        continue;
-                    CollisionBox box = CollisionData.getData(mat).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
-                    if (!box.isFullBlock()) continue;
-
-                    box.downCast(listOfBlocks);
+                    if (doesBlockSuffocate(player, x, y, z)) return true;
                 }
             }
         }
 
-
-        for (CollisionBox collisionBox : listOfBlocks) {
-            if (collisionBox.isCollided(playerBB)) return true;
-        }
-
         return false;
+    }
+
+    public static boolean doesBlockSuffocate(GrimPlayer player, int x, int y, int z) {
+        BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        Material mat = data.getMaterial();
+
+        // 1.13- players can not be pushed by blocks that can emit power, for some reason, while 1.14+ players can
+        if (mat == OBSERVER || mat == REDSTONE_BLOCK)
+            return player.getClientVersion().isNewerThan(ClientVersion.v_1_13_2);
+        // Tnt only pushes on 1.14+ clients
+        if (mat == TNT) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
+        // Farmland only pushes on 1.16+ clients
+        if (mat == FARMLAND) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
+        // 1.14-1.15 doesn't push with soul sand, the rest of the versions do
+        if (mat == SOUL_SAND)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16) || player.getClientVersion().isOlderThan(ClientVersion.v_1_14);
+        // 1.13 and below exempt piston bases, while 1.14+ look to see if they are a full block or not
+        if ((mat == PISTON_BASE || mat == STICKY_PISTON_BASE) && player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
+            return false;
+        // 1.13 and below exempt ICE and FROSTED_ICE, 1.14 have them push
+        if (mat == ICE || mat == FROSTED_ICE)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
+        // I believe leaves and glass are consistently exempted across all versions
+        if (Materials.checkFlag(mat, Materials.LEAVES) || Materials.checkFlag(mat, Materials.GLASS_BLOCK)) return false;
+        // 1.16 players are pushed by dirt paths, 1.8 players don't have this block, so it gets converted to a full block
+        if (mat == DIRT_PATH)
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16) || player.getClientVersion().isOlderThan(ClientVersion.v_1_9);
+
+        // Thank god I already have the solid blocking blacklist written, but all these are exempt
+        if (Materials.isSolidBlockingBlacklist(mat, player.getClientVersion())) return false;
+
+        CollisionBox box = CollisionData.getData(mat).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
+        return box.isFullBlock();
     }
 
     public static boolean hasBouncyBlock(GrimPlayer player) {
