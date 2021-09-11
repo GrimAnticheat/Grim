@@ -304,7 +304,7 @@ public class GrimPlayer {
 
                 int incrementingID = packetStateData.packetLastTransactionReceived.incrementAndGet();
                 transactionPing = (int) (System.nanoTime() - data.getSecond());
-                playerClockAtLeast = System.nanoTime() - transactionPing;
+                playerClockAtLeast = data.getSecond();
 
                 latencyUtils.handleNettySyncTransaction(incrementingID);
             } while (data.getFirst() != id);
