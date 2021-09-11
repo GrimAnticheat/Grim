@@ -551,7 +551,9 @@ public class MovementCheckRunner extends PositionCheck {
             //
             // Give some lenience and update the onGround status
             if (player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket && !player.lastOnGround
-                    && (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree || byGround)) {
+                    && (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree || byGround)
+                    // Restrict allowed 0.03 - patches fast towering bypass
+                    && player.clientVelocity.getY() < 0.03) {
                 player.lastOnGround = true;
                 player.uncertaintyHandler.wasLastOnGroundUncertain = true;
                 player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
