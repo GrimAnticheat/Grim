@@ -473,10 +473,12 @@ public class Collisions {
 
     public static boolean suffocatesAt(GrimPlayer player, SimpleCollisionBox playerBB) {
         // Blocks are stored in YZX order
-        for (int y = (int) Math.floor(playerBB.minY); y <= Math.ceil(playerBB.maxY); y++) {
-            for (int z = (int) Math.floor(playerBB.minZ); z <= Math.ceil(playerBB.maxZ); z++) {
-                for (int x = (int) Math.floor(playerBB.minX); x <= Math.ceil(playerBB.maxX); x++) {
-                    if (doesBlockSuffocate(player, x, y, z)) return true;
+        for (int y = (int) Math.floor(playerBB.minY); y < Math.ceil(playerBB.maxY); y++) {
+            for (int z = (int) Math.floor(playerBB.minZ); z < Math.ceil(playerBB.maxZ); z++) {
+                for (int x = (int) Math.floor(playerBB.minX); x < Math.ceil(playerBB.maxX); x++) {
+                    if (doesBlockSuffocate(player, x, y, z)) {
+                        return true;
+                    }
                 }
             }
         }
