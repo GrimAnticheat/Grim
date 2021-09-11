@@ -21,6 +21,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // This is required because the required setback position is not sync to bukkit, and we must avoid
     // setting the player back to a position where they were cheating
     public boolean hasAcceptedSetbackPosition = false;
+    // Sync to netty, a player MUST accept a teleport on join
+    // Bukkit doesn't call this event, so we need to
+    public int acceptedTeleports = 0;
     // Sync to BUKKIT, referenced by only bukkit!  Don't overwrite another plugin's teleport
     public int lastOtherPluginTeleport = 0;
     // This required setback data is sync to the BUKKIT MAIN THREAD (!)
@@ -203,6 +206,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
                 player.teleports.poll();
+                acceptedTeleports++;
 
                 SetBackData setBack = requiredSetBack;
 
@@ -267,7 +271,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      */
     public boolean shouldBlockMovement() {
         SetBackData setBack = requiredSetBack;
-        return setBack != null && !setBack.isComplete();
+        // Block if the player has a pending setback
+        // or hasn't spawned in the world yet
+        return (setBack != null && !setBack.isComplete()) || acceptedTeleports == 0;
     }
 
     /**

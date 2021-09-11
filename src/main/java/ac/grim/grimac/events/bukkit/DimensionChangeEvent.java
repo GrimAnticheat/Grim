@@ -17,6 +17,8 @@ public class DimensionChangeEvent implements Listener {
                 player.sendAndFlushTransactionOrPingPong();
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isPacketSneaking = false);
                 player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.playerWorld = event.getTo().getWorld());
+                // Force the player to accept a teleport before respawning
+                player.getSetbackTeleportUtil().acceptedTeleports = 0;
             }
         }
     }

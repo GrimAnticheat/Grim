@@ -75,7 +75,9 @@ public class MovementCheckRunner extends PositionCheck {
         Column column = data.player.compensatedWorld.getChunk(GrimMath.floor(data.playerX) >> 4, GrimMath.floor(data.playerZ) >> 4);
 
         // The player is in an unloaded chunk
-        if (!data.isJustTeleported && (column == null || column.transaction > player.packetStateData.packetLastTransactionReceived.get())) {
+        if (!data.isJustTeleported && (column == null || column.transaction > player.packetStateData.packetLastTransactionReceived.get())
+                // The player must accept a teleport to spawn in the world, or to teleport cross dimension
+                && player.getSetbackTeleportUtil().acceptedTeleports > 0) {
             data.player.nextTaskToRun = null;
 
             // Teleport the player back to avoid players being able to simply ignore transactions
