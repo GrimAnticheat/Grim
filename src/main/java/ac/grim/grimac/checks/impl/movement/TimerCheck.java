@@ -5,9 +5,6 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.utils.pair.Pair;
-
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 @CheckData(name = "Timer (Experimental)", configName = "TimerA", flagCooldown = 1000, maxBuffer = 5)
 public class TimerCheck extends PacketCheck {
@@ -18,8 +15,9 @@ public class TimerCheck extends PacketCheck {
 
     // Default value is real time minus max keep-alive time
     long knownPlayerClockTime = (long) (System.nanoTime() - 6e10);
+    long lastMovementPlayerClock = (long) (System.nanoTime() - 6e10);
 
-    ConcurrentLinkedQueue<Pair<Long, Long>> lagSpikeToRealTimeFloor = new ConcurrentLinkedQueue<>();
+    boolean hasGottenMovementAfterTransaction = false;
 
     // Proof for this timer check
     // https://i.imgur.com/Hk2Wb6c.png
@@ -38,18 +36,32 @@ public class TimerCheck extends PacketCheck {
     // As we are tying this check to the player's ping, rather than real time.
     //
     // Tested 10/20/30 fps and f3 + t spamming for lag spikes at 0 ping localhost/200 ping clumsy, no falses
+    // Also didn't false when going from 0 -> 2000 ms ping, and 2000 ms -> 0 ms ping
+    // it's a very nice check, in my opinion.  I guess I will find out if netty lag can false it
+
+    // You might notice that we deviate a bit from this to handle lag
+    // We take the FIRST transaction after each movement, to avoid issues with this packet order at low FPS:
+    // TRANSACTION TRANSACTION TRANSACTION MOVEMENT MOVEMENT MOVEMENT
+    // TRANSACTION TRANSACTION TRANSACTION MOVEMENT MOVEMENT MOVEMENT
+    //
+    // We then take the last transaction before this to increase stability with these lag spikes and
+    // to guarantee that we are at least 50 ms back before adding the time
     public TimerCheck(GrimPlayer player) {
         super(player);
         this.player = player;
     }
 
     public void onPacketReceive(final PacketPlayReceiveEvent event) {
-        long currentNanos = System.nanoTime();
+        if (hasGottenMovementAfterTransaction && checkForTransaction(event.getPacketId())) {
+            knownPlayerClockTime = lastMovementPlayerClock;
+            lastMovementPlayerClock = player.getPlayerClockAtLeast();
+            hasGottenMovementAfterTransaction = false;
+        }
 
         if (checkReturnPacketType(event.getPacketId())) return;
 
         player.movementPackets++;
-        knownPlayerClockTime = player.getPlayerClockAtLeast();
+        hasGottenMovementAfterTransaction = true;
 
         // Teleporting sends its own packet (We could handle this, but it's not worth the complexity)
         if (exempt-- > 0) {
@@ -59,7 +71,7 @@ public class TimerCheck extends PacketCheck {
 
         timerBalanceRealTime += 50e6;
 
-        if (timerBalanceRealTime > currentNanos) {
+        if (timerBalanceRealTime > System.nanoTime()) {
             increaseViolations();
             alert("", getCheckName(), formatViolations());
 
@@ -70,26 +82,12 @@ public class TimerCheck extends PacketCheck {
             reward();
         }
 
-        // Calculate time since last transaction - affected by 50 ms delay movement packets and
-        long timeSinceLastProcessedMovement = currentNanos + (currentNanos - knownPlayerClockTime);
+        timerBalanceRealTime = Math.max(timerBalanceRealTime, lastMovementPlayerClock);
+    }
 
-        // Add this into a queue so that new lag spikes do not override previous lag spikes
-        lagSpikeToRealTimeFloor.add(new Pair<>(timeSinceLastProcessedMovement, knownPlayerClockTime));
-
-        // Find the safe floor, lag spikes affect transactions, which is bad.
-        Pair<Long, Long> lagSpikePair = lagSpikeToRealTimeFloor.peek();
-        if (lagSpikePair != null) {
-            do {
-                if (currentNanos > lagSpikePair.getFirst()) {
-                    timerBalanceRealTime = Math.max(timerBalanceRealTime, lagSpikePair.getSecond());
-
-                    lagSpikeToRealTimeFloor.poll();
-                    lagSpikePair = lagSpikeToRealTimeFloor.peek();
-                } else {
-                    break;
-                }
-            } while (lagSpikePair != null);
-        }
+    public boolean checkForTransaction(byte packetType) {
+        return packetType == PacketType.Play.Client.PONG ||
+                packetType == PacketType.Play.Client.TRANSACTION;
     }
 
     public boolean checkReturnPacketType(byte packetType) {
