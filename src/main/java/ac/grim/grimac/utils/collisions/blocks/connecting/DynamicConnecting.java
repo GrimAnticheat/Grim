@@ -75,7 +75,7 @@ public class DynamicConnecting {
                 return false;
             WrappedStairs stairs = (WrappedStairs) WrappedBlockData.getMaterialData(targetBlock);
 
-            return stairs.getDirection() == direction;
+            return stairs.getDirection().getOppositeFace() == direction;
         } else if (canConnectToGate() && Materials.checkFlag(target, Materials.GATE)) {
             WrappedFenceGate gate = (WrappedFenceGate) WrappedBlockData.getMaterialData(targetBlock);
             // 1.4-1.11 clients don't check for fence gate direction
