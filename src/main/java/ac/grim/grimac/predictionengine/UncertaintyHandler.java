@@ -234,12 +234,12 @@ public class UncertaintyHandler {
             return true;
         } else if (player.wasTouchingLava || (influencedByBouncyBlock() && Math.abs(player.clientVelocity.getY()) < 0.2)) {
             return true;
-        } else if (lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket) {
+        } else if (lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket && player.clientVelocity.getY() < 0.03) {
             return true;
         } else {
             double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
 
-            if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
+            if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree && player.clientVelocity.getY() < 0.03) {
                 for (VectorData data : possibleVelocities)
                     player.couldSkipTick = player.couldSkipTick || data.vector.getX() * data.vector.getX() + data.vector.getZ() * data.vector.getZ() < threshold && !data.hasVectorType(VectorData.VectorType.Knockback);
             } else {
