@@ -585,6 +585,12 @@ public class MovementCheckRunner extends PositionCheck {
 
             new PlayerBaseTick(player).doBaseTick();
             new MovementTickerPlayer(player).livingEntityAIStep();
+
+            // 0.03 is rare with gliding, so, therefore, to try and patch falses, we should update with the vanilla order
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.isGliding) {
+                new PlayerBaseTick(player).updatePlayerPose();
+            }
+
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
