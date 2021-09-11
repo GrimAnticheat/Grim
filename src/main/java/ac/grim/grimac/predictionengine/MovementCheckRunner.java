@@ -589,7 +589,7 @@ public class MovementCheckRunner extends PositionCheck {
             new MovementTickerPlayer(player).livingEntityAIStep();
 
             // 0.03 is rare with gliding, so, therefore, to try and patch falses, we should update with the vanilla order
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.isGliding) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && (player.isGliding || player.wasGliding)) {
                 new PlayerBaseTick(player).updatePlayerPose();
             }
 
@@ -799,8 +799,6 @@ public class MovementCheckRunner extends PositionCheck {
         // Don't check players who just switched worlds
         if (player.playerWorld != player.bukkitPlayer.getWorld()) return;
 
-        player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
-
         // If the player flags the check, give leniency so that it doesn't also flag the next tick
         if (player.checkManager.getOffsetHandler().doesOffsetFlag(offset)) {
             double horizontalOffset = player.actualMovement.clone().setY(0).distance(player.predictedVelocity.vector.clone().setY(0));
@@ -823,6 +821,13 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastHorizontalOffset = 0;
             player.uncertaintyHandler.lastVerticalOffset = 0;
         }
+
+        // Do this after next tick uncertainty is given
+        // This must be done AFTER the firework uncertainty or else it badly combines and gives too much speed next tick
+        // TODO: Rework firework uncertainty so this isn't needed?
+        if (player.uncertaintyHandler.lastGlidingChangeTicks > -5) offset -= 0.05;
+
+        player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
 
         player.riptideSpinAttackTicks--;
         if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))

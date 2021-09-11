@@ -78,7 +78,7 @@ public class PlayerBaseTick {
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
-            if (!player.isGliding) updatePlayerPose();
+            if (!player.isGliding && !player.wasGliding) updatePlayerPose();
         } else {
             updatePlayerSize();
         }
