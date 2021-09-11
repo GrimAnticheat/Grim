@@ -32,19 +32,6 @@ public class CompensatedElytra {
         if (!XMaterial.supports(9))
             return;
 
-        // Mojang is terrible at security and sends a gliding = true, gliding = false if the player lies about having an elytra
-        // This fixes that security issue of sending that the player is gliding when the player can't glide at all!
-        // Thanks mojang...
-        if (!isGliding) { // if the current one is false
-            Boolean lastTransFlying = lagCompensatedIsGlidingMap.get(transaction - 1);
-            // and was immediately sent after sending the client true
-            if (lastTransFlying != null && lastTransFlying) {
-                // discard the true value because vanilla sent it to tell the client that they can't glide,
-                // and this situation only occurs if the player has a client (future bad packets check?)
-                lagCompensatedIsGlidingMap.remove(transaction - 1);
-            }
-        }
-
         lagCompensatedIsGlidingMap.put(transaction, isGliding);
     }
 }
