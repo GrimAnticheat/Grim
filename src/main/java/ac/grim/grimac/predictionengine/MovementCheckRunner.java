@@ -509,6 +509,7 @@ public class MovementCheckRunner extends PositionCheck {
         Vector backOff = Collisions.maybeBackOffFromEdge(player.clientVelocity, player, true);
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = player.clientVelocity.getX() != 0 && player.clientVelocity.getZ() != 0 && backOff.getX() == 0 && backOff.getZ() == 0;
         player.canGroundRiptide = false;
+        Vector oldClientVel = player.clientVelocity;
 
         // Exempt if the player is offline
         if (player.isDead || (player.playerVehicle != null && player.playerVehicle.isDead)) {
@@ -859,7 +860,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.checkManager.getKnockbackHandler().handlePlayerKb(offset, false);
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset, false);
-        player.trigHandler.setOffset(offset);
+        player.trigHandler.setOffset(oldClientVel, offset);
         player.compensatedRiptide.handleRemoveRiptide();
     }
 
