@@ -13,6 +13,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.EntityType;
+import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -42,6 +43,7 @@ public class Collisions {
     private static final Material REDSTONE_BLOCK = XMaterial.REDSTONE_BLOCK.parseMaterial();
 
     private static final double COLLISION_EPSILON = 1.0E-7;
+    private static final int absoluteMaxSize = 29999984;
 
     private static final List<List<Axis>> allAxisCombinations = Arrays.asList(
             Arrays.asList(Axis.Y, Axis.X, Axis.Z),
@@ -142,22 +144,29 @@ public class Collisions {
             WorldBorder border = player.playerWorld.getWorldBorder();
             double centerX = border.getCenter().getX();
             double centerZ = border.getCenter().getZ();
-            // For some reason, the game limits the border to 29999984 blocks wide
-            double size = Math.ceil(Math.min(border.getSize() / 2, 29999984));
 
-            // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions
+            // For some reason, the game limits the border to 29999984 blocks wide
+            // TODO: Support dynamic worldborder with latency compensation
+            double size = border.getSize() / 2;
+
+            // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions (optimization)
             if (Math.abs(player.x + centerX) + 16 > size || Math.abs(player.z + centerZ) + 16 > size) {
+                double minX = Math.floor(GrimMath.clamp(centerX - size, -absoluteMaxSize, absoluteMaxSize));
+                double minZ = Math.floor(GrimMath.clamp(centerZ - size, -absoluteMaxSize, absoluteMaxSize));
+                double maxX = Math.ceil(GrimMath.clamp(centerX + size, -absoluteMaxSize, absoluteMaxSize));
+                double maxZ = Math.ceil(GrimMath.clamp(centerZ + size, -absoluteMaxSize, absoluteMaxSize));
+
                 // If the player is fully within the worldborder
-                if (player.boundingBox.minX > centerX - size - 1.0E-7D && player.boundingBox.maxX < centerX + size + 1.0E-7D
-                        && player.boundingBox.minZ > centerZ - size - 1.0E-7D && player.boundingBox.maxZ < centerZ + size + 1.0E-7D) {
+                if (player.boundingBox.minX > minX - 1.0E-7D && player.boundingBox.maxX < maxX + 1.0E-7D
+                        && player.boundingBox.minZ > minZ - 1.0E-7D && player.boundingBox.maxZ < maxZ + 1.0E-7D) {
                     // South border
-                    listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ + size, centerX + size, 1e33, centerZ + size, false));
+                    listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, maxZ, maxX, Double.POSITIVE_INFINITY, maxZ, false));
                     // North border
-                    listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ - size, centerX + size, 1e33, centerZ - size, false));
+                    listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, minZ, maxX, Double.POSITIVE_INFINITY, minZ, false));
                     // East border
-                    listOfBlocks.add(new SimpleCollisionBox(centerX + size, -1e33, centerZ - size, centerX + size, 1e33, centerZ + size, false));
+                    listOfBlocks.add(new SimpleCollisionBox(maxX, Double.NEGATIVE_INFINITY, minZ, maxX, Double.POSITIVE_INFINITY, maxZ, false));
                     // West border
-                    listOfBlocks.add(new SimpleCollisionBox(centerX - size, -1e33, centerZ - size, centerX - size, 1e33, centerZ + size, false));
+                    listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, minZ, minX, Double.POSITIVE_INFINITY, maxZ, false));
                 }
             }
         }
