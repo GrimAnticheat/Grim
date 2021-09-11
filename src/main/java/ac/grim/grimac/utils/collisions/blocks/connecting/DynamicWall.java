@@ -25,7 +25,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
         boolean east;
         boolean up;
 
-        if (XMaterial.isNewVersion() || version.isNewerThan(ClientVersion.v_1_12_2)) {
+        if (XMaterial.isNewVersion() && version.isNewerThan(ClientVersion.v_1_12_2)) {
             WrappedMultipleFacing pane = (WrappedMultipleFacing) block;
 
             east = pane.getDirections().contains(BlockFace.EAST);
@@ -41,14 +41,49 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
             up = true;
         }
 
-        // Proper and faster way would be to compute all this beforehand
-        if (up) {
-            ComplexCollisionBox box = new ComplexCollisionBox(COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy());
-            box.add(new HexCollisionBox(4, 0, 4, 12, 24, 12));
-            return box;
+        // On 1.13+ clients the bounding box is much more complicated
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+            // Proper and faster way would be to compute all this beforehand
+            if (up) {
+                ComplexCollisionBox box = new ComplexCollisionBox(COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy());
+                box.add(new HexCollisionBox(4, 0, 4, 12, 24, 12));
+                return box;
+            }
+
+            return COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy();
         }
 
-        return COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy();
+        // Magic 1.8 code for walls that I copied over, 1.12 below uses this mess
+        float f = 0.25F;
+        float f1 = 0.75F;
+        float f2 = 0.25F;
+        float f3 = 0.75F;
+
+        if (north) {
+            f2 = 0.0F;
+        }
+
+        if (south) {
+            f3 = 1.0F;
+        }
+
+        if (west) {
+            f = 0.0F;
+        }
+
+        if (east) {
+            f1 = 1.0F;
+        }
+
+        if (north && south && !west && !east) {
+            f = 0.3125F;
+            f1 = 0.6875F;
+        } else if (!north && !south && west && east) {
+            f2 = 0.3125F;
+            f3 = 0.6875F;
+        }
+
+        return new SimpleCollisionBox(f, 0.0F, f2, f1, 1.5, f3);
     }
 
     @Override
