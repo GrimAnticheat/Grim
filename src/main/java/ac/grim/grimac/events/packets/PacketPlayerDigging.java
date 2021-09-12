@@ -127,6 +127,14 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9) && place.getDirection() != Direction.OTHER)
                 return;
 
+            // You can't start to use an item on the same tick that you stopped using an item?
+            // Yeah... strange.  Anyways, cancel the packet so that clients cannot desync this to get a NoSlow bypass
+            // Affects 1.8, might affect modern versions too
+            if (player.packetStateData.slowedByUsingItemTransaction == player.packetStateData.packetLastTransactionReceived.get()) {
+                event.setCancelled(true);
+                return;
+            }
+
             player.packetStateData.slowedByUsingItemTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
