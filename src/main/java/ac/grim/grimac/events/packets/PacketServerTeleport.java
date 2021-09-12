@@ -25,8 +25,8 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
         if (packetID == PacketType.Play.Server.POSITION) {
             WrappedPacketOutPosition teleport = new WrappedPacketOutPosition(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
 
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             // Occurs on login
             if (player == null) return;
 

@@ -72,6 +72,7 @@ public class GrimPlayer {
     public double x;
     public double y;
     public double z;
+    public Vector3d loginLocation;
     public float xRot;
     public float yRot;
     public boolean onGround;
@@ -416,6 +417,6 @@ public class GrimPlayer {
                 || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isSteppingOnSlime
                 || isFlying || uncertaintyHandler.isStepMovement
                 || uncertaintyHandler.lastTeleportTicks > -3 || isDead
-                || isInBed || lastInBed;
+                || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -3;
     }
 }
