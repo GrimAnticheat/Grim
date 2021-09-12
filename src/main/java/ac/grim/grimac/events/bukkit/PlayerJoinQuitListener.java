@@ -43,6 +43,7 @@ public class PlayerJoinQuitListener implements Listener {
         player.xRot = bukkitPlayer.getLocation().getYaw();
         player.yRot = bukkitPlayer.getLocation().getPitch();
         player.isDead = bukkitPlayer.isDead();
+        player.loginLocation = new Vector3d(player.x, player.y, player.z);
 
         player.lastX = bukkitPlayer.getLocation().getX();
         player.lastY = bukkitPlayer.getLocation().getY();
