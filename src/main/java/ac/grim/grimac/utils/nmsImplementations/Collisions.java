@@ -51,6 +51,7 @@ public class Collisions {
     private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
     private static final Material PISTON_BASE = XMaterial.PISTON.parseMaterial();
     private static final Material STICKY_PISTON_BASE = XMaterial.STICKY_PISTON.parseMaterial();
+    private static final Material BEACON = XMaterial.BEACON.parseMaterial();
 
     private static final double COLLISION_EPSILON = 1.0E-7;
     private static final int absoluteMaxSize = 29999984;
@@ -490,6 +491,9 @@ public class Collisions {
         BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
         Material mat = data.getMaterial();
 
+        // Optimization - all blocks that can suffocate must have a hitbox
+        if (!Materials.checkFlag(mat, Materials.SOLID)) return false;
+
         // 1.13- players can not be pushed by blocks that can emit power, for some reason, while 1.14+ players can
         if (mat == OBSERVER || mat == REDSTONE_BLOCK)
             return player.getClientVersion().isNewerThan(ClientVersion.v_1_13_2);
@@ -511,6 +515,8 @@ public class Collisions {
         // 1.16 players are pushed by dirt paths, 1.8 players don't have this block, so it gets converted to a full block
         if (mat == DIRT_PATH)
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16) || player.getClientVersion().isOlderThan(ClientVersion.v_1_9);
+        // Only 1.14+ players are pushed by beacons
+        if (mat == BEACON) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
 
         // Thank god I already have the solid blocking blacklist written, but all these are exempt
         if (Materials.isSolidBlockingBlacklist(mat, player.getClientVersion())) return false;
