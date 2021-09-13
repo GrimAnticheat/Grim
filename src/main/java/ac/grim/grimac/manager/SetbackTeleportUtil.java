@@ -19,7 +19,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     //
     // This is required because the required setback position is not sync to bukkit, and we must avoid
     // setting the player back to a position where they were cheating
-    public boolean hasAcceptedSetbackPosition = false;
+    public boolean hasAcceptedSetbackPosition = true;
     // Sync to netty, a player MUST accept a teleport on join
     // Bukkit doesn't call this event, so we need to
     public int acceptedTeleports = 0;
@@ -209,11 +209,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
+        boolean isTeleport = false;
         player.packetStateData.wasSetbackLocation = false;
 
         if (!hasFirstSpawned && player.loginLocation.equals(new Vector3d(x, y, z))) {
             hasFirstSpawned = true;
             acceptedTeleports++;
+            isTeleport = true;
         }
 
         while (true) {
@@ -239,7 +241,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                     setBack.setComplete(true);
                 }
 
-                return true;
+                isTeleport = true;
             } else if (lastTransaction > teleportPos.getFirst() + 2) {
                 player.teleports.poll();
 
@@ -250,7 +252,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             break;
         }
 
-        return false;
+        return isTeleport;
     }
 
     /**

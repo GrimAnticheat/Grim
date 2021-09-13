@@ -747,7 +747,7 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
             // Somewhat reliable way to detect if the player is colliding in the X negative/X positive axis on a ghost block
-            if (GrimMath.distanceToHorizontalCollision(player.x) < 1e-6) {
+            if (GrimMath.distanceToHorizontalCollision(player.x) < 1e-7) {
                 boolean xPosCol = Collisions.collide(player, SimpleCollisionBox.COLLISION_EPSILON, 0, 0).getX() != SimpleCollisionBox.COLLISION_EPSILON;
                 boolean xNegCol = Collisions.collide(player, -SimpleCollisionBox.COLLISION_EPSILON, 0, 0).getX() != -SimpleCollisionBox.COLLISION_EPSILON;
 
@@ -758,7 +758,7 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
             // Somewhat reliable way to detect if the player is colliding in the Z negative/Z positive axis on a ghost block
-            if (GrimMath.distanceToHorizontalCollision(player.z) < 1e-6) {
+            if (GrimMath.distanceToHorizontalCollision(player.z) < 1e-7) {
                 boolean zPosCol = Collisions.collide(player, 0, 0, SimpleCollisionBox.COLLISION_EPSILON).getZ() != SimpleCollisionBox.COLLISION_EPSILON;
                 boolean zNegCol = Collisions.collide(player, 0, 0, -SimpleCollisionBox.COLLISION_EPSILON).getZ() != -SimpleCollisionBox.COLLISION_EPSILON;
 
