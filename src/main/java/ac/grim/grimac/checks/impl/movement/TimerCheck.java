@@ -17,6 +17,10 @@ public class TimerCheck extends PacketCheck {
     long knownPlayerClockTime = (long) (System.nanoTime() - 6e10);
     long lastMovementPlayerClock = (long) (System.nanoTime() - 6e10);
 
+    // How long should the player be able to fall back behind their ping?
+    // Default: 120 milliseconds
+    long clockDrift = (long) 120e6;
+
     boolean hasGottenMovementAfterTransaction = false;
 
     // Proof for this timer check
@@ -82,7 +86,7 @@ public class TimerCheck extends PacketCheck {
             reward();
         }
 
-        timerBalanceRealTime = Math.max(timerBalanceRealTime, lastMovementPlayerClock);
+        timerBalanceRealTime = Math.max(timerBalanceRealTime, lastMovementPlayerClock - clockDrift);
     }
 
     public boolean checkForTransaction(byte packetType) {
@@ -94,5 +98,11 @@ public class TimerCheck extends PacketCheck {
         // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
         return !PacketType.Play.Client.Util.isInstanceOfFlying(packetType) ||
                 player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate;
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+        clockDrift = (long) (getConfig().getDouble(getConfigName() + ".drift", 120.0) * 1e6);
     }
 }
