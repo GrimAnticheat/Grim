@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
+import ac.grim.grimac.utils.data.TeleportAcceptData;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -84,10 +85,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 Vector3d position = flying.getPosition();
                 player.packetStateData.packetPosition = position;
 
-                final boolean isTeleport = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
-                player.packetStateData.lastPacketWasTeleport = isTeleport;
+                TeleportAcceptData teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
+                player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
 
-                final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, onGround, isTeleport);
+                final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, onGround, teleportData.isTeleport(), teleportData.isSetback());
                 player.checkManager.onPositionUpdate(update);
             }
 
