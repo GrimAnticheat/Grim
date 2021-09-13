@@ -161,6 +161,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 Entity playerVehicle = player.bukkitPlayer.getVehicle();
                 player.bukkitPlayer.eject();
 
+                // Mojang is terrible and tied together:
+                // on fire, is crouching, riding, sprinting, swimming, invisible, has glowing effect, fall flying
+                // into one byte!  At least this gives me a very easy method to resync metadata on all server versions
+                boolean isSneaking = player.bukkitPlayer.isSneaking();
+                player.bukkitPlayer.setSneaking(!isSneaking);
+                player.bukkitPlayer.setSneaking(isSneaking);
+
                 if (playerVehicle != null) {
                     // Stop the player from being able to teleport vehicles and simply re-enter them to continue
                     playerVehicle.teleport(new Location(world, position.getX(), position.getY(), position.getZ(), playerVehicle.getLocation().getYaw(), playerVehicle.getLocation().getPitch()));
