@@ -105,6 +105,8 @@ TimerA:
   setbackvl: 10
   alertvl: 5
   alert-interval: 5
+  # Milliseconds that the player can accumulate for later use when they fall behind
+  drift: 120
 # Same check method as TimerA, but for vehicles
 TimerVehicle:
   # Target 1.005 timer
