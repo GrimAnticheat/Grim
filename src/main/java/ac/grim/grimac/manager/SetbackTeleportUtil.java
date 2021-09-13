@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.SetBackData;
+import ac.grim.grimac.utils.data.TeleportAcceptData;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
@@ -205,17 +206,16 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @param z - Player Z position
      * @return - Whether the player has completed a teleport by being at this position
      */
-    public boolean checkTeleportQueue(double x, double y, double z) {
+    public TeleportAcceptData checkTeleportQueue(double x, double y, double z) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
-        boolean isTeleport = false;
-        player.packetStateData.wasSetbackLocation = false;
+        TeleportAcceptData teleportData = new TeleportAcceptData();
 
         if (!hasFirstSpawned && player.loginLocation.equals(new Vector3d(x, y, z))) {
             hasFirstSpawned = true;
             acceptedTeleports++;
-            isTeleport = true;
+            teleportData.setTeleport(true);
         }
 
         while (true) {
@@ -237,11 +237,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
                 // Player has accepted their setback!
                 if (setBack != null && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
-                    player.packetStateData.wasSetbackLocation = true;
+                    teleportData.setSetback(true);
                     setBack.setComplete(true);
                 }
 
-                isTeleport = true;
+                teleportData.setTeleport(true);
             } else if (lastTransaction > teleportPos.getFirst() + 2) {
                 player.teleports.poll();
 
@@ -252,7 +252,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             break;
         }
 
-        return isTeleport;
+        return teleportData;
     }
 
     /**
@@ -263,7 +263,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      */
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
-        player.packetStateData.wasSetbackLocation = false;
 
         while (true) {
             Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
