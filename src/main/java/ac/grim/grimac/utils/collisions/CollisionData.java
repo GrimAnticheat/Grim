@@ -565,9 +565,12 @@ public enum CollisionData {
         WrappedFrame frame = (WrappedFrame) data;
         ComplexCollisionBox complexCollisionBox = new ComplexCollisionBox(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 13.0D, 16.0D));
 
-        // 1.12 clients do not differentiate between the eye being in and not for collisions
-        if (version.isNewerThanOrEquals(ClientVersion.v_1_13) && frame.hasEye()) {
-            complexCollisionBox.add(new HexCollisionBox(4.0D, 13.0D, 4.0D, 12.0D, 16.0D, 12.0D));
+        if (frame.hasEye()) {
+            if (version.isNewerThanOrEquals(ClientVersion.v_1_13)) {  // 1.13 players have a 0.5x0.5 eye
+                complexCollisionBox.add(new HexCollisionBox(4.0D, 13.0D, 4.0D, 12.0D, 16.0D, 12.0D));
+            } else { // 1.12 and below players have a 0.375x0.375 eye
+                complexCollisionBox.add(new HexCollisionBox(5.0D, 13.0D, 5.0D, 11.0D, 16.0D, 11.0D));
+            }
         }
 
         return complexCollisionBox;
