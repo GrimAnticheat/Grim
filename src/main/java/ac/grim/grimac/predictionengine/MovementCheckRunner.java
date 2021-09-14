@@ -574,7 +574,7 @@ public class MovementCheckRunner extends PositionCheck {
             if (player.canGroundRiptide) {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
-                player.uncertaintyHandler.riptideSlimeBlock.add(Riptide.getRiptideVelocity(player).getY());
+                player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(Riptide.getRiptideVelocity(player).getY());
 
                 // If the player was very likely to have used riptide on the ground
                 // (Patches issues with slime and other desync's)
@@ -587,7 +587,11 @@ public class MovementCheckRunner extends PositionCheck {
                     Collisions.handleInsideBlocks(player);
                 }
             } else {
-                player.uncertaintyHandler.riptideSlimeBlock.add(0d);
+                if (player.uncertaintyHandler.influencedByBouncyBlock()) { // Slime
+                    player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(player.clientVelocity.getY());
+                } else {
+                    player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(0d);
+                }
             }
 
             new PlayerBaseTick(player).doBaseTick();
@@ -641,11 +645,6 @@ public class MovementCheckRunner extends PositionCheck {
 
         if (isGlitchy) {
             offset -= 0.15;
-        }
-
-        // Checking slime is too complicated
-        if (player.uncertaintyHandler.influencedByBouncyBlock() && Math.abs(player.actualMovement.getY()) < 0.418) {
-            offset -= 0.1;
         }
 
         if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
