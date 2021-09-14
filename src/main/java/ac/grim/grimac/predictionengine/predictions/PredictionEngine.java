@@ -384,10 +384,13 @@ public class PredictionEngine {
             maxVector.setY(maxVector.getY() + player.baseTickAddition.getY());
         }
 
-        double lastRiptideBounce = Math.max(Math.abs(player.uncertaintyHandler.riptideSlimeBlock.get(0)), Math.abs(player.uncertaintyHandler.riptideSlimeBlock.get(1)));
-        if (lastRiptideBounce != 0 && player.actualMovement.getY() > 0) {
-            maxVector.setY(maxVector.getY() + Math.abs(lastRiptideBounce));
-            minVector.setY(0);
+        if (player.actualMovement.getY() > 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
+            double slimeBlockBounce = Math.max(Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(0)), Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(1)));
+
+            if (slimeBlockBounce != 0 && slimeBlockBounce > maxVector.getY()) {
+                maxVector.setY(slimeBlockBounce);
+                minVector.setY(0);
+            }
         }
 
         return VectorUtils.cutBoxToVector(player.actualMovement, minVector, maxVector);

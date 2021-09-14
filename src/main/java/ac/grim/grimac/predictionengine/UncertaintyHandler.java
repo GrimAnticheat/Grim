@@ -40,8 +40,7 @@ public class UncertaintyHandler {
     // Marks how much to allow the actual velocity to deviate from predicted when
     // the previous lenience because of 0.03 would occur
     public double gravityUncertainty = 0;
-    // Upwards velocity from riptiding into a slime block
-    public EvictingList<Double> riptideSlimeBlock = new EvictingList<>(2);
+    public EvictingList<Double> slimeBlockUpwardsUncertainty = new EvictingList<>(2);
     // The player landed while jumping but without new position information because of 0.03
     public boolean wasLastOnGroundUncertain = false;
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
@@ -94,8 +93,8 @@ public class UncertaintyHandler {
         this.player = player;
 
         // Add stuff to evicting list to avoid issues later on
-        riptideSlimeBlock.add(0d);
-        riptideSlimeBlock.add(0d);
+        slimeBlockUpwardsUncertainty.add(0d);
+        slimeBlockUpwardsUncertainty.add(0d);
 
         reset();
     }
@@ -112,7 +111,7 @@ public class UncertaintyHandler {
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
         // First tick movement should always be considered zero point zero three
         // Shifting movement is somewhat buggy because 0.03
-        if (stuckOnEdge == -2 || wasAffectedByStuckSpeed() || influencedByBouncyBlock() || isSteppingNearBubbleColumn)
+        if (stuckOnEdge == -2 || wasAffectedByStuckSpeed() || isSteppingNearBubbleColumn)
             return true;
 
         // Explicitly is 0.03 movement
@@ -189,14 +188,6 @@ public class UncertaintyHandler {
         if (has003 && isSteppingNearBubbleColumn)
             return 0.35;
 
-        // Debug output when bouncing on a bed with 0.03-like movement
-        // [10:36:34 INFO]: [GrimAC] DefineOutside P: -1.3529602846240607E-4 -0.11397087614427903 -0.09891504315167055
-        // [10:36:34 INFO]: [GrimAC] DefineOutside A: -1.3529602846240607E-4 -0.11397087614427903 -0.09891504315167055
-        // [10:36:34 INFO]: [GrimAC] DefineOutside P: -6.764801675096521E-4 0.15 0.007984975003338945
-        // [10:36:34 INFO]: [GrimAC] DefineOutside A: -6.764801675096521E-4 0.2542683097376681 0.007984975003338945
-        if (has003 && influencedByBouncyBlock())
-            return 0.28;
-
         if (lastThirtyMillionHardBorder > -3)
             return 0.15;
 
@@ -204,6 +195,10 @@ public class UncertaintyHandler {
             return 0.06;
 
         if (player.vehicleData.lastVehicleSwitch < 8)
+            return 0.06;
+
+        // We don't know if the player was pressing jump or not
+        if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
@@ -239,7 +234,7 @@ public class UncertaintyHandler {
         } else if (wasAffectedByStuckSpeed()) {
             gravityUncertainty = -0.08;
             return true;
-        } else if (player.wasTouchingLava || (influencedByBouncyBlock() && Math.abs(player.clientVelocity.getY()) < 0.2)) {
+        } else if (player.wasTouchingLava) {
             return true;
         } else if (lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket && player.clientVelocity.getY() < 0.03) {
             return true;
