@@ -404,6 +404,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.lastSprinting = player.isSprinting;
         player.wasFlying = player.isFlying;
         player.wasGliding = player.isGliding;
+        player.lastRiptidePose = player.isRiptidePose;
         player.wasSwimming = player.isSwimming;
         player.isSprinting = data.isSprinting;
         player.wasSneaking = player.isSneaking;
@@ -520,7 +521,7 @@ public class MovementCheckRunner extends PositionCheck {
             // Dead players don't take explosions or knockback
             player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
             player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
-        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR || player.specialFlying) {
+        } else if ((ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) || player.specialFlying || player.uncertaintyHandler.lastFlyingStatusChange > -20) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
             //
@@ -574,7 +575,8 @@ public class MovementCheckRunner extends PositionCheck {
             if (player.canGroundRiptide) {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
-                player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(Riptide.getRiptideVelocity(player).getY());
+                double currentY = player.clientVelocity.getY();
+                player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(Math.abs(Riptide.getRiptideVelocity(player).getY()) + currentY > 0 ? currentY : 0);
 
                 // If the player was very likely to have used riptide on the ground
                 // (Patches issues with slime and other desync's)
@@ -693,13 +695,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() &&
                 player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident) &&
                 !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3))) {
-            offset = 0;
-            player.getSetbackTeleportUtil().executeSetback(false);
-            blockOffsets = true;
-        }
-
-        // Don't ban a player who just switched out of flying
-        if (player.uncertaintyHandler.lastFlyingStatusChange > -20 && offset > 0.001) {
             offset = 0;
             player.getSetbackTeleportUtil().executeSetback(false);
             blockOffsets = true;

@@ -90,7 +90,7 @@ public class PlayerBaseTick {
         player.wasEyeInWater = player.isEyeInFluid(FluidTag.WATER);
         player.fluidOnEyes = null;
 
-        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.isRiptidePose, player.isInBed, player.getClientVersion()) - 0.1111111119389534D;
+        double d0 = player.lastY + GetBoundingBox.getEyeHeight(player.isCrouching, player.isGliding, player.isSwimming, player.lastRiptidePose, player.isInBed, player.getClientVersion()) - 0.1111111119389534D;
 
         if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
@@ -136,7 +136,7 @@ public class PlayerBaseTick {
                 pose = Pose.SLEEPING;
             } else if (player.isSwimming) {
                 pose = Pose.SWIMMING;
-            } else if (player.isRiptidePose) {
+            } else if (player.lastRiptidePose) {
                 pose = Pose.SPIN_ATTACK;
             } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_14) && player.isSneaking) {
                 pose = Pose.NINE_CROUCHING;
@@ -169,7 +169,7 @@ public class PlayerBaseTick {
             pose = Pose.FALL_FLYING;
         } else if (player.isInBed) {
             pose = Pose.SLEEPING;
-        } else if (!player.isSwimming && !player.isRiptidePose) {
+        } else if (!player.isSwimming && !player.lastRiptidePose) {
             if (player.isSneaking && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
                 pose = Pose.NINE_CROUCHING;
             } else {

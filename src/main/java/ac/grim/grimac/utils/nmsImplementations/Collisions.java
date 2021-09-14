@@ -88,16 +88,25 @@ public class Collisions {
                     // If the player is claiming that they were stepping
                     // And the player's Y velocity is "close enough" to being downwards
                     // And the last movement was 0.03 messing up stepping
-                    // Using 0.0009 as a magic value does not allow 1.8- clients to step onto 1.25 blocks!
-                    // As the max Y in jumping is 1.249 blocks in 1.8-, and 1.252 blocks in 1.9+
-                    // Unless 0.03 was combining with something to allow this
-                    // I don't know what client would even have a cheat like this, as highjump and most steps wouldn't work.
                     //
                     // Additionally, the player must be stepping onto a block for this to work
                     // not a "perfect" method to detect stepping, but it should cover this 0.03 edge case with small movement
-                    (player.actualMovement.getY() > 0 && desiredY < 0.1 && !Collisions.isEmpty(player, GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).offset(0, -COLLISION_EPSILON, 0)))
+                    //
+                    // 9/14/2021
+                    // TODO: This might allow some sort of stepping bypass, although not a major one
+                    // I don't know how to fix this 0.03 issue
+                    // This is the setup in case you want to tweak this 0.03-related uncertainty:
+                    // TRAPDOOR SLAB
+                    // BLOCK
+                    //
+                    // DesiredY is reported as 0.003 when this situation occurs, give a bit more lenience though
+                    // Could allow step cheats that step onto 1.25 levels, although it's not much of a cheat
+                    // Additionally, I haven't been able to find this cheat yet, and will patch it if I find it.
+                    // But for now I'd rather keep this simpler rather than trying to blindly patch a
+                    // nonexistent cheat.
+                    (player.actualMovement.getY() > 0 && desiredY < 0.005 && !Collisions.isEmpty(player, GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).offset(0, -COLLISION_EPSILON, 0)))
                     // Fix a false with cobwebs on top of soul sand (0.03) - We don't detect that the player actually would touch the ground this tick
-                    || (player.uncertaintyHandler.wasAffectedByStuckSpeed() && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
+                    || ((player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.uncertaintyHandler.influencedByBouncyBlock()) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
                     // Fix a false when stepping underwater with high uncertainty (require fluid on eyes to stop players from exiting water with stepping movement)
                     || ((player.fluidOnEyes != null) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree);
             double stepUpHeight = player.getMaxUpStep();
