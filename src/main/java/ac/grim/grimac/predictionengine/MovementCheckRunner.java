@@ -567,12 +567,14 @@ public class MovementCheckRunner extends PositionCheck {
             player.canGroundRiptide = ((player.clientClaimsLastOnGround && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
                     || (player.uncertaintyHandler.isSteppingOnSlime && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree))
                     && player.tryingToRiptide && player.compensatedRiptide.getCanRiptide() && !player.inVehicle;
+            player.verticalCollision = false;
 
             // Riptiding while on the ground moves the hitbox upwards before any movement code runs
             // It's a pain to support and this is my best attempt
             if (player.canGroundRiptide) {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
+                player.uncertaintyHandler.riptideSlimeBlock.add(Riptide.getRiptideVelocity(player).getY());
 
                 // If the player was very likely to have used riptide on the ground
                 // (Patches issues with slime and other desync's)
@@ -584,6 +586,8 @@ public class MovementCheckRunner extends PositionCheck {
 
                     Collisions.handleInsideBlocks(player);
                 }
+            } else {
+                player.uncertaintyHandler.riptideSlimeBlock.add(0d);
             }
 
             new PlayerBaseTick(player).doBaseTick();
@@ -690,14 +694,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() &&
                 player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident) &&
                 !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3))) {
-            offset = 0;
-            player.getSetbackTeleportUtil().executeSetback(false);
-            blockOffsets = true;
-        }
-
-        // Riptide tridents are still very glitchy, and sometimes we mispredict when near the ground
-        // (This scenario is decently rare, but we still should resync)
-        if (player.riptideSpinAttackTicks > 0 && offset > 0.001) {
             offset = 0;
             player.getSetbackTeleportUtil().executeSetback(false);
             blockOffsets = true;
@@ -878,28 +874,8 @@ public class MovementCheckRunner extends PositionCheck {
      * @return Whether it is more likely that this player was on the ground the tick they riptided
      */
     private boolean likelyGroundRiptide(Vector pushingMovement) {
-        ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
-        ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
-
-        int j;
-        if (main.getType() == Material.TRIDENT) {
-            j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
-        } else if (off.getType() == Material.TRIDENT) {
-            j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
-        } else {
-            return false;
-        }
-
-        float f7 = player.xRot;
-        float f = player.yRot;
-        float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
-        float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
-        float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
-        float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
-        float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
-
         // Y velocity gets reset if the player collides vertically
-        double riptideYResult = player.verticalCollision ? 0 : f2 * (f5 / f4);
+        double riptideYResult = Riptide.getRiptideVelocity(player).getY();
 
         double riptideDiffToBase = Math.abs(player.actualMovement.getY() - riptideYResult);
         double riptideDiffToGround = Math.abs(player.actualMovement.getY() - riptideYResult - pushingMovement.getY());

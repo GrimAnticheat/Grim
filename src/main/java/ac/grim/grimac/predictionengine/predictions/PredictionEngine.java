@@ -13,11 +13,9 @@ import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
+import ac.grim.grimac.utils.nmsImplementations.Riptide;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -26,7 +24,6 @@ import java.util.List;
 import java.util.Set;
 
 public class PredictionEngine {
-    boolean canRiptide = false;
 
     public void guessBestMovement(float speed, GrimPlayer player) {
         double bestInput = Double.MAX_VALUE;
@@ -387,6 +384,12 @@ public class PredictionEngine {
             maxVector.setY(maxVector.getY() + player.baseTickAddition.getY());
         }
 
+        double lastRiptideBounce = Math.max(Math.abs(player.uncertaintyHandler.riptideSlimeBlock.get(0)), Math.abs(player.uncertaintyHandler.riptideSlimeBlock.get(1)));
+        if (lastRiptideBounce != 0 && player.actualMovement.getY() > 0) {
+            maxVector.setY(maxVector.getY() + Math.abs(lastRiptideBounce));
+            minVector.setY(0);
+        }
+
         return VectorUtils.cutBoxToVector(player.actualMovement, minVector, maxVector);
     }
 
@@ -495,34 +498,9 @@ public class PredictionEngine {
         }
 
         if (player.tryingToRiptide) {
-            ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
-            ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
+            Vector riptideAddition = Riptide.getRiptideVelocity(player);
 
-            int j;
-            if (main.getType() == Material.TRIDENT) {
-                j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
-            } else if (off.getType() == Material.TRIDENT) {
-                j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
-            } else {
-                return;
-            }
-
-            canRiptide = true;
-
-            float f7 = player.xRot;
-            float f = player.yRot;
-            float f1 = -player.trigHandler.sin(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
-            float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
-            float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
-            float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
-            float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
-            f1 = f1 * (f5 / f4);
-            f2 = f2 * (f5 / f4);
-            f3 = f3 * (f5 / f4);
-
-            // If the player collided vertically with the 1.199999F pushing movement, then the Y additional movement was added
-            // (We switched the order around as our prediction engine isn't designed for the proper implementation)
-            existingVelocities.add(new VectorData(player.clientVelocity.clone().add(new Vector(f1, player.verticalCollision ? 0 : f2, f3)), VectorData.VectorType.Trident));
+            existingVelocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
         }
     }
 
