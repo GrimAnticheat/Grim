@@ -103,8 +103,8 @@ public class PredictionEngine {
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput);
-            Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(backOff, player, false);
-            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, primaryPushMovement);
+            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
+            Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
 
             boolean flipSneaking = clientVelAfterInput.hasVectorType(VectorData.VectorType.Flip_Sneaking);
             if (flipSneaking) {

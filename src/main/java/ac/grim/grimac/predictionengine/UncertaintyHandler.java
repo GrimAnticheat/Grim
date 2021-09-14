@@ -75,6 +75,10 @@ public class UncertaintyHandler {
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
 
+    // Fireworks are pure uncertainty and cause issues (Their implementation is terrible)
+    public boolean lastUsingFirework = false;
+    public int lastFireworkStatusChange = -100;
+
     public int lastTeleportTicks = -100;
     public int lastFlyingTicks = -100;
     public int lastSneakingChangeTicks = -100;

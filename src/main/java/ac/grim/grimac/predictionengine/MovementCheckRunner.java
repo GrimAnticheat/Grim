@@ -195,6 +195,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         player.lastTransactionReceived = data.lastTransaction;
+        player.movementPackets++;
 
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickUpdates(data.lastTransaction);
@@ -471,6 +472,13 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE_BLOCKS);
         player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.hasMaterial(player, BUBBLE_COLUMN, -1);
+
+        // Update firework end/start uncertainty
+        player.uncertaintyHandler.lastFireworkStatusChange--;
+        boolean hasFirework = (player.isGliding || player.wasGliding) && player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0;
+        if (hasFirework != player.uncertaintyHandler.lastUsingFirework)
+            player.uncertaintyHandler.lastFireworkStatusChange = 0;
+        player.uncertaintyHandler.lastUsingFirework = hasFirework;
 
         SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001, 0.001);
 

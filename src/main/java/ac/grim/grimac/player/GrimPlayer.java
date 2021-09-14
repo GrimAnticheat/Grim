@@ -418,6 +418,7 @@ public class GrimPlayer {
                 || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isSteppingOnSlime
                 || isFlying || uncertaintyHandler.isStepMovement
                 || uncertaintyHandler.lastTeleportTicks > -3 || isDead
-                || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -3;
+                || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
+                || uncertaintyHandler.lastGlidingChangeTicks > -3;
     }
 }

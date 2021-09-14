@@ -167,6 +167,7 @@ public class BoatPredictionEngine extends PredictionEngine {
     // It's push-like movement because it doesn't affect subsequent client velocity
     @Override
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
+        vector = super.handlePushMovementThatDoesntAffectNextTickVel(player, vector);
         vector = vector.clone().add(new Vector(0, player.vehicleData.midTickY, 0));
 
         return vector;
