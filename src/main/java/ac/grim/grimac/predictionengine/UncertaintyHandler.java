@@ -40,6 +40,8 @@ public class UncertaintyHandler {
     // Marks how much to allow the actual velocity to deviate from predicted when
     // the previous lenience because of 0.03 would occur
     public double gravityUncertainty = 0;
+    // Upwards velocity from riptiding into a slime block
+    public EvictingList<Double> riptideSlimeBlock = new EvictingList<>(2);
     // The player landed while jumping but without new position information because of 0.03
     public boolean wasLastOnGroundUncertain = false;
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
@@ -90,6 +92,11 @@ public class UncertaintyHandler {
 
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
+
+        // Add stuff to evicting list to avoid issues later on
+        riptideSlimeBlock.add(0d);
+        riptideSlimeBlock.add(0d);
+
         reset();
     }
 
