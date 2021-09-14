@@ -387,9 +387,9 @@ public class PredictionEngine {
         if (player.actualMovement.getY() > 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
             double slimeBlockBounce = Math.max(Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(0)), Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(1)));
 
-            if (slimeBlockBounce != 0 && slimeBlockBounce > maxVector.getY()) {
-                maxVector.setY(slimeBlockBounce);
-                minVector.setY(0);
+            if (slimeBlockBounce != 0) {
+                if (slimeBlockBounce > maxVector.getY()) maxVector.setY(slimeBlockBounce);
+                if (minVector.getY() > 0) minVector.setY(0);
             }
         }
 
