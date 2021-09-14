@@ -576,7 +576,7 @@ public class MovementCheckRunner extends PositionCheck {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
                 double currentY = player.clientVelocity.getY();
-                player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(Math.abs(Riptide.getRiptideVelocity(player).getY()) + currentY > 0 ? currentY : 0);
+                player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(Math.abs(Riptide.getRiptideVelocity(player).getY()) + (currentY > 0 ? currentY : 0));
 
                 // If the player was very likely to have used riptide on the ground
                 // (Patches issues with slime and other desync's)

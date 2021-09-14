@@ -49,15 +49,6 @@ public class PredictionEngine {
             }
 
             Set<VectorData> jumpingPossibility = new HashSet<>();
-
-            if (player.likelyExplosions != null) {
-                zeroStuff.add(zeroData.returnNewModified(pointThreeVector.clone().add(player.likelyExplosions.vector), VectorData.VectorType.Explosion));
-            }
-
-            if (player.firstBreadExplosion != null) {
-                zeroStuff.add(zeroData.returnNewModified(pointThreeVector.clone().add(player.firstBreadExplosion.vector), VectorData.VectorType.Explosion));
-            }
-
             jumpingPossibility.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
 
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
@@ -71,6 +62,7 @@ public class PredictionEngine {
                 zeroStuff.addAll(jumpingPossibility);
             }
 
+            addExplosionRiptideToPossibilities(player, zeroStuff);
             possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, zeroStuff, speed));
 
             double yVelocity = player.clientVelocity.getY();
@@ -232,6 +224,24 @@ public class PredictionEngine {
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
     }
 
+    public void addExplosionRiptideToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        for (VectorData vector : new HashSet<>(existingVelocities)) {
+            if (player.likelyExplosions != null) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.likelyExplosions.vector), vector, VectorData.VectorType.Explosion));
+            }
+
+            if (player.firstBreadExplosion != null) {
+                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
+            }
+        }
+
+        if (player.tryingToRiptide) {
+            Vector riptideAddition = Riptide.getRiptideVelocity(player);
+
+            existingVelocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
+        }
+    }
+
     public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
         int aScore = 0;
         int bScore = 0;
@@ -386,7 +396,6 @@ public class PredictionEngine {
 
         if (player.actualMovement.getY() > 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
             double slimeBlockBounce = Math.max(Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(0)), Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(1)));
-
             if (slimeBlockBounce != 0) {
                 if (slimeBlockBounce > maxVector.getY()) maxVector.setY(slimeBlockBounce);
                 if (minVector.getY() > 0) minVector.setY(0);
@@ -487,24 +496,6 @@ public class PredictionEngine {
         }
 
         player.isUsingItem = usingItem;
-    }
-
-    public void addExplosionRiptideToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        for (VectorData vector : new HashSet<>(existingVelocities)) {
-            if (player.likelyExplosions != null) {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(player.likelyExplosions.vector), vector, VectorData.VectorType.Explosion));
-            }
-
-            if (player.firstBreadExplosion != null) {
-                existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
-            }
-        }
-
-        if (player.tryingToRiptide) {
-            Vector riptideAddition = Riptide.getRiptideVelocity(player);
-
-            existingVelocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
-        }
     }
 
     public boolean canSwimHop(GrimPlayer player) {
