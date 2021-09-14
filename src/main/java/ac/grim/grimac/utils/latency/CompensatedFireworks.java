@@ -36,14 +36,14 @@ public class CompensatedFireworks {
         while (iterator.hasNext()) {
             Map.Entry<Integer, FireworkData> firework = iterator.next();
 
-            if (firework.getValue().destroyTick < player.movementPackets + 1) {
+            if (firework.getValue().destroyTick < player.movementPackets - 1) {
                 iterator.remove();
                 continue;
             }
 
-
             // If the firework has 100% been destroyed on the client side
             if (firework.getValue().destroyTime < player.lastTransactionReceived) {
+                firework.getValue().destroyTime = Integer.MAX_VALUE; // Don't destroy it twice
                 firework.getValue().destroyTick = player.movementPackets;
             }
 

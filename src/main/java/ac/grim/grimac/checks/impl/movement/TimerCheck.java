@@ -64,7 +64,6 @@ public class TimerCheck extends PacketCheck {
 
         if (checkReturnPacketType(event.getPacketId())) return;
 
-        player.movementPackets++;
         hasGottenMovementAfterTransaction = true;
 
         // Teleporting sends its own packet (We could handle this, but it's not worth the complexity)
