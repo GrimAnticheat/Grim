@@ -142,10 +142,6 @@ public class UncertaintyHandler {
         return lastStuckSpeedMultiplier > -5;
     }
 
-    public boolean influencedByBouncyBlock() {
-        return isSteppingOnBouncyBlock || wasSteppingOnBouncyBlock;
-    }
-
     public double getOffsetHorizontal(VectorData data) {
         boolean has003 = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
         double pointThree = has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
@@ -180,6 +176,10 @@ public class UncertaintyHandler {
         }
 
         return pointThree;
+    }
+
+    public boolean influencedByBouncyBlock() {
+        return isSteppingOnBouncyBlock || wasSteppingOnBouncyBlock;
     }
 
     public double getVerticalOffset(VectorData data) {
