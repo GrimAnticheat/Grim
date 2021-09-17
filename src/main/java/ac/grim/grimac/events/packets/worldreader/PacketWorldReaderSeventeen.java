@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.BitSet;
 
 public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
     public static Method getByCombinedID;
@@ -47,15 +48,14 @@ public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
             try {
                 int chunkX = packet.getChunkX();
                 int chunkZ = packet.getChunkZ();
+                BitSet availableSectionsBitSet = packet.readObject(0, BitSet.class);
 
-                BaseChunk[] chunks = new SixteenChunk[16];
-
+                BaseChunk[] chunks = new SixteenChunk[availableSectionsBitSet.size()];
                 byte[] chunkData = packet.getCompressedData();
-                int availableSectionsInt = packet.getPrimaryBitMask().isPresent() ? packet.getPrimaryBitMask().get() : 0;
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
                 for (int index = 0; index < chunks.length; ++index) {
-                    if ((availableSectionsInt & 1 << index) != 0) {
+                    if (availableSectionsBitSet.get(index)) {
                         chunks[index] = SixteenChunk.read(dataIn);
                     }
                 }

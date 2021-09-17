@@ -37,7 +37,7 @@ public class DebugHandler extends PostPredictionCheck {
         } else if (offset < 0.01) {
             color = ChatColor.YELLOW;
         } else {
-            color = ChatColor.RED;
+                 color = ChatColor.RED;
         }
 
         Vector predicted = player.predictedVelocity.vector;
