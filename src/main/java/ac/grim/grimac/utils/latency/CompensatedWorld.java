@@ -42,8 +42,9 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
-    public static final int MIN_WORLD_HEIGHT = 0;
-    public static final int MAX_WORLD_HEIGHT = 255;
+    // 1.17 with datapacks, and 1.18, have negative world offset values
+    private int minHeight = 0;
+    private int maxHeight = 0;
     public static BaseBlockState airData;
     public static Method getByCombinedID;
     public final GrimPlayer player;
@@ -184,9 +185,13 @@ public class CompensatedWorld {
     public void updateBlock(int x, int y, int z, int combinedID) {
         Column column = getChunk(x >> 4, z >> 4);
 
+        // Apply 1.17 expanded world offset
+        y -= minHeight;
+
         try {
             if (column != null) {
                 BaseChunk chunk = column.getChunks()[y >> 4];
+
                 if (chunk == null) {
                     if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_16)) {
                         column.getChunks()[y >> 4] = new SixteenChunk();
@@ -336,12 +341,16 @@ public class CompensatedWorld {
 
     public BaseBlockState getWrappedBlockStateAt(int x, int y, int z) {
         Column column = getChunk(x >> 4, z >> 4);
+        if (column == null || y < minHeight || y > maxHeight) return airData;
 
-        if (column == null || y < MIN_WORLD_HEIGHT || y > MAX_WORLD_HEIGHT) return airData;
+        y -= minHeight;
 
-        BaseChunk chunk = column.getChunks()[y >> 4];
-        if (chunk != null) {
-            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+        try {
+            BaseChunk chunk = column.getChunks()[y >> 4];
+            if (chunk != null) {
+                return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+            }
+        } catch (Exception ignored) {
         }
 
         return airData;
@@ -510,5 +519,29 @@ public class CompensatedWorld {
         // Signify that there could be a desync between this and netty
         column.markedForRemoval = true;
         unloadChunkQueue.add(new Pair<>(player.lastTransactionSent.get() + 1, new Vector3i(chunkX, 0, chunkZ)));
+    }
+
+    public void setMinHeight(int minHeight) {
+        if (minHeight % 16 != 0) {
+            throw new RuntimeException("Minimum world height must be a multiple of 16!");
+        }
+
+        this.minHeight = minHeight;
+    }
+
+    public void setMaxWorldHeight(int maxSectionHeight) {
+        if (maxSectionHeight % 16 != 0) {
+            throw new RuntimeException("Maximum world height must be a multiple of 16!");
+        }
+
+        this.maxHeight = maxSectionHeight;
+    }
+
+    public int getMinHeight() {
+        return minHeight;
+    }
+
+    public int getMaxHeight() {
+        return maxHeight;
     }
 }

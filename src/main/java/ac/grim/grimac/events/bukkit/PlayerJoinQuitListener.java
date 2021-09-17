@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -37,6 +38,12 @@ public class PlayerJoinQuitListener implements Listener {
         }
 
         player.playerWorld = bukkitPlayer.getLocation().getWorld();
+        player.packetStateData.playerWorld = bukkitPlayer.getLocation().getWorld();
+        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
+            player.compensatedWorld.setMinHeight(player.bukkitPlayer.getWorld().getMinHeight());
+            player.compensatedWorld.setMaxWorldHeight(player.bukkitPlayer.getWorld().getMaxHeight());
+        }
+
         player.x = bukkitPlayer.getLocation().getX();
         player.y = bukkitPlayer.getLocation().getY();
         player.z = bukkitPlayer.getLocation().getZ();

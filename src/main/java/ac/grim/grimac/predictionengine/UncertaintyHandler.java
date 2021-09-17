@@ -218,10 +218,10 @@ public class UncertaintyHandler {
             return 0.03;
 
         if (controlsVerticalMovement()) {
-            return has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree || wasLastGravityUncertain ? 0.03 : 0;
+            return has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree || wasLastGravityUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket ? 0.03 : 0;
         }
 
-        if (wasLastGravityUncertain)
+        if (wasLastGravityUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket)
             return 0.03;
 
         return 0;

@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.data;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.GameMode;
+import org.bukkit.World;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -41,4 +42,5 @@ public class PacketStateData {
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
     public Integer sendingSyncVehicle = null;
+    public World playerWorld;
 }
