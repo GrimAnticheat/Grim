@@ -65,13 +65,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasTeleport = false;
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
 
-            // First and second onGround packets are wrong (teleport and idk why second is wrong)
             // Go test with a 1.8 client on a 1.17 server, and you will see
-            if (player.packetStateData.movementPacketsReceived > 2) {
-                player.packetStateData.packetPlayerOnGround = onGround;
-            } else {
-                onGround = player.packetStateData.packetPlayerOnGround;
-            }
+            player.packetStateData.packetPlayerOnGround = onGround;
 
             if (hasLook) {
                 float xRot = flying.getYaw();

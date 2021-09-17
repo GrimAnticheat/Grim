@@ -54,7 +54,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
                 Object chunkMap = packet.readAnyObject(2);
                 if (chunkMap.getClass().getDeclaredField("b").getInt(chunkMap) == 0 && packet.isGroundUpContinuous().get()) {
                     player.compensatedWorld.removeChunkLater(chunkX, chunkZ);
-                    event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                    event.setPostTask(player::sendTransaction);
                     return;
                 }
 
@@ -63,7 +63,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
                 e.printStackTrace();
             }
 
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
         }
 
         // Exists on 1.7 and 1.8 only
@@ -82,7 +82,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
                 addChunkToCache(player, chunkX, chunkZ, false);
             }
 
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
@@ -106,7 +106,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
 
             int range = (player.getTransactionPing() / 100) + 16;
             if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                event.setPostTask(player::sendTransaction);
 
             player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
         }
@@ -137,7 +137,7 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
 
                 int range = (player.getTransactionPing() / 100) + 32;
                 if (Math.abs(chunkX - player.x) < range && Math.abs(chunkZ - player.z) < range)
-                    event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                    event.setPostTask(player::sendTransaction);
 
 
                 for (Object o : blockInformation) {

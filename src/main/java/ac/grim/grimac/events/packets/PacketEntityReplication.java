@@ -159,7 +159,6 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             // Set to 24 so ViaVersion blocks it
             // 24 is the levitation effect
             if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9) && ViaVersionLookupUtils.isAvailable() && effect.getEffectId() > 23) {
-                effect.setEffectId(24); // Just in case cancelling doesn't work
                 event.setCancelled(true);
                 return;
             }
@@ -167,12 +166,11 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             // ViaVersion dolphin's grace also messes us up, set it to a potion effect that doesn't exist on 1.12
             // Effect 31 is bad omen
             if (player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && ViaVersionLookupUtils.isAvailable() && effect.getEffectId() == 30) {
-                effect.setEffectId(31); // Just in case cancelling doesn't work
                 event.setCancelled(true);
                 return;
             }
 
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
             player.compensatedPotions.addPotionEffect(type.getName(), effect.getAmplifier(), effect.getEntityId());
         }
 
@@ -182,7 +180,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
             player.compensatedPotions.removePotionEffect(PotionEffectType.getById(effect.getEffectId()).getName(), effect.getEntityId());
         }
 
@@ -195,8 +193,15 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             int entityID = attributes.getEntityId();
 
             PacketEntity entity = player.compensatedEntities.getEntity(attributes.getEntityId());
+            Entity playerVehicle = player.bukkitPlayer.getVehicle();
+
+            // The attributes for this entity is active, currently
+            if ((playerVehicle == null && entityID == player.entityID) ||
+                    (playerVehicle != null && entityID == playerVehicle.getEntityId())) {
+                event.setPostTask(player::sendTransaction);
+            }
+
             if (player.entityID == entityID || entity instanceof PacketEntityHorse || entity instanceof PacketEntityRideable) {
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
                 player.compensatedEntities.entityPropertiesData.add(new EntityPropertiesData(entityID, attributes.getProperties(), player.lastTransactionSent.get() + 1));
             }
         }
@@ -221,8 +226,8 @@ public class PacketEntityReplication extends PacketListenerAbstract {
 
                 if (status.getEntityId() != player.entityID) return;
 
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
+                event.setPostTask(player::sendTransaction);
             }
         }
 

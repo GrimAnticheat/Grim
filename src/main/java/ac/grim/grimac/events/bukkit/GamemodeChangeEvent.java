@@ -12,7 +12,7 @@ public class GamemodeChangeEvent implements Listener {
     public void onGameModeChangeEvent(PlayerGameModeChangeEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player != null) {
-            player.sendAndFlushTransactionOrPingPong();
+            player.sendTransaction();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.gameMode = event.getNewGameMode());
         }
     }

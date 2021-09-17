@@ -76,7 +76,7 @@ public class PacketWorldReaderThirteen extends PacketListenerAbstract {
                 e.printStackTrace();
             }
 
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
@@ -99,7 +99,7 @@ public class PacketWorldReaderThirteen extends PacketListenerAbstract {
 
             int range = (player.getTransactionPing() / 100) + 16;
             if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                event.setPostTask(player::sendTransaction);
 
             player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
         }
@@ -130,7 +130,7 @@ public class PacketWorldReaderThirteen extends PacketListenerAbstract {
 
                 int range = (player.getTransactionPing() / 100) + 32;
                 if (Math.abs(chunkX - player.x) < range && Math.abs(chunkZ - player.z) < range)
-                    event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                    event.setPostTask(player::sendTransaction);
 
 
                 for (Object o : blockInformation) {
@@ -155,7 +155,7 @@ public class PacketWorldReaderThirteen extends PacketListenerAbstract {
             if (player == null) return;
 
             player.compensatedWorld.removeChunkLater(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
         }
     }
 }

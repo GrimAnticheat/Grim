@@ -92,7 +92,7 @@ public class ResyncWorldUtil extends PacketCheck {
                 player.compensatedWorld.isResync = false;
             }
 
-            player.sendAndFlushTransactionOrPingPong();
+            player.sendTransaction();
         });
     }
 

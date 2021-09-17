@@ -251,7 +251,7 @@ public class Reach extends PacketCheck {
 
         if (reachEntity != null) {
             // Only send one transaction before each wave, without flushing
-            if (!hasSentPreWavePacket) player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+            if (!hasSentPreWavePacket) player.sendTransaction();
             hasSentPreWavePacket = true; // Also functions to mark we need a post wave transaction
 
             // Update the tracked server's entity position
@@ -270,8 +270,7 @@ public class Reach extends PacketCheck {
 
     public void onEndOfTickEvent() {
         // Only send a transaction at the end of the tick if we are tracking players
-        if (hasSentPreWavePacket)
-            player.sendAndFlushTransactionOrPingPong(); // Flush packets, although vanilla does this too
+        player.sendAndFlushTransaction(); // Vanilla already flushed packet at this point
         hasSentPreWavePacket = false;
     }
 

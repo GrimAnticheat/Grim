@@ -72,7 +72,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             player.teleports.add(new Pair<>(lastTransactionSent, finalPos));
 
             event.setPostTask(() -> {
-                player.sendAndFlushTransactionOrPingPong();
+                player.sendTransaction();
 
                 SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
                 if (data == null) return;
@@ -100,7 +100,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             int lastTransactionSent = player.lastTransactionSent.get();
             Vector3d finalPos = new Vector3d(x, y, z);
 
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
             player.vehicleData.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
     }

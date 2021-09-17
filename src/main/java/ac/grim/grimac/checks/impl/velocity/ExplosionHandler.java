@@ -44,9 +44,9 @@ public class ExplosionHandler extends PacketCheck {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
                 if (player == null) return;
 
-                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+                player.sendTransaction();
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                event.setPostTask(player::sendAndFlushTransaction);
             }
         }
     }

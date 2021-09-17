@@ -13,7 +13,7 @@ public class DeathEvent implements Listener {
     public void onPlayerDeathEvent(PlayerDeathEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getEntity());
         if (player != null) {
-            player.sendAndFlushTransactionOrPingPong();
+            player.sendTransaction();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.isDead = true);
         }
     }
@@ -22,7 +22,7 @@ public class DeathEvent implements Listener {
     public void onPlayerRespawnEvent(PlayerRespawnEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player != null) {
-            player.sendAndFlushTransactionOrPingPong();
+            player.sendTransaction();
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.isDead = false);
         }
     }
