@@ -14,7 +14,7 @@ public class DimensionChangeEvent implements Listener {
         if (event.getTo() != null && event.getFrom().getWorld() != event.getTo().getWorld()) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player != null) {
-                player.sendAndFlushTransactionOrPingPong();
+                player.sendTransaction();
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isPacketSneaking = false);
                 player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.playerWorld = event.getTo().getWorld());
                 // Force the player to accept a teleport before respawning

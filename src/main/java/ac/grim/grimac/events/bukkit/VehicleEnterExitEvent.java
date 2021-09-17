@@ -44,7 +44,7 @@ public class VehicleEnterExitEvent implements Listener {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getEntered());
         if (player == null) return;
 
-        player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+        player.sendTransaction();
         player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = event.getVehicle().getEntityId());
     }
 
@@ -65,7 +65,7 @@ public class VehicleEnterExitEvent implements Listener {
                                 event.getVehicle().isOnGround())), 1);
         event.getVehicle().teleport(event.getVehicle().getLocation());
 
-        player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+        player.sendTransaction();
         player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = null);
     }
 
@@ -76,7 +76,7 @@ public class VehicleEnterExitEvent implements Listener {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) entity);
                 if (player == null) continue;
 
-                player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+                player.sendTransaction();
                 player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = null);
             }
         }

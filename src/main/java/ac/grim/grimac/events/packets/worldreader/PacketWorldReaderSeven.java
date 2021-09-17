@@ -53,12 +53,12 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
             // Optional is only empty on 1.17 and above
             if (packet.readInt(5) == 0 && packet.isGroundUpContinuous().get()) {
                 player.compensatedWorld.removeChunkLater(chunkX, chunkZ);
-                event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                event.setPostTask(player::sendTransaction);
                 return;
             }
 
             addChunkToCache(player, chunkX, chunkZ, false);
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
         }
 
         // Exists on 1.7 and 1.8 only
@@ -78,7 +78,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
                 addChunkToCache(player, chunkX, chunkZ, false);
             }
 
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendTransaction);
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
@@ -102,7 +102,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
 
                 int range = (player.getTransactionPing() / 100) + 16;
                 if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
-                    event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                    event.setPostTask(player::sendTransaction);
 
                 player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
 
@@ -136,7 +136,7 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
 
                 int range = (player.getTransactionPing() / 100) + 32;
                 if (Math.abs(chunkX - player.x) < range && Math.abs(chunkZ - player.z) < range)
-                    event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+                    event.setPostTask(player::sendTransaction);
 
                 while (buffer.hasRemaining()) {
                     short positionData = buffer.getShort();

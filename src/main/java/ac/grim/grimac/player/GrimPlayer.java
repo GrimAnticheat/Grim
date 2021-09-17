@@ -332,7 +332,11 @@ public class GrimPlayer {
         return 1.0f;
     }
 
-    public void sendAndFlushTransactionOrPingPong() {
+    public void sendTransaction() {
+        sendTransactionOrPingPong(getNextTransactionID(1), false);
+    }
+
+    public void sendAndFlushTransaction() {
         sendTransactionOrPingPong(getNextTransactionID(1), true);
     }
 

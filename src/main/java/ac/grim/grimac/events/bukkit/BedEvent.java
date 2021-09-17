@@ -13,7 +13,7 @@ public class BedEvent implements Listener {
     public void onPlayerBedEnterEvent(PlayerBedEnterEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player != null && !event.isCancelled()) {
-            player.sendAndFlushTransactionOrPingPong();
+            player.sendTransaction();
             player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.isInBed = true);
         }
     }
@@ -22,7 +22,7 @@ public class BedEvent implements Listener {
     public void onPlayerBedExitEvent(PlayerBedLeaveEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player != null) {
-            player.sendAndFlushTransactionOrPingPong();
+            player.sendTransaction();
             player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.isInBed = false);
         }
     }

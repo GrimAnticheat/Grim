@@ -59,9 +59,9 @@ public class KnockbackHandler extends PacketCheck {
             Vector3d playerVelocity = velocity.getVelocity();
 
             // Wrap velocity between two transactions
-            player.sendTransactionOrPingPong(player.getNextTransactionID(1), false);
+            player.sendTransaction();
             addPlayerKnockback(entityId, player.lastTransactionSent.get(), new Vector(playerVelocity.getX(), playerVelocity.getY(), playerVelocity.getZ()));
-            event.setPostTask(player::sendAndFlushTransactionOrPingPong);
+            event.setPostTask(player::sendAndFlushTransaction);
         }
     }
 
