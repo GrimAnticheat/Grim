@@ -706,7 +706,8 @@ public class MovementCheckRunner extends PositionCheck {
         // Set back the player to disallow them to use riptide anywhere, even outside rain or water
         if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() &&
                 player.predictedVelocity.isTrident() &&
-                !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3))) {
+                // Don't let player do this too often as otherwise it could allow players to spam riptide
+                (player.riptideSpinAttackTicks < 0 && !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3)))) {
             offset = 0;
             player.getSetbackTeleportUtil().executeSetback(false);
             blockOffsets = true;
