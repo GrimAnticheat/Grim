@@ -329,7 +329,7 @@ public class MovementTicker {
             double oldYJumping = oldY + player.flySpeed * 3;
             livingEntityTravel();
 
-            if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) || player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident)
+            if (player.predictedVelocity.isKnockback() || player.predictedVelocity.isTrident()
                     || player.uncertaintyHandler.yPositiveUncertainty != 0 || player.uncertaintyHandler.yNegativeUncertainty != 0 || player.isGliding) {
                 player.clientVelocity.setY(player.actualMovement.getY() * 0.6);
             } else if (Math.abs(oldY - player.actualMovement.getY()) < (oldYJumping - player.actualMovement.getY())) {

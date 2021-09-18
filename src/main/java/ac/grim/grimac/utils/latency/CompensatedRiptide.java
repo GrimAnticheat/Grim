@@ -26,7 +26,7 @@ public class CompensatedRiptide {
     }
 
     public void handleRemoveRiptide() {
-        if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))
+        if (player.predictedVelocity.isTrident())
             lagCompensatedRiptide.poll();
     }
 
