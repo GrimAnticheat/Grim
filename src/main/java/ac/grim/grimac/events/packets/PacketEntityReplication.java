@@ -170,7 +170,8 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 return;
             }
 
-            event.setPostTask(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, effect.getEntityId())) event.setPostTask(player::sendTransaction);
+
             player.compensatedPotions.addPotionEffect(type.getName(), effect.getAmplifier(), effect.getEntityId());
         }
 
@@ -180,7 +181,8 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            event.setPostTask(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, effect.getEntityId())) event.setPostTask(player::sendTransaction);
+
             player.compensatedPotions.removePotionEffect(PotionEffectType.getById(effect.getEffectId()).getName(), effect.getEntityId());
         }
 
@@ -193,13 +195,9 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             int entityID = attributes.getEntityId();
 
             PacketEntity entity = player.compensatedEntities.getEntity(attributes.getEntityId());
-            Entity playerVehicle = player.bukkitPlayer.getVehicle();
 
             // The attributes for this entity is active, currently
-            if ((playerVehicle == null && entityID == player.entityID) ||
-                    (playerVehicle != null && entityID == playerVehicle.getEntityId())) {
-                event.setPostTask(player::sendTransaction);
-            }
+            if (isDirectlyAffectingPlayer(player, entityID)) event.setPostTask(player::sendTransaction);
 
             if (player.entityID == entityID || entity instanceof PacketEntityHorse || entity instanceof PacketEntityRideable) {
                 player.compensatedEntities.entityPropertiesData.add(new EntityPropertiesData(entityID, attributes.getProperties(), player.lastTransactionSent.get() + 1));
@@ -276,5 +274,13 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 entity.setDestroyed(lastTransactionSent + 1);
             }
         }
+    }
+
+    private boolean isDirectlyAffectingPlayer(GrimPlayer player, int entityID) {
+        Entity playerVehicle = player.bukkitPlayer.getVehicle();
+
+        // The attributes for this entity is active, currently
+        return (playerVehicle == null && entityID == player.entityID) ||
+                (playerVehicle != null && entityID == playerVehicle.getEntityId());
     }
 }

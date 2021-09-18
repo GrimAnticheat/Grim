@@ -31,35 +31,29 @@ public class MovementTicker {
         this.bukkitPlayer = player.bukkitPlayer;
     }
 
-    public void move(Vector nonUncertainVector, Vector inputVel, Vector collide) {
+    public void move(Vector inputVel, Vector collide) {
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.clientVelocity = new Vector();
         }
 
         Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
-        double testX = inputVel.getX() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-        // If the player doesn't have gravity, they will have no downwards momentum
-        double testY = inputVel.getY() - (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
-        double testZ = inputVel.getZ() + (Math.signum(inputVel.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-        Vector plusCollide = Collisions.collide(player, testX, testY, testZ);
-
-        if (testX != plusCollide.getX()) {
+        if (inputVel.getX() != collide.getX()) {
             player.clientVelocity.setX(0);
         }
 
-        if (testZ != plusCollide.getZ()) {
+        if (inputVel.getZ() != collide.getZ()) {
             player.clientVelocity.setZ(0);
         }
 
         player.horizontalCollision = !GrimMath.equal(inputVel.getX(), collide.getX()) || !GrimMath.equal(inputVel.getZ(), collide.getZ());
-        player.verticalCollision = testY != plusCollide.getY();
+        player.verticalCollision = inputVel.getY() != collide.getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
         // Stepping movement USUALLY means the vehicle in on the ground as vehicles can't jump
         // Can be wrong with swim hopping into step, but this is rare and difficult to pull off
         // and would require a huge rewrite to support this rare edge case
-        player.isActuallyOnGround = (player.verticalCollision && testY < 0.0D)
+        player.isActuallyOnGround = (player.verticalCollision && inputVel.getY() < 0.0D)
                 || (player.inVehicle && player.uncertaintyHandler.isStepMovement);
         player.clientClaimsLastOnGround = player.onGround;
 
@@ -74,7 +68,7 @@ public class MovementTicker {
                 player.uncertaintyHandler.lastFireworkStatusChange < -3 &&
                 // The player has 0 vertical velocity, but might be on the ground, or might not.  They are 1e-7 on the ground
                 // so there is little room for abuse.
-                !(testY == -SimpleCollisionBox.COLLISION_EPSILON && plusCollide.getY() == 0)) {
+                !(inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() == 0)) {
 
             player.onGround = player.isActuallyOnGround;
         }

@@ -533,7 +533,7 @@ public class MovementCheckRunner extends PositionCheck {
             // Dead players don't take explosions or knockback
             player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
             player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
-        } else if ((ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) || player.specialFlying || player.uncertaintyHandler.lastFlyingStatusChange > -20) {
+        } else if ((ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) || player.specialFlying) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
             //
@@ -667,6 +667,11 @@ public class MovementCheckRunner extends PositionCheck {
 
         if (player.uncertaintyHandler.stuckOnEdge > -3) {
             offset -= 0.05;
+        }
+
+        // Exempt flying status change
+        if (player.uncertaintyHandler.lastFlyingStatusChange > -20) {
+            offset = 0;
         }
 
         // Errors are caused by a combination of client/server desync while climbing
