@@ -26,8 +26,6 @@ import java.util.Set;
 public class PredictionEngine {
 
     public void guessBestMovement(float speed, GrimPlayer player) {
-        double bestInput = Double.MAX_VALUE;
-
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
         // Determine if the player can make an input below 0.03
@@ -92,10 +90,10 @@ public class PredictionEngine {
         // Sorting is an optimization and a requirement
         possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
+        double bestInput = Double.MAX_VALUE;
         VectorData bestCollisionVel = null;
         Vector beforeCollisionMovement = null;
         Vector tempClientVelChosen = null;
-        Vector originalNonUncertainInput = null;
         Vector originalClientVel = player.clientVelocity;
 
         Pose originalPose = player.pose;
@@ -115,7 +113,36 @@ public class PredictionEngine {
                 player.boundingBox = originalBB;
             }
 
-            Vector outputVel = Collisions.collide(player, additionalPushMovement.getX(), additionalPushMovement.getY(), additionalPushMovement.getZ(), originalClientVel.getY());
+            double xAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+            double yAdditional = (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
+            double zAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+
+            // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
+            double testX = primaryPushMovement.getX() + xAdditional;
+            double testY = primaryPushMovement.getY() - yAdditional;
+            double testZ = primaryPushMovement.getZ() + zAdditional;
+            primaryPushMovement = new Vector(testX, testY, testZ);
+
+            Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(new Vector(0, 0.6, 0), primaryPushMovement).sort());
+            if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
+                continue;
+
+            Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY());
+
+            if (testX == outputVel.getX()) { // the player didn't have X collision, don't ruin offset by collision epsilon
+                primaryPushMovement.setX(primaryPushMovement.getX() - xAdditional);
+                outputVel.setX(outputVel.getX() - xAdditional);
+            }
+
+            if (testY == outputVel.getY()) { // the player didn't have Y collision, don't ruin offset by collision epsilon
+                primaryPushMovement.setY(primaryPushMovement.getY() + yAdditional);
+                outputVel.setY(outputVel.getY() + yAdditional);
+            }
+
+            if (testZ == outputVel.getZ()) { // the player didn't have Z collision, don't ruin offset by collision epsilon
+                primaryPushMovement.setZ(primaryPushMovement.getZ() - zAdditional);
+                outputVel.setZ(outputVel.getZ() - zAdditional);
+            }
 
             Vector handleHardCodedBorder = outputVel;
             if (!player.inVehicle) {
@@ -141,8 +168,7 @@ public class PredictionEngine {
 
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
-                beforeCollisionMovement = additionalPushMovement;
-                originalNonUncertainInput = clientVelAfterInput.vector;
+                beforeCollisionMovement = primaryPushMovement;
                 tempClientVelChosen = primaryPushMovement.clone();
 
                 bestInput = resultAccuracy;
@@ -176,7 +202,7 @@ public class PredictionEngine {
 
         player.clientVelocity = tempClientVelChosen;
         player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
-        new MovementTickerPlayer(player).move(originalNonUncertainInput, beforeCollisionMovement, bestCollisionVel.vector);
+        new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
         endOfTick(player, player.gravity, player.friction);
     }
 
@@ -242,7 +268,7 @@ public class PredictionEngine {
         }
     }
 
-    public int    sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
+    public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
         int aScore = 0;
         int bScore = 0;
 
@@ -269,12 +295,6 @@ public class PredictionEngine {
 
         if (b.isKnockback())
             bScore--;
-
-        // Large uncertainty possibilities shouldn't be prioritized, as uncertainty can cause the next tick to receive the wrong velocity
-        if (a.isZeroPointZeroThree())
-            aScore++;
-        if (b.isZeroPointZeroThree())
-            bScore++;
 
         // If the player is on the ground but the vector leads the player off the ground
         if (player.onGround && a.vector.getY() >= 0)

@@ -14,6 +14,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.VectorUtils;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -79,6 +80,9 @@ public class Collisions {
         double bestInput = Double.MAX_VALUE;
         Vector bestOrderResult = null;
 
+        Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, 0.6, 0, desiredX, desiredY, desiredZ).sort());
+        int zeroCount = (desiredX == 0 ? 1 : 0) + (desiredY == 0 ? 1 : 0) + (desiredZ == 0 ? 1 : 0);
+
         for (List<Axis> order : allAxisCombinations) {
             Vector collisionResult = collideBoundingBoxLegacy(player, new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
@@ -139,7 +143,7 @@ public class Collisions {
                 }
             }
 
-            double resultAccuracy = collisionResult.distanceSquared(player.actualMovement);
+            double resultAccuracy = collisionResult.distanceSquared(bestTheoreticalCollisionResult);
 
             if (player.onGround != (desiredY < 0 && desiredY != collisionResult.getY()))
                 resultAccuracy += 1;
@@ -148,6 +152,7 @@ public class Collisions {
                 bestOrderResult = collisionResult;
                 bestInput = resultAccuracy;
                 if (resultAccuracy < 0.00001 * 0.00001) break;
+                if (zeroCount >= 2) break;
             }
 
         }
