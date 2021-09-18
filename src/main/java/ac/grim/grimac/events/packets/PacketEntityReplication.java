@@ -240,8 +240,6 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             int vehicleID = mount.getEntityId();
             int[] passengers = mount.getPassengerIds();
 
-            updatePlayerRiding(player, vehicleID, passengers);
-
             player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(vehicleID, passengers, player.lastTransactionSent.get()));
         }
 
@@ -258,8 +256,6 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (attach.readInt(0) == 0) {
                 int vehicleID = attach.readInt(2);
                 int[] passengers = new int[]{attach.readInt(1)};
-
-                updatePlayerRiding(player, vehicleID, passengers);
 
                 player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(vehicleID, passengers, player.lastTransactionSent.get()));
             }
@@ -279,23 +275,6 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 if (entity == null) continue;
                 entity.setDestroyed(lastTransactionSent + 1);
             }
-        }
-    }
-
-    private void updatePlayerRiding(GrimPlayer player, int vehicle, int[] passengers) {
-        boolean hasPlayer = false;
-        for (int i : passengers) {
-            if (i == player.entityID) {
-                hasPlayer = true;
-                break;
-            }
-        }
-
-        // Handle the player leaving the vehicle
-        if (!hasPlayer && player.packetStateData.sendingSyncVehicle != null && player.packetStateData.sendingSyncVehicle == vehicle) {
-            player.packetStateData.sendingSyncVehicle = null;
-        } else if (hasPlayer) { // Handle the player entering the vehicle
-            player.packetStateData.sendingSyncVehicle = vehicle;
         }
     }
 }
