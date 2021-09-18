@@ -44,7 +44,7 @@ import java.util.concurrent.ConcurrentSkipListSet;
 public class CompensatedWorld {
     // 1.17 with datapacks, and 1.18, have negative world offset values
     private int minHeight = 0;
-    private int maxHeight = 0;
+    private int maxHeight = 255;
     public static BaseBlockState airData;
     public static Method getByCombinedID;
     public final GrimPlayer player;
