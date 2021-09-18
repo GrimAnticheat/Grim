@@ -11,6 +11,7 @@ import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
+import ac.grim.grimac.utils.nmsImplementations.WatchableIndexUtil;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeModifierWrapper;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeSnapshotWrapper;
@@ -269,11 +270,10 @@ public class CompensatedEntities {
     private void updateEntityMetadata(int entityID, List<WrappedWatchableObject> watchableObjects) {
         if (entityID == player.entityID) {
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
-                Optional<WrappedWatchableObject> gravity = watchableObjects
-                        .stream().filter(o -> o.getIndex() == (5)).findFirst();
+               WrappedWatchableObject gravity = WatchableIndexUtil.getIndex(watchableObjects, 5);
 
-                if (gravity.isPresent()) {
-                    Object gravityObject = gravity.get().getRawValue();
+                if (gravity != null) {
+                    Object gravityObject = gravity.getRawValue();
 
                     if (gravityObject instanceof Boolean) {
                         // Vanilla uses hasNoGravity, which is a bad name IMO
@@ -290,26 +290,28 @@ public class CompensatedEntities {
         // Poses only exist in 1.14+ with the new shifting mechanics
         if (entity instanceof PacketEntityPlayer) {
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
-                Optional<WrappedWatchableObject> poseObject = watchableObjects.stream().filter(o -> o.getIndex() == 6).findFirst();
-                poseObject.ifPresent(wrappedWatchableObject -> ((PacketEntityPlayer) entity).pose = Pose.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
+                WrappedWatchableObject poseObject = WatchableIndexUtil.getIndex(watchableObjects, 6);
+                if (poseObject != null) {
+                    ((PacketEntityPlayer) entity).pose = Pose.valueOf(poseObject.getRawValue().toString().toUpperCase());
+                }
             } else {
-                Optional<WrappedWatchableObject> mainByteArray = watchableObjects.stream().filter(o -> o.getIndex() == 0).findFirst();
+                WrappedWatchableObject mainByteArray = WatchableIndexUtil.getIndex(watchableObjects, 0);
 
                 boolean gliding = false;
                 boolean swimming = false;
                 boolean sneaking = false;
 
                 boolean riptide = false;
-                if (mainByteArray.isPresent() && mainByteArray.get().getRawValue() instanceof Byte) {
-                    Byte mainByte = (Byte) mainByteArray.get().getRawValue();
+                if (mainByteArray != null && mainByteArray.getRawValue() instanceof Byte) {
+                    Byte mainByte = (Byte) mainByteArray.getRawValue();
                     gliding = (mainByte & 0x80) != 0;
                     swimming = (mainByte & 0x10) != 0;
                     sneaking = (mainByte & 0x02) != 0;
                 }
 
-                Optional<WrappedWatchableObject> handStates = watchableObjects.stream().filter(o -> o.getIndex() == 7).findFirst();
-                if (handStates.isPresent() && handStates.get().getRawValue() instanceof Byte) {
-                    riptide = (((Byte) handStates.get().getRawValue()) & 0x04) != 0;
+                WrappedWatchableObject handStates = WatchableIndexUtil.getIndex(watchableObjects, 7);
+                if (handStates != null && handStates.getRawValue() instanceof Byte) {
+                    riptide = (((Byte) handStates.getRawValue()) & 0x04) != 0;
                 }
 
                 Pose pose;
@@ -334,9 +336,9 @@ public class CompensatedEntities {
         }
 
         if (EntityType.isAgeableEntity(entity.bukkitEntityType)) {
-            Optional<WrappedWatchableObject> ageableObject = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15)).findFirst();
-            if (ageableObject.isPresent()) {
-                Object value = ageableObject.get().getRawValue();
+            WrappedWatchableObject ageableObject = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15);
+            if (ageableObject != null) {
+                Object value = ageableObject.getRawValue();
                 // Required because bukkit Ageable doesn't align with minecraft's ageable
                 if (value instanceof Boolean) {
                     entity.isBaby = (boolean) value;
@@ -345,9 +347,9 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntitySizeable) {
-            Optional<WrappedWatchableObject> sizeObject = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15)).findFirst();
-            if (sizeObject.isPresent()) {
-                Object value = sizeObject.get().getRawValue();
+            WrappedWatchableObject sizeObject = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15);
+            if (sizeObject != null) {
+                Object value = sizeObject.getRawValue();
                 if (value instanceof Integer) {
                     ((PacketEntitySizeable) entity).size = (int) value;
                 }
@@ -355,13 +357,16 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityShulker) {
-            Optional<WrappedWatchableObject> shulkerAttached = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15)).findFirst();
-            // This NMS -> Bukkit conversion is great and works in all 11 versions.
-            shulkerAttached.ifPresent(wrappedWatchableObject -> ((PacketEntityShulker) entity).facing = BlockFace.valueOf(wrappedWatchableObject.getRawValue().toString().toUpperCase()));
+            WrappedWatchableObject shulkerAttached = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15);
 
-            Optional<WrappedWatchableObject> height = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17)).findFirst();
-            if (height.isPresent()) {
-                if ((byte) height.get().getRawValue() == 0) {
+            if (shulkerAttached != null) {
+                // This NMS -> Bukkit conversion is great and works in all 11 versions.
+                ((PacketEntityShulker) entity).facing = BlockFace.valueOf(shulkerAttached.getRawValue().toString().toUpperCase());
+            }
+
+            WrappedWatchableObject height = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17);
+            if (height != null) {
+                if ((byte) height.getRawValue() == 0) {
                     Vector3i position = new Vector3i((int) Math.floor(entity.position.getX()), (int) Math.floor(entity.position.getY()), (int) Math.floor(entity.position.getZ()));
                     ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), true);
                     player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
@@ -377,30 +382,34 @@ public class CompensatedEntities {
 
         if (entity instanceof PacketEntityRideable) {
             if (entity.type == EntityType.PIG) {
-                Optional<WrappedWatchableObject> pigSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16)).findFirst();
-                pigSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
+                WrappedWatchableObject pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16);
+                if (pigSaddle != null) {
+                    ((PacketEntityRideable) entity).hasSaddle = (boolean) pigSaddle.getRawValue();
+                }
 
-                Optional<WrappedWatchableObject> pigBoost = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17)).findFirst();
-                if (pigBoost.isPresent()) {
-                    ((PacketEntityRideable) entity).boostTimeMax = (int) pigBoost.get().getRawValue();
+                WrappedWatchableObject pigBoost = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17);
+                if (pigBoost != null) {
+                    ((PacketEntityRideable) entity).boostTimeMax = (int) pigBoost.getRawValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 0;
                 }
             } else if (entity instanceof PacketEntityStrider) {
-                Optional<WrappedWatchableObject> striderBoost = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16)).findFirst();
-                if (striderBoost.isPresent()) {
-                    ((PacketEntityRideable) entity).boostTimeMax = (int) striderBoost.get().getRawValue();
+                WrappedWatchableObject striderBoost = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16);
+                if (striderBoost != null) {
+                    ((PacketEntityRideable) entity).boostTimeMax = (int) striderBoost.getRawValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 0;
                 }
 
-                Optional<WrappedWatchableObject> striderSaddle = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 19 : 18)).findFirst();
-                striderSaddle.ifPresent(wrappedWatchableObject -> ((PacketEntityRideable) entity).hasSaddle = (boolean) wrappedWatchableObject.getRawValue());
+                WrappedWatchableObject striderSaddle = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 19 : 18);
+                if (striderSaddle != null) {
+                    ((PacketEntityRideable) entity).hasSaddle = (boolean) striderSaddle.getRawValue();
+                }
             }
         }
 
         if (entity instanceof PacketEntityHorse) {
-            Optional<WrappedWatchableObject> horseByte = watchableObjects.stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16)).findFirst();
-            if (horseByte.isPresent()) {
-                byte info = (byte) horseByte.get().getRawValue();
+            WrappedWatchableObject horseByte = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 17 : 16);
+            if (horseByte != null) {
+                byte info = (byte) horseByte.getRawValue();
 
                 ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
                 ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
@@ -408,11 +417,10 @@ public class CompensatedEntities {
         }
 
         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
-            Optional<WrappedWatchableObject> gravity = watchableObjects
-                    .stream().filter(o -> o.getIndex() == (5)).findFirst();
+            WrappedWatchableObject gravity = WatchableIndexUtil.getIndex(watchableObjects, 5);
 
-            if (gravity.isPresent()) {
-                Object gravityObject = gravity.get().getRawValue();
+            if (gravity != null) {
+                Object gravityObject = gravity.getRawValue();
 
                 if (gravityObject instanceof Boolean) {
                     // Vanilla uses hasNoGravity, which is a bad name IMO

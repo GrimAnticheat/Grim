@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
+import ac.grim.grimac.utils.nmsImplementations.WatchableIndexUtil;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -36,11 +37,10 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 if (player == null)
                     return;
 
-                Optional<WrappedWatchableObject> watchable = entityMetadata.getWatchableObjects()
-                        .stream().filter(o -> o.getIndex() == (0)).findFirst();
+                WrappedWatchableObject watchable = WatchableIndexUtil.getIndex(entityMetadata.getWatchableObjects(), 0);
 
-                if (watchable.isPresent()) {
-                    Object zeroBitField = watchable.get().getRawValue();
+                if (watchable != null) {
+                    Object zeroBitField = watchable.getRawValue();
 
                     if (zeroBitField instanceof Byte) {
                         byte field = (byte) zeroBitField;
@@ -91,12 +91,11 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                 if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) &&
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
-                    Optional<WrappedWatchableObject> riptide = entityMetadata.getWatchableObjects()
-                            .stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 8 : 7)).findFirst();
+                    WrappedWatchableObject riptide = WatchableIndexUtil.getIndex(entityMetadata.getWatchableObjects(), ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 8 : 7);
 
                     // This one only present if it changed
-                    if (riptide.isPresent() && riptide.get().getRawValue() instanceof Byte) {
-                        boolean isRiptiding = (((byte) riptide.get().getRawValue()) & 0x04) == 0x04;
+                    if (riptide != null && riptide.getRawValue() instanceof Byte) {
+                        boolean isRiptiding = (((byte) riptide.getRawValue()) & 0x04) == 0x04;
 
                         player.compensatedRiptide.setPose(isRiptiding);
 
@@ -115,8 +114,8 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         //
                         // This was added for stuff like shields, but IMO it really should be all client sided
                         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
-                            boolean isActive = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
-                            boolean hand = (((byte) riptide.get().getRawValue()) & 0x01) == 0x01;
+                            boolean isActive = (((byte) riptide.getRawValue()) & 0x01) == 0x01;
+                            boolean hand = (((byte) riptide.getRawValue()) & 0x01) == 0x01;
 
                             player.sendTransaction();
 
