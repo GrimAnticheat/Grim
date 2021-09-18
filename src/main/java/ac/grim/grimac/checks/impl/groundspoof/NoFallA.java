@@ -35,6 +35,8 @@ public class NoFallA extends PacketCheck {
 
             // We have the wrong world cached with chunks
             if (player.bukkitPlayer.getWorld() != player.packetStateData.playerWorld) return;
+            // The player hasn't spawned yet
+            if (player.getSetbackTeleportUtil().acceptedTeleports == 0) return;
 
             // Force teleports to have onGround set to false, might patch NoFall on some version.
             if (player.packetStateData.lastPacketWasTeleport) {
