@@ -39,6 +39,7 @@ dependencies {
     implementation 'com.github.retrooper:packetevents:934d537'
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
+    implementation 'org.bstats:bstats-bukkit:2.2.1'
 
     compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.0.0'
@@ -66,6 +67,7 @@ shadowJar {
     relocate 'com.github.steveice10.packetlib', 'ac.grim.grimac.shaded.packetlib'
     relocate 'co.aikar.commands', 'ac.grim.grimac.shaded.acf'
     relocate 'co.aikar.locales', 'ac.grim.grimac.shaded.locales'
+    relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
 }
 
 compileJava {

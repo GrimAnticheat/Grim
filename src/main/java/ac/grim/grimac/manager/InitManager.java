@@ -27,6 +27,7 @@ public class InitManager {
                 .put(TickRunner.class, new TickRunner())
                 .put(TickEndEvent.class, new TickEndEvent())
                 .put(CommandRegister.class, new CommandRegister())
+                .put(BStats.class, new BStats())
                 .build();
 
         initializersOnStop = new ImmutableClassToInstanceMap.Builder<Initable>()
