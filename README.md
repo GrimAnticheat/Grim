@@ -1,6 +1,7 @@
 # GrimAC
 
-**Warning: This project is too buggy to be used in production**
+**Warning: Some people are running grim on production but here be dragons - I will be testing grim sep 19th on production for a few days before marking it as stable**
+
 
 GrimAC is an open source anticheat designed for 1.17 and supporting 1.7-1.17. It will be sold for $15 on SpigotMC and
 other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats.

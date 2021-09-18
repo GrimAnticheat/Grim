@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.nmsImplementations.WatchableIndexUtil;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -40,10 +41,11 @@ public class PacketFireworkListener extends PacketListenerAbstract {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
 
             if (fireworks.remove(entityMetadata.getEntityId())) {
-                Optional<WrappedWatchableObject> fireworkWatchableObject = entityMetadata.getWatchableObjects().stream().filter(o -> o.getIndex() == (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 9 : 8)).findFirst();
-                if (!fireworkWatchableObject.isPresent()) return;
+                WrappedWatchableObject fireworkWatchableObject = WatchableIndexUtil.getIndex(entityMetadata.getWatchableObjects(), ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 9 : 8);
 
-                OptionalInt attachedEntityID = (OptionalInt) fireworkWatchableObject.get().getRawValue();
+                if (fireworkWatchableObject == null) return;
+
+                OptionalInt attachedEntityID = (OptionalInt) fireworkWatchableObject.getRawValue();
 
                 if (attachedEntityID.isPresent()) {
                     for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
