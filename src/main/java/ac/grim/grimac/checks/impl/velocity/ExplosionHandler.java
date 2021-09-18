@@ -99,7 +99,7 @@ public class ExplosionHandler extends PacketCheck {
         int kbTrans = Math.max(player.likelyKB != null ? player.likelyKB.transaction : Integer.MIN_VALUE,
                 player.firstBreadKB != null ? player.firstBreadKB.transaction : Integer.MIN_VALUE);
 
-        if (!force && !wasZero && player.predictedVelocity.hasVectorType(VectorData.VectorType.Knockback) &&
+        if (!force && !wasZero && player.predictedVelocity.isKnockback() &&
                 player.likelyExplosions == null && player.firstBreadExplosion != null) {
             // The player took this knockback, this tick, 100%
             // Fixes exploit that would allow players to take explosions an infinite number of times
@@ -108,7 +108,7 @@ public class ExplosionHandler extends PacketCheck {
             }
         }
 
-        if (force || wasZero || player.predictedVelocity.hasVectorType(VectorData.VectorType.Explosion) ||
+        if (force || wasZero || player.predictedVelocity.isExplosion()||
                 (minTrans < kbTrans)) {
             // Unsure knockback was taken
             if (player.firstBreadExplosion != null) {

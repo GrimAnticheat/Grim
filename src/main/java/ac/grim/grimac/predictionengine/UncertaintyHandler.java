@@ -119,14 +119,14 @@ public class UncertaintyHandler {
             return true;
 
         // Explicitly is 0.03 movement
-        if (predicted.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
+        if (predicted.isZeroPointZeroThree())
             return true;
 
         if (player.uncertaintyHandler.stuckOnEdge > -3)
             return true;
 
         // Uncertainty was given here for 0.03-influenced movement
-        if (predicted.hasVectorType(VectorData.VectorType.Swimhop))
+        if (predicted.isSwimHop())
             return true;
 
         // Movement is too low to determine whether this is zero point zero three
@@ -147,15 +147,15 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
-        boolean has003 = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
+        boolean has003 = data.isZeroPointZeroThree();
         double pointThree = has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
-        if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Knockback))
+        if (player.couldSkipTick && data.isKnockback())
             pointThree = 0.03;
 
         // This swim hop could be 0.03-influenced movement
-        if (data.hasVectorType(VectorData.VectorType.Swimhop) || data.hasVectorType(VectorData.VectorType.Trident))
+        if (data.isSwimHop() || data.isTrident())
             pointThree = 0.06;
 
         if (has003 && (influencedByBouncyBlock() || isSteppingOnIce))
@@ -187,7 +187,7 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
-        boolean has003 = data.hasVectorType(VectorData.VectorType.ZeroPointZeroThree);
+        boolean has003 = data.isZeroPointZeroThree();
 
         if (has003 && isSteppingNearBubbleColumn)
             return 0.35;
@@ -210,11 +210,11 @@ public class UncertaintyHandler {
             return 0.06;
 
         // This swim hop could be 0.03-influenced movement
-        if (data.hasVectorType(VectorData.VectorType.Swimhop) || data.hasVectorType(VectorData.VectorType.Trident))
+        if (data.isSwimHop() || data.isTrident())
             return 0.06;
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
-        if (player.couldSkipTick && data.hasVectorType(VectorData.VectorType.Knockback))
+        if (player.couldSkipTick && data.isKnockback())
             return 0.03;
 
         if (controlsVerticalMovement()) {
@@ -247,10 +247,10 @@ public class UncertaintyHandler {
 
             if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree && player.clientVelocity.getY() < 0.03) {
                 for (VectorData data : possibleVelocities)
-                    player.couldSkipTick = player.couldSkipTick || data.vector.getX() * data.vector.getX() + data.vector.getZ() * data.vector.getZ() < threshold && !data.hasVectorType(VectorData.VectorType.Knockback);
+                    player.couldSkipTick = player.couldSkipTick || data.vector.getX() * data.vector.getX() + data.vector.getZ() * data.vector.getZ() < threshold && !data.isKnockback();
             } else {
                 for (VectorData data : possibleVelocities)
-                    player.couldSkipTick = player.couldSkipTick || data.vector.lengthSquared() < threshold && !data.hasVectorType(VectorData.VectorType.Knockback);
+                    player.couldSkipTick = player.couldSkipTick || data.vector.lengthSquared() < threshold && !data.isKnockback();
             }
 
             return player.couldSkipTick;

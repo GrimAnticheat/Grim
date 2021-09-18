@@ -705,7 +705,7 @@ public class MovementCheckRunner extends PositionCheck {
         //
         // Set back the player to disallow them to use riptide anywhere, even outside rain or water
         if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() &&
-                player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident) &&
+                player.predictedVelocity.isTrident() &&
                 !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3))) {
             offset = 0;
             player.getSetbackTeleportUtil().executeSetback(false);
@@ -833,7 +833,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
 
         player.riptideSpinAttackTicks--;
-        if (player.predictedVelocity.hasVectorType(VectorData.VectorType.Trident))
+        if (player.predictedVelocity.isTrident())
             player.riptideSpinAttackTicks = 20;
 
         player.uncertaintyHandler.wasLastGravityUncertain = player.uncertaintyHandler.gravityUncertainty != 0;

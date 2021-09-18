@@ -106,7 +106,7 @@ public class PredictionEngine {
             Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
             Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
 
-            boolean flipSneaking = clientVelAfterInput.hasVectorType(VectorData.VectorType.Flip_Sneaking);
+            boolean flipSneaking = clientVelAfterInput.isFlipSneaking();
             if (flipSneaking) {
                 player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
                 player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
@@ -134,9 +134,9 @@ public class PredictionEngine {
 
             // This allows us to always check the percentage of knockback taken
             // A player cannot simply ignore knockback without us measuring how off it was
-            if (clientVelAfterInput.hasVectorType(VectorData.VectorType.Knockback))
+            if (clientVelAfterInput.isKnockback())
                 player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy), handleHardCodedBorder);
-            if (clientVelAfterInput.hasVectorType(VectorData.VectorType.Explosion))
+            if (clientVelAfterInput.isExplosion())
                 player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy), handleHardCodedBorder);
 
             if (resultAccuracy < bestInput) {
@@ -165,7 +165,7 @@ public class PredictionEngine {
         // The player always has at least one velocity - clientVelocity
         assert bestCollisionVel != null;
 
-        boolean flipSneaking = bestCollisionVel.hasVectorType(VectorData.VectorType.Flip_Sneaking);
+        boolean flipSneaking = bestCollisionVel.isFlipSneaking();
         if (flipSneaking) {
             player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
             player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
@@ -242,13 +242,13 @@ public class PredictionEngine {
         }
     }
 
-    public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
+    public int    sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
         int aScore = 0;
         int bScore = 0;
 
         // Fixes false using riptide under 2 blocks of water
-        boolean aTridentJump = a.hasVectorType(VectorData.VectorType.Trident) && !a.hasVectorType(VectorData.VectorType.Jump);
-        boolean bTridentJump = b.hasVectorType(VectorData.VectorType.Trident) && !b.hasVectorType(VectorData.VectorType.Jump);
+        boolean aTridentJump = a.isTrident() && !a.isJump();
+        boolean bTridentJump = b.isTrident() && !b.isJump();
 
         if (aTridentJump && !bTridentJump)
             return -1;
@@ -258,22 +258,22 @@ public class PredictionEngine {
 
         // Put explosions and knockback first so they are applied to the player
         // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
-        if (a.hasVectorType(VectorData.VectorType.Explosion))
+        if (a.isExplosion())
             aScore--;
 
-        if (a.hasVectorType(VectorData.VectorType.Knockback))
+        if (a.isKnockback())
             aScore--;
 
-        if (b.hasVectorType(VectorData.VectorType.Explosion))
+        if (b.isExplosion())
             bScore--;
 
-        if (b.hasVectorType(VectorData.VectorType.Knockback))
+        if (b.isKnockback())
             bScore--;
 
         // Large uncertainty possibilities shouldn't be prioritized, as uncertainty can cause the next tick to receive the wrong velocity
-        if (a.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
+        if (a.isZeroPointZeroThree())
             aScore++;
-        if (b.hasVectorType(VectorData.VectorType.ZeroPointZeroThree))
+        if (b.isZeroPointZeroThree())
             bScore++;
 
         // If the player is on the ground but the vector leads the player off the ground
@@ -384,13 +384,13 @@ public class PredictionEngine {
 
         // Handle 0.03 with fluid pushing players downwards
         if (player.baseTickAddition.getY() < 0 && player.wasTouchingWater &&
-                (vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) || vector.hasVectorType(VectorData.VectorType.Swimhop))) {
+                (vector.isZeroPointZeroThree() || vector.isSwimHop())) {
             minVector.setY(minVector.getY() + player.baseTickAddition.getY());
         }
 
         // Handle 0.03 with fluid pushing players upwards (the player moved out of the pushing inside 0.03 movement)
         if (player.couldSkipTick && player.baseTickAddition.getY() > 0 && player.wasTouchingWater &&
-                (vector.hasVectorType(VectorData.VectorType.ZeroPointZeroThree) || vector.hasVectorType(VectorData.VectorType.Swimhop))) {
+                (vector.isZeroPointZeroThree() || vector.isSwimHop())) {
             maxVector.setY(maxVector.getY() + player.baseTickAddition.getY());
         }
 
