@@ -18,7 +18,8 @@ public class TeleportEvent implements Listener {
         Location from = event.getFrom();
 
         // If the teleport is not from vanilla anticheat
-        if (to != null && (to.getX() != from.getX() || to.getY() != from.getY() || to.getZ() != from.getZ())) {
+        // (Vanilla anticheat has a teleport cause of UNKNOWN)
+        if (to != null  && event.getCause() != PlayerTeleportEvent.TeleportCause.UNKNOWN) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
             player.getSetbackTeleportUtil().setSetback(new Vector3d(to.getX(), to.getY(), to.getZ()));

@@ -123,7 +123,7 @@ public class PredictionEngine {
             double testZ = primaryPushMovement.getZ() + zAdditional;
             primaryPushMovement = new Vector(testX, testY, testZ);
 
-            Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(new Vector(0, 0.6, 0), primaryPushMovement).sort());
+            Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, testY), 0, testX, Math.max(0.6, testY), testZ).sort());
             if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
                 continue;
 
