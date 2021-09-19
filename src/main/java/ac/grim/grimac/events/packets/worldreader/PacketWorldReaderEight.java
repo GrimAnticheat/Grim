@@ -54,7 +54,6 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
                 Object chunkMap = packet.readAnyObject(2);
                 if (chunkMap.getClass().getDeclaredField("b").getInt(chunkMap) == 0 && packet.isGroundUpContinuous().get()) {
                     player.compensatedWorld.removeChunkLater(chunkX, chunkZ);
-                    event.setPostTask(player::sendTransaction);
                     return;
                 }
 
@@ -62,8 +61,6 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 e.printStackTrace();
             }
-
-            event.setPostTask(player::sendTransaction);
         }
 
         // Exists on 1.7 and 1.8 only
@@ -81,8 +78,6 @@ public class PacketWorldReaderEight extends PacketListenerAbstract {
 
                 addChunkToCache(player, chunkX, chunkZ, false);
             }
-
-            event.setPostTask(player::sendTransaction);
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
