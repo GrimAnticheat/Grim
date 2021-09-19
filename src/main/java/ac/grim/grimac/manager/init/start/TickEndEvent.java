@@ -1,9 +1,9 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
@@ -13,6 +13,7 @@ import org.bukkit.Bukkit;
 import java.lang.reflect.Field;
 import java.lang.reflect.Proxy;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class TickEndEvent implements Initable {
     static Class<?> tickEnd = null;
@@ -69,10 +70,10 @@ public class TickEndEvent implements Initable {
     }
 
     private void tickRelMove() { // Don't send packets on the main thread.
-        Reach.posSender.submit(() -> {
+        CompletableFuture.runAsync(() -> {
             for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
                 player.checkManager.getReach().onEndOfTickEvent();
             }
-        });
+        }, MovementCheckRunner.executor);
     }
 }

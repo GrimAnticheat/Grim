@@ -58,7 +58,6 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
             }
 
             addChunkToCache(player, chunkX, chunkZ, false);
-            event.setPostTask(player::sendTransaction);
         }
 
         // Exists on 1.7 and 1.8 only
@@ -77,8 +76,6 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
 
                 addChunkToCache(player, chunkX, chunkZ, false);
             }
-
-            event.setPostTask(player::sendTransaction);
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {

@@ -66,8 +66,6 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
-            event.setPostTask(player::sendTransaction);
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
