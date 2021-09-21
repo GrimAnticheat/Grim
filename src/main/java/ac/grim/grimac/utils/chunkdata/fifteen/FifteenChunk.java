@@ -127,14 +127,8 @@ public class FifteenChunk implements BaseChunk {
         this.storage.set(ind, id);
     }
 
-    public boolean isEmpty() {
-        for (int index = 0; index < this.storage.getSize(); index++) {
-            if (this.storage.get(index) != 0) {
-                return false;
-            }
-        }
-
-        return true;
+    public boolean isKnownEmpty() {
+        return blockCount == 0;
     }
 }
 

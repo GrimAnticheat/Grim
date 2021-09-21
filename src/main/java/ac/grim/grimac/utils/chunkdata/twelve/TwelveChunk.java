@@ -17,7 +17,6 @@ public class TwelveChunk implements BaseChunk {
     private int bitsPerEntry;
     private LegacyFlexibleStorage storage;
 
-
     public TwelveChunk(NetInput in) throws IOException {
         this.bitsPerEntry = in.readUnsignedByte();
 
@@ -61,6 +60,12 @@ public class TwelveChunk implements BaseChunk {
         return this.bitsPerEntry <= 8 ? (id >= 0 && id < this.states.size() ? this.states.get(id) : AIR) : rawToState(id);
     }
 
+    // This method only works post-flattening
+    // This is due to the palette system
+    @Override
+    public boolean isKnownEmpty() {
+        return false;
+    }
 
     public void set(int x, int y, int z, int combinedID) {
         set(x, y, z, new MagicBlockState(combinedID));

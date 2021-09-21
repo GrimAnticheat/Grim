@@ -39,13 +39,10 @@ import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 // You may not copy the check unless you are licensed under GPL
 public class Reach extends PacketCheck {
 
-    public static final ExecutorService posSender = Executors.newSingleThreadExecutor();
     // Concurrent to support weird entity trackers
     public final ConcurrentHashMap<Integer, PlayerReachEntity> entityMap = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();

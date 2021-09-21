@@ -23,4 +23,11 @@ public class EightChunk implements BaseChunk {
         int data = blocks.get(x, y, z);
         return new MagicBlockState(data >> 4, data & 0xF);
     }
+
+    // This method only works post-flattening
+    // This is due to the palette system
+    @Override
+    public boolean isKnownEmpty() {
+        return false;
+    }
 }
