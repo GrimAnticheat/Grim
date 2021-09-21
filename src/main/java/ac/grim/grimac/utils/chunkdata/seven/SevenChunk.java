@@ -42,4 +42,11 @@ public class SevenChunk implements BaseChunk {
     public BaseBlockState get(int x, int y, int z) {
         return new MagicBlockState(getBlockTypeId(x, y, z), getBlockData(x, y, z));
     }
+
+    // This method only works post-flattening
+    // This is due to the palette system
+    @Override
+    public boolean isKnownEmpty() {
+        return false;
+    }
 }

@@ -6,4 +6,6 @@ public interface BaseChunk {
     void set(int x, int y, int z, int combinedID);
 
     BaseBlockState get(int x, int y, int z);
+
+    boolean isKnownEmpty();
 }

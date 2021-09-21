@@ -100,7 +100,7 @@ public class SixteenChunk implements BaseChunk {
         this.storage.set(index, id);
     }
 
-    public boolean isEmpty() {
+    public boolean isKnownEmpty() {
         return this.blockCount == 0;
     }
 

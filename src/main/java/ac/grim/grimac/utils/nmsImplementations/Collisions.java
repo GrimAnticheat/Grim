@@ -7,6 +7,8 @@ import ac.grim.grimac.utils.blockdata.types.WrappedDirectional;
 import ac.grim.grimac.utils.blockdata.types.WrappedTrapdoor;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.chunkdata.BaseChunk;
+import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -159,6 +161,7 @@ public class Collisions {
         return bestOrderResult;
     }
 
+    // This is mostly taken from Tuinity collisions
     public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
         List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
         SimpleCollisionBox expandedBB = wantedBB.copy();
@@ -203,22 +206,64 @@ public class Collisions {
         int minBlockZ = (int) Math.floor(expandedBB.minZ - COLLISION_EPSILON) - 1;
         int maxBlockZ = (int) Math.floor(expandedBB.maxZ + COLLISION_EPSILON) + 1;
 
-        // Blocks are stored in YZX order
-        for (int y = minBlockY; y <= maxBlockY; y++) {
-            for (int z = minBlockZ; z <= maxBlockZ; z++) {
-                for (int x = minBlockX; x <= maxBlockX; x++) {
-                    BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        final int minSection = player.compensatedWorld.getMinHeight() >> 4;
+        final int maxSection = player.compensatedWorld.getMaxHeight() >> 4;
+        final int minBlock = minSection << 4;
+        final int maxBlock = (maxSection << 4) | 15;
 
-                    // Works on both legacy and modern!  Faster than checking for material types, most common case
-                    if (data.getCombinedId() == 0) continue;
+        int minChunkX = minBlockX >> 4;
+        int maxChunkX = maxBlockX >> 4;
 
-                    int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
-                            ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
-                            ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
+        int minChunkZ = minBlockZ >> 4;
+        int maxChunkZ = maxBlockZ >> 4;
 
-                    if (edgeCount != 3 && (edgeCount != 1 || Materials.checkFlag(data.getMaterial(), Materials.SHAPE_EXCEEDS_CUBE))
-                            && (edgeCount != 2 || data.getMaterial() == PISTON_HEAD)) {
-                        CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+        int minYIterate = Math.max(minBlock, minBlockY);
+        int maxYIterate = Math.min(maxBlock, maxBlockY);
+
+        for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
+            int minZ = currChunkZ == minChunkZ ? minBlockZ & 15 : 0; // coordinate in chunk
+            int maxZ = currChunkZ == maxChunkZ ? maxBlockZ & 15 : 15; // coordinate in chunk
+
+            for (int currChunkX = minChunkX; currChunkX <= maxChunkX; ++currChunkX) {
+                int minX = currChunkX == minChunkX ? minBlockX & 15 : 0; // coordinate in chunk
+                int maxX = currChunkX == maxChunkX ? maxBlockX & 15 : 15; // coordinate in chunk
+
+                int chunkXGlobalPos = currChunkX << 4;
+                int chunkZGlobalPos = currChunkZ << 4;
+
+                Column chunk = player.compensatedWorld.getChunk(currChunkX, currChunkZ);
+
+                BaseChunk[] sections = chunk.getChunks();
+
+                for (int y = minYIterate; y <= maxYIterate; ++y) {
+                    BaseChunk section = sections[(y >> 4) - minSection];
+
+                    if (section == null || section.isKnownEmpty()) { // Check for empty on 1.13+ servers
+                        // empty
+                        // skip to next section
+                        y = (y & ~(15)) + 15; // increment by 15: iterator loop increments by the extra one
+                        continue;
+                    }
+
+                    for (int currZ = minZ; currZ <= maxZ; ++currZ) {
+                        for (int currX = minX; currX <= maxX; ++currX) {
+                            int x = currX | chunkXGlobalPos;
+                            int z = currZ | chunkZGlobalPos;
+
+                            BaseBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
+
+                            // Works on both legacy and modern!  Faster than checking for material types, most common case
+                            if (data.getCombinedId() == 0) continue;
+
+                            int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
+                                    ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
+                                    ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
+
+                            if (edgeCount != 3 && (edgeCount != 1 || Materials.checkFlag(data.getMaterial(), Materials.SHAPE_EXCEEDS_CUBE))
+                                    && (edgeCount != 2 || data.getMaterial() == PISTON_HEAD)) {
+                                CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+                            }
+                        }
                     }
                 }
             }
@@ -564,16 +609,67 @@ public class Collisions {
         return hasMaterial(player, playerBB, material -> material == searchMat);
     }
 
+    // Thanks Tuinity
     public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Material> searchingFor) {
-        // Blocks are stored in YZX order
-        for (int y = (int) Math.floor(checkBox.minY); y <= Math.ceil(checkBox.maxY); y++) {
-            for (int z = (int) Math.floor(checkBox.minZ); z <= Math.ceil(checkBox.maxZ); z++) {
-                for (int x = (int) Math.floor(checkBox.minX); x <= Math.ceil(checkBox.maxX); x++) {
-                    if (searchingFor.test(player.compensatedWorld.getBukkitMaterialAt(x, y, z))) return true;
+        int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
+        int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
+        int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
+        int maxBlockY = (int) Math.floor(checkBox.maxY + COLLISION_EPSILON) + 1;
+        int minBlockZ = (int) Math.floor(checkBox.minZ - COLLISION_EPSILON) - 1;
+        int maxBlockZ = (int) Math.floor(checkBox.maxZ + COLLISION_EPSILON) + 1;
+
+        final int minSection = player.compensatedWorld.getMinHeight() >> 4;
+        final int maxSection = player.compensatedWorld.getMaxHeight() >> 4;
+        final int minBlock = minSection << 4;
+        final int maxBlock = (maxSection << 4) | 15;
+
+        int minChunkX = minBlockX >> 4;
+        int maxChunkX = maxBlockX >> 4;
+
+        int minChunkZ = minBlockZ >> 4;
+        int maxChunkZ = maxBlockZ >> 4;
+
+        int minYIterate = Math.max(minBlock, minBlockY);
+        int maxYIterate = Math.min(maxBlock, maxBlockY);
+
+        for (int currChunkZ = minChunkZ; currChunkZ <= maxChunkZ; ++currChunkZ) {
+            int minZ = currChunkZ == minChunkZ ? minBlockZ & 15 : 0; // coordinate in chunk
+            int maxZ = currChunkZ == maxChunkZ ? maxBlockZ & 15 : 15; // coordinate in chunk
+
+            for (int currChunkX = minChunkX; currChunkX <= maxChunkX; ++currChunkX) {
+                int minX = currChunkX == minChunkX ? minBlockX & 15 : 0; // coordinate in chunk
+                int maxX = currChunkX == maxChunkX ? maxBlockX & 15 : 15; // coordinate in chunk
+
+                int chunkXGlobalPos = currChunkX << 4;
+                int chunkZGlobalPos = currChunkZ << 4;
+
+                Column chunk = player.compensatedWorld.getChunk(currChunkX, currChunkZ);
+
+                BaseChunk[] sections = chunk.getChunks();
+
+                for (int y = minYIterate; y <= maxYIterate; ++y) {
+                    BaseChunk section = sections[(y >> 4) - minSection];
+
+                    if (section == null || section.isKnownEmpty()) { // Check for empty on 1.13+ servers
+                        // empty
+                        // skip to next section
+                        y = (y & ~(15)) + 15; // increment by 15: iterator loop increments by the extra one
+                        continue;
+                    }
+
+                    for (int currZ = minZ; currZ <= maxZ; ++currZ) {
+                        for (int currX = minX; currX <= maxX; ++currX) {
+                            int x = currX | chunkXGlobalPos;
+                            int z = currZ | chunkZGlobalPos;
+
+                            BaseBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
+
+                            if (searchingFor.test(data.getMaterial())) return true;
+                        }
+                    }
                 }
             }
         }
-
         return false;
     }
 
