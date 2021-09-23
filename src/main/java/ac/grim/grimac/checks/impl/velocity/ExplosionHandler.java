@@ -54,10 +54,11 @@ public class ExplosionHandler extends PacketCheck {
         firstBreadMap.add(new VelocityData(-1, breadOne, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
-    public void handlePredictionAnalysis(double offset, Vector vector) {
-        if (vector.lengthSquared() < player.uncertaintyHandler.getZeroPointZeroThreeThreshold())
-            wasKbZeroPointZeroThree = true;
+    public void setPointThree(boolean isPointThree) {
+        wasKbZeroPointZeroThree = wasKbZeroPointZeroThree || isPointThree;
+    }
 
+    public void handlePredictionAnalysis(double offset) {
         if (player.firstBreadExplosion != null) {
             player.firstBreadExplosion.offset = Math.min(player.firstBreadExplosion.offset, offset);
         }

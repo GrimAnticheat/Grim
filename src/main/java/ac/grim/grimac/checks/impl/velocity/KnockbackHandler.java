@@ -129,10 +129,11 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public void handlePredictionAnalysis(double offset, Vector vector) {
-        if (vector.lengthSquared() < player.uncertaintyHandler.getZeroPointZeroThreeThreshold())
-            wasExplosionZeroPointZeroThree = true;
+    public void setPointThree(boolean isPointThree) {
+        wasExplosionZeroPointZeroThree = wasExplosionZeroPointZeroThree || isPointThree;
+    }
 
+    public void handlePredictionAnalysis(double offset) {
         if (player.firstBreadKB != null) {
             player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
         }
