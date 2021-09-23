@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -79,7 +78,7 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
-    public void handlePlayerExplosion(double offset, boolean force) {
+    public void handlePlayerExplosion(double offset) {
         boolean wasZero = wasKbZeroPointZeroThree;
         wasKbZeroPointZeroThree = false;
 
@@ -99,8 +98,7 @@ public class ExplosionHandler extends PacketCheck {
         int kbTrans = Math.max(player.likelyKB != null ? player.likelyKB.transaction : Integer.MIN_VALUE,
                 player.firstBreadKB != null ? player.firstBreadKB.transaction : Integer.MIN_VALUE);
 
-        if (!force && !wasZero && player.predictedVelocity.isKnockback() &&
-                player.likelyExplosions == null && player.firstBreadExplosion != null) {
+        if (!wasZero && player.predictedVelocity.isKnockback() && player.likelyExplosions == null && player.firstBreadExplosion != null) {
             // The player took this knockback, this tick, 100%
             // Fixes exploit that would allow players to take explosions an infinite number of times
             if (player.firstBreadExplosion.offset < offsetToFlag) {
@@ -108,7 +106,7 @@ public class ExplosionHandler extends PacketCheck {
             }
         }
 
-        if (force || wasZero || player.predictedVelocity.isExplosion()||
+        if (wasZero || player.predictedVelocity.isExplosion() ||
                 (minTrans < kbTrans)) {
             // Unsure knockback was taken
             if (player.firstBreadExplosion != null) {

@@ -227,8 +227,8 @@ public class MovementCheckRunner extends PositionCheck {
         player.vehicleData.lastDummy = false;
 
         if (player.vehicleData.lastVehicleSwitch < 5) {
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
-            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
+            player.checkManager.getExplosionHandler().forceExempt();
+            player.checkManager.getKnockbackHandler().forceExempt();
         }
 
         // Wtf, why does the player send vehicle packets when not in vehicle, I don't understand this part of shitty netcode
@@ -290,8 +290,8 @@ public class MovementCheckRunner extends PositionCheck {
             player.canSwimHop = false;
 
             // Teleports mess with explosions and knockback
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
-            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
+            player.checkManager.getExplosionHandler().forceExempt();
+            player.checkManager.getKnockbackHandler().forceExempt();
 
             // Manually call prediction complete to handle teleport
             player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, data));
@@ -322,7 +322,7 @@ public class MovementCheckRunner extends PositionCheck {
         // Therefore, we just assume that the client and server are modded or whatever.
         if (player.inVehicle) {
             // Players are unable to take explosions in vehicles
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
+            player.checkManager.getExplosionHandler().forceExempt();
 
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.lastTickPosition = player.playerVehicle.position;
@@ -526,8 +526,8 @@ public class MovementCheckRunner extends PositionCheck {
             player.clientVelocity = new Vector();
 
             // Dead players don't take explosions or knockback
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
-            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
+            player.checkManager.getExplosionHandler().forceExempt();
+            player.checkManager.getKnockbackHandler().forceExempt();
         } else if ((ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) || player.specialFlying) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
@@ -539,8 +539,8 @@ public class MovementCheckRunner extends PositionCheck {
             player.friction = 0.91f;
             PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
 
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
-            player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
+            player.checkManager.getExplosionHandler().forceExempt();
+            player.checkManager.getKnockbackHandler().forceExempt();
         } else if (player.playerVehicle == null) {
             // Depth strider was added in 1.8
             ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
@@ -861,8 +861,8 @@ public class MovementCheckRunner extends PositionCheck {
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
         player.vehicleData.horseJump = data.horseJump;
 
-        player.checkManager.getKnockbackHandler().handlePlayerKb(offset, false);
-        player.checkManager.getExplosionHandler().handlePlayerExplosion(offset, false);
+        player.checkManager.getKnockbackHandler().handlePlayerKb(offset);
+        player.checkManager.getExplosionHandler().handlePlayerExplosion(offset);
         player.trigHandler.setOffset(oldClientVel, offset);
         player.compensatedRiptide.handleRemoveRiptide();
     }

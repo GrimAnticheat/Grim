@@ -61,8 +61,8 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived);
 
                 // Not responsible for applying knockback/explosions
-                player.checkManager.getExplosionHandler().handlePlayerExplosion(0, true);
-                player.checkManager.getKnockbackHandler().handlePlayerKb(0, true);
+                player.checkManager.getExplosionHandler().forceExempt();
+                player.checkManager.getKnockbackHandler().forceExempt();
 
                 // Set position now to support "dummy" riding without control
                 // Warning - on pigs and striders players, can turn into dummies independent of whether they have
