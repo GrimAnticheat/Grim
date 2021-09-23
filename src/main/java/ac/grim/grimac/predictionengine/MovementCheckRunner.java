@@ -74,14 +74,9 @@ public class MovementCheckRunner extends PositionCheck {
     public void processAndCheckMovementPacket(PredictionData data) {
         Column column = data.player.compensatedWorld.getChunk(GrimMath.floor(data.playerX) >> 4, GrimMath.floor(data.playerZ) >> 4);
 
-        // The player hasn't spawned or respawned (We don't need to setback here as the player isn't even in the world!)
-        if (player.getSetbackTeleportUtil().acceptedTeleports == 0) {
-            data.player.nextTaskToRun = null;
-            return;
-        }
-
         // The player is in an unloaded chunk
-        if (!data.isJustTeleported && (column == null || column.transaction > player.packetStateData.packetLastTransactionReceived.get())) {
+        if (!data.isJustTeleported && (column == null || column.transaction > player.packetStateData.packetLastTransactionReceived.get())
+                || player.getSetbackTeleportUtil().acceptedTeleports == 0) {
             data.player.nextTaskToRun = null;
 
             // Teleport the player back to avoid players being able to simply ignore transactions
