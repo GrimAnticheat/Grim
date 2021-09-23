@@ -232,6 +232,9 @@ public class UncertaintyHandler {
     }
 
     public boolean canSkipTick(List<VectorData> possibleVelocities) {
+        // Reset could skip tick
+        player.couldSkipTick = false;
+
         // 0.03 is very bad with stuck speed multipliers
         if (player.inVehicle) {
             return false;

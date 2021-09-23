@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -160,7 +159,7 @@ public class KnockbackHandler extends PacketCheck {
             }
         }
 
-            if (force || wasZero || player.predictedVelocity.isKnockback()) {
+        if (force || wasZero || player.predictedVelocity.isKnockback()) {
             // Unsure knockback was taken
             if (player.firstBreadKB != null) {
                 player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
@@ -176,7 +175,7 @@ public class KnockbackHandler extends PacketCheck {
             if (player.likelyKB.offset > offsetToFlag) {
                 increaseViolations();
 
-                String formatOffset = "o: " + formatOffset(offset);
+                String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
 
                 if (player.likelyKB.offset == Integer.MAX_VALUE) {
                     formatOffset = "ignored knockback";
