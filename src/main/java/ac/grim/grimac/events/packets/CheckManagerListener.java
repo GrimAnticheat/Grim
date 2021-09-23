@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.math.VectorUtils;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -78,7 +79,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             if (hasPosition) {
                 Vector3d position = flying.getPosition();
-                player.packetStateData.packetPosition = position;
+                player.packetStateData.packetPosition = VectorUtils.clampVector(position);
 
                 TeleportAcceptData teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
                 player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
@@ -107,6 +108,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
             WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
             Vector3d position = move.getPosition();
+
+            player.packetStateData.lastPacketPosition = player.packetStateData.packetPosition;
+            player.packetStateData.packetPosition = VectorUtils.clampVector(position);
 
             final boolean isTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
             player.packetStateData.lastPacketWasTeleport = isTeleport;

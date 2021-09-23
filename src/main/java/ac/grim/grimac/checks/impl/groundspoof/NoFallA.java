@@ -71,7 +71,7 @@ public class NoFallA extends PacketCheck {
 
                 // Don't expand if the player moved more than 50 blocks this tick (stop netty crash exploit)
                 if (position.distanceSquared(lastPos) < 2500)
-                    feetBB.expandToAbsoluteCoordinates(lastPos.getX(), position.getX(), lastPos.getZ());
+                    feetBB.expandToAbsoluteCoordinates(lastPos.getX(), lastPos.getY(), lastPos.getZ());
 
                 // Shulkers have weird BB's that the player might be standing on
                 if (Collisions.hasMaterial(player, feetBB, material -> Materials.checkFlag(material, Materials.SHULKER)))
