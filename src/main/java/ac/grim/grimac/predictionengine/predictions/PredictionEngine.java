@@ -18,10 +18,7 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PredictionEngine {
 
@@ -29,6 +26,7 @@ public class PredictionEngine {
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
         // Determine if the player can make an input below 0.03
+        player.couldSkipTick = false; // Reset could skip tick
         player.couldSkipTick = player.uncertaintyHandler.canSkipTick(possibleVelocities);
 
         if (player.couldSkipTick) {
@@ -161,10 +159,22 @@ public class PredictionEngine {
 
             // This allows us to always check the percentage of knockback taken
             // A player cannot simply ignore knockback without us measuring how off it was
-            if (clientVelAfterInput.isKnockback())
-                player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy), handleHardCodedBorder);
-            if (clientVelAfterInput.isExplosion())
-                player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy), handleHardCodedBorder);
+            if (clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) {
+                // Check ONLY the knockback vectors for 0.03
+                // The first being the one without uncertainty
+                // And the last having uncertainty to deal with 0.03
+                boolean wasPointThree = player.uncertaintyHandler.canSkipTick(Arrays.asList(clientVelAfterInput, clientVelAfterInput.returnNewModified(primaryPushMovement, VectorData.VectorType.Normal), clientVelAfterInput.returnNewModified(handleHardCodedBorder, VectorData.VectorType.Normal)));
+
+                if (clientVelAfterInput.isKnockback()) {
+                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+                    player.checkManager.getKnockbackHandler().setPointThree(wasPointThree);
+                }
+
+                if (clientVelAfterInput.isExplosion()) {
+                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+                    player.checkManager.getExplosionHandler().setPointThree(wasPointThree);
+                }
+            }
 
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
@@ -285,16 +295,16 @@ public class PredictionEngine {
         // Put explosions and knockback first so they are applied to the player
         // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
         if (a.isExplosion())
-            aScore--;
+            aScore -= 4;
 
         if (a.isKnockback())
-            aScore--;
+            aScore -= 4;
 
         if (b.isExplosion())
-            bScore--;
+            bScore -= 4;
 
         if (b.isKnockback())
-            bScore--;
+            bScore -= 4;
 
         // If the player is on the ground but the vector leads the player off the ground
         if (player.onGround && a.vector.getY() >= 0)
