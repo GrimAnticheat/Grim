@@ -314,7 +314,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @param position Position of the teleport
      */
     public void setSetback(Vector3d position) {
-        setSafeTeleportPositionFromTeleport(position);
+        setSafeSetbackLocation(position);
 
         requiredSetBack = new SetBackData(player.bukkitPlayer.getWorld(), position, player.packetStateData.packetPlayerXRot,
                 player.packetStateData.packetPlayerYRot, new Vector(), null, player.lastTransactionSent.get());
@@ -327,7 +327,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      *
      * @param position A safe setback location
      */
-    public void setSafeTeleportPositionFromTeleport(Vector3d position) {
+    public void setSafeSetbackLocation(Vector3d position) {
         this.safeTeleportPosition = new SetbackLocationVelocity(position, player.movementPackets);
         this.lastGroundTeleportPosition = new SetbackLocationVelocity(position, processedPredictions);
     }
