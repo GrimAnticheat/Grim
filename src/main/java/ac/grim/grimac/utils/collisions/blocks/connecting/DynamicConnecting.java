@@ -84,7 +84,7 @@ public class DynamicConnecting {
 
             BlockFace f1 = gate.getDirection();
             BlockFace f2 = f1.getOppositeFace();
-            return direction == f1 || direction == f2;
+            return direction != f1 && direction != f2;
         } else {
             if (fence == target) return true;
 

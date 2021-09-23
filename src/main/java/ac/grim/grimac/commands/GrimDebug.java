@@ -33,6 +33,7 @@ public class GrimDebug extends BaseCommand {
         Player targetPlayer = target == null ? player : target.getPlayer();
         if (player == null && target == null) {
             sender.sendMessage(ChatColor.RED + "You must specify a target as the console!");
+            return null;
         }
 
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(targetPlayer);
