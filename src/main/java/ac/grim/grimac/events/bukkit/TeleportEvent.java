@@ -50,7 +50,6 @@ public class TeleportEvent implements Listener {
         player.sendTransaction();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             player.packetStateData.isPacketSneaking = false;
-            player.packetStateData.isPacketSprinting = false;
         });
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.playerWorld = newWorld);
         player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.playerWorld = newWorld);

@@ -37,6 +37,12 @@ public class PlayerJoinQuitListener implements Listener {
             return;
         }
 
+        // Force the player to resync their sprinting status
+        // Fixes false after transferring from a proxy, as both bungee and velocity don't handle
+        // the sprinting state correctly and inform us.
+        player.bukkitPlayer.setSprinting(true);
+        player.bukkitPlayer.setSprinting(false);
+
         player.playerWorld = bukkitPlayer.getLocation().getWorld();
         player.packetStateData.playerWorld = bukkitPlayer.getLocation().getWorld();
         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
