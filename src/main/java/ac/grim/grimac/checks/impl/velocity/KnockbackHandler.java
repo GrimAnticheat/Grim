@@ -142,7 +142,7 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public void handlePlayerKb(double offset, boolean force) {
+    public void handlePlayerKb(double offset) {
         boolean wasZero = wasExplosionZeroPointZeroThree;
         wasExplosionZeroPointZeroThree = false;
 
@@ -150,7 +150,7 @@ public class KnockbackHandler extends PacketCheck {
             return;
         }
 
-        if (!force && !wasZero && player.predictedVelocity.isKnockback() &&
+        if (!wasZero && player.predictedVelocity.isKnockback() &&
                 player.likelyKB == null && player.firstBreadKB != null) {
             // The player took this knockback, this tick, 100%
             // Fixes exploit that would allow players to take knockback an infinite number of times
@@ -159,7 +159,7 @@ public class KnockbackHandler extends PacketCheck {
             }
         }
 
-        if (force || wasZero || player.predictedVelocity.isKnockback()) {
+        if (wasZero || player.predictedVelocity.isKnockback()) {
             // Unsure knockback was taken
             if (player.firstBreadKB != null) {
                 player.firstBreadKB.offset = Math.min(player.firstBreadKB.offset, offset);
