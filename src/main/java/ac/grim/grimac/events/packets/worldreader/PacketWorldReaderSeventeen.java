@@ -48,14 +48,14 @@ public class PacketWorldReaderSeventeen extends PacketListenerAbstract {
             try {
                 int chunkX = packet.getChunkX();
                 int chunkZ = packet.getChunkZ();
-                BitSet availableSectionsBitSet = packet.readObject(0, BitSet.class);
+                BitSet bitSet = packet.getBitSet();
 
-                BaseChunk[] chunks = new SixteenChunk[availableSectionsBitSet.size()];
+                BaseChunk[] chunks = new SixteenChunk[bitSet.size()];
                 byte[] chunkData = packet.getCompressedData();
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
                 for (int index = 0; index < chunks.length; ++index) {
-                    if (availableSectionsBitSet.get(index)) {
+                    if (bitSet.get(index)) {
                         chunks[index] = SixteenChunk.read(dataIn);
                     }
                 }
