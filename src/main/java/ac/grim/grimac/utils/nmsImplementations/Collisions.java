@@ -232,6 +232,7 @@ public class Collisions {
                 int chunkZGlobalPos = currChunkZ << 4;
 
                 Column chunk = player.compensatedWorld.getChunk(currChunkX, currChunkZ);
+                if (chunk == null) continue;
 
                 BaseChunk[] sections = chunk.getChunks();
 
@@ -645,6 +646,7 @@ public class Collisions {
 
                 Column chunk = player.compensatedWorld.getChunk(currChunkX, currChunkZ);
 
+                if (chunk == null) continue;
                 BaseChunk[] sections = chunk.getChunks();
 
                 for (int y = minYIterate; y <= maxYIterate; ++y) {
