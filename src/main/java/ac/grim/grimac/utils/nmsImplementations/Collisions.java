@@ -538,6 +538,16 @@ public class Collisions {
             for (int z = (int) Math.floor(playerBB.minZ); z < Math.ceil(playerBB.maxZ); z++) {
                 for (int x = (int) Math.floor(playerBB.minX); x < Math.ceil(playerBB.maxX); x++) {
                     if (doesBlockSuffocate(player, x, y, z)) {
+                        // Mojang re-added soul sand pushing by checking if the player is actually in the block
+                        // (This is why from 1.14-1.15 soul sand didn't push)
+                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16)) {
+                            BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+                            Material mat = data.getMaterial();
+                            CollisionBox box = CollisionData.getData(mat).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
+
+                            if (!box.isIntersected(playerBB)) continue;
+                        }
+
                         return true;
                     }
                 }
