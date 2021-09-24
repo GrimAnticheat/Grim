@@ -412,6 +412,11 @@ public class PredictionEngine {
             maxVector.setY(maxVector.getY() + 0.1);
         }
 
+        // Initial end of tick levitation gets hidden by missing idle packet
+        if (player.levitationAmplifier < 0 && player.clientVelocity.getY() < 0.1) {
+            maxVector.setY(maxVector.getY() - 0.1);
+        }
+
         // Handle 0.03 with fluid pushing players downwards
         if (player.baseTickAddition.getY() < 0 && player.wasTouchingWater &&
                 (vector.isZeroPointZeroThree() || vector.isSwimHop())) {
