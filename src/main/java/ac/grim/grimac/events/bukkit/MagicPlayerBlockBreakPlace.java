@@ -23,21 +23,22 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class MagicPlayerBlockBreakPlace implements Listener {
 
-    public static int getPlayerTransactionForBucket(GrimPlayer player, Location pos) {
-        for (Iterator<TransPosData> it = player.compensatedWorld.packetBucket.iterator(); it.hasNext(); ) {
-            TransPosData posData = it.next();
-            if (posData.getPosX() == pos.getX() && posData.getPosY() == pos.getY() && posData.getPosZ() == pos.getZ()) {
-                it.remove();
-                return posData.getTrans();
+    public static int getPlayerTransactionForPosition(GrimPlayer player, Location location, ConcurrentLinkedQueue<BlockPlayerUpdate> updates) {
+        int transaction = player.lastTransactionAtStartOfTick;
+
+        for (BlockPlayerUpdate update : updates) {
+            if (update.position.getX() == location.getBlockX()
+                    && update.position.getY() == location.getBlockY()
+                    && update.position.getZ() == location.getBlockZ()) {
+                transaction = update.transaction;
             }
         }
 
-        return player.lastTransactionAtStartOfTick;
+        return transaction;
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -76,22 +77,22 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         int combinedID = materialID + (blockData << 12);
 
-        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ(), combinedID);
+        int trans = MagicPlayerBlockBreakPlace.getPlayerTransactionForBucket(player, player.bukkitPlayer.getLocation());
+        ChangeBlockData data = new ChangeBlockData(trans, block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
-    public static int getPlayerTransactionForPosition(GrimPlayer player, Location location, ConcurrentLinkedQueue<BlockPlayerUpdate> updates) {
-        int transaction = player.lastTransactionAtStartOfTick;
-
-        for (BlockPlayerUpdate update : updates) {
-            if (update.position.getX() == location.getBlockX()
-                    && update.position.getY() == location.getBlockY()
-                    && update.position.getZ() == location.getBlockZ()) {
-                transaction = update.transaction;
+    public static int getPlayerTransactionForBucket(GrimPlayer player, Location pos) {
+        synchronized (player.compensatedWorld.posToTrans) {
+            for (TransPosData posData : player.compensatedWorld.posToTrans) {
+                if (posData.getPosX() == pos.getX() && posData.getPosY() == pos.getY() && posData.getPosZ() == pos.getZ()) {
+                    return posData.getTrans();
+                }
             }
-        }
 
-        return transaction;
+            // The flying packet got processed instantly
+            return player.packetStateData.packetLastTransactionReceived.get();
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -102,7 +103,8 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         // Even when breaking waterlogged stuff, the client assumes it will turn into air (?)
         // So in 1.12 everything probably turns into air when broken
-        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation(), player.compensatedWorld.packetBlockBreaks), block.getX(), block.getY(), block.getZ(), 0);
+        int trans = MagicPlayerBlockBreakPlace.getPlayerTransactionForBucket(player, player.bukkitPlayer.getLocation());
+        ChangeBlockData data = new ChangeBlockData(trans, block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
@@ -120,7 +122,8 @@ public class MagicPlayerBlockBreakPlace implements Listener {
 
         // Client side interactable -> Door, trapdoor, gate
         if (Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
-            PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ());
+            int trans = MagicPlayerBlockBreakPlace.getPlayerTransactionForBucket(player, player.bukkitPlayer.getLocation());
+            PlayerOpenBlockData data = new PlayerOpenBlockData(trans, block.getX(), block.getY(), block.getZ());
             player.compensatedWorld.worldChangedBlockQueue.add(data);
         }
     }

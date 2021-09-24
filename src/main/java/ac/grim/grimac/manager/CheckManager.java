@@ -12,6 +12,7 @@ import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
 import ac.grim.grimac.checks.type.*;
 import ac.grim.grimac.events.packets.patch.AntiUseItemDesync;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
+import ac.grim.grimac.manager.tick.impl.PositionTransactionSetter;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
 import com.google.common.collect.ClassToInstanceMap;
@@ -44,6 +45,7 @@ public class CheckManager {
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
                 .put(PredictionRunner.class, new PredictionRunner(player))
+                .put(PositionTransactionSetter.class, new PositionTransactionSetter(player))
                 .build();
         rotationCheck = new ImmutableClassToInstanceMap.Builder<RotationCheck>()
                 .build();

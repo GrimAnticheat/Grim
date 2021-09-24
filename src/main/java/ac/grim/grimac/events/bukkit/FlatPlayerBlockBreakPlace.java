@@ -15,8 +15,6 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import static ac.grim.grimac.events.bukkit.MagicPlayerBlockBreakPlace.getPlayerTransactionForPosition;
-
 public class FlatPlayerBlockBreakPlace implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -25,7 +23,8 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         if (player == null) return;
         Block block = event.getBlock();
 
-        PlayerChangeBlockData data = new PlayerChangeBlockData(getPlayerTransactionForPosition(player, event.getBlockAgainst().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ(), block.getBlockData());
+        int trans = MagicPlayerBlockBreakPlace.getPlayerTransactionForBucket(player, player.bukkitPlayer.getLocation());
+        PlayerChangeBlockData data = new PlayerChangeBlockData(trans, block.getX(), block.getY(), block.getZ(), block.getBlockData());
         player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
@@ -36,7 +35,8 @@ public class FlatPlayerBlockBreakPlace implements Listener {
         Block block = event.getBlock();
 
         // Even when breaking waterlogged stuff, the client assumes it will turn into air - which is fine with me
-        ChangeBlockData data = new ChangeBlockData(getPlayerTransactionForPosition(player, block.getLocation(), player.compensatedWorld.packetBlockBreaks), block.getX(), block.getY(), block.getZ(), 0);
+        int trans = MagicPlayerBlockBreakPlace.getPlayerTransactionForBucket(player, player.bukkitPlayer.getLocation());
+        ChangeBlockData data = new ChangeBlockData(trans, block.getX(), block.getY(), block.getZ(), 0);
         player.compensatedWorld.worldChangedBlockQueue.add(data);
     }
 
@@ -54,7 +54,8 @@ public class FlatPlayerBlockBreakPlace implements Listener {
 
         // Client side interactable -> Door, trapdoor, gate
         if (Materials.checkFlag(block.getType(), Materials.CLIENT_SIDE_INTERACTABLE)) {
-            PlayerOpenBlockData data = new PlayerOpenBlockData(getPlayerTransactionForPosition(player, event.getClickedBlock().getLocation(), player.compensatedWorld.packetBlockPlaces), block.getX(), block.getY(), block.getZ());
+            int trans = MagicPlayerBlockBreakPlace.getPlayerTransactionForBucket(player, player.bukkitPlayer.getLocation());
+            PlayerOpenBlockData data = new PlayerOpenBlockData(trans, block.getX(), block.getY(), block.getZ());
             player.compensatedWorld.worldChangedBlockQueue.add(data);
         }
     }

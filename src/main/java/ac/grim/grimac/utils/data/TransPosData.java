@@ -8,5 +8,4 @@ import lombok.Getter;
 public class TransPosData {
     double posX, posY, posZ;
     int trans;
-    int tick;
 }
