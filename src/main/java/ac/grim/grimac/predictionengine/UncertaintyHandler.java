@@ -238,6 +238,8 @@ public class UncertaintyHandler {
         } else if (wasAffectedByStuckSpeed()) {
             gravityUncertainty = -0.08;
             return true;
+        } else if (influencedByBouncyBlock()) {
+            return true;
         } else if (player.wasTouchingLava) {
             return true;
         } else if (lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket && player.clientVelocity.getY() < 0.03) {
@@ -245,7 +247,9 @@ public class UncertaintyHandler {
         } else {
             double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
 
-            if (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree && player.clientVelocity.getY() < 0.03) {
+            boolean shouldCountY = player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree && player.clientVelocity.getY() < 0.03;
+
+            if (shouldCountY) {
                 for (VectorData data : possibleVelocities)
                     player.couldSkipTick = player.couldSkipTick || data.vector.getX() * data.vector.getX() + data.vector.getZ() * data.vector.getZ() < threshold && !data.isKnockback();
             } else {
