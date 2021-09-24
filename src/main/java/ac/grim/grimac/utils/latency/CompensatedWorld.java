@@ -18,8 +18,8 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
-import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.enums.EntityType;
+import ac.grim.grimac.utils.lists.EvictingList;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
@@ -42,12 +42,10 @@ import java.util.concurrent.ConcurrentSkipListSet;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
-    // 1.17 with datapacks, and 1.18, have negative world offset values
-    private int minHeight = 0;
-    private int maxHeight = 255;
     public static BaseBlockState airData;
     public static Method getByCombinedID;
     public final GrimPlayer player;
+    public final EvictingList<TransPosData> posToTrans = new EvictingList<>(10);
     private final ConcurrentHashMap<Long, Column> chunks = new ConcurrentHashMap<>();
     public ConcurrentSkipListSet<BasePlayerChangeBlockData> worldChangedBlockQueue = new ConcurrentSkipListSet<>((a, b) -> {
         // We can't have elements with equal comparisons, otherwise they won't be added
@@ -63,18 +61,15 @@ public class CompensatedWorld {
     });
     public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> unloadChunkQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockPlaces = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<BlockPlayerUpdate> packetBlockBreaks = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<TransPosData> packetBucket = new ConcurrentLinkedQueue<>();
-
     public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> likelyDesyncBlockPositions = new ConcurrentLinkedQueue<>();
-
     // Packet locations for blocks
     public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> packetLevelBlockLocations = new ConcurrentLinkedQueue<>();
-
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
     public boolean isResync = true;
+    // 1.17 with datapacks, and 1.18, have negative world offset values
+    private int minHeight = 0;
+    private int maxHeight = 255;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -161,11 +156,7 @@ public class CompensatedWorld {
         }
 
         // 3 ticks is enough for everything that needs to be processed to be processed
-        packetBlockPlaces.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
-        packetBlockBreaks.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.tick > 3);
-        packetBucket.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getTick() > 3);
         likelyDesyncBlockPositions.removeIf(data -> player.packetStateData.packetLastTransactionReceived.get() > data.getFirst());
-
         packetLevelBlockLocations.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getFirst() > 3);
     }
 
@@ -521,14 +512,6 @@ public class CompensatedWorld {
         unloadChunkQueue.add(new Pair<>(player.lastTransactionSent.get() + 1, new Vector3i(chunkX, 0, chunkZ)));
     }
 
-    public void setMinHeight(int minHeight) {
-        if (minHeight % 16 != 0) {
-            throw new RuntimeException("Minimum world height must be a multiple of 16!");
-        }
-
-        this.minHeight = minHeight;
-    }
-
     public void setMaxWorldHeight(int maxSectionHeight) {
         if (maxSectionHeight % 16 != 0) {
             throw new RuntimeException("Maximum world height must be a multiple of 16!");
@@ -539,6 +522,14 @@ public class CompensatedWorld {
 
     public int getMinHeight() {
         return minHeight;
+    }
+
+    public void setMinHeight(int minHeight) {
+        if (minHeight % 16 != 0) {
+            throw new RuntimeException("Minimum world height must be a multiple of 16!");
+        }
+
+        this.minHeight = minHeight;
     }
 
     public int getMaxHeight() {

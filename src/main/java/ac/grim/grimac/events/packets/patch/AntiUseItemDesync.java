@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.TransPosData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
@@ -75,15 +74,6 @@ public class AntiUseItemDesync extends PacketCheck {
                     isScaffolding = true;
                 if (off.getType() == LILY_PAD)
                     isLilyPad = true;
-            }
-
-            if (isBucket || isEmptyBucket) {
-                player.compensatedWorld.packetBucket.add(
-                        new TransPosData(player.packetStateData.packetPosition.getX(),
-                                player.packetStateData.packetPosition.getY(),
-                                player.packetStateData.packetPosition.getZ(),
-                                player.packetStateData.packetLastTransactionReceived.get(),
-                                GrimAPI.INSTANCE.getTickManager().getTick()));
             }
 
             // Mojang is incompetent and while this is mostly patched in 1.17, it desync's at high ping.

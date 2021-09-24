@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
-import ac.grim.grimac.utils.data.packetentity.latency.BlockPlayerUpdate;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -13,7 +12,6 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedPacketInBlockDig;
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
 import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.WrappedPacketInHeldItemSlot;
-import io.github.retrooper.packetevents.packetwrappers.play.in.useitem.WrappedPacketInUseItem;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.player.Hand;
@@ -56,9 +54,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (player == null) return;
 
             WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
-
-            player.compensatedWorld.packetBlockBreaks.add(new BlockPlayerUpdate(dig.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
-
             WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
 
             if (type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
@@ -99,15 +94,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.packetStateData.lastSlotSelected = slot.getCurrentSelectedSlot();
         }
 
-        if (packetID == PacketType.Play.Client.USE_ITEM) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            WrappedPacketInUseItem item = new WrappedPacketInUseItem(event.getNMSPacket());
-
-            player.compensatedWorld.packetBlockPlaces.add(new BlockPlayerUpdate(item.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
-        }
-
         if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
 
@@ -116,12 +102,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             if (XMaterial.supports(8) && player.packetStateData.gameMode == GameMode.SPECTATOR)
                 return;
-
-            // 1.9+ use the use item packet for this
-            if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
-                // Support interacting with blocks, such as fence gates, and also placing blocks
-                player.compensatedWorld.packetBlockPlaces.add(new BlockPlayerUpdate(place.getBlockPosition(), player.packetStateData.packetLastTransactionReceived.get()));
-            }
 
             // This was an interaction with a block, not a use item
             if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9) && place.getDirection() != Direction.OTHER)
