@@ -23,7 +23,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();
-        if (player.levitationAmplifier > 0) {
+        if (player.levitationAmplifier != 0) {
             d9 += (0.05 * (double) (player.levitationAmplifier) - vector.getY()) * 0.2;
             // Reset fall distance with levitation
             player.fallDistance = 0;
