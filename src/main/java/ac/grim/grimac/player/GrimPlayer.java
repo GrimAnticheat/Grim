@@ -1,5 +1,6 @@
 package ac.grim.grimac.player;
 
+import ac.grim.grimac.events.packets.PacketServerTeleport;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.manager.CheckManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
@@ -24,7 +25,6 @@ import io.github.retrooper.packetevents.utils.list.ConcurrentList;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -72,7 +72,6 @@ public class GrimPlayer {
     public double x;
     public double y;
     public double z;
-    public Vector3d loginLocation;
     public float xRot;
     public float yRot;
     public boolean onGround;
@@ -131,7 +130,6 @@ public class GrimPlayer {
     public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
-    public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> teleports = new ConcurrentLinkedQueue<>();
     // Set after checks
     public double lastX;
     public double lastY;
@@ -227,6 +225,9 @@ public class GrimPlayer {
 
         checkManager = new CheckManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
+
+        // Init teleports (if we need to, this should have already been done but to be safe...)
+        PacketServerTeleport.initPlayer(bukkitPlayer);
     }
 
     public Set<VectorData> getPossibleVelocities() {
