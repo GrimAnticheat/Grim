@@ -37,6 +37,10 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -85,90 +89,6 @@ public class Reach extends PacketCheck {
         }
     }
 
-    private void tickFlying() {
-        double maxReach = 3;
-
-        Integer attackQueue = playerAttackQueue.poll();
-        while (attackQueue != null) {
-            PlayerReachEntity reachEntity = entityMap.get(attackQueue);
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-
-            // 1.9 -> 1.8 precision loss in packets
-            // (ViaVersion is doing some stuff that makes this code difficult)
-            //
-            // This will likely be fixed with PacketEvents 2.0, where our listener is before ViaVersion
-            // Don't attempt to fix it with this version of PacketEvents, it's not worth our time when 2.0 will fix it.
-            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
-                targetBox.expand(0.03125);
-            }
-
-            // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
-            // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
-            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
-                targetBox.expand(0.1);
-            }
-
-            targetBox.expand(threshold);
-
-            // This is better than adding to the reach, as 0.03 can cause a player to miss their target
-            // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
-            //
-            // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
-            if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
-                targetBox.expand(0.03);
-
-            Vector3d from = player.packetStateData.lastPacketPosition;
-            Vector attackerDirection = ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
-
-            double minDistance = Double.MAX_VALUE;
-
-            for (double eye : player.getPossibleEyeHeights()) {
-                Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
-                Vector endReachPos = eyePos.clone().add(new Vector(attackerDirection.getX() * 6, attackerDirection.getY() * 6, attackerDirection.getZ() * 6));
-
-                Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
-                Vector vanillaIntercept = null;
-
-                if (ReachUtils.isVecInside(targetBox, eyePos)) {
-                    minDistance = 0;
-                    break;
-                }
-
-                // This is how vanilla handles look vectors on 1.8 - it's a tick behind.
-                // 1.9+ you have no guarantees of which look vector it is due to 0.03
-                //
-                // The only safe version is 1.7
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
-                    Vector vanillaDir = ReachUtils.getLook(player, player.packetStateData.lastPacketPlayerXRot, player.packetStateData.lastPacketPlayerYRot);
-                    Vector vanillaEndPos = eyePos.clone().add(new Vector(vanillaDir.getX() * 6, vanillaDir.getY() * 6, vanillaDir.getZ() * 6));
-
-                    vanillaIntercept = ReachUtils.calculateIntercept(targetBox, eyePos, vanillaEndPos);
-                }
-
-                if (intercept != null) {
-                    minDistance = Math.min(eyePos.distance(intercept), minDistance);
-                }
-                if (vanillaIntercept != null) {
-                    minDistance = Math.min(eyePos.distance(vanillaIntercept), minDistance);
-                }
-            }
-
-            if (minDistance == Double.MAX_VALUE) {
-                increaseViolations();
-                alert("Missed hitbox", "Reach", formatViolations());
-            } else if (minDistance > maxReach) {
-                increaseViolations();
-                alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
-            }
-
-            attackQueue = playerAttackQueue.poll();
-        }
-
-        for (PlayerReachEntity entity : entityMap.values()) {
-            entity.onMovement(player.getClientVersion().isNewerThan(ClientVersion.v_1_8));
-        }
-    }
-
     public void checkReach(int entityID) {
         if (entityMap.containsKey(entityID))
             playerAttackQueue.add(entityID);
@@ -201,11 +121,90 @@ public class Reach extends PacketCheck {
         return false;
     }
 
-    @Override
-    public void reload() {
-        super.reload();
-        this.cancelImpossibleHits = getConfig().getBoolean("Reach.block-impossible-hits", true);
-        this.threshold = getConfig().getDouble("Reach.threshold", 0.0005);
+    private void tickFlying() {
+        double maxReach = 3;
+
+        Integer attackQueue = playerAttackQueue.poll();
+        while (attackQueue != null) {
+            PlayerReachEntity reachEntity = entityMap.get(attackQueue);
+            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+
+            // 1.9 -> 1.8 precision loss in packets
+            // (ViaVersion is doing some stuff that makes this code difficult)
+            //
+            // This will likely be fixed with PacketEvents 2.0, where our listener is before ViaVersion
+            // Don't attempt to fix it with this version of PacketEvents, it's not worth our time when 2.0 will fix it.
+            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+                targetBox.expand(0.03125);
+            }
+
+            // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
+            // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+                targetBox.expand(0.1f);
+            }
+
+            targetBox.expand(threshold);
+
+            // This is better than adding to the reach, as 0.03 can cause a player to miss their target
+            // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
+            //
+            // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
+            if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
+                targetBox.expand(0.03);
+
+            Vector3d from = player.packetStateData.lastPacketPosition;
+
+            double minDistance = Double.MAX_VALUE;
+
+            // https://bugs.mojang.com/browse/MC-67665
+            List<Vector> possibleLookDirs = new ArrayList<>(Arrays.asList(
+                    ReachUtils.getLook(player, player.packetStateData.lastPacketPlayerXRot, player.packetStateData.packetPlayerYRot),
+                    ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot)
+            ));
+
+            // 1.9+ players could be a tick behind because we don't get skipped ticks
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+                possibleLookDirs.add(ReachUtils.getLook(player, player.packetStateData.lastPacketPlayerXRot, player.packetStateData.lastPacketPlayerYRot));
+            }
+
+            // 1.7 players do not have any of these issues! They are always on the latest look vector
+            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_8)) {
+                possibleLookDirs = Collections.singletonList(ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot));
+            }
+
+            for (Vector lookVec : possibleLookDirs) {
+                for (double eye : player.getPossibleEyeHeights()) {
+                    Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
+                    Vector endReachPos = eyePos.clone().add(new Vector(lookVec.getX() * 6, lookVec.getY() * 6, lookVec.getZ() * 6));
+
+                    Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
+
+                    if (ReachUtils.isVecInside(targetBox, eyePos)) {
+                        minDistance = 0;
+                        break;
+                    }
+
+                    if (intercept != null) {
+                        minDistance = Math.min(eyePos.distance(intercept), minDistance);
+                    }
+                }
+            }
+
+            if (minDistance == Double.MAX_VALUE) {
+                increaseViolations();
+                alert("Missed hitbox", "Reach", formatViolations());
+            } else if (minDistance > maxReach) {
+                increaseViolations();
+                alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
+            }
+
+            attackQueue = playerAttackQueue.poll();
+        }
+
+        for (PlayerReachEntity entity : entityMap.values()) {
+            entity.onMovement();
+        }
     }
 
     @Override
@@ -240,7 +239,7 @@ public class Reach extends PacketCheck {
     }
 
     private void handleSpawnPlayer(int playerID, Vector3d spawnPosition) {
-        entityMap.put(playerID, new PlayerReachEntity(spawnPosition.getX(), spawnPosition.getY(), spawnPosition.getZ()));
+        entityMap.put(playerID, new PlayerReachEntity(spawnPosition.getX(), spawnPosition.getY(), spawnPosition.getZ(), player));
     }
 
     private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, boolean isRelative) {
@@ -260,9 +259,16 @@ public class Reach extends PacketCheck {
             int lastTrans = player.lastTransactionSent.get();
             Vector3d newPos = reachEntity.serverPos;
 
-            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(newPos.getX(), newPos.getY(), newPos.getZ()));
+            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(newPos.getX(), newPos.getY(), newPos.getZ(), player));
             player.latencyUtils.addRealTimeTask(lastTrans + 1, reachEntity::onSecondTransaction);
         }
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+        this.cancelImpossibleHits = getConfig().getBoolean("Reach.block-impossible-hits", true);
+        this.threshold = getConfig().getDouble("Reach.threshold", 0.0005);
     }
 
     public void onEndOfTickEvent() {

@@ -7,65 +7,65 @@ import org.bukkit.util.Vector;
 
 public class ReachUtils {
     // Copied from 1.8 nms, don't ask me what it does.
-    public static Vector calculateIntercept(SimpleCollisionBox self, Vector vecA, Vector vecB) {
-        Vector vec3 = getIntermediateWithXValue(vecA, vecB, self.minX);
-        Vector vec31 = getIntermediateWithXValue(vecA, vecB, self.maxX);
-        Vector vec32 = getIntermediateWithYValue(vecA, vecB, self.minY);
-        Vector vec33 = getIntermediateWithYValue(vecA, vecB, self.maxY);
-        Vector vec34 = getIntermediateWithZValue(vecA, vecB, self.minZ);
-        Vector vec35 = getIntermediateWithZValue(vecA, vecB, self.maxZ);
+    public static Vector calculateIntercept(SimpleCollisionBox self, Vector origin, Vector end) {
+        Vector minX = getIntermediateWithXValue(origin, end, self.minX);
+        Vector maxX = getIntermediateWithXValue(origin, end, self.maxX);
+        Vector minY = getIntermediateWithYValue(origin, end, self.minY);
+        Vector maxY = getIntermediateWithYValue(origin, end, self.maxY);
+        Vector minZ = getIntermediateWithZValue(origin, end, self.minZ);
+        Vector maxZ = getIntermediateWithZValue(origin, end, self.maxZ);
 
-        if (!isVecInYZ(self, vec3)) {
-            vec3 = null;
+        if (!isVecInYZ(self, minX)) {
+            minX = null;
         }
 
-        if (!isVecInYZ(self, vec31)) {
-            vec31 = null;
+        if (!isVecInYZ(self, maxX)) {
+            maxX = null;
         }
 
-        if (!isVecInXZ(self, vec32)) {
-            vec32 = null;
+        if (!isVecInXZ(self, minY)) {
+            minY = null;
         }
 
-        if (!isVecInXZ(self, vec33)) {
-            vec33 = null;
+        if (!isVecInXZ(self, maxY)) {
+            maxY = null;
         }
 
-        if (!isVecInXY(self, vec34)) {
-            vec34 = null;
+        if (!isVecInXY(self, minZ)) {
+            minZ = null;
         }
 
-        if (!isVecInXY(self, vec35)) {
-            vec35 = null;
+        if (!isVecInXY(self, maxZ)) {
+            maxZ = null;
         }
 
-        Vector vec36 = null;
+        Vector best = null;
 
-        if (vec3 != null) {
-            vec36 = vec3;
+        if (minX != null) {
+            best = minX;
         }
 
-        if (vec31 != null && (vec36 == null || vecA.distanceSquared(vec31) < vecA.distanceSquared(vec36))) {
-            vec36 = vec31;
+        if (maxX != null && (best == null || origin.distanceSquared(maxX) < origin.distanceSquared(best))) {
+            best = maxX;
         }
 
-        if (vec32 != null && (vec36 == null || vecA.distanceSquared(vec32) < vecA.distanceSquared(vec36))) {
-            vec36 = vec32;
+        if (minY != null && (best == null || origin.distanceSquared(minY) < origin.distanceSquared(best))) {
+            best = minY;
         }
 
-        if (vec33 != null && (vec36 == null || vecA.distanceSquared(vec33) < vecA.distanceSquared(vec36))) {
-            vec36 = vec33;
+        if (maxY != null && (best == null || origin.distanceSquared(maxY) < origin.distanceSquared(best))) {
+            best = maxY;
         }
 
-        if (vec34 != null && (vec36 == null || vecA.distanceSquared(vec34) < vecA.distanceSquared(vec36))) {
-            vec36 = vec34;
+        if (minZ != null && (best == null || origin.distanceSquared(minZ) < origin.distanceSquared(best))) {
+            best = minZ;
         }
 
-        if (vec35 != null && (vec36 == null || vecA.distanceSquared(vec35) < vecA.distanceSquared(vec36))) {
-            vec36 = vec35;
+        if (maxZ != null && (best == null || origin.distanceSquared(maxZ) < origin.distanceSquared(best))) {
+            best = maxZ;
         }
 
-        return vec36;
+        return best;
     }
 
     /**
