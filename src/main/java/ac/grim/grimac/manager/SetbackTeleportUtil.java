@@ -2,6 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.events.packets.PacketServerTeleport;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.SetBackData;
@@ -212,14 +213,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
-        if (!hasFirstSpawned && player.loginLocation.equals(new Vector3d(x, y, z))) {
-            hasFirstSpawned = true;
-            acceptedTeleports++;
-            teleportData.setTeleport(true);
-        }
-
         while (true) {
-            Pair<Integer, Vector3d> teleportPos = player.teleports.peek();
+            Pair<Integer, Vector3d> teleportPos = PacketServerTeleport.getPlayerTeleports(player.bukkitPlayer).peek();
             if (teleportPos == null) break;
 
             Vector3d position = teleportPos.getSecond();
@@ -230,7 +225,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
-                player.teleports.poll();
+                PacketServerTeleport.getPlayerTeleports(player.bukkitPlayer).poll();
                 acceptedTeleports++;
 
                 SetBackData setBack = requiredSetBack;
@@ -243,7 +238,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
                 teleportData.setTeleport(true);
             } else if (lastTransaction > teleportPos.getFirst() + 2) {
-                player.teleports.poll();
+                PacketServerTeleport.teleports.get(player.bukkitPlayer).poll();
 
                 // Ignored teleport!  We should really do something about this!
                 continue;
