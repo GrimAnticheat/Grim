@@ -25,9 +25,10 @@ public class ReachInterpolationData {
     public int interpolationStepsLowBound = 0;
     public int interpolationStepsHighBound = 0;
 
-    public ReachInterpolationData(SimpleCollisionBox startingLocation, double x, double y, double z) {
+    public ReachInterpolationData(SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine) {
         this.startingLocation = startingLocation;
         this.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8);
+        if (isPointNine) interpolationStepsHighBound = 3;
     }
 
     // To avoid huge branching when bruteforcing interpolation -
@@ -80,13 +81,10 @@ public class ReachInterpolationData {
         //GrimAC.staticGetLogger().info(ChatColor.BLUE + "Finished updating new starting location as second trans hasn't arrived " + startingLocation);
     }
 
-    public void tickMovement(boolean incrementLowBound, boolean setHighBoundToMax) {
+    public void tickMovement(boolean incrementLowBound) {
         if (incrementLowBound)
             this.interpolationStepsLowBound = Math.min(interpolationStepsLowBound + 1, 3);
-        if (setHighBoundToMax)
-            this.interpolationStepsHighBound = 3;
-        else
-            this.interpolationStepsHighBound = Math.min(interpolationStepsHighBound + 1, 3);
+        this.interpolationStepsHighBound = Math.min(interpolationStepsHighBound + 1, 3);
     }
 
     @Override

@@ -15,9 +15,11 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.utils.data.packetentity;
 
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 // You may not copy this check unless your anticheat is licensed under GPL
@@ -26,18 +28,18 @@ public class PlayerReachEntity {
     public ReachInterpolationData oldPacketLocation;
     public ReachInterpolationData newPacketLocation;
 
-    public PlayerReachEntity(double x, double y, double z) {
+    public PlayerReachEntity(double x, double y, double z, GrimPlayer player) {
         serverPos = new Vector3d(x, y, z);
         this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8),
-                serverPos.getX(), serverPos.getY(), serverPos.getZ());
+                serverPos.getX(), serverPos.getY(), serverPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9));
     }
 
     // Set the old packet location to the new one
     // Set the new packet location to the updated packet location
-    public void onFirstTransaction(double x, double y, double z) {
+    public void onFirstTransaction(double x, double y, double z, GrimPlayer player) {
         //GrimAC.staticGetLogger().info("Received first transaction for " + x + " " + y + " " + z);
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), x, y, z);
+        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), x, y, z, player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9));
     }
 
     // Remove the possibility of the old packet location
@@ -47,15 +49,15 @@ public class PlayerReachEntity {
     }
 
     // If the old and new packet location are split, we need to combine bounding boxes
-    public void onMovement(boolean setHighBound) {
+    public void onMovement() {
         //GrimAC.staticGetLogger().info("Ticking new packet start " + newPacketLocation.interpolationStepsLowBound + " and " + newPacketLocation.interpolationStepsHighBound);
-        newPacketLocation.tickMovement(oldPacketLocation == null, setHighBound);
+        newPacketLocation.tickMovement(oldPacketLocation == null);
         //GrimAC.staticGetLogger().info("Ticking new packet end " + newPacketLocation.interpolationStepsLowBound + " and " + newPacketLocation.interpolationStepsHighBound);
 
         // Handle uncertainty of second transaction spanning over multiple ticks
         if (oldPacketLocation != null) {
             //GrimAC.staticGetLogger().info("Ticking new packet start " + oldPacketLocation.interpolationStepsLowBound + " and " + oldPacketLocation.interpolationStepsHighBound);
-            oldPacketLocation.tickMovement(true, setHighBound);
+            oldPacketLocation.tickMovement(true);
             //GrimAC.staticGetLogger().info("Ticking new packet end " + oldPacketLocation.interpolationStepsLowBound + " and " + oldPacketLocation.interpolationStepsHighBound);
             newPacketLocation.updatePossibleStartingLocation(oldPacketLocation.getPossibleLocationCombined());
         }
