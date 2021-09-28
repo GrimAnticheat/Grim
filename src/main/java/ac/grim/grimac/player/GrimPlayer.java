@@ -1,11 +1,12 @@
 package ac.grim.grimac.player;
 
-import ac.grim.grimac.events.packets.PacketServerTeleport;
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.manager.CheckManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -14,6 +15,7 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
@@ -25,7 +27,9 @@ import io.github.retrooper.packetevents.utils.list.ConcurrentList;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
@@ -41,6 +45,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer {
+    public static boolean isViaLegacyUpdated = true;
+
     public final UUID playerUUID;
     public final int entityID;
     public final Player bukkitPlayer;
@@ -190,6 +196,18 @@ public class GrimPlayer {
         this.entityID = player.getEntityId();
         this.playerWorld = player.getWorld();
 
+        // We can't send transaction packets to this player, disable the anticheat for them
+        if (!isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_16_4)) {
+            LogUtil.warn(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
+            LogUtil.warn(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
+            LogUtil.warn(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
+            LogUtil.warn(ChatColor.RED + "Supported version: " + ChatColor.WHITE + "https://github.com/ViaVersion/ViaBackwards/actions/runs/1039987269");
+            return;
+        }
+
+        // Geyser players don't have Java movement
+        if (PacketEvents.get().getPlayerUtils().isGeyserPlayer(playerUUID)) return;
+
         Location loginLocation = player.getLocation();
         lastX = loginLocation.getX();
         lastY = loginLocation.getY();
@@ -226,8 +244,48 @@ public class GrimPlayer {
         checkManager = new CheckManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
-        // Init teleports (if we need to, this should have already been done but to be safe...)
-        PacketServerTeleport.initPlayer(bukkitPlayer);
+        playerWorld = bukkitPlayer.getLocation().getWorld();
+        packetStateData.playerWorld = bukkitPlayer.getLocation().getWorld();
+        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
+            compensatedWorld.setMinHeight(bukkitPlayer.getWorld().getMinHeight());
+            compensatedWorld.setMaxWorldHeight(bukkitPlayer.getWorld().getMaxHeight());
+        }
+
+        x = bukkitPlayer.getLocation().getX();
+        y = bukkitPlayer.getLocation().getY();
+        z = bukkitPlayer.getLocation().getZ();
+        xRot = bukkitPlayer.getLocation().getYaw();
+        yRot = bukkitPlayer.getLocation().getPitch();
+        isDead = bukkitPlayer.isDead();
+
+        lastX = bukkitPlayer.getLocation().getX();
+        lastY = bukkitPlayer.getLocation().getY();
+        lastZ = bukkitPlayer.getLocation().getZ();
+        lastXRot = bukkitPlayer.getLocation().getYaw();
+        lastYRot = bukkitPlayer.getLocation().getPitch();
+
+        onGround = bukkitPlayer.isOnGround();
+        lastOnGround = bukkitPlayer.isOnGround();
+        packetStateData.packetPlayerOnGround = bukkitPlayer.isOnGround();
+
+        packetStateData.packetPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
+        packetStateData.packetPlayerXRot = bukkitPlayer.getLocation().getYaw();
+        packetStateData.packetPlayerYRot = bukkitPlayer.getLocation().getPitch();
+
+        packetStateData.lastPacketPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
+        packetStateData.lastPacketPlayerXRot = bukkitPlayer.getLocation().getYaw();
+        packetStateData.lastPacketPlayerYRot = bukkitPlayer.getLocation().getPitch();
+
+        packetStateData.gameMode = bukkitPlayer.getGameMode();
+
+        uncertaintyHandler.pistonPushing.add(0d);
+        uncertaintyHandler.collidingEntities.add(0);
+
+        getSetbackTeleportUtil().setSafeSetbackLocation(new Vector3d(x, y, z));
+
+        boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8);
+
+        GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
