@@ -2,7 +2,6 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
-import ac.grim.grimac.events.packets.PacketServerTeleport;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.SetBackData;
@@ -14,6 +13,8 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
+
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to NETTY (Why does the bukkit thread have to modify this, can we avoid it?)
@@ -44,6 +45,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     Vector lastMovementVel = new Vector();
     // Sync to anything, worst that can happen is sending an extra world update (which won't be noticed)
     long lastWorldResync = 0;
+    ConcurrentLinkedQueue<Pair<Integer, Vector3d>> teleports = new ConcurrentLinkedQueue<>();
 
     public SetbackTeleportUtil(GrimPlayer player) {
         super(player);
@@ -214,7 +216,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
         while (true) {
-            Pair<Integer, Vector3d> teleportPos = PacketServerTeleport.getPlayerTeleports(player.bukkitPlayer).peek();
+            Pair<Integer, Vector3d> teleportPos = teleports.peek();
             if (teleportPos == null) break;
 
             Vector3d position = teleportPos.getSecond();
@@ -225,7 +227,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
             if (position.getX() == x && position.getY() == y && position.getZ() == z) {
-                PacketServerTeleport.getPlayerTeleports(player.bukkitPlayer).poll();
+                teleports.poll();
                 acceptedTeleports++;
 
                 SetBackData setBack = requiredSetBack;
@@ -238,7 +240,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
                 teleportData.setTeleport(true);
             } else if (lastTransaction > teleportPos.getFirst() + 2) {
-                PacketServerTeleport.teleports.get(player.bukkitPlayer).poll();
+                teleports.poll();
 
                 // Ignored teleport!  We should really do something about this!
                 continue;
@@ -325,6 +327,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void setSafeSetbackLocation(Vector3d position) {
         this.safeTeleportPosition = new SetbackLocationVelocity(position, player.movementPackets);
         this.lastGroundTeleportPosition = new SetbackLocationVelocity(position, processedPredictions);
+    }
+
+    public void addSentTeleport(Vector3d position, int transaction) {
+        teleports.add(new Pair<>(transaction, position));
     }
 }
 

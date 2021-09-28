@@ -66,7 +66,7 @@ public class UncertaintyHandler {
     // Marks whether the player could have landed but without position packet because 0.03
     public boolean lastTickWasNearGroundZeroPointZeroThree = false;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
-    public boolean lastMovementWasZeroPointZeroThree = true;
+    public boolean lastMovementWasZeroPointZeroThree = false;
     // Give horizontal lenience if two movements ago was 0.03 because especially on ice it matters
     public boolean lastLastMovementWasZeroPointZeroThree = false;
     // The player sent a ground packet in order to change their ground status

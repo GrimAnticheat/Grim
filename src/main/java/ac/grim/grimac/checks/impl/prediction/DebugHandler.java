@@ -37,7 +37,7 @@ public class DebugHandler extends PostPredictionCheck {
         } else if (offset < 0.01) {
             color = ChatColor.YELLOW;
         } else {
-                 color = ChatColor.RED;
+            color = ChatColor.RED;
         }
 
         Vector predicted = player.predictedVelocity.vector;
@@ -45,7 +45,7 @@ public class DebugHandler extends PostPredictionCheck {
 
         String p = color + "P: " + predicted.getX() + " " + predicted.getY() + " " + predicted.getZ();
         String a = color + "A: " + actually.getX() + " " + actually.getY() + " " + actually.getZ();
-        String o = color + "O: " + offset + " " + player.uncertaintyHandler.lastGlidingChangeTicks + " " + player.uncertaintyHandler.lastFireworkStatusChange;
+        String o = color + "O: " + offset;
 
         String prefix = getPlayer().bukkitPlayer.getName() + " ";
 

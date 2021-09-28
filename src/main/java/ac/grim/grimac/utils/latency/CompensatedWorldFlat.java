@@ -79,6 +79,8 @@ public class CompensatedWorldFlat extends CompensatedWorld {
                 //    at org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData.toBukkit(CraftBlockData.java:154)
                 //    at org.bukkit.craftbukkit.v1_17_R1.block.data.CraftBlockData.get(CraftBlockData.java:64)
                 //    at org.bukkit.craftbukkit.v1_17_R1.block.impl.CraftWeatheringCopperSlab.getType(CraftWeatheringCopperSlab.java:22)
+                //
+                // This is an error only in Java 9+, as in Java 8, there is a bug where a CME is not called on putIfAbsent
                 Method[] methods = referencedBlockData.getClass().getDeclaredMethods();
                 for (Method method : methods) {
                     if (isGetter(method)) {

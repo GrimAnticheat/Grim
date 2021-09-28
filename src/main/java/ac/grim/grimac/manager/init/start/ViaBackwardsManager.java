@@ -1,8 +1,8 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.events.bukkit.PlayerJoinQuitListener;
 import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
@@ -39,7 +39,7 @@ public class ViaBackwardsManager implements Initable {
                             logger.warning(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
                             logger.warning(ChatColor.RED + "Supported  version: " + ChatColor.WHITE + "https://github.com/ViaVersion/ViaBackwards/actions/runs/1039987269");
 
-                            PlayerJoinQuitListener.isViaLegacyUpdated = false;
+                            GrimPlayer.isViaLegacyUpdated = false;
                         }
                     }
                 }
