@@ -73,8 +73,6 @@ public class MovementCheckRunner extends PositionCheck {
     public void processAndCheckMovementPacket(PredictionData data) {
         // The player is in an unloaded chunk
         if (!data.isJustTeleported && player.getSetbackTeleportUtil().insideUnloadedChunk()) {
-            data.player.nextTaskToRun = null;
-
             // Teleport the player back to avoid players being able to simply ignore transactions
             player.getSetbackTeleportUtil().executeSetback();
             blockOffsets = true;

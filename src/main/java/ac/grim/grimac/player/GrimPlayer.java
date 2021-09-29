@@ -480,7 +480,7 @@ public class GrimPlayer {
                 || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
                 || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isSteppingOnSlime
                 || isFlying || uncertaintyHandler.isStepMovement
-                || uncertaintyHandler.lastTeleportTicks > -3 || isDead
+                || uncertaintyHandler.lastTeleportTicks == 0 || isDead
                 || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
                 || uncertaintyHandler.lastGlidingChangeTicks > -3;
     }
