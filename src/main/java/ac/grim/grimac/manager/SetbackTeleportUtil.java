@@ -60,19 +60,17 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (predictionComplete.getData().acceptedSetback) {
             // If there is a new pending setback, don't desync from the netty thread
             if (!requiredSetBack.isComplete()) return;
-
+            // The player did indeed accept the setback, and there are no new setbacks past now!
             hasAcceptedSetbackPosition = true;
-
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), processedPredictions);
         } else if (hasAcceptedSetbackPosition) {
+            safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ), lastMovementVel, processedPredictions);
+
             // Do NOT accept teleports as valid setback positions if the player has a current setback
             // This is due to players being able to trigger new teleports with the vanilla anticheat
-            // Thanks Mojang... it's quite ironic that your anticheat makes anticheats harder to write.
             if (predictionComplete.getData().isJustTeleported) {
                 // Avoid setting the player back to positions before this teleport
                 safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), processedPredictions);
-            } else if (wasLastMovementSafe) {
-                safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ), lastMovementVel, processedPredictions);
             }
         }
         wasLastMovementSafe = hasAcceptedSetbackPosition;
@@ -279,9 +277,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         Column column = player.compensatedWorld.getChunk(GrimMath.floor(playerX) >> 4, GrimMath.floor(playerZ) >> 4);
 
         // The player is in an unloaded chunk
-        return column != null && column.transaction <= transaction &&
+        return column == null || column.transaction > transaction &&
                 // The player hasn't loaded past the DOWNLOADING TERRAIN screen
-                player.getSetbackTeleportUtil().acceptedTeleports != 0;
+                player.getSetbackTeleportUtil().acceptedTeleports == 0;
     }
 
     /**
