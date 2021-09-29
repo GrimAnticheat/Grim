@@ -1,6 +1,10 @@
 # GrimAC main configuration
 # Source code: https://github.com/MWHunter/Grim
 # Copyright DefineOutside, Licensed under GPLv3
+#
+# Modified binaries, or plugins with copied grim code, must be private, or with full source code available to buyers.
+# Report any license violations to DefineOutside
+#
 
 prefix: "&bGrim &8»"
 
