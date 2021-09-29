@@ -132,7 +132,7 @@ public class Check<T> {
     }
 
     public void setbackIfAboveSetbackVL() {
-        if (getViolations() > setbackVL) player.getSetbackTeleportUtil().executeSetback(true);
+        if (getViolations() > setbackVL) player.getSetbackTeleportUtil().executeSetback();
     }
 
     public String formatOffset(double offset) {

@@ -38,8 +38,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     boolean wasLastMovementSafe = true;
     // Generally safe teleport position (ANTICHEAT THREAD!)
     SetbackLocationVelocity safeTeleportPosition;
-    // This makes it more difficult to abuse setbacks to allow impossible jumps etc. (ANTICHEAT THREAD!)
-    SetbackLocationVelocity lastGroundTeleportPosition;
     // Sync to anticheat thread
     Vector lastMovementVel = new Vector();
     // Sync to anything, worst that can happen is sending an extra world update (which won't be noticed)
@@ -66,8 +64,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             hasAcceptedSetbackPosition = true;
 
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), processedPredictions);
-            // Discard ground setback location to avoid "glitchiness" when setting back
-            lastGroundTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), processedPredictions);
         } else if (hasAcceptedSetbackPosition) {
             // Do NOT accept teleports as valid setback positions if the player has a current setback
             // This is due to players being able to trigger new teleports with the vanilla anticheat
@@ -75,21 +71,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             if (predictionComplete.getData().isJustTeleported) {
                 // Avoid setting the player back to positions before this teleport
                 safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), processedPredictions);
-                lastGroundTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), processedPredictions);
             } else if (wasLastMovementSafe) {
                 safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ), lastMovementVel, processedPredictions);
-
-                if ((player.onGround || player.exemptOnGround() || player.isGliding) && player.uncertaintyHandler.lastTeleportTicks < -3) {
-                    // Avoid setting velocity when teleporting players back to the ground
-                    lastGroundTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ), processedPredictions);
-                }
             }
         }
         wasLastMovementSafe = hasAcceptedSetbackPosition;
         lastMovementVel = player.clientVelocity;
     }
 
-    public void executeSetback(boolean allowTeleportToGround) {
+    public void executeSetback() {
         Vector setbackVel = new Vector();
 
         if (player.firstBreadKB != null) {
@@ -108,33 +98,14 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             setbackVel.add(player.likelyExplosions.vector);
         }
 
-        SetbackLocationVelocity data;
-        boolean ground = false;
-        if (!allowTeleportToGround) {
-            // Don't use ground setback location for non-anticheat thread setbacks
-            data = safeTeleportPosition;
-        } else if (processedPredictions - lastGroundTeleportPosition.creation < 10 && Math.abs(player.predictedVelocity.vector.getY() - player.actualMovement.getY()) > 0.01
-                // And the player, last tick, was currently by the ground
-                && (player.lastY > lastGroundTeleportPosition.position.getY())) {
-            // The player is likely to be using vertical movement cheats
-            // And the player is currently above the setback location (avoids VoidTP cheats) - use lastY to stop abuse
-            // And this velocity was within 10 movements (the amount of time it takes to jump and land onto the ground)
-            data = lastGroundTeleportPosition;
-            ground = true;
-        } else {
-            data = safeTeleportPosition;
-        }
+        SetbackLocationVelocity data = safeTeleportPosition;
 
         // If the player has no explosion/velocity, set them back to the data's stored velocity
         if (setbackVel.equals(new Vector())) setbackVel = data.velocity;
 
         blockMovementsUntilResync(player.playerWorld, data.position,
-                // When teleporting to the ground, don't set player velocity to prevent exploiting setback velocities
-                // TODO: LiquidBounce MotionNCP "bypasses" step setback because we set it's velocity to jumping
-                // which allows jumping, although it should still consume the player's hunger... is this a bypass?
-                // It's 100% a legit movement, taking more time than the equivalent legit movement would take...
-                player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, ground ? new Vector() : setbackVel,
-                player.vehicle, false);
+                player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot,
+                setbackVel, player.vehicle, false);
     }
 
     private void blockMovementsUntilResync(World world, Vector3d position, float xRot, float yRot, Vector velocity, Integer vehicle, boolean force) {
@@ -342,7 +313,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      */
     public void setSafeSetbackLocation(Vector3d position) {
         this.safeTeleportPosition = new SetbackLocationVelocity(position, player.movementPackets);
-        this.lastGroundTeleportPosition = new SetbackLocationVelocity(position, processedPredictions);
     }
 
     public void addSentTeleport(Vector3d position, int transaction) {

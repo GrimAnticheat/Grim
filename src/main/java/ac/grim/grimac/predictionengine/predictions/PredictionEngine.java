@@ -22,6 +22,17 @@ import java.util.*;
 
 public class PredictionEngine {
 
+    private static void flipSneaking(GrimPlayer player, Pose originalPose, SimpleCollisionBox originalBB, VectorData clientVelAfterInput) {
+        boolean flipSneaking = clientVelAfterInput.isFlipSneaking();
+        if (flipSneaking) {
+            player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
+        } else {
+            player.pose = originalPose;
+            player.boundingBox = originalBB;
+        }
+    }
+
     public void guessBestMovement(float speed, GrimPlayer player) {
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
@@ -102,14 +113,7 @@ public class PredictionEngine {
             Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
             Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
 
-            boolean flipSneaking = clientVelAfterInput.isFlipSneaking();
-            if (flipSneaking) {
-                player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
-                player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
-            } else {
-                player.pose = originalPose;
-                player.boundingBox = originalBB;
-            }
+            flipSneaking(player, originalPose, originalBB, clientVelAfterInput);
 
             double xAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
             double yAdditional = (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
@@ -201,14 +205,7 @@ public class PredictionEngine {
         // The player always has at least one velocity - clientVelocity
         assert bestCollisionVel != null;
 
-        boolean flipSneaking = bestCollisionVel.isFlipSneaking();
-        if (flipSneaking) {
-            player.pose = originalPose == Pose.STANDING ? player.getSneakingPose() : Pose.STANDING;
-            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
-        } else {
-            player.pose = originalPose;
-            player.boundingBox = originalBB;
-        }
+        flipSneaking(player, originalPose, originalBB, bestCollisionVel);
 
         player.clientVelocity = tempClientVelChosen;
         player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
