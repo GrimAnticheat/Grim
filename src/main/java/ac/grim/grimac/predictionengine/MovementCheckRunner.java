@@ -10,13 +10,13 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
@@ -25,12 +25,10 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -64,7 +62,6 @@ public class MovementCheckRunner extends PositionCheck {
             new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
                     new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
-    private boolean blockOffsets = false;
 
     public MovementCheckRunner(GrimPlayer player) {
         super(player);
@@ -74,8 +71,7 @@ public class MovementCheckRunner extends PositionCheck {
         // The player is in an unloaded chunk
         if (!data.isJustTeleported && player.getSetbackTeleportUtil().insideUnloadedChunk()) {
             // Teleport the player back to avoid players being able to simply ignore transactions
-            player.getSetbackTeleportUtil().executeSetback();
-            blockOffsets = true;
+            player.getSetbackTeleportUtil().executeForceResync();
 
             return;
         }
@@ -250,8 +246,7 @@ public class MovementCheckRunner extends PositionCheck {
                 // Is this a cheat?  Do we have to lower this threshold?
                 // Until I see evidence that this cheat exists, I am keeping this lenient.
                 if (distOne > 1 && distTwo > 1) {
-                    blockOffsets = true;
-                    player.getSetbackTeleportUtil().executeSetback();
+                    player.getSetbackTeleportUtil().executeForceResync();
                 }
             }
         }
@@ -289,9 +284,9 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Manually call prediction complete to handle teleport
             player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, data));
-
             // Issues with ghost blocks should now be resolved
-            blockOffsets = false;
+            player.getSetbackTeleportUtil().confirmPredictionTeleport();
+
             player.uncertaintyHandler.lastHorizontalOffset = 0;
             player.uncertaintyHandler.lastVerticalOffset = 0;
 
@@ -487,8 +482,7 @@ public class MovementCheckRunner extends PositionCheck {
         // give them a decent amount of uncertainty and don't ban them for mojang's stupid mistake
         boolean isGlitchy = player.uncertaintyHandler.isNearGlitchyBlock;
         player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.v_1_9) && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03), material -> Materials.isAnvil(material) || Materials.isWoodenChest(material));
-
-        isGlitchy = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
+        player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
 
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
         player.uncertaintyHandler.checkForHardCollision();
@@ -702,87 +696,7 @@ public class MovementCheckRunner extends PositionCheck {
                 player.predictedVelocity.isTrident() &&
                 // Don't let player do this too often as otherwise it could allow players to spam riptide
                 (player.riptideSpinAttackTicks < 0 && !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3)))) {
-            offset = 0;
-            player.getSetbackTeleportUtil().executeSetback();
-            blockOffsets = true;
-        }
-
-        if (offset > 0.001) {
-            // Deal with stupidity when towering upwards, or other high ping desync's that I can't deal with
-            // Seriously, blocks disappear and reappear when towering at high ping on modern versions...
-            //
-            // I also can't deal with clients guessing what block connections will be with all the version differences
-            // I can with 1.7-1.12 clients as connections are all client sided, but client AND server sided is too much
-            // As these connections are all server sided at low ping, the desync's just appear at high ping
-            SimpleCollisionBox playerBox = player.boundingBox.copy().expand(1);
-            for (Pair<Integer, Vector3i> pair : player.compensatedWorld.likelyDesyncBlockPositions) {
-                Vector3i pos = pair.getSecond();
-                if (playerBox.isCollided(new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1))) {
-                    player.getSetbackTeleportUtil().executeSetback();
-                    // This status gets reset on teleport
-                    // This is safe as this cannot be called on a teleport, as teleports are returned farther upwards in this code
-                    blockOffsets = true;
-                }
-            }
-
-            // Player is on glitchy block (1.8 client on anvil/wooden chest)
-            if (isGlitchy) {
-                blockOffsets = true;
-                player.getSetbackTeleportUtil().executeSetback();
-            }
-
-            // Reliable way to check if the player is colliding vertically with a block that doesn't exist
-            if (player.clientClaimsLastOnGround && player.clientControlledVerticalCollision && Collisions.collide(player, 0, -SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == -SimpleCollisionBox.COLLISION_EPSILON) {
-                blockOffsets = true;
-                player.getSetbackTeleportUtil().executeSetback();
-            }
-
-            // Player is colliding upwards into a ghost block
-            if (player.y > player.lastY && Math.abs((player.y + player.pose.height) % (1 / 64D)) < 0.00001 && Collisions.collide(player, 0, SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == SimpleCollisionBox.COLLISION_EPSILON) {
-                blockOffsets = true;
-                player.getSetbackTeleportUtil().executeSetback();
-            }
-
-            // Somewhat reliable way to detect if the player is colliding in the X negative/X positive axis on a ghost block
-            if (GrimMath.distanceToHorizontalCollision(player.x) < 1e-7) {
-                boolean xPosCol = Collisions.collide(player, SimpleCollisionBox.COLLISION_EPSILON, 0, 0).getX() != SimpleCollisionBox.COLLISION_EPSILON;
-                boolean xNegCol = Collisions.collide(player, -SimpleCollisionBox.COLLISION_EPSILON, 0, 0).getX() != -SimpleCollisionBox.COLLISION_EPSILON;
-
-                if (!xPosCol && !xNegCol) {
-                    blockOffsets = true;
-                    player.getSetbackTeleportUtil().executeSetback();
-                }
-            }
-
-            // Somewhat reliable way to detect if the player is colliding in the Z negative/Z positive axis on a ghost block
-            if (GrimMath.distanceToHorizontalCollision(player.z) < 1e-7) {
-                boolean zPosCol = Collisions.collide(player, 0, 0, SimpleCollisionBox.COLLISION_EPSILON).getZ() != SimpleCollisionBox.COLLISION_EPSILON;
-                boolean zNegCol = Collisions.collide(player, 0, 0, -SimpleCollisionBox.COLLISION_EPSILON).getZ() != -SimpleCollisionBox.COLLISION_EPSILON;
-
-                if (!zPosCol && !zNegCol) {
-                    blockOffsets = true;
-                    player.getSetbackTeleportUtil().executeSetback();
-                }
-            }
-
-            // Boats are moved client sided by 1.7/1.8 players, and have a mind of their own
-            // Simply setback, don't ban, if a player gets a violation by a boat.
-            // Note that we allow setting back to the ground for this one, to try and mitigate
-            // the effect that this buggy behavior has on players
-            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
-                SimpleCollisionBox largeExpandedBB = player.boundingBox.copy().expand(12, 0.5, 12);
-
-                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                    if (entity.type == EntityType.BOAT) {
-                        SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-                        if (box.isIntersected(largeExpandedBB)) {
-                            blockOffsets = true;
-                            player.getSetbackTeleportUtil().executeSetback();
-                            break;
-                        }
-                    }
-                }
-            }
+            player.getSetbackTeleportUtil().executeForceResync();
         }
 
         // This status gets reset on teleports
@@ -790,7 +704,13 @@ public class MovementCheckRunner extends PositionCheck {
         // Prevent desync by only removing offset when we are both blocking offsets AND
         // we have a pending setback with a transaction greater than ours
         SetBackData setbackData = player.getSetbackTeleportUtil().getRequiredSetBack();
-        if (blockOffsets && setbackData != null && setbackData.getTrans() - 1 > data.lastTransaction) offset = 0;
+
+        if (player.getSetbackTeleportUtil().blockOffsets && setbackData != null && setbackData.getTrans() + 1 < data.lastTransaction) {
+            LogUtil.warn("Blocking offset desync'd from setback for " + player.bukkitPlayer.getName() + "! Recovering, report this error.");
+        }
+
+        if (player.getSetbackTeleportUtil().blockOffsets && setbackData != null && setbackData.getTrans() + 1 > data.lastTransaction)
+            offset = 0;
 
         // Don't check players who are offline
         if (!player.bukkitPlayer.isOnline()) return;

@@ -19,6 +19,8 @@ public class NoFallB extends PostPredictionCheck {
             return;
         // And don't check this long list of ground exemptions
         if (player.exemptOnGround()) return;
+        // Don't check if the player was on a ghost block
+        if (player.getSetbackTeleportUtil().blockOffsets) return;
 
         boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 

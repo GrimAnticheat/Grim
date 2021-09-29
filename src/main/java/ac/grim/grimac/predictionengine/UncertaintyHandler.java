@@ -54,6 +54,7 @@ public class UncertaintyHandler {
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
     public boolean isNearGlitchyBlock = false;
+    public boolean isOrWasNearGlitchyBlock = false;
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
     public boolean claimingLeftStuckSpeed = false;
     public int stuckOnEdge = -100;

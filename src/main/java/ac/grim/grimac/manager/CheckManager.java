@@ -10,10 +10,10 @@ import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
 import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
 import ac.grim.grimac.checks.type.*;
-import ac.grim.grimac.events.packets.patch.AntiUseItemDesync;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.manager.tick.impl.PositionTransactionSetter;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.latency.CompensatedCooldown;
 import com.google.common.collect.ClassToInstanceMap;
@@ -40,7 +40,9 @@ public class CheckManager {
                 .put(NoFallA.class, new NoFallA(player))
                 .put(TimerCheck.class, new TimerCheck(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
-                .put(AntiUseItemDesync.class, new AntiUseItemDesync(player))
+                // This desync class causes too many desync's to be used in production, blocks missing on client side
+                // This has to be fixed with packet based block placing instead of spamming blocks to the player
+                //.put(AntiUseItemDesync.class, new AntiUseItemDesync(player))
                 .put(ResyncWorldUtil.class, new ResyncWorldUtil(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
@@ -56,6 +58,7 @@ public class CheckManager {
                 .build();
 
         postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
+                .put(GhostBlockDetector.class, new GhostBlockDetector(player))
                 .put(NoFallB.class, new NoFallB(player))
                 .put(OffsetHandler.class, new OffsetHandler(player))
                 .put(DebugHandler.class, new DebugHandler(player))
