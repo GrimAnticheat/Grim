@@ -15,6 +15,7 @@ import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.manager.tick.impl.PositionTransactionSetter;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.*;
+import ac.grim.grimac.utils.latency.CompensatedCooldown;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -46,6 +47,7 @@ public class CheckManager {
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
                 .put(PredictionRunner.class, new PredictionRunner(player))
                 .put(PositionTransactionSetter.class, new PositionTransactionSetter(player))
+                .put(CompensatedCooldown.class, new CompensatedCooldown(player))
                 .build();
         rotationCheck = new ImmutableClassToInstanceMap.Builder<RotationCheck>()
                 .build();
@@ -126,6 +128,10 @@ public class CheckManager {
 
     public KnockbackHandler getKnockbackHandler() {
         return (KnockbackHandler) getPacketCheck(KnockbackHandler.class);
+    }
+
+    public CompensatedCooldown getCompensatedCooldown() {
+        return (CompensatedCooldown) getPositionCheck(CompensatedCooldown.class);
     }
 
     public SetbackTeleportUtil getSetbackUtil() {

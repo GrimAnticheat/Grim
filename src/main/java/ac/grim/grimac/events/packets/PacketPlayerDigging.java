@@ -114,6 +114,12 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             ItemStack item = place.getHand() == Hand.MAIN_HAND ? player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected) : player.bukkitPlayer.getInventory().getItemInOffHand();
             if (item != null) {
                 Material material = item.getType();
+
+                if (player.checkManager.getCompensatedCooldown().hasMaterial(material)) {
+                    player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE; // resync, not required
+                    return; // The player has a cooldown, and therefore cannot use this item!
+                }
+
                 // 1.14 and below players cannot eat in creative, exceptions are potions or milk
                 if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15) ||
                         player.packetStateData.gameMode != GameMode.CREATIVE && material.isEdible())
