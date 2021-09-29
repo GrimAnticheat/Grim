@@ -477,8 +477,7 @@ public class PredictionEngine {
         // I tried using delays, vertical collision detection, and other methods for sneaking
         // But nothing works as well as brute force
         for (int loopSneaking = 0; loopCrouching && loopSneaking <= 1; loopSneaking++) {
-            boolean loopAgain = true;
-            for (int loopUsingItem = 0; loopAgain && loopUsingItem <= 1; loopUsingItem++) {
+            for (int loopUsingItem = 0; loopUsingItem <= 1; loopUsingItem++) {
                 for (VectorData possibleLastTickOutput : possibleVectors) {
                     for (int x = -1; x <= 1; x++) {
                         for (int z = zMin; z <= 1; z++) {
@@ -489,17 +488,14 @@ public class PredictionEngine {
                             // Signal that we need to flip sneaking bounding box
                             if (loopSneaking == 1)
                                 result = result.returnNewModified(result.vector, VectorData.VectorType.Flip_Sneaking);
+                            if (loopUsingItem == 1)
+                                result = result.returnNewModified(result.vector, VectorData.VectorType.Flip_Use_Item);
                             returnVectors.add(result);
                         }
                     }
                 }
 
-
-                // Loop again if the player is using a riptide trident in the rain (as this is too easy to desync)
-                loopAgain = (player.isUsingItem == AlmostBoolean.MAYBE);
-                if (loopAgain) {
-                    player.isUsingItem = AlmostBoolean.FALSE;
-                }
+                player.isUsingItem = AlmostBoolean.FALSE;
             }
 
             // The client has this stupid sneaking mechanic that desync's from the server because mojang

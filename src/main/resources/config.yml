@@ -75,8 +75,20 @@ Vehicle:
 GroundSpoof:
   setbackvl: 10
   decay: 0.01
-  alertvl: 5
+  dont-alert-until: 5
   alert-interval: 1
+
+# Prediction-based no slow check
+# Grim accounts for shitty netcode here... hard to false even when spamming right click and offhand button
+# Much more stable than other anticheats, but please report any falses... I have fixed a ton of netcode issues here.
+NoSlow:
+  setbackvl: 5
+  # Decay's when the player uses an item AND is slowed by it
+  decay: 0.05
+  # It takes 32 ticks to fully consume an item... 25 will safely flag cheats here
+  dont-alert-until: 25
+  # You likely don't want to be spammed with alerts. Target alerting once per item that wasn't slowed for
+  alert-interval: 25
 
 # Real time NoFall check that is unstable
 # It works fine 99% of the time but everything this catches will be caught by the extremely stable
@@ -89,30 +101,31 @@ Knockback:
   threshold: 0.00001
   setbackvl: 10
   decay: 0.025
-  alertvl: 5
+  dont-alert-until: 5
   alert-interval: 1
 
 Explosion:
   threshold: 0.00001
   setbackvl: 10
   decay: 0.025
-  alertvl: 5
+  dont-alert-until: 5
   alert-interval: 1
 
 TimerA:
   # Target 1.005 timer
   decay: 0.005
   setbackvl: 10
-  alertvl: 5
+  dont-alert-until: 5
   alert-interval: 5
   # Milliseconds that the player can accumulate for later use when they fall behind
+  # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
   drift: 120
 # Same check method as TimerA, but for vehicles
 TimerVehicle:
   # Target 1.005 timer
   decay: 0.005
   setbackvl: 10
-  alertvl: 5
+  dont-alert-until: 5
   alert-interval: 5
 
 Reach:

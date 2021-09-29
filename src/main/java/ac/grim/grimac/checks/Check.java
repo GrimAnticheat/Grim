@@ -97,7 +97,7 @@ public class Check<T> {
         decay = getConfig().getDouble(configName + ".decay");
         alertVL = getConfig().getDouble(configName + ".dont-alert-until");
         alertInterval = getConfig().getInt(configName + ".alert-interval");
-        setbackVL = getConfig().getDouble(configName + ".setbackVL", Double.MAX_VALUE);
+        setbackVL = getConfig().getDouble(configName + ".setbackvl", Double.MAX_VALUE);
 
         if (alertVL == -1) alertVL = Double.MAX_VALUE;
         if (setbackVL == -1) alertVL = Double.MAX_VALUE;
@@ -124,7 +124,7 @@ public class Check<T> {
     }
 
     public void setbackIfAboveSetbackVL() {
-        //if (getViolations() > setbackVL) player.getSetbackTeleportUtil().executeSetback(true);
+        if (getViolations() > setbackVL) player.getSetbackTeleportUtil().executeSetback(true);
     }
 
     public String formatOffset(double offset) {
