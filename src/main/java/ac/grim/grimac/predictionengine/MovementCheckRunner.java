@@ -833,11 +833,12 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.predictedVelocity.isTrident())
             player.riptideSpinAttackTicks = 20;
 
-        player.uncertaintyHandler.wasLastGravityUncertain = player.uncertaintyHandler.gravityUncertainty != 0;
         player.uncertaintyHandler.lastLastMovementWasZeroPointZeroThree = player.uncertaintyHandler.lastMovementWasZeroPointZeroThree;
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity);
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
+        player.uncertaintyHandler.wasZeroPointThreeVertically = player.uncertaintyHandler.gravityUncertainty != 0 || (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.uncertaintyHandler.controlsVerticalMovement());
+
         player.uncertaintyHandler.lastMetadataDesync--;
 
         if (player.playerVehicle instanceof PacketEntityRideable) {
