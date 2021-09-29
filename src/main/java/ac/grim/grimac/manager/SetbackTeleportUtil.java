@@ -26,6 +26,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // This is required because the required setback position is not sync to bukkit, and we must avoid
     // setting the player back to a position where they were cheating
     public boolean hasAcceptedSetbackPosition = true;
+    public boolean blockOffsets = false;
     // Sync to netty, a player MUST accept a teleport on join
     public int acceptedTeleports = 0;
     // Sync to anticheat, tracks the number of predictions ran, so we don't set too far back
@@ -76,6 +77,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         }
         wasLastMovementSafe = hasAcceptedSetbackPosition;
         lastMovementVel = player.clientVelocity;
+    }
+
+    public void executeForceResync() {
+        blockOffsets = true;
+        executeSetback();
+    }
+
+    public void confirmPredictionTeleport() {
+        blockOffsets = false;
     }
 
     public void executeSetback() {
