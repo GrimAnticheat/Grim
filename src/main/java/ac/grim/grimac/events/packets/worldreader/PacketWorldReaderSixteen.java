@@ -145,7 +145,6 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
             if (player == null) return;
 
             player.compensatedWorld.removeChunkLater(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
-            event.setPostTask(player::sendTransaction);
         }
     }
 
