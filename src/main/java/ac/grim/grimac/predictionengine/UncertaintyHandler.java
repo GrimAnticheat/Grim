@@ -36,7 +36,7 @@ public class UncertaintyHandler {
     public double yNegativeUncertainty = 0;
     public double yPositiveUncertainty = 0;
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
-    public boolean wasLastGravityUncertain = false;
+    public boolean wasZeroPointThreeVertically = false;
     // Marks how much to allow the actual velocity to deviate from predicted when
     // the previous lenience because of 0.03 would occur
     public double gravityUncertainty = 0;
@@ -161,7 +161,7 @@ public class UncertaintyHandler {
         if (has003 && (influencedByBouncyBlock() || isSteppingOnIce))
             pointThree = 0.1;
 
-        if (lastTeleportTicks > -3 || player.vehicleData.lastVehicleSwitch < 6)
+        if (player.vehicleData.lastVehicleSwitch < 6)
             pointThree = 0.1;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
@@ -218,10 +218,10 @@ public class UncertaintyHandler {
             return 0.03;
 
         if (controlsVerticalMovement()) {
-            return has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree || wasLastGravityUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket ? 0.03 : 0;
+            return has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree || wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket ? 0.03 : 0;
         }
 
-        if (wasLastGravityUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket)
+        if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
             return 0.03;
 
         return 0;
