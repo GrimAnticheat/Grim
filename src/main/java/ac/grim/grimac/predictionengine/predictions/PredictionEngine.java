@@ -33,6 +33,21 @@ public class PredictionEngine {
         }
     }
 
+    public static Vector clampMovementToHardBorder(GrimPlayer player, Vector outputVel, Vector handleHardCodedBorder) {
+        if (!player.inVehicle) {
+            double d0 = GrimMath.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
+            double d1 = GrimMath.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
+            if (d0 != player.lastX + handleHardCodedBorder.getX()) {
+                handleHardCodedBorder = new Vector(d0 - player.lastX, handleHardCodedBorder.getY(), handleHardCodedBorder.getZ());
+            }
+
+            if (d1 != player.lastZ + handleHardCodedBorder.getZ()) {
+                handleHardCodedBorder = new Vector(handleHardCodedBorder.getX(), handleHardCodedBorder.getY(), d1 - player.lastZ);
+            }
+        }
+        return handleHardCodedBorder;
+    }
+
     public void guessBestMovement(float speed, GrimPlayer player) {
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, fetchPossibleStartTickVectors(player), speed);
 
@@ -147,17 +162,7 @@ public class PredictionEngine {
             }
 
             Vector handleHardCodedBorder = outputVel;
-            if (!player.inVehicle) {
-                double d0 = GrimMath.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
-                double d1 = GrimMath.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
-                if (d0 != player.lastX + handleHardCodedBorder.getX()) {
-                    handleHardCodedBorder = new Vector(d0 - player.lastX, handleHardCodedBorder.getY(), handleHardCodedBorder.getZ());
-                }
-
-                if (d1 != player.lastZ + handleHardCodedBorder.getZ()) {
-                    handleHardCodedBorder = new Vector(handleHardCodedBorder.getX(), handleHardCodedBorder.getY(), d1 - player.lastZ);
-                }
-            }
+            handleHardCodedBorder = clampMovementToHardBorder(player, outputVel, handleHardCodedBorder);
 
             double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
 

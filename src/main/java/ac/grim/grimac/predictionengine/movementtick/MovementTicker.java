@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.PlayerBaseTick;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineElytra;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
@@ -116,17 +117,7 @@ public class MovementTicker {
             }
         }
 
-        if (!player.inVehicle) {
-            double d0 = GrimMath.clamp(player.lastX + collide.getX(), -2.9999999E7D, 2.9999999E7D);
-            double d1 = GrimMath.clamp(player.lastZ + collide.getZ(), -2.9999999E7D, 2.9999999E7D);
-            if (d0 != player.lastX + collide.getX()) {
-                collide = new Vector(d0 - player.lastX, collide.getY(), collide.getZ());
-            }
-
-            if (d1 != player.lastZ + collide.getZ()) {
-                collide = new Vector(collide.getX(), collide.getY(), d1 - player.lastZ);
-            }
-        }
+        collide = PredictionEngine.clampMovementToHardBorder(player, collide, collide);
 
         // The game disregards movements smaller than 1e-7 (such as in boats)
         if (collide.lengthSquared() < 1e-7) {
