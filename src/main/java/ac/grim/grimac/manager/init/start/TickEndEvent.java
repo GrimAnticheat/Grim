@@ -5,16 +5,19 @@ import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.lists.HookedListWrapper;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
+import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+// Copied from: https://github.com/ThomasOM/Pledge/blob/master/src/main/java/dev/thomazz/pledge/inject/ServerInjector.java
+@SuppressWarnings(value = {"unchecked", "deprecated"})
 public class TickEndEvent implements Initable {
     static Class<?> tickEnd = null;
 
@@ -35,20 +38,36 @@ public class TickEndEvent implements Initable {
 
     boolean hasTicked = true;
 
+    private static void tickRelMove() { // Don't send packets on the main thread.
+        CompletableFuture.runAsync(() -> {
+            for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+                player.checkManager.getReach().onEndOfTickEvent();
+            }
+        }, MovementCheckRunner.executor);
+    }
+
     @Override
     public void start() {
         Field endOfTickList = Reflection.getField(NMSUtils.minecraftServerClass, List.class, 0);
-        endOfTickList.setAccessible(true);
+        Object server = NMSUtils.getMinecraftServerInstance(Bukkit.getServer());
+
         try {
-            Object end = Proxy.newProxyInstance(tickEnd.getClassLoader(),
-                    new Class[]{tickEnd},
-                    (proxy, method, args) -> {
-                        hasTicked = true;
-                        tickRelMove();
-                        return null;
-                    });
-            ((List<Object>) endOfTickList.get(NMSUtils.getMinecraftServerInstance(Bukkit.getServer()))).add(end);
-        } catch (IllegalAccessException e) {
+            List<Object> endOfTickObject = (List<Object>) endOfTickList.get(server);
+
+            // Use a list wrapper to check when the size method is called
+            HookedListWrapper<?> wrapper = new HookedListWrapper<Object>(endOfTickObject) {
+                @Override
+                public void onSize() {
+                    hasTicked = true;
+                    tickRelMove();
+                }
+            };
+
+            Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
+            unsafeField.setAccessible(true);
+            Unsafe unsafe = (Unsafe) unsafeField.get(null);
+            unsafe.putObject(server, unsafe.objectFieldOffset(endOfTickList), wrapper);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
 
@@ -67,13 +86,5 @@ public class TickEndEvent implements Initable {
 
             hasTicked = false;
         }, 2, 1); // give the server a chance to tick, delay by 2 ticks
-    }
-
-    private void tickRelMove() { // Don't send packets on the main thread.
-        CompletableFuture.runAsync(() -> {
-            for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-                player.checkManager.getReach().onEndOfTickEvent();
-            }
-        }, MovementCheckRunner.executor);
     }
 }

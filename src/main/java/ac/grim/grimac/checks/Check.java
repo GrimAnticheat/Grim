@@ -32,6 +32,8 @@ public class Check<T> {
     private String configName;
     private long reset;
 
+    public boolean secretTestServerVLStyle = false;
+
     public Check(final GrimPlayer player) {
         this.player = player;
 
@@ -99,6 +101,8 @@ public class Check<T> {
         alertInterval = getConfig().getInt(configName + ".alert-interval");
         setbackVL = getConfig().getDouble(configName + ".setbackvl", Double.MAX_VALUE);
 
+        secretTestServerVLStyle = getConfig().getBoolean("test-mode", false);
+
         if (alertVL == -1) alertVL = Double.MAX_VALUE;
         if (setbackVL == -1) alertVL = Double.MAX_VALUE;
     }
@@ -116,7 +120,11 @@ public class Check<T> {
         alertString = alertString.replace("%vl%", violations);
         alertString = alertString.replace("%verbose%", verbose);
 
-        Bukkit.broadcast(ColorUtil.format(alertString), "grim.alerts");
+        if (!secretTestServerVLStyle) { // Production
+            Bukkit.broadcast(ColorUtil.format(alertString), "grim.alerts");
+        } else { // Test server
+            player.bukkitPlayer.sendMessage(ColorUtil.format(alertString));
+        }
     }
 
     public FileConfiguration getConfig() {
