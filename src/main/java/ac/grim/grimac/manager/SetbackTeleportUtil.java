@@ -4,8 +4,10 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
@@ -24,12 +26,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // setting the player back to a position where they were cheating
     public boolean hasAcceptedSetbackPosition = true;
     // Sync to netty, a player MUST accept a teleport on join
-    // Bukkit doesn't call this event, so we need to
     public int acceptedTeleports = 0;
     // Sync to anticheat, tracks the number of predictions ran, so we don't set too far back
     public int processedPredictions = 0;
-    // Solves race condition between login event and first teleport send
-    public boolean hasFirstSpawned = false;
     // Sync to BUKKIT, referenced by only bukkit!  Don't overwrite another plugin's teleport
     public int lastOtherPluginTeleport = 0;
     // This required setback data is sync to the BUKKIT MAIN THREAD (!)
@@ -45,6 +44,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     Vector lastMovementVel = new Vector();
     // Sync to anything, worst that can happen is sending an extra world update (which won't be noticed)
     long lastWorldResync = 0;
+    // Sync to netty
     ConcurrentLinkedQueue<Pair<Integer, Vector3d>> teleports = new ConcurrentLinkedQueue<>();
 
     public SetbackTeleportUtil(GrimPlayer player) {
@@ -288,13 +288,29 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     /**
-     * @return Whether the current setback has been completed
+     * @return Whether the current setback has been completed, or the player hasn't spawned yet
      */
     public boolean shouldBlockMovement() {
-        SetBackData setBack = requiredSetBack;
-        // Block if the player has a pending setback
-        // or hasn't spawned in the world yet
-        return (setBack != null && !setBack.isComplete()) || acceptedTeleports == 0;
+        return isPendingSetback() || insideUnloadedChunk();
+    }
+
+
+    private boolean isPendingSetback() {
+        SetBackData setBackData = requiredSetBack;
+        return setBackData != null && !setBackData.isComplete();
+    }
+
+    public boolean insideUnloadedChunk() {
+        int transaction = player.packetStateData.packetLastTransactionReceived.get();
+        double playerX = player.packetStateData.packetPosition.getX();
+        double playerZ = player.packetStateData.packetPosition.getZ();
+
+        Column column = player.compensatedWorld.getChunk(GrimMath.floor(playerX) >> 4, GrimMath.floor(playerZ) >> 4);
+
+        // The player is in an unloaded chunk
+        return column != null && column.transaction <= transaction &&
+                // The player hasn't loaded past the DOWNLOADING TERRAIN screen
+                player.getSetbackTeleportUtil().acceptedTeleports != 0;
     }
 
     /**

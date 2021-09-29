@@ -11,7 +11,6 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.PredictionData;
@@ -72,11 +71,8 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     public void processAndCheckMovementPacket(PredictionData data) {
-        Column column = data.player.compensatedWorld.getChunk(GrimMath.floor(data.playerX) >> 4, GrimMath.floor(data.playerZ) >> 4);
-
         // The player is in an unloaded chunk
-        if (!data.isJustTeleported && (column == null || column.transaction > player.packetStateData.packetLastTransactionReceived.get())
-                || player.getSetbackTeleportUtil().acceptedTeleports == 0) {
+        if (!data.isJustTeleported && player.getSetbackTeleportUtil().insideUnloadedChunk()) {
             data.player.nextTaskToRun = null;
 
             // Teleport the player back to avoid players being able to simply ignore transactions
