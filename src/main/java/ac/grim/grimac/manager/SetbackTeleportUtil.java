@@ -3,6 +3,7 @@ package ac.grim.grimac.manager;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.SetBackData;
@@ -100,6 +101,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         // If the player has no explosion/velocity, set them back to the data's stored velocity
         if (setbackVel.equals(new Vector())) setbackVel = data.velocity;
+
+        if (requiredSetBack != null) {
+            LogUtil.info("if this setback was too far, report this debug for setting back " + player.bukkitPlayer.getName() + " from " + player.x + " " + player.y + " " + player.z + " to "
+                    + data.position + " ctn " + data.creation + " dvl " + data.velocity + " has " + hasAcceptedSetbackPosition + " acc "
+                    + acceptedTeleports + " proc " + processedPredictions + " pl "
+                    + lastOtherPluginTeleport + " com " + requiredSetBack.isComplete() + " trn " + requiredSetBack.getTrans() + " pos "
+                    + requiredSetBack.getPosition() + " vel " + requiredSetBack.getVelocity() + " sfe " + wasLastMovementSafe + " lvl "
+                    + lastMovementVel);
+        }
 
         blockMovementsUntilResync(player.playerWorld, data.position,
                 player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot,
