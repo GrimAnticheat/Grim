@@ -12,27 +12,11 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.position.Wrapped
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.entity.Player;
-
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
     public PacketServerTeleport() {
         super(PacketListenerPriority.LOW);
-    }
-
-    // Don't lecture me about how this isn't object orientated and should be in the player object
-    // Bukkit internal code is like this:
-    // 1) Teleport the player
-    // 2) Call the player join event
-    //
-    // It would be more of a hack to wait on the first teleport to add the player to the list of checked players...
-    public static final ConcurrentHashMap<Player, ConcurrentLinkedQueue<Pair<Integer, Vector3d>>> teleports = new ConcurrentHashMap<>();
-
-    public static void removePlayer(Player player) {
-        teleports.remove(player);
     }
 
     @Override
@@ -50,18 +34,8 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             float yaw = teleport.getYaw();
 
             if (player == null) {
-                // Login
-                if (relative == 0) {
-                    // Init teleports
-                    initPlayer(event.getPlayer());
-                    ConcurrentLinkedQueue<Pair<Integer, Vector3d>> map = getPlayerTeleports(event.getPlayer());
-                    // Don't memory leak on players not being checked while still allowing reasonable plugins to teleport
-                    // before our player join event is called
-                    if (map.size() > 10) return;
-                    // 0 transactions total have been sent - we aren't tracking this player yet!
-                    map.add(new Pair<>(0, pos));
-                }
-                return;
+                // Player teleport event gets called AFTER player join event (wtf md_5)
+                player = new GrimPlayer(event.getPlayer());
             }
 
             // Convert relative teleports to normal teleports
@@ -98,24 +72,22 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             Vector3d finalPos = pos;
 
-            // Fucking bukkit teleports the player before login event!
-            // Meaning that we miss the first teleport, thanks a lot
-            ConcurrentLinkedQueue<Pair<Integer, Vector3d>> map = teleports.get(event.getPlayer());
-            map.add(new Pair<>(lastTransactionSent, finalPos));
+            player.getSetbackTeleportUtil().addSentTeleport(pos, lastTransactionSent);
 
+            GrimPlayer finalPlayer = player;
             event.setPostTask(() -> {
-                player.sendTransaction();
+                finalPlayer.sendTransaction();
 
-                SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
+                SetBackData data = finalPlayer.getSetbackTeleportUtil().getRequiredSetBack();
                 if (data == null) return;
 
                 Vector3d setbackPos = data.getPosition();
                 if (setbackPos == null || finalPos.equals(setbackPos)) return;
 
                 // If this wasn't the vanilla anticheat, we would have set the target position here
-                SetBackData setBackData = player.getSetbackTeleportUtil().getRequiredSetBack();
+                SetBackData setBackData = finalPlayer.getSetbackTeleportUtil().getRequiredSetBack();
                 if (setBackData != null && !setBackData.isComplete()) {
-                    player.getSetbackTeleportUtil().resendSetback(true);
+                    finalPlayer.getSetbackTeleportUtil().resendSetback(true);
                 }
             });
         }
@@ -135,13 +107,5 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             event.setPostTask(player::sendTransaction);
             player.vehicleData.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
-    }
-
-    public static void initPlayer(Player player) {
-        teleports.putIfAbsent(player, new ConcurrentLinkedQueue<>());
-    }
-
-    public static ConcurrentLinkedQueue<Pair<Integer, Vector3d>> getPlayerTeleports(Player player) {
-        return teleports.get(player);
     }
 }
