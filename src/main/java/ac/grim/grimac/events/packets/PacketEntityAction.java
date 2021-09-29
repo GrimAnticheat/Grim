@@ -55,7 +55,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                         player.compensatedElytra.tryAddStatus(player.packetStateData.packetLastTransactionReceived.get(), true);
                     } else {
                         // A client is flying with a ghost elytra, resync
-                        player.getSetbackTeleportUtil().executeSetback(false);
+                        player.getSetbackTeleportUtil().executeSetback();
                     }
                     break;
                 case START_RIDING_JUMP:

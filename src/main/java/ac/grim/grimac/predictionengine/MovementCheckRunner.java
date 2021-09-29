@@ -76,7 +76,7 @@ public class MovementCheckRunner extends PositionCheck {
             data.player.nextTaskToRun = null;
 
             // Teleport the player back to avoid players being able to simply ignore transactions
-            player.getSetbackTeleportUtil().executeSetback(false);
+            player.getSetbackTeleportUtil().executeSetback();
             blockOffsets = true;
 
             return;
@@ -253,7 +253,7 @@ public class MovementCheckRunner extends PositionCheck {
                 // Until I see evidence that this cheat exists, I am keeping this lenient.
                 if (distOne > 1 && distTwo > 1) {
                     blockOffsets = true;
-                    player.getSetbackTeleportUtil().executeSetback(false);
+                    player.getSetbackTeleportUtil().executeSetback();
                 }
             }
         }
@@ -339,7 +339,7 @@ public class MovementCheckRunner extends PositionCheck {
                         (newMainHand == null || newMainHand.getType() != requiredItem)) {
                     // Entity control cheats!  Set the player back
                     if (control.flag()) {
-                        player.getSetbackTeleportUtil().executeSetback(false);
+                        player.getSetbackTeleportUtil().executeSetback();
                     }
                 } else {
                     control.rewardPlayer();
@@ -705,7 +705,7 @@ public class MovementCheckRunner extends PositionCheck {
                 // Don't let player do this too often as otherwise it could allow players to spam riptide
                 (player.riptideSpinAttackTicks < 0 && !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3)))) {
             offset = 0;
-            player.getSetbackTeleportUtil().executeSetback(false);
+            player.getSetbackTeleportUtil().executeSetback();
             blockOffsets = true;
         }
 
@@ -720,7 +720,7 @@ public class MovementCheckRunner extends PositionCheck {
             for (Pair<Integer, Vector3i> pair : player.compensatedWorld.likelyDesyncBlockPositions) {
                 Vector3i pos = pair.getSecond();
                 if (playerBox.isCollided(new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1))) {
-                    player.getSetbackTeleportUtil().executeSetback(false);
+                    player.getSetbackTeleportUtil().executeSetback();
                     // This status gets reset on teleport
                     // This is safe as this cannot be called on a teleport, as teleports are returned farther upwards in this code
                     blockOffsets = true;
@@ -730,19 +730,19 @@ public class MovementCheckRunner extends PositionCheck {
             // Player is on glitchy block (1.8 client on anvil/wooden chest)
             if (isGlitchy) {
                 blockOffsets = true;
-                player.getSetbackTeleportUtil().executeSetback(false);
+                player.getSetbackTeleportUtil().executeSetback();
             }
 
             // Reliable way to check if the player is colliding vertically with a block that doesn't exist
             if (player.clientClaimsLastOnGround && player.clientControlledVerticalCollision && Collisions.collide(player, 0, -SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == -SimpleCollisionBox.COLLISION_EPSILON) {
                 blockOffsets = true;
-                player.getSetbackTeleportUtil().executeSetback(false);
+                player.getSetbackTeleportUtil().executeSetback();
             }
 
             // Player is colliding upwards into a ghost block
             if (player.y > player.lastY && Math.abs((player.y + player.pose.height) % (1 / 64D)) < 0.00001 && Collisions.collide(player, 0, SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == SimpleCollisionBox.COLLISION_EPSILON) {
                 blockOffsets = true;
-                player.getSetbackTeleportUtil().executeSetback(false);
+                player.getSetbackTeleportUtil().executeSetback();
             }
 
             // Somewhat reliable way to detect if the player is colliding in the X negative/X positive axis on a ghost block
@@ -752,7 +752,7 @@ public class MovementCheckRunner extends PositionCheck {
 
                 if (!xPosCol && !xNegCol) {
                     blockOffsets = true;
-                    player.getSetbackTeleportUtil().executeSetback(false);
+                    player.getSetbackTeleportUtil().executeSetback();
                 }
             }
 
@@ -763,7 +763,7 @@ public class MovementCheckRunner extends PositionCheck {
 
                 if (!zPosCol && !zNegCol) {
                     blockOffsets = true;
-                    player.getSetbackTeleportUtil().executeSetback(false);
+                    player.getSetbackTeleportUtil().executeSetback();
                 }
             }
 
@@ -779,7 +779,7 @@ public class MovementCheckRunner extends PositionCheck {
                         SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
                         if (box.isIntersected(largeExpandedBB)) {
                             blockOffsets = true;
-                            player.getSetbackTeleportUtil().executeSetback(true);
+                            player.getSetbackTeleportUtil().executeSetback();
                             break;
                         }
                     }
