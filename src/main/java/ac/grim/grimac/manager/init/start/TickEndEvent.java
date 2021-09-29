@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
 import sun.misc.Unsafe;
 
@@ -19,23 +18,6 @@ import java.util.concurrent.CompletableFuture;
 // Copied from: https://github.com/ThomasOM/Pledge/blob/master/src/main/java/dev/thomazz/pledge/inject/ServerInjector.java
 @SuppressWarnings(value = {"unchecked", "deprecated"})
 public class TickEndEvent implements Initable {
-    static Class<?> tickEnd = null;
-
-    static {
-        try {
-            if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
-                tickEnd = NMSUtils.getNMSClass("IUpdatePlayerListBox");
-            } else if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_13_2)) {
-                tickEnd = NMSUtils.getNMSClass("ITickable");
-            } else {
-                tickEnd = Runnable.class;
-            }
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
     boolean hasTicked = true;
 
     private static void tickRelMove() { // Don't send packets on the main thread.
