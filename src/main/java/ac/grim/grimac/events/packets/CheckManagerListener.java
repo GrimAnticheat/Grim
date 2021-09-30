@@ -19,6 +19,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.Wrapp
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 
@@ -51,6 +52,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         player.packetStateData.packetPosition.equals(flying.getPosition()))) {
                     lastPosLook = System.currentTimeMillis();
                     player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+                    // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
+                    // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
+                    if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
+                        event.setCancelled(true);
+                    }
                     return;
                 }
             }
