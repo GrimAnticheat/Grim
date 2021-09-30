@@ -45,7 +45,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to anything, worst that can happen is sending an extra world update (which won't be noticed)
     long lastWorldResync = 0;
     // Sync to netty
-    ConcurrentLinkedQueue<Pair<Integer, Vector3d>> teleports = new ConcurrentLinkedQueue<>();
+    ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
 
     public SetbackTeleportUtil(GrimPlayer player) {
         super(player);
@@ -205,10 +205,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
         while (true) {
-            Pair<Integer, Vector3d> teleportPos = teleports.peek();
+            Pair<Integer, Location> teleportPos = teleports.peek();
             if (teleportPos == null) break;
 
-            Vector3d position = teleportPos.getSecond();
+            Location position = teleportPos.getSecond();
 
             if (lastTransaction < teleportPos.getFirst()) {
                 break;
@@ -222,7 +222,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 SetBackData setBack = requiredSetBack;
 
                 // Player has accepted their setback!
-                if (setBack != null && requiredSetBack.getPosition().equals(teleportPos.getSecond())) {
+                if (setBack != null && requiredSetBack.getPosition().getX() == teleportPos.getSecond().getX()
+                        && requiredSetBack.getPosition().getY() == teleportPos.getSecond().getY()
+                        && requiredSetBack.getPosition().getZ() == teleportPos.getSecond().getZ()) {
                     teleportData.setSetback(true);
                     setBack.setComplete(true);
                 }
@@ -231,7 +233,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             } else if (lastTransaction > teleportPos.getFirst() + 2) {
                 teleports.poll();
 
-                // Ignored teleport!  We should really do something about this!
+                // Ignored teleport, teleport the player as a plugin would!
+                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> player.bukkitPlayer.teleport(position));
+
                 continue;
             }
 
@@ -283,7 +287,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return isPendingSetback() || insideUnloadedChunk();
     }
 
-
     private boolean isPendingSetback() {
         SetBackData setBackData = requiredSetBack;
         return setBackData != null && !setBackData.isComplete();
@@ -334,7 +337,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void addSentTeleport(Vector3d position, int transaction) {
-        teleports.add(new Pair<>(transaction, position));
+        teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
     }
 }
 
