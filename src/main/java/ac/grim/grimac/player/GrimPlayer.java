@@ -264,10 +264,6 @@ public class GrimPlayer {
         lastXRot = bukkitPlayer.getLocation().getYaw();
         lastYRot = bukkitPlayer.getLocation().getPitch();
 
-        onGround = bukkitPlayer.isOnGround();
-        lastOnGround = bukkitPlayer.isOnGround();
-        packetStateData.packetPlayerOnGround = bukkitPlayer.isOnGround();
-
         packetStateData.packetPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
         packetStateData.packetPlayerXRot = bukkitPlayer.getLocation().getYaw();
         packetStateData.packetPlayerYRot = bukkitPlayer.getLocation().getPitch();
