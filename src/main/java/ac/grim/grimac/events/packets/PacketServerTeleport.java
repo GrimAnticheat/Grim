@@ -83,7 +83,10 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
                 // We blocked a teleport and now must therefore resync
                 if (bukkitTarget.getX() != grimTarget.getX() || bukkitTarget.getY() != grimTarget.getY() || bukkitTarget.getZ() != grimTarget.getZ()) {
-                    finalPlayer.bukkitPlayer.teleport(finalPlayer.getSetbackTeleportUtil().getSafeLocation());
+                    Location safe = finalPlayer.getSetbackTeleportUtil().getSafeLocation();
+                    safe.setYaw(finalPlayer.xRot);
+                    safe.setPitch(finalPlayer.yRot);
+                    finalPlayer.bukkitPlayer.teleport(safe);
                 }
             });
 
