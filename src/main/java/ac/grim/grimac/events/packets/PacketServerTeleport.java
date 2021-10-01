@@ -35,8 +35,10 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             float yaw = teleport.getYaw();
 
             if (player == null) {
-                // Player teleport event gets called AFTER player join event (wtf md_5) TODO Fix null pointer from this!
-                player = new GrimPlayer(event.getPlayer());
+                // Player teleport event gets called AFTER player join event
+                new GrimPlayer(event.getPlayer());
+                player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+                if (player == null) return; // This player is exempt from all checks
             }
 
             // Convert relative teleports to normal teleports
