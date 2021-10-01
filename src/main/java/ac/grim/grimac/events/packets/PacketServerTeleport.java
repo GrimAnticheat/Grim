@@ -35,7 +35,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             float yaw = teleport.getYaw();
 
             if (player == null) {
-                // Player teleport event gets called AFTER player join event (wtf md_5)
+                // Player teleport event gets called AFTER player join event (wtf md_5) TODO Fix null pointer from this!
                 player = new GrimPlayer(event.getPlayer());
             }
 
@@ -54,16 +54,17 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             if ((relative >> 2 & 1) == 1)
                 pos = pos.add(new Vector3d(0, 0, player.packetStateData.packetPosition.z));
 
-            if ((relative >> 3 & 1) == 1)
-                yaw += player.packetStateData.packetPlayerXRot;
-
-            if ((relative >> 3 & 1) == 1)
-                pitch += player.packetStateData.packetPlayerYRot;
-
             teleport.setPosition(pos);
-            teleport.setYaw(yaw);
-            teleport.setPitch(pitch);
-            teleport.setRelativeFlagsMask((byte) 0);
+
+            if (player.getSetbackTeleportUtil().getRequiredSetBack() == null || player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
+                teleport.setYaw(yaw);
+                teleport.setPitch(pitch);
+                teleport.setRelativeFlagsMask((byte) 0);
+            } else {
+                teleport.setYaw(0);
+                teleport.setPitch(0);
+                teleport.setRelativeFlagsMask((byte) 0b11000);
+            }
 
             final int lastTransactionSent = player.lastTransactionSent.get();
 

@@ -322,7 +322,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void setTargetTeleport(Location position) {
         currentTargetTeleport = position;
         hasAcceptedSetbackPosition = false;
-        requiredSetBack = new SetBackData(position, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, new Vector(), null, player.lastTransactionSent.get());
+        requiredSetBack = new SetBackData(position, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, new Vector(), null, player.lastTransactionSent.get(), true);
         safeTeleportPosition = new SetbackLocationVelocity(position);
     }
 
