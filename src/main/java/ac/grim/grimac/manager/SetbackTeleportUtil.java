@@ -340,7 +340,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean addSentTeleport(Location position, int transaction) {
         currentBukkitTarget = position;
         if (currentTargetTeleport == null) { // Occurs for the first teleport on join
-            currentTargetTeleport = new Location(player.bukkitPlayer.getWorld(), Double.MIN_VALUE, Double.MIN_VALUE, Double.MIN_VALUE);
+            currentTargetTeleport = new Location(player.bukkitPlayer.getWorld(), player.x, player.y, player.z);
         } else if (position.getX() != currentTargetTeleport.getX() || position.getY() != currentTargetTeleport.getY() || position.getZ() != currentTargetTeleport.getZ()) {
             return true; // Vanilla anticheat sent this (or a plugin that managed to desync us)
         }
