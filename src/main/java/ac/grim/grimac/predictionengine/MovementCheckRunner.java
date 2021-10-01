@@ -10,7 +10,6 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
@@ -704,10 +703,6 @@ public class MovementCheckRunner extends PositionCheck {
         // Prevent desync by only removing offset when we are both blocking offsets AND
         // we have a pending setback with a transaction greater than ours
         SetBackData setbackData = player.getSetbackTeleportUtil().getRequiredSetBack();
-
-        if (player.getSetbackTeleportUtil().blockOffsets && setbackData != null && setbackData.getTrans() + 1 < data.lastTransaction) {
-            LogUtil.warn("Blocking offset desync'd from setback for " + player.bukkitPlayer.getName() + "! Recovering, report this error.");
-        }
 
         if (player.getSetbackTeleportUtil().blockOffsets && setbackData != null && setbackData.getTrans() + 1 > data.lastTransaction)
             offset = 0;

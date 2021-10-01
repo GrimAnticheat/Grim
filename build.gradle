@@ -53,7 +53,7 @@ dependencies {
 }
 
 group = 'ac.grim.grimac'
-version = '0.0.1-indev'
+version = '0.0.2'
 description = 'GrimAC'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
