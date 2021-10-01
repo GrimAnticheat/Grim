@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.SetBackData;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -12,6 +11,8 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.position.Wrapped
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
@@ -70,26 +71,26 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_8))
                 pos.setY(pos.getY() - 1.62);
 
-            Vector3d finalPos = pos;
+            Location target = new Location(player.bukkitPlayer.getWorld(), pos.getX(), pos.getY(), pos.getZ());
+            boolean cancel = player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent);
 
-            player.getSetbackTeleportUtil().addSentTeleport(pos, lastTransactionSent);
-
+            // We must sync to bukkit to avoid desync with bukkit target teleport, which
+            // would make the player be unable to interact with anything
             GrimPlayer finalPlayer = player;
-            event.setPostTask(() -> {
-                finalPlayer.sendTransaction();
+            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                Location bukkitTarget = finalPlayer.getSetbackTeleportUtil().currentBukkitTarget;
+                Location grimTarget = finalPlayer.getSetbackTeleportUtil().currentTargetTeleport;
 
-                SetBackData data = finalPlayer.getSetbackTeleportUtil().getRequiredSetBack();
-                if (data == null) return;
-
-                Vector3d setbackPos = data.getPosition();
-                if (setbackPos == null || finalPos.equals(setbackPos)) return;
-
-                // If this wasn't the vanilla anticheat, we would have set the target position here
-                SetBackData setBackData = finalPlayer.getSetbackTeleportUtil().getRequiredSetBack();
-                if (setBackData != null && !setBackData.isComplete()) {
-                    finalPlayer.getSetbackTeleportUtil().resendSetback(true);
+                // We blocked a teleport and now must therefore resync
+                if (bukkitTarget.getX() != grimTarget.getX() || bukkitTarget.getY() != grimTarget.getY() || bukkitTarget.getZ() != grimTarget.getZ()) {
+                    finalPlayer.bukkitPlayer.teleport(grimTarget);
                 }
             });
+
+            // It's the damn vanilla anticheat again!  We must override it!
+            if (cancel) {
+                event.setCancelled(true);
+            }
         }
 
         if (packetID == PacketType.Play.Server.VEHICLE_MOVE) {

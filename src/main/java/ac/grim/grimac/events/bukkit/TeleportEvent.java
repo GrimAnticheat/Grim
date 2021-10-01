@@ -3,7 +3,6 @@ package ac.grim.grimac.events.bukkit;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
@@ -16,14 +15,13 @@ public class TeleportEvent implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerTeleportEvent(PlayerTeleportEvent event) {
         Location to = event.getTo();
-        Location from = event.getFrom();
 
         // If the teleport is not from vanilla anticheat
         // (Vanilla anticheat has a teleport cause of UNKNOWN)
         if (to != null  && event.getCause() != PlayerTeleportEvent.TeleportCause.UNKNOWN) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
-            player.getSetbackTeleportUtil().setSetback(new Vector3d(to.getX(), to.getY(), to.getZ()));
+            player.getSetbackTeleportUtil().setTargetTeleport(to);
         }
 
         // How can getTo be null?
@@ -39,7 +37,7 @@ public class TeleportEvent implements Listener {
         if (player == null) return;
 
         Location loc = event.getRespawnLocation();
-        player.getSetbackTeleportUtil().setSetback(new Vector3d(loc.getX(), loc.getY(), loc.getZ()));
+        player.getSetbackTeleportUtil().setTargetTeleport(loc);
 
         onWorldChangeEvent(player, event.getRespawnLocation().getWorld());
     }

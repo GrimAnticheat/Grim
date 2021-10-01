@@ -22,7 +22,17 @@ public class PacketPlayerCooldown extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            player.checkManager.getCompensatedCooldown().addCooldown(cooldown.getItemStack().getType(), cooldown.getCooldownTicks());
+            int lastTransactionSent = player.lastTransactionSent.get();
+
+            if (cooldown.getCooldownTicks() == 0) { // for removing the cooldown
+                player.latencyUtils.addAnticheatSyncTask(lastTransactionSent + 1, () -> {
+                    player.checkManager.getCompensatedCooldown().removeCooldown(cooldown.getItemStack().getType());
+                });
+            } else { // Not for removing the cooldown
+                player.latencyUtils.addAnticheatSyncTask(lastTransactionSent, () -> {
+                    player.checkManager.getCompensatedCooldown().addCooldown(cooldown.getItemStack().getType(), cooldown.getCooldownTicks(), lastTransactionSent);
+                });
+            }
         }
     }
 }

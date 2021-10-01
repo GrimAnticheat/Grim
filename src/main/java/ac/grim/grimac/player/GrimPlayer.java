@@ -277,7 +277,7 @@ public class GrimPlayer {
         uncertaintyHandler.pistonPushing.add(0d);
         uncertaintyHandler.collidingEntities.add(0);
 
-        getSetbackTeleportUtil().setSafeSetbackLocation(new Vector3d(x, y, z));
+        getSetbackTeleportUtil().setSafeSetbackLocation(playerWorld, new Vector3d(x, y, z));
 
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8);
 
