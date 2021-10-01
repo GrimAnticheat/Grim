@@ -317,6 +317,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return requiredSetBack;
     }
 
+    public Location getSafeLocation() {
+        return safeTeleportPosition.position;
+    }
+
     /**
      * This method is unsafe to call outside the bukkit thread
      * This method sets a plugin teleport at this location
