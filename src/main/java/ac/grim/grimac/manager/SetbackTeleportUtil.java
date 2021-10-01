@@ -149,8 +149,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             hasAcceptedSetbackPosition = false;
 
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                if (!teleports.isEmpty()) return; // Do we already have teleport that is being sent to the player?
-
                 requiredSetBack = new SetBackData(position, xRot, yRot, velocity, vehicle, player.lastTransactionSent.get());
 
                 // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues

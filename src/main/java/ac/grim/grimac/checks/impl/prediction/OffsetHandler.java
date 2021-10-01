@@ -58,6 +58,8 @@ public class OffsetHandler extends PostPredictionCheck {
 
     @Override
     public void reload() {
+        secretTestServerVLStyle = getConfig().getBoolean("test-mode", false);
+
         List<OffsetData> offsets = new ArrayList<>();
         loadOffsets(offsets, "Prediction");
         this.regularOffsets = offsets;
