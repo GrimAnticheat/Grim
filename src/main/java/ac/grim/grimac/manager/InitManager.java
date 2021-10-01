@@ -28,6 +28,7 @@ public class InitManager {
                 .put(TickEndEvent.class, new TickEndEvent())
                 .put(CommandRegister.class, new CommandRegister())
                 .put(BStats.class, new BStats())
+                .put(DiscordManager.class, new DiscordManager())
                 .build();
 
         initializersOnStop = new ImmutableClassToInstanceMap.Builder<Initable>()

@@ -32,7 +32,7 @@ public class VehicleEnterExitEvent implements Listener {
 
         // Pending setback, don't let the player mount the vehicle
         // Don't block if this is another plugin teleport and not a setback
-        if (data != null && !data.isComplete() && player.getSetbackTeleportUtil().lastOtherPluginTeleport != data.getTrans()) {
+        if (data != null && !data.isComplete() && !player.getSetbackTeleportUtil().hasAcceptedSetbackPosition) {
             event.setCancelled(true);
         }
     }

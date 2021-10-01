@@ -42,8 +42,7 @@ public class PredictionEngineElytra extends PredictionEngine {
                 fireworksResult = VectorUtils.cutBoxToVector(player.actualMovement, cutOne, cutTwo);
             }
 
-            data = data.returnNewModified(fireworksResult, VectorData.VectorType.Elytra);
-            results.add(data);
+            results.add(data.returnNewModified(fireworksResult, VectorData.VectorType.Elytra));
         }
 
         return results;
@@ -61,25 +60,29 @@ public class PredictionEngineElytra extends PredictionEngine {
 
     public Vector getElytraMovement(GrimPlayer player, Vector vector, Vector lookVector) {
         float yRotRadians = player.yRot * 0.017453292F;
-        double d2 = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
-        double d3 = vector.clone().setY(0).length();
-        double d4 = lookVector.length();
-        float f3 = player.trigHandler.cos(yRotRadians);
-        f3 = (float) ((double) f3 * (double) f3 * Math.min(1.0D, d4 / 0.4D));
-        vector.add(new Vector(0.0D, player.gravity * (-1.0D + (double) f3 * 0.75D), 0.0D));
+        double horizontalSqrt = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
+        double horizontalLength = vector.clone().setY(0).length();
+        double length = lookVector.length();
+        float vertCosRotation = player.trigHandler.cos(yRotRadians);
+        vertCosRotation = (float) ((double) vertCosRotation * (double) vertCosRotation * Math.min(1.0D, length / 0.4D));
+        vector.add(new Vector(0.0D, player.gravity * (-1.0D + (double) vertCosRotation * 0.75D), 0.0D));
         double d5;
-        if (vector.getY() < 0.0D && d2 > 0.0D) {
-            d5 = vector.getY() * -0.1D * (double) f3;
-            vector.add(new Vector(lookVector.getX() * d5 / d2, d5, lookVector.getZ() * d5 / d2));
+
+        // Handle slowing the player down when falling
+        if (vector.getY() < 0.0D && horizontalSqrt > 0.0D) {
+            d5 = vector.getY() * -0.1D * (double) vertCosRotation;
+            vector.add(new Vector(lookVector.getX() * d5 / horizontalSqrt, d5, lookVector.getZ() * d5 / horizontalSqrt));
         }
 
-        if (yRotRadians < 0.0F && d2 > 0.0D) {
-            d5 = d3 * (double) (-player.trigHandler.sin(yRotRadians)) * 0.04D;
-            vector.add(new Vector(-lookVector.getX() * d5 / d2, d5 * 3.2D, -lookVector.getZ() * d5 / d2));
+        // Handle accelerating the player when they are looking down
+        if (yRotRadians < 0.0F && horizontalSqrt > 0.0D) {
+            d5 = horizontalLength * (double) (-player.trigHandler.sin(yRotRadians)) * 0.04D;
+            vector.add(new Vector(-lookVector.getX() * d5 / horizontalSqrt, d5 * 3.2D, -lookVector.getZ() * d5 / horizontalSqrt));
         }
 
-        if (d2 > 0) {
-            vector.add(new Vector((lookVector.getX() / d2 * d3 - vector.getX()) * 0.1D, 0.0D, (lookVector.getZ() / d2 * d3 - vector.getZ()) * 0.1D));
+        // Handle accelerating the player sideways
+        if (horizontalSqrt > 0) {
+            vector.add(new Vector((lookVector.getX() / horizontalSqrt * horizontalLength - vector.getX()) * 0.1D, 0.0D, (lookVector.getZ() / horizontalSqrt * horizontalLength - vector.getZ()) * 0.1D));
         }
 
         return vector;

@@ -125,6 +125,8 @@ public class Check<T> {
         } else { // Test server
             player.bukkitPlayer.sendMessage(ColorUtil.format(alertString));
         }
+
+        GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, checkName, violations, verbose);
     }
 
     public FileConfiguration getConfig() {
