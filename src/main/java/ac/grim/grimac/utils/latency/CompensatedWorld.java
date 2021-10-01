@@ -45,7 +45,7 @@ public class CompensatedWorld {
     public static BaseBlockState airData;
     public static Method getByCombinedID;
     public final GrimPlayer player;
-    public final EvictingList<TransPosData> posToTrans = new EvictingList<>(10);
+    public final EvictingList<TransPosData> posToTrans = new EvictingList<>(3);
     private final ConcurrentHashMap<Long, Column> chunks = new ConcurrentHashMap<>();
     public ConcurrentSkipListSet<BasePlayerChangeBlockData> worldChangedBlockQueue = new ConcurrentSkipListSet<>((a, b) -> {
         // We can't have elements with equal comparisons, otherwise they won't be added

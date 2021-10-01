@@ -128,8 +128,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // Don't teleport cross world, it will break more than it fixes.
         if (position.getWorld() != player.bukkitPlayer.getWorld()) return;
 
-        SetBackData setBack = requiredSetBack;
-        if (force || setBack == null || setBack.isComplete()) {
+        if (force || !isPendingTeleport()) {
             // Deal with ghost blocks near the player (from anticheat/netty thread)
             // Only let us full resync once every two seconds to prevent unneeded netty load
             if (System.nanoTime() - lastWorldResync > 2e-9) {
@@ -286,6 +285,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return setBackData != null && !setBackData.isComplete();
     }
 
+    public boolean isPendingTeleport() {
+        return !teleports.isEmpty();
+    }
+
     public boolean insideUnloadedChunk() {
         int transaction = player.packetStateData.packetLastTransactionReceived.get();
         double playerX = player.packetStateData.packetPosition.getX();
@@ -294,7 +297,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         Column column = player.compensatedWorld.getChunk(GrimMath.floor(playerX) >> 4, GrimMath.floor(playerZ) >> 4);
 
         // The player is in an unloaded chunk
-        return column == null || column.transaction > transaction &&
+        return column == null || column.transaction > transaction ||
                 // The player hasn't loaded past the DOWNLOADING TERRAIN screen
                 player.getSetbackTeleportUtil().acceptedTeleports == 0;
     }
