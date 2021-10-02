@@ -1,11 +1,12 @@
 package ac.grim.grimac.utils.nmsImplementations;
 
 import ac.grim.grimac.player.GrimPlayer;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
 public class JumpPower {
-    private static final Material honey = XMaterial.HONEY_BLOCK.parseMaterial();
+    private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
 
     public static void jumpFromGround(GrimPlayer player, Vector vector) {
         //Player bukkitPlayer = player.bukkitPlayer;
@@ -38,7 +39,8 @@ public class JumpPower {
     private static float getBlockJumpFactor(GrimPlayer player, Double x, Double y, Double z) {
         Material jumpBlock = player.compensatedWorld.getBukkitMaterialAt(x, y, z);
 
-        if (jumpBlock == honey) return 0.5F;
+        if (jumpBlock == HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15))
+            return 0.5F;
 
         return 1.0F;
     }
