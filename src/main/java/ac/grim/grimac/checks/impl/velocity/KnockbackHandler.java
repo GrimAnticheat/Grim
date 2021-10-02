@@ -26,6 +26,7 @@ public class KnockbackHandler extends PacketCheck {
     VelocityData firstBreadOnlyKnockback = null;
 
     boolean wasExplosionZeroPointZeroThree = false;
+    boolean hasUsedUpFirstBread = false;
 
     double offsetToFlag;
     double setbackVL;
@@ -157,6 +158,8 @@ public class KnockbackHandler extends PacketCheck {
             // Fixes exploit that would allow players to take knockback an infinite number of times
             if (player.firstBreadKB.offset < offsetToFlag) {
                 firstBreadOnlyKnockback = null;
+                // The player split a transaction, remove the first bread
+                firstBreadMap.poll();
             }
         }
 

@@ -104,6 +104,8 @@ public class ExplosionHandler extends PacketCheck {
             // Fixes exploit that would allow players to take explosions an infinite number of times
             if (player.firstBreadExplosion.offset < offsetToFlag) {
                 firstBreadAddedExplosion = null;
+                // The player split a transaction, remove the first bread
+                firstBreadMap.poll();
             }
         }
 
