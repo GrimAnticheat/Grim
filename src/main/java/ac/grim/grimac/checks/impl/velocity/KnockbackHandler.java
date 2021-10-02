@@ -26,7 +26,6 @@ public class KnockbackHandler extends PacketCheck {
     VelocityData firstBreadOnlyKnockback = null;
 
     boolean wasExplosionZeroPointZeroThree = false;
-    boolean hasUsedUpFirstBread = false;
 
     double offsetToFlag;
     double setbackVL;
@@ -104,6 +103,7 @@ public class KnockbackHandler extends PacketCheck {
         while (data != null) {
             if (data.transaction == transactionID) { // First bread knockback
                 firstBreadOnlyKnockback = new VelocityData(data.entityID, data.transaction, data.vector);
+                firstBreadMap.poll();
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) { // This kb has 100% arrived to the player
                 if (firstBreadOnlyKnockback != null) // Don't require kb twice
@@ -158,8 +158,6 @@ public class KnockbackHandler extends PacketCheck {
             // Fixes exploit that would allow players to take knockback an infinite number of times
             if (player.firstBreadKB.offset < offsetToFlag) {
                 firstBreadOnlyKnockback = null;
-                // The player split a transaction, remove the first bread
-                firstBreadMap.poll();
             }
         }
 
