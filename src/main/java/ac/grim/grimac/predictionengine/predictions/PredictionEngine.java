@@ -254,6 +254,25 @@ public class PredictionEngine {
             }
         }
 
+        // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
+        double minimumMovement = 0.003D;
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
+            minimumMovement = 0.005D;
+
+        for (VectorData vector : velocitiesToReturn) {
+            if (Math.abs(vector.vector.getX()) < minimumMovement) {
+                vector.vector.setX(0D);
+            }
+
+            if (Math.abs(vector.vector.getY()) < minimumMovement) {
+                vector.vector.setY(0D);
+            }
+
+            if (Math.abs(vector.vector.getZ()) < minimumMovement) {
+                vector.vector.setZ(0D);
+            }
+        }
+
         addJumpsToPossibilities(player, velocitiesToReturn);
 
         return velocitiesToReturn;

@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
@@ -65,22 +64,6 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     private void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
-        double minimumMovement = 0.003D;
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
-            minimumMovement = 0.005D;
-
-        if (Math.abs(knockback.getX()) < minimumMovement) {
-            knockback.setX(0D);
-        }
-
-        if (Math.abs(knockback.getY()) < minimumMovement) {
-            knockback.setY(0D);
-        }
-
-        if (Math.abs(knockback.getZ()) < minimumMovement) {
-            knockback.setZ(0D);
-        }
-
         firstBreadMap.add(new VelocityData(entityID, breadOne, knockback));
     }
 
