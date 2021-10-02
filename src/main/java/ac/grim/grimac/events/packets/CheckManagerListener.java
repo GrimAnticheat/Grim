@@ -45,6 +45,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             boolean hasLook = packetID == PacketType.Play.Client.LOOK || packetID == PacketType.Play.Client.POSITION_LOOK;
             boolean onGround = flying.isOnGround();
 
+            player.packetStateData.lastPacketWasTeleport = false;
             TeleportAcceptData teleportData = null;
             if (hasPosition) {
                 Vector3d position = flying.getPosition();
@@ -77,7 +78,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketPlayerXRot = player.packetStateData.packetPlayerXRot;
             player.packetStateData.lastPacketPlayerYRot = player.packetStateData.packetPlayerYRot;
             player.packetStateData.lastPacketPosition = player.packetStateData.packetPosition;
-            player.packetStateData.lastPacketWasTeleport = false;
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
 
             // Go test with a 1.8 client on a 1.17 server, and you will see
