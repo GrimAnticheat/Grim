@@ -221,7 +221,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 }
 
                 teleportData.setTeleport(true);
-            } else if (lastTransaction > teleportPos.getFirst() + 2) { // Give a transaction or two lenience as we track transactions from bukkit
+            } else if (lastTransaction > teleportPos.getFirst() + 1) { // Give a transaction or two lenience as we track transactions from bukkit
                 teleports.poll();
 
                 // Ignored teleport, teleport the player as a plugin would!
@@ -259,7 +259,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 player.vehicleData.vehicleTeleports.poll();
 
                 return true;
-            } else if (lastTransaction > teleportPos.getFirst() + 2) {
+            } else if (lastTransaction > teleportPos.getFirst() + 1) {
                 player.vehicleData.vehicleTeleports.poll();
 
                 // Vehicles have terrible netcode so just ignore it if the teleport wasn't from us setting the player back

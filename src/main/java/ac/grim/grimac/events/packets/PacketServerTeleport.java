@@ -68,7 +68,9 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 teleport.setRelativeFlagsMask((byte) 0b11000);
             }
 
+            player.sendTransaction();
             final int lastTransactionSent = player.lastTransactionSent.get();
+            event.setPostTask(player::sendTransaction);
 
             // For some reason teleports on 1.7 servers are offset by 1.62?
             if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_8))
@@ -108,6 +110,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
+            player.sendTransaction();
             int lastTransactionSent = player.lastTransactionSent.get();
             Vector3d finalPos = new Vector3d(x, y, z);
 

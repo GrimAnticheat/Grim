@@ -45,13 +45,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
             boolean hasLook = packetID == PacketType.Play.Client.LOOK || packetID == PacketType.Play.Client.POSITION_LOOK;
             boolean onGround = flying.isOnGround();
 
+            TeleportAcceptData teleportData = null;
+            if (hasPosition) {
+                Vector3d position = flying.getPosition();
+                teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
+                player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
+            }
+
             // Don't check duplicate 1.17 packets (Why would you do this mojang?)
             // Don't check rotation since it changes between these packets, with the second being irrelevant.
-            if (hasPosition && hasLook) {
+            if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport) {
                 if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && System.currentTimeMillis() - lastPosLook < 750 &&
                         player.packetStateData.packetPosition.equals(flying.getPosition()))) {
                     lastPosLook = System.currentTimeMillis();
                     player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+
                     // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
                     // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
                     if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
@@ -86,9 +94,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (hasPosition) {
                 Vector3d position = flying.getPosition();
                 player.packetStateData.packetPosition = VectorUtils.clampVector(position);
-
-                TeleportAcceptData teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
-                player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
 
                 final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, onGround, teleportData.isTeleport(), teleportData.isSetback());
                 player.checkManager.onPositionUpdate(update);
