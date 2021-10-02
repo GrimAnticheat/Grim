@@ -63,6 +63,8 @@ public class CompensatedWorldFlat extends CompensatedWorld {
 
                 // This is the string saved from the block
                 // Generated with a script - https://gist.github.com/MWHunter/b16a21045e591488354733a768b804f4
+                // (Currently the files are from ViaVersion as their method is more accurate)
+                //
                 // I could technically generate this on startup but that requires setting blocks in the world
                 // Would rather have a known clean file on all servers.
                 String blockString = line.substring(line.indexOf(" ") + 1);

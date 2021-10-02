@@ -18,12 +18,17 @@ import java.util.List;
 public class FifteenChunk implements BaseChunk {
     private static final BlockState AIR = new BlockState(0);
     private static final int AIR_ID = 0;
+    private static final boolean hasBlockCount;
 
     private int blockCount;
     private int bitsPerEntry;
 
     private @NonNull List<BlockState> states;
     private @NonNull LegacyFlexibleStorage storage;
+
+    static {
+        hasBlockCount = XMaterial.getVersion() != 13;
+    }
 
     public FifteenChunk() {
         this.bitsPerEntry = 4;
@@ -128,7 +133,7 @@ public class FifteenChunk implements BaseChunk {
     }
 
     public boolean isKnownEmpty() {
-        return blockCount == 0;
+        return blockCount == 0 && hasBlockCount;
     }
 }
 
