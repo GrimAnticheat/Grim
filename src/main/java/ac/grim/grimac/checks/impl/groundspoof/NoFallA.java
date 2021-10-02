@@ -12,6 +12,7 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // Catches NoFalls that obey the (1 / 64) rule
@@ -100,7 +101,8 @@ public class NoFallA extends PacketCheck {
     }
 
     private boolean checkForBoxes(SimpleCollisionBox playerBB) {
-        List<SimpleCollisionBox> boxes = Collisions.getCollisionBoxes(player, playerBB);
+        List<SimpleCollisionBox> boxes = new ArrayList<>();
+        Collisions.getCollisionBoxes(player, playerBB, boxes, false);
 
         for (SimpleCollisionBox box : boxes) {
             if (playerBB.collidesVertically(box)) { // If we collide vertically but aren't in the block

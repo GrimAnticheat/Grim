@@ -77,7 +77,8 @@ public class Collisions {
     public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ, double clientVelY) {
         if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
 
-        List<SimpleCollisionBox> desiredMovementCollisionBoxes = getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ));
+        List<SimpleCollisionBox> desiredMovementCollisionBoxes = new ArrayList<>();
+        getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ), desiredMovementCollisionBoxes, false);
 
         double bestInput = Double.MAX_VALUE;
         Vector bestOrderResult = null;
@@ -123,9 +124,8 @@ public class Collisions {
                 player.uncertaintyHandler.isStepMovement = true;
 
                 // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
-                List<SimpleCollisionBox> stepUpCollisionBoxes = getCollisionBoxes(player,
-                        player.boundingBox.copy().expandToCoordinate(desiredX, stepUpHeight, desiredZ));
-
+                List<SimpleCollisionBox> stepUpCollisionBoxes = new ArrayList<>();
+                getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, stepUpHeight, desiredZ), stepUpCollisionBoxes, false);
 
                 Vector regularStepUp = collideBoundingBoxLegacy(player, new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, stepUpCollisionBoxes, order);
 
@@ -162,8 +162,7 @@ public class Collisions {
     }
 
     // This is mostly taken from Tuinity collisions
-    public static List<SimpleCollisionBox> getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB) {
-        List<SimpleCollisionBox> listOfBlocks = new ArrayList<>();
+    public static boolean getCollisionBoxes(GrimPlayer player, SimpleCollisionBox wantedBB, List<SimpleCollisionBox> listOfBlocks, boolean onlyCheckCollide) {
         SimpleCollisionBox expandedBB = wantedBB.copy();
 
         // Worldborders were added in 1.8
@@ -187,6 +186,8 @@ public class Collisions {
                 // If the player is fully within the worldborder
                 if (player.boundingBox.minX > minX - 1.0E-7D && player.boundingBox.maxX < maxX + 1.0E-7D
                         && player.boundingBox.minZ > minZ - 1.0E-7D && player.boundingBox.maxZ < maxZ + 1.0E-7D) {
+                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+
                     // South border
                     listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, maxZ, maxX, Double.POSITIVE_INFINITY, maxZ, false));
                     // North border
@@ -195,6 +196,12 @@ public class Collisions {
                     listOfBlocks.add(new SimpleCollisionBox(maxX, Double.NEGATIVE_INFINITY, minZ, maxX, Double.POSITIVE_INFINITY, maxZ, false));
                     // West border
                     listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, minZ, minX, Double.POSITIVE_INFINITY, maxZ, false));
+
+                    if (onlyCheckCollide) {
+                        for (SimpleCollisionBox box : listOfBlocks) {
+                            if (box.isIntersected(wantedBB)) return true;
+                        }
+                    }
                 }
             }
         }
@@ -262,7 +269,12 @@ public class Collisions {
 
                             if (edgeCount != 3 && (edgeCount != 1 || Materials.checkFlag(data.getMaterial(), Materials.SHAPE_EXCEEDS_CUBE))
                                     && (edgeCount != 2 || data.getMaterial() == PISTON_HEAD)) {
-                                CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+                                // Don't add to a list if we only care if the player intersects with the block
+                                if (!onlyCheckCollide) {
+                                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+                                } else if (CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isCollided(wantedBB)) {
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -274,6 +286,7 @@ public class Collisions {
             if (entity.type == EntityType.BOAT) {
                 SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
                 if (box.isIntersected(expandedBB)) {
+                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
                     listOfBlocks.add(box);
                 }
             }
@@ -281,12 +294,13 @@ public class Collisions {
             if (entity.type == EntityType.SHULKER) {
                 SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
                 if (box.isIntersected(expandedBB)) {
+                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
                     listOfBlocks.add(box);
                 }
             }
         }
 
-        return listOfBlocks;
+        return false;
     }
 
     private static Vector collideBoundingBoxLegacy(GrimPlayer player, Vector toCollide, SimpleCollisionBox
@@ -320,11 +334,7 @@ public class Collisions {
     }
 
     public static boolean isEmpty(GrimPlayer player, SimpleCollisionBox playerBB) {
-        for (CollisionBox collisionBox : getCollisionBoxes(player, playerBB)) {
-            if (collisionBox.isCollided(playerBB)) return false;
-        }
-
-        return true;
+        return !getCollisionBoxes(player, playerBB, null, true);
     }
 
     private static double getHorizontalDistanceSqr(Vector vector) {
