@@ -155,24 +155,6 @@ public class MovementTicker {
     }
 
     public void livingEntityAIStep() {
-        double minimumMovement = 0.003D;
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
-            minimumMovement = 0.005D;
-
-        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            if (Math.abs(vector.vector.getX()) < minimumMovement) {
-                vector.vector.setX(0D);
-            }
-
-            if (Math.abs(vector.vector.getY()) < minimumMovement) {
-                vector.vector.setY(0D);
-            }
-
-            if (Math.abs(vector.vector.getZ()) < minimumMovement) {
-                vector.vector.setZ(0D);
-            }
-        }
-
         if (player.playerVehicle == null) {
             playerEntityTravel();
         } else {
