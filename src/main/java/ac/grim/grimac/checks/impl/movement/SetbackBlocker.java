@@ -29,6 +29,11 @@ public class SetbackBlocker extends PacketCheck {
             if (player.packetStateData.isInBed && player.packetStateData.packetPosition.distanceSquared(player.packetStateData.bedPosition) > 1) {
                 event.setCancelled(true);
             }
+
+            // Player is dead
+            if (player.packetStateData.isDead) {
+                event.setCancelled(true);
+            }
         }
 
         if (event.getPacketId() == PacketType.Play.Client.VEHICLE_MOVE) {
@@ -43,6 +48,11 @@ public class SetbackBlocker extends PacketCheck {
 
             // A player is sleeping while in a vehicle
             if (player.packetStateData.isInBed) {
+                event.setCancelled(true);
+            }
+
+            // Player is dead
+            if (player.packetStateData.isDead) {
                 event.setCancelled(true);
             }
         }

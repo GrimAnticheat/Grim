@@ -15,6 +15,7 @@ public class PacketStateData {
     public boolean isInVehicle = false;
     public Vector3d bedPosition;
     public boolean isInBed = false;
+    public boolean isDead = false;
     public float packetVehicleHorizontal = 0;
     public float packetVehicleForward = 0;
     public AtomicInteger packetLastTransactionReceived = new AtomicInteger(0);

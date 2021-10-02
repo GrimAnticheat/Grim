@@ -31,7 +31,6 @@ public class EventManager implements Initable {
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), GrimAPI.INSTANCE.getPlugin());
         Bukkit.getPluginManager().registerEvents(new GamemodeChangeEvent(), GrimAPI.INSTANCE.getPlugin());
         Bukkit.getPluginManager().registerEvents(new BedEvent(), GrimAPI.INSTANCE.getPlugin());
-        Bukkit.getPluginManager().registerEvents(new DeathEvent(), GrimAPI.INSTANCE.getPlugin());
         Bukkit.getPluginManager().registerEvents(new VehicleEnterExitEvent(), GrimAPI.INSTANCE.getPlugin());
         Bukkit.getPluginManager().registerEvents(new TeleportEvent(), GrimAPI.INSTANCE.getPlugin());
     }
