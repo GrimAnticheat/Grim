@@ -22,6 +22,7 @@ import org.bukkit.block.data.Levelled;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -94,8 +95,8 @@ public class AntiUseItemDesync extends PacketCheck {
                     Vector startingPos = new Vector(pos.getX(), pos.getY() + eyeHeight, pos.getZ());
                     Ray trace = new Ray(player, pos.getX(), pos.getY() + eyeHeight, pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
                     Vector endPos = trace.getPointAtDistance(6);
-
-                    List<SimpleCollisionBox> worldBoxes = Collisions.getCollisionBoxes(player, new SimpleCollisionBox(pos.getX(), pos.getY() + eyeHeight, pos.getZ(), endPos.getX(), endPos.getY(), endPos.getZ()).sort());
+                    List<SimpleCollisionBox> worldBoxes = new ArrayList<>();
+                    Collisions.getCollisionBoxes(player, new SimpleCollisionBox(pos.getX(), pos.getY() + eyeHeight, pos.getZ(), endPos.getX(), endPos.getY(), endPos.getZ()).sort(), worldBoxes, false);
 
                     double bestDistance = Double.MAX_VALUE;
                     Vector bestBlock = null;

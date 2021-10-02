@@ -12,8 +12,6 @@ import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
-import java.util.List;
-
 public class PlayerBaseTick {
     GrimPlayer player;
 
@@ -185,18 +183,16 @@ public class PlayerBaseTick {
             player.pose = pose;
 
             SimpleCollisionBox box = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
-            List<SimpleCollisionBox> intersect = Collisions.getCollisionBoxes(player, box);
+            boolean collides = !Collisions.isEmpty(player, box);
 
-            for (SimpleCollisionBox box2 : intersect) {
-                if (box2.isIntersected(box)) {
-                    // Revert, the player does not have room to enter this new pose
-                    player.pose = oldPose;
-                    return;
-                }
+            if (collides) {
+                // Revert, the player does not have room to enter this new pose
+                player.pose = oldPose;
+                return;
             }
-
-            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
         }
+
+        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
     }
 
     public void updateSwimming() {
