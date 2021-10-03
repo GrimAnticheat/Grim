@@ -75,10 +75,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                         player.packetStateData.tryingToRiptide = true;
                     }
                 }
-            } else if (type == WrappedPacketInBlockDig.PlayerDigType.DROP_ITEM || type == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS) {
-                // TODO: This shit is required because viaversion fucks with inventory packets and is before our listener
-                // This will be fixed migrating to PacketEvents 2.0.  Damn it ViaVersion
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
             }
         }
 
