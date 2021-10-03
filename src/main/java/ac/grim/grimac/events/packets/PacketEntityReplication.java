@@ -25,9 +25,11 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.entityteleport.W
 import io.github.retrooper.packetevents.packetwrappers.play.out.mount.WrappedPacketOutMount;
 import io.github.retrooper.packetevents.packetwrappers.play.out.namedentityspawn.WrappedPacketOutNamedEntitySpawn;
 import io.github.retrooper.packetevents.packetwrappers.play.out.removeentityeffect.WrappedPacketOutRemoveEntityEffect;
+import io.github.retrooper.packetevents.packetwrappers.play.out.setslot.WrappedPacketOutSetSlot;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentity.WrappedPacketOutSpawnEntity;
 import io.github.retrooper.packetevents.packetwrappers.play.out.spawnentityliving.WrappedPacketOutSpawnEntityLiving;
 import io.github.retrooper.packetevents.packetwrappers.play.out.updateattributes.WrappedPacketOutUpdateAttributes;
+import io.github.retrooper.packetevents.packetwrappers.play.out.windowitems.WrappedPacketOutWindowItems;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
@@ -225,7 +227,40 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 if (status.getEntityId() != player.entityID) return;
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
-                event.setPostTask(player::sendTransaction);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
+            }
+        }
+
+        if (packetID == PacketType.Play.Server.SET_SLOT) {
+            WrappedPacketOutSetSlot slot = new WrappedPacketOutSetSlot(event.getNMSPacket());
+
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
+            if (slot.getWindowId() == 0) {
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
+                        player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                    }
+                });
+
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
+                    if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
+                        player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                    }
+                });
+            }
+        }
+
+        if (packetID == PacketType.Play.Server.WINDOW_ITEMS) {
+            WrappedPacketOutWindowItems items = new WrappedPacketOutWindowItems(event.getNMSPacket());
+
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
+            if (items.getWindowId() == 0) { // Player inventory
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
             }
         }
 
