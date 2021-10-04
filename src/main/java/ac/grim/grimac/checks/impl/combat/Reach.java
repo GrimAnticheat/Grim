@@ -197,6 +197,8 @@ public class Reach extends PacketCheck {
             } else if (minDistance > maxReach) {
                 increaseViolations();
                 alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
+            } else {
+                reward();
             }
 
             attackQueue = playerAttackQueue.poll();
