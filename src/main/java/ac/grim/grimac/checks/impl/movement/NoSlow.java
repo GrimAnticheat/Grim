@@ -8,6 +8,9 @@ import ac.grim.grimac.utils.data.AlmostBoolean;
 
 @CheckData(name = "NoSlow (Prediction)", configName = "NoSlow", buffer = 10, maxBuffer = 15)
 public class NoSlow extends PostPredictionCheck {
+    double offsetToFlag;
+    double bestOffset = 1;
+
     public NoSlow(GrimPlayer player) {
         super(player);
     }
@@ -15,12 +18,23 @@ public class NoSlow extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // If the player was using an item for certain, and their predicted velocity had a flipped item
         if (predictionComplete.getData().isUsingItem == AlmostBoolean.TRUE) {
-            if (player.predictedVelocity.isFlipItem()) { // prediction had using item = false
+            if (bestOffset > offsetToFlag) {
                 increaseViolations();
                 alert("", "NoSlow", formatViolations());
-            } else { // prediction had using item = true when using item
+            } else {
                 reward();
             }
         }
+        bestOffset = 1;
+    }
+
+    public void handlePredictionAnalysis(double offset) {
+        bestOffset = Math.min(bestOffset, offset);
+    }
+
+    @Override
+    public void reload() {
+        super.reload();
+        offsetToFlag = getConfig().getDouble("NoSlow.threshold", 0.00001);
     }
 }
