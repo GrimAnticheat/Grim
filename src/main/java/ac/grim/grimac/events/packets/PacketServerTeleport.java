@@ -86,8 +86,9 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 Location bukkitTarget = finalPlayer.getSetbackTeleportUtil().currentBukkitTarget;
                 Location grimTarget = finalPlayer.getSetbackTeleportUtil().currentTargetTeleport;
 
+                boolean closeEnoughY = Math.abs(bukkitTarget.getY() - grimTarget.getY()) < 1e-7; // 1.7 rounding
                 // We blocked a teleport and now must therefore resync
-                if (bukkitTarget.getX() != grimTarget.getX() || bukkitTarget.getY() != grimTarget.getY() || bukkitTarget.getZ() != grimTarget.getZ()) {
+                if (bukkitTarget.getX() != grimTarget.getX() || !closeEnoughY || bukkitTarget.getZ() != grimTarget.getZ()) {
                     Location safe = finalPlayer.getSetbackTeleportUtil().getSafeLocation();
                     safe.setYaw(finalPlayer.xRot);
                     safe.setPitch(finalPlayer.yRot);
