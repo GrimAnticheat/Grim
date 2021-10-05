@@ -89,17 +89,7 @@ public class PredictionEngine {
 
             double yVelocity = player.clientVelocity.getY();
 
-            // Vertical 0.03 where you collide upwards into a block
-            // TRAPDOOR
-            // AIR
-            // AIR
-            // STONE
-            // Jump from the stone into the trapdoor, and you just collided with the trapdoor in 0.03!
-            if (yVelocity > 0 && !Collisions.isEmpty(player, player.boundingBox.copy().expand(-SimpleCollisionBox.COLLISION_EPSILON).offset(0, 0.03, 0))) {
-                // Wow, this can really mess things up!
-                // Allow the player's Y velocity to get set back to 0, minus the normal gravity uncertainty
-                player.uncertaintyHandler.gravityUncertainty += (-yVelocity - 0.2);
-            } else if ((player.firstBreadKB != null && Math.abs(player.firstBreadKB.vector.getY()) < 0.03)
+            if ((player.firstBreadKB != null && Math.abs(player.firstBreadKB.vector.getY()) < 0.03)
                     || (player.likelyKB != null && Math.abs(player.likelyKB.vector.getY()) < 0.03)) {
                 // If the player knockback was likely to cause 0.03 missing tick
                 player.uncertaintyHandler.gravityUncertainty -= 0.2;
@@ -109,6 +99,18 @@ public class PredictionEngine {
             } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
                 player.uncertaintyHandler.gravityUncertainty -= 0.1;
             }
+        }
+
+        // Vertical 0.03 where you collide upwards into a block
+        // TRAPDOOR
+        // AIR
+        // AIR
+        // STONE
+        // Jump from the stone into the trapdoor, and you just collided with the trapdoor in 0.03!
+        if (player.clientVelocity.getY() > 0 && !Collisions.isEmpty(player, player.boundingBox.copy().expand(-SimpleCollisionBox.COLLISION_EPSILON).offset(0, 0.1, 0))) {
+            // Wow, this can really mess things up!
+            // Allow the player's Y velocity to get set back to 0, minus the normal gravity uncertainty
+            player.uncertaintyHandler.gravityUncertainty = (-0.2 - player.clientVelocity.getY());
         }
 
         // Sorting is an optimization and a requirement
