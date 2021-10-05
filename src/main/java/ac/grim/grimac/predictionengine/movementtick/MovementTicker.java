@@ -18,8 +18,6 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.Collections;
-
 public class MovementTicker {
     private static final Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
     private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
@@ -56,6 +54,9 @@ public class MovementTicker {
         // and would require a huge rewrite to support this rare edge case
         player.isActuallyOnGround = (player.verticalCollision && inputVel.getY() < 0.0D)
                 || (player.inVehicle && player.uncertaintyHandler.isStepMovement);
+        // If the player is on the ground with a y velocity of 0, let the player decide (too close to call)
+        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() == 0)
+            player.isActuallyOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
@@ -63,14 +64,7 @@ public class MovementTicker {
         // The player's onGround status isn't given when riding a vehicle, so we don't have a choice in whether we calculate or not
         //
         // Trust the onGround status if the player is near the ground and they sent a ground packet
-        if (player.inVehicle || ((Collections.max(player.uncertaintyHandler.pistonPushing) == 0 && !player.uncertaintyHandler.isStepMovement
-                && !player.uncertaintyHandler.wasLastOnGroundUncertain) && !player.uncertaintyHandler.influencedByBouncyBlock())
-                && player.uncertaintyHandler.lastHardCollidingLerpingEntity < -3 &&
-                player.uncertaintyHandler.lastFireworkStatusChange < -3 &&
-                // The player has 0 vertical velocity, but might be on the ground, or might not.  They are 1e-7 on the ground
-                // so there is little room for abuse.
-                !(inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() == 0)) {
-
+        if (player.inVehicle || !player.exemptOnGround()) {
             player.onGround = player.isActuallyOnGround;
         }
 
