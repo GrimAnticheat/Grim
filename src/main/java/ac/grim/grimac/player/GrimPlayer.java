@@ -472,12 +472,10 @@ public class GrimPlayer {
     }
 
     public boolean exemptOnGround() {
-        return inVehicle || wasTouchingWater || wasTouchingLava
+        return inVehicle
                 || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
                 || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isSteppingOnSlime
-                || isFlying || uncertaintyHandler.isStepMovement
-                || uncertaintyHandler.lastTeleportTicks == 0 || isDead
-                || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
-                || uncertaintyHandler.lastGlidingChangeTicks > -3;
+                || isFlying || uncertaintyHandler.isStepMovement || isDead
+                || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30;
     }
 }
