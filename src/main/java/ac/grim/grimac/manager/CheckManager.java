@@ -138,6 +138,10 @@ public class CheckManager {
         return (CompensatedCooldown) getPositionCheck(CompensatedCooldown.class);
     }
 
+    public NoSlow getNoSlow() {
+        return (NoSlow) getPostPredictionCheck(NoSlow.class);
+    }
+
     public SetbackTeleportUtil getSetbackUtil() {
         return ((SetbackTeleportUtil) getPostPredictionCheck(SetbackTeleportUtil.class));
     }

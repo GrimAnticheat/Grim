@@ -86,6 +86,11 @@ GroundSpoof:
 # Grim accounts for shitty netcode here... hard to false even when spamming right click and offhand button
 # Much more stable than other anticheats, but please report any falses... I have fixed a ton of netcode issues here.
 NoSlow:
+  # How much of an offset is "cheating"
+  # By default this is lower than other offs
+  # Flags by 0.03-0.2 consistently with NoSlow on
+  threshold: 0.001
+  # Setback fast on the first item to remove any advantage NoSlow gives
   setbackvl: 5
   # Decay's when the player uses an item AND is slowed by it
   decay: 0.05
@@ -97,7 +102,6 @@ NoSlow:
 # Real time NoFall check that is unstable
 # It works fine 99% of the time but everything this catches will be caught by the extremely stable
 # prediction based check.  It exists to enforce fall damage for the player
-
 Knockback:
   # How much of an offset is "cheating"
   # By default this is 1e-5, which is safe and sane

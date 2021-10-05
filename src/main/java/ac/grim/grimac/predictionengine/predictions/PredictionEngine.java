@@ -185,6 +185,13 @@ public class PredictionEngine {
                 }
             }
 
+            // Whatever, if someone uses phase or something they will get caught by everything else...
+            // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
+            // As not flipping item is preferred... it gets ran before any other options
+            if (player.isUsingItem == AlmostBoolean.TRUE && !clientVelAfterInput.isFlipItem()) {
+                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+            }
+
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
                 beforeCollisionMovement = primaryPushMovement;
@@ -326,6 +333,12 @@ public class PredictionEngine {
 
         if (b.isKnockback())
             bScore -= 4;
+
+        if (a.isFlipItem())
+            aScore += 3;
+
+        if (b.isFlipItem())
+            bScore += 3;
 
         // If the player is on the ground but the vector leads the player off the ground
         if (player.onGround && a.vector.getY() >= 0)
