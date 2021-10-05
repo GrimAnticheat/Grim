@@ -433,11 +433,11 @@ public class GrimPlayer {
         return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
     }
 
+    public void pollClientVersion() {
+        this.clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
+    }
+
     public ClientVersion getClientVersion() {
-        // There seems to be some issues with getting client version on 1.8 with ViaVersion early on join?
-        if (clientVersion.getProtocolVersion() == -1) {
-            clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
-        }
         return clientVersion;
     }
 

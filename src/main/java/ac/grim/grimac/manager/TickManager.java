@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.manager.tick.Tickable;
+import ac.grim.grimac.manager.tick.impl.ClientVersionSetter;
 import ac.grim.grimac.manager.tick.impl.LastTransactionSetter;
 import ac.grim.grimac.manager.tick.impl.QueueData;
 import ac.grim.grimac.manager.tick.impl.ThreadSetter;
@@ -23,6 +24,7 @@ public class TickManager {
         asyncTick = new ImmutableClassToInstanceMap.Builder<Tickable>()
                 .put(ThreadSetter.class, new ThreadSetter())
                 .put(QueueData.class, new QueueData())
+                .put(ClientVersionSetter.class, new ClientVersionSetter())
                 .build();
     }
 
