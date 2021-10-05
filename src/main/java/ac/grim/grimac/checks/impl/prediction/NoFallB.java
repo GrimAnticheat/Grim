@@ -21,6 +21,8 @@ public class NoFallB extends PostPredictionCheck {
         if (player.exemptOnGround()) return;
         // Don't check if the player was on a ghost block
         if (player.getSetbackTeleportUtil().blockOffsets) return;
+        // Viaversion sends wrong ground status... (doesn't matter but is annoying)
+        if (predictionComplete.getData().isJustTeleported) return;
 
         boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 
