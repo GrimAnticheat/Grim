@@ -206,7 +206,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             }
 
             // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
-            if (position.getX() == x && position.getY() == y && position.getZ() == z) {
+            boolean closeEnoughY = Math.abs(position.getY() - y) < 1e-7; // 1.7 rounding
+            if (position.getX() == x && closeEnoughY && position.getZ() == z) {
                 teleports.poll();
                 acceptedTeleports++;
 
@@ -214,7 +215,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
                 // Player has accepted their setback!
                 if (setBack != null && requiredSetBack.getPosition().getX() == teleportPos.getSecond().getX()
-                        && requiredSetBack.getPosition().getY() == teleportPos.getSecond().getY()
+                        && Math.abs(requiredSetBack.getPosition().getY() - teleportPos.getSecond().getY()) < 1e-7
                         && requiredSetBack.getPosition().getZ() == teleportPos.getSecond().getZ()) {
                     teleportData.setSetback(true);
                     setBack.setComplete(true);
@@ -337,7 +338,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         currentBukkitTarget = position;
         if (currentTargetTeleport == null) { // Occurs for the first teleport on join
             currentTargetTeleport = new Location(player.bukkitPlayer.getWorld(), player.x, player.y, player.z);
-        } else if (position.getX() != currentTargetTeleport.getX() || position.getY() != currentTargetTeleport.getY() || position.getZ() != currentTargetTeleport.getZ()) {
+        } else if (position.getX() != currentTargetTeleport.getX() || Math.abs(position.getY() - currentTargetTeleport.getY()) > 1e-7 || position.getZ() != currentTargetTeleport.getZ()) {
             return true; // Vanilla anticheat sent this (or a plugin that managed to desync us)
         }
 
