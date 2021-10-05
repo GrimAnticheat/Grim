@@ -30,8 +30,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static ac.grim.grimac.utils.nmsImplementations.Materials.matchLegacy;
-
 // Warning for major game updates!
 // Do not use an enum for stuff like Axis and other data types not in 1.7
 // Meaning only stuff like getDirection() should have enums
@@ -657,8 +655,8 @@ public enum CollisionData {
 
 
     DIODES(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.125F, 1.0F, false),
-            matchLegacy("LEGACY_DIODE_BLOCK_OFF"), matchLegacy("LEGACY_DIODE_BLOCK_ON"),
-            matchLegacy("LEGACY_REDSTONE_COMPARATOR_ON"), matchLegacy("LEGACY_REDSTONE_COMPARATOR_OFF"),
+            Materials.matchLegacy("LEGACY_DIODE_BLOCK_OFF"), Materials.matchLegacy("LEGACY_DIODE_BLOCK_ON"),
+            Materials.matchLegacy("LEGACY_REDSTONE_COMPARATOR_ON"), Materials.matchLegacy("LEGACY_REDSTONE_COMPARATOR_OFF"),
             XMaterial.REPEATER.parseMaterial(), XMaterial.COMPARATOR.parseMaterial()),
 
     STRUCTURE_VOID(new SimpleCollisionBox(0.375, 0.375, 0.375,
@@ -972,6 +970,15 @@ public enum CollisionData {
         for (CollisionData data : values()) {
             for (Material mat : data.materials) lookup[mat.ordinal()] = data;
         }
+
+        // If a block is not solid, then it does not have a collision box
+        for (Material mat : Material.values()) {
+            if (!Materials.checkFlag(mat, Materials.SOLID)) lookup[mat.ordinal()] = NONE;
+        }
+
+        for (Material mat : Material.values()) {
+            if (lookup[mat.ordinal()] == null) lookup[mat.ordinal()] = DEFAULT;
+        }
     }
 
     private final Material[] materials;
@@ -1099,16 +1106,10 @@ public enum CollisionData {
     }
 
     public static CollisionData getData(Material material) {
-        // Material matched = MiscUtils.match(material.toString());
-        CollisionData data = lookup[material.ordinal()];
-        // _DEFAULT for second thing
-        return data != null ? data : DEFAULT;
+        return lookup[material.ordinal()];
     }
 
     public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, BaseBlockState block, int x, int y, int z) {
-        if (!Materials.checkFlag(block.getMaterial(), Materials.SOLID))
-            return NoCollisionBox.INSTANCE;
-
         if (this.box != null)
             return this.box.copy().offset(x, y, z);
 
