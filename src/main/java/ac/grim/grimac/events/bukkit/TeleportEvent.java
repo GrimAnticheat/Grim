@@ -32,9 +32,9 @@ public class TeleportEvent implements Listener {
         //
         boolean wasVanillaAntiCheat = false;
         if (event.getCause() == PlayerTeleportEvent.TeleportCause.UNKNOWN) {
-            StackTraceElement[] elements = Thread.currentThread().getStackTrace();
+            StackTraceElement[] elements = new Exception().getStackTrace();
             for (StackTraceElement element : elements) {
-                if (element.getClassName().substring(element.getClassName().lastIndexOf(".") + 1).contains("PacketPlayInFlying")) {
+                if (element.getClassName().substring(element.getClassName().lastIndexOf(".") + 1).startsWith("PacketPlayInFlying")) {
                     wasVanillaAntiCheat = true;
                     break;
                 }
