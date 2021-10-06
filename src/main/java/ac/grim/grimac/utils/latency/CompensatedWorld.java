@@ -28,14 +28,13 @@ import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentSkipListSet;
@@ -46,7 +45,7 @@ public class CompensatedWorld {
     public static Method getByCombinedID;
     public final GrimPlayer player;
     public final EvictingList<TransPosData> posToTrans = new EvictingList<>(3);
-    private final ConcurrentHashMap<Long, Column> chunks = new ConcurrentHashMap<>();
+    private final Map<Long, Column> chunks;
     public ConcurrentSkipListSet<BasePlayerChangeBlockData> worldChangedBlockQueue = new ConcurrentSkipListSet<>((a, b) -> {
         // We can't have elements with equal comparisons, otherwise they won't be added
         if (a.transaction == b.transaction) {
@@ -73,6 +72,7 @@ public class CompensatedWorld {
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
+        chunks = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>(81, 0.5f));
     }
 
     public static void init() {

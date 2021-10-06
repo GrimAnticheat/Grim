@@ -21,12 +21,16 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.block.BlockFace;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class CompensatedEntities {
-    public final ConcurrentHashMap<Integer, PacketEntity> entityMap = new ConcurrentHashMap<>();
+    // I can't get FastUtils to work here
+    public final ConcurrentHashMap<Integer, PacketEntity> entityMap = new ConcurrentHashMap<>(40, 0.7f);
 
     public ConcurrentLinkedQueue<EntityMoveData> moveEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
@@ -270,7 +274,7 @@ public class CompensatedEntities {
     private void updateEntityMetadata(int entityID, List<WrappedWatchableObject> watchableObjects) {
         if (entityID == player.entityID) {
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
-               WrappedWatchableObject gravity = WatchableIndexUtil.getIndex(watchableObjects, 5);
+                WrappedWatchableObject gravity = WatchableIndexUtil.getIndex(watchableObjects, 5);
 
                 if (gravity != null) {
                     Object gravityObject = gravity.getRawValue();
