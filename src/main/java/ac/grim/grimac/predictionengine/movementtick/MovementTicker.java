@@ -55,7 +55,7 @@ public class MovementTicker {
         player.isActuallyOnGround = (player.verticalCollision && inputVel.getY() < 0.0D)
                 || (player.inVehicle && player.uncertaintyHandler.isStepMovement);
         // If the player is on the ground with a y velocity of 0, let the player decide (too close to call)
-        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() > -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() < 0)
+        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() > -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() <= 0)
             player.isActuallyOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
