@@ -304,7 +304,9 @@ public class GrimPlayer {
         Set<VectorData> possibleMovements = new HashSet<>();
         possibleMovements.add(new VectorData(clientVelocity, VectorData.VectorType.Normal));
 
-        if (canSwimHop) {
+        // A player cannot swim hop (> 0 y vel) and be on the ground
+        // Fixes bug with underwater stepping movement being confused with swim hopping movement
+        if (canSwimHop && !onGround) {
             possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f), VectorData.VectorType.Swimhop));
         }
 
