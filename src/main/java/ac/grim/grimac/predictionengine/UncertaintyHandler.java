@@ -94,6 +94,9 @@ public class UncertaintyHandler {
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
+    public boolean headingIntoWater = false;
+    public boolean headingIntoLava = false;
+
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
 
@@ -101,16 +104,19 @@ public class UncertaintyHandler {
         slimeBlockUpwardsUncertainty.add(0d);
         slimeBlockUpwardsUncertainty.add(0d);
 
-        reset();
+        tick();
     }
 
-    public void reset() {
+    public void tick() {
         pistonX = 0;
         pistonY = 0;
         pistonZ = 0;
         gravityUncertainty = 0;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
+
+        headingIntoWater = player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.3, 0.03, 0.3).expandMax(0, 1.8, 0));
+        headingIntoLava = player.compensatedWorld.containsLava(GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.3, 0.03, 0.3).expandMax(0, 1.8, 0));
     }
 
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
@@ -219,7 +225,9 @@ public class UncertaintyHandler {
             return 0.03;
 
         if (controlsVerticalMovement()) {
-            return has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree || wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket ? 0.03 : 0;
+            // Yeah, the second 0.06 isn't mathematically correct but fucking 0.03 fucks everything up...
+            // Water pushing, elytras, EVERYTHING vertical movement gets messed up by this shit.  What the fuck mojang.  Why the fuck did you do this.
+            return has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree || wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket ? 0.03 : 0;
         }
 
         if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
@@ -229,7 +237,7 @@ public class UncertaintyHandler {
     }
 
     public boolean controlsVerticalMovement() {
-        return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || influencedByBouncyBlock() || lastFlyingTicks < 3 || player.isGliding || player.isClimbing || player.lastWasClimbing != 0;
+        return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || headingIntoWater || headingIntoLava || influencedByBouncyBlock() || lastFlyingTicks < 3 || player.isGliding || player.isClimbing || player.lastWasClimbing != 0;
     }
 
     public boolean canSkipTick(List<VectorData> possibleVelocities) {

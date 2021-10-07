@@ -115,7 +115,7 @@ public class Collisions {
                     // Fix a false with cobwebs on top of soul sand (0.03) - We don't detect that the player actually would touch the ground this tick
                     || ((player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.uncertaintyHandler.influencedByBouncyBlock()) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
                     // Fix a false when stepping underwater with high uncertainty (require fluid on eyes to stop players from exiting water with stepping movement)
-                    || (player.uncertaintyHandler.controlsVerticalMovement() && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree);
+                    || (player.uncertaintyHandler.controlsVerticalMovement() && !Collisions.isEmpty(player, GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).offset(0, -COLLISION_EPSILON, 0)));
             double stepUpHeight = player.getMaxUpStep();
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
@@ -147,7 +147,8 @@ public class Collisions {
 
             double resultAccuracy = collisionResult.distanceSquared(bestTheoreticalCollisionResult);
 
-            if (player.onGround != (desiredY < 0 && desiredY != collisionResult.getY()))
+            // Step movement doesn't care about ground (due to uncertainty fucking it up)
+            if (player.onGround != (desiredY < 0 && desiredY != collisionResult.getY()) && !player.uncertaintyHandler.isStepMovement)
                 resultAccuracy += 1;
 
             if (resultAccuracy < bestInput) {

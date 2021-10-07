@@ -240,7 +240,7 @@ public class CompensatedWorld {
     }
 
     public void tickPlayerInPistonPushingArea() {
-        player.uncertaintyHandler.reset();
+        player.uncertaintyHandler.tick();
         // Occurs on player login
         if (player.boundingBox == null) return;
         SimpleCollisionBox playerBox = player.boundingBox.copy().expand(0.03);
