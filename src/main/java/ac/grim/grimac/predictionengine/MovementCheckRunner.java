@@ -183,7 +183,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         player.lastTransactionReceived = data.lastTransaction;
-        player.movementPackets++;
+        if (!data.isJustTeleported) player.movementPackets++;
 
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickUpdates(data.lastTransaction);
