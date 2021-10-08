@@ -1,6 +1,5 @@
 package ac.grim.grimac.events.packets.worldreader;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.eight.EightChunk;
@@ -8,7 +7,6 @@ import ac.grim.grimac.utils.chunkdata.eight.ShortArray3d;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
@@ -22,69 +20,6 @@ import java.nio.ShortBuffer;
 import java.util.BitSet;
 
 public class PacketWorldReaderEight extends PacketWorldReaderSeven {
-    @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
-
-        // Time to dump chunk data for 1.9+ - 0.07 ms
-        // Time to dump chunk data for 1.8 - 0.02 ms
-        // Time to dump chunk data for 1.7 - 0.04 ms
-        if (packetID == PacketType.Play.Server.MAP_CHUNK) {
-            WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            try {
-                int chunkX = packet.getChunkX();
-                int chunkZ = packet.getChunkZ();
-
-                // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
-                // Optional is only empty on 1.17 and above
-                Object chunkMap = packet.readAnyObject(2);
-                if (chunkMap.getClass().getDeclaredField("b").getInt(chunkMap) == 0 && packet.isGroundUpContinuous().get()) {
-                    unloadChunk(player, chunkX, chunkZ);
-                    return;
-                }
-
-                ShortBuffer buf = ByteBuffer.wrap(packet.getCompressedData()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
-                EightChunk[] chunks = new EightChunk[16];
-                BitSet set = packet.getBitSet();
-
-                readChunk(buf, chunks, set);
-
-                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
-
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // Exists on 1.7 and 1.8 only
-        if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-            int[] chunkXArray = (int[]) packet.readAnyObject(0);
-            int[] chunkZArray = (int[]) packet.readAnyObject(1);
-            Object[] chunkData = (Object[]) packet.readAnyObject(2);
-
-            for (int i = 0; i < chunkXArray.length; i++) {
-                EightChunk[] chunks = new EightChunk[16];
-                int chunkX = chunkXArray[i];
-                int chunkZ = chunkZArray[i];
-
-                WrappedPacket nmsChunkMapWrapper = new WrappedPacket(new NMSPacket(chunkData[i]));
-                ShortBuffer buf = ByteBuffer.wrap(nmsChunkMapWrapper.readByteArray(0)).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
-
-                readChunk(buf, chunks, BitSet.valueOf(new long[]{nmsChunkMapWrapper.readInt(0)}));
-
-                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
-            }
-        }
-    }
 
     public void readChunk(ShortBuffer buf, BaseChunk[] chunks, BitSet set) {
         int pos = 0;
@@ -102,6 +37,59 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
 
                 chunks[ind] = new EightChunk(blocks);
             }
+        }
+    }
+
+    @Override
+    public void handleMapChunkBulk(GrimPlayer player, PacketPlaySendEvent event) {
+        WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+        int[] chunkXArray = (int[]) packet.readAnyObject(0);
+        int[] chunkZArray = (int[]) packet.readAnyObject(1);
+        Object[] chunkData = (Object[]) packet.readAnyObject(2);
+
+        for (int i = 0; i < chunkXArray.length; i++) {
+            EightChunk[] chunks = new EightChunk[16];
+            int chunkX = chunkXArray[i];
+            int chunkZ = chunkZArray[i];
+
+            WrappedPacket nmsChunkMapWrapper = new WrappedPacket(new NMSPacket(chunkData[i]));
+            ShortBuffer buf = ByteBuffer.wrap(nmsChunkMapWrapper.readByteArray(0)).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
+
+            readChunk(buf, chunks, BitSet.valueOf(new long[]{nmsChunkMapWrapper.readInt(0)}));
+
+            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
+            player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+        }
+    }
+
+    @Override
+    public void handleMapChunk(GrimPlayer player, PacketPlaySendEvent event) {
+        WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
+        if (player == null) return;
+
+        try {
+            int chunkX = packet.getChunkX();
+            int chunkZ = packet.getChunkZ();
+
+            // Map chunk packet with 0 sections and continuous chunk is the unload packet in 1.7 and 1.8
+            // Optional is only empty on 1.17 and above
+            Object chunkMap = packet.readAnyObject(2);
+            if (chunkMap.getClass().getDeclaredField("b").getInt(chunkMap) == 0 && packet.isGroundUpContinuous().get()) {
+                unloadChunk(player, chunkX, chunkZ);
+                return;
+            }
+
+            ShortBuffer buf = ByteBuffer.wrap(packet.getCompressedData()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
+            EightChunk[] chunks = new EightChunk[16];
+            BitSet set = packet.getBitSet();
+
+            readChunk(buf, chunks, set);
+
+            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
+            player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 
