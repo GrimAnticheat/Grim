@@ -43,8 +43,8 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
     @Override
     public void handleMapChunkBulk(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-        int[] chunkXArray = (int[]) packet.readAnyObject(0);
-        int[] chunkZArray = (int[]) packet.readAnyObject(1);
+        int[] chunkXArray = packet.readIntArray(0);
+        int[] chunkZArray = packet.readIntArray(1);
         Object[] chunkData = (Object[]) packet.readAnyObject(2);
 
         for (int i = 0; i < chunkXArray.length; i++) {
