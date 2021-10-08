@@ -6,8 +6,6 @@ import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.seven.SevenChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
@@ -15,7 +13,6 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.Wrap
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
@@ -25,12 +22,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
-public class PacketWorldReaderSeven extends PacketListenerAbstract {
+public class PacketWorldReaderSeven extends BasePacketWorldReader {
     public static Method ancientGetById;
 
     public PacketWorldReaderSeven() {
-        super(PacketListenerPriority.MONITOR);
-
         ancientGetById = Reflection.getMethod(NMSUtils.blockClass, "getId", int.class);
     }
 
@@ -53,7 +48,6 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
             // Optional is only empty on 1.17 and above
             if (packet.readInt(5) == 0 && packet.isGroundUpContinuous().get()) {
                 player.compensatedWorld.removeChunkLater(chunkX, chunkZ);
-                event.setPostTask(player::sendTransaction);
                 return;
             }
 
@@ -75,36 +69,6 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
                 int chunkZ = chunkZArray[i];
 
                 addChunkToCache(player, chunkX, chunkZ, false);
-            }
-        }
-
-        if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
-            WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-            if (player.compensatedWorld.isResync) return;
-
-            try {
-                // 1.7 includes the block data right in the packet
-                Field id = Reflection.getField(event.getNMSPacket().getRawNMSPacket().getClass(), "data");
-                int blockData = id.getInt(event.getNMSPacket().getRawNMSPacket());
-
-                Field block = Reflection.getField(event.getNMSPacket().getRawNMSPacket().getClass(), "block");
-                Object blockNMS = block.get(event.getNMSPacket().getRawNMSPacket());
-
-                int materialID = (int) ancientGetById.invoke(null, blockNMS);
-                int combinedID = materialID + (blockData << 12);
-
-                Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
-
-                int range = (player.getTransactionPing() / 100) + 16;
-                if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
-                    event.setPostTask(player::sendTransaction);
-
-                player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
-
-            } catch (IllegalAccessException | InvocationTargetException exception) {
-                exception.printStackTrace();
             }
         }
 
@@ -151,6 +115,30 @@ public class PacketWorldReaderSeven extends PacketListenerAbstract {
             } catch (IllegalAccessException | NoSuchFieldException exception) {
                 exception.printStackTrace();
             }
+        }
+    }
+
+    @Override
+    public void handleBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
+        WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
+        if (player == null) return;
+        if (player.compensatedWorld.isResync) return;
+
+        try {
+            // 1.7 includes the block data right in the packet
+            Field id = Reflection.getField(event.getNMSPacket().getRawNMSPacket().getClass(), "data");
+            int blockData = id.getInt(event.getNMSPacket().getRawNMSPacket());
+
+            Field block = Reflection.getField(event.getNMSPacket().getRawNMSPacket().getClass(), "block");
+            Object blockNMS = block.get(event.getNMSPacket().getRawNMSPacket());
+
+            int materialID = (int) ancientGetById.invoke(null, blockNMS);
+            int combinedID = materialID + (blockData << 12);
+
+            handleUpdateBlockChange(player, event, wrappedBlockChange, combinedID);
+
+        } catch (IllegalAccessException | InvocationTargetException exception) {
+            exception.printStackTrace();
         }
     }
 

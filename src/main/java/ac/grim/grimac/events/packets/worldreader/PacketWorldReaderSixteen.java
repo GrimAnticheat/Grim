@@ -8,18 +8,12 @@ import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
-import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
-import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -27,17 +21,11 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.BitSet;
 
-public class PacketWorldReaderSixteen extends PacketListenerAbstract {
-    public static Method getByCombinedID;
-
-    public PacketWorldReaderSixteen() {
-        super(PacketListenerPriority.MONITOR);
-
-        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
-    }
-
+public class PacketWorldReaderSixteen extends BasePacketWorldReader {
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
+        super.onPacketPlaySend(event);
+
         byte packetID = event.getPacketId();
 
         // Time to dump chunk data for 1.9+ - 0.07 ms
@@ -68,32 +56,6 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-        }
-
-        if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
-            WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-            if (player.compensatedWorld.isResync) return;
-
-            int combinedID = 0;
-
-            // For 1.8 all the way to 1.17, the method for getting combined ID has never changed
-            try {
-                Object blockObject = wrappedBlockChange.readAnyObject(1);
-                combinedID = (int) getByCombinedID.invoke(null, blockObject);
-            } catch (InvocationTargetException | IllegalAccessException var4) {
-                var4.printStackTrace();
-            }
-
-            Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
-
-
-            int range = (player.getTransactionPing() / 100) + 16;
-            if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
-                event.setPostTask(player::sendTransaction);
-
-            player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
         }
 
         if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
@@ -141,14 +103,6 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
             } catch (IllegalAccessException | InvocationTargetException exception) {
                 exception.printStackTrace();
             }
-        }
-
-        if (packetID == PacketType.Play.Server.UNLOAD_CHUNK) {
-            WrappedPacketOutUnloadChunk unloadChunk = new WrappedPacketOutUnloadChunk(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            player.compensatedWorld.removeChunkLater(unloadChunk.getChunkX(), unloadChunk.getChunkZ());
         }
     }
 
