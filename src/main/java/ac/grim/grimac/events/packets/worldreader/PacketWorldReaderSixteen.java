@@ -18,6 +18,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.Wrapped
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 
 import java.io.ByteArrayInputStream;
@@ -48,11 +49,11 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
             try {
                 int chunkX = packet.getChunkX();
                 int chunkZ = packet.getChunkZ();
-
-                BaseChunk[] chunks = new SixteenChunk[16];
-
-                byte[] chunkData = packet.getCompressedData();
                 BitSet bitSet = packet.getBitSet();
+
+                BaseChunk[] chunks = new SixteenChunk[bitSet.size()];
+                byte[] chunkData = packet.getCompressedData();
+
                 NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
                 for (int index = 0; index < chunks.length; ++index) {
@@ -102,7 +103,8 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
 
             try {
                 // Section Position or Chunk Section - depending on version
-                Object position = packet.readAnyObject(0);
+                int positionPos = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 1 : 0;
+                Object position = packet.readAnyObject(positionPos);
 
                 // In 1.16, chunk sections are used.  The have X, Y, and Z
                 Method getX = Reflection.getMethod(position.getClass(), "getX", 0);
@@ -115,7 +117,9 @@ public class PacketWorldReaderSixteen extends PacketListenerAbstract {
                 int chunkY = (int) getY.invoke(position) << 4;
 
                 short[] blockPositions = packet.readShortArray(0);
-                Object[] blockDataArray = (Object[]) packet.readAnyObject(2);
+
+                int blockDataPos = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 3 : 2;
+                Object[] blockDataArray = (Object[]) packet.readAnyObject(blockDataPos);
 
                 int range = (player.getTransactionPing() / 100) + 32;
                 if (Math.abs(chunkX - player.x) < range && Math.abs(chunkY - player.y) < range && Math.abs(chunkZ - player.z) < range)
