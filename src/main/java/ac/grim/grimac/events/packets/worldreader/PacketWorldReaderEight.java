@@ -10,7 +10,6 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 
@@ -19,7 +18,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-public class PacketWorldReaderEight extends BasePacketWorldReader {
+public class PacketWorldReaderEight extends PacketWorldReaderSeven {
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         super.onPacketPlaySend(event);
@@ -51,67 +50,50 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
                 e.printStackTrace();
             }
         }
+    }
 
-        // Exists on 1.7 and 1.8 only
-        if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
+    @Override
+    public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
+        WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+        if (player == null) return;
 
-            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-            int[] chunkXArray = (int[]) packet.readAnyObject(0);
-            int[] chunkZArray = (int[]) packet.readAnyObject(1);
+        try {
+            // Section Position or Chunk Section - depending on version
+            Object position = packet.readAnyObject(0);
 
-            for (int i = 0; i < chunkXArray.length; i++) {
-                int chunkX = chunkXArray[i];
-                int chunkZ = chunkZArray[i];
+            Object[] blockInformation;
+            blockInformation = (Object[]) packet.readAnyObject(1);
 
-                addChunkToCache(player, chunkX, chunkZ, false);
+            // This shouldn't be possible
+            if (blockInformation.length == 0) return;
+
+            Field getX = position.getClass().getDeclaredField("x");
+            Field getZ = position.getClass().getDeclaredField("z");
+
+            int chunkX = getX.getInt(position) << 4;
+            int chunkZ = getZ.getInt(position) << 4;
+
+            Field shortField = Reflection.getField(blockInformation[0].getClass(), 0);
+            Field blockDataField = Reflection.getField(blockInformation[0].getClass(), 1);
+
+            int range = (player.getTransactionPing() / 100) + 32;
+            if (Math.abs(chunkX - player.x) < range && Math.abs(chunkZ - player.z) < range)
+                event.setPostTask(player::sendTransaction);
+
+
+            for (Object o : blockInformation) {
+                short pos = shortField.getShort(o);
+                int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(o));
+
+                int blockX = pos >> 12 & 15;
+                int blockY = pos & 255;
+                int blockZ = pos >> 8 & 15;
+
+                player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, chunkX + blockX, blockY, chunkZ + blockZ, blockID));
             }
-        }
 
-        if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
-            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            try {
-                // Section Position or Chunk Section - depending on version
-                Object position = packet.readAnyObject(ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_7_10) ? 1 : 0);
-
-                Object[] blockInformation;
-                blockInformation = (Object[]) packet.readAnyObject(1);
-
-                // This shouldn't be possible
-                if (blockInformation.length == 0) return;
-
-                Field getX = position.getClass().getDeclaredField("x");
-                Field getZ = position.getClass().getDeclaredField("z");
-
-                int chunkX = getX.getInt(position) << 4;
-                int chunkZ = getZ.getInt(position) << 4;
-
-                Field shortField = Reflection.getField(blockInformation[0].getClass(), 0);
-                Field blockDataField = Reflection.getField(blockInformation[0].getClass(), 1);
-
-                int range = (player.getTransactionPing() / 100) + 32;
-                if (Math.abs(chunkX - player.x) < range && Math.abs(chunkZ - player.z) < range)
-                    event.setPostTask(player::sendTransaction);
-
-
-                for (Object o : blockInformation) {
-                    short pos = shortField.getShort(o);
-                    int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(o));
-
-                    int blockX = pos >> 12 & 15;
-                    int blockY = pos & 255;
-                    int blockZ = pos >> 8 & 15;
-
-                    player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, chunkX + blockX, blockY, chunkZ + blockZ, blockID));
-                }
-
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException exception) {
-                exception.printStackTrace();
-            }
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException exception) {
+            exception.printStackTrace();
         }
     }
 

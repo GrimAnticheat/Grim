@@ -7,6 +7,7 @@ import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
 import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -39,6 +40,32 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             handleBlockChange(player, event);
         }
+
+        if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            handleMultiBlockChange(player, event);
+        }
+
+        // Exists on 1.7 and 1.8 only
+        if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
+            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+            int[] chunkXArray = (int[]) packet.readAnyObject(0);
+            int[] chunkZArray = (int[]) packet.readAnyObject(1);
+
+            for (int i = 0; i < chunkXArray.length; i++) {
+                int chunkX = chunkXArray[i];
+                int chunkZ = chunkZArray[i];
+
+                addChunkToCache(player, chunkX, chunkZ, false);
+            }
+        }
+    }
+
+    public void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ, boolean isSync) {
+
     }
 
     public void unloadChunk(GrimPlayer player, int x, int z) {
@@ -62,6 +89,10 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         }
 
         handleUpdateBlockChange(player, event, wrappedBlockChange, combinedID);
+    }
+
+    public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
+
     }
 
     public void handleUpdateBlockChange(GrimPlayer player, PacketPlaySendEvent event, WrappedPacketOutBlockChange wrappedBlockChange, int combinedID) {
