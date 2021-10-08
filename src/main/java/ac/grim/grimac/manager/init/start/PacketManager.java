@@ -1,7 +1,10 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.events.packets.*;
-import ac.grim.grimac.events.packets.worldreader.*;
+import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEight;
+import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderNine;
+import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderSeven;
+import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderSixteen;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import io.github.retrooper.packetevents.PacketEvents;
@@ -29,8 +32,6 @@ public class PacketManager implements Initable {
 
         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_16)) {
             PacketEvents.get().registerListener(new PacketWorldReaderSixteen());
-        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
-            PacketEvents.get().registerListener(new PacketWorldReaderThirteen());
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
             PacketEvents.get().registerListener(new PacketWorldReaderNine());
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8)) {

@@ -32,18 +32,47 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         if (packetID == PacketType.Play.Server.UNLOAD_CHUNK) {
             WrappedPacketOutUnloadChunk unloadChunk = new WrappedPacketOutUnloadChunk(event.getNMSPacket());
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
             unloadChunk(player, unloadChunk.getChunkX(), unloadChunk.getChunkZ());
+        }
+
+        // 1.7 and 1.8 only
+        if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
+            handleMapChunkBulk(player, event);
+        }
+
+        if (packetID == PacketType.Play.Server.MAP_CHUNK) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
+            handleMapChunk(player, event);
         }
 
         if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
             handleBlockChange(player, event);
         }
 
         if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
             handleMultiBlockChange(player, event);
         }
+    }
+
+    public void handleMapChunkBulk(GrimPlayer player, PacketPlaySendEvent event) {
+
+    }
+
+    public void handleMapChunk(GrimPlayer player, PacketPlaySendEvent event) {
+
     }
 
     public void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ, boolean isSync) {
