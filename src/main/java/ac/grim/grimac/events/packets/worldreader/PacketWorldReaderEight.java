@@ -2,27 +2,28 @@ package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.eight.EightChunk;
+import ac.grim.grimac.utils.chunkdata.eight.ShortArray3d;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
+import java.util.BitSet;
 
 public class PacketWorldReaderEight extends PacketWorldReaderSeven {
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
-        super.onPacketPlaySend(event);
-
         byte packetID = event.getPacketId();
 
         // Time to dump chunk data for 1.9+ - 0.07 ms
@@ -45,9 +46,61 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
                     return;
                 }
 
-                addChunkToCache(player, chunkX, chunkZ, false);
+                ShortBuffer buf = ByteBuffer.wrap(packet.getCompressedData()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
+                EightChunk[] chunks = new EightChunk[16];
+                BitSet set = packet.getBitSet();
+
+                readChunk(buf, chunks, set);
+
+                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
+                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+
             } catch (NoSuchFieldException | IllegalAccessException e) {
                 e.printStackTrace();
+            }
+        }
+
+        // Exists on 1.7 and 1.8 only
+        if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            if (player == null) return;
+
+            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+            int[] chunkXArray = (int[]) packet.readAnyObject(0);
+            int[] chunkZArray = (int[]) packet.readAnyObject(1);
+            Object[] chunkData = (Object[]) packet.readAnyObject(2);
+
+            for (int i = 0; i < chunkXArray.length; i++) {
+                EightChunk[] chunks = new EightChunk[16];
+                int chunkX = chunkXArray[i];
+                int chunkZ = chunkZArray[i];
+
+                WrappedPacket nmsChunkMapWrapper = new WrappedPacket(new NMSPacket(chunkData[i]));
+                ShortBuffer buf = ByteBuffer.wrap(nmsChunkMapWrapper.readByteArray(0)).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
+
+                readChunk(buf, chunks, BitSet.valueOf(new long[]{nmsChunkMapWrapper.readInt(0)}));
+
+                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
+                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+            }
+        }
+    }
+
+    public void readChunk(ShortBuffer buf, BaseChunk[] chunks, BitSet set) {
+        int pos = 0;
+
+        // We only need block data!
+        // One pass is enough for us, no calculations required.
+        //
+        // Originally written abusing bukkit API with reflection... but this is faster, easier, and safer
+        for (int ind = 0; ind < 16; ind++) {
+            if (set.get(ind)) {
+                ShortArray3d blocks = new ShortArray3d(4096);
+                buf.position(pos / 2);
+                buf.get(blocks.getData(), 0, blocks.getData().length);
+                pos += blocks.getData().length * 2;
+
+                chunks[ind] = new EightChunk(blocks);
             }
         }
     }
@@ -94,51 +147,6 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
 
         } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException exception) {
             exception.printStackTrace();
-        }
-    }
-
-    public void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ, boolean isSync) {
-        boolean wasAdded = false;
-
-        try {
-            EightChunk[] chunks = new EightChunk[16];
-
-            if (isSync || player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
-                Chunk sentChunk = player.bukkitPlayer.getWorld().getChunkAt(chunkX, chunkZ);
-
-                Method handle = Reflection.getMethod(sentChunk.getClass(), "getHandle", 0);
-                Object nmsChunk = handle.invoke(sentChunk);
-                Method sections = Reflection.getMethod(nmsChunk.getClass(), "getSections", 0);
-                Object sectionsArray = sections.invoke(nmsChunk);
-
-                int arrayLength = Array.getLength(sectionsArray);
-
-                Object zeroElement = Array.get(sectionsArray, 0);
-                if (zeroElement == null)
-                    return;
-
-                Method getIds = Reflection.getMethod(zeroElement.getClass(), "getIdArray", 0);
-
-                for (int x = 0; x < arrayLength; x++) {
-                    Object section = Array.get(sectionsArray, x);
-                    if (section == null) break;
-
-                    chunks[x] = new EightChunk((char[]) getIds.invoke(section));
-                }
-
-                Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-                player.compensatedWorld.addToCache(column, chunkX, chunkZ);
-                wasAdded = true;
-            }
-        } catch (InvocationTargetException | IllegalAccessException e) {
-            e.printStackTrace();
-        } finally {
-            // If we fail on the main thread, we can't recover from this.
-            if (!wasAdded && !isSync) {
-                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                    addChunkToCache(player, chunkX, chunkZ, true);
-                });
-            }
         }
     }
 }

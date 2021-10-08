@@ -7,15 +7,19 @@ import ac.grim.grimac.utils.chunkdata.BaseChunk;
 public class EightChunk implements BaseChunk {
     private final ShortArray3d blocks;
 
-    public EightChunk(char[] data) {
-        blocks = new ShortArray3d(data);
+    public EightChunk() {
+        blocks = new ShortArray3d(4096);
+    }
+
+    public EightChunk(ShortArray3d blocks) {
+        this.blocks = blocks;
     }
 
     @Override
     public void set(int x, int y, int z, int combinedID) {
         // Usual system for storing combined ID's: F (data) F (empty) FF FF (material ID)
         // 1.8 system for storing combined ID's: F (empty) FF FF (material id) F (data)
-        blocks.set(x, y, z, ((combinedID & 0xFF) << 4) | (combinedID >> 12));
+        blocks.set(x, y, z, combinedID | (combinedID >> 12));
     }
 
     @Override
@@ -29,5 +33,9 @@ public class EightChunk implements BaseChunk {
     @Override
     public boolean isKnownEmpty() {
         return false;
+    }
+
+    public ShortArray3d getBlocks() {
+        return blocks;
     }
 }

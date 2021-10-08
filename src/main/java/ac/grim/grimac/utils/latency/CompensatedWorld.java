@@ -191,7 +191,7 @@ public class CompensatedWorld {
                     } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
                         column.getChunks()[y >> 4] = new TwelveChunk();
                     } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8)) {
-                        column.getChunks()[y >> 4] = new EightChunk(new char[4096]);
+                        column.getChunks()[y >> 4] = new EightChunk();
                     } else {
                         column.getChunks()[y >> 4] = new SevenChunk(new short[4096], new byte[2048]);
                     }
