@@ -54,24 +54,6 @@ public class PacketWorldReaderSeven extends BasePacketWorldReader {
             addChunkToCache(player, chunkX, chunkZ, false);
         }
 
-        // Exists on 1.7 and 1.8 only
-        // Purposefully left this
-        if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-            int[] chunkXArray = (int[]) packet.readAnyObject(0);
-            int[] chunkZArray = (int[]) packet.readAnyObject(1);
-
-            for (int i = 0; i < chunkXArray.length; i++) {
-                int chunkX = chunkXArray[i];
-                int chunkZ = chunkZArray[i];
-
-                addChunkToCache(player, chunkX, chunkZ, false);
-            }
-        }
-
         if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
             WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
@@ -142,7 +124,8 @@ public class PacketWorldReaderSeven extends BasePacketWorldReader {
         }
     }
 
-    private void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ, boolean isSync) {
+    @Override
+    public void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ, boolean isSync) {
         boolean wasAdded = false;
         try {
             if (isSync || player.bukkitPlayer.getWorld().isChunkLoaded(chunkX, chunkZ)) {
