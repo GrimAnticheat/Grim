@@ -19,18 +19,15 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.bukkit.block.BlockFace;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class CompensatedEntities {
     // I can't get FastUtils to work here
-    public final ConcurrentHashMap<Integer, PacketEntity> entityMap = new ConcurrentHashMap<>(40, 0.7f);
+    public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
 
     public ConcurrentLinkedQueue<EntityMoveData> moveEntityQueue = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
@@ -165,26 +162,36 @@ public class CompensatedEntities {
 
         // Remove entities when the client despawns them
         // We do it in this strange way to avoid despawning the wrong entity
-        for (Map.Entry<Integer, PacketEntity> entry : entityMap.entrySet()) {
-            PacketEntity entity = entry.getValue();
-            if (entity == null) continue;
-            if (entity.removeTrans > lastTransactionReceived) continue;
-            int entityID = entry.getKey();
+        synchronized (player.compensatedEntities.entityMap) {
+            List<Integer> entitiesToRemove = null;
+            for (Map.Entry<Integer, PacketEntity> entry : entityMap.int2ObjectEntrySet()) {
+                PacketEntity entity = entry.getValue();
+                if (entity == null) continue;
+                if (entity.removeTrans > lastTransactionReceived) continue;
+                int entityID = entry.getKey();
 
-            entityMap.remove(entityID);
-            player.compensatedPotions.removeEntity(entityID);
-            player.checkManager.getReach().removeEntity(entityID);
-        }
+                if (entitiesToRemove == null) entitiesToRemove = new ArrayList<>();
+                entitiesToRemove.add(entityID);
+                player.compensatedPotions.removeEntity(entityID);
+                player.checkManager.getReach().removeEntity(entityID);
+            }
 
-        // Update riding positions - server should send teleport after dismount
-        for (PacketEntity entity : entityMap.values()) {
-            // The entity will be "ticked" by tickPassenger
-            if (entity.riding != null)
-                continue;
+            if (entitiesToRemove != null) {
+                for (int entityID : entitiesToRemove) {
+                    entityMap.remove(entityID);
+                }
+            }
 
-            for (int passengerID : entity.passengers) {
-                PacketEntity passengerPassenger = getEntity(passengerID);
-                tickPassenger(entity, passengerPassenger);
+            // Update riding positions - server should send teleport after dismount
+            for (PacketEntity entity : entityMap.values()) {
+                // The entity will be "ticked" by tickPassenger
+                if (entity.riding != null)
+                    continue;
+
+                for (int passengerID : entity.passengers) {
+                    PacketEntity passengerPassenger = getEntity(passengerID);
+                    tickPassenger(entity, passengerPassenger);
+                }
             }
         }
     }
@@ -264,11 +271,15 @@ public class CompensatedEntities {
             }
         }
 
-        entityMap.put(entityID, packetEntity);
+        synchronized (player.compensatedEntities.entityMap) {
+            entityMap.put(entityID, packetEntity);
+        }
     }
 
     public PacketEntity getEntity(int entityID) {
-        return entityMap.get(entityID);
+        synchronized (player.compensatedEntities.entityMap) {
+            return entityMap.get(entityID);
+        }
     }
 
     private void updateEntityMetadata(int entityID, List<WrappedWatchableObject> watchableObjects) {

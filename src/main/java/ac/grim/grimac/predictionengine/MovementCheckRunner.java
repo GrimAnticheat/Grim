@@ -737,11 +737,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastVerticalOffset = 0;
         }
 
-        // Do this after next tick uncertainty is given
-        // This must be done AFTER the firework uncertainty or else it badly combines and gives too much speed next tick
-        // TODO: Rework firework uncertainty so this isn't needed?
-        if (player.uncertaintyHandler.lastGlidingChangeTicks > -5) offset -= 0.05;
-
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
 
         player.riptideSpinAttackTicks--;

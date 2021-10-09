@@ -47,6 +47,8 @@ public class GhostBlockDetector extends PostPredictionCheck {
     }
 
     private boolean isGhostBlock() {
+        if (true) return false;
+
         // Deal with stupidity when towering upwards, or other high ping desync's that I can't deal with
         // Seriously, blocks disappear and reappear when towering at high ping on modern versions...
         //
@@ -103,11 +105,13 @@ public class GhostBlockDetector extends PostPredictionCheck {
         if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
             SimpleCollisionBox largeExpandedBB = player.boundingBox.copy().expand(12, 0.5, 12);
 
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.type == EntityType.BOAT) {
-                    SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-                    if (box.isIntersected(largeExpandedBB)) {
-                        return true;
+            synchronized (player.compensatedEntities.entityMap) {
+                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                    if (entity.type == EntityType.BOAT) {
+                        SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                        if (box.isIntersected(largeExpandedBB)) {
+                            return true;
+                        }
                     }
                 }
             }

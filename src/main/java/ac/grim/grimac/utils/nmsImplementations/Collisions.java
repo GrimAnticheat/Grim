@@ -283,20 +283,22 @@ public class Collisions {
             }
         }
 
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.type == EntityType.BOAT) {
-                SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-                if (box.isIntersected(expandedBB)) {
-                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
-                    listOfBlocks.add(box);
+        synchronized (player.compensatedEntities.entityMap) {
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                if (entity.type == EntityType.BOAT) {
+                    SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                    if (box.isIntersected(expandedBB)) {
+                        if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+                        listOfBlocks.add(box);
+                    }
                 }
-            }
 
-            if (entity.type == EntityType.SHULKER) {
-                SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
-                if (box.isIntersected(expandedBB)) {
-                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
-                    listOfBlocks.add(box);
+                if (entity.type == EntityType.SHULKER) {
+                    SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
+                    if (box.isIntersected(expandedBB)) {
+                        if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+                        listOfBlocks.add(box);
+                    }
                 }
             }
         }

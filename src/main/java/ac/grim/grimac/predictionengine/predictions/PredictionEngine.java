@@ -454,9 +454,8 @@ public class PredictionEngine {
         }
 
         // Handle 0.03 with fluid pushing players downwards
-        if (player.baseTickAddition.getY() < 0 && player.wasTouchingWater &&
-                (vector.isZeroPointZeroThree() || vector.isSwimHop())) {
-            minVector.setY(minVector.getY() + player.baseTickAddition.getY());
+        if ((player.wasTouchingWater || player.uncertaintyHandler.headingIntoWater) && (vector.isZeroPointZeroThree() || vector.isSwimHop())) {
+            minVector.setY(minVector.getY() - 0.05);
         }
 
         // Handle 0.03 with fluid pushing players upwards (the player moved out of the pushing inside 0.03 movement)
