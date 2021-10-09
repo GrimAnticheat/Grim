@@ -20,7 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
-    public static Method getByCombinedID;
+    private static Method getByCombinedID;
 
     public BasePacketWorldReader() {
         super(PacketListenerPriority.MONITOR);
@@ -101,20 +101,21 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
     public void handleBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-        if (player == null) return;
         if (player.compensatedWorld.isResync) return;
 
-        int combinedID = 0;
-
-        // For 1.8 all the way to 1.16, the method for getting combined ID has never changed
-        try {
-            Object blockObject = wrappedBlockChange.readAnyObject(1);
-            combinedID = (int) getByCombinedID.invoke(null, blockObject);
-        } catch (InvocationTargetException | IllegalAccessException var4) {
-            var4.printStackTrace();
-        }
+        Object blockObject = wrappedBlockChange.readAnyObject(1);
+        int combinedID = getByCombinedID(blockObject);
 
         handleUpdateBlockChange(player, event, wrappedBlockChange, combinedID);
+    }
+
+    public int getByCombinedID(Object object) {
+        try {
+            return (int) getByCombinedID.invoke(null, object);
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return 0;
     }
 
     public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
