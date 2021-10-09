@@ -186,53 +186,55 @@ public class MovementTicker {
             SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
             SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
 
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.position.distanceSquared(playerPos) < 12) {
-                    // Players can only push living entities
-                    // Players can also push boats or minecarts
-                    // The one exemption to a living entity is an armor stand
-                    if ((!EntityType.isLivingEntity(entity.bukkitEntityType) && entity.type != EntityType.BOAT && !EntityType.isMinecart(entity.type)) || entity.type == EntityType.ARMOR_STAND)
-                        continue;
+            synchronized (player.compensatedEntities.entityMap) {
+                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                    if (entity.position.distanceSquared(playerPos) < 12) {
+                        // Players can only push living entities
+                        // Players can also push boats or minecarts
+                        // The one exemption to a living entity is an armor stand
+                        if ((!EntityType.isLivingEntity(entity.bukkitEntityType) && entity.type != EntityType.BOAT && !EntityType.isMinecart(entity.type)) || entity.type == EntityType.ARMOR_STAND)
+                            continue;
 
-                    double width = BoundingBoxSize.getWidth(entity);
-                    double height = BoundingBoxSize.getHeight(entity);
+                        double width = BoundingBoxSize.getWidth(entity);
+                        double height = BoundingBoxSize.getHeight(entity);
 
-                    SimpleCollisionBox entityBox = ReachInterpolationData.combineCollisionBox(
-                            GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height),
-                            GetBoundingBox.getBoundingBoxFromPosAndSize(entity.lastTickPosition.getX(), entity.lastTickPosition.getY(), entity.lastTickPosition.getZ(), width, height));
+                        SimpleCollisionBox entityBox = ReachInterpolationData.combineCollisionBox(
+                                GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), width, height),
+                                GetBoundingBox.getBoundingBoxFromPosAndSize(entity.lastTickPosition.getX(), entity.lastTickPosition.getY(), entity.lastTickPosition.getZ(), width, height));
 
-                    if (expandedPlayerBox.isCollided(entityBox))
-                        possibleCollidingEntities++;
+                        if (expandedPlayerBox.isCollided(entityBox))
+                            possibleCollidingEntities++;
 
-                    if (!playerBox.isCollided(entityBox))
-                        continue;
+                        if (!playerBox.isCollided(entityBox))
+                            continue;
 
-                    double xDist = player.x - entity.position.x;
-                    double zDist = player.z - entity.position.z;
-                    double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
-                    if (maxLength >= 0.01) {
-                        maxLength = Math.sqrt(maxLength);
-                        xDist /= maxLength;
-                        zDist /= maxLength;
+                        double xDist = player.x - entity.position.x;
+                        double zDist = player.z - entity.position.z;
+                        double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
+                        if (maxLength >= 0.01) {
+                            maxLength = Math.sqrt(maxLength);
+                            xDist /= maxLength;
+                            zDist /= maxLength;
 
-                        double d3 = 1.0D / maxLength;
-                        d3 = Math.min(d3, 1.0);
+                            double d3 = 1.0D / maxLength;
+                            d3 = Math.min(d3, 1.0);
 
-                        xDist *= d3;
-                        zDist *= d3;
-                        xDist *= -0.05F;
-                        zDist *= -0.05F;
+                            xDist *= d3;
+                            zDist *= d3;
+                            xDist *= -0.05F;
+                            zDist *= -0.05F;
 
-                        if (xDist > 0) {
-                            player.uncertaintyHandler.xNegativeUncertainty += xDist;
-                        } else {
-                            player.uncertaintyHandler.zNegativeUncertainty += xDist;
-                        }
+                            if (xDist > 0) {
+                                player.uncertaintyHandler.xNegativeUncertainty += xDist;
+                            } else {
+                                player.uncertaintyHandler.zNegativeUncertainty += xDist;
+                            }
 
-                        if (zDist > 0) {
-                            player.uncertaintyHandler.xPositiveUncertainty += zDist;
-                        } else {
-                            player.uncertaintyHandler.zPositiveUncertainty += zDist;
+                            if (zDist > 0) {
+                                player.uncertaintyHandler.xPositiveUncertainty += zDist;
+                            } else {
+                                player.uncertaintyHandler.zPositiveUncertainty += zDist;
+                            }
                         }
                     }
                 }

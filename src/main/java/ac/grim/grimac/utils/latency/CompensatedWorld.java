@@ -65,7 +65,7 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> packetLevelBlockLocations = new ConcurrentLinkedQueue<>();
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
-    public boolean isResync = true;
+    public boolean isResync = false;
     // 1.17 with datapacks, and 1.18, have negative world offset values
     private int minHeight = 0;
     private int maxHeight = 255;
@@ -84,11 +84,13 @@ public class CompensatedWorld {
     }
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) {
-                SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-                if (box.isIntersected(playerBox)) {
-                    return true;
+        synchronized (player.compensatedEntities.entityMap) {
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                if (entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) {
+                    SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                    if (box.isIntersected(playerBox)) {
+                        return true;
+                    }
                 }
             }
         }
