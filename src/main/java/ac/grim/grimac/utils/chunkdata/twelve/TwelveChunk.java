@@ -32,7 +32,7 @@ public class TwelveChunk implements BaseChunk {
     }
 
     public TwelveChunk(ShortBuffer in) {
-        Int2IntMap reversePalette = new Int2IntOpenHashMap(32, 0.6f);
+        Int2IntMap reversePalette = new Int2IntOpenHashMap(32, 0.5f);
         reversePalette.defaultReturnValue(-1);
 
         states = new ArrayList<>();
@@ -49,32 +49,32 @@ public class TwelveChunk implements BaseChunk {
                 lastNext = next;
                 next = (short) ((next << 12) | (next >> 4));
                 lastID = this.bitsPerEntry <= 8 ? reversePalette.get(next) : next;
-            }
 
-            if (lastID == -1) {
-                reversePalette.put(next, reversePalette.size());
-                states.add(new MagicBlockState(next));
+                if (lastID == -1) {
+                    reversePalette.put(next, reversePalette.size());
+                    states.add(new MagicBlockState(next));
 
-                if (reversePalette.size() > 1 << this.bitsPerEntry) {
-                    this.bitsPerEntry++;
+                    if (reversePalette.size() > 1 << this.bitsPerEntry) {
+                        this.bitsPerEntry++;
 
-                    List<MagicBlockState> oldStates = this.states;
-                    if (this.bitsPerEntry > 8) {
-                        oldStates = new ArrayList<>(this.states);
-                        this.states.clear();
-                        reversePalette.clear();
-                        this.bitsPerEntry = 16;
+                        List<MagicBlockState> oldStates = this.states;
+                        if (this.bitsPerEntry > 8) {
+                            oldStates = new ArrayList<>(this.states);
+                            this.states.clear();
+                            reversePalette.clear();
+                            this.bitsPerEntry = 16;
+                        }
+
+                        LegacyFlexibleStorage oldStorage = this.storage;
+                        this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, this.storage.getSize());
+                        for (int index = 0; index < this.storage.getSize(); index++) {
+                            this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : oldStates.get(oldStorage.get(index)).getCombinedId());
+                            reversePalette.put(oldStorage.get(index), index);
+                        }
                     }
 
-                    LegacyFlexibleStorage oldStorage = this.storage;
-                    this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, this.storage.getSize());
-                    for (int index = 0; index < this.storage.getSize(); index++) {
-                        this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : oldStates.get(oldStorage.get(index)).getCombinedId());
-                        reversePalette.put(oldStorage.get(index), index);
-                    }
+                    lastID = this.bitsPerEntry <= 8 ? reversePalette.get(next) : next;
                 }
-
-                lastID = this.bitsPerEntry <= 8 ? reversePalette.get(next) : next;
             }
 
             this.storage.set(i, lastID);
