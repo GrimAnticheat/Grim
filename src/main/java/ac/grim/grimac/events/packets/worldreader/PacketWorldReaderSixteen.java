@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets.worldreader;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
-import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
@@ -41,8 +40,8 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
                 }
             }
 
-            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-            player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+            boolean isGroundUp = packet.isGroundUpContinuous().orElse(true);
+            addChunkToCache(player, chunks, isGroundUp, chunkX, chunkZ);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,7 +76,6 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
             int range = (player.getTransactionPing() / 100) + 32;
             if (Math.abs(chunkX - player.x) < range && Math.abs(chunkY - player.y) < range && Math.abs(chunkZ - player.z) < range)
                 event.setPostTask(player::sendTransaction);
-
 
             for (int i = 0; i < blockPositions.length; i++) {
                 short blockPosition = blockPositions[i];

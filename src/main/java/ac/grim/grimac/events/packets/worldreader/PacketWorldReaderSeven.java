@@ -47,8 +47,7 @@ public class PacketWorldReaderSeven extends BasePacketWorldReader {
         ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
         readChunk(buf, chunks, packet.getBitSet());
 
-        Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-        player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+        addChunkToCache(player, chunks, packet.isGroundUpContinuous().get(), chunkX, chunkZ);
     }
 
     @Override
@@ -86,16 +85,18 @@ public class PacketWorldReaderSeven extends BasePacketWorldReader {
         // Before they decided to quite using magic values and instead went with the new 1.13 solution
         //
         // That's probably why extended block data exists, although yeah it was never used.
-        for (int pass = 0; pass < 2; pass++) {
+        //
+        // (We only need blocks and metadata)
+        for (int pass = 1; pass < 3; pass++) {
             for (int ind = 0; ind < 16; ind++) {
                 if (primarySet.get(ind)) {
-                    if (pass == 0) {
+                    if (pass == 1) {
                         chunks[ind] = new SevenChunk();
                         ByteArray3d blocks = chunks[ind].getBlocks();
                         buf.get(blocks.getData(), 0, blocks.getData().length);
                     }
 
-                    if (pass == 1) {
+                    if (pass == 2) {
                         NibbleArray3d metadata = chunks[ind].getMetadata();
                         buf.get(metadata.getData(), 0, metadata.getData().length);
                     }

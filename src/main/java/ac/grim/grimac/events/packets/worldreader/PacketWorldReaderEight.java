@@ -25,9 +25,6 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
         int pos = 0;
 
         // We only need block data!
-        // One pass is enough for us, no calculations required.
-        //
-        // Originally written abusing bukkit API with reflection... but this is faster, easier, and safer
         for (int ind = 0; ind < 16; ind++) {
             if (set.get(ind)) {
                 ShortArray3d blocks = new ShortArray3d(4096);
@@ -85,9 +82,7 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
 
             readChunk(buf, chunks, set);
 
-            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
-            player.compensatedWorld.addToCache(column, chunkX, chunkZ);
-
+            addChunkToCache(player, chunks, packet.isGroundUpContinuous().get(), chunkX, chunkZ);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             e.printStackTrace();
         }
