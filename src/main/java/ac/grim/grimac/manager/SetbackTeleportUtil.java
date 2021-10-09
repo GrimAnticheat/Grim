@@ -16,6 +16,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
@@ -28,6 +29,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to netty
     // Also safe from corruption from the vanilla anticheat!
     final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
+    final ConcurrentLinkedDeque<Location> pendingTeleports = new ConcurrentLinkedDeque<>();
     // Was there a ghost block that forces us to block offsets until the player accepts their teleport?
     public boolean blockOffsets = false;
     // Sync to netty, a player MUST accept a teleport to spawn into the world
@@ -38,11 +40,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to BUKKIT, referenced by only bukkit!  Don't overwrite another plugin's teleport
     // Null means the player hasn't spawned yet because the bukkit API is very inconsistent!
     public Location currentTargetTeleport;
-
     // This required setback data is sync to the BUKKIT MAIN THREAD (!)
     SetBackData requiredSetBack = null;
-    // Prevent the player from getting into a limbo state if the last teleport got blocked
-    public Location currentBukkitTarget;
     // Sync to the anticheat thread
     // The anticheat thread MUST be the only thread that controls these safe setback position variables
     // This one prevents us from pulling positions the tick before a setback
@@ -157,17 +156,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                     playerVehicle.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), playerVehicle.getLocation().getYaw(), playerVehicle.getLocation().getPitch()));
                 }
 
-                player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), xRot, yRot));
+                player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), 41.12315918f, 12.419510391f));
                 player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
             });
-        }
-    }
-
-    public void tryResendExpiredSetback() {
-        SetBackData setBack = requiredSetBack;
-
-        if (setBack != null && !setBack.isComplete() && setBack.getTrans() + 2 < player.packetStateData.packetLastTransactionReceived.get()) {
-            resendSetback(true);
         }
     }
 
@@ -224,12 +215,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 teleportData.setTeleport(true);
             } else if (lastTransaction > teleportPos.getFirst() + 1) { // Give a transaction or two lenience as we track transactions from bukkit
                 teleports.poll();
-
-                // Ignored teleport, teleport the player as a plugin would!
-                position.setPitch(player.packetStateData.packetPlayerYRot);
-                position.setYaw(player.packetStateData.packetPlayerXRot);
-                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> player.bukkitPlayer.teleport(position));
-
+                resendSetback(true);
                 continue;
             }
 
@@ -310,10 +296,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return requiredSetBack;
     }
 
-    public Location getSafeLocation() {
-        return safeTeleportPosition.position;
-    }
-
     /**
      * This method is unsafe to call outside the bukkit thread
      * This method sets a plugin teleport at this location
@@ -321,6 +303,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @param position Position of the teleport
      */
     public void setTargetTeleport(Location position) {
+        pendingTeleports.add(position);
         currentTargetTeleport = position;
         hasAcceptedSetbackPosition = false;
         requiredSetBack = new SetBackData(position, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, new Vector(), null, player.lastTransactionSent.get(), true);
@@ -335,15 +318,40 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public boolean addSentTeleport(Location position, int transaction) {
-        currentBukkitTarget = position;
-        if (currentTargetTeleport == null) { // Occurs for the first teleport on join
-            currentTargetTeleport = new Location(player.bukkitPlayer.getWorld(), player.x, player.y, player.z);
-        } else if (position.getX() != currentTargetTeleport.getX() || Math.abs(position.getY() - currentTargetTeleport.getY()) > 1e-7 || position.getZ() != currentTargetTeleport.getZ()) {
-            return true; // Vanilla anticheat sent this (or a plugin that managed to desync us)
+        Location loc;
+        while ((loc = pendingTeleports.poll()) != null) {
+            if (loc.getX() != position.getX() || (Math.abs(loc.getY() - position.getY()) > 1e-7) || loc.getZ() != position.getZ())
+                continue;
+
+            teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
+            return false;
         }
 
-        teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
-        return false;
+        // Player hasn't spawned yet (Bukkit doesn't call event for first teleport)
+        if (currentTargetTeleport == null) {
+            teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
+            return false;
+        }
+
+        // Where did this teleport come from?
+        // (Vanilla anticheat sent this without calling the event!)
+        // We must sync to bukkit to avoid desync with bukkit target teleport, which
+        // would make the player be unable to interact with anything
+        Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+            if (!player.bukkitPlayer.isInsideVehicle()) {
+                Location location = pendingTeleports.peekLast();
+                if (location != null) {
+                    player.bukkitPlayer.teleport(location);
+                } else {
+                    Location safePos = safeTeleportPosition.position;
+                    safePos.setPitch(12.419510391f);
+                    safePos.setYaw(41.12315918f);
+                    player.bukkitPlayer.teleport(safeTeleportPosition.position);
+                }
+            }
+        });
+
+        return true;
     }
 }
 

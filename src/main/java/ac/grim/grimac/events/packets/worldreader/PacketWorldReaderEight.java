@@ -20,7 +20,6 @@ import java.util.BitSet;
 public class PacketWorldReaderEight extends BasePacketWorldReader {
     // Synchronous
     private void readChunk(ShortBuffer buf, BaseChunk[] chunks, BitSet set) {
-        long nanotime = System.nanoTime();
         // We only need block data!
         for (int ind = 0; ind < 16; ind++) {
             if (set.get(ind)) {
@@ -28,7 +27,6 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
                 chunks[ind] = compressed;
             }
         }
-        System.out.println("Took " + (System.nanoTime() - nanotime));
     }
 
     @Override
