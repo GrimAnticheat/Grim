@@ -5,10 +5,12 @@ import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.fifteen.LegacyFlexibleStorage;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
+import it.unimi.dsi.fastutil.ints.Int2IntMap;
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 
 import java.io.IOException;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TwelveChunk implements BaseChunk {
@@ -27,6 +29,56 @@ public class TwelveChunk implements BaseChunk {
         }
 
         this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, in.readLongs(in.readVarInt()));
+    }
+
+    public TwelveChunk(ShortBuffer in) {
+        Int2IntMap reversePalette = new Int2IntOpenHashMap(32, 0.6f);
+        reversePalette.defaultReturnValue(-1);
+
+        states = new ArrayList<>();
+        this.bitsPerEntry = 4;
+        this.storage = new LegacyFlexibleStorage(bitsPerEntry, 4096);
+
+        int lastNext = -1;
+        int lastID = -1;
+
+        for (int i = 0; i < 4096; i++) {
+            short next = in.get();
+
+            if (next != lastNext) {
+                lastNext = next;
+                next = (short) ((next << 12) | (next >> 4));
+                lastID = this.bitsPerEntry <= 8 ? reversePalette.get(next) : next;
+            }
+
+            if (lastID == -1) {
+                reversePalette.put(next, reversePalette.size());
+                states.add(new MagicBlockState(next));
+
+                if (reversePalette.size() > 1 << this.bitsPerEntry) {
+                    this.bitsPerEntry++;
+
+                    List<MagicBlockState> oldStates = this.states;
+                    if (this.bitsPerEntry > 8) {
+                        oldStates = new ArrayList<>(this.states);
+                        this.states.clear();
+                        reversePalette.clear();
+                        this.bitsPerEntry = 16;
+                    }
+
+                    LegacyFlexibleStorage oldStorage = this.storage;
+                    this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, this.storage.getSize());
+                    for (int index = 0; index < this.storage.getSize(); index++) {
+                        this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : oldStates.get(oldStorage.get(index)).getCombinedId());
+                        reversePalette.put(oldStorage.get(index), index);
+                    }
+                }
+
+                lastID = this.bitsPerEntry <= 8 ? reversePalette.get(next) : next;
+            }
+
+            this.storage.set(i, lastID);
+        }
     }
 
     public TwelveChunk() {
@@ -96,30 +148,5 @@ public class TwelveChunk implements BaseChunk {
         }
 
         this.storage.set(index(x, y, z), id);
-    }
-
-    public void write(NetOutput out) throws IOException {
-        out.writeByte(this.bitsPerEntry);
-
-        out.writeVarInt(this.states.size());
-        for (MagicBlockState state : this.states) {
-            writeBlockState(out, state);
-        }
-
-        long[] data = this.storage.getData();
-        out.writeVarInt(data.length);
-        out.writeLongs(data);
-    }
-
-    public int getBitsPerEntry() {
-        return this.bitsPerEntry;
-    }
-
-    public List<MagicBlockState> getStates() {
-        return Collections.unmodifiableList(this.states);
-    }
-
-    public LegacyFlexibleStorage getStorage() {
-        return this.storage;
     }
 }
