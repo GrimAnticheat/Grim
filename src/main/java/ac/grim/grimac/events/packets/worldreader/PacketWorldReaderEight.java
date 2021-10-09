@@ -2,8 +2,6 @@ package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
-import ac.grim.grimac.utils.chunkdata.eight.EightChunk;
-import ac.grim.grimac.utils.chunkdata.eight.ShortArray3d;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
@@ -12,7 +10,6 @@ import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
@@ -23,24 +20,15 @@ import java.util.BitSet;
 public class PacketWorldReaderEight extends BasePacketWorldReader {
     // Synchronous
     private void readChunk(ShortBuffer buf, BaseChunk[] chunks, BitSet set) {
+        long nanotime = System.nanoTime();
         // We only need block data!
-        long start = System.nanoTime();
         for (int ind = 0; ind < 16; ind++) {
             if (set.get(ind)) {
-                ShortArray3d blocks = new ShortArray3d(4096);
-                buf.get(blocks.getData(), 0, blocks.getData().length);
-
-                EightChunk normal = new EightChunk(blocks);
-                chunks[ind] = normal;
-                TwelveChunk compressed = new TwelveChunk();
-
-
-                for (int y = 0; y < 4096; y++) {
-                    compressed.set(y, normal.getBlocks().get(y));
-                }
+                TwelveChunk compressed = new TwelveChunk(buf);
+                chunks[ind] = compressed;
             }
         }
-        Bukkit.broadcastMessage("Took " + (System.nanoTime() - start));
+        System.out.println("Took " + (System.nanoTime() - nanotime));
     }
 
     @Override

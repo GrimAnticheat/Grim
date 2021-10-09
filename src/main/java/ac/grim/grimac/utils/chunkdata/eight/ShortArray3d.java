@@ -15,6 +15,10 @@ public class ShortArray3d {
         return this.data[y << 8 | z << 4 | x];
     }
 
+    public int get(int index) {
+        return this.data[index];
+    }
+
     public short[] getData() {
         return this.data;
     }

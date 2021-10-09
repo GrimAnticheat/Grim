@@ -19,7 +19,7 @@ public class EightChunk implements BaseChunk {
     public void set(int x, int y, int z, int combinedID) {
         // Usual system for storing combined ID's: F (data) F (empty) FF FF (material ID)
         // 1.8 system for storing combined ID's: F (empty) FF FF (material id) F (data)
-        blocks.set(x, y, z, combinedID | (combinedID >> 12));
+        blocks.set(x, y, z, combinedID);
     }
 
     @Override
