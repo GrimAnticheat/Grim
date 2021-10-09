@@ -2,6 +2,9 @@ package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
+import ac.grim.grimac.utils.chunkdata.BaseChunk;
+import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -75,8 +78,20 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
     }
 
-    public void addChunkToCache(GrimPlayer player, int chunkX, int chunkZ, boolean isSync) {
-
+    public void addChunkToCache(GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
+        if (isGroundUp) {
+            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
+            player.compensatedWorld.addToCache(column, chunkX, chunkZ);
+        } else {
+            player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get() + 1, () -> {
+                Column existingColumn = player.compensatedWorld.getChunk(chunkX, chunkZ);
+                if (existingColumn == null) {
+                    LogUtil.warn("Invalid non-ground up continuous sent for empty chunk " + chunkX + " " + chunkZ + " for " + player.bukkitPlayer.getName() + "! This corrupts the player's empty chunk!");
+                    return;
+                }
+                existingColumn.mergeChunks(chunks);
+            });
+        }
     }
 
     public void unloadChunk(GrimPlayer player, int x, int z) {
