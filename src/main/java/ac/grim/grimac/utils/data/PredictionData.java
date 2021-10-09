@@ -29,7 +29,7 @@ public class PredictionData {
     public int itemHeld;
     public float horseJump = 0;
     public boolean inVehicle = false;
-    public boolean acceptedSetback;
+    public SetBackData acceptedSetback;
 
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
@@ -39,7 +39,7 @@ public class PredictionData {
     public boolean isCheckNotReady;
 
     // For regular movement
-    public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround, boolean isJustTeleported, boolean isSetback) {
+    public PredictionData(GrimPlayer player, double playerX, double playerY, double playerZ, float xRot, float yRot, boolean onGround, boolean isJustTeleported, SetBackData setback) {
         // Don't allow players to move past the hard coded border as we hardcode this border into the checks
         playerX = GrimMath.clamp(playerX, -2.9999999E7D, 2.9999999E7D);
         playerZ = GrimMath.clamp(playerZ, -2.9999999E7D, 2.9999999E7D);
@@ -70,7 +70,7 @@ public class PredictionData {
         itemHeld = player.packetStateData.lastSlotSelected;
         player.packetStateData.horseJump = 0;
 
-        acceptedSetback = isSetback;
+        acceptedSetback = setback;
 
         didGroundStatusChangeWithoutPositionPacket = player.packetStateData.didGroundStatusChangeWithoutPositionPacket;
         player.packetStateData.didGroundStatusChangeWithoutPositionPacket = false;

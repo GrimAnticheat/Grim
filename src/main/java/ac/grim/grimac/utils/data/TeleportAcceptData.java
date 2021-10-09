@@ -7,5 +7,5 @@ import lombok.Setter;
 @Setter
 public class TeleportAcceptData {
     boolean isTeleport;
-    boolean isSetback;
+    SetBackData setback;
 }

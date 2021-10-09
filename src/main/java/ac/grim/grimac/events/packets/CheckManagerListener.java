@@ -95,7 +95,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 Vector3d position = flying.getPosition();
                 player.packetStateData.packetPosition = VectorUtils.clampVector(position);
 
-                final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, onGround, teleportData.isTeleport(), teleportData.isSetback());
+                final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, onGround, teleportData.isTeleport(), teleportData.getSetback());
                 player.checkManager.onPositionUpdate(update);
             }
 

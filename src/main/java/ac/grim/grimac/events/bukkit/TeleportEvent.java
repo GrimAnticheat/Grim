@@ -82,7 +82,7 @@ public class TeleportEvent implements Listener {
         player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.playerWorld = newWorld);
 
         // Force the player to accept a teleport before respawning
-        player.getSetbackTeleportUtil().acceptedTeleports = 0;
+        player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;
 
         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) && newWorld != null) {
             player.compensatedWorld.setMinHeight(newWorld.getMinHeight());

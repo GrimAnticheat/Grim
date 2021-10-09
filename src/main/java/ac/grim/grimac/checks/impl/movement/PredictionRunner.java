@@ -12,7 +12,7 @@ public class PredictionRunner extends PositionCheck {
 
     @Override
     public void onPositionUpdate(final PositionUpdate positionUpdate) {
-        PredictionData data = new PredictionData(player, positionUpdate.getTo().getX(), positionUpdate.getTo().getY(), positionUpdate.getTo().getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, positionUpdate.isOnGround(), positionUpdate.isTeleport(), positionUpdate.isSetback());
+        PredictionData data = new PredictionData(player, positionUpdate.getTo().getX(), positionUpdate.getTo().getY(), positionUpdate.getTo().getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, positionUpdate.isOnGround(), positionUpdate.isTeleport(), positionUpdate.getSetback());
         player.movementCheckRunner.processAndCheckMovementPacket(data);
     }
 }
