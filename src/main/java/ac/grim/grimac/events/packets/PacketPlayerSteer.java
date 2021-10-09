@@ -77,7 +77,6 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.z = vehicle.position.getZ();
 
                 player.packetStateData.packetPosition = vehicle.position;
-                player.getSetbackTeleportUtil().tryResendExpiredSetback();
 
                 // Use bukkit location, not packet location, to stop ping spoof attacks on entity position
                 Entity playerVehicle = player.bukkitPlayer.getVehicle();

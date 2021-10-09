@@ -9,9 +9,9 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.position.WrappedPacketOutPosition;
 import io.github.retrooper.packetevents.utils.pair.Pair;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
@@ -58,14 +58,20 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             teleport.setPosition(pos);
 
-            if (player.getSetbackTeleportUtil().getRequiredSetBack() == null || player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
+            if (teleport.getPitch() == 12.419510391f && teleport.getYaw() == 41.12315918f) {
+                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8)) { // ViaVersion converts relative teleports
+                    teleport.setYaw(player.packetStateData.lastPacketPlayerXRot);
+                    teleport.setPitch(player.packetStateData.lastPacketPlayerYRot);
+                    teleport.setRelativeFlagsMask((byte) 0);
+                } else {
+                    teleport.setYaw(0);
+                    teleport.setPitch(0);
+                    teleport.setRelativeFlagsMask((byte) 0b11000);
+                }
+            } else {
                 teleport.setYaw(yaw);
                 teleport.setPitch(pitch);
                 teleport.setRelativeFlagsMask((byte) 0);
-            } else {
-                teleport.setYaw(0);
-                teleport.setPitch(0);
-                teleport.setRelativeFlagsMask((byte) 0b11000);
             }
 
             player.sendTransaction();
@@ -78,23 +84,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             Location target = new Location(player.bukkitPlayer.getWorld(), pos.getX(), pos.getY(), pos.getZ());
             boolean cancel = player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent);
-
-            // We must sync to bukkit to avoid desync with bukkit target teleport, which
-            // would make the player be unable to interact with anything
-            GrimPlayer finalPlayer = player;
-            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                Location bukkitTarget = finalPlayer.getSetbackTeleportUtil().currentBukkitTarget;
-                Location grimTarget = finalPlayer.getSetbackTeleportUtil().currentTargetTeleport;
-
-                boolean closeEnoughY = Math.abs(bukkitTarget.getY() - grimTarget.getY()) < 1e-7; // 1.7 rounding
-                // We blocked a teleport and now must therefore resync
-                if (bukkitTarget.getX() != grimTarget.getX() || !closeEnoughY || bukkitTarget.getZ() != grimTarget.getZ()) {
-                    Location safe = finalPlayer.getSetbackTeleportUtil().getSafeLocation();
-                    safe.setYaw(finalPlayer.xRot);
-                    safe.setPitch(finalPlayer.yRot);
-                    finalPlayer.bukkitPlayer.teleport(safe);
-                }
-            });
 
             // It's the damn vanilla anticheat again!  We must override it!
             if (cancel) {
