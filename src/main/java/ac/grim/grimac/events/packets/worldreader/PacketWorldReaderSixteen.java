@@ -51,7 +51,6 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
     @Override
     public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-        if (player == null) return;
 
         try {
             // Section Position or Chunk Section - depending on version
@@ -84,7 +83,7 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
                 int blockY = sixteenSectionRelativeY(blockPosition);
                 int blockZ = sixteenSectionRelativeZ(blockPosition);
 
-                int blockID = (int) getByCombinedID.invoke(null, blockDataArray[i]);
+                int blockID = getByCombinedID(blockDataArray[i]);
 
                 player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
             }

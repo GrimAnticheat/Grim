@@ -108,7 +108,6 @@ public class PacketWorldReaderSeven extends BasePacketWorldReader {
     @Override
     public void handleBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-        if (player == null) return;
         if (player.compensatedWorld.isResync) return;
 
         try {

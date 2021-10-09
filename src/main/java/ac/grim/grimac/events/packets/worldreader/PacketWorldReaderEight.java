@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.eight.EightChunk;
 import ac.grim.grimac.utils.chunkdata.eight.ShortArray3d;
+import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.ChangeBlockData;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -11,30 +12,35 @@ import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.ShortBuffer;
 import java.util.BitSet;
 
-public class PacketWorldReaderEight extends PacketWorldReaderSeven {
-
-    public void readChunk(ShortBuffer buf, BaseChunk[] chunks, BitSet set) {
-        int pos = 0;
-
+public class PacketWorldReaderEight extends BasePacketWorldReader {
+    // Synchronous
+    private void readChunk(ShortBuffer buf, BaseChunk[] chunks, BitSet set) {
         // We only need block data!
+        long start = System.nanoTime();
         for (int ind = 0; ind < 16; ind++) {
             if (set.get(ind)) {
                 ShortArray3d blocks = new ShortArray3d(4096);
-                buf.position(pos / 2);
                 buf.get(blocks.getData(), 0, blocks.getData().length);
-                pos += blocks.getData().length * 2;
 
-                chunks[ind] = new EightChunk(blocks);
+                EightChunk normal = new EightChunk(blocks);
+                chunks[ind] = normal;
+                TwelveChunk compressed = new TwelveChunk();
+
+
+                for (int y = 0; y < 4096; y++) {
+                    compressed.set(y, normal.getBlocks().get(y));
+                }
             }
         }
+        Bukkit.broadcastMessage("Took " + (System.nanoTime() - start));
     }
 
     @Override
@@ -45,7 +51,7 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
         Object[] chunkData = (Object[]) packet.readAnyObject(2);
 
         for (int i = 0; i < chunkXArray.length; i++) {
-            EightChunk[] chunks = new EightChunk[16];
+            BaseChunk[] chunks = new BaseChunk[16];
             int chunkX = chunkXArray[i];
             int chunkZ = chunkZArray[i];
 
@@ -62,7 +68,6 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
     @Override
     public void handleMapChunk(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
-        if (player == null) return;
 
         try {
             int chunkX = packet.getChunkX();
@@ -77,7 +82,7 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
             }
 
             ShortBuffer buf = ByteBuffer.wrap(packet.getCompressedData()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
-            EightChunk[] chunks = new EightChunk[16];
+            BaseChunk[] chunks = new BaseChunk[16];
             BitSet set = packet.getBitSet();
 
             readChunk(buf, chunks, set);
@@ -91,7 +96,6 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
     @Override
     public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-        if (player == null) return;
 
         try {
             // Section Position or Chunk Section - depending on version
@@ -119,7 +123,7 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
 
             for (Object o : blockInformation) {
                 short pos = shortField.getShort(o);
-                int blockID = (int) getByCombinedID.invoke(null, blockDataField.get(o));
+                int blockID = getByCombinedID(blockDataField.get(o));
 
                 int blockX = pos >> 12 & 15;
                 int blockY = pos & 255;
@@ -128,7 +132,7 @@ public class PacketWorldReaderEight extends PacketWorldReaderSeven {
                 player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, chunkX + blockX, blockY, chunkZ + blockZ, blockID));
             }
 
-        } catch (IllegalAccessException | InvocationTargetException | NoSuchFieldException exception) {
+        } catch (IllegalAccessException | NoSuchFieldException exception) {
             exception.printStackTrace();
         }
     }
