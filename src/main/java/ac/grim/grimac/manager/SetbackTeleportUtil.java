@@ -34,6 +34,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean blockOffsets = false;
     // Sync to netty, a player MUST accept a teleport to spawn into the world
     public int acceptedTeleports = 0;
+    public int bukkitTeleportsProcessed = 0;
     // This handles not overriding another plugin's teleport
     // Safe from corruption from the vanilla anticheat!
     //
@@ -127,39 +128,41 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // Don't teleport cross world, it will break more than it fixes.
         if (position.getWorld() != player.bukkitPlayer.getWorld()) return;
 
-        if (force || !isPendingTeleport()) {
-            // Deal with ghost blocks near the player (from anticheat/netty thread)
-            // Only let us full resync once every two seconds to prevent unneeded netty load
-            if (System.nanoTime() - lastWorldResync > 2e-9) {
-                player.getResyncWorldUtil().resyncPositions(player, player.boundingBox.copy().expand(1), false);
-                lastWorldResync = System.nanoTime();
+        // Deal with ghost blocks near the player (from anticheat/netty thread)
+        // Only let us full resync once every two seconds to prevent unneeded netty load
+        if (System.nanoTime() - lastWorldResync > 2e-9) {
+            player.getResyncWorldUtil().resyncPositions(player, player.boundingBox.copy().expand(1), false);
+            lastWorldResync = System.nanoTime();
+        }
+
+        hasAcceptedSetbackPosition = false;
+        int bukkitTeleports = bukkitTeleportsProcessed;
+
+        Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+            if ((bukkitTeleportsProcessed > bukkitTeleports || isPendingTeleport()) && !force) return;
+
+            Bukkit.broadcastMessage("Setting back to " + position.getY());
+            requiredSetBack = new SetBackData(position, xRot, yRot, velocity, vehicle, player.lastTransactionSent.get());
+
+            // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
+            Entity playerVehicle = player.bukkitPlayer.getVehicle();
+            player.bukkitPlayer.eject();
+
+            // Mojang is terrible and tied together:
+            // on fire, is crouching, riding, sprinting, swimming, invisible, has glowing effect, fall flying
+            // into one byte!  At least this gives me a very easy method to resync metadata on all server versions
+            boolean isSneaking = player.bukkitPlayer.isSneaking();
+            player.bukkitPlayer.setSneaking(!isSneaking);
+            player.bukkitPlayer.setSneaking(isSneaking);
+
+            if (playerVehicle != null) {
+                // Stop the player from being able to teleport vehicles and simply re-enter them to continue
+                playerVehicle.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), playerVehicle.getLocation().getYaw(), playerVehicle.getLocation().getPitch()));
             }
 
-            hasAcceptedSetbackPosition = false;
-
-            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                requiredSetBack = new SetBackData(position, xRot, yRot, velocity, vehicle, player.lastTransactionSent.get());
-
-                // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
-                Entity playerVehicle = player.bukkitPlayer.getVehicle();
-                player.bukkitPlayer.eject();
-
-                // Mojang is terrible and tied together:
-                // on fire, is crouching, riding, sprinting, swimming, invisible, has glowing effect, fall flying
-                // into one byte!  At least this gives me a very easy method to resync metadata on all server versions
-                boolean isSneaking = player.bukkitPlayer.isSneaking();
-                player.bukkitPlayer.setSneaking(!isSneaking);
-                player.bukkitPlayer.setSneaking(isSneaking);
-
-                if (playerVehicle != null) {
-                    // Stop the player from being able to teleport vehicles and simply re-enter them to continue
-                    playerVehicle.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), playerVehicle.getLocation().getYaw(), playerVehicle.getLocation().getPitch()));
-                }
-
-                player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), 41.12315918f, 12.419510391f));
-                player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
-            });
-        }
+            player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), 41.12315918f, 12.419510391f));
+            player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
+        });
     }
 
     /**
@@ -213,7 +216,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 }
 
                 teleportData.setTeleport(true);
-            } else if (lastTransaction > teleportPos.getFirst() + 1) { // Give a transaction or two lenience as we track transactions from bukkit
+            } else if (lastTransaction > teleportPos.getFirst() + 1) {
                 teleports.poll();
                 resendSetback(true);
                 continue;
@@ -273,7 +276,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public boolean isPendingTeleport() {
-        return !teleports.isEmpty();
+        return !teleports.isEmpty() || !pendingTeleports.isEmpty();
     }
 
     public boolean insideUnloadedChunk() {
@@ -303,6 +306,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @param position Position of the teleport
      */
     public void setTargetTeleport(Location position) {
+        bukkitTeleportsProcessed++;
         pendingTeleports.add(position);
         currentTargetTeleport = position;
         hasAcceptedSetbackPosition = false;
@@ -319,12 +323,21 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
     public boolean addSentTeleport(Location position, int transaction) {
         Location loc;
-        while ((loc = pendingTeleports.poll()) != null) {
-            if (loc.getX() != position.getX() || (Math.abs(loc.getY() - position.getY()) > 1e-7) || loc.getZ() != position.getZ())
-                continue;
 
-            teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
-            return false;
+        boolean wasTeleportEventCalled = false;
+        for (Location location : pendingTeleports) {
+            if (location.getX() == position.getX() && (Math.abs(location.getY() - position.getY()) < 1e-7) && location.getZ() == position.getZ())
+                wasTeleportEventCalled = true;
+        }
+
+        if (wasTeleportEventCalled) {
+            while ((loc = pendingTeleports.poll()) != null) {
+                if (loc.getX() != position.getX() || (Math.abs(loc.getY() - position.getY()) > 1e-7) || loc.getZ() != position.getZ())
+                    continue;
+
+                teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
+                return false;
+            }
         }
 
         // Player hasn't spawned yet (Bukkit doesn't call event for first teleport)
@@ -337,7 +350,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // (Vanilla anticheat sent this without calling the event!)
         // We must sync to bukkit to avoid desync with bukkit target teleport, which
         // would make the player be unable to interact with anything
+        int processed = bukkitTeleportsProcessed;
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+            if (bukkitTeleportsProcessed > processed) return;
             if (!player.bukkitPlayer.isInsideVehicle()) {
                 Location location = pendingTeleports.peekLast();
                 if (location != null) {
