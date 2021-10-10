@@ -407,7 +407,7 @@ public class Materials {
         return (MATERIAL_FLAGS[material.ordinal()] & flag) == flag;
     }
 
-    public static boolean isWaterFlat(ClientVersion clientVersion, BaseBlockState state) {
+    public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
         return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
     }
 
@@ -471,7 +471,7 @@ public class Materials {
         return NO_PLACE_LIQUIDS.contains(material);
     }
 
-    public static boolean isWaterMagic(ClientVersion clientVersion, BaseBlockState state) {
+    public static boolean isWaterIgnoringWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
         return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY);
     }
 }

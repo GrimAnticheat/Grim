@@ -75,7 +75,7 @@ public class NoFallA extends PacketCheck {
                     feetBB.expandToAbsoluteCoordinates(lastPos.getX(), lastPos.getY(), lastPos.getZ());
 
                 // Shulkers have weird BB's that the player might be standing on
-                if (Collisions.hasMaterial(player, feetBB, material -> Materials.checkFlag(material, Materials.SHULKER)))
+                if (Collisions.hasMaterial(player, feetBB, blockData -> Materials.checkFlag(blockData.getMaterial(), Materials.SHULKER)))
                     return;
 
                 // This is to support stepping movement (Not blatant, we need to wait on prediction engine to flag this)
