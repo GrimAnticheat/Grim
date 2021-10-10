@@ -69,7 +69,6 @@ public class TwelveChunk implements BaseChunk {
                         this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, this.storage.getSize());
                         for (int index = 0; index < this.storage.getSize(); index++) {
                             this.storage.set(index, this.bitsPerEntry <= 8 ? oldStorage.get(index) : oldStates.get(oldStorage.get(index)).getCombinedId());
-                            reversePalette.put(oldStorage.get(index), index);
                         }
                     }
 
