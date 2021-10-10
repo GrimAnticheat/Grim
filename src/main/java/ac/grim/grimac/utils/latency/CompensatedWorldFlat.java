@@ -196,14 +196,14 @@ public class CompensatedWorldFlat extends CompensatedWorld {
     @Override
     public double getWaterFluidLevelAt(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
-        boolean isWater = Materials.isWaterFlat(player.getClientVersion(), bukkitBlock);
+        boolean isWater = Materials.isWater(player.getClientVersion(), bukkitBlock);
 
         if (!isWater) return 0;
 
         BaseBlockState aboveData = getWrappedBlockStateAt(x, y + 1, z);
 
         // If water has water above it, it's block height is 1, even if it's waterlogged
-        if (Materials.isWaterFlat(player.getClientVersion(), aboveData)) {
+        if (Materials.isWater(player.getClientVersion(), aboveData)) {
             return 1;
         }
 

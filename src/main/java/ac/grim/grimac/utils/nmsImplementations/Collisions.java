@@ -625,16 +625,16 @@ public class Collisions {
 
     public static boolean hasMaterial(GrimPlayer player, int materialType) {
         SimpleCollisionBox playerBB = player.boundingBox.copy().expand(0.03).offset(0, -0.04, 0);
-        return hasMaterial(player, playerBB, material -> Materials.checkFlag(material, materialType));
+        return hasMaterial(player, playerBB, material -> Materials.checkFlag(material.getMaterial(), materialType));
     }
 
     public static boolean hasMaterial(GrimPlayer player, Material searchMat, double offset) {
         SimpleCollisionBox playerBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, offset, 0);
-        return hasMaterial(player, playerBB, material -> material == searchMat);
+        return hasMaterial(player, playerBB, material -> material.getMaterial() == searchMat);
     }
 
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Material> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<BaseBlockState> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
         int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
         int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
@@ -689,7 +689,7 @@ public class Collisions {
 
                             BaseBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
 
-                            if (searchingFor.test(data.getMaterial())) return true;
+                            if (searchingFor.test(data)) return true;
                         }
                     }
                 }

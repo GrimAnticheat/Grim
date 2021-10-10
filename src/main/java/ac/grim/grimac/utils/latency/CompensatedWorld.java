@@ -21,6 +21,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.lists.EvictingList;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
@@ -388,52 +389,20 @@ public class CompensatedWorld {
 
     public boolean isFluidFalling(int x, int y, int z) {
         MagicBlockState bukkitBlock = (MagicBlockState) getWrappedBlockStateAt(x, y, z);
-
         return ((bukkitBlock.getBlockData() & 0x8) == 8);
     }
 
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
-
         return ((MagicBlockState) bukkitBlock).getBlockData() == 0;
     }
 
     public boolean containsLiquid(SimpleCollisionBox var0) {
-        int var1 = (int) Math.floor(var0.minX);
-        int var2 = (int) Math.ceil(var0.maxX);
-        int var3 = (int) Math.floor(var0.minY);
-        int var4 = (int) Math.ceil(var0.maxY);
-        int var5 = (int) Math.floor(var0.minZ);
-        int var6 = (int) Math.ceil(var0.maxZ);
-
-        for (int var8 = var1; var8 < var2; ++var8) {
-            for (int var9 = var3; var9 < var4; ++var9) {
-                for (int var10 = var5; var10 < var6; ++var10) {
-                    if (player.compensatedWorld.getFluidLevelAt(var8, var9, var10) > 0) return true;
-                }
-            }
-        }
-
-        return false;
+        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data) || Materials.checkFlag(data.getMaterial(), Materials.LAVA));
     }
 
     public boolean containsWater(SimpleCollisionBox var0) {
-        int var1 = (int) Math.floor(var0.minX);
-        int var2 = (int) Math.ceil(var0.maxX);
-        int var3 = (int) Math.floor(var0.minY);
-        int var4 = (int) Math.ceil(var0.maxY);
-        int var5 = (int) Math.floor(var0.minZ);
-        int var6 = (int) Math.ceil(var0.maxZ);
-
-        for (int var8 = var1; var8 < var2; ++var8) {
-            for (int var9 = var3; var9 < var4; ++var9) {
-                for (int var10 = var5; var10 < var6; ++var10) {
-                    if (player.compensatedWorld.getWaterFluidLevelAt(var8, var9, var10) > 0) return true;
-                }
-            }
-        }
-
-        return false;
+        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data));
     }
 
     public double getLavaFluidLevelAt(int x, int y, int z) {
@@ -455,22 +424,7 @@ public class CompensatedWorld {
     }
 
     public boolean containsLava(SimpleCollisionBox var0) {
-        int var1 = (int) Math.floor(var0.minX);
-        int var2 = (int) Math.ceil(var0.maxX);
-        int var3 = (int) Math.floor(var0.minY);
-        int var4 = (int) Math.ceil(var0.maxY);
-        int var5 = (int) Math.floor(var0.minZ);
-        int var6 = (int) Math.ceil(var0.maxZ);
-
-        for (int var8 = var1; var8 < var2; ++var8) {
-            for (int var9 = var3; var9 < var4; ++var9) {
-                for (int var10 = var5; var10 < var6; ++var10) {
-                    if (player.compensatedWorld.getLavaFluidLevelAt(var8, var9, var10) > 0) return true;
-                }
-            }
-        }
-
-        return false;
+        return Collisions.hasMaterial(player, var0, data -> Materials.checkFlag(data.getMaterial(), Materials.LAVA));
     }
 
     public double getWaterFluidLevelAt(double x, double y, double z) {
@@ -479,12 +433,12 @@ public class CompensatedWorld {
 
     public double getWaterFluidLevelAt(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
-        boolean isWater = Materials.isWaterMagic(player.getClientVersion(), bukkitBlock);
+        boolean isWater = Materials.isWaterIgnoringWaterlogged(player.getClientVersion(), bukkitBlock);
 
         if (!isWater) return 0;
 
         // If water has water above it, it's block height is 1, even if it's waterlogged
-        if (Materials.isWaterMagic(player.getClientVersion(), getWrappedBlockStateAt(x, y + 1, z))) {
+        if (Materials.isWaterIgnoringWaterlogged(player.getClientVersion(), getWrappedBlockStateAt(x, y + 1, z))) {
             return 1;
         }
 
