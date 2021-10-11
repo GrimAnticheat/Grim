@@ -68,15 +68,11 @@ public class MovementCheckRunner extends PositionCheck {
 
     public void processAndCheckMovementPacket(PredictionData data) {
         // The player is in an unloaded chunk and didn't teleport
-        if (!data.isJustTeleported && player.getSetbackTeleportUtil().insideUnloadedChunk()) {
+        // OR
+        // This teleport wasn't valid as the player STILL hasn't loaded this damn chunk.
+        // Keep re-teleporting until they load the chunk!
+        if (player.getSetbackTeleportUtil().insideUnloadedChunk()) {
             // Teleport the player back to avoid players being able to simply ignore transactions
-            player.getSetbackTeleportUtil().executeForceResync();
-            return;
-        }
-
-        if (data.isJustTeleported && player.getSetbackTeleportUtil().insideUnloadedChunk()) {
-            // This teleport wasn't valid as the player STILL hasn't loaded this damn chunk.
-            // Keep re-teleporting until they load the chunk!
             player.getSetbackTeleportUtil().executeForceResync();
             return;
         }
