@@ -13,11 +13,10 @@ public abstract class HookedListWrapper<T> extends ListWrapper<T> {
     }
 
     // We can use the List#size call to execute some code
-    public abstract void onSize();
+    public abstract void onIterator();
 
     @Override
     public int size() {
-        this.onSize();
         return this.base.size();
     }
 
@@ -33,6 +32,7 @@ public abstract class HookedListWrapper<T> extends ListWrapper<T> {
 
     @Override
     public Iterator<T> iterator() {
+        this.onIterator();
         return this.listIterator();
     }
 
