@@ -45,7 +45,7 @@ public class ExplosionHandler extends PacketCheck {
 
                 player.sendTransaction();
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
-                event.setPostTask(player::sendAndFlushTransaction);
+                event.setPostTask(player::sendTransaction);
             }
         }
     }

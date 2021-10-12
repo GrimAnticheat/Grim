@@ -275,7 +275,7 @@ public class Reach extends PacketCheck {
 
     public void onEndOfTickEvent() {
         // Only send a transaction at the end of the tick if we are tracking players
-        player.sendAndFlushTransaction(); // Vanilla already flushed packet at this point
+        player.sendTransaction(); // We injected before vanilla flushes :) we don't need to flush
         hasSentPreWavePacket = false;
     }
 

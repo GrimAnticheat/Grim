@@ -8,12 +8,11 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
 import sun.misc.Unsafe;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Proxy;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -21,24 +20,6 @@ import java.util.concurrent.CompletableFuture;
 @SuppressWarnings(value = {"unchecked", "deprecated"})
 public class TickEndEvent implements Initable {
     boolean hasTicked = true;
-
-    static Class<?> tickEnd = null;
-
-    static {
-        try {
-            if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
-                tickEnd = NMSUtils.getNMSClass("IUpdatePlayerListBox");
-            } else if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_13_2)) {
-                tickEnd = NMSUtils.getNMSClass("ITickable");
-            } else {
-                tickEnd = Runnable.class;
-            }
-
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
 
     private static void tickRelMove() { // Don't send packets on the main thread.
         CompletableFuture.runAsync(() -> {
@@ -50,50 +31,33 @@ public class TickEndEvent implements Initable {
 
     @Override
     public void start() {
-        Field endOfTickList = Reflection.getField(NMSUtils.minecraftServerClass, List.class, 0);
-        Object server = NMSUtils.getMinecraftServerInstance(Bukkit.getServer());
+        // Inject so we can add the final transaction pre-flush event
+        try {
+            Object connection = NMSUtils.getMinecraftServerConnection();
 
-        // Delayed init to add compatibility with Pledge
-        Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-            try {
-                List<Object> endOfTickObject = (List<Object>) endOfTickList.get(server);
+            Field connectionsList = Reflection.getField(connection.getClass(), List.class, 1);
+            List<Object> endOfTickObject = (List<Object>) connectionsList.get(connection);
 
-                // Fallback injector to add compatibility with Pledge
-                // (Not preferred method as this is a bit slower)
-                if (endOfTickObject.getClass().toString().toLowerCase().contains("serverinjector")) {
-                    endOfTickList.setAccessible(true);
-
-                    Object end = Proxy.newProxyInstance(tickEnd.getClassLoader(),
-                            new Class[]{tickEnd},
-
-                            (proxy, method, args) -> {
-                                // Use a list wrapper to check when the size method is called
-                                hasTicked = true;
-                                tickRelMove();
-                                return null;
-                            });
-
-                    ((List<Object>) endOfTickList.get(server)).add(end);
-                    return;
+            // Use a list wrapper to check when the size method is called
+            // Unsure why synchronized is needed because the object itself gets synchronized
+            // but whatever.  At least plugins can't break it, I guess.
+            //
+            // Pledge injects into another list, so we should be safe injecting into this one
+            List<?> wrapper = Collections.synchronizedList(new HookedListWrapper<Object>(endOfTickObject) {
+                @Override
+                public void onIterator() {
+                    hasTicked = true;
+                    tickRelMove();
                 }
+            });
 
-                // Use a list wrapper to check when the size method is called
-                HookedListWrapper<?> wrapper = new HookedListWrapper<Object>(endOfTickObject) {
-                    @Override
-                    public void onSize() {
-                        hasTicked = true;
-                        tickRelMove();
-                    }
-                };
-
-                Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
-                unsafeField.setAccessible(true);
-                Unsafe unsafe = (Unsafe) unsafeField.get(null);
-                unsafe.putObject(server, unsafe.objectFieldOffset(endOfTickList), wrapper);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        });
+            Field unsafeField = Unsafe.class.getDeclaredField("theUnsafe");
+            unsafeField.setAccessible(true);
+            Unsafe unsafe = (Unsafe) unsafeField.get(null);
+            unsafe.putObject(connection, unsafe.objectFieldOffset(connectionsList), wrapper);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
         // This should NEVER happen!  But there are two scenarios where it could:
         // 1) Some stupid jar messed up our reflection

@@ -391,15 +391,7 @@ public class GrimPlayer {
     }
 
     public void sendTransaction() {
-        sendTransactionOrPingPong(getNextTransactionID(1), false);
-    }
-
-    public void sendAndFlushTransaction() {
-        sendTransactionOrPingPong(getNextTransactionID(1), true);
-    }
-
-    // Shouldn't error, but be on the safe side as this is networking stuff
-    public void sendTransactionOrPingPong(short transactionID, boolean flush) {
+        short transactionID = getNextTransactionID(1);
         try {
             addTransactionSend(transactionID);
 
@@ -408,9 +400,6 @@ public class GrimPlayer {
             } else {
                 PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));
             }
-
-            if (flush)
-                PacketEvents.get().getPlayerUtils().flushPackets(bukkitPlayer);
         } catch (Exception exception) {
             exception.printStackTrace();
         }
