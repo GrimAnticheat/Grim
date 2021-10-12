@@ -347,34 +347,45 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             }
         }
 
+
         // Player hasn't spawned yet (Bukkit doesn't call event for first teleport)
-        if (!hasSentSpawnTeleport) {
+        // Bukkit is a piece of shit and doesn't call the teleport event for vehicle changes
+        // or on join
+        // or randomly sometimes
+        // NICE BUG FIX MD_5!
+        if (!player.wasVanillaAC) {
             hasSentSpawnTeleport = true;
             teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
             return false;
         }
 
         // Where did this teleport come from?
-        // (Vanilla anticheat sent this without calling the event!)
+        // (Vanilla anticheat sent this!)
         // We must sync to bukkit to avoid desync with bukkit target teleport, which
         // would make the player be unable to interact with anything
         int processed = bukkitTeleportsProcessed;
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+            // A new teleport has overridden this, so the player is safe from a desync.
             if (bukkitTeleportsProcessed > processed) return;
-            if (!player.bukkitPlayer.isInsideVehicle()) {
-                Location location = pendingTeleports.peekLast();
-                if (location != null) {
-                    player.bukkitPlayer.teleport(location);
-                } else {
-                    Location safePos = safeTeleportPosition.position;
-                    safePos.setPitch(12.419510391f);
-                    safePos.setYaw(41.12315918f);
-                    player.bukkitPlayer.teleport(safeTeleportPosition.position);
-                }
-            }
+
+            teleportPlayerToOverrideVanillaAC();
         });
 
         return true;
+    }
+
+    public void teleportPlayerToOverrideVanillaAC() {
+        player.bukkitPlayer.eject();
+
+        Location location = pendingTeleports.peekLast();
+        if (location != null) {
+            player.bukkitPlayer.teleport(location);
+        } else {
+            Location safePos = safeTeleportPosition.position;
+            safePos.setPitch(12.419510391f);
+            safePos.setYaw(41.12315918f);
+            player.bukkitPlayer.teleport(safeTeleportPosition.position);
+        }
     }
 }
 

@@ -2,7 +2,6 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.SetBackData;
 import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entityteleport.WrappedPacketOutEntityTeleport;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
@@ -21,22 +20,6 @@ import java.util.Collections;
 import java.util.List;
 
 public class VehicleEnterExitEvent implements Listener {
-    @EventHandler(priority = EventPriority.LOW)
-    public void onPlayerVehicleEnterEvent(VehicleEnterEvent event) {
-        if (!(event.getEntered() instanceof Player)) return;
-
-        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getEntered());
-        if (player == null) return;
-
-        SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
-
-        // Pending setback, don't let the player mount the vehicle
-        // Don't block if this is another plugin teleport and not a setback
-        if (data != null && !data.isComplete() && !player.getSetbackTeleportUtil().hasAcceptedSetbackPosition) {
-            event.setCancelled(true);
-        }
-    }
-
     @EventHandler(priority = EventPriority.MONITOR)
     public void onVehicleEnter(VehicleEnterEvent event) {
         if (!(event.getEntered() instanceof Player)) return;

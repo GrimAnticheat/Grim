@@ -36,15 +36,16 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.github.retrooper:packetevents:db1c913'
+    implementation 'io.github.retrooper:packetevents:cb1438c'
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:2.2.1'
-    implementation 'club.minnced:discord-webhooks:0.5.8'
-    implementation 'it.unimi.dsi:fastutil:8.2.1'
+    implementation 'club.minnced:discord-webhooks:0.7.2'
+    implementation 'it.unimi.dsi:fastutil:8.5.6'
 
     compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.0.0'
+    compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
 
     compileOnly 'org.projectlombok:lombok:1.18.20'
     annotationProcessor 'org.projectlombok:lombok:1.18.20'
