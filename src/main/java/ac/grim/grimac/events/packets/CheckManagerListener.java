@@ -55,9 +55,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // Don't check duplicate 1.17 packets (Why would you do this mojang?)
             // Don't check rotation since it changes between these packets, with the second being irrelevant.
+            //
+            // If a player sends a POS LOOK in a vehicle... then it was this stupid fucking mechanic
             if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport) {
                 if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && System.currentTimeMillis() - lastPosLook < 750 &&
-                        player.packetStateData.packetPosition.equals(flying.getPosition()))) {
+                        player.packetStateData.packetPosition.equals(flying.getPosition())) || player.packetStateData.isInVehicle) {
                     lastPosLook = System.currentTimeMillis();
                     player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 

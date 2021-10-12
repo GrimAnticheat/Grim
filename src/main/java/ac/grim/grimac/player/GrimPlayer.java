@@ -62,6 +62,7 @@ public class GrimPlayer {
     public PredictionData nextTaskToRun;
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
+    public boolean wasVanillaAC = false;
     public boolean canSwimHop = false;
     public int riptideSpinAttackTicks = 0;
     public boolean hasGravity = true;
@@ -196,6 +197,8 @@ public class GrimPlayer {
         this.entityID = player.getEntityId();
         this.playerWorld = player.getWorld();
 
+        clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
+
         // We can't send transaction packets to this player, disable the anticheat for them
         if (!isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_16_4)) {
             LogUtil.warn(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
@@ -215,8 +218,6 @@ public class GrimPlayer {
 
         isFlying = bukkitPlayer.isFlying();
         wasFlying = bukkitPlayer.isFlying();
-
-        clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
 
         if (ViaVersionLookupUtils.isAvailable()) {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);

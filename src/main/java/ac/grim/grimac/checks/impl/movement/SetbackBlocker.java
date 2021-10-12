@@ -21,7 +21,7 @@ public class SetbackBlocker extends PacketCheck {
             }
 
             // Look is the only valid packet to send while in a vehicle
-            if (player.packetStateData.isInVehicle && event.getPacketId() != PacketType.Play.Client.LOOK) {
+            if (player.packetStateData.isInVehicle && event.getPacketId() != PacketType.Play.Client.LOOK && !player.packetStateData.lastPacketWasTeleport) {
                 event.setCancelled(true);
             }
 
