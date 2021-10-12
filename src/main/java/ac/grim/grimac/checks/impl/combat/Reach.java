@@ -225,7 +225,12 @@ public class Reach extends PacketCheck {
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK || packetID == PacketType.Play.Server.ENTITY_LOOK) {
             WrappedPacketOutEntity.WrappedPacketOutRelEntityMove move = new WrappedPacketOutEntity.WrappedPacketOutRelEntityMove(event.getNMSPacket());
 
-            if (entityMap.containsKey(move.getEntityId())) {
+            PlayerReachEntity reachEntity = entityMap.get(move.getEntityId());
+            if (reachEntity != null) {
+                // We can't hang two relative moves on one transaction
+                if (reachEntity.lastTransactionHung == player.lastTransactionSent.get()) player.sendTransaction();
+                reachEntity.lastTransactionHung = player.lastTransactionSent.get();
+
                 handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
             }
         }
@@ -233,7 +238,12 @@ public class Reach extends PacketCheck {
         if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
             WrappedPacketOutEntityTeleport teleport = new WrappedPacketOutEntityTeleport(event.getNMSPacket());
 
-            if (entityMap.containsKey(teleport.getEntityId())) {
+            PlayerReachEntity reachEntity = entityMap.get(teleport.getEntityId());
+            if (reachEntity != null) {
+                // We can't hang two relative moves on one transaction
+                if (reachEntity.lastTransactionHung == player.lastTransactionSent.get()) player.sendTransaction();
+                reachEntity.lastTransactionHung = player.lastTransactionSent.get();
+
                 Vector3d pos = teleport.getPosition();
                 handleMoveEntity(teleport.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), false);
             }

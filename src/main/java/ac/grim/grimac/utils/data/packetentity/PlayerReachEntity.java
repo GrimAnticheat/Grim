@@ -27,6 +27,7 @@ public class PlayerReachEntity {
     public Vector3d serverPos;
     public ReachInterpolationData oldPacketLocation;
     public ReachInterpolationData newPacketLocation;
+    public int lastTransactionHung;
 
     public PlayerReachEntity(double x, double y, double z, GrimPlayer player) {
         serverPos = new Vector3d(x, y, z);
