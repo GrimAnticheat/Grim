@@ -55,50 +55,156 @@ public class PredictionEngine {
         player.couldSkipTick = false; // Reset could skip tick
         player.couldSkipTick = player.uncertaintyHandler.canSkipTick(possibleVelocities);
 
+        handleVerticalZeroPointThree(player, possibleVelocities);
+
         if (player.couldSkipTick) {
-            Set<VectorData> zeroStuff = new HashSet<>();
+            addZeroPointThreeToPossibilities(speed, player, possibleVelocities);
+        }
 
-            // Allow the player's Y velocity to be 0 if they are in water/lava (0.03 issue)
-            Vector pointThreeVector = new Vector();
-            if (!player.uncertaintyHandler.controlsVerticalMovement())
-                pointThreeVector.setY(player.clientVelocity.getY() * player.stuckSpeedMultiplier.getY());
+        // Sorting is an optimization and a requirement
+        possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
-            VectorData zeroData = new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree);
-            zeroStuff.add(zeroData);
+        double bestInput = Double.MAX_VALUE;
+        double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
+        VectorData bestCollisionVel = null;
+        Vector beforeCollisionMovement = null;
+        Vector originalClientVel = player.clientVelocity;
 
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
-                zeroStuff = PredictionEngineWater.transformSwimmingVectors(player, zeroStuff);
+        Pose originalPose = player.pose;
+        SimpleCollisionBox originalBB = player.boundingBox;
+
+        outer:
+        while (true) {
+            for (VectorData clientVelAfterInput : possibleVelocities) {
+                Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput);
+                Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
+                Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
+
+                flipSneaking(player, originalPose, originalBB, clientVelAfterInput);
+
+                double xAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+                double yAdditional = (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
+                double zAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+
+                // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
+                double testX = primaryPushMovement.getX() + xAdditional;
+                double testY = primaryPushMovement.getY() - yAdditional;
+                double testZ = primaryPushMovement.getZ() + zAdditional;
+                primaryPushMovement = new Vector(testX, testY, testZ);
+
+                Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, testY), 0, testX, Math.max(0.6, testY), testZ).sort());
+                if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
+                    continue;
+
+                Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY());
+
+                if (testX == outputVel.getX()) { // the player didn't have X collision, don't ruin offset by collision epsilon
+                    primaryPushMovement.setX(primaryPushMovement.getX() - xAdditional);
+                    outputVel.setX(outputVel.getX() - xAdditional);
+                }
+
+                if (testY == outputVel.getY()) { // the player didn't have Y collision, don't ruin offset by collision epsilon
+                    primaryPushMovement.setY(primaryPushMovement.getY() + yAdditional);
+                    outputVel.setY(outputVel.getY() + yAdditional);
+                }
+
+                if (testZ == outputVel.getZ()) { // the player didn't have Z collision, don't ruin offset by collision epsilon
+                    primaryPushMovement.setZ(primaryPushMovement.getZ() - zAdditional);
+                    outputVel.setZ(outputVel.getZ() - zAdditional);
+                }
+
+                Vector handleHardCodedBorder = outputVel;
+                handleHardCodedBorder = clampMovementToHardBorder(player, outputVel, handleHardCodedBorder);
+
+                double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
+
+                if (!player.couldSkipTick && handleHardCodedBorder.lengthSquared() < threshold) {
+                    // Collision means that this is now possible and the player did indeed skip a tick
+                    player.couldSkipTick = true;
+                    addZeroPointThreeToPossibilities(speed, player, possibleVelocities);
+                    // Must loop again to avoid a concurrent modification exception while iterating the list
+                    continue outer;
+                }
+
+                // This allows us to always check the percentage of knockback taken
+                // A player cannot simply ignore knockback without us measuring how off it was
+                if (clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) {
+                    // Check ONLY the knockback vectors for 0.03
+                    // The first being the one without uncertainty
+                    // And the last having uncertainty to deal with 0.03
+                    boolean wasPointThree = player.uncertaintyHandler.canSkipTick(Arrays.asList(clientVelAfterInput, clientVelAfterInput.returnNewModified(primaryPushMovement, VectorData.VectorType.Normal), clientVelAfterInput.returnNewModified(handleHardCodedBorder, VectorData.VectorType.Normal)));
+
+                    if (clientVelAfterInput.isKnockback()) {
+                        player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+                        player.checkManager.getKnockbackHandler().setPointThree(wasPointThree);
+                    }
+
+                    if (clientVelAfterInput.isExplosion()) {
+                        player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+                        player.checkManager.getExplosionHandler().setPointThree(wasPointThree);
+                    }
+                }
+
+                // Whatever, if someone uses phase or something they will get caught by everything else...
+                // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
+                // As not flipping item is preferred... it gets ran before any other options
+                if (player.isUsingItem == AlmostBoolean.TRUE && !clientVelAfterInput.isFlipItem()) {
+                    player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+                }
+
+                if (resultAccuracy < bestInput) {
+                    bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
+                    beforeCollisionMovement = primaryPushMovement;
+
+                    bestInput = resultAccuracy;
+
+                    // Optimization - Close enough, other inputs won't get closer
+                    // This works as knockback and explosions are run first
+                    //
+                    // Note that sometimes the first and closest velocity isn't the closest because collisions
+                    // The player may only be able to move a slight amount compared to what the initial vector shows
+                    //
+                    // 0.001 was causing issues with horizontal collision resulting in 1e-4 (which should flag checks!)
+                    // Ladders are the best way to see this behavior
+                    // Remember this is squared, so it is actually 0.00001
+                    //
+                    // This should likely be the value for the predictions to flag the movement as invalid
+                    if (resultAccuracy < 0.00001 * 0.00001) break;
+                }
             }
 
-            Set<VectorData> jumpingPossibility = new HashSet<>();
-            jumpingPossibility.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
+            // The player always has at least one velocity - clientVelocity
+            assert bestCollisionVel != null;
 
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
-                jumpingPossibility = PredictionEngineWater.transformSwimmingVectors(player, jumpingPossibility);
-            }
+            flipSneaking(player, originalPose, originalBB, bestCollisionVel);
 
-            addJumpsToPossibilities(player, jumpingPossibility);
-            // Secure the ability to get predicted a new vector by forcing the player to be able to jump here
-            // Adding jumps to possibilities is a secure method
-            if (jumpingPossibility.size() > 1) {
-                zeroStuff.addAll(jumpingPossibility);
-            }
+            player.clientVelocity = beforeCollisionMovement;
+            player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
+            new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
+            endOfTick(player, player.gravity, player.friction);
 
-            addExplosionRiptideToPossibilities(player, zeroStuff);
-            possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, zeroStuff, speed));
+            break;
+        }
+    }
 
-            double yVelocity = player.clientVelocity.getY();
+    private void handleVerticalZeroPointThree(GrimPlayer player, List<VectorData> possibleVelocities) {
+        double minYVelocity = Math.abs(player.clientVelocity.getY());
+        for (VectorData data : possibleVelocities) {
+            // We must try to achieve the closest to zero velocity as possible to verify whether this is 0.03
+            minYVelocity = Math.min(minYVelocity, Math.abs(data.vector.getY()) - player.uncertaintyHandler.getVerticalOffset(data));
+        }
 
-            if ((player.firstBreadKB != null && Math.abs(player.firstBreadKB.vector.getY()) < 0.03)
-                    || (player.likelyKB != null && Math.abs(player.likelyKB.vector.getY()) < 0.03)) {
-                // If the player knockback was likely to cause 0.03 missing tick
-                player.uncertaintyHandler.gravityUncertainty -= 0.2;
-            } else if (Math.abs(yVelocity) < 0.03) {
-                // Falses with -0.16
-                player.uncertaintyHandler.gravityUncertainty -= 0.2;
-            } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
-                player.uncertaintyHandler.gravityUncertainty -= 0.1;
-            }
+        // Eventually this should be transitioned to be more "prediction"-like
+        // Simulating the player's 0.03 tick to calculate the true velocity
+        if ((player.firstBreadKB != null && Math.abs(player.firstBreadKB.vector.getY()) < 0.03)
+                || (player.likelyKB != null && Math.abs(player.likelyKB.vector.getY()) < 0.03)) {
+            // If the player knockback was likely to cause 0.03 missing tick
+            player.uncertaintyHandler.gravityUncertainty -= 0.2;
+        } else if (minYVelocity < 0.03) { // The player's Y was 0.03
+            // Falses with -0.16
+            player.uncertaintyHandler.gravityUncertainty -= 0.08;
+        } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
+            player.uncertaintyHandler.gravityUncertainty -= 0.1;
         }
 
         // Vertical 0.03 where you collide upwards into a block
@@ -112,119 +218,40 @@ public class PredictionEngine {
             // Allow the player's Y velocity to get set back to 0, minus the normal gravity uncertainty
             player.uncertaintyHandler.gravityUncertainty = (-0.2 - player.clientVelocity.getY());
         }
+    }
 
-        // Sorting is an optimization and a requirement
-        possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
+    // 0.03 has some quite bad interactions with velocity + explosions (one extremely stupid line of code... thanks mojang)
+    private void addZeroPointThreeToPossibilities(float speed, GrimPlayer player, List<VectorData> possibleVelocities) {
+        Set<VectorData> zeroStuff = new HashSet<>();
 
-        double bestInput = Double.MAX_VALUE;
-        VectorData bestCollisionVel = null;
-        Vector beforeCollisionMovement = null;
-        Vector tempClientVelChosen = null;
-        Vector originalClientVel = player.clientVelocity;
+        // Allow the player's Y velocity to be 0 if they are in water/lava (0.03 issue)
+        Vector pointThreeVector = new Vector();
+        if (!player.uncertaintyHandler.controlsVerticalMovement())
+            pointThreeVector.setY(player.clientVelocity.getY() * player.stuckSpeedMultiplier.getY());
 
-        Pose originalPose = player.pose;
-        SimpleCollisionBox originalBB = player.boundingBox;
+        VectorData zeroData = new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree);
+        zeroStuff.add(zeroData);
 
-        for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput);
-            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
-            Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
-
-            flipSneaking(player, originalPose, originalBB, clientVelAfterInput);
-
-            double xAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-            double yAdditional = (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
-            double zAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-
-            // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
-            double testX = primaryPushMovement.getX() + xAdditional;
-            double testY = primaryPushMovement.getY() - yAdditional;
-            double testZ = primaryPushMovement.getZ() + zAdditional;
-            primaryPushMovement = new Vector(testX, testY, testZ);
-
-            Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, testY), 0, testX, Math.max(0.6, testY), testZ).sort());
-            if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
-                continue;
-
-            Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY());
-
-            if (testX == outputVel.getX()) { // the player didn't have X collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setX(primaryPushMovement.getX() - xAdditional);
-                outputVel.setX(outputVel.getX() - xAdditional);
-            }
-
-            if (testY == outputVel.getY()) { // the player didn't have Y collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setY(primaryPushMovement.getY() + yAdditional);
-                outputVel.setY(outputVel.getY() + yAdditional);
-            }
-
-            if (testZ == outputVel.getZ()) { // the player didn't have Z collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setZ(primaryPushMovement.getZ() - zAdditional);
-                outputVel.setZ(outputVel.getZ() - zAdditional);
-            }
-
-            Vector handleHardCodedBorder = outputVel;
-            handleHardCodedBorder = clampMovementToHardBorder(player, outputVel, handleHardCodedBorder);
-
-            double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
-
-            // This allows us to always check the percentage of knockback taken
-            // A player cannot simply ignore knockback without us measuring how off it was
-            if (clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) {
-                // Check ONLY the knockback vectors for 0.03
-                // The first being the one without uncertainty
-                // And the last having uncertainty to deal with 0.03
-                boolean wasPointThree = player.uncertaintyHandler.canSkipTick(Arrays.asList(clientVelAfterInput, clientVelAfterInput.returnNewModified(primaryPushMovement, VectorData.VectorType.Normal), clientVelAfterInput.returnNewModified(handleHardCodedBorder, VectorData.VectorType.Normal)));
-
-                if (clientVelAfterInput.isKnockback()) {
-                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
-                    player.checkManager.getKnockbackHandler().setPointThree(wasPointThree);
-                }
-
-                if (clientVelAfterInput.isExplosion()) {
-                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
-                    player.checkManager.getExplosionHandler().setPointThree(wasPointThree);
-                }
-            }
-
-            // Whatever, if someone uses phase or something they will get caught by everything else...
-            // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
-            // As not flipping item is preferred... it gets ran before any other options
-            if (player.isUsingItem == AlmostBoolean.TRUE && !clientVelAfterInput.isFlipItem()) {
-                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
-            }
-
-            if (resultAccuracy < bestInput) {
-                bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
-                beforeCollisionMovement = primaryPushMovement;
-                tempClientVelChosen = primaryPushMovement.clone();
-
-                bestInput = resultAccuracy;
-
-                // Optimization - Close enough, other inputs won't get closer
-                // This works as knockback and explosions are run first
-                //
-                // Note that sometimes the first and closest velocity isn't the closest because collisions
-                // The player may only be able to move a slight amount compared to what the initial vector shows
-                //
-                // 0.001 was causing issues with horizontal collision resulting in 1e-4 (which should flag checks!)
-                // Ladders are the best way to see this behavior
-                // Remember this is squared, so it is actually 0.00001
-                //
-                // This should likely be the value for the predictions to flag the movement as invalid
-                if (resultAccuracy < 0.00001 * 0.00001) break;
-            }
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
+            zeroStuff = PredictionEngineWater.transformSwimmingVectors(player, zeroStuff);
         }
 
-        // The player always has at least one velocity - clientVelocity
-        assert bestCollisionVel != null;
+        Set<VectorData> jumpingPossibility = new HashSet<>();
+        jumpingPossibility.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
 
-        flipSneaking(player, originalPose, originalBB, bestCollisionVel);
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
+            jumpingPossibility = PredictionEngineWater.transformSwimmingVectors(player, jumpingPossibility);
+        }
 
-        player.clientVelocity = tempClientVelChosen;
-        player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
-        new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
-        endOfTick(player, player.gravity, player.friction);
+        addJumpsToPossibilities(player, jumpingPossibility);
+        // Secure the ability to get predicted a new vector by forcing the player to be able to jump here
+        // Adding jumps to possibilities is a secure method
+        if (jumpingPossibility.size() > 1) {
+            zeroStuff.addAll(jumpingPossibility);
+        }
+
+        addExplosionRiptideToPossibilities(player, zeroStuff);
+        possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, zeroStuff, speed));
     }
 
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
