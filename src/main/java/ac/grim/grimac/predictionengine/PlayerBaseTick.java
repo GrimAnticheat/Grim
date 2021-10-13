@@ -30,7 +30,8 @@ public class PlayerBaseTick {
 
     public void doBaseTick() {
         // Keep track of basetick stuff
-        player.baseTickAddition = new Vector(0, 0, 0);
+        player.baseTickAddition = new Vector();
+        player.baseTickWaterPushing = new Vector();
 
         if (player.specialFlying && player.isSneaking && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
@@ -387,6 +388,7 @@ public class PlayerBaseTick {
         if (tag == FluidTag.WATER && vec3.lengthSquared() > 0.0) {
             vec3.normalize();
             vec3.multiply(multiplier);
+            player.baseTickAddWaterPushing(vec3);
             player.baseTickAddVector(vec3);
         }
 
@@ -439,7 +441,6 @@ public class PlayerBaseTick {
                         vec3 = vec3.add(vec32);
                         ++n7;
                     }
-
                 }
             }
         }
@@ -454,14 +455,17 @@ public class PlayerBaseTick {
                 vec3 = vec3.normalize();
             }
 
-            Vector vec33 = player.clientVelocity.clone();
-            vec3 = vec3.multiply(multiplier);
-            if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
-                vec3 = vec3.normalize().multiply(0.0045000000000000005);
-            }
-
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
             if (tag != FluidTag.LAVA || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16)) {
+                // Store the vector before handling 0.003, so knockback can use it
+                player.baseTickAddWaterPushing(vec3);
+
+                Vector vec33 = player.clientVelocity.clone();
+                vec3 = vec3.multiply(multiplier);
+                if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
+                    vec3 = vec3.normalize().multiply(0.0045000000000000005);
+                }
+
                 player.baseTickAddVector(vec3);
             }
         }
