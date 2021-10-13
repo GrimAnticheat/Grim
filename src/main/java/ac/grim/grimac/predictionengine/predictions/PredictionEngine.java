@@ -162,6 +162,10 @@ public class PredictionEngine {
                     bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
                     beforeCollisionMovement = primaryPushMovement;
 
+                    // We basically want to avoid falsing ground spoof, try to find a vector that works
+                    if (player.onGround != (primaryPushMovement.getY() < 0 && primaryPushMovement.getY() != outputVel.getY()) && !player.uncertaintyHandler.isStepMovement)
+                        resultAccuracy += 0.0001 * 0.0001;
+
                     bestInput = resultAccuracy;
 
                     // Optimization - Close enough, other inputs won't get closer
