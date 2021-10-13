@@ -51,6 +51,6 @@ public class ConsoleOutputAppender extends AbstractAppender {
 
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(player);
         if (grimPlayer == null) return;
-        grimPlayer.wasVanillaAC = true;
+        grimPlayer.vanillaACTeleports++;
     }
 }

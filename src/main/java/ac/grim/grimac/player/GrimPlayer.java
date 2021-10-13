@@ -62,7 +62,7 @@ public class GrimPlayer {
     public PredictionData nextTaskToRun;
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
-    public boolean wasVanillaAC = false;
+    public int vanillaACTeleports = 0;
     public boolean canSwimHop = false;
     public int riptideSpinAttackTicks = 0;
     public boolean hasGravity = true;

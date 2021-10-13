@@ -17,7 +17,7 @@ public class TeleportEvent implements Listener {
         Location to = event.getTo();
 
         // Don't let the vanilla anticheat override our teleports
-        // Revision 4.
+        // Revision 5.
         //
         // We check the log for whether the vanilla anticheat warned that the player moved too quickly
         // If so, we ignore the bukkit events and cancel the first netty packet for a teleport
@@ -35,8 +35,9 @@ public class TeleportEvent implements Listener {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            // This was the vanilla anticheat, teleport the player back on netty!
-            if (event.getCause() == PlayerTeleportEvent.TeleportCause.UNKNOWN && player.wasVanillaAC) {
+            // This was the vanilla anticheat, teleport the player back!
+            if (event.getCause() == PlayerTeleportEvent.TeleportCause.UNKNOWN && player.vanillaACTeleports > 0) {
+                player.vanillaACTeleports--;
                 event.setCancelled(true);
                 player.getSetbackTeleportUtil().teleportPlayerToOverrideVanillaAC();
                 return;

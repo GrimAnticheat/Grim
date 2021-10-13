@@ -353,7 +353,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // or on join
         // or randomly sometimes
         // NICE BUG FIX MD_5!
-        if (!player.wasVanillaAC) {
+        if (player.vanillaACTeleports == 0) {
             hasSentSpawnTeleport = true;
             teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
             return false;
@@ -363,6 +363,19 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // (Vanilla anticheat sent this!)
         // We must sync to bukkit to avoid desync with bukkit target teleport, which
         // would make the player be unable to interact with anything
+        //
+        // Unfortunately, the bukkit event was skipped
+        // This means we MAY misidentify a vehicle leave/exit teleport IF it occurs the same tick as the vanilla ac teleport
+        // However, this doesn't matter, at all, because it's all very close positionally (vehicle exit vs vanilla ac teleport)
+        // It is impossible for grim to override another PLUGIN's teleport
+        //
+        // On older versions, they call the teleport event with UNKNOWN on the vanilla teleport.  However, this is
+        // perfectly fine because they always call the teleport event.  If a 1.8 server reaches this variable,
+        // something went wrong. (We are sync to bukkit where we need to perfectly identify a vanilla ac teleport)
+        //
+        // Therefore, despite this not really being thread safe, since we check for plugin teleport before doing this
+        // it should all work out. (Revision 5)
+        player.vanillaACTeleports--;
         int processed = bukkitTeleportsProcessed;
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
             // A new teleport has overridden this, so the player is safe from a desync.
