@@ -251,23 +251,8 @@ public class UncertaintyHandler {
             return true;
         } else if (player.wasTouchingLava) {
             return true;
-        } else if (lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket && player.clientVelocity.getY() < 0.03) {
-            return true;
-        } else {
-            double threshold = player.uncertaintyHandler.getZeroPointZeroThreeThreshold();
-
-            boolean shouldCountY = player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree && player.clientVelocity.getY() < 0.03;
-
-            if (shouldCountY) {
-                for (VectorData data : possibleVelocities)
-                    player.couldSkipTick = player.couldSkipTick || data.vector.getX() * data.vector.getX() + data.vector.getZ() * data.vector.getZ() < threshold && !data.isKnockback();
-            } else {
-                for (VectorData data : possibleVelocities)
-                    player.couldSkipTick = player.couldSkipTick || data.vector.lengthSquared() < threshold && !data.isKnockback();
-            }
-
-            return player.couldSkipTick;
-        }
+        } else
+            return lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket && player.clientVelocity.getY() < 0.03;
     }
 
     // 0.04 is safe for speed 10, 0.03 is unsafe
@@ -276,7 +261,7 @@ public class UncertaintyHandler {
     // Taking these approximate values gives us this, the same 0.03 value for each speed
     // Don't give bonus for sprinting because sprinting against walls isn't possible
     public double getZeroPointZeroThreeThreshold() {
-        return 0.096 * (player.speed / (player.isSprinting ? 1.3d : 1)) - 0.008;
+        return 0.01;
     }
 
     public void checkForHardCollision() {

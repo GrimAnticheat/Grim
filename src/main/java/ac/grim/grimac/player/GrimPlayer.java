@@ -163,6 +163,7 @@ public class GrimPlayer {
     public PacketStateData packetStateData;
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
+    public Vector baseTickWaterPushing = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     // For syncing together the main thread with the packet thread
     public int lastTransactionAtStartOfTick = 0;
@@ -289,12 +290,12 @@ public class GrimPlayer {
         Set<VectorData> set = new HashSet<>();
 
         if (firstBreadKB != null) {
-            set.add(new VectorData(firstBreadKB.vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
+            set.add(new VectorData(firstBreadKB.vector.clone(), VectorData.VectorType.Knockback));
         }
 
         if (likelyKB != null) {
             // Allow water pushing to affect knockback
-            set.add(new VectorData(likelyKB.vector.clone().add(baseTickAddition), VectorData.VectorType.Knockback));
+            set.add(new VectorData(likelyKB.vector.clone(), VectorData.VectorType.Knockback));
         }
 
         set.addAll(getPossibleVelocitiesMinusKnockback());
@@ -374,9 +375,13 @@ public class GrimPlayer {
         return data != null && data.getFirst() == id;
     }
 
+    public void baseTickAddWaterPushing(Vector vector) {
+        baseTickWaterPushing.add(vector);
+    }
+
     public void baseTickAddVector(Vector vector) {
-        baseTickAddition.add(vector);
         clientVelocity.add(vector);
+        baseTickAddition.add(vector);
     }
 
     public float getMaxUpStep() {

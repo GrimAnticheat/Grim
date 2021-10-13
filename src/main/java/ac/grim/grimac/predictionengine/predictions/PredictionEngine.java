@@ -18,7 +18,10 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class PredictionEngine {
 
@@ -76,7 +79,7 @@ public class PredictionEngine {
         outer:
         while (true) {
             for (VectorData clientVelAfterInput : possibleVelocities) {
-                Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput);
+                Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
                 Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
                 Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
 
@@ -118,7 +121,11 @@ public class PredictionEngine {
 
                 double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
 
-                if (!player.couldSkipTick && handleHardCodedBorder.lengthSquared() < threshold) {
+                // Let's try to find the maximum length that our offsets will allow.
+                double offsetLen = handleStartingVelocityUncertainty(player, clientVelAfterInput, new Vector()).distanceSquared(clientVelAfterInput.vector);
+                boolean canBePointThree = handleHardCodedBorder.lengthSquared() - offsetLen < threshold;
+
+                if (!player.couldSkipTick && canBePointThree) {
                     // Collision means that this is now possible and the player did indeed skip a tick
                     player.couldSkipTick = true;
                     addZeroPointThreeToPossibilities(speed, player, possibleVelocities);
@@ -132,16 +139,15 @@ public class PredictionEngine {
                     // Check ONLY the knockback vectors for 0.03
                     // The first being the one without uncertainty
                     // And the last having uncertainty to deal with 0.03
-                    boolean wasPointThree = player.uncertaintyHandler.canSkipTick(Arrays.asList(clientVelAfterInput, clientVelAfterInput.returnNewModified(primaryPushMovement, VectorData.VectorType.Normal), clientVelAfterInput.returnNewModified(handleHardCodedBorder, VectorData.VectorType.Normal)));
 
                     if (clientVelAfterInput.isKnockback()) {
                         player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
-                        player.checkManager.getKnockbackHandler().setPointThree(wasPointThree);
+                        player.checkManager.getKnockbackHandler().setPointThree(canBePointThree);
                     }
 
                     if (clientVelAfterInput.isExplosion()) {
                         player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
-                        player.checkManager.getExplosionHandler().setPointThree(wasPointThree);
+                        player.checkManager.getExplosionHandler().setPointThree(canBePointThree);
                     }
                 }
 
@@ -277,6 +283,26 @@ public class PredictionEngine {
         return returnVectors;
     }
 
+    public void addFluidPushingToStartingVectors(GrimPlayer player, Set<VectorData> data) {
+        for (VectorData vectorData : data) {
+            if (vectorData.isKnockback()) {
+                if (player.baseTickWaterPushing.lengthSquared() != 0) {
+                    if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+                        Vector vec33 = vectorData.vector.clone();
+                        Vector vec3 = player.baseTickWaterPushing.clone().multiply(0.014);
+                        if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
+                            vec3 = vec3.normalize().multiply(0.0045000000000000005);
+                        }
+
+                        vectorData.vector = vectorData.vector.add(vec3);
+                    } else {
+                        vectorData.vector = vectorData.vector.add(player.baseTickWaterPushing);
+                    }
+                }
+            }
+        }
+    }
+
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
         Set<VectorData> velocities = player.getPossibleVelocities();
 
@@ -289,6 +315,9 @@ public class PredictionEngine {
                 velocitiesToReturn.add(data.returnNewModified(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
             }
         }
+
+        // Fluid pushing is done AFTER 0.003
+        addFluidPushingToStartingVectors(player, velocitiesToReturn);
 
         // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
         double minimumMovement = 0.003D;
@@ -382,7 +411,7 @@ public class PredictionEngine {
         return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
     }
 
-    private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector) {
+    private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector, Vector targetVec) {
         double avgColliding = GrimMath.calculateAverage(player.uncertaintyHandler.collidingEntities);
 
         double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
@@ -500,7 +529,7 @@ public class PredictionEngine {
             }
         }
 
-        return VectorUtils.cutBoxToVector(player.actualMovement, minVector, maxVector);
+        return VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
     }
 
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {

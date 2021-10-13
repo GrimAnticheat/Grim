@@ -154,6 +154,7 @@ public class BoatPredictionEngine extends PredictionEngine {
     @Override
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
         Set<VectorData> vectors = player.getPossibleVelocities();
+        addFluidPushingToStartingVectors(player, vectors);
 
         for (VectorData data : vectors) {
             floatBoat(player, data.vector);
