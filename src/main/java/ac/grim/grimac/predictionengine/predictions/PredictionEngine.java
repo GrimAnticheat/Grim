@@ -188,7 +188,7 @@ public class PredictionEngine {
 
             flipSneaking(player, originalPose, originalBB, bestCollisionVel);
 
-            player.clientVelocity = beforeCollisionMovement;
+            player.clientVelocity = beforeCollisionMovement.clone();
             player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
             new MovementTickerPlayer(player).move(beforeCollisionMovement, bestCollisionVel.vector);
             endOfTick(player, player.gravity, player.friction);
