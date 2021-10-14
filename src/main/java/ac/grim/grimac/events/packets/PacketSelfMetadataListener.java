@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.nmsImplementations.WatchableIndexUtil;
+import io.github.retrooper.packetevents.PacketEvents;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -12,13 +13,15 @@ import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
+import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class PacketSelfMetadataListener extends PacketListenerAbstract {
     public PacketSelfMetadataListener() {
@@ -38,6 +41,66 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     return;
 
                 WrappedWatchableObject watchable = WatchableIndexUtil.getIndex(entityMetadata.getWatchableObjects(), 0);
+
+                // 1.14+ poses:
+                // - Client: I am sneaking
+                // - Client: I am no longer sneaking
+                // - Server: You are now sneaking
+                // - Client: Okay, I am now sneaking.
+                // - Server: You are no longer sneaking
+                // - Client: Okay, I am no longer sneaking
+                //
+                // 1.13- poses:
+                // - Client: I am sneaking
+                // - Client: I am no longer sneaking
+                // - Server: Okay, got it.
+                //
+                // Why mojang, why.  Why are you so incompetent at netcode.
+                //
+                // Also, mojang.  This system makes movement ping dependent!
+                // A player using or exiting an elytra, or using or exiting sneaking will have differnet movement
+                // to a player because of sending poses!  ViaVersion works fine without sending these poses
+                // to the player on old servers... because the player just overrides this pose the very next tick
+                //
+                // It makes no sense to me why mojang is doing this, it has to be a bug.
+                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
+                    // Use a new arraylist to avoid a concurrent modification exception
+                    List<Object> metadataStuff = entityMetadata.readList(0);
+                    List<Object> metadata = new ArrayList<>(metadataStuff);
+
+                    // Remove the pose metadata from the list
+                    metadata.removeIf(element -> {
+                        Object dataWatcherObject = new WrappedPacket(new NMSPacket(element)).readAnyObject(0);
+                        WrappedPacket wrappedDataWatcher = new WrappedPacket(new NMSPacket(dataWatcherObject));
+                        return wrappedDataWatcher.readInt(0) == 6;
+                    });
+
+                    // If there was pose metadata in the list
+                    if (metadata.size() != metadataStuff.size()) {
+                        try {
+                            // We need to find a constructor for the entity metadata packet
+                            // Warning: Do not modify the current packet being sent as it is being sent to multiple people
+                            // You must create a new packet to remove poses from metadata
+                            Constructor<?> constructor = event.getNMSPacket().getRawNMSPacket().getClass().getConstructor(int.class, NMSUtils.dataWatcherClass, boolean.class);
+
+                            // Generate a metadata packet using a new data watcher, to avoid concurrent modification exceptions
+                            Object nmsEntity = NMSUtils.getNMSEntity(event.getPlayer());
+                            Object dataWatcher = NMSUtils.generateDataWatcher(nmsEntity);
+                            Object watcherPacket = constructor.newInstance(player.entityID, dataWatcher, true);
+
+                            // Write the modified list to this new packet
+                            new WrappedPacket(new NMSPacket(watcherPacket)).writeList(0, metadata);
+                            // And send it to the player
+                            PacketEvents.get().getPlayerUtils().sendNMSPacket(event.getPlayer(), watcherPacket);
+
+                            // Then cancel this packet to avoid poses getting sent to the player
+                            event.setCancelled(true);
+                            return;
+                        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
 
                 if (watchable != null) {
                     Object zeroBitField = watchable.getRawValue();
@@ -59,34 +122,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             player.isSwimming = isSwimming;
                         });
                     }
-                }
-
-                // 1.14+ poses:
-                // - Client: I am sneaking
-                // - Client: I am no longer sneaking
-                // - Server: You are now sneaking
-                // - Client: Okay, I am now sneaking.
-                // - Server: You are no longer sneaking
-                // - Client: Okay, I am no longer sneaking
-                //
-                // 1.13- poses:
-                // - Client: I am sneaking
-                // - Client: I am no longer sneaking
-                // - Server: Okay, got it.
-                //
-                // Why mojang, why.  Why are you so incompetent at netcode.
-                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
-                    // Use a new arraylist to avoid a concurrent modification exception, although
-                    // I'm not sure what is causing it... but this fixes it
-                    List<Object> metadata = new ArrayList<>(entityMetadata.readList(0));
-
-                    metadata.removeIf(element -> {
-                        Object dataWatcherObject = new WrappedPacket(new NMSPacket(element)).readAnyObject(0);
-                        WrappedPacket wrappedDataWatcher = new WrappedPacket(new NMSPacket(dataWatcherObject));
-                        return wrappedDataWatcher.readInt(0) == 6;
-                    });
-
-                    entityMetadata.write(List.class, 0, metadata);
                 }
 
                 if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) &&
