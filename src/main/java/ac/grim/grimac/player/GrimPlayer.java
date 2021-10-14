@@ -17,6 +17,7 @@ import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import com.earth2me.essentials.Essentials;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
@@ -29,13 +30,17 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
+import net.ess3.api.IUser;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -436,6 +441,24 @@ public class GrimPlayer {
 
     public ClientVersion getClientVersion() {
         return clientVersion;
+    }
+
+    public void setVulnerable() {
+        // Essentials gives players invulnerability after teleport, which is bad
+        try {
+            Plugin essentials = Bukkit.getServer().getPluginManager().getPlugin("Essentials");
+            if (essentials == null) return;
+
+            IUser user = ((Essentials) essentials).getUser(bukkitPlayer);
+            if (user == null) return;
+
+            // Use reflection because there isn't an API for this
+            Field invulnerable = user.getClass().getDeclaredField("teleportInvulnerabilityTimestamp");
+            invulnerable.setAccessible(true);
+            invulnerable.set(user, 0);
+        } catch (Exception e) { // Might error from very outdated Essentials builds
+            e.printStackTrace();
+        }
     }
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height

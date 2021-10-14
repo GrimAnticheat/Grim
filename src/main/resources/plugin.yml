@@ -5,6 +5,7 @@ softdepend:
   - ProtocolLib
   - ProtocolSupport
   - ViaVersion
+  - Essentials
 api-version: 1.13
 load: POSTWORLD
 permissions:
