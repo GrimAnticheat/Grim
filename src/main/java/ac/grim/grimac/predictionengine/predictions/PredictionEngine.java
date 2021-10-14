@@ -56,7 +56,7 @@ public class PredictionEngine {
 
         // Determine if the player can make an input below 0.03
         player.couldSkipTick = false; // Reset could skip tick
-        player.couldSkipTick = player.uncertaintyHandler.canSkipTick(possibleVelocities);
+        player.couldSkipTick = player.uncertaintyHandler.canSkipTick();
 
         handleVerticalZeroPointThree(player, possibleVelocities);
 

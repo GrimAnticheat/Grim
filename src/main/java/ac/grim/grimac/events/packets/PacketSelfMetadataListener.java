@@ -76,7 +76,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     });
 
                     // If there was pose metadata in the list
-                    if (metadata.size() != metadataStuff.size()) {
+                    if (metadata.size() != metadataStuff.size() && !metadata.isEmpty()) {
                         try {
                             // We need to find a constructor for the entity metadata packet
                             // Warning: Do not modify the current packet being sent as it is being sent to multiple people
