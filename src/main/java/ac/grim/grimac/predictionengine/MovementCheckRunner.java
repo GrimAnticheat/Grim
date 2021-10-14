@@ -509,15 +509,13 @@ public class MovementCheckRunner extends PositionCheck {
         player.canGroundRiptide = false;
         Vector oldClientVel = player.clientVelocity;
 
+        boolean wasChecked = false;
+
         // Exempt if the player is offline
         if (player.isDead || (player.playerVehicle != null && player.playerVehicle.isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
-
-            // Dead players don't take explosions or knockback
-            player.checkManager.getExplosionHandler().forceExempt();
-            player.checkManager.getKnockbackHandler().forceExempt();
         } else if ((ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) || player.specialFlying) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
@@ -528,10 +526,9 @@ public class MovementCheckRunner extends PositionCheck {
             player.gravity = 0;
             player.friction = 0.91f;
             PredictionEngineNormal.staticVectorEndOfTick(player, player.clientVelocity);
-
-            player.checkManager.getExplosionHandler().forceExempt();
-            player.checkManager.getKnockbackHandler().forceExempt();
         } else if (player.playerVehicle == null) {
+            wasChecked = true;
+
             // Depth strider was added in 1.8
             ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
             if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
@@ -602,6 +599,7 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+            wasChecked = true;
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
             // The player can't use entities (or the server just checks the entities)
@@ -620,13 +618,14 @@ public class MovementCheckRunner extends PositionCheck {
                 new MovementTickerStrider(player).livingEntityAIStep();
                 MovementTickerStrider.floatStrider(player);
                 Collisions.handleInsideBlocks(player);
+            } else {
+                wasChecked = false;
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
         // No, don't comment about the sqrt call.  It doesn't matter at all on modern CPU's.
         double offset = player.predictedVelocity.vector.distance(player.actualMovement);
         offset = player.uncertaintyHandler.reduceOffset(offset);
-
 
         // If the player is trying to riptide
         // But the server has rejected this movement
@@ -654,7 +653,14 @@ public class MovementCheckRunner extends PositionCheck {
         // Don't check players who just switched worlds
         if (player.playerWorld != player.bukkitPlayer.getWorld()) return;
 
-        player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
+        if (wasChecked) {
+            // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
+            player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
+        } else {
+            // The player wasn't checked, explosion and knockback status unknown
+            player.checkManager.getExplosionHandler().forceExempt();
+            player.checkManager.getKnockbackHandler().forceExempt();
+        }
 
         player.riptideSpinAttackTicks--;
         if (player.predictedVelocity.isTrident())
