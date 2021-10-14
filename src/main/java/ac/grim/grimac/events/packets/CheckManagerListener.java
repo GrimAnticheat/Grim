@@ -48,7 +48,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasTeleport = false;
             TeleportAcceptData teleportData = null;
             if (hasPosition) {
-                Vector3d position = flying.getPosition();
+                Vector3d position = VectorUtils.clampVector(flying.getPosition());
                 teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
                 player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
             }

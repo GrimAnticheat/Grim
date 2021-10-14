@@ -33,6 +33,11 @@ repositories {
     maven {
         url = "https://repo.aikar.co/content/groups/aikar/"
     }
+
+    maven {
+        url = "https://repo.essentialsx.net/releases/"
+    }
+    
     mavenCentral()
 }
 
@@ -47,6 +52,7 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.0.0'
     compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
+    compileOnly group: 'net.essentialsx', name: 'EssentialsX', version: '2.19.0'
 
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'

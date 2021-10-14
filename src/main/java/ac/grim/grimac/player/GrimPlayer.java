@@ -30,7 +30,6 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
-import net.ess3.api.IUser;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -449,7 +448,7 @@ public class GrimPlayer {
             Plugin essentials = Bukkit.getServer().getPluginManager().getPlugin("Essentials");
             if (essentials == null) return;
 
-            IUser user = ((Essentials) essentials).getUser(bukkitPlayer);
+            Object user = ((Essentials) essentials).getUser(bukkitPlayer);
             if (user == null) return;
 
             // Use reflection because there isn't an API for this

@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.VectorUtils;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Bukkit;
@@ -193,9 +194,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 break;
             }
 
-            // Don't use prediction data because it doesn't allow positions past 29,999,999 blocks
-            boolean closeEnoughY = Math.abs(position.getY() - y) < 1e-7; // 1.7 rounding
-            if (position.getX() == x && closeEnoughY && position.getZ() == z) {
+            // There seems to be a version difference in teleports past 30 million... just clamp the vector
+            Vector3d clamped = VectorUtils.clampVector(new Vector3d(position.getX(), position.getY(), position.getZ()));
+
+            boolean closeEnoughY = Math.abs(clamped.getY() - y) < 1e-7; // 1.7 rounding
+            if (clamped.getX() == x && closeEnoughY && clamped.getZ() == z) {
                 teleports.poll();
                 hasAcceptedSpawnTeleport = true;
 
@@ -391,15 +394,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void teleportPlayerToOverrideVanillaAC() {
         player.bukkitPlayer.eject();
 
-        Location location = pendingTeleports.peekLast();
-        if (location != null) {
-            player.bukkitPlayer.teleport(location);
-        } else {
-            Location safePos = safeTeleportPosition.position;
-            safePos.setPitch(12.419510391f);
-            safePos.setYaw(41.12315918f);
-            player.bukkitPlayer.teleport(safeTeleportPosition.position);
-        }
+        Location safePos = safeTeleportPosition.position;
+        safePos.setPitch(12.419510391f);
+        safePos.setYaw(41.12315918f);
+        player.bukkitPlayer.teleport(safeTeleportPosition.position);
+
         player.setVulnerable();
     }
 }
