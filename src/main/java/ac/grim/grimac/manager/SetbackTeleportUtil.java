@@ -162,6 +162,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), 41.12315918f, 12.419510391f));
             player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
+            player.setVulnerable();
         });
     }
 
@@ -399,6 +400,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             safePos.setYaw(41.12315918f);
             player.bukkitPlayer.teleport(safeTeleportPosition.position);
         }
+        player.setVulnerable();
     }
 }
 
