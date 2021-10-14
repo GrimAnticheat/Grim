@@ -33,10 +33,11 @@ repositories {
     maven {
         url = "https://repo.aikar.co/content/groups/aikar/"
     }
+    mavenCentral()
 }
 
 dependencies {
-    implementation 'io.github.retrooper:packetevents:cb1438c'
+    implementation 'io.github.retrooper:packetevents:9d98af54e6'
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:2.2.1'
@@ -47,11 +48,11 @@ dependencies {
     compileOnly 'com.viaversion:viaversion-api:4.0.0'
     compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
 
-    compileOnly 'org.projectlombok:lombok:1.18.20'
-    annotationProcessor 'org.projectlombok:lombok:1.18.20'
+    compileOnly 'org.projectlombok:lombok:1.18.22'
+    annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
-    testCompileOnly 'org.projectlombok:lombok:1.18.20'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+    testCompileOnly 'org.projectlombok:lombok:1.18.22'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
 }
 
 group = 'ac.grim.grimac'

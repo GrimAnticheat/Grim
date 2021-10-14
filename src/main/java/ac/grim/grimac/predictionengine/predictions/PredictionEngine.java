@@ -122,8 +122,8 @@ public class PredictionEngine {
                 double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
 
                 // Let's try to find the maximum length that our offsets will allow.
-                double offsetLen = handleStartingVelocityUncertainty(player, clientVelAfterInput, new Vector()).distanceSquared(clientVelAfterInput.vector);
-                boolean canBePointThree = handleHardCodedBorder.lengthSquared() - offsetLen < threshold;
+                double minMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput, new Vector()).lengthSquared();
+                boolean canBePointThree = minMovement < threshold;
 
                 if (!player.couldSkipTick && canBePointThree) {
                     // Collision means that this is now possible and the player did indeed skip a tick
