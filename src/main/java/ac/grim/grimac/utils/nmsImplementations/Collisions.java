@@ -148,8 +148,9 @@ public class Collisions {
             double resultAccuracy = collisionResult.distanceSquared(bestTheoreticalCollisionResult);
 
             // Step movement doesn't care about ground (due to uncertainty fucking it up)
-            if (player.onGround != (desiredY < 0 && desiredY != collisionResult.getY()) && !player.uncertaintyHandler.isStepMovement)
+            if (player.wouldCollisionResultFlagGroundSpoof(desiredY, collisionResult.getY())) {
                 resultAccuracy += 1;
+            }
 
             if (resultAccuracy < bestInput) {
                 bestOrderResult = collisionResult;

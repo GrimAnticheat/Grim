@@ -3,11 +3,9 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -91,17 +89,7 @@ public class PredictionEngineElytra extends PredictionEngine {
     // Yes... you can jump while using an elytra as long as you are on the ground
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        // 1.13 clients fuck with the ground status too much to check with onGround while in water and elytra
-        // Just check if they are near the ground and call it a day - nice one mojang
-        if (!player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
-            return;
-
-        for (VectorData vector : new HashSet<>(existingVelocities)) {
-            Vector jump = vector.vector.clone();
-            JumpPower.jumpFromGround(player, jump);
-
-            existingVelocities.add(new VectorData(jump, VectorData.VectorType.Jump));
-        }
+        new PredictionEngineNormal().addJumpsToPossibilities(player, existingVelocities);
     }
 
     @Override

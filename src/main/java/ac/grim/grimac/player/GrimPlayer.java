@@ -490,6 +490,20 @@ public class GrimPlayer {
         return checkManager.getResyncWorldUtil();
     }
 
+    public boolean wouldCollisionResultFlagGroundSpoof(double inputY, double collisionY) {
+        boolean verticalCollision = inputY != collisionY;
+        boolean calculatedOnGround = verticalCollision && inputY < 0.0D;
+
+        // We don't care about ground results here
+        if (exemptOnGround()) return false;
+
+        // If the player is on the ground with a y velocity of 0, let the player decide (too close to call)
+        if (inputY == -SimpleCollisionBox.COLLISION_EPSILON && collisionY > -SimpleCollisionBox.COLLISION_EPSILON && collisionY <= 0)
+            return false;
+
+        return calculatedOnGround != onGround;
+    }
+
     public boolean exemptOnGround() {
         return inVehicle
                 || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0

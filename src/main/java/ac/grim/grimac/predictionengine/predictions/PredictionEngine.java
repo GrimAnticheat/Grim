@@ -163,7 +163,7 @@ public class PredictionEngine {
                     beforeCollisionMovement = primaryPushMovement;
 
                     // We basically want to avoid falsing ground spoof, try to find a vector that works
-                    if (player.onGround != (primaryPushMovement.getY() < 0 && primaryPushMovement.getY() != outputVel.getY()) && !player.uncertaintyHandler.isStepMovement)
+                    if (player.wouldCollisionResultFlagGroundSpoof(primaryPushMovement.getY(), bestCollisionVel.vector.getY()))
                         resultAccuracy += 0.0001 * 0.0001;
 
                     bestInput = resultAccuracy;
