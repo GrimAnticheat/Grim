@@ -4,14 +4,16 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import org.bukkit.block.BlockFace;
 
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 
 public class UncertaintyHandler {
@@ -236,11 +238,76 @@ public class UncertaintyHandler {
         return 0;
     }
 
+    public double reduceOffset(double offset) {
+        // Exempt players from piston checks by giving them 1 block of lenience for any piston pushing
+        if (Collections.max(player.uncertaintyHandler.pistonPushing) > 0) {
+            offset -= 1;
+        }
+
+        // Boats are too glitchy to check.
+        // Yes, they have caused an insane amount of uncertainty!
+        // Even 1 block offset reduction isn't enough... damn it mojang
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3) {
+            offset -= 1.2;
+        }
+
+        if (player.uncertaintyHandler.lastFlyingStatusChange > -5) {
+            offset -= 0.25;
+        }
+
+        if (player.uncertaintyHandler.isOrWasNearGlitchyBlock) {
+            offset -= 0.15;
+        }
+
+        if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
+            offset -= 0.09;
+        }
+
+        if (player.uncertaintyHandler.stuckOnEdge > -3) {
+            offset -= 0.05;
+        }
+
+        // Exempt flying status change
+        if (player.uncertaintyHandler.lastFlyingStatusChange > -20) {
+            offset = 0;
+        }
+
+        // Errors are caused by a combination of client/server desync while climbing
+        // desync caused by 0.03 and the lack of an idle packet
+        //
+        // I can't solve this.  This is on Mojang to fix.
+        //
+        // Don't even attempt to fix the poses code... garbage in garbage out - I did the best I could
+        // you can likely look at timings of packets to extrapolate better... but I refuse to use packet timings for stuff like this
+        // Does anyone at mojang understand netcode??? (the answer is no)
+        //
+        // Don't give me the excuse that it was originally a singleplayer game so the netcode is terrible...
+        // the desync's and netcode has progressively gotten worse starting with 1.9!
+        if (!Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f).expand(-SimpleCollisionBox.COLLISION_EPSILON).offset(0, 0.03, 0)) && player.isClimbing) {
+            offset -= 0.12;
+        }
+
+        // I can't figure out how the client exactly tracks boost time
+        if (player.playerVehicle instanceof PacketEntityRideable) {
+            PacketEntityRideable vehicle = (PacketEntityRideable) player.playerVehicle;
+            if (vehicle.currentBoostTime < vehicle.boostTimeMax + 20)
+                offset -= 0.01;
+        }
+
+        // Sneaking near edge cases a ton of issues
+        // Don't give this bonus if the Y axis is wrong though.
+        // Another temporary permanent hack.
+        if (player.uncertaintyHandler.stuckOnEdge == -2 && player.clientVelocity.getY() > 0 && Math.abs(player.clientVelocity.getY() - player.actualMovement.getY()) < 1e-6)
+            offset -= 0.1;
+
+        return Math.max(0, offset);
+    }
+
     public boolean controlsVerticalMovement() {
         return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || headingIntoWater || headingIntoLava || influencedByBouncyBlock() || lastFlyingTicks < 3 || player.isGliding || player.isClimbing || player.lastWasClimbing != 0;
     }
 
-    public boolean canSkipTick(List<VectorData> possibleVelocities) {
+    public boolean canSkipTick() {
         // 0.03 is very bad with stuck speed multipliers
         if (player.inVehicle) {
             return false;

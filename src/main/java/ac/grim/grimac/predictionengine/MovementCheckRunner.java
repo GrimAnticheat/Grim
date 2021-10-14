@@ -34,7 +34,6 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -626,69 +625,8 @@ public class MovementCheckRunner extends PositionCheck {
 
         // No, don't comment about the sqrt call.  It doesn't matter at all on modern CPU's.
         double offset = player.predictedVelocity.vector.distance(player.actualMovement);
+        offset = player.uncertaintyHandler.reduceOffset(offset);
 
-        // Exempt players from piston checks by giving them 1 block of lenience for any piston pushing
-        if (Collections.max(player.uncertaintyHandler.pistonPushing) > 0) {
-            offset -= 1;
-        }
-
-        // Boats are too glitchy to check.
-        // Yes, they have caused an insane amount of uncertainty!
-        // Even 1 block offset reduction isn't enough... damn it mojang
-        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3) {
-            offset -= 1.2;
-        }
-
-        if (player.uncertaintyHandler.lastFlyingStatusChange > -5) {
-            offset -= 0.25;
-        }
-
-        if (isGlitchy) {
-            offset -= 0.15;
-        }
-
-        if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
-            offset -= 0.09;
-        }
-
-        if (player.uncertaintyHandler.stuckOnEdge > -3) {
-            offset -= 0.05;
-        }
-
-        // Exempt flying status change
-        if (player.uncertaintyHandler.lastFlyingStatusChange > -20) {
-            offset = 0;
-        }
-
-        // Errors are caused by a combination of client/server desync while climbing
-        // desync caused by 0.03 and the lack of an idle packet
-        //
-        // I can't solve this.  This is on Mojang to fix.
-        //
-        // Don't even attempt to fix the poses code... garbage in garbage out - I did the best I could
-        // you can likely look at timings of packets to extrapolate better... but I refuse to use packet timings for stuff like this
-        // Does anyone at mojang understand netcode??? (the answer is no)
-        //
-        // Don't give me the excuse that it was originally a singleplayer game so the netcode is terrible...
-        // the desync's and netcode has progressively gotten worse starting with 1.9!
-        if (!Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f).expand(-SimpleCollisionBox.COLLISION_EPSILON).offset(0, 0.03, 0)) && player.isClimbing) {
-            offset -= 0.12;
-        }
-
-        // I can't figure out how the client exactly tracks boost time
-        if (player.playerVehicle instanceof PacketEntityRideable) {
-            PacketEntityRideable vehicle = (PacketEntityRideable) player.playerVehicle;
-            if (vehicle.currentBoostTime < vehicle.boostTimeMax + 20)
-                offset -= 0.01;
-        }
-
-        // Sneaking near edge cases a ton of issues
-        // Don't give this bonus if the Y axis is wrong though.
-        // Another temporary permanent hack.
-        if (player.uncertaintyHandler.stuckOnEdge == -2 && player.clientVelocity.getY() > 0 && Math.abs(player.clientVelocity.getY() - player.actualMovement.getY()) < 1e-6)
-            offset -= 0.1;
-
-        offset = Math.max(0, offset);
 
         // If the player is trying to riptide
         // But the server has rejected this movement
@@ -715,29 +653,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (!player.bukkitPlayer.isOnline()) return;
         // Don't check players who just switched worlds
         if (player.playerWorld != player.bukkitPlayer.getWorld()) return;
-
-        // If the player flags the check, give leniency so that it doesn't also flag the next tick
-        if (player.checkManager.getOffsetHandler().doesOffsetFlag(offset)) {
-            double horizontalOffset = player.actualMovement.clone().setY(0).distance(player.predictedVelocity.vector.clone().setY(0));
-            double verticalOffset = player.actualMovement.getY() - player.predictedVelocity.vector.getY();
-            double totalOffset = horizontalOffset + verticalOffset;
-
-            double percentHorizontalOffset = horizontalOffset / totalOffset;
-            double percentVerticalOffset = verticalOffset / totalOffset;
-
-            // Don't let players carry more than 0.001 offset into the next tick
-            // (I was seeing cheats try to carry 1,000,000,000 offset into the next tick!)
-            //
-            // This value so that setting back with high ping doesn't allow players to gather high client velocity
-            double minimizedOffset = Math.min(offset, 0.001);
-
-            // Normalize offsets
-            player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset * percentHorizontalOffset;
-            player.uncertaintyHandler.lastVerticalOffset = minimizedOffset * percentVerticalOffset;
-        } else {
-            player.uncertaintyHandler.lastHorizontalOffset = 0;
-            player.uncertaintyHandler.lastVerticalOffset = 0;
-        }
 
         player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
 

@@ -32,6 +32,7 @@ public class OffsetHandler extends PostPredictionCheck {
             if (offset > offsetHandler.getThreshold()) {
                 offsetHandler.flag();
                 double violations = offsetHandler.getViolations();
+                giveOffsetLenienceNextTick(offset);
 
                 if (violations > offsetHandler.getSetbackVL()) {
                     // Patch LiquidBounce Spartan NoFall
@@ -54,6 +55,32 @@ public class OffsetHandler extends PostPredictionCheck {
                 offsetHandler.reward();
             }
         }
+
+        removeOffsetLenience();
+    }
+
+    private void giveOffsetLenienceNextTick(double offset) {
+        double horizontalOffset = player.actualMovement.clone().setY(0).distance(player.predictedVelocity.vector.clone().setY(0));
+        double verticalOffset = player.actualMovement.getY() - player.predictedVelocity.vector.getY();
+        double totalOffset = horizontalOffset + verticalOffset;
+
+        double percentHorizontalOffset = horizontalOffset / totalOffset;
+        double percentVerticalOffset = verticalOffset / totalOffset;
+
+        // Don't let players carry more than 0.001 offset into the next tick
+        // (I was seeing cheats try to carry 1,000,000,000 offset into the next tick!)
+        //
+        // This value so that setting back with high ping doesn't allow players to gather high client velocity
+        double minimizedOffset = Math.min(offset, 0.001);
+
+        // Normalize offsets
+        player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset * percentHorizontalOffset;
+        player.uncertaintyHandler.lastVerticalOffset = minimizedOffset * percentVerticalOffset;
+    }
+
+    private void removeOffsetLenience() {
+        player.uncertaintyHandler.lastHorizontalOffset = 0;
+        player.uncertaintyHandler.lastVerticalOffset = 0;
     }
 
     @Override
