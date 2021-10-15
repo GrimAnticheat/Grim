@@ -636,12 +636,12 @@ public class Collisions {
 
     // Thanks Tuinity
     public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<BaseBlockState> searchingFor) {
-        int minBlockX = (int) Math.floor(checkBox.minX - COLLISION_EPSILON) - 1;
-        int maxBlockX = (int) Math.floor(checkBox.maxX + COLLISION_EPSILON) + 1;
-        int minBlockY = (int) Math.floor(checkBox.minY - COLLISION_EPSILON) - 1;
-        int maxBlockY = (int) Math.floor(checkBox.maxY + COLLISION_EPSILON) + 1;
-        int minBlockZ = (int) Math.floor(checkBox.minZ - COLLISION_EPSILON) - 1;
-        int maxBlockZ = (int) Math.floor(checkBox.maxZ + COLLISION_EPSILON) + 1;
+        int minBlockX = (int) Math.floor(checkBox.minX);
+        int maxBlockX = (int) Math.floor(checkBox.maxX);
+        int minBlockY = (int) Math.floor(checkBox.minY);
+        int maxBlockY = (int) Math.floor(checkBox.maxY);
+        int minBlockZ = (int) Math.floor(checkBox.minZ);
+        int maxBlockZ = (int) Math.floor(checkBox.maxZ);
 
         final int minSection = player.compensatedWorld.getMinHeight() >> 4;
         final int maxSection = player.compensatedWorld.getMaxHeight() >> 4;

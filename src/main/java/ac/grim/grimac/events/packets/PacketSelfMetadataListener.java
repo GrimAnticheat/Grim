@@ -40,8 +40,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 if (player == null)
                     return;
 
-                WrappedWatchableObject watchable = WatchableIndexUtil.getIndex(entityMetadata.getWatchableObjects(), 0);
-
                 // 1.14+ poses:
                 // - Client: I am sneaking
                 // - Client: I am no longer sneaking
@@ -101,6 +99,8 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         }
                     }
                 }
+
+                WrappedWatchableObject watchable = WatchableIndexUtil.getIndex(entityMetadata.getWatchableObjects(), 0);
 
                 if (watchable != null) {
                     Object zeroBitField = watchable.getRawValue();
