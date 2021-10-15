@@ -42,7 +42,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'io.github.retrooper:packetevents:9d98af54e6'
+    implementation 'io.github.retrooper:packetevents:362d021745'
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:2.2.1'
