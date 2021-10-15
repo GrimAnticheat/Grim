@@ -122,8 +122,8 @@ public class PredictionEngine {
                 double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
 
                 // Let's try to find the maximum length that our offsets will allow.
-                double minMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput, new Vector()).lengthSquared();
-                boolean canBePointThree = minMovement < threshold;
+                double offsetLen = handleStartingVelocityUncertainty(player, clientVelAfterInput, new Vector()).distanceSquared(clientVelAfterInput.vector);
+                boolean canBePointThree = handleHardCodedBorder.lengthSquared() - offsetLen < threshold;
 
                 if (!player.couldSkipTick && canBePointThree) {
                     // Collision means that this is now possible and the player did indeed skip a tick
@@ -504,13 +504,13 @@ public class PredictionEngine {
         }
 
         // Initial end of tick levitation gets hidden by missing idle packet
-        if (player.levitationAmplifier > 0 && player.clientVelocity.getY() < 0.1) {
-            maxVector.setY(maxVector.getY() + 0.1);
+        if (player.levitationAmplifier != null && player.levitationAmplifier > 0 && player.clientVelocity.getY() < 0.1) {
+            maxVector.setY(((0.05 * (double) (player.levitationAmplifier + 1)) * 0.2) + 0.1);
         }
 
         // Initial end of tick levitation gets hidden by missing idle packet
-        if (player.levitationAmplifier < 0 && player.clientVelocity.getY() < 0.1) {
-            maxVector.setY(maxVector.getY() - 0.1);
+        if (player.levitationAmplifier != null && player.levitationAmplifier < 0 && player.clientVelocity.getY() > -0.1) {
+            minVector.setY(((0.05 * (double) (player.levitationAmplifier + 1)) * 0.2) - 0.1);
         }
 
         // Handle 0.03 with fluid pushing players downwards

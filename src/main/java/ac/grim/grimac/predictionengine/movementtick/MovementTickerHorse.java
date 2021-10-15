@@ -38,7 +38,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
             // broken ever since vehicle control became client sided
             //
             // But plugins can still send this, so support it anyways
-            if (player.jumpAmplifier > 0) {
+            if (player.jumpAmplifier != null) {
                 d1 = d0 + (double) ((float) (player.jumpAmplifier + 1) * 0.1F);
             } else {
                 d1 = d0;
