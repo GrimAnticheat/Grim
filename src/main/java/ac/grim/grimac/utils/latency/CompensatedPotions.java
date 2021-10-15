@@ -21,7 +21,7 @@ public class CompensatedPotions {
                 potionsMap.put(entityID, potions);
             }
 
-            potions.put(type, level + 1);
+            potions.put(type, level);
         });
     }
 
@@ -35,7 +35,7 @@ public class CompensatedPotions {
         });
     }
 
-    public int getPotionLevel(String type) {
+    public Integer getPotionLevel(String type) {
         ConcurrentHashMap<String, Integer> effects;
         if (player.vehicle == null) {
             effects = potionsMap.get(player.entityID);
@@ -43,11 +43,11 @@ public class CompensatedPotions {
             effects = potionsMap.get(player.vehicle);
         }
 
-        if (effects == null)
-            return 0;
+        if (effects == null) {
+            return null;
+        }
 
-        Integer level = effects.get(type);
-        return level == null ? 0 : level;
+        return effects.get(type);
     }
 
     public void removeEntity(int entityID) {

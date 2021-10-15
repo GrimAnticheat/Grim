@@ -13,8 +13,8 @@ public class JumpPower {
 
         float f = getJumpPower(player);
 
-        if (player.jumpAmplifier != 0) {
-            f += 0.1f * (player.jumpAmplifier);
+        if (player.jumpAmplifier != null) {
+            f += 0.1f * (player.jumpAmplifier + 1);
         }
 
         vector.setY(f);

@@ -121,10 +121,10 @@ public class GrimPlayer {
     public boolean isInBed = false;
     public boolean lastInBed = false;
     public boolean isDead = false;
-    public int jumpAmplifier;
-    public int levitationAmplifier;
-    public int slowFallingAmplifier;
-    public int dolphinsGraceAmplifier;
+    public Integer jumpAmplifier;
+    public Integer levitationAmplifier;
+    public Integer slowFallingAmplifier;
+    public Integer dolphinsGraceAmplifier;
     public float depthStriderLevel;
     public float flySpeed;
     public VehicleData vehicleData = new VehicleData();
