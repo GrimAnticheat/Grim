@@ -256,7 +256,7 @@ public class UncertaintyHandler {
         }
 
         if (player.uncertaintyHandler.isOrWasNearGlitchyBlock) {
-            offset -= 0.15;
+            offset -= 0.25;
         }
 
         if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {

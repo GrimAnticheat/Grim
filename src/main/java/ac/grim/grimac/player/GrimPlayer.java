@@ -510,6 +510,6 @@ public class GrimPlayer {
                 || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isSteppingOnSlime
                 || isFlying || uncertaintyHandler.isStepMovement || isDead
                 || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
-                || uncertaintyHandler.lastHardCollidingLerpingEntity > -3;
+                || uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || uncertaintyHandler.isOrWasNearGlitchyBlock;
     }
 }

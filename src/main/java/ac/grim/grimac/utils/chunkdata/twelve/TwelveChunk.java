@@ -36,6 +36,9 @@ public class TwelveChunk implements BaseChunk {
         reversePalette.defaultReturnValue(-1);
 
         states = new ArrayList<>();
+        states.add(AIR);
+        reversePalette.put(0, 0);
+
         this.bitsPerEntry = 4;
         this.storage = new LegacyFlexibleStorage(bitsPerEntry, 4096);
 
@@ -43,11 +46,11 @@ public class TwelveChunk implements BaseChunk {
         int lastID = -1;
 
         for (int i = 0; i < 4096; i++) {
-            short next = in.get();
+            int next = in.get();
 
             if (next != lastNext) {
                 lastNext = next;
-                next = (short) ((next << 12) | (next >> 4));
+                next = ((next & 15) << 12) | (next >> 4);
                 lastID = this.bitsPerEntry <= 8 ? reversePalette.get(next) : next;
 
                 if (lastID == -1) {
