@@ -35,12 +35,14 @@ public class Materials {
     public static final int WATER_LEGACY = 0b00000000100000000000000000000;
     public static final int WATER_SOURCE_LEGACY = 0b00000001000000000000000000000;
     public static final int CLIENT_SIDE_INTERACTABLE = 0b00000010000000000000000000000;
-    public static final int SWORD = 0b00000100000000000000000000000;
+    public static final int PLANT = 0b00000100000000000000000000000;
     public static final int CAULDRON = 0b00001000000000000000000000000;
     public static final int SHAPE_EXCEEDS_CUBE = 0b00010000000000000000000000000;
     // Warning: This is not accurate for 1.13-1.15 clients, use the method for those clients
     public static final int SOLID_BLACKLIST = 0b00100000000000000000000000000;
     public static final int BANNER = 0b01000000000000000000000000000;
+    // What blocks can new blocks simply replace entirely when placing?
+    public static final int REPLACEABLE = 0b01000000000000000000000000000;
 
     private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
     private static final Material BOW = XMaterial.BOW.parseMaterial();
@@ -170,7 +172,6 @@ public class Materials {
         markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE);
         markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);
 
-
         // Mark blocks as climbable
         markAs(XMaterial.LADDER, CLIMBABLE);
         markAs(XMaterial.VINE, CLIMBABLE);
@@ -234,62 +235,65 @@ public class Materials {
         // This is a bit messy, but these are all the plants in 1.17 (all blacklisted for blocking movement)
         // Hopefully with PacketEvents 2.0, all the errors from replacement blocks will go away
         // (Such as a solid blacklist block going to a non-solid blacklist block)
-        markAs(XMaterial.GRASS, SOLID_BLACKLIST);
-        markAs(XMaterial.FERN, SOLID_BLACKLIST);
-        markAs(XMaterial.DEAD_BUSH, SOLID_BLACKLIST);
-        markAs(XMaterial.TALL_SEAGRASS, SOLID_BLACKLIST);
-        markAs(XMaterial.DANDELION, SOLID_BLACKLIST);
-        markAs(XMaterial.POPPY, SOLID_BLACKLIST);
-        markAs(XMaterial.BLUE_ORCHID, SOLID_BLACKLIST);
-        markAs(XMaterial.ALLIUM, SOLID_BLACKLIST);
-        markAs(XMaterial.AZURE_BLUET, SOLID_BLACKLIST);
+        markAs(XMaterial.GRASS, PLANT);
+        markAs(XMaterial.FERN, PLANT);
+        markAs(XMaterial.DEAD_BUSH, PLANT);
+        markAs(XMaterial.TALL_SEAGRASS, PLANT);
+        markAs(XMaterial.DANDELION, PLANT);
+        markAs(XMaterial.POPPY, PLANT);
+        markAs(XMaterial.BLUE_ORCHID, PLANT);
+        markAs(XMaterial.ALLIUM, PLANT);
+        markAs(XMaterial.AZURE_BLUET, PLANT);
         // tulip done in loop
-        markAs(XMaterial.OXEYE_DAISY, SOLID_BLACKLIST);
-        markAs(XMaterial.CORNFLOWER, SOLID_BLACKLIST);
-        markAs(XMaterial.WITHER_ROSE, SOLID_BLACKLIST);
-        markAs(XMaterial.LILY_OF_THE_VALLEY, SOLID_BLACKLIST);
-        markAs(XMaterial.BROWN_MUSHROOM, SOLID_BLACKLIST);
-        markAs(XMaterial.RED_MUSHROOM, SOLID_BLACKLIST);
-        markAs(XMaterial.WHEAT, SOLID_BLACKLIST);
-        markAs(XMaterial.SUGAR_CANE, SOLID_BLACKLIST);
-        markAs(XMaterial.VINE, SOLID_BLACKLIST);
-        markAs(XMaterial.GLOW_LICHEN, SOLID_BLACKLIST);
-        markAs(XMaterial.LILY_PAD, SOLID_BLACKLIST);
-        markAs(XMaterial.NETHER_WART, SOLID_BLACKLIST);
-        markAs(XMaterial.COCOA, SOLID_BLACKLIST);
-        markAs(XMaterial.CARROTS, SOLID_BLACKLIST);
-        markAs(XMaterial.POTATO, SOLID_BLACKLIST);
-        markAs(XMaterial.SUNFLOWER, SOLID_BLACKLIST);
-        markAs(XMaterial.LILAC, SOLID_BLACKLIST);
-        markAs(XMaterial.ROSE_BUSH, SOLID_BLACKLIST);
-        markAs(XMaterial.PEONY, SOLID_BLACKLIST);
-        markAs(XMaterial.TALL_GRASS, SOLID_BLACKLIST);
-        markAs(XMaterial.LARGE_FERN, SOLID_BLACKLIST);
-        markAs(XMaterial.CHORUS_PLANT, SOLID_BLACKLIST);
-        markAs(XMaterial.CHORUS_FLOWER, SOLID_BLACKLIST);
-        markAs(XMaterial.BEETROOT, SOLID_BLACKLIST);
-        markAs(XMaterial.KELP, SOLID_BLACKLIST);
-        markAs(XMaterial.KELP_PLANT, SOLID_BLACKLIST);
-        markAs(XMaterial.SEA_PICKLE, SOLID_BLACKLIST);
-        markAs(XMaterial.BAMBOO, SOLID_BLACKLIST);
-        markAs(XMaterial.BAMBOO_SAPLING, SOLID_BLACKLIST);
-        markAs(XMaterial.SWEET_BERRY_BUSH, SOLID_BLACKLIST);
-        markAs(XMaterial.WARPED_FUNGUS, SOLID_BLACKLIST);
-        markAs(XMaterial.CRIMSON_FUNGUS, SOLID_BLACKLIST);
-        markAs(XMaterial.WEEPING_VINES, SOLID_BLACKLIST);
-        markAs(XMaterial.WEEPING_VINES_PLANT, SOLID_BLACKLIST);
-        markAs(XMaterial.TWISTING_VINES, SOLID_BLACKLIST);
-        markAs(XMaterial.TWISTING_VINES_PLANT, SOLID_BLACKLIST);
-        markAs(XMaterial.CRIMSON_ROOTS, SOLID_BLACKLIST);
-        markAs(XMaterial.CAVE_VINES, SOLID_BLACKLIST);
-        markAs(XMaterial.CAVE_VINES_PLANT, SOLID_BLACKLIST);
-        markAs(XMaterial.SPORE_BLOSSOM, SOLID_BLACKLIST);
-        markAs(XMaterial.AZALEA, SOLID_BLACKLIST);
-        markAs(XMaterial.FLOWERING_AZALEA, SOLID_BLACKLIST);
-        markAs(XMaterial.MOSS_CARPET, SOLID_BLACKLIST);
-        markAs(XMaterial.BIG_DRIPLEAF, SOLID_BLACKLIST);
-        markAs(XMaterial.SMALL_DRIPLEAF, SOLID_BLACKLIST);
-        markAs(XMaterial.HANGING_ROOTS, SOLID_BLACKLIST);
+        markAs(XMaterial.OXEYE_DAISY, PLANT);
+        markAs(XMaterial.CORNFLOWER, PLANT);
+        markAs(XMaterial.WITHER_ROSE, PLANT);
+        markAs(XMaterial.LILY_OF_THE_VALLEY, PLANT);
+        markAs(XMaterial.BROWN_MUSHROOM, PLANT);
+        markAs(XMaterial.RED_MUSHROOM, PLANT);
+        markAs(XMaterial.WHEAT, PLANT);
+        markAs(XMaterial.SUGAR_CANE, PLANT);
+        markAs(XMaterial.VINE, PLANT);
+        markAs(XMaterial.GLOW_LICHEN, PLANT);
+        markAs(XMaterial.LILY_PAD, PLANT);
+        markAs(XMaterial.NETHER_WART, PLANT);
+        markAs(XMaterial.COCOA, PLANT);
+        markAs(XMaterial.CARROTS, PLANT);
+        markAs(XMaterial.POTATO, PLANT);
+        markAs(XMaterial.SUNFLOWER, PLANT);
+        markAs(XMaterial.LILAC, PLANT);
+        markAs(XMaterial.ROSE_BUSH, PLANT);
+        markAs(XMaterial.PEONY, PLANT);
+        markAs(XMaterial.TALL_GRASS, PLANT);
+        markAs(XMaterial.LARGE_FERN, PLANT);
+        markAs(XMaterial.CHORUS_PLANT, PLANT);
+        markAs(XMaterial.CHORUS_FLOWER, PLANT);
+        markAs(XMaterial.BEETROOT, PLANT);
+        markAs(XMaterial.KELP, PLANT);
+        markAs(XMaterial.KELP_PLANT, PLANT);
+        markAs(XMaterial.SEA_PICKLE, PLANT);
+        markAs(XMaterial.BAMBOO, PLANT);
+        markAs(XMaterial.BAMBOO_SAPLING, PLANT);
+        markAs(XMaterial.SWEET_BERRY_BUSH, PLANT);
+        markAs(XMaterial.WARPED_FUNGUS, PLANT);
+        markAs(XMaterial.CRIMSON_FUNGUS, PLANT);
+        markAs(XMaterial.WEEPING_VINES, PLANT);
+        markAs(XMaterial.WEEPING_VINES_PLANT, PLANT);
+        markAs(XMaterial.TWISTING_VINES, PLANT);
+        markAs(XMaterial.TWISTING_VINES_PLANT, PLANT);
+        markAs(XMaterial.CRIMSON_ROOTS, PLANT);
+        markAs(XMaterial.CAVE_VINES, PLANT);
+        markAs(XMaterial.CAVE_VINES_PLANT, PLANT);
+        markAs(XMaterial.SPORE_BLOSSOM, PLANT);
+        markAs(XMaterial.AZALEA, PLANT);
+        markAs(XMaterial.FLOWERING_AZALEA, PLANT);
+        markAs(XMaterial.MOSS_CARPET, PLANT);
+        markAs(XMaterial.BIG_DRIPLEAF, PLANT);
+        markAs(XMaterial.SMALL_DRIPLEAF, PLANT);
+        markAs(XMaterial.HANGING_ROOTS, PLANT);
+
+        markAs(XMaterial.FIRE, REPLACEABLE);
+        markAs(XMaterial.SNOW, REPLACEABLE);
 
         NO_PLACE_LIQUIDS.add(XMaterial.WATER.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.LAVA.parseMaterial());
@@ -297,9 +301,15 @@ public class Materials {
         NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_LAVA.parseMaterial());
 
         for (Material mat : Material.values()) {
-            if (mat.name().endsWith("_SWORD")) MATERIAL_FLAGS[mat.ordinal()] |= SWORD;
             if (!mat.isBlock()) continue;
             if (checkFlag(mat, LAVA)) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
+            if (checkFlag(mat, PLANT)) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
+
+            if (checkFlag(mat, PLANT)) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
+            if (checkFlag(mat, WATER)) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
+            if (checkFlag(mat, LAVA)) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
+
+
             if (mat.name().contains("FENCE") && !mat.name().equalsIgnoreCase("IRON_FENCE")) {
                 MATERIAL_FLAGS[mat.ordinal()] |= SHAPE_EXCEEDS_CUBE;
                 if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
@@ -320,6 +330,7 @@ public class Materials {
             if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] |= GATE;
             if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= AIR;
             if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
+            if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
             if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR")) {
                 MATERIAL_FLAGS[mat.ordinal()] |= TRAPDOOR;
                 if (!mat.name().contains("IRON"))
@@ -399,7 +410,7 @@ public class Materials {
 
     public static boolean isUsable(Material material) {
         return material != null && (material.isEdible() || material == Material.POTION || material == Material.MILK_BUCKET
-                || material == CROSSBOW || material == BOW || checkFlag(material, SWORD)
+                || material == CROSSBOW || material == BOW || material.toString().endsWith("SWORD")
                 || material == TRIDENT || material == SHIELD);
     }
 

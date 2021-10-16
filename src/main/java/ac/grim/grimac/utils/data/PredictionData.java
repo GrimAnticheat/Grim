@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.data;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.utils.player.Hand;
@@ -24,7 +23,6 @@ public class PredictionData {
     public float vehicleHorizontal;
     public float vehicleForward;
     public boolean isJustTeleported;
-    public int minimumTickRequiredToContinue;
     public int lastTransaction;
     public int itemHeld;
     public float horseJump = 0;
@@ -64,7 +62,6 @@ public class PredictionData {
         this.gameMode = player.packetStateData.gameMode;
         this.flySpeed = player.bukkitPlayer.getFlySpeed() / 2;
 
-        minimumTickRequiredToContinue = GrimAPI.INSTANCE.getTickManager().getTick() + 3;
         lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
         itemHeld = player.packetStateData.lastSlotSelected;
@@ -99,7 +96,6 @@ public class PredictionData {
 
         this.gameMode = player.packetStateData.gameMode;
 
-        minimumTickRequiredToContinue = GrimAPI.INSTANCE.getTickManager().getTick() + 3;
         lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
 
         itemHeld = player.packetStateData.lastSlotSelected;

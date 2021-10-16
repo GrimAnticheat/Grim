@@ -13,11 +13,12 @@ public class EventManager implements Initable {
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), GrimAPI.INSTANCE.getPlugin());
 
-        if (XMaterial.isNewVersion()) {
+        // Removed - Packet based block placing
+        /*if (XMaterial.isNewVersion()) {
             Bukkit.getPluginManager().registerEvents(new FlatPlayerBlockBreakPlace(), GrimAPI.INSTANCE.getPlugin());
         } else {
             Bukkit.getPluginManager().registerEvents(new MagicPlayerBlockBreakPlace(), GrimAPI.INSTANCE.getPlugin());
-        }
+        }*/
         Bukkit.getPluginManager().registerEvents(new BucketEvent(), GrimAPI.INSTANCE.getPlugin());
 
         if (XMaterial.supports(9)) {

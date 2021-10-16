@@ -6,8 +6,11 @@ import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
+import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -16,12 +19,12 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
-import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.inventory.ItemStack;
 
 public class CheckManagerListener extends PacketListenerAbstract {
 
@@ -136,12 +139,33 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
             Vector3i blockPosition = place.getBlockPosition();
             Direction face = place.getDirection();
-            BlockPlace blockPlace = new BlockPlace(blockPosition, face);
 
-            player.checkManager.onBlockPlace(blockPlace);
+            ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
 
-            if (!blockPlace.isCancelled()) {
-                player.compensatedWorld.packetLevelBlockLocations.add(new Pair<>(GrimAPI.INSTANCE.getTickManager().getTick(), blockPlace.getPlacedBlockPos()));
+            // I swear if Bukkit doesn't do .isBlock() accurately...
+            if (placedWith != null && placedWith.getType().isBlock()) {
+                BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith.getType());
+
+                player.checkManager.onBlockPlace(blockPlace);
+
+                if (!blockPlace.isCancelled()) {
+
+                    int blockX = blockPlace.getPlacedBlockPos().getX();
+                    int blockY = blockPlace.getPlacedBlockPos().getY();
+                    int blockZ = blockPlace.getPlacedBlockPos().getZ();
+
+                    double playerX = player.packetStateData.packetPosition.getX();
+                    double playerY = player.packetStateData.packetPosition.getY();
+                    double playerZ = player.packetStateData.packetPosition.getZ();
+
+                    // Hard coded as stone as proof of concept
+                    SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(playerX, playerY, playerZ, 0.6, 1.8);
+
+                    // isIntersected != isCollided.  Intersection means check overlap, collided also checks if equal
+                    // CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), magicData, placed.getX(), placed.getY(), placed.getZ()
+                    // The block was not placed inside the player and therefore the place should be processed by block place result to check if it's successful
+                    BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
+                }
             }
         }
 

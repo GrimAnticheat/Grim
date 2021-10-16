@@ -13,6 +13,15 @@ public class FlatBlockState implements BaseBlockState {
         this.globalID = globalID;
     }
 
+    public FlatBlockState(BlockData blockData) {
+        this.blockData = blockData;
+        this.globalID = CompensatedWorldFlat.globalPaletteToBlockData.indexOf(blockData);
+    }
+
+    public FlatBlockState(Material material) {
+        this(material.createBlockData());
+    }
+
     @Override
     public Material getMaterial() {
         return blockData.getMaterial();

@@ -1,6 +1,5 @@
 package ac.grim.grimac.predictionengine;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.impl.movement.EntityControl;
 import ac.grim.grimac.checks.type.PositionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -137,11 +136,6 @@ public class MovementCheckRunner extends PositionCheck {
 
     public void check(PredictionData data) {
         GrimPlayer player = data.player;
-
-        data.isCheckNotReady = data.minimumTickRequiredToContinue > GrimAPI.INSTANCE.getTickManager().getTick();
-        if (data.isCheckNotReady) {
-            return;
-        }
 
         // Note this before any updates
         boolean byGround = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
