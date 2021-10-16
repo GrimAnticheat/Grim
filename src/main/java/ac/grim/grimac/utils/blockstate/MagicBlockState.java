@@ -23,6 +23,11 @@ public class MagicBlockState implements BaseBlockState {
         this.data = combinedID >> 12;
     }
 
+    public MagicBlockState(Material material) {
+        this.id = material.getId();
+        this.data = 0;
+    }
+
     public MagicBlockState(int id, int data) {
         this.id = id;
         this.data = data;

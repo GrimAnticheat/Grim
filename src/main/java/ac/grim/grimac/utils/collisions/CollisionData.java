@@ -1116,4 +1116,12 @@ public enum CollisionData {
         WrappedBlockDataValue blockData = WrappedBlockData.getMaterialData(block);
         return new DynamicCollisionBox(player, version, dynamic, blockData).offset(x, y, z);
     }
+
+    public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, BaseBlockState block) {
+        if (this.box != null)
+            return this.box.copy();
+
+        WrappedBlockDataValue blockData = WrappedBlockData.getMaterialData(block);
+        return new DynamicCollisionBox(player, version, dynamic, blockData);
+    }
 }

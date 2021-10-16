@@ -110,11 +110,6 @@ public class NoFallA extends PacketCheck {
             }
         }
 
-        SimpleCollisionBox expanded = playerBB.expand(1);
-
-        // Check for packet blocks
-        if (player.compensatedWorld.hasPacketBlockAt(expanded)) return true;
-
         return player.compensatedWorld.isNearHardEntity(playerBB.copy().expand(4));
     }
 }

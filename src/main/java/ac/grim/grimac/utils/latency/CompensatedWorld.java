@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.latency;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
@@ -159,20 +158,6 @@ public class CompensatedWorld {
 
         // 3 ticks is enough for everything that needs to be processed to be processed
         likelyDesyncBlockPositions.removeIf(data -> player.packetStateData.packetLastTransactionReceived.get() > data.getFirst());
-        packetLevelBlockLocations.removeIf(data -> GrimAPI.INSTANCE.getTickManager().getTick() - data.getFirst() > 3);
-    }
-
-    public boolean hasPacketBlockAt(SimpleCollisionBox box) {
-        for (Pair<Integer, Vector3i> block : packetLevelBlockLocations) {
-            Vector3i pos = block.getSecond();
-
-            if (pos.getX() >= box.minX && pos.getX() <= box.maxX &&
-                    pos.getY() >= box.minY && pos.getY() <= box.maxY &&
-                    pos.getZ() >= box.minZ && pos.getZ() <= box.maxZ)
-                return true;
-        }
-
-        return false;
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
@@ -328,6 +313,10 @@ public class CompensatedWorld {
         // Tick the pistons and remove them if they can no longer exist
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
         openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
+    }
+
+    public BaseBlockState getWrappedBlockStateAt(Vector3i vector3i) {
+        return getWrappedBlockStateAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
     }
 
     public BaseBlockState getWrappedBlockStateAt(int x, int y, int z) {

@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
-import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -177,7 +176,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 }
 
                 // Only 1.8 and below players can block with swords
-                if (Materials.checkFlag(material, Materials.SWORD)) {
+                if (material.toString().endsWith("_SWORD")) {
                     if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                     else if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9)) // ViaVersion stuff

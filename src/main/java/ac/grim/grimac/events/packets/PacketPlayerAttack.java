@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
-import ac.grim.grimac.utils.nmsImplementations.Materials;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -36,7 +35,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
                 // You don't get a release use item with block hitting with a sword?
                 if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
-                    if (Materials.checkFlag(heldItem.getType(), Materials.SWORD))
+                    if (heldItem.getType().toString().endsWith("_SWORD"))
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 }
 

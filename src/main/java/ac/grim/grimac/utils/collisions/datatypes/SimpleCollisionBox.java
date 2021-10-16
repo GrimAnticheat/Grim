@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.utils.nmsImplementations.Ray;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
@@ -28,6 +29,10 @@ public class SimpleCollisionBox implements CollisionBox {
 
     public SimpleCollisionBox(Vector min, Vector max) {
         this(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
+    }
+
+    public SimpleCollisionBox(Vector3i pos) {
+        this(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
     }
 
     // Use only if you don't know the fullBlock status, which is rare
@@ -198,6 +203,10 @@ public class SimpleCollisionBox implements CollisionBox {
     @Override
     public boolean isFullBlock() {
         return isFullBlock;
+    }
+
+    public boolean isFullBlockNoCache() {
+        return minX == 0 && minY == 0 && minZ == 0 && maxX == 1 && maxY == 1 && maxZ == 1;
     }
 
     /**
