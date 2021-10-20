@@ -63,7 +63,6 @@ public class GrimPlayer {
     // This is the most essential value and controls the threading
     public AtomicInteger tasksNotFinished = new AtomicInteger(0);
     public ConcurrentLinkedQueue<PredictionData> queuedPredictions = new ConcurrentLinkedQueue<>();
-    public PredictionData nextTaskToRun;
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
     public int vanillaACTeleports = 0;
