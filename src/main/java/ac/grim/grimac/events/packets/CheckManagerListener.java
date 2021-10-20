@@ -24,6 +24,7 @@ import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 public class CheckManagerListener extends PacketListenerAbstract {
@@ -143,8 +144,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
 
             // I swear if Bukkit doesn't do .isBlock() accurately...
-            if (placedWith != null && placedWith.getType().isBlock()) {
-                BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith.getType());
+            if (placedWith != null) {
+                Material material = transformMaterial(placedWith);
+                if (!material.isBlock()) return;
+
+                BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material);
 
                 player.checkManager.onBlockPlace(blockPlace);
 
@@ -164,7 +168,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     // isIntersected != isCollided.  Intersection means check overlap, collided also checks if equal
                     // CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), magicData, placed.getX(), placed.getY(), placed.getZ()
                     // The block was not placed inside the player and therefore the place should be processed by block place result to check if it's successful
-                    BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
+                    BlockPlaceResult.getMaterialData(material).applyBlockPlaceToWorld(player, blockPlace);
                 }
             }
         }
@@ -172,6 +176,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Call the packet checks last as they can modify the contents of the packet
         // Such as the NoFall check setting the player to not be on the ground
         player.checkManager.onPacketReceive(event);
+    }
+
+    // For example, placing seeds to place wheat
+    // TODO: Make this compatible with previous versions by using XMaterial
+    private Material transformMaterial(ItemStack stack) {
+        if (stack.getType() == Material.COCOA_BEANS) return Material.COCOA;
+        if (stack.getType() == Material.INK_SAC && stack.getDurability() == 3) return Material.COCOA;
+
+        return stack.getType();
     }
 
     @Override

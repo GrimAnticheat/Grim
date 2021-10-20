@@ -4,8 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.blockstate.BlockStateHelper;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.collisions.AxisSelect;
 import ac.grim.grimac.utils.collisions.AxisUtil;
 import ac.grim.grimac.utils.collisions.CollisionData;
@@ -26,6 +26,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BlockPlace {
@@ -52,22 +53,13 @@ public class BlockPlace {
         this.material = material;
     }
 
-    public static BlockFace getClockWise(BlockFace face) {
-        switch (face) {
-            case NORTH:
-                return BlockFace.EAST;
-            case SOUTH:
-                return BlockFace.WEST;
-            case WEST:
-                return BlockFace.NORTH;
-            case EAST:
-            default:
-                return BlockFace.SOUTH;
-        }
+    public WrappedBlockDataValue getPlacedAgainstData() {
+        BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
+        return WrappedBlockData.getMaterialData(player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation())).getData(state);
     }
 
-    public WrappedBlockDataValue getPlacedAgainstData() {
-        return WrappedBlockData.getMaterialData(player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation()));
+    public BlockData getExistingBlockBlockData() {
+        return ((FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(getPlacedBlockPos())).getBlockData();
     }
 
     public Material getPlacedAgainstMaterial() {
@@ -84,6 +76,21 @@ public class BlockPlace {
         Vector3i pos = getPlacedBlockPos();
         pos.setY(pos.getY() + 1);
         return player.compensatedWorld.getWrappedBlockStateAt(pos);
+    }
+
+    /**
+     * Warning: This is only valid for 1.13+ blocks.  If the block exists on 1.12 or below,
+     * use the more generic getDirectionalState method.
+     *
+     * @param facing The direction from the placed block pos to get the block for
+     * @return The cast BaseBlockState
+     */
+    public FlatBlockState getDirectionalFlatState(BlockFace facing) {
+        Vector3i pos = getPlacedBlockPos();
+        pos.setX(pos.getX() + facing.getModX());
+        pos.setY(pos.getY() + facing.getModY());
+        pos.setZ(pos.getZ() + facing.getModZ());
+        return (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(pos);
     }
 
     public BaseBlockState getDirectionalState(BlockFace facing) {
@@ -186,6 +193,11 @@ public class BlockPlace {
         return Materials.checkFlag(player.compensatedWorld.getWrappedBlockStateAt(pos).getMaterial(), Materials.REPLACEABLE);
     }
 
+    // I believe this is correct, although I'm using a method here just in case it's a tick off... I don't trust Mojang
+    public boolean isSecondaryUse() {
+        return player.packetStateData.isPacketSneaking;
+    }
+
     public Material getBelowMaterial() {
         return getBelowState().getMaterial();
     }
@@ -196,6 +208,42 @@ public class BlockPlace {
 
     public BlockFace getBlockFace() {
         return BlockFace.valueOf(getDirection().name());
+    }
+
+    // Copied from vanilla nms
+    public List<BlockFace> getNearestLookingDirections() {
+        float f = player.yRot * ((float) Math.PI / 180F);
+        float f1 = -player.xRot * ((float) Math.PI / 180F);
+        float f2 = player.trigHandler.sin(f);
+        float f3 = player.trigHandler.cos(f);
+        float f4 = player.trigHandler.sin(f1);
+        float f5 = player.trigHandler.cos(f1);
+        boolean flag = f4 > 0.0F;
+        boolean flag1 = f2 < 0.0F;
+        boolean flag2 = f5 > 0.0F;
+        float f6 = flag ? f4 : -f4;
+        float f7 = flag1 ? -f2 : f2;
+        float f8 = flag2 ? f5 : -f5;
+        float f9 = f6 * f3;
+        float f10 = f8 * f3;
+        BlockFace direction = flag ? BlockFace.EAST : BlockFace.WEST;
+        BlockFace direction1 = flag1 ? BlockFace.UP : BlockFace.DOWN;
+        BlockFace direction2 = flag2 ? BlockFace.SOUTH : BlockFace.NORTH;
+        if (f6 > f8) {
+            if (f7 > f9) {
+                return Arrays.asList(direction1, direction, direction2);
+            } else {
+                return f10 > f7 ? Arrays.asList(direction, direction2, direction1) : Arrays.asList(direction, direction1, direction2);
+            }
+        } else if (f7 > f10) {
+            return Arrays.asList(direction1, direction2, direction);
+        } else {
+            return f9 > f7 ? Arrays.asList(direction2, direction, direction1) : Arrays.asList(direction2, direction1, direction);
+        }
+    }
+
+    public BlockFace getNearestVerticalDirection() {
+        return player.yRot < 0.0F ? BlockFace.UP : BlockFace.DOWN;
     }
 
     public boolean isFaceHorizontal() {
@@ -252,6 +300,12 @@ public class BlockPlace {
 
     public void set(Material material) {
         set(BlockStateHelper.create(material));
+    }
+
+    public void set(BlockFace face, BaseBlockState state) {
+        Vector3i blockPos = getPlacedBlockPos();
+        player.compensatedWorld.updateBlock(blockPos.getX() + face.getModX(), blockPos.getY() + face.getModY(),
+                blockPos.getZ() + face.getModZ(), state.getCombinedId());
     }
 
     public void set(Vector3i position, BaseBlockState state) {

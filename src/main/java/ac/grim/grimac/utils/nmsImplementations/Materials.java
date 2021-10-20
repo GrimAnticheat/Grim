@@ -42,7 +42,7 @@ public class Materials {
     public static final int SOLID_BLACKLIST = 0b00100000000000000000000000000;
     public static final int BANNER = 0b01000000000000000000000000000;
     // What blocks can new blocks simply replace entirely when placing?
-    public static final int REPLACEABLE = 0b01000000000000000000000000000;
+    public static final int REPLACEABLE = 0b10000000000000000000000000000;
 
     private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
     private static final Material BOW = XMaterial.BOW.parseMaterial();
@@ -80,7 +80,6 @@ public class Materials {
         for (int i = 0; i < MATERIAL_FLAGS.length; i++) {
             Material material = Material.values()[i];
 
-            //We use the one in BlockUtils also since we can't trust Material to include everything.
             if (material.isSolid()) {
                 MATERIAL_FLAGS[i] |= SOLID;
             }
