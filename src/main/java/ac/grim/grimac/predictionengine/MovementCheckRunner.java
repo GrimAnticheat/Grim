@@ -55,9 +55,9 @@ public class MovementCheckRunner extends PositionCheck {
     private static final Material CARROT_ON_A_STICK = XMaterial.CARROT_ON_A_STICK.parseMaterial();
     private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
-    public static CustomThreadPoolExecutor executor =
-            new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-                    new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
+
+    public static CustomThreadPoolExecutor executor = new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+            new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
     public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
 
     public MovementCheckRunner(GrimPlayer player) {
@@ -75,32 +75,6 @@ public class MovementCheckRunner extends PositionCheck {
             return;
         }
 
-        boolean forceAddThisTask = data.inVehicle || data.isJustTeleported;
-
-        PredictionData nextTask = data.player.nextTaskToRun;
-
-        if (forceAddThisTask) { // Run the check now
-            data.player.nextTaskToRun = null;
-            if (nextTask != null)
-                addData(nextTask);
-            addData(data);
-        } else if (nextTask != null) {
-            // Mojang fucked up packet order so we need to fix the current item held
-            //
-            // Why would you send the item held AFTER you send their movement??? Anyways. fixed. you're welcome
-            nextTask.itemHeld = data.itemHeld;
-            // This packet was a duplicate to the current one, ignore it.
-            // Thank you 1.17 for sending duplicate positions!
-            if (nextTask.playerX != data.playerX || nextTask.playerY != data.playerY || nextTask.playerZ != data.playerZ) {
-                data.player.nextTaskToRun = data;
-                addData(nextTask);
-            }
-        } else {
-            data.player.nextTaskToRun = data;
-        }
-    }
-
-    private void addData(PredictionData data) {
         if (data.player.tasksNotFinished.getAndIncrement() == 0) {
             executor.runCheck(data);
         } else {
@@ -315,17 +289,18 @@ public class MovementCheckRunner extends PositionCheck {
 
             player.hasGravity = player.playerVehicle.hasGravity;
 
-            ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
-            ItemStack newMainHand = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             if (player.playerVehicle instanceof PacketEntityRideable) {
                 EntityControl control = ((EntityControl) player.checkManager.getPostPredictionCheck(EntityControl.class));
 
                 Material requiredItem = player.playerVehicle.type == EntityType.PIG ? CARROT_ON_A_STICK : WARPED_FUNGUS_ON_A_STICK;
-                if ((mainHand == null || mainHand.getType() != requiredItem) &&
-                        (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)
-                                && player.bukkitPlayer.getInventory().getItemInOffHand().getType() != requiredItem) &&
-                        (newMainHand == null || newMainHand.getType() != requiredItem)) {
+                ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
+
+                boolean correctMainHand = mainHand != null && mainHand.getType() == requiredItem;
+                boolean correctOffhand = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) &&
+                        player.bukkitPlayer.getInventory().getItemInOffHand().getType() == requiredItem;
+
+                if (!correctMainHand && !correctOffhand) {
                     // Entity control cheats!  Set the player back
                     if (control.flag()) {
                         player.getSetbackTeleportUtil().executeSetback();

@@ -62,7 +62,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             //
             // If a player sends a POS LOOK in a vehicle... then it was this stupid fucking mechanic
             if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport) {
-                if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) && System.currentTimeMillis() - lastPosLook < 750 &&
+                if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) &&
                         player.packetStateData.packetPosition.equals(flying.getPosition())) || player.packetStateData.isInVehicle) {
                     lastPosLook = System.currentTimeMillis();
                     player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
