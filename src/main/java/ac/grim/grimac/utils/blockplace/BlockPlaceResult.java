@@ -1,25 +1,24 @@
 package ac.grim.grimac.utils.blockplace;
 
 import ac.grim.grimac.utils.anticheat.Version;
-import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedSlab;
 import ac.grim.grimac.utils.blockdata.types.WrappedSnow;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.blockstate.BlockStateHelper;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
+import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.type.AmethystCluster;
-import org.bukkit.block.data.type.Bell;
-import org.bukkit.block.data.type.Slab;
-import org.bukkit.block.data.type.Snow;
+import org.bukkit.block.data.type.*;
 import org.bukkit.util.Vector;
 
 import java.util.Arrays;
@@ -33,7 +32,7 @@ public enum BlockPlaceResult {
     ANVIL((player, place) -> {
         if (Version.isFlat()) {
             Directional data = (Directional) place.getMaterial().createBlockData();
-            data.setFacing(BlockPlace.getClockWise(place.getPlayerFacing()));
+            data.setFacing(BlockFaceHelper.getClockWise(place.getPlayerFacing()));
             place.set(new FlatBlockState(data));
         }
     }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
@@ -169,6 +168,193 @@ public enum BlockPlaceResult {
         }
         if (canSurvive) place.set(bell);
     }, XMaterial.BELL.parseMaterial()),
+
+    CANDLE((player, place) -> {
+        BlockData existing = place.getExistingBlockBlockData();
+        Candle candle = (Candle) place.getMaterial().createBlockData();
+
+        if (existing instanceof Candle) {
+            Candle existingCandle = (Candle) existing;
+            // Max candles already exists
+            if (existingCandle.getMaximumCandles() == existingCandle.getCandles()) return;
+            candle.setCandles(existingCandle.getCandles() + 1);
+        }
+
+        place.set(candle);
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("CANDLE")).toArray(Material[]::new)),
+
+    SEA_PICKLE((player, place) -> {
+        BlockData existing = place.getExistingBlockBlockData();
+        SeaPickle pickle = (SeaPickle) place.getMaterial().createBlockData();
+
+        if (existing instanceof SeaPickle) {
+            SeaPickle existingPickle = (SeaPickle) existing;
+            // Max pickels already exist
+            if (existingPickle.getMaximumPickles() == existingPickle.getPickles()) return;
+            pickle.setPickles(existingPickle.getPickles() + 1);
+        }
+
+        place.set(pickle);
+    }, XMaterial.SEA_PICKLE.parseMaterial()),
+
+    CHAIN((player, place) -> {
+        Chain chain = (Chain) place.getMaterial().createBlockData();
+        BlockFace face = place.getBlockFace();
+
+        switch (face) {
+            case EAST:
+            case WEST:
+                chain.setAxis(Axis.X);
+                break;
+            case NORTH:
+            case SOUTH:
+                chain.setAxis(Axis.Z);
+                break;
+            case UP:
+            case DOWN:
+                chain.setAxis(Axis.Y);
+                break;
+        }
+
+        place.set(chain);
+    }, XMaterial.CHAIN.parseMaterial()),
+
+    COCOA((player, place) -> {
+        for (BlockFace face : place.getNearestLookingDirections()) {
+            if (BlockFaceHelper.isFaceVertical(face)) continue;
+            Material mat = place.getDirectionalState(face).getMaterial();
+            if (mat == Material.JUNGLE_LOG || mat == Material.STRIPPED_JUNGLE_LOG) {
+                Cocoa data = (Cocoa) place.getMaterial().createBlockData();
+                data.setFacing(face);
+                place.set(face, new FlatBlockState(data));
+                break;
+            }
+        }
+    }, XMaterial.COCOA.parseMaterial()),
+
+    DIRT_PATH((player, place) -> {
+        BaseBlockState state = place.getDirectionalState(BlockFace.UP);
+        // If there is a solid block above the dirt path, it turns to air
+        if (!Materials.checkFlag(state.getMaterial(), Materials.SOLID_BLACKLIST)) {
+            place.set(place.getMaterial());
+        } else {
+            place.set(Material.DIRT);
+        }
+    }, XMaterial.DIRT_PATH.parseMaterial()),
+
+    HOPPER((player, place) -> {
+        BlockFace opposite = place.getPlayerFacing().getOppositeFace();
+        Hopper hopper = (Hopper) place.getMaterial().createBlockData();
+        hopper.setFacing(place.isFaceVertical() ? BlockFace.DOWN : opposite);
+    }, XMaterial.HOPPER.parseMaterial()),
+
+    LANTERN((player, place) -> {
+        for (BlockFace face : place.getNearestLookingDirections()) {
+            if (BlockFaceHelper.isFaceHorizontal(face)) continue;
+            Lantern lantern = (Lantern) place.getMaterial().createBlockData();
+
+            boolean isHanging = face == BlockFace.UP;
+            lantern.setHanging(isHanging);
+
+            boolean canSurvive = place.isFaceFullCenter(isHanging ? BlockFace.UP : BlockFace.DOWN) && !Materials.checkFlag(place.getPlacedAgainstMaterial(), Materials.GATE);
+            if (!canSurvive) continue;
+
+            place.set(new FlatBlockState(lantern));
+            return;
+        }
+    }, XMaterial.LANTERN.parseMaterial(), XMaterial.SOUL_LANTERN.parseMaterial()),
+
+    POINTED_DRIPSTONE((player, place) -> {
+        // To explain what Mojang is doing, take the example of placing on top face
+        BlockFace primaryDirection = place.getNearestVerticalDirection().getOppositeFace(); // The player clicked downwards, so use upwards
+        BlockData typePlacingOn = place.getDirectionalFlatState(primaryDirection.getOppositeFace()).getBlockData(); // Block we are placing on
+
+        // Check to see if we can place on the block or there is dripstone on the block that we are placing on also pointing upwards
+        boolean primarySameType = typePlacingOn instanceof PointedDripstone && ((PointedDripstone) typePlacingOn).getVerticalDirection() == primaryDirection;
+        boolean primaryValid = place.isFullFace(primaryDirection.getOppositeFace()) || primarySameType;
+
+        // Try to use the opposite direction, just to see if switching directions makes it valid.
+        if (!primaryValid) {
+            BlockFace secondaryDirection = primaryDirection.getOppositeFace(); // See if placing it DOWNWARDS is valid
+            BlockData secondaryType = place.getDirectionalFlatState(secondaryDirection.getOppositeFace()).getBlockData(); // Get the block above us
+            // Check if the dripstone above us is also facing downwards
+            boolean secondarySameType = secondaryType instanceof PointedDripstone && ((PointedDripstone) secondaryType).getVerticalDirection() == secondaryDirection;
+
+            primaryDirection = secondaryDirection;
+            typePlacingOn = secondaryType;
+            // Update block survivability
+            primaryValid = place.isFullFace(secondaryDirection.getOppositeFace()) || secondarySameType;
+        }
+
+        // No valid locations
+        if (!primaryValid) return;
+
+        PointedDripstone toPlace = (PointedDripstone) Material.POINTED_DRIPSTONE.createBlockData();
+        toPlace.setVerticalDirection(primaryDirection); // This block is facing UPWARDS as placed on the top face
+
+        // We then have to calculate the thickness of the dripstone
+        //
+        // PrimaryDirection should be the direction that the current dripstone being placed will face
+        // oppositeType should be the opposite to the direction the dripstone is facing, what it is pointing into
+        //
+        // If the dripstone is -> <- pointed at one another
+
+        // If check the blockstate that is above now with the direction of DOWN
+        BlockData oppositeToUs = place.getDirectionalFlatState(primaryDirection).getBlockData();
+
+        // TODO: This is block update code and we must now run this for all 6 directions around us.
+        if (oppositeToUs instanceof PointedDripstone && ((PointedDripstone) oppositeToUs).getVerticalDirection() == primaryDirection.getOppositeFace()) {
+            PointedDripstone dripstone = (PointedDripstone) oppositeToUs;
+            // Use tip if the player is sneaking, or if it already is merged (somehow)
+            PointedDripstone.Thickness thick = place.isSecondaryUse() && dripstone.getThickness() != PointedDripstone.Thickness.TIP_MERGE ?
+                    PointedDripstone.Thickness.TIP : PointedDripstone.Thickness.TIP_MERGE;
+
+            toPlace.setThickness(thick);
+        } else {
+            BlockData sameDirectionToUs = place.getDirectionalFlatState(primaryDirection).getBlockData();
+
+            // Check if the blockstate air does not have the direction of UP already (somehow)
+            if (!(sameDirectionToUs instanceof PointedDripstone) || ((PointedDripstone) sameDirectionToUs).getVerticalDirection() != primaryDirection) {
+                toPlace.setThickness(PointedDripstone.Thickness.TIP);
+            } else {
+                if (typePlacingOn instanceof PointedDripstone &&
+                        ((PointedDripstone) typePlacingOn).getThickness() != PointedDripstone.Thickness.TIP &&
+                        ((PointedDripstone) typePlacingOn).getThickness() != PointedDripstone.Thickness.TIP_MERGE) {
+                    // Look downwards
+                    PointedDripstone dripstone = (PointedDripstone) typePlacingOn;
+                    PointedDripstone.Thickness toSetThick = dripstone.getVerticalDirection() == primaryDirection ? PointedDripstone.Thickness.BASE : PointedDripstone.Thickness.MIDDLE;
+                    toPlace.setThickness(toSetThick);
+
+                } else {
+                    toPlace.setThickness(PointedDripstone.Thickness.FRUSTUM);
+                }
+            }
+        }
+
+        place.set(toPlace);
+    }, XMaterial.POINTED_DRIPSTONE.parseMaterial()),
+
+    PISTON_BASE((player, place) -> {
+        Piston piston = (Piston) place.getMaterial().createBlockData();
+        piston.setFacing(place.getNearestVerticalDirection().getOppositeFace());
+    }),
+
+    // Blocks that have both wall and standing states
+    // Torches, banners, and player heads
+    TORCH((player, place) -> {
+        for (BlockFace face : place.getNearestLookingDirections()) {
+            if (place.isFullFace(face) && face != BlockFace.UP) {
+                if (BlockFaceHelper.isFaceHorizontal(face)) { // type doesn't matter to grim, same hitbox.
+                    Directional dir = (Directional) Material.WALL_TORCH.createBlockData();
+                    dir.setFacing(face.getOppositeFace());
+                    place.set(dir);
+                } else {
+                    place.set(place.getMaterial());
+                }
+                break;
+            }
+        }
+    }, XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial(), XMaterial.SOUL_TORCH.parseMaterial()),
 
     NO_DATA((player, place) -> {
         place.set(BlockStateHelper.create(place.getMaterial()));

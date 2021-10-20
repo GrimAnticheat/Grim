@@ -67,6 +67,4 @@ public class DynamicChest implements CollisionFactory {
         // Single chest
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D);
     }
-
-
 }

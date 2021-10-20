@@ -1,5 +1,8 @@
-package ac.grim.grimac.utils.blockstate;
+package ac.grim.grimac.utils.blockstate.helper;
 
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Material;
 
