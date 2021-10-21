@@ -101,17 +101,22 @@ public class BlockPlace {
         return player.compensatedWorld.getWrappedBlockStateAt(pos);
     }
 
+    public boolean isSolid(BlockFace relative) {
+        BaseBlockState state = getDirectionalState(relative);
+        return !Materials.checkFlag(state.getMaterial(), Materials.SOLID_BLACKLIST);
+    }
+
     public boolean isFullFace(BlockFace relative) {
-        BaseBlockState east = getDirectionalState(relative);
+        BaseBlockState state = getDirectionalState(relative);
 
         BlockFace face = relative.getOppositeFace();
 
-        WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(east);
+        WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(state);
         AxisSelect axis = AxisUtil.getAxis(face);
 
-        CollisionBox box = CollisionData.getData(east.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), east);
+        CollisionBox box = CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state);
 
-        Material blockMaterial = east.getMaterial();
+        Material blockMaterial = state.getMaterial();
 
         if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
             // Leaves can't support blocks
@@ -198,6 +203,11 @@ public class BlockPlace {
         return player.packetStateData.isPacketSneaking;
     }
 
+    public boolean isInWater() {
+        Vector3i pos = getPlacedBlockPos();
+        return player.compensatedWorld.isWaterSourceBlock(pos.getX(), pos.getY(), pos.getZ());
+    }
+
     public Material getBelowMaterial() {
         return getBelowState().getMaterial();
     }
@@ -211,7 +221,32 @@ public class BlockPlace {
     }
 
     // Copied from vanilla nms
-    public List<BlockFace> getNearestLookingDirections() {
+    public List<BlockFace> getNearestPlacingDirections() {
+        BlockFace[] faces = getNearestLookingDirections().toArray(new BlockFace[0]);
+
+        if (!replaceClicked()) {
+            BlockFace direction = getBlockFace();
+
+            // Blame mojang for this code, not me
+            int i;
+            for (i = 0; i < faces.length && faces[i] != direction.getOppositeFace(); ++i) {
+            }
+
+            if (i > 0) {
+                System.arraycopy(faces, 0, faces, 1, i);
+                faces[0] = direction.getOppositeFace();
+            }
+        }
+
+        return Arrays.asList(faces);
+    }
+
+    // TODO:
+    public boolean replaceClicked() {
+        return false;
+    }
+
+    private List<BlockFace> getNearestLookingDirections() {
         float f = player.yRot * ((float) Math.PI / 180F);
         float f1 = -player.xRot * ((float) Math.PI / 180F);
         float f2 = player.trigHandler.sin(f);

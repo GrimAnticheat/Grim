@@ -16,6 +16,7 @@ import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.*;
@@ -78,6 +79,17 @@ public enum BlockPlaceResult {
     }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("_SLAB") || mat.name().contains("STEP"))
             && !mat.name().contains("DOUBLE")).toArray(Material[]::new)),
 
+    STAIRS((player, place) -> {
+        BlockFace direction = place.getBlockFace();
+        Stairs stair = (Stairs) place.getMaterial().createBlockData();
+        stair.setFacing(place.getPlayerFacing());
+
+        Bisected.Half half = (direction != BlockFace.DOWN && (direction == BlockFace.UP || place.getClickedLocation().getY() < 0.5D)) ? Bisected.Half.BOTTOM : Bisected.Half.TOP;
+        stair.setHalf(half);
+        place.set(stair);
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("_STAIRS"))
+            .toArray(Material[]::new)),
+
     END_ROD((player, place) -> {
         Directional endRod = (Directional) place.getMaterial().createBlockData();
         endRod.setFacing(place.getBlockFace());
@@ -104,7 +116,7 @@ public enum BlockPlaceResult {
     AMETHYST_CLUSTER((player, place) -> {
         AmethystCluster amethyst = (AmethystCluster) place.getMaterial().createBlockData();
         amethyst.setFacing(place.getBlockFace());
-        place.set(amethyst);
+        if (place.isFullFace(place.getBlockFace().getOppositeFace())) place.set(amethyst);
     }, XMaterial.AMETHYST_CLUSTER.parseMaterial()),
 
     BAMBOO((player, place) -> {
@@ -220,7 +232,7 @@ public enum BlockPlaceResult {
     }, XMaterial.CHAIN.parseMaterial()),
 
     COCOA((player, place) -> {
-        for (BlockFace face : place.getNearestLookingDirections()) {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
             if (BlockFaceHelper.isFaceVertical(face)) continue;
             Material mat = place.getDirectionalState(face).getMaterial();
             if (mat == Material.JUNGLE_LOG || mat == Material.STRIPPED_JUNGLE_LOG) {
@@ -249,7 +261,7 @@ public enum BlockPlaceResult {
     }, XMaterial.HOPPER.parseMaterial()),
 
     LANTERN((player, place) -> {
-        for (BlockFace face : place.getNearestLookingDirections()) {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
             if (BlockFaceHelper.isFaceHorizontal(face)) continue;
             Lantern lantern = (Lantern) place.getMaterial().createBlockData();
 
@@ -337,15 +349,26 @@ public enum BlockPlaceResult {
     PISTON_BASE((player, place) -> {
         Piston piston = (Piston) place.getMaterial().createBlockData();
         piston.setFacing(place.getNearestVerticalDirection().getOppositeFace());
-    }),
+    }, XMaterial.PISTON.parseMaterial(), XMaterial.STICKY_PISTON.parseMaterial()),
 
     // Blocks that have both wall and standing states
-    // Torches, banners, and player heads
-    TORCH((player, place) -> {
-        for (BlockFace face : place.getNearestLookingDirections()) {
+    TORCH_OR_HEAD((player, place) -> {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
             if (place.isFullFace(face) && face != BlockFace.UP) {
-                if (BlockFaceHelper.isFaceHorizontal(face)) { // type doesn't matter to grim, same hitbox.
-                    Directional dir = (Directional) Material.WALL_TORCH.createBlockData();
+                if (BlockFaceHelper.isFaceHorizontal(face)) {
+                    // type doesn't matter to grim, same hitbox.
+                    // If it's a torch, create a wall torch
+                    // Otherwise, it's going to be a head.  The type of this head also doesn't matter
+                    Directional dir;
+
+                    if (place.getMaterial().name().contains("TORCH")) {
+                        dir = (Directional) Material.WALL_TORCH.createBlockData();
+                    } else if (place.getMaterial().name().contains("HEAD") || place.getMaterial().name().contains("SKULL")) {
+                        dir = (Directional) Material.PLAYER_HEAD.createBlockData();
+                    } else {
+                        dir = (Directional) Material.OAK_WALL_SIGN.createBlockData();
+                    }
+
                     dir.setFacing(face.getOppositeFace());
                     place.set(dir);
                 } else {
@@ -354,7 +377,110 @@ public enum BlockPlaceResult {
                 break;
             }
         }
-    }, XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial(), XMaterial.SOUL_TORCH.parseMaterial()),
+        // First add all torches
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("TORCH") // Find all torches
+                    || (mat.name().contains("HEAD") || mat.name().contains("SKULL")) && !mat.name().contains("PISTON") // Skulls
+                    || mat.name().contains("SIGN")) // And signs
+            .toArray(Material[]::new)),
+
+    // Blocks that have both wall and standing states
+    // Banners
+    BANNER((player, place) -> {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
+            if (place.isSolid(face) && face != BlockFace.UP) {
+                if (BlockFaceHelper.isFaceHorizontal(face)) {
+                    // type doesn't matter to grim, same hitbox.
+                    // If it's a torch, create a wall torch
+                    // Otherwise, it's going to be a head.  The type of this head also doesn't matter.
+                    Directional dir = (Directional) Material.BLACK_WALL_BANNER.createBlockData();
+                    dir.setFacing(face.getOppositeFace());
+                    place.set(dir);
+                } else {
+                    place.set(place.getMaterial());
+                }
+                break;
+            }
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("BANNER")))
+            .toArray(Material[]::new)),
+
+    BIG_DRIPLEAF((player, place) -> {
+        BlockData existing = place.getDirectionalFlatState(BlockFace.DOWN).getBlockData();
+        if (place.isFullFace(BlockFace.DOWN) || existing.getMaterial() == Material.BIG_DRIPLEAF || existing.getMaterial() == Material.BIG_DRIPLEAF_STEM) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.BIG_DRIPLEAF.parseMaterial()),
+
+    SMALL_DRIPLEAF((player, place) -> {
+        BlockData existing = place.getDirectionalFlatState(BlockFace.DOWN).getBlockData();
+        if (Tag.SMALL_DRIPLEAF_PLACEABLE.isTagged(existing.getMaterial()) || (place.isInWater() && (existing.getMaterial() == Material.DIRT || existing.getMaterial() == Material.FARMLAND))) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.SMALL_DRIPLEAF.parseMaterial()),
+
+    TRIPWIRE_HOOK((player, place) -> {
+        if (place.isFaceHorizontal() && place.isFullFace(place.getBlockFace().getOppositeFace())) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.TRIPWIRE_HOOK.parseMaterial()),
+
+    CORAL_PLANT((player, place) -> {
+        if (place.isFullFace(BlockFace.DOWN)) {
+            place.set(place.getMaterial());
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("CORAL")
+                    && !mat.name().contains("BLOCK") && !mat.name().contains("FAN")))
+            .toArray(Material[]::new)),
+
+    CORAL_FAN((player, place) -> {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
+            if (BlockFaceHelper.isFaceHorizontal(face) && place.isFullFace(face) && face != BlockFace.UP) {
+                // type doesn't matter to grim, same hitbox.
+                // If it's a torch, create a wall torch
+                // Otherwise, it's going to be a head.  The type of this head also doesn't matter.
+                Directional dir = (Directional) place.getMaterial().createBlockData();
+                dir.setFacing(face.getOppositeFace());
+                place.set(dir);
+
+                break;
+            }
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("CORAL")
+                    && !mat.name().contains("BLOCK") && mat.name().contains("FAN")))
+            .toArray(Material[]::new)),
+
+    RAIL((player, place) -> {
+        if (place.isFullFace(BlockFace.DOWN)) {
+            place.set(place.getMaterial());
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("RAIL")).toArray(Material[]::new)),
+
+    KELP((player, place) -> {
+        Material below = place.getDirectionalFlatState(BlockFace.DOWN).getMaterial();
+        if ((place.isFullFace(BlockFace.DOWN) || below == Material.KELP || below == Material.KELP_PLANT) && place.isInWater()) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.KELP.parseMaterial()),
+
+    // TODO: This isn't allowed on 1.8 clients, they use different trapdoor placing logic
+    TRAPDOOR((player, place) -> {
+        TrapDoor door = (TrapDoor) place.getMaterial().createBlockData();
+
+        BlockFace direction = place.getBlockFace();
+        if (!place.replaceClicked() && BlockFaceHelper.isFaceHorizontal(direction)) {
+            door.setFacing(direction);
+            boolean clickedTop = place.getClickedLocation().getY() > 0.5;
+            Bisected.Half half = clickedTop ? Bisected.Half.TOP : Bisected.Half.BOTTOM;
+            door.setHalf(half);
+        } else {
+            door.setFacing(place.getPlayerFacing().getOppositeFace());
+            Bisected.Half half = direction == BlockFace.UP ? Bisected.Half.BOTTOM : Bisected.Half.TOP;
+            door.setHalf(half);
+        }
+
+        // TODO: We must check for block power.
+        place.set(door);
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("TRAP_DOOR") || mat.name().contains("TRAPDOOR")).toArray(Material[]::new)),
 
     NO_DATA((player, place) -> {
         place.set(BlockStateHelper.create(place.getMaterial()));

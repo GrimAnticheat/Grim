@@ -380,6 +380,8 @@ public class CompensatedWorld {
 
     public boolean isWaterSourceBlock(int x, int y, int z) {
         BaseBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
+        if (!Materials.isWater(player.getClientVersion(), bukkitBlock)) return false;
+        // This is water, what is its fluid level?
         return ((MagicBlockState) bukkitBlock).getBlockData() == 0;
     }
 
