@@ -31,6 +31,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.util.Vector;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -478,5 +479,9 @@ public class CompensatedWorld {
 
     public int getMaxHeight() {
         return maxHeight;
+    }
+
+    public BaseBlockState getWrappedBlockStateAt(Vector aboveCCWPos) {
+        return getWrappedBlockStateAt(aboveCCWPos.getX(), aboveCCWPos.getY(), aboveCCWPos.getZ());
     }
 }

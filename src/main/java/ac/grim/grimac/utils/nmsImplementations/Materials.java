@@ -365,7 +365,8 @@ public class Materials {
             if (mat.name().contains("SKULL") || mat.name().contains("HEAD"))
                 MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
             if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("SAPLING")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
+            if (mat.name().contains("SAPLING") && !mat.name().contains("BAMBOO"))
+                MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
             if (mat.name().contains("TULIP")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
             if (mat.name().contains("STEM")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
             if (mat.name().contains("SEED")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;

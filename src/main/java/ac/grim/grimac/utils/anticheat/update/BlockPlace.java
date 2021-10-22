@@ -172,6 +172,7 @@ public class BlockPlace {
         if (box.isNull()) return false;
         if (isFullFace(facing)) return true;
         if (Materials.checkFlag(data.getMaterial(), Materials.LEAVES)) return false;
+        if (Materials.checkFlag(data.getMaterial(), Materials.GATE)) return false;
 
         List<SimpleCollisionBox> collisions = new ArrayList<>();
         box.downCast(collisions);
@@ -190,12 +191,48 @@ public class BlockPlace {
         return false;
     }
 
+    public boolean isFaceRigid(BlockFace facing) {
+        BaseBlockState data = getDirectionalState(facing);
+        CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data);
+
+        if (box.isNull()) return false;
+        if (isFullFace(facing)) return true;
+        if (Materials.checkFlag(data.getMaterial(), Materials.LEAVES)) return false;
+
+        List<SimpleCollisionBox> collisions = new ArrayList<>();
+        box.downCast(collisions);
+
+        AxisSelect axis = AxisUtil.getAxis(facing.getOppositeFace());
+
+        for (SimpleCollisionBox simpleBox : collisions) {
+            simpleBox = axis.modify(simpleBox);
+            if (simpleBox.minX <= 2 / 16d && simpleBox.maxX >= 14 / 16d
+                    && simpleBox.minY <= 0 && simpleBox.maxY >= 1
+                    && simpleBox.minZ <= 2 / 16d && simpleBox.maxZ >= 14 / 16d) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public boolean isBlockFaceOpen(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
         pos.setX(pos.getX() + facing.getModX());
         pos.setY(pos.getY() + facing.getModY());
         pos.setZ(pos.getZ() + facing.getModZ());
+        // You can't build above height limit.
+        if (pos.getY() >= player.compensatedWorld.getMaxHeight()) return false;
+
         return Materials.checkFlag(player.compensatedWorld.getWrappedBlockStateAt(pos).getMaterial(), Materials.REPLACEABLE);
+    }
+
+    public boolean isLava(BlockFace facing) {
+        Vector3i pos = getPlacedBlockPos();
+        pos.setX(pos.getX() + facing.getModX());
+        pos.setY(pos.getY() + facing.getModY());
+        pos.setZ(pos.getZ() + facing.getModZ());
+        return Materials.checkFlag(player.compensatedWorld.getWrappedBlockStateAt(pos).getMaterial(), Materials.LAVA);
     }
 
     // I believe this is correct, although I'm using a method here just in case it's a tick off... I don't trust Mojang
@@ -223,12 +260,20 @@ public class BlockPlace {
         return Arrays.stream(mat).anyMatch(m -> m == lookingFor);
     }
 
+    public boolean isOnDirt() {
+        return isOn(Material.DIRT, Material.GRASS_BLOCK, Material.PODZOL, Material.COARSE_DIRT, Material.MYCELIUM, Material.ROOTED_DIRT, Material.MOSS_BLOCK);
+    }
+
     public Direction getDirection() {
         return face;
     }
 
     public BlockFace getBlockFace() {
         return BlockFace.valueOf(getDirection().name());
+    }
+
+    public BlockFace[] getHorizontalFaces() {
+        return BY_2D;
     }
 
     // Copied from vanilla nms
@@ -414,5 +459,17 @@ public class BlockPlace {
 
     public void set() {
         set(getMaterial());
+    }
+
+    public void setAbove() {
+        Vector3i placed = getPlacedBlockPos();
+        placed.setY(placed.getY() + 1);
+        set(placed, BlockStateHelper.create(material));
+    }
+
+    public void setAbove(BaseBlockState toReplaceWith) {
+        Vector3i placed = getPlacedBlockPos();
+        placed.setY(placed.getY() + 1);
+        set(placed, toReplaceWith);
     }
 }

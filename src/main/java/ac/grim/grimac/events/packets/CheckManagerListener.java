@@ -190,6 +190,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (stack.getType() == Material.PUMPKIN_SEEDS) return Material.PUMPKIN_STEM;
         if (stack.getType() == Material.MELON_STEM) return Material.MELON_STEM;
         if (stack.getType() == Material.WHEAT_SEEDS) return Material.WHEAT;
+        if (stack.getType() == Material.REDSTONE) return Material.REDSTONE_WIRE;
 
         return stack.getType();
     }
