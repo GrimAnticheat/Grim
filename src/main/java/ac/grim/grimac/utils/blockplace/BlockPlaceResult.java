@@ -195,6 +195,7 @@ public enum BlockPlaceResult {
         place.set(candle);
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("CANDLE")).toArray(Material[]::new)),
 
+    // Sea pickles refuse to overwrite any collision... but... that's already checked.  Unsure what Mojang is doing.
     SEA_PICKLE((player, place) -> {
         BlockData existing = place.getExistingBlockBlockData();
         SeaPickle pickle = (SeaPickle) place.getMaterial().createBlockData();
@@ -351,24 +352,86 @@ public enum BlockPlaceResult {
         piston.setFacing(place.getNearestVerticalDirection().getOppositeFace());
     }, XMaterial.PISTON.parseMaterial(), XMaterial.STICKY_PISTON.parseMaterial()),
 
+    AZALEA((player, place) -> {
+        BaseBlockState below = place.getBelowState();
+        if (below.getMaterial() == Material.DIRT || below.getMaterial() == Material.FARMLAND || below.getMaterial() == Material.CLAY) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.AZALEA.parseMaterial()),
+
+    CROP((player, place) -> {
+        BaseBlockState below = place.getBelowState();
+        if (below.getMaterial() == Material.FARMLAND) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.CARROTS.parseMaterial(), XMaterial.BEETROOTS.parseMaterial(), XMaterial.POTATOES.parseMaterial(),
+            XMaterial.PUMPKIN_STEM.parseMaterial(), XMaterial.MELON_STEM.parseMaterial(), XMaterial.WHEAT.parseMaterial()),
+
+    DEAD_BUSH((player, place) -> {
+        BaseBlockState below = place.getBelowState();
+        if (below.getMaterial() == Material.SAND || below.getMaterial() == Material.RED_SAND ||
+                below.getMaterial().name().contains("TERRACOTTA") || below.getMaterial() == Material.DIRT) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.DEAD_BUSH.parseMaterial()),
+
+    FUNGUS((player, place) -> {
+        if (place.isOn(Material.CRIMSON_NYLIUM, Material.WARPED_NYLIUM, Material.MYCELIUM, Material.SOUL_SOIL,
+                Material.DIRT, Material.FARMLAND)) {
+            place.set();
+        }
+    }, XMaterial.CRIMSON_FUNGUS.parseMaterial(), XMaterial.WARPED_FUNGUS.parseMaterial()),
+
+    SPROUTS((player, place) -> {
+        if (place.isOn(Material.CRIMSON_NYLIUM, Material.WARPED_NYLIUM, Material.SOUL_SOIL, Material.DIRT, Material.FARMLAND)) {
+            place.set();
+        }
+    }, XMaterial.NETHER_SPROUTS.parseMaterial(), XMaterial.WARPED_ROOTS.parseMaterial(), XMaterial.CRIMSON_ROOTS.parseMaterial()),
+
+    NETHER_WART((player, place) -> {
+        if (place.isOn(Material.SOUL_SAND)) {
+            place.set();
+        }
+    }, XMaterial.NETHER_WART.parseMaterial()),
+
+    WATERLILY((player, place) -> {
+        BaseBlockState below = place.getDirectionalState(BlockFace.DOWN);
+        if (!place.isInLiquid() && (Materials.isWater(player.getClientVersion(), below) || place.isOn(Material.ICE, Material.FROSTED_ICE))) {
+            place.set();
+        }
+    }, XMaterial.LILY_PAD.parseMaterial()),
+
+    WITHER_ROSE((player, place) -> {
+        if (place.isOn(Material.NETHERRACK, Material.SOUL_SAND, Material.SOUL_SOIL, Material.DIRT, Material.FARMLAND)) {
+            place.set();
+        }
+    }, XMaterial.WITHER_ROSE.parseMaterial()),
+
     // Blocks that have both wall and standing states
     TORCH_OR_HEAD((player, place) -> {
+        // type doesn't matter to grim, same hitbox.
+        // If it's a torch, create a wall torch
+        // Otherwise, it's going to be a head.  The type of this head also doesn't matter
+        Directional dir;
+        boolean isTorch = place.getMaterial().name().contains("TORCH");
+        boolean isHead = place.getMaterial().name().contains("HEAD") || place.getMaterial().name().contains("SKULL");
+        boolean isWallSign = !isTorch && !isHead;
+
+        if (isTorch) {
+            dir = (Directional) Material.WALL_TORCH.createBlockData();
+        } else if (place.getMaterial().name().contains("HEAD") || place.getMaterial().name().contains("SKULL")) {
+            dir = (Directional) Material.PLAYER_HEAD.createBlockData();
+        } else {
+            dir = (Directional) Material.OAK_WALL_SIGN.createBlockData();
+        }
+
         for (BlockFace face : place.getNearestPlacingDirections()) {
-            if (place.isFullFace(face) && face != BlockFace.UP) {
+            // Torches need solid faces
+            // Heads have no special preferences - place them anywhere
+            // Signs need solid - exempts chorus flowers and a few other strange cases
+            boolean canPlace = isHead || ((!isTorch || place.isFullFace(face)) && (!isWallSign || place.isSolid(face)));
+            if (canPlace && face != BlockFace.UP) {
                 if (BlockFaceHelper.isFaceHorizontal(face)) {
-                    // type doesn't matter to grim, same hitbox.
-                    // If it's a torch, create a wall torch
-                    // Otherwise, it's going to be a head.  The type of this head also doesn't matter
-                    Directional dir;
-
-                    if (place.getMaterial().name().contains("TORCH")) {
-                        dir = (Directional) Material.WALL_TORCH.createBlockData();
-                    } else if (place.getMaterial().name().contains("HEAD") || place.getMaterial().name().contains("SKULL")) {
-                        dir = (Directional) Material.PLAYER_HEAD.createBlockData();
-                    } else {
-                        dir = (Directional) Material.OAK_WALL_SIGN.createBlockData();
-                    }
-
                     dir.setFacing(face.getOppositeFace());
                     place.set(dir);
                 } else {
@@ -381,6 +444,18 @@ public enum BlockPlaceResult {
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("TORCH") // Find all torches
                     || (mat.name().contains("HEAD") || mat.name().contains("SKULL")) && !mat.name().contains("PISTON") // Skulls
                     || mat.name().contains("SIGN")) // And signs
+            .toArray(Material[]::new)),
+
+    FACE_ATTACHED_HORIZONTAL_DIRECTIONAL((player, place) -> {
+        for (BlockFace face : place.getNearestPlacingDirections()) {
+            if (place.isFullFace(face)) {
+                place.set(place.getMaterial());
+                return;
+            }
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BUTTON") // Find all buttons
+                    || mat.name().contains("GRINDSTONE") // GRINDSTONE
+                    || mat.name().contains("LEVER")) // And levers
             .toArray(Material[]::new)),
 
     // Blocks that have both wall and standing states
@@ -417,6 +492,29 @@ public enum BlockPlaceResult {
             place.set(place.getMaterial());
         }
     }, XMaterial.SMALL_DRIPLEAF.parseMaterial()),
+
+    SEAGRASS((player, place) -> {
+        BlockData existing = place.getDirectionalFlatState(BlockFace.DOWN).getBlockData();
+        if (place.isInWater() && place.isFullFace(BlockFace.DOWN) && existing.getMaterial() != Material.MAGMA_BLOCK) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.SEAGRASS.parseMaterial()),
+
+    HANGING_ROOT((player, place) -> {
+        if (place.isFullFace(BlockFace.UP)) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.HANGING_ROOTS.parseMaterial()),
+
+    FIRE((player, place) -> {
+        boolean byFlammable = false;
+        for (BlockFace face : BlockFace.values()) {
+            if (place.getDirectionalState(face).getMaterial().isFlammable()) byFlammable = true;
+        }
+        if (byFlammable || place.isFullFace(BlockFace.DOWN)) {
+            place.set(place.getMaterial());
+        }
+    }, XMaterial.FIRE.parseMaterial(), XMaterial.SOUL_CAMPFIRE.parseMaterial()),
 
     TRIPWIRE_HOOK((player, place) -> {
         if (place.isFaceHorizontal() && place.isFullFace(place.getBlockFace().getOppositeFace())) {

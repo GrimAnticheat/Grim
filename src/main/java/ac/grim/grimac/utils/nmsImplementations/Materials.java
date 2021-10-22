@@ -222,77 +222,84 @@ public class Materials {
         markAs(XMaterial.WALL_TORCH, SOLID_BLACKLIST);
         markAs(XMaterial.TRIPWIRE, SOLID_BLACKLIST);
         markAs(XMaterial.TRIPWIRE_HOOK, SOLID_BLACKLIST);
-        // Exempt as snow
-        markAs(XMaterial.SNOW, SOLID_BLACKLIST);
+        // Exempt as fire
+        markAs(XMaterial.SNOW, SOLID_BLACKLIST); // Fire
+        markAs(XMaterial.SOUL_FIRE, SOLID_BLACKLIST); // Fire
         // Transparent
         markAs(XMaterial.FIRE, SOLID_BLACKLIST);
         markAs(XMaterial.STRUCTURE_VOID, SOLID_BLACKLIST);
         // Portals are exempted
-        markAs(XMaterial.NETHER_PORTAL, SOLID_BLACKLIST);
-        markAs(XMaterial.END_PORTAL, SOLID_BLACKLIST);
-
+        markAs(XMaterial.NETHER_PORTAL, SOLID_BLACKLIST); // PORTAL
+        markAs(XMaterial.END_PORTAL, SOLID_BLACKLIST); // PORTAL
         // This is a bit messy, but these are all the plants in 1.17 (all blacklisted for blocking movement)
         // Hopefully with PacketEvents 2.0, all the errors from replacement blocks will go away
         // (Such as a solid blacklist block going to a non-solid blacklist block)
+        markAs(XMaterial.GRASS, PLANT); // Replaceable plant
         markAs(XMaterial.GRASS, PLANT);
-        markAs(XMaterial.FERN, PLANT);
-        markAs(XMaterial.DEAD_BUSH, PLANT);
-        markAs(XMaterial.TALL_SEAGRASS, PLANT);
-        markAs(XMaterial.DANDELION, PLANT);
-        markAs(XMaterial.POPPY, PLANT);
-        markAs(XMaterial.BLUE_ORCHID, PLANT);
-        markAs(XMaterial.ALLIUM, PLANT);
-        markAs(XMaterial.AZURE_BLUET, PLANT);
+        markAs(XMaterial.FERN, PLANT); // Replaceable plant
+        markAs(XMaterial.FERN, REPLACEABLE);
+        markAs(XMaterial.DEAD_BUSH, PLANT); // Replaceable plant
+        markAs(XMaterial.DEAD_BUSH, REPLACEABLE);
+        markAs(XMaterial.TALL_SEAGRASS, PLANT); // Replaceable
+        markAs(XMaterial.DANDELION, PLANT); // plant
+        markAs(XMaterial.POPPY, PLANT); // plant
+        markAs(XMaterial.BLUE_ORCHID, PLANT); // plant
+        markAs(XMaterial.ALLIUM, PLANT); // plant
+        markAs(XMaterial.AZURE_BLUET, PLANT); // plant
         // tulip done in loop
-        markAs(XMaterial.OXEYE_DAISY, PLANT);
-        markAs(XMaterial.CORNFLOWER, PLANT);
-        markAs(XMaterial.WITHER_ROSE, PLANT);
-        markAs(XMaterial.LILY_OF_THE_VALLEY, PLANT);
-        markAs(XMaterial.BROWN_MUSHROOM, PLANT);
-        markAs(XMaterial.RED_MUSHROOM, PLANT);
-        markAs(XMaterial.WHEAT, PLANT);
-        markAs(XMaterial.SUGAR_CANE, PLANT);
+        markAs(XMaterial.OXEYE_DAISY, PLANT); // plant
+        markAs(XMaterial.CORNFLOWER, PLANT); // plant
+        markAs(XMaterial.WITHER_ROSE, PLANT); // plant
+        markAs(XMaterial.LILY_OF_THE_VALLEY, PLANT); // plant
+        markAs(XMaterial.BROWN_MUSHROOM, PLANT); // plant
+        markAs(XMaterial.RED_MUSHROOM, PLANT); // plant
+        markAs(XMaterial.WHEAT, PLANT); // plant
+        markAs(XMaterial.SUGAR_CANE, PLANT); // plant
+        markAs(XMaterial.VINE, PLANT); // replaceable plant
         markAs(XMaterial.VINE, PLANT);
-        markAs(XMaterial.GLOW_LICHEN, PLANT);
-        markAs(XMaterial.LILY_PAD, PLANT);
-        markAs(XMaterial.NETHER_WART, PLANT);
-        markAs(XMaterial.COCOA, PLANT);
-        markAs(XMaterial.CARROTS, PLANT);
-        markAs(XMaterial.POTATO, PLANT);
-        markAs(XMaterial.SUNFLOWER, PLANT);
-        markAs(XMaterial.LILAC, PLANT);
-        markAs(XMaterial.ROSE_BUSH, PLANT);
-        markAs(XMaterial.PEONY, PLANT);
+        markAs(XMaterial.GLOW_LICHEN, PLANT); // replaceable plant
+        markAs(XMaterial.GLOW_LICHEN, REPLACEABLE);
+        markAs(XMaterial.LILY_PAD, PLANT); // plant
+        markAs(XMaterial.NETHER_WART, PLANT); // plant
+        markAs(XMaterial.COCOA, PLANT); // plant
+        markAs(XMaterial.CARROTS, PLANT); // plant
+        markAs(XMaterial.POTATO, PLANT); // plant
+        markAs(XMaterial.SUNFLOWER, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
+        markAs(XMaterial.LILAC, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
+        markAs(XMaterial.ROSE_BUSH, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
+        markAs(XMaterial.PEONY, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
+        markAs(XMaterial.TALL_GRASS, PLANT); // replaceable plant
         markAs(XMaterial.TALL_GRASS, PLANT);
-        markAs(XMaterial.LARGE_FERN, PLANT);
-        markAs(XMaterial.CHORUS_PLANT, PLANT);
-        markAs(XMaterial.CHORUS_FLOWER, PLANT);
-        markAs(XMaterial.BEETROOT, PLANT);
-        markAs(XMaterial.KELP, PLANT);
-        markAs(XMaterial.KELP_PLANT, PLANT);
-        markAs(XMaterial.SEA_PICKLE, PLANT);
-        markAs(XMaterial.BAMBOO, PLANT);
-        markAs(XMaterial.BAMBOO_SAPLING, PLANT);
-        markAs(XMaterial.SWEET_BERRY_BUSH, PLANT);
-        markAs(XMaterial.WARPED_FUNGUS, PLANT);
-        markAs(XMaterial.CRIMSON_FUNGUS, PLANT);
-        markAs(XMaterial.WEEPING_VINES, PLANT);
-        markAs(XMaterial.WEEPING_VINES_PLANT, PLANT);
-        markAs(XMaterial.TWISTING_VINES, PLANT);
-        markAs(XMaterial.TWISTING_VINES_PLANT, PLANT);
-        markAs(XMaterial.CRIMSON_ROOTS, PLANT);
-        markAs(XMaterial.CAVE_VINES, PLANT);
-        markAs(XMaterial.CAVE_VINES_PLANT, PLANT);
-        markAs(XMaterial.SPORE_BLOSSOM, PLANT);
-        markAs(XMaterial.AZALEA, PLANT);
-        markAs(XMaterial.FLOWERING_AZALEA, PLANT);
-        markAs(XMaterial.MOSS_CARPET, PLANT);
-        markAs(XMaterial.BIG_DRIPLEAF, PLANT);
-        markAs(XMaterial.SMALL_DRIPLEAF, PLANT);
-        markAs(XMaterial.HANGING_ROOTS, PLANT);
+        markAs(XMaterial.LARGE_FERN, PLANT); // replaceable plant
+        markAs(XMaterial.LARGE_FERN, REPLACEABLE);
+        markAs(XMaterial.CHORUS_PLANT, PLANT); // plant
+        markAs(XMaterial.CHORUS_FLOWER, PLANT); // plant
+        markAs(XMaterial.BEETROOT, PLANT); // plant
+        markAs(XMaterial.KELP, PLANT); // water plant
+        markAs(XMaterial.KELP_PLANT, PLANT); // water plant
+        markAs(XMaterial.SEA_PICKLE, PLANT); // water plant
+        markAs(XMaterial.BAMBOO, PLANT); // plant
+        markAs(XMaterial.BAMBOO_SAPLING, PLANT); // plant
+        markAs(XMaterial.SWEET_BERRY_BUSH, PLANT); // plant
+        markAs(XMaterial.WARPED_FUNGUS, PLANT);  // plant
+        markAs(XMaterial.CRIMSON_FUNGUS, PLANT); // plant
+        markAs(XMaterial.WEEPING_VINES, PLANT); // plant
+        markAs(XMaterial.WEEPING_VINES_PLANT, PLANT); // plant
+        markAs(XMaterial.TWISTING_VINES, PLANT); // plant
+        markAs(XMaterial.TWISTING_VINES_PLANT, PLANT);// plant
+        markAs(XMaterial.CRIMSON_ROOTS, PLANT); // Replaceable fireproof plant
+        markAs(XMaterial.CRIMSON_ROOTS, REPLACEABLE);
+        markAs(XMaterial.CAVE_VINES, PLANT); // plant
+        markAs(XMaterial.CAVE_VINES_PLANT, PLANT); // plant
+        markAs(XMaterial.SPORE_BLOSSOM, PLANT); // plant
+        markAs(XMaterial.AZALEA, PLANT); // plant
+        markAs(XMaterial.FLOWERING_AZALEA, PLANT); // plant
+        markAs(XMaterial.MOSS_CARPET, PLANT); // plant
+        markAs(XMaterial.BIG_DRIPLEAF, PLANT); // plant
+        markAs(XMaterial.SMALL_DRIPLEAF, PLANT); // plant
+        markAs(XMaterial.HANGING_ROOTS, PLANT); // replaceable plant
 
-        markAs(XMaterial.FIRE, REPLACEABLE);
-        markAs(XMaterial.SNOW, REPLACEABLE);
+        markAs(XMaterial.SNOW, REPLACEABLE); // I don't understand snow... it's only replaceable on layer 1
 
         NO_PLACE_LIQUIDS.add(XMaterial.WATER.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.LAVA.parseMaterial());
@@ -304,10 +311,8 @@ public class Materials {
             if (checkFlag(mat, LAVA)) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
             if (checkFlag(mat, PLANT)) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
 
-            if (checkFlag(mat, PLANT)) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
             if (checkFlag(mat, WATER)) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
             if (checkFlag(mat, LAVA)) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
-
 
             if (mat.name().contains("FENCE") && !mat.name().equalsIgnoreCase("IRON_FENCE")) {
                 MATERIAL_FLAGS[mat.ordinal()] |= SHAPE_EXCEEDS_CUBE;

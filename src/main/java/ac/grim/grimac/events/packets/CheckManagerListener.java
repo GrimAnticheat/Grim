@@ -184,6 +184,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (stack.getType() == Material.COCOA_BEANS) return Material.COCOA;
         if (stack.getType() == Material.INK_SAC && stack.getDurability() == 3) return Material.COCOA;
         if (stack.getType() == Material.FIRE_CHARGE) return Material.FIRE;
+        if (stack.getType() == Material.POTATO) return Material.POTATOES;
+        if (stack.getType() == Material.BEETROOT_SEEDS) return Material.BEETROOTS;
+        if (stack.getType() == Material.CARROT) return Material.CARROTS;
+        if (stack.getType() == Material.PUMPKIN_SEEDS) return Material.PUMPKIN_STEM;
+        if (stack.getType() == Material.MELON_STEM) return Material.MELON_STEM;
+        if (stack.getType() == Material.WHEAT_SEEDS) return Material.WHEAT;
 
         return stack.getType();
     }

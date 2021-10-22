@@ -208,8 +208,19 @@ public class BlockPlace {
         return player.compensatedWorld.isWaterSourceBlock(pos.getX(), pos.getY(), pos.getZ());
     }
 
+    public boolean isInLiquid() {
+        Vector3i pos = getPlacedBlockPos();
+        BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(pos);
+        return Materials.isWater(player.getClientVersion(), data) || Materials.checkFlag(data.getMaterial(), Materials.LAVA);
+    }
+
     public Material getBelowMaterial() {
         return getBelowState().getMaterial();
+    }
+
+    public boolean isOn(Material... mat) {
+        Material lookingFor = getBelowMaterial();
+        return Arrays.stream(mat).anyMatch(m -> m == lookingFor);
     }
 
     public Direction getDirection() {
@@ -399,5 +410,9 @@ public class BlockPlace {
     // Are you that incompetent???  Fix the root cause!
     public BlockFace getPlayerFacing() {
         return BY_2D[GrimMath.floor(player.packetStateData.packetPlayerXRot / 90.0D + 0.5D) & 3];
+    }
+
+    public void set() {
+        set(getMaterial());
     }
 }
