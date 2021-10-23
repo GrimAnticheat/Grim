@@ -157,8 +157,11 @@ public class BlockPlace {
             }
         }
 
-        if (box instanceof SimpleCollisionBox) {
-            return axis.modify((SimpleCollisionBox) box).isFullBlockNoCache();
+        List<SimpleCollisionBox> collisions = new ArrayList<>();
+        box.downCast(collisions);
+
+        for (SimpleCollisionBox simpleBox : collisions) {
+            if (axis.modify(simpleBox).isFullBlockNoCache()) return true;
         }
 
         // Not an explicit edge case and is complicated, so isn't a full face
@@ -225,6 +228,48 @@ public class BlockPlace {
         if (pos.getY() >= player.compensatedWorld.getMaxHeight()) return false;
 
         return Materials.checkFlag(player.compensatedWorld.getWrappedBlockStateAt(pos).getMaterial(), Materials.REPLACEABLE);
+    }
+
+
+    public boolean isFaceEmpty(BlockFace facing) {
+        BaseBlockState data = getDirectionalState(facing);
+        CollisionBox box = CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data);
+
+        if (box.isNull()) return false;
+        if (isFullFace(facing)) return true;
+        if (Materials.checkFlag(data.getMaterial(), Materials.LEAVES)) return false;
+
+        List<SimpleCollisionBox> collisions = new ArrayList<>();
+        box.downCast(collisions);
+
+        AxisSelect axis = AxisUtil.getAxis(facing.getOppositeFace());
+
+        for (SimpleCollisionBox simpleBox : collisions) {
+            simpleBox = axis.modify(simpleBox);
+            // If all sides to the box have width, there is collision.
+            switch (facing) {
+                case NORTH:
+                    if (simpleBox.minZ == 0) return false;
+                    break;
+                case SOUTH:
+                    if (simpleBox.maxZ == 1) return false;
+                    break;
+                case EAST:
+                    if (simpleBox.maxX == 1) return false;
+                    break;
+                case WEST:
+                    if (simpleBox.minX == 0) return false;
+                    break;
+                case UP:
+                    if (simpleBox.maxY == 1) return false;
+                    break;
+                case DOWN:
+                    if (simpleBox.minY == 0) return false;
+                    break;
+            }
+        }
+
+        return true;
     }
 
     public boolean isLava(BlockFace facing) {
@@ -395,20 +440,22 @@ public class BlockPlace {
 
     public void set(BlockFace face, BaseBlockState state) {
         Vector3i blockPos = getPlacedBlockPos();
-        player.compensatedWorld.updateBlock(blockPos.getX() + face.getModX(), blockPos.getY() + face.getModY(),
-                blockPos.getZ() + face.getModZ(), state.getCombinedId());
+        blockPos.setX(blockPos.getX() + face.getModX());
+        blockPos.setY(blockPos.getY() + face.getModY());
+        blockPos.setZ(blockPos.getZ() + face.getModZ());
+        set(blockPos, state);
     }
 
     public void set(Vector3i position, BaseBlockState state) {
+        if (state instanceof FlatBlockState) {
+            Bukkit.broadcastMessage("Placed " + ((FlatBlockState) state).getBlockData().getAsString(false));
+        }
+
         player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getCombinedId());
     }
 
-    public boolean set(BlockData state) {
-        // TODO: Check if the player is inside of the block - if so, ignore this place
-        // TODO: We need to check if there is a full block of water and this blockdata is waterlogged
+    public void set(BlockData state) {
         set(new FlatBlockState(state));
-        Bukkit.broadcastMessage("Placed " + state.getAsString(false));
-        return true;
     }
 
     public void set(BaseBlockState state) {
