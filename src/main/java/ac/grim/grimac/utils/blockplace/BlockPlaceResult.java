@@ -793,7 +793,11 @@ public enum BlockPlaceResult {
             door.setHalf(half);
         }
 
-        // TODO: We must check for block power.
+        // Check for redstone signal!
+        if (place.isBlockPlacedPowered()) {
+            door.setOpen(true);
+        }
+
         place.set(door);
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("TRAP_DOOR") || mat.name().contains("TRAPDOOR")).toArray(Material[]::new)),
 

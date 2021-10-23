@@ -753,7 +753,7 @@ public enum CollisionData {
 
 
     BUTTON((player, version, data, x, y, z) -> {
-        WrappedButton button = (WrappedButton) data;
+        WrappedDirectionalPower button = (WrappedDirectionalPower) data;
         double f2 = (float) (button.isPowered() ? 1 : 2) / 16.0;
 
         switch (button.getDirection()) {

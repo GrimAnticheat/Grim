@@ -31,6 +31,10 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Powerable;
+import org.bukkit.block.data.type.Lectern;
+import org.bukkit.block.data.type.LightningRod;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Method;
@@ -335,6 +339,75 @@ public class CompensatedWorld {
         }
 
         return airData;
+    }
+
+    // Not direct power into a block
+    // Trapped chests give power but there's no packet to the client to actually apply this... ignore trapped chests
+    // just like mojang did!
+    //
+    // What anticheat codes in redstone logic?
+    // Grim does to fix an issue where a player places doors/trapdoors on powered blocks!
+    public int getRawPowerAtState(BlockFace face, int x, int y, int z) {
+        BaseBlockState data = getWrappedBlockStateAt(x, y, z);
+        WrappedBlockDataValue state = WrappedBlockData.getMaterialData(data).getData(data);
+
+        if (data.getMaterial() == Material.REDSTONE_BLOCK) {
+            return 15;
+        } else if (state instanceof WrappedRails) { // Rails have directional requirement
+            return face == BlockFace.UP ? ((WrappedRails) state).getPower() : 0;
+        } else if (state instanceof WrappedRedstoneTorch) {
+            return face != BlockFace.UP ? ((WrappedRedstoneTorch) state).getPower() : 0;
+        } else if (state instanceof WrappedMultipleFacingPower) {
+            return ((WrappedMultipleFacingPower) state).getDirections().contains(face) ? ((WrappedMultipleFacingPower) state).getPower() : 0;
+        } else if (state instanceof WrappedPower) {
+            return ((WrappedPower) state).getPower();
+        } else if (state instanceof WrappedWallTorchDirectionalPower) {
+            return ((WrappedDirectionalPower) state).getDirection() != face && ((WrappedDirectionalPower) state).isPowered() ? 15 : 0;
+        } else if (state instanceof WrappedDirectionalPower) {
+            return ((WrappedDirectionalPower) state).isPowered() ? 15 : 0;
+        } else if (state instanceof WrappedFlatBlock) {
+            BlockData modernData = ((WrappedFlatBlock) state).getBlockData();
+
+            // handles lectern
+            if (modernData instanceof Powerable) {
+                return ((Powerable) modernData).isPowered() ? 15 : 0;
+            }
+        }
+
+        return 0;
+    }
+
+    // Redstone can power blocks indirectly by directly powering a block next to the block to power
+    public int getDirectSignalAtState(BlockFace face, int x, int y, int z) {
+        BaseBlockState data = getWrappedBlockStateAt(x, y, z);
+        WrappedBlockDataValue state = WrappedBlockData.getMaterialData(data).getData(data);
+
+        if (state instanceof WrappedRails) { // Rails have directional requirement
+            return face == BlockFace.UP ? ((WrappedRails) state).getPower() : 0;
+        } else if (state instanceof WrappedRedstoneTorch) {
+            return face == BlockFace.DOWN ? ((WrappedRedstoneTorch) state).getPower() : 0;
+        } else if (state instanceof WrappedMultipleFacingPower) {
+            return ((WrappedMultipleFacingPower) state).getDirections().contains(face) ? ((WrappedMultipleFacingPower) state).getPower() : 0;
+        } else if (state instanceof WrappedPower && data.getMaterial().name().contains("PLATE")) {
+            return face == BlockFace.UP ? ((WrappedPower) state).getPower() : 0;
+        } else if (state instanceof WrappedPower) {
+            return ((WrappedPower) state).getPower();
+        } else if (state instanceof WrappedWallTorchDirectionalPower) {
+            return ((WrappedDirectionalPower) state).getDirection() != face && ((WrappedDirectionalPower) state).isPowered() ? 15 : 0;
+        } else if (state instanceof WrappedDirectionalPower) {
+            return ((WrappedDirectionalPower) state).getDirection() == face && ((WrappedDirectionalPower) state).isPowered() ? 15 : 0;
+        } else if (state instanceof WrappedFlatBlock) {
+            BlockData modernData = ((WrappedFlatBlock) state).getBlockData();
+
+            // handles lectern
+            if (modernData instanceof Lectern) {
+                return face == BlockFace.UP && ((Lectern) modernData).isPowered() ? 15 : 0;
+            } else if (modernData instanceof LightningRod) {
+                return face == ((LightningRod) modernData).getFacing() && ((LightningRod) modernData).isPowered() ? 15 : 0;
+            }
+        }
+
+        return 0;
     }
 
     public Column getChunk(int chunkX, int chunkZ) {
