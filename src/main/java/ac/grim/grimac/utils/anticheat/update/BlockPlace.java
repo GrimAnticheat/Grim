@@ -219,6 +219,61 @@ public class BlockPlace {
         return false;
     }
 
+    // I have to be the first anticheat to actually account for this... wish me luck
+    // It's interested that redstone code is actually really simple, but has so many quirks
+    // we don't need to account for these quirks though as they are more related to block updates.
+    public boolean isBlockPlacedPowered() {
+        Vector3i placed = getPlacedBlockPos();
+
+        for (BlockFace face : BlockFace.values()) {
+            if (!face.isCartesian()) continue;
+            Vector3i modified = placed.clone();
+
+            modified.setX(placed.getX() + face.getModX());
+            modified.setY(placed.getY() + face.getModY());
+            modified.setZ(placed.getZ() + face.getModZ());
+
+            // A block next to the player is providing power.  Therefore the block is powered
+            if (player.compensatedWorld.getRawPowerAtState(face, modified.getX(), modified.getY(), modified.getZ()) > 0) {
+                return true;
+            }
+
+            // Check if a block can even provide power... bukkit doesn't have a method for this?
+            BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(modified);
+
+            boolean isByDefaultConductive = !Materials.isSolidBlockingBlacklist(state.getMaterial(), player.getClientVersion()) &&
+                    CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state).isFullBlock();
+
+            // Soul sand is exempt from this check.
+            // Glass, moving pistons, beacons, redstone blocks (for some reason) and observers are not conductive
+            // Otherwise, if something is solid blocking and a full block, then it is conductive
+            if (state.getMaterial() != SOUL_SAND &&
+                    Materials.checkFlag(state.getMaterial(), Materials.GLASS_BLOCK) || state.getMaterial() == Material.MOVING_PISTON
+                    || state.getMaterial() == Material.BEACON || state.getMaterial() ==
+                    Material.REDSTONE_BLOCK || state.getMaterial() == Material.OBSERVER || !isByDefaultConductive) {
+                continue;
+            }
+
+            // There's a better way to do this, but this is "good enough"
+            // Mojang probably does it in a worse way than this.
+            for (BlockFace recursive : BlockFace.values()) {
+                if (!face.isCartesian()) continue;
+                Vector3i poweredRecursive = placed.clone();
+
+                poweredRecursive.setX(modified.getX() + recursive.getModX());
+                poweredRecursive.setY(modified.getY() + recursive.getModY());
+                poweredRecursive.setZ(modified.getZ() + recursive.getModZ());
+
+                // A block next to the player is directly powered.  Therefore, the block is powered
+                if (player.compensatedWorld.getDirectSignalAtState(recursive, poweredRecursive.getX(), poweredRecursive.getY(), poweredRecursive.getZ()) > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     public boolean isBlockFaceOpen(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
         pos.setX(pos.getX() + facing.getModX());

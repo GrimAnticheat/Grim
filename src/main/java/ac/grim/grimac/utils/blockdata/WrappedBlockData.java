@@ -4,11 +4,15 @@ import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
+import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.*;
 import org.bukkit.block.data.type.*;
+import org.bukkit.material.PressureSensor;
+import org.bukkit.material.Redstone;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -330,7 +334,7 @@ public enum WrappedBlockData {
 
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
-            !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
+                    !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
             .toArray(Material[]::new)),
 
     STAIRS(new WrappedStairs() {
@@ -473,7 +477,7 @@ public enum WrappedBlockData {
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL_SIGN"))
             .toArray(Material[]::new)),
 
-    BUTTON(new WrappedButton() {
+    BUTTON(new WrappedDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {
             setDirection(((Directional) data.getBlockData()).getFacing());
             setPowered(((Powerable) data.getBlockData()).isPowered());
@@ -529,9 +533,10 @@ public enum WrappedBlockData {
         }
     }, XMaterial.LADDER.parseMaterial()),
 
-    LEVER(new WrappedDirectional() {
+    LEVER(new WrappedDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {
             setDirection(((Directional) data.getBlockData()).getFacing());
+            setPowered(((Redstone) data.getBlockData()).isPowered());
         }
 
         public void getWrappedData(MagicBlockState data) {
@@ -557,12 +562,96 @@ public enum WrappedBlockData {
                     setDirection(BlockFace.UP);
                     break;
             }
+            setPowered((data.getBlockData() & 0x8) == 0x8);
         }
     }, XMaterial.LEVER.parseMaterial()),
 
-    WALL_TORCH(new WrappedDirectional() {
+    TRIPWIRE(new WrappedDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {
             setDirection(((Directional) data.getBlockData()).getFacing());
+            setPowered(((Redstone) data.getBlockData()).isPowered());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            switch (data.getBlockData() & 3) {
+                case 0:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 1:
+                    setDirection(BlockFace.WEST);
+                    break;
+                case 2:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.EAST);
+                    break;
+            }
+            setPowered((data.getBlockData() & 0x8) == 0x8);
+        }
+    }, XMaterial.TRIPWIRE_HOOK.parseMaterial()),
+
+    OBSERVER(new WrappedDirectionalPower() {
+        public void getWrappedData(FlatBlockState data) {
+            setDirection(((Directional) data.getBlockData()).getFacing());
+            setPowered(((Redstone) data.getBlockData()).isPowered());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            switch (data.getBlockData() & 7) {
+                case 0:
+                    setDirection(BlockFace.DOWN);
+                    break;
+                case 1:
+                    setDirection(BlockFace.UP);
+                    break;
+                case 2:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 4:
+                    setDirection(BlockFace.WEST);
+                    break;
+                case 5:
+                    setDirection(BlockFace.EAST);
+                    break;
+            }
+            setPowered((data.getBlockData() & 0x8) == 0x8);
+        }
+    }, XMaterial.OBSERVER.parseMaterial()),
+
+    REDSTONE_WIRE(new WrappedMultipleFacingPower() {
+        public void getWrappedData(FlatBlockState data) {
+            RedstoneWire redstone = (RedstoneWire) data.getBlockData();
+
+            HashSet<BlockFace> directions = new HashSet<>();
+
+            for (BlockFace face : BlockFace.values()) {
+                if (BlockFaceHelper.isFaceHorizontal(face)) {
+                    if (redstone.getFace(face) != RedstoneWire.Connection.NONE) {
+                        directions.add(face);
+                    }
+                }
+            }
+
+            setDirections(directions);
+            setPower(redstone.getPower());
+        }
+
+        // There aren't connections in block data on 1.12!
+        public void getWrappedData(MagicBlockState data) {
+            setPower(data.getBlockData());
+        }
+    }, XMaterial.REDSTONE_WIRE.parseMaterial()),
+
+    WALL_TORCH(new WrappedWallTorchDirectionalPower() {
+        public void getWrappedData(FlatBlockState data) {
+            setDirection(((Directional) data.getBlockData()).getFacing());
+            if (data.getBlockData() instanceof Lightable) {
+                setPowered(((Lightable) data.getBlockData()).isLit());
+            }
         }
 
         public void getWrappedData(MagicBlockState data) {
@@ -583,8 +672,21 @@ public enum WrappedBlockData {
                     setDirection(BlockFace.UP);
                     break;
             }
+            setPowered((data.getBlockData() & 0x8) == 0x8);
         }
     }, XMaterial.WALL_TORCH.parseMaterial(), XMaterial.REDSTONE_WALL_TORCH.parseMaterial()),
+
+    REDSTONE_TORCH(new WrappedRedstoneTorch() {
+        public void getWrappedData(FlatBlockState data) {
+            setPower(((Lightable) data.getBlockData()).isLit() ? 15 : 0);
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            // Stored in name again because mojang -_-
+            setPower(data.getMaterial().name().equalsIgnoreCase("REDSTONE_TORCH_ON") ? 15 : 0);
+        }
+    }, XMaterial.REDSTONE_TORCH.parseMaterial(),
+            Materials.matchLegacy("REDSTONE_TORCH_OFF"), Materials.matchLegacy("REDSTONE_TORCH_ON")),
 
     PISTON_BASE(new WrappedPistonBase() {
         public void getWrappedData(FlatBlockState data) {
@@ -664,14 +766,72 @@ public enum WrappedBlockData {
 
             setAscending(rail.getShape() == Rail.Shape.ASCENDING_EAST || rail.getShape() == Rail.Shape.ASCENDING_WEST
                     || rail.getShape() == Rail.Shape.ASCENDING_NORTH || rail.getShape() == Rail.Shape.ASCENDING_SOUTH);
+
+            if (data.getMaterial() == Material.DETECTOR_RAIL) {
+                setPower(((RedstoneRail) rail).isPowered() ? 15 : 0);
+            }
         }
 
         public void getWrappedData(MagicBlockState data) {
             int magic = data.getBlockData();
             // Magic values 2 to 5 are ascending
             setAscending(magic > 1 && magic < 6);
+            setPower((magic & 0x8) == 0x8 ? 15 : 0);
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("RAIL")).toArray(Material[]::new)),
+
+    // Block power is wrong for weighted pressure plates, but grim only needs to know if there is block power
+    PRESSURE_PLATE(new WrappedPower() {
+        public void getWrappedData(FlatBlockState data) {
+            PressureSensor sensor = (PressureSensor) data.getBlockData();
+            setPower(sensor.isPressed() ? 15 : 0);
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            int magic = data.getBlockData();
+            setPower(magic != 0 ? 15 : 0);
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("PLATE")).toArray(Material[]::new)),
+
+    DAYLIGHT_SENSOR(new WrappedPower() {
+        public void getWrappedData(FlatBlockState data) {
+            DaylightDetector detector = (DaylightDetector) data.getBlockData();
+            setPower(detector.getPower());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            int magic = data.getBlockData();
+            setPower(magic);
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("PLATE")).toArray(Material[]::new)),
+
+    REPEATER(new WrappedDirectionalPower() {
+        public void getWrappedData(FlatBlockState data) {
+            setDirection(((Directional) data.getBlockData()).getFacing());
+            setPowered(((Powerable) data.getBlockData()).isPowered());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            // 1.12 is limited by states and therefore use different materials for power state
+            setPowered(data.getMaterial().name().endsWith("ON"));
+
+            switch (data.getBlockData() & 3) {
+                case 0:
+                    setDirection(BlockFace.NORTH);
+                    break;
+                case 1:
+                    setDirection(BlockFace.EAST);
+                    break;
+                case 2:
+                    setDirection(BlockFace.SOUTH);
+                    break;
+                case 3:
+                    setDirection(BlockFace.WEST);
+                    break;
+            }
+        }
+    }, Materials.matchLegacy("LEGACY_DIODE_BLOCK_OFF"), Materials.matchLegacy("LEGACY_DIODE_BLOCK_ON"),
+            XMaterial.REPEATER.parseMaterial()),
 
     DOOR(new WrappedDoor() {
         public void getWrappedData(FlatBlockState data) {
