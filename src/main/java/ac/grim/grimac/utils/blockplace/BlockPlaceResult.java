@@ -23,6 +23,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.FaceAttachable;
 import org.bukkit.block.data.type.*;
 import org.bukkit.util.Vector;
 
@@ -113,7 +114,7 @@ public enum BlockPlaceResult {
     LADDER((player, place) -> {
         // Horizontal ladders aren't a thing
         if (place.isFaceVertical()) return;
-        if (!place.isFullFace(place.getBlockFace())) return;
+        if (!place.isFullFace(place.getBlockFace().getOppositeFace())) return;
 
         Directional ladder = (Directional) place.getMaterial().createBlockData();
         ladder.setFacing(place.getBlockFace());
@@ -220,6 +221,8 @@ public enum BlockPlaceResult {
         BlockData existing = place.getExistingBlockBlockData();
         SeaPickle pickle = (SeaPickle) place.getMaterial().createBlockData();
 
+        if (!place.isFullFace(BlockFace.DOWN) && !place.isFaceEmpty(BlockFace.DOWN)) return;
+
         if (existing instanceof SeaPickle) {
             SeaPickle existingPickle = (SeaPickle) existing;
             // Max pickels already exist
@@ -256,7 +259,7 @@ public enum BlockPlaceResult {
         for (BlockFace face : place.getNearestPlacingDirections()) {
             if (BlockFaceHelper.isFaceVertical(face)) continue;
             Material mat = place.getDirectionalState(face).getMaterial();
-            if (mat == Material.JUNGLE_LOG || mat == Material.STRIPPED_JUNGLE_LOG) {
+            if (mat == Material.JUNGLE_LOG || mat == Material.STRIPPED_JUNGLE_LOG || mat == Material.JUNGLE_WOOD) {
                 Cocoa data = (Cocoa) place.getMaterial().createBlockData();
                 data.setFacing(face);
                 place.set(face, new FlatBlockState(data));
@@ -268,7 +271,7 @@ public enum BlockPlaceResult {
     DIRT_PATH((player, place) -> {
         BaseBlockState state = place.getDirectionalState(BlockFace.UP);
         // If there is a solid block above the dirt path, it turns to air.  This does not include fence gates
-        if (!Materials.checkFlag(state.getMaterial(), Materials.SOLID_BLACKLIST) || Materials.checkFlag(state.getMaterial(), Materials.GATE)) {
+        if (Materials.checkFlag(state.getMaterial(), Materials.SOLID_BLACKLIST) || Materials.checkFlag(state.getMaterial(), Materials.GATE)) {
             place.set(place.getMaterial());
         } else {
             place.set(Material.DIRT);
@@ -276,9 +279,10 @@ public enum BlockPlaceResult {
     }, XMaterial.DIRT_PATH.parseMaterial()),
 
     HOPPER((player, place) -> {
-        BlockFace opposite = place.getPlayerFacing().getOppositeFace();
+        BlockFace opposite = place.getBlockFace().getOppositeFace();
         Hopper hopper = (Hopper) place.getMaterial().createBlockData();
         hopper.setFacing(place.isFaceVertical() ? BlockFace.DOWN : opposite);
+        place.set(hopper);
     }, XMaterial.HOPPER.parseMaterial()),
 
     LANTERN((player, place) -> {
@@ -388,6 +392,7 @@ public enum BlockPlaceResult {
     PISTON_BASE((player, place) -> {
         Piston piston = (Piston) place.getMaterial().createBlockData();
         piston.setFacing(place.getNearestVerticalDirection().getOppositeFace());
+        place.set(piston);
     }, XMaterial.PISTON.parseMaterial(), XMaterial.STICKY_PISTON.parseMaterial()),
 
     AZALEA((player, place) -> {
@@ -406,6 +411,11 @@ public enum BlockPlaceResult {
             XMaterial.PUMPKIN_STEM.parseMaterial(), XMaterial.MELON_STEM.parseMaterial(), XMaterial.WHEAT.parseMaterial()),
 
     SUGARCANE((player, place) -> {
+        if (place.isOn(Material.SUGAR_CANE)) {
+            place.set();
+            return;
+        }
+
         if (place.isOnDirt() || place.isOn(Material.SAND, Material.RED_SAND)) {
             Vector3i pos = place.getPlacedBlockPos();
             pos.setY(pos.getY() - 1);
@@ -425,7 +435,7 @@ public enum BlockPlaceResult {
     }, XMaterial.SUGAR_CANE.parseMaterial()),
 
     CARPET((player, place) -> {
-        if (Materials.checkFlag(place.getBelowState().getMaterial(), Materials.AIR)) {
+        if (!Materials.checkFlag(place.getBelowState().getMaterial(), Materials.AIR)) {
             place.set();
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("CARPET")).toArray(Material[]::new)),
@@ -444,7 +454,7 @@ public enum BlockPlaceResult {
                         }
 
                         flag = true;
-                    } else if (Materials.checkFlag(blockstate1.getMaterial(), Materials.AIR)) {
+                    } else if (!Materials.checkFlag(blockstate1.getMaterial(), Materials.AIR)) {
                         return;
                     }
                 }
@@ -473,7 +483,7 @@ public enum BlockPlaceResult {
                 Vector3i placedPos = place.getPlacedBlockPos();
                 placedPos.setY(placedPos.getY() - 1);
                 placedPos.setX(placedPos.getX() + direction.getModX());
-                placedPos.setX(placedPos.getZ() + direction.getModZ());
+                placedPos.setZ(placedPos.getZ() + direction.getModZ());
 
                 BaseBlockState blockstate2 = player.compensatedWorld.getWrappedBlockStateAt(placedPos);
                 if (blockstate2.getMaterial() == Material.CHORUS_PLANT || blockstate2.getMaterial() == Material.END_STONE) {
@@ -594,7 +604,12 @@ public enum BlockPlaceResult {
 
     GRINDSTONE((player, place) -> { // Grindstones do not have special survivability requirements
         Grindstone stone = (Grindstone) place.getMaterial().createBlockData();
-        stone.setFacing(place.getBlockFace());
+        if (place.isFaceVertical()) {
+            stone.setAttachedFace(place.getPlayerFacing() == BlockFace.UP ? FaceAttachable.AttachedFace.CEILING : FaceAttachable.AttachedFace.FLOOR);
+        } else {
+            stone.setAttachedFace(FaceAttachable.AttachedFace.WALL);
+        }
+        stone.setFacing(place.getPlayerFacing());
         place.set(stone);
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GRINDSTONE")) // GRINDSTONE
             .toArray(Material[]::new)),
@@ -664,7 +679,7 @@ public enum BlockPlaceResult {
     }, XMaterial.FIRE.parseMaterial(), XMaterial.SOUL_FIRE.parseMaterial()), // soul fire isn't directly placeable
 
     TRIPWIRE_HOOK((player, place) -> {
-        if (place.isFaceHorizontal() && place.isFullFace(place.getBlockFace())) {
+        if (place.isFaceHorizontal() && place.isFullFace(place.getBlockFace().getOppositeFace())) {
             place.set(place.getMaterial());
         }
     }, XMaterial.TRIPWIRE_HOOK.parseMaterial()),
@@ -679,15 +694,22 @@ public enum BlockPlaceResult {
 
     CORAL_FAN((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
-            if (BlockFaceHelper.isFaceHorizontal(face) && place.isFullFace(face) && face != BlockFace.UP) {
-                // type doesn't matter to grim, same hitbox.
-                // If it's a torch, create a wall torch
-                // Otherwise, it's going to be a head.  The type of this head also doesn't matter.
-                Directional dir = (Directional) place.getMaterial().createBlockData();
-                dir.setFacing(face.getOppositeFace());
-                place.set(dir);
-
-                break;
+            // Torches need solid faces
+            // Heads have no special preferences - place them anywhere
+            // Signs need solid - exempts chorus flowers and a few other strange cases
+            if (face != BlockFace.UP) {
+                boolean canPlace = place.isFullFace(face);
+                if (BlockFaceHelper.isFaceHorizontal(face)) {
+                    if (canPlace) { // center requires nothing (head), full face (torch), or solid (sign)
+                        Directional coralFan = (Directional) Material.FIRE_CORAL_WALL_FAN.createBlockData();
+                        coralFan.setFacing(face);
+                        place.set(coralFan);
+                        return;
+                    }
+                } else if (place.isFaceFullCenter(BlockFace.DOWN) && canPlace) {
+                    place.set(place.getMaterial());
+                    return;
+                }
             }
         }
     }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("CORAL")
@@ -722,15 +744,15 @@ public enum BlockPlaceResult {
     }, XMaterial.CAVE_VINES.parseMaterial()),
 
     WEEPING_VINE((player, place) -> {
-        Material below = place.getDirectionalFlatState(BlockFace.UP).getMaterial();
-        if (place.isFullFace(BlockFace.DOWN) || below == Material.WEEPING_VINES || below == Material.WEEPING_VINES_PLANT) {
+        Material below = place.getDirectionalFlatState(BlockFace.DOWN).getMaterial();
+        if (place.isFullFace(BlockFace.UP) || below == Material.TWISTING_VINES || below == Material.TWISTING_VINES_PLANT) {
             place.set(place.getMaterial());
         }
     }, XMaterial.WEEPING_VINES.parseMaterial()),
 
     TWISTED_VINE((player, place) -> {
-        Material below = place.getDirectionalFlatState(BlockFace.DOWN).getMaterial();
-        if (place.isFullFace(BlockFace.UP) || below == Material.TWISTING_VINES || below == Material.TWISTING_VINES_PLANT) {
+        Material below = place.getDirectionalFlatState(BlockFace.UP).getMaterial();
+        if (place.isFullFace(BlockFace.DOWN) || below == Material.WEEPING_VINES || below == Material.WEEPING_VINES_PLANT) {
             place.set(place.getMaterial());
         }
     }, XMaterial.TWISTING_VINES.parseMaterial()),
@@ -831,7 +853,7 @@ public enum BlockPlaceResult {
             door.setHalf(Bisected.Half.TOP);
             place.setAbove(new FlatBlockState(door));
         }
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("DOOR")).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("DOOR") && !mat.name().contains("TRAP")).toArray(Material[]::new)),
 
     DOUBLE_PLANT((player, place) -> {
         if (place.isBlockFaceOpen(BlockFace.UP) && place.isOnDirt() || place.isOn(Material.FARMLAND)) {
