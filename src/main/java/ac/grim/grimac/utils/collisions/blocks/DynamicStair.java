@@ -30,7 +30,7 @@ public class DynamicStair implements CollisionFactory {
     protected static final CollisionBox[] BOTTOM_SHAPES = makeShapes(BOTTOM_AABB, OCTET_NPN, OCTET_PPN, OCTET_NPP, OCTET_PPP);
     private static final int[] SHAPE_BY_STATE = new int[]{12, 5, 3, 10, 14, 13, 7, 11, 13, 7, 11, 14, 8, 4, 1, 2, 4, 1, 2, 8};
 
-    private static EnumShape getStairsShape(GrimPlayer player, WrappedStairs originalStairs, int x, int y, int z) {
+    public static EnumShape getStairsShape(GrimPlayer player, WrappedStairs originalStairs, int x, int y, int z) {
         BlockFace facing = originalStairs.getDirection();
         BaseBlockState offsetOne = player.compensatedWorld.getWrappedBlockStateAt(x + facing.getModX(), y + facing.getModY(), z + facing.getModZ());
         WrappedBlockDataValue iblockstate = WrappedBlockData.getMaterialData(offsetOne);

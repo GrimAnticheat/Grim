@@ -12,10 +12,12 @@ import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.nmsImplementations.Dripstone;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import io.papermc.lib.PaperLib;
 import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -122,13 +124,11 @@ public enum BlockPlaceResult {
     }, XMaterial.LADDER.parseMaterial()),
 
     FARM_BLOCK((player, place) -> {
-        // I need brightness to know whether this block place was successful
-        // I also need heightmaps
-        // Probably just mark this as a desync'd block and ignore medium sized offsets until it is resync'd
-        place.set(place.getMaterial());
         // What we also need to check:
-        // BlockState blockstate = p_53273_.getBlockState(p_53274_.above());
-        // return !blockstate.getMaterial().isSolid() || blockstate.getBlock() instanceof FenceGateBlock || blockstate.getBlock() instanceof MovingPistonBlock;
+        BaseBlockState above = place.getAboveState();
+        if (!Materials.checkFlag(above.getMaterial(), Materials.SOLID_BLACKLIST) || Materials.checkFlag(above.getMaterial(), Materials.GATE) || above.getMaterial() == Material.MOVING_PISTON) {
+            place.set(place.getMaterial());
+        }
     }, XMaterial.FARMLAND.parseMaterial()),
 
     // 1.13+ only blocks from here below!  No need to write everything twice
@@ -318,7 +318,6 @@ public enum BlockPlaceResult {
             boolean secondarySameType = secondaryType instanceof PointedDripstone && ((PointedDripstone) secondaryType).getVerticalDirection() == secondaryDirection;
 
             primaryDirection = secondaryDirection;
-            typePlacingOn = secondaryType;
             // Update block survivability
             primaryValid = place.isFullFace(secondaryDirection.getOppositeFace()) || secondarySameType;
         }
@@ -337,36 +336,8 @@ public enum BlockPlaceResult {
         // If the dripstone is -> <- pointed at one another
 
         // If check the blockstate that is above now with the direction of DOWN
-        BlockData oppositeToUs = place.getDirectionalFlatState(primaryDirection).getBlockData();
-
-        // TODO: This is block update code and we must now run this for all 6 directions around us.
-        if (oppositeToUs instanceof PointedDripstone && ((PointedDripstone) oppositeToUs).getVerticalDirection() == primaryDirection.getOppositeFace()) {
-            PointedDripstone dripstone = (PointedDripstone) oppositeToUs;
-            // Use tip if the player is sneaking, or if it already is merged (somehow)
-            PointedDripstone.Thickness thick = place.isSecondaryUse() && dripstone.getThickness() != PointedDripstone.Thickness.TIP_MERGE ?
-                    PointedDripstone.Thickness.TIP : PointedDripstone.Thickness.TIP_MERGE;
-
-            toPlace.setThickness(thick);
-        } else {
-            BlockData sameDirectionToUs = place.getDirectionalFlatState(primaryDirection).getBlockData();
-
-            // Check if the blockstate air does not have the direction of UP already (somehow)
-            if (!(sameDirectionToUs instanceof PointedDripstone) || ((PointedDripstone) sameDirectionToUs).getVerticalDirection() != primaryDirection) {
-                toPlace.setThickness(PointedDripstone.Thickness.TIP);
-            } else {
-                if (typePlacingOn instanceof PointedDripstone &&
-                        ((PointedDripstone) typePlacingOn).getThickness() != PointedDripstone.Thickness.TIP &&
-                        ((PointedDripstone) typePlacingOn).getThickness() != PointedDripstone.Thickness.TIP_MERGE) {
-                    // Look downwards
-                    PointedDripstone dripstone = (PointedDripstone) typePlacingOn;
-                    PointedDripstone.Thickness toSetThick = dripstone.getVerticalDirection() == primaryDirection ? PointedDripstone.Thickness.BASE : PointedDripstone.Thickness.MIDDLE;
-                    toPlace.setThickness(toSetThick);
-
-                } else {
-                    toPlace.setThickness(PointedDripstone.Thickness.FRUSTUM);
-                }
-            }
-        }
+        Vector3i placedPos = place.getPlacedBlockPos();
+        Dripstone.update(player, toPlace, placedPos.getX(), placedPos.getY(), placedPos.getZ(), place.isSecondaryUse());
 
         place.set(toPlace);
     }, XMaterial.POINTED_DRIPSTONE.parseMaterial()),
@@ -405,7 +376,15 @@ public enum BlockPlaceResult {
     CROP((player, place) -> {
         BaseBlockState below = place.getBelowState();
         if (below.getMaterial() == Material.FARMLAND) {
-            place.set(place.getMaterial());
+            Vector3i placedPos = place.getPlacedBlockPos();
+
+            // Again, I refuse to lag compensate lighting due to memory concerns
+            PaperLib.getChunkAtAsyncUrgently(player.playerWorld, placedPos.getX() >> 4, placedPos.getZ() >> 4, false).thenAccept(chunk -> {
+                if (chunk.getBlock(placedPos.getX() & 0xF, placedPos.getY(), placedPos.getZ() & 0xF).getLightLevel() >= 8 ||
+                        chunk.getBlock(placedPos.getX() & 0xF, placedPos.getY(), placedPos.getZ() & 0xF).getLightFromSky() >= 15) {
+                    place.set();
+                }
+            });
         }
     }, XMaterial.CARROTS.parseMaterial(), XMaterial.BEETROOTS.parseMaterial(), XMaterial.POTATOES.parseMaterial(),
             XMaterial.PUMPKIN_STEM.parseMaterial(), XMaterial.MELON_STEM.parseMaterial(), XMaterial.WHEAT.parseMaterial()),
@@ -777,6 +756,19 @@ public enum BlockPlaceResult {
         }
     }, XMaterial.VINE.parseMaterial()),
 
+    FENCE_GATE((player, place) -> {
+        Gate gate = (Gate) place.getMaterial().createBlockData();
+        gate.setFacing(place.getPlayerFacing());
+
+        // Check for redstone signal!
+        if (place.isBlockPlacedPowered()) {
+            gate.setOpen(true);
+        }
+
+        place.set(gate);
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("FENCE") && mat.name().contains("GATE"))
+            .toArray(Material[]::new)),
+
     // TODO: This isn't allowed on 1.8 clients, they use different trapdoor placing logic
     TRAPDOOR((player, place) -> {
         TrapDoor door = (TrapDoor) place.getMaterial().createBlockData();
@@ -832,7 +824,7 @@ public enum BlockPlaceResult {
             if (ccwValue instanceof WrappedDoor) isCCWLower = ((WrappedDoor) ccwValue).isBottom();
 
             boolean isCWLower = false;
-            WrappedBlockDataValue cwValue = WrappedBlockData.getMaterialData(ccwState).getData(ccwState);
+            WrappedBlockDataValue cwValue = WrappedBlockData.getMaterialData(cwState).getData(cwState);
             if (cwValue instanceof WrappedDoor) isCWLower = ((WrappedDoor) cwValue).isBottom();
 
             Door.Hinge hinge;
@@ -852,6 +844,11 @@ public enum BlockPlaceResult {
             }
             door.setHinge(hinge);
 
+            // Check for redstone signal!
+            if (place.isBlockPlacedPowered()) {
+                door.setOpen(true);
+            }
+
             place.set(door);
 
             door.setHalf(Bisected.Half.TOP);
@@ -866,6 +863,21 @@ public enum BlockPlaceResult {
         }
     }, XMaterial.TALL_GRASS.parseMaterial(), XMaterial.LARGE_FERN.parseMaterial(), XMaterial.SUNFLOWER.parseMaterial(),
             XMaterial.LILAC.parseMaterial(), XMaterial.ROSE_BUSH.parseMaterial(), XMaterial.PEONY.parseMaterial()),
+
+    MUSHROOM((player, place) -> {
+        if (Tag.MUSHROOM_GROW_BLOCK.isTagged(place.getBelowMaterial())) {
+            place.set();
+        } else if (place.isFullFace(BlockFace.DOWN) && place.getBelowMaterial().isOccluding()) {
+            Vector3i placedPos = place.getPlacedBlockPos();
+            // I'm not lag compensating lighting... too much memory usage for doing that + this will resync itself
+            PaperLib.getChunkAtAsyncUrgently(player.playerWorld, placedPos.getX() >> 4, placedPos.getZ() >> 4, false).thenAccept(chunk -> {
+                if (chunk.getBlock(placedPos.getX() & 0xF, placedPos.getY(), placedPos.getZ() & 0xF).getLightFromBlocks() < 13 &&
+                        chunk.getBlock(placedPos.getX() & 0xF, placedPos.getY(), placedPos.getZ() & 0xF).getLightFromSky() < 13) {
+                    place.set();
+                }
+            });
+        }
+    }, XMaterial.BROWN_MUSHROOM.parseMaterial(), XMaterial.RED_MUSHROOM.parseMaterial()),
 
     BUSH_BLOCK_TYPE((player, place) -> {
         if (place.isOnDirt() || place.isOn(Material.FARMLAND)) {
