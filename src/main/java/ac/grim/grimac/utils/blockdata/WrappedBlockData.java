@@ -803,7 +803,7 @@ public enum WrappedBlockData {
             int magic = data.getBlockData();
             setPower(magic);
         }
-    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("PLATE")).toArray(Material[]::new)),
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("DAYLIGHT")).toArray(Material[]::new)),
 
     REPEATER(new WrappedDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {

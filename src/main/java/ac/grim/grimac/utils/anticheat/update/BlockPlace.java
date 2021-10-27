@@ -16,6 +16,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -507,6 +508,19 @@ public class BlockPlace {
         }
 
         player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getCombinedId());
+    }
+
+    protected static final Direction[] UPDATE_SHAPE_ORDER = new Direction[]{Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.DOWN, Direction.UP};
+
+    // We need to now run block
+    public void tryCascadeBlockUpdates(Vector3i pos) {
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2)) return;
+
+        cascadeBlockUpdates(pos);
+    }
+
+    private void cascadeBlockUpdates(Vector3i pos) {
+
     }
 
     public void set(BlockData state) {
