@@ -1,18 +1,14 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
-import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
-import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
-import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
-import ac.grim.grimac.utils.data.packetentity.latency.EntityPropertiesData;
 import io.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
+import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
@@ -36,115 +32,63 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffectType;
 
-public class PacketEntityReplication extends PacketListenerAbstract {
+public class PacketEntityReplication extends PacketCheck {
 
-    public PacketEntityReplication() {
-        super(PacketListenerPriority.MONITOR);
+    private boolean hasSentPreWavePacket = false;
+
+    public PacketEntityReplication(GrimPlayer player) {
+        super(player);
+    }
+
+    public void tickFlying() {
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            entity.onMovement();
+        }
     }
 
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
+    public void onPacketReceive(PacketPlayReceiveEvent event) {
+        if (PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId())) {
+            // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
+            if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
+                return;
+            tickFlying();
+        }
+    }
+
+    @Override
+    public void onPacketSend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
 
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY_SPAWN || packetID == PacketType.Play.Server.SPAWN_ENTITY_LIVING) {
             WrappedPacketOutSpawnEntityLiving packetOutEntity = new WrappedPacketOutSpawnEntityLiving(event.getNMSPacket());
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            Entity entity = packetOutEntity.getEntity();
-            EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
-            // Try a second time
-            if (entity == null)
-                PacketEvents.get().getServerUtils().getEntityById(packetOutEntity.getEntityId());
-            // Final attempt to get this entity, otherwise it likely doesn't exist
-            if (entity == null)
-                PacketEvents.get().getServerUtils().getEntityById(packetOutEntity.getEntityId());
-
-            if (entity != null) {
-                type = entity.getType();
-            }
-
-            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), type, packetOutEntity.getPosition());
+            addEntity(event.getPlayer(), packetOutEntity.getEntityId(), packetOutEntity.getPosition());
         }
-
         if (packetID == PacketType.Play.Server.SPAWN_ENTITY) {
             WrappedPacketOutSpawnEntity packetOutEntity = new WrappedPacketOutSpawnEntity(event.getNMSPacket());
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            Entity entity = packetOutEntity.getEntity();
-            EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
-            // Try a second time
-            if (entity == null)
-                PacketEvents.get().getServerUtils().getEntityById(packetOutEntity.getEntityId());
-            // Final attempt to get this entity, otherwise it likely doesn't exist
-            if (entity == null)
-                PacketEvents.get().getServerUtils().getEntityById(packetOutEntity.getEntityId());
-
-            if (entity != null) {
-                type = entity.getType();
-            }
-
-            player.compensatedEntities.addEntity(packetOutEntity.getEntityId(), type, packetOutEntity.getPosition());
+            addEntity(event.getPlayer(), packetOutEntity.getEntityId(), packetOutEntity.getPosition());
         }
-
         if (packetID == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
-            WrappedPacketOutNamedEntitySpawn spawn = new WrappedPacketOutNamedEntitySpawn(event.getNMSPacket());
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            Entity entity = spawn.getEntity();
-            EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
-            // Try a second time
-            if (entity == null)
-                PacketEvents.get().getServerUtils().getEntityById(spawn.getEntityId());
-            // Final attempt to get this entity, otherwise it likely doesn't exist
-            if (entity == null)
-                PacketEvents.get().getServerUtils().getEntityById(spawn.getEntityId());
-
-            if (entity != null) {
-                type = entity.getType();
-            }
-
-            player.compensatedEntities.addEntity(spawn.getEntityId(), type, spawn.getPosition());
+            WrappedPacketOutNamedEntitySpawn packetOutEntity = new WrappedPacketOutNamedEntitySpawn(event.getNMSPacket());
+            addEntity(event.getPlayer(), packetOutEntity.getEntityId(), packetOutEntity.getPosition());
         }
 
         if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK) {
             WrappedPacketOutEntity.WrappedPacketOutRelEntityMove move = new WrappedPacketOutEntity.WrappedPacketOutRelEntityMove(event.getNMSPacket());
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            if (move.getDeltaX() != 0 || move.getDeltaY() != 0 || move.getDeltaZ() != 0) {
-                player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(move.getEntityId(),
-                        move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), player.lastTransactionSent.get(), true));
-            }
+            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
         }
-
         if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
-            WrappedPacketOutEntityTeleport teleport = new WrappedPacketOutEntityTeleport(event.getNMSPacket());
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            Vector3d position = teleport.getPosition();
-
-            player.compensatedEntities.moveEntityQueue.add(new EntityMoveData(teleport.getEntityId(),
-                    position.getX(), position.getY(), position.getZ(), player.lastTransactionSent.get(), false));
+            WrappedPacketOutEntityTeleport move = new WrappedPacketOutEntityTeleport(event.getNMSPacket());
+            Vector3d pos = move.getPosition();
+            handleMoveEntity(move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), false);
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_METADATA) {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-            if (player == null) return;
-
-            player.compensatedEntities.importantMetadataQueue.add(new EntityMetadataData(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects(), player.lastTransactionSent.get()));
+            player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects()));
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_EFFECT) {
@@ -202,7 +146,8 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             if (isDirectlyAffectingPlayer(player, entityID)) event.setPostTask(player::sendTransaction);
 
             if (player.entityID == entityID || entity instanceof PacketEntityHorse || entity instanceof PacketEntityRideable) {
-                player.compensatedEntities.entityPropertiesData.add(new EntityPropertiesData(entityID, attributes.getProperties(), player.lastTransactionSent.get() + 1));
+                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get() + 1,
+                        () -> player.compensatedEntities.updateAttributes(entityID, attributes.getProperties()));
             }
         }
 
@@ -273,7 +218,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             int vehicleID = mount.getEntityId();
             int[] passengers = mount.getPassengerIds();
 
-            player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(vehicleID, passengers, player.lastTransactionSent.get()));
+            handleMountVehicle(vehicleID, passengers);
         }
 
         if (packetID == PacketType.Play.Server.ATTACH_ENTITY) {
@@ -290,7 +235,7 @@ public class PacketEntityReplication extends PacketListenerAbstract {
                 int vehicleID = attach.readInt(2);
                 int[] passengers = new int[]{attach.readInt(1)};
 
-                player.compensatedEntities.mountVehicleQueue.add(new EntityMountData(vehicleID, passengers, player.lastTransactionSent.get()));
+                handleMountVehicle(vehicleID, passengers);
             }
         }
 
@@ -300,15 +245,88 @@ public class PacketEntityReplication extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            int lastTransactionSent = player.lastTransactionSent.get();
             int[] destroyEntityIds = destroy.getEntityIds();
 
             for (int integer : destroyEntityIds) {
-                PacketEntity entity = player.compensatedEntities.getEntity(integer);
-                if (entity == null) continue;
-                entity.setDestroyed(lastTransactionSent + 1);
+                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.entityMap.remove(integer));
             }
         }
+    }
+
+    private void handleMountVehicle(int vehicleID, int[] passengers) {
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            PacketEntity vehicle = player.compensatedEntities.getEntity(vehicleID);
+
+            // Eject existing passengers for this vehicle
+            if (vehicle.passengers != null) {
+                for (int entityID : vehicle.passengers) {
+                    PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
+
+                    if (passenger == null)
+                        continue;
+
+                    passenger.riding = null;
+                }
+            }
+
+            // Add the entities as vehicles
+            for (int entityID : passengers) {
+                PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
+                if (passenger == null)
+                    continue;
+
+                passenger.riding = vehicle;
+            }
+
+            vehicle.passengers = passengers;
+        });
+    }
+
+    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, boolean isRelative) {
+        PacketEntity reachEntity = player.compensatedEntities.getEntity(entityId);
+
+        if (reachEntity != null) {
+            // We can't hang two relative moves on one transaction
+            if (reachEntity.lastTransactionHung == player.lastTransactionSent.get()) player.sendTransaction();
+            reachEntity.lastTransactionHung = player.lastTransactionSent.get();
+
+            // Only send one transaction before each wave, without flushing
+            if (!hasSentPreWavePacket) player.sendTransaction();
+            hasSentPreWavePacket = true; // Also functions to mark we need a post wave transaction
+
+            // Update the tracked server's entity position
+            if (isRelative)
+                reachEntity.serverPos = reachEntity.serverPos.add(new Vector3d(deltaX, deltaY, deltaZ));
+            else
+                reachEntity.serverPos = new Vector3d(deltaX, deltaY, deltaZ);
+
+            int lastTrans = player.lastTransactionSent.get();
+            Vector3d newPos = reachEntity.serverPos;
+
+            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(newPos.getX(), newPos.getY(), newPos.getZ(), player));
+            player.latencyUtils.addRealTimeTask(lastTrans + 1, reachEntity::onSecondTransaction);
+        }
+    }
+
+    public void addEntity(Player bukkitPlayer, int entityID, Vector3d position) {
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(bukkitPlayer);
+        if (player == null) return;
+
+        EntityType type = EntityType.ZOMBIE; // Fall back to zombie type
+        Entity entity = PacketEvents.get().getServerUtils().getEntityById(entityID);
+
+        // Try a second time
+        if (entity == null)
+            entity = PacketEvents.get().getServerUtils().getEntityById(entityID);
+        // Try a third time
+        if (entity == null)
+            entity = PacketEvents.get().getServerUtils().getEntityById(entityID);
+
+        if (entity != null) {
+            type = entity.getType();
+        }
+
+        player.compensatedEntities.addEntity(entityID, type, position);
     }
 
     private boolean isDirectlyAffectingPlayer(GrimPlayer player, int entityID) {
@@ -317,5 +335,11 @@ public class PacketEntityReplication extends PacketListenerAbstract {
         // The attributes for this entity is active, currently
         return (playerVehicle == null && entityID == player.entityID) ||
                 (playerVehicle != null && entityID == playerVehicle.getEntityId());
+    }
+
+    public void onEndOfTickEvent() {
+        // Only send a transaction at the end of the tick if we are tracking players
+        player.sendTransaction(); // We injected before vanilla flushes :) we don't need to flush
+        hasSentPreWavePacket = false;
     }
 }

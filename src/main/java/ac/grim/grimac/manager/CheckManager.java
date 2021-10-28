@@ -10,6 +10,7 @@ import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
 import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
 import ac.grim.grimac.checks.type.*;
+import ac.grim.grimac.events.packets.PacketEntityReplication;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.anticheat.update.*;
@@ -33,6 +34,7 @@ public class CheckManager {
         // Include post checks in the packet check too
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(Reach.class, new Reach(player))
+                .put(PacketEntityReplication.class, new PacketEntityReplication(player))
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(NoFallA.class, new NoFallA(player))
@@ -118,8 +120,8 @@ public class CheckManager {
         return packetChecks.get(check);
     }
 
-    public Reach getReach() {
-        return (Reach) getPacketCheck(Reach.class);
+    public PacketEntityReplication getEntityReplication() {
+        return (PacketEntityReplication) getPacketCheck(PacketEntityReplication.class);
     }
 
     public NoFallA getNoFall() {

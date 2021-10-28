@@ -2,6 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -38,9 +39,6 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 // Stop transaction leaks
                 player.latencyUtils.handleAnticheatSyncTransaction(player.lastTransactionReceived);
 
-                // Update entities to get current vehicle
-                player.compensatedEntities.tickUpdates(player.packetStateData.packetLastTransactionReceived.get());
-
                 // Note for the movement check
                 player.vehicleData.lastDummy = true;
 
@@ -71,11 +69,13 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.lastY = player.y;
                 player.lastZ = player.z;
 
-                player.x = vehicle.position.getX();
-                player.y = vehicle.position.getY();
-                player.z = vehicle.position.getZ();
+                SimpleCollisionBox vehiclePos = vehicle.getPossibleCollisionBoxes();
 
-                player.packetStateData.packetPosition = vehicle.position;
+                player.x = (vehiclePos.minX + vehiclePos.maxX) / 2;
+                player.y = (vehiclePos.minY + vehiclePos.maxY) / 2;
+                player.z = (vehiclePos.minZ + vehiclePos.maxZ) / 2;
+
+                player.packetStateData.packetPosition = new Vector3d(player.x, player.y, player.z);
 
                 // Use bukkit location, not packet location, to stop ping spoof attacks on entity position
                 Entity playerVehicle = player.bukkitPlayer.getVehicle();

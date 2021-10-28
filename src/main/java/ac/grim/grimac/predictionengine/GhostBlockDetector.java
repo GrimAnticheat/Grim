@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 
 @CheckData(buffer = 3, maxBuffer = 3)
@@ -92,8 +91,7 @@ public class GhostBlockDetector extends PostPredictionCheck {
             synchronized (player.compensatedEntities.entityMap) {
                 for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                     if (entity.type == EntityType.BOAT) {
-                        SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-                        if (box.isIntersected(largeExpandedBB)) {
+                        if (entity.getPossibleCollisionBoxes().isIntersected(largeExpandedBB)) {
                             return true;
                         }
                     }

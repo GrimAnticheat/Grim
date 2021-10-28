@@ -15,69 +15,51 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.checks.impl.combat;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.packetentity.PlayerReachEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.useentity.WrappedPacketInUseEntity;
-import io.github.retrooper.packetevents.packetwrappers.play.out.entity.WrappedPacketOutEntity;
-import io.github.retrooper.packetevents.packetwrappers.play.out.entityteleport.WrappedPacketOutEntityTeleport;
-import io.github.retrooper.packetevents.packetwrappers.play.out.namedentityspawn.WrappedPacketOutNamedEntitySpawn;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // You may not copy the check unless you are licensed under GPL
 public class Reach extends PacketCheck {
-
     // Concurrent to support weird entity trackers
-    public final ConcurrentHashMap<Integer, PlayerReachEntity> entityMap = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
-    private final GrimPlayer player;
-
-    private boolean hasSentPreWavePacket = false; // Not required to be atomic - sync'd to one thread
 
     private boolean cancelImpossibleHits = true;
     private double threshold = 0.0005;
 
     public Reach(GrimPlayer player) {
         super(player);
-        this.player = player;
     }
 
     @Override
     public void onPacketReceive(final PacketPlayReceiveEvent event) {
         if (event.getPacketId() == PacketType.Play.Client.USE_ENTITY) {
             WrappedPacketInUseEntity action = new WrappedPacketInUseEntity(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
 
-            if (player == null) return;
             if (player.packetStateData.gameMode == GameMode.CREATIVE) return;
             if (player.vehicle != null) return;
 
-            if (action.getAction() == WrappedPacketInUseEntity.EntityUseAction.ATTACK) {
-                checkReach(action.getEntityId());
+            checkReach(action.getEntityId());
 
-                if (cancelImpossibleHits && isKnownInvalid(action.getEntityId())) {
-                    event.setCancelled(true);
-                }
+            if (cancelImpossibleHits && isKnownInvalid(action.getEntityId())) {
+                event.setCancelled(true);
             }
         }
 
@@ -90,7 +72,7 @@ public class Reach extends PacketCheck {
     }
 
     public void checkReach(int entityID) {
-        if (entityMap.containsKey(entityID))
+        if (player.compensatedEntities.entityMap.containsKey(entityID))
             playerAttackQueue.add(entityID);
     }
 
@@ -103,7 +85,7 @@ public class Reach extends PacketCheck {
     //
     // Meaning that the other check should be the only one that flags.
     private boolean isKnownInvalid(int entityID) {
-        PlayerReachEntity reachEntity = entityMap.get(entityID);
+        PacketEntity reachEntity = player.compensatedEntities.entityMap.get(entityID);
         boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
 
         if (reachEntity != null) {
@@ -126,7 +108,7 @@ public class Reach extends PacketCheck {
 
         Integer attackQueue = playerAttackQueue.poll();
         while (attackQueue != null) {
-            PlayerReachEntity reachEntity = entityMap.get(attackQueue);
+            PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attackQueue);
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
             // 1.9 -> 1.8 precision loss in packets
@@ -203,77 +185,6 @@ public class Reach extends PacketCheck {
 
             attackQueue = playerAttackQueue.poll();
         }
-
-        for (PlayerReachEntity entity : entityMap.values()) {
-            entity.onMovement();
-        }
-    }
-
-    @Override
-    public void onPacketSend(final PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Server.NAMED_ENTITY_SPAWN) {
-            WrappedPacketOutNamedEntitySpawn spawn = new WrappedPacketOutNamedEntitySpawn(event.getNMSPacket());
-            Entity entity = spawn.getEntity();
-
-            if (entity != null && entity.getType() == EntityType.PLAYER) {
-                handleSpawnPlayer(spawn.getEntityId(), spawn.getPosition());
-            }
-        }
-
-        if (packetID == PacketType.Play.Server.REL_ENTITY_MOVE || packetID == PacketType.Play.Server.REL_ENTITY_MOVE_LOOK || packetID == PacketType.Play.Server.ENTITY_LOOK) {
-            WrappedPacketOutEntity.WrappedPacketOutRelEntityMove move = new WrappedPacketOutEntity.WrappedPacketOutRelEntityMove(event.getNMSPacket());
-
-            PlayerReachEntity reachEntity = entityMap.get(move.getEntityId());
-            if (reachEntity != null) {
-                // We can't hang two relative moves on one transaction
-                if (reachEntity.lastTransactionHung == player.lastTransactionSent.get()) player.sendTransaction();
-                reachEntity.lastTransactionHung = player.lastTransactionSent.get();
-
-                handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
-            }
-        }
-
-        if (packetID == PacketType.Play.Server.ENTITY_TELEPORT) {
-            WrappedPacketOutEntityTeleport teleport = new WrappedPacketOutEntityTeleport(event.getNMSPacket());
-
-            PlayerReachEntity reachEntity = entityMap.get(teleport.getEntityId());
-            if (reachEntity != null) {
-                // We can't hang two relative moves on one transaction
-                if (reachEntity.lastTransactionHung == player.lastTransactionSent.get()) player.sendTransaction();
-                reachEntity.lastTransactionHung = player.lastTransactionSent.get();
-
-                Vector3d pos = teleport.getPosition();
-                handleMoveEntity(teleport.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), false);
-            }
-        }
-    }
-
-    private void handleSpawnPlayer(int playerID, Vector3d spawnPosition) {
-        entityMap.put(playerID, new PlayerReachEntity(spawnPosition.getX(), spawnPosition.getY(), spawnPosition.getZ(), player));
-    }
-
-    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, boolean isRelative) {
-        PlayerReachEntity reachEntity = entityMap.get(entityId);
-
-        if (reachEntity != null) {
-            // Only send one transaction before each wave, without flushing
-            if (!hasSentPreWavePacket) player.sendTransaction();
-            hasSentPreWavePacket = true; // Also functions to mark we need a post wave transaction
-
-            // Update the tracked server's entity position
-            if (isRelative)
-                reachEntity.serverPos = reachEntity.serverPos.add(new Vector3d(deltaX, deltaY, deltaZ));
-            else
-                reachEntity.serverPos = new Vector3d(deltaX, deltaY, deltaZ);
-
-            int lastTrans = player.lastTransactionSent.get();
-            Vector3d newPos = reachEntity.serverPos;
-
-            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(newPos.getX(), newPos.getY(), newPos.getZ(), player));
-            player.latencyUtils.addRealTimeTask(lastTrans + 1, reachEntity::onSecondTransaction);
-        }
     }
 
     @Override
@@ -281,15 +192,5 @@ public class Reach extends PacketCheck {
         super.reload();
         this.cancelImpossibleHits = getConfig().getBoolean("Reach.block-impossible-hits", true);
         this.threshold = getConfig().getDouble("Reach.threshold", 0.0005);
-    }
-
-    public void onEndOfTickEvent() {
-        // Only send a transaction at the end of the tick if we are tracking players
-        player.sendTransaction(); // We injected before vanilla flushes :) we don't need to flush
-        hasSentPreWavePacket = false;
-    }
-
-    public void removeEntity(int entityID) {
-        entityMap.remove(entityID);
     }
 }

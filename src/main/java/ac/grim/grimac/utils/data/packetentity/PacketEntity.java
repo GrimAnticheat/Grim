@@ -1,27 +1,74 @@
+// This file was designed and is an original check for GrimAC
+// Copyright (C) 2021 DefineOutside
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.utils.data.packetentity;
 
+import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.ReachInterpolationData;
 import ac.grim.grimac.utils.enums.EntityType;
+import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 import java.util.Locale;
 
+// You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity {
+    public Vector3d serverPos;
+    public int lastTransactionHung;
     public EntityType type;
     public org.bukkit.entity.EntityType bukkitEntityType;
-    public Vector3d lastTickPosition;
-    public Vector3d position;
+
     public PacketEntity riding;
     public int[] passengers = new int[0];
     public boolean isDead = false;
     public boolean isBaby = false;
     public boolean hasGravity = true;
-    public int removeTrans = Integer.MAX_VALUE;
+    private ReachInterpolationData oldPacketLocation;
+    private ReachInterpolationData newPacketLocation;
 
-    public PacketEntity(org.bukkit.entity.EntityType type, Vector3d position) {
-        this.position = position;
-        this.lastTickPosition = position;
-        this.bukkitEntityType = type;
-        this.type = EntityType.valueOf(type.toString().toUpperCase(Locale.ROOT));
+    public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
+        this.serverPos = new Vector3d(x, y, z);
+        this.type = type;
+        this.bukkitEntityType = org.bukkit.entity.EntityType.valueOf(type.toString().toUpperCase(Locale.ROOT));
+        this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getPacketEntityBoundingBox(x, y, z, this),
+                serverPos.getX(), serverPos.getY(), serverPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9));
+    }
+
+    // Set the old packet location to the new one
+    // Set the new packet location to the updated packet location
+    public void onFirstTransaction(double x, double y, double z, GrimPlayer player) {
+        this.oldPacketLocation = newPacketLocation;
+        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), x, y, z, player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9));
+    }
+
+    // Remove the possibility of the old packet location
+    public void onSecondTransaction() {
+        this.oldPacketLocation = null;
+    }
+
+    // If the old and new packet location are split, we need to combine bounding boxes
+    public void onMovement() {
+        newPacketLocation.tickMovement(oldPacketLocation == null);
+
+        // Handle uncertainty of second transaction spanning over multiple ticks
+        if (oldPacketLocation != null) {
+            oldPacketLocation.tickMovement(true);
+            newPacketLocation.updatePossibleStartingLocation(oldPacketLocation.getPossibleLocationCombined());
+        }
     }
 
     public boolean hasPassenger(int entityID) {
@@ -31,8 +78,25 @@ public class PacketEntity {
         return false;
     }
 
-    public void setDestroyed(int trans) {
-        if (removeTrans != Integer.MAX_VALUE) return; // Already marked for removal
-        removeTrans = trans;
+    // This is for handling riding and entities attached to one another.
+    public void setPositionRaw(SimpleCollisionBox box) {
+        this.newPacketLocation = new ReachInterpolationData(box);
+    }
+
+    public SimpleCollisionBox getPossibleCollisionBoxes() {
+        if (oldPacketLocation == null) {
+            return newPacketLocation.getPossibleLocationCombined();
+        }
+
+        return ReachInterpolationData.combineCollisionBox(oldPacketLocation.getPossibleLocationCombined(), newPacketLocation.getPossibleLocationCombined());
+    }
+
+    @Override
+    public String toString() {
+        return "PlayerReachEntity{" +
+                "serverPos=" + serverPos +
+                ", oldPacketLocation=" + oldPacketLocation +
+                ", newPacketLocation=" + newPacketLocation +
+                '}';
     }
 }

@@ -20,13 +20,13 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.*;
 import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -95,7 +95,6 @@ public class MovementCheckRunner extends PositionCheck {
             if (player.tasksNotFinished.compareAndSet(0, 1)) {
                 int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
                 player.latencyUtils.handleAnticheatSyncTransaction(lastTransaction);
-                player.compensatedEntities.tickUpdates(lastTransaction);
                 player.compensatedFlying.canFlyLagCompensated(lastTransaction);
                 player.compensatedFireworks.getMaxFireworksAppliedPossible();
                 player.compensatedRiptide.getCanRiptide();
@@ -157,9 +156,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.compensatedWorld.tickPlayerInPistonPushingArea();
         player.latencyUtils.handleAnticheatSyncTransaction(data.lastTransaction);
 
-        // Update entities to get current vehicle
-        player.compensatedEntities.tickUpdates(data.lastTransaction);
-
         // Tick player vehicle after we update the packet entity state
         player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
         player.inVehicle = player.playerVehicle != null;
@@ -204,14 +200,14 @@ public class MovementCheckRunner extends PositionCheck {
             data.isJustTeleported = true;
 
             if (player.playerVehicle != null) {
-                Vector3d pos = new Vector3d(data.playerX, data.playerY, data.playerZ);
-                double distOne = pos.distance(player.playerVehicle.position);
-                double distTwo = pos.distance(player.playerVehicle.lastTickPosition);
+                Vector pos = new Vector(data.playerX, data.playerY, data.playerZ);
+
+                Vector cutTo = VectorUtils.cutBoxToVector(pos, player.playerVehicle.getPossibleCollisionBoxes());
 
                 // Stop players from teleporting when they enter a vehicle
                 // Is this a cheat?  Do we have to lower this threshold?
                 // Until I see evidence that this cheat exists, I am keeping this lenient.
-                if (distOne > 1 && distTwo > 1) {
+                if (cutTo.distanceSquared(pos) > 1) {
                     player.getSetbackTeleportUtil().executeForceResync();
                 }
             }
@@ -282,8 +278,7 @@ public class MovementCheckRunner extends PositionCheck {
             player.checkManager.getExplosionHandler().forceExempt();
 
             // When in control of the entity, the player sets the entity position to their current position
-            player.playerVehicle.lastTickPosition = player.playerVehicle.position;
-            player.playerVehicle.position = new Vector3d(player.x, player.y, player.z);
+            player.playerVehicle.setPositionRaw(GetBoundingBox.getPacketEntityBoundingBox(player.x, player.y, player.z, player.playerVehicle));
 
             player.hasGravity = player.playerVehicle.hasGravity;
 
@@ -640,12 +635,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.wasZeroPointThreeVertically = player.uncertaintyHandler.gravityUncertainty != 0 || (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.uncertaintyHandler.controlsVerticalMovement());
 
         player.uncertaintyHandler.lastMetadataDesync--;
-
-        if (player.playerVehicle instanceof PacketEntityRideable) {
-            PacketEntityRideable rideable = (PacketEntityRideable) player.playerVehicle;
-            rideable.entityPositions.clear();
-            rideable.entityPositions.add(rideable.position);
-        }
 
         player.lastX = player.x;
         player.lastY = player.y;

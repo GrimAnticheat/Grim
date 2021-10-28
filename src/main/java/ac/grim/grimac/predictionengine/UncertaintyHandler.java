@@ -341,8 +341,7 @@ public class UncertaintyHandler {
             synchronized (player.compensatedEntities.entityMap) {
                 for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                     if ((entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) && entity != player.playerVehicle) {
-                        SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-                        if (box.isIntersected(expandedBB)) {
+                        if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                             hasHardCollision = true;
                             break findCollision;
                         }
@@ -354,8 +353,7 @@ public class UncertaintyHandler {
                     for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                         PacketEntity entity = entityPair.getValue();
                         if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
-                            SimpleCollisionBox box = GetBoundingBox.getPacketEntityBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity);
-                            if (box.isIntersected(expandedBB)) {
+                            if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                                 hasHardCollision = true;
                                 break findCollision;
                             }
@@ -368,8 +366,7 @@ public class UncertaintyHandler {
                     for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                         PacketEntity entity = entityPair.getValue();
                         if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
-                            SimpleCollisionBox box = GetBoundingBox.getPacketEntityBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ(), entity);
-                            if (box.isIntersected(expandedBB)) {
+                            if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                                 hasHardCollision = true;
                                 break findCollision;
                             }

@@ -20,7 +20,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.pair.Pair;
@@ -76,7 +75,7 @@ public class CompensatedWorld {
         synchronized (player.compensatedEntities.entityMap) {
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                 if (entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) {
-                    SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
+                    SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                     if (box.isIntersected(playerBox)) {
                         return true;
                     }
@@ -188,12 +187,11 @@ public class CompensatedWorld {
             double modY = 0;
             double modZ = 0;
 
-            SimpleCollisionBox shulkerCollision = new SimpleCollisionBox(data.position.getX(), data.position.getY(), data.position.getZ(),
-                    data.position.getX() + 1, data.position.getY() + 1, data.position.getZ() + 1, true);
+            SimpleCollisionBox shulkerCollision = data.getCollision();
 
             BlockFace direction;
             if (data.entity == null) {
-                BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(data.position.getX(), data.position.getY(), data.position.getZ());
+                BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(data.blockPos.getX(), data.blockPos.getY(), data.blockPos.getZ());
                 WrappedBlockDataValue value = WrappedBlockData.getMaterialData(state);
 
                 // This is impossible but I'm not willing to take the risk

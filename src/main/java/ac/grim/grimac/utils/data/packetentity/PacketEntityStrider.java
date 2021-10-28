@@ -1,12 +1,11 @@
 package ac.grim.grimac.utils.data.packetentity;
 
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.entity.EntityType;
+import ac.grim.grimac.player.GrimPlayer;
 
 public class PacketEntityStrider extends PacketEntityRideable {
     public boolean isShaking = false;
 
-    public PacketEntityStrider(EntityType type, Vector3d vector3d) {
-        super(type, vector3d);
+    public PacketEntityStrider(GrimPlayer player, ac.grim.grimac.utils.enums.EntityType type, double x, double y, double z) {
+        super(player, type, x, y, z);
     }
 }

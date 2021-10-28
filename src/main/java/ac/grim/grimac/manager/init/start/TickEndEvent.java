@@ -3,7 +3,6 @@ package ac.grim.grimac.manager.init.start;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -14,19 +13,16 @@ import sun.misc.Unsafe;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 // Copied from: https://github.com/ThomasOM/Pledge/blob/master/src/main/java/dev/thomazz/pledge/inject/ServerInjector.java
 @SuppressWarnings(value = {"unchecked", "deprecated"})
 public class TickEndEvent implements Initable {
     boolean hasTicked = true;
 
-    private static void tickRelMove() { // Don't send packets on the main thread.
-        CompletableFuture.runAsync(() -> {
-            for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-                player.checkManager.getReach().onEndOfTickEvent();
-            }
-        }, MovementCheckRunner.executor);
+    private static void tickRelMove() {
+        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+            player.checkManager.getEntityReplication().onEndOfTickEvent();
+        }
     }
 
     @Override

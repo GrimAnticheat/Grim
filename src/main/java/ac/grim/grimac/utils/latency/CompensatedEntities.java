@@ -3,36 +3,25 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.*;
-import ac.grim.grimac.utils.data.packetentity.latency.EntityMetadataData;
-import ac.grim.grimac.utils.data.packetentity.latency.EntityMountData;
-import ac.grim.grimac.utils.data.packetentity.latency.EntityMoveData;
-import ac.grim.grimac.utils.data.packetentity.latency.EntityPropertiesData;
 import ac.grim.grimac.utils.enums.EntityType;
-import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsImplementations.WatchableIndexUtil;
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeModifierWrapper;
 import io.github.retrooper.packetevents.utils.attributesnapshot.AttributeSnapshotWrapper;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import org.bukkit.block.BlockFace;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.Collection;
+import java.util.List;
+import java.util.Locale;
 
 public class CompensatedEntities {
     // I can't get FastUtils to work here
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
-
-    public ConcurrentLinkedQueue<EntityMoveData> moveEntityQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<EntityMetadataData> importantMetadataQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<EntityMountData> mountVehicleQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<EntityPropertiesData> entityPropertiesData = new ConcurrentLinkedQueue<>();
 
     public double playerEntityMovementSpeed = 0.1f;
     public double playerEntityAttackSpeed = 4;
@@ -43,154 +32,38 @@ public class CompensatedEntities {
         this.player = player;
     }
 
-    public void tickUpdates(int lastTransactionReceived) {
-        // Move entities + teleport (combined to prevent teleport + move position desync)
-        while (true) {
-            EntityMoveData moveEntity = moveEntityQueue.peek();
-            if (moveEntity == null) break;
-
-            if (moveEntity.lastTransactionSent > lastTransactionReceived) break;
-            moveEntityQueue.poll();
-
-            PacketEntity entity = getEntity(moveEntity.entityID);
-
-            // This is impossible without the server sending bad packets, but just to be safe...
-            if (entity == null) continue;
-
-            entity.lastTickPosition = new Vector3d(entity.position.getX(), entity.position.getY(), entity.position.getZ());
-            if (moveEntity.isRelative) {
-                entity.position = entity.position.add(new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z));
-            } else {
-                entity.position = new Vector3d(moveEntity.x, moveEntity.y, moveEntity.z);
-            }
-
-            if (entity instanceof PacketEntityRideable) {
-                ((PacketEntityRideable) entity).entityPositions.add(entity.position);
-            }
-        }
-
-        // Update entity metadata such as whether a horse has a saddle
-        while (true) {
-            EntityMetadataData metaData = importantMetadataQueue.peek();
-            if (metaData == null) break;
-
-            if (metaData.lastTransactionSent > lastTransactionReceived) break;
-            importantMetadataQueue.poll();
-
-            updateEntityMetadata(metaData.entityID, metaData.objects);
-        }
-
-        // Update entity properties such as movement speed and horse jump height
-        while (true) {
-            EntityPropertiesData metaData = entityPropertiesData.peek();
-            if (metaData == null) break;
-
-            if (metaData.lastTransactionSent > lastTransactionReceived) break;
-            entityPropertiesData.poll();
-
-            PacketEntity entity = getEntity(metaData.entityID);
-
-            if (metaData.entityID == player.entityID) {
-                for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
-                    if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                        playerEntityMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
-                    }
-
-                    // TODO: This would allow us to check NoSlow on 1.9+ clients with OldCombatMechanics
-                    if (snapshotWrapper.getKey().toUpperCase().contains("ATTACK_SPEED")) {
-
-                    }
+    public void updateAttributes(int entityID, List<AttributeSnapshotWrapper> objects) {
+        if (entityID == player.entityID) {
+            for (AttributeSnapshotWrapper snapshotWrapper : objects) {
+                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
+                    playerEntityMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                 }
-            }
 
-            if (entity instanceof PacketEntityHorse) {
-                for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
-                    if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                        ((PacketEntityHorse) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
-                    }
+                // TODO: This would allow us to check NoSlow on 1.9+ clients with OldCombatMechanics
+                if (snapshotWrapper.getKey().toUpperCase().contains("ATTACK_SPEED")) {
 
-                    if (snapshotWrapper.getKey().toUpperCase().contains("JUMP")) {
-                        ((PacketEntityHorse) entity).jumpStrength = (float) calculateAttribute(snapshotWrapper, 0.0, 2.0);
-                    }
-                }
-            }
-
-            if (entity instanceof PacketEntityRideable) {
-                for (AttributeSnapshotWrapper snapshotWrapper : metaData.objects) {
-                    if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                        ((PacketEntityRideable) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
-                    }
                 }
             }
         }
 
-        // Update what entities are riding what (needed to keep track of position accurately)
-        while (true) {
-            EntityMountData mountVehicle = mountVehicleQueue.peek();
-            if (mountVehicle == null) break;
+        PacketEntity entity = player.compensatedEntities.getEntity(entityID);
 
-            if (mountVehicle.lastTransaction >= lastTransactionReceived) break;
-            mountVehicleQueue.poll();
+        if (entity instanceof PacketEntityHorse) {
+            for (AttributeSnapshotWrapper snapshotWrapper : objects) {
+                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
+                    ((PacketEntityHorse) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
+                }
 
-            PacketEntity vehicle = getEntity(mountVehicle.vehicleID);
-            if (vehicle == null)
-                continue;
-
-            // Eject existing passengers for this vehicle
-            if (vehicle.passengers != null) {
-                for (int entityID : vehicle.passengers) {
-                    PacketEntity passenger = getEntity(entityID);
-
-                    if (passenger == null)
-                        continue;
-
-                    passenger.riding = null;
+                if (snapshotWrapper.getKey().toUpperCase().contains("JUMP")) {
+                    ((PacketEntityHorse) entity).jumpStrength = (float) calculateAttribute(snapshotWrapper, 0.0, 2.0);
                 }
             }
-
-            // Add the entities as vehicles
-            for (int entityID : mountVehicle.passengers) {
-                PacketEntity passenger = getEntity(entityID);
-                if (passenger == null)
-                    continue;
-
-                passenger.riding = vehicle;
-            }
-
-            vehicle.passengers = mountVehicle.passengers;
         }
 
-        // Remove entities when the client despawns them
-        // We do it in this strange way to avoid despawning the wrong entity
-        synchronized (player.compensatedEntities.entityMap) {
-            List<Integer> entitiesToRemove = null;
-            for (Map.Entry<Integer, PacketEntity> entry : entityMap.int2ObjectEntrySet()) {
-                PacketEntity entity = entry.getValue();
-                if (entity == null) continue;
-                if (entity.removeTrans > lastTransactionReceived) continue;
-                int entityID = entry.getKey();
-
-                if (entitiesToRemove == null) entitiesToRemove = new ArrayList<>();
-                entitiesToRemove.add(entityID);
-                player.compensatedPotions.removeEntity(entityID);
-                player.checkManager.getReach().removeEntity(entityID);
-            }
-
-            if (entitiesToRemove != null) {
-                for (int entityID : entitiesToRemove) {
-                    entityMap.remove(entityID);
-                }
-            }
-
-            // Update riding positions - server should send teleport after dismount
-            for (PacketEntity entity : entityMap.values()) {
-                // The entity will be "ticked" by tickPassenger
-                if (entity.riding != null)
-                    continue;
-
-                for (int passengerID : entity.passengers) {
-                    PacketEntity passengerPassenger = getEntity(passengerID);
-                    tickPassenger(entity, passengerPassenger);
+        if (entity instanceof PacketEntityRideable) {
+            for (AttributeSnapshotWrapper snapshotWrapper : objects) {
+                if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
+                    ((PacketEntityRideable) entity).movementSpeedAttribute = (float) calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                 }
             }
         }
@@ -230,9 +103,7 @@ public class CompensatedEntities {
         if (riding.isDead && passenger.riding == riding) {
             passenger.riding = null;
         } else {
-            passenger.lastTickPosition = passenger.position;
-
-            passenger.position = riding.position.add(new Vector3d(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(passenger), 0));
+            passenger.setPositionRaw(riding.getPossibleCollisionBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(passenger), 0));
 
             for (int entity : riding.passengers) {
                 PacketEntity passengerPassenger = getEntity(entity);
@@ -249,25 +120,22 @@ public class CompensatedEntities {
         EntityType type = EntityType.valueOf(entityType.toString().toUpperCase(Locale.ROOT));
 
         if (EntityType.isHorse(type)) {
-            packetEntity = new PacketEntityHorse(entityType, position);
+            packetEntity = new PacketEntityHorse(player, type, position.getX(), position.getY(), position.getZ());
         } else if (EntityType.isSize(entityType)) {
-            packetEntity = new PacketEntitySizeable(entityType, position);
+            packetEntity = new PacketEntitySizeable(player, type, position.getX(), position.getY(), position.getZ());
         } else {
             switch (type) {
                 case PIG:
-                    packetEntity = new PacketEntityRideable(entityType, position);
+                    packetEntity = new PacketEntityRideable(player, type, position.getX(), position.getY(), position.getZ());
                     break;
                 case SHULKER:
-                    packetEntity = new PacketEntityShulker(entityType, position);
+                    packetEntity = new PacketEntityShulker(player, type, position.getX(), position.getY(), position.getZ());
                     break;
                 case STRIDER:
-                    packetEntity = new PacketEntityStrider(entityType, position);
-                    break;
-                case PLAYER:
-                    packetEntity = new PacketEntityPlayer(entityType, position);
+                    packetEntity = new PacketEntityStrider(player, type, position.getX(), position.getY(), position.getZ());
                     break;
                 default:
-                    packetEntity = new PacketEntity(entityType, position);
+                    packetEntity = new PacketEntity(player, type, position.getX(), position.getY(), position.getZ());
             }
         }
 
@@ -282,7 +150,7 @@ public class CompensatedEntities {
         }
     }
 
-    private void updateEntityMetadata(int entityID, List<WrappedWatchableObject> watchableObjects) {
+    public void updateEntityMetadata(int entityID, List<WrappedWatchableObject> watchableObjects) {
         if (entityID == player.entityID) {
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
                 WrappedWatchableObject gravity = WatchableIndexUtil.getIndex(watchableObjects, 5);
@@ -299,56 +167,8 @@ public class CompensatedEntities {
             }
         }
 
-        PacketEntity entity = getEntity(entityID);
+        PacketEntity entity = player.compensatedEntities.getEntity(entityID);
         if (entity == null) return;
-
-        // Poses only exist in 1.14+ with the new shifting mechanics
-        if (entity instanceof PacketEntityPlayer) {
-            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
-                WrappedWatchableObject poseObject = WatchableIndexUtil.getIndex(watchableObjects, 6);
-                if (poseObject != null) {
-                    ((PacketEntityPlayer) entity).pose = Pose.valueOf(poseObject.getRawValue().toString().toUpperCase());
-                }
-            } else {
-                WrappedWatchableObject mainByteArray = WatchableIndexUtil.getIndex(watchableObjects, 0);
-
-                boolean gliding = false;
-                boolean swimming = false;
-                boolean sneaking = false;
-
-                boolean riptide = false;
-                if (mainByteArray != null && mainByteArray.getRawValue() instanceof Byte) {
-                    Byte mainByte = (Byte) mainByteArray.getRawValue();
-                    gliding = (mainByte & 0x80) != 0;
-                    swimming = (mainByte & 0x10) != 0;
-                    sneaking = (mainByte & 0x02) != 0;
-                }
-
-                WrappedWatchableObject handStates = WatchableIndexUtil.getIndex(watchableObjects, 7);
-                if (handStates != null && handStates.getRawValue() instanceof Byte) {
-                    riptide = (((Byte) handStates.getRawValue()) & 0x04) != 0;
-                }
-
-                Pose pose;
-                // We don't check for sleeping to reduce complexity
-                if (gliding) {
-                    pose = Pose.FALL_FLYING;
-                } else if (swimming) {
-                    pose = Pose.SWIMMING;
-                } else if (riptide) { // Index 7 0x04
-                    pose = Pose.SPIN_ATTACK;
-                } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && sneaking) { // 0x02
-                    pose = Pose.NINE_CROUCHING;
-                } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && sneaking) { // 0x02
-                    pose = Pose.CROUCHING;
-                } else {
-                    pose = Pose.STANDING;
-                }
-
-                ((PacketEntityPlayer) entity).pose = pose;
-            }
-
-        }
 
         if (EntityType.isAgeableEntity(entity.bukkitEntityType)) {
             WrappedWatchableObject ageableObject = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 16 : 15);
@@ -382,14 +202,10 @@ public class CompensatedEntities {
             WrappedWatchableObject height = WatchableIndexUtil.getIndex(watchableObjects, ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 18 : 17);
             if (height != null) {
                 if ((byte) height.getRawValue() == 0) {
-                    Vector3i position = new Vector3i((int) Math.floor(entity.position.getX()), (int) Math.floor(entity.position.getY()), (int) Math.floor(entity.position.getZ()));
                     ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), true);
-                    player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
                     player.compensatedWorld.openShulkerBoxes.add(data);
                 } else {
-                    Vector3i position = new Vector3i((int) Math.floor(entity.position.getX()), (int) Math.floor(entity.position.getY()), (int) Math.floor(entity.position.getZ()));
                     ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), false);
-                    player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
                     player.compensatedWorld.openShulkerBoxes.add(data);
                 }
             }

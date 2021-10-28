@@ -32,19 +32,17 @@ public class PacketBlockAction extends PacketListenerAbstract {
             if (player == null) return;
 
             WrappedPacketOutBlockAction blockAction = new WrappedPacketOutBlockAction(event.getNMSPacket());
-            Vector3i position = blockAction.getBlockPosition();
+            Vector3i blockPos = blockAction.getBlockPosition();
 
             if (Materials.checkFlag(blockAction.getBlockType(), Materials.SHULKER)) {
                 // Param is the number of viewers of the shulker box.
                 // Hashset with .equals() set to be position
                 if (blockAction.getActionParam() >= 1) {
-                    ShulkerData data = new ShulkerData(position, player.lastTransactionSent.get(), false);
-                    player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
+                    ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), false);
                     player.compensatedWorld.openShulkerBoxes.add(data);
                 } else {
                     // The shulker box is closing
-                    ShulkerData data = new ShulkerData(position, player.lastTransactionSent.get(), true);
-                    player.compensatedWorld.openShulkerBoxes.removeIf(shulkerData -> shulkerData.position.equals(position));
+                    ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), true);
                     player.compensatedWorld.openShulkerBoxes.add(data);
                 }
             }
