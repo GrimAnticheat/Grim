@@ -10,9 +10,7 @@ import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
 
 @CheckData(buffer = 3, maxBuffer = 3)
 public class GhostBlockDetector extends PostPredictionCheck {
@@ -48,20 +46,6 @@ public class GhostBlockDetector extends PostPredictionCheck {
 
     private boolean isGhostBlock() {
         if (true) return false;
-
-        // Deal with stupidity when towering upwards, or other high ping desync's that I can't deal with
-        // Seriously, blocks disappear and reappear when towering at high ping on modern versions...
-        //
-        // I also can't deal with clients guessing what block connections will be with all the version differences
-        // I can with 1.7-1.12 clients as connections are all client sided, but client AND server sided is too much
-        // As these connections are all server sided at low ping, the desync's just appear at high ping
-        SimpleCollisionBox playerBox = player.boundingBox.copy().expand(1);
-        for (Pair<Integer, Vector3i> pair : player.compensatedWorld.likelyDesyncBlockPositions) {
-            Vector3i pos = pair.getSecond();
-            if (playerBox.isCollided(new SimpleCollisionBox(pos.x, pos.y, pos.z, pos.x + 1, pos.y + 1, pos.z + 1))) {
-                return true;
-            }
-        }
 
         // Player is on glitchy block (1.8 client on anvil/wooden chest)
         if (player.uncertaintyHandler.isOrWasNearGlitchyBlock) {

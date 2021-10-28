@@ -5,7 +5,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.data.ChangeBlockData;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -101,7 +100,6 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
     public void handleBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-        if (player.compensatedWorld.isResync) return;
 
         Object blockObject = wrappedBlockChange.readAnyObject(1);
         int combinedID = getByCombinedID(blockObject);
@@ -129,6 +127,6 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
             event.setPostTask(player::sendTransaction);
 
-        player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
     }
 }

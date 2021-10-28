@@ -5,7 +5,6 @@ import ac.grim.grimac.utils.chunkdata.seven.ByteArray3d;
 import ac.grim.grimac.utils.chunkdata.seven.NibbleArray3d;
 import ac.grim.grimac.utils.chunkdata.seven.SevenChunk;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.data.ChangeBlockData;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
@@ -108,7 +107,6 @@ public class PacketWorldReaderSeven extends BasePacketWorldReader {
     @Override
     public void handleBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-        if (player.compensatedWorld.isResync) return;
 
         try {
             // 1.7 includes the block data right in the packet
@@ -165,7 +163,7 @@ public class PacketWorldReaderSeven extends BasePacketWorldReader {
                 int blockID = block >> 4 & 255;
                 int blockMagicValue = block & 15;
 
-                player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, chunkX + relativeX, relativeY, chunkZ + relativeZ, blockID | blockMagicValue << 12));
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(chunkX + relativeX, relativeY, chunkZ + relativeZ, blockID | blockMagicValue << 12));
             }
         } catch (IllegalAccessException | NoSuchFieldException exception) {
             exception.printStackTrace();

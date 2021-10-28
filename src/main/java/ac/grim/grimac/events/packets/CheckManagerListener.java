@@ -7,10 +7,9 @@ import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
-import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import ac.grim.grimac.utils.nmsImplementations.Materials;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -142,32 +141,20 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Direction face = place.getDirection();
 
             ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+            Material material = transformMaterial(placedWith);
+            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material);
 
-            // I swear if Bukkit doesn't do .isBlock() accurately...
-            if (placedWith != null) {
-                Material material = transformMaterial(placedWith);
-                if (!material.isBlock()) return;
+            // Right-clicking a trapdoor/door/etc.
+            if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
+                Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
+                player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
+                return;
+            }
 
-                BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material);
-
+            if (placedWith != null && material.isBlock()) {
                 player.checkManager.onBlockPlace(blockPlace);
 
                 if (!blockPlace.isCancelled()) {
-
-                    int blockX = blockPlace.getPlacedBlockPos().getX();
-                    int blockY = blockPlace.getPlacedBlockPos().getY();
-                    int blockZ = blockPlace.getPlacedBlockPos().getZ();
-
-                    double playerX = player.packetStateData.packetPosition.getX();
-                    double playerY = player.packetStateData.packetPosition.getY();
-                    double playerZ = player.packetStateData.packetPosition.getZ();
-
-                    // Hard coded as stone as proof of concept
-                    SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(playerX, playerY, playerZ, 0.6, 1.8);
-
-                    // isIntersected != isCollided.  Intersection means check overlap, collided also checks if equal
-                    // CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), magicData, placed.getX(), placed.getY(), placed.getZ()
-                    // The block was not placed inside the player and therefore the place should be processed by block place result to check if it's successful
                     BlockPlaceResult.getMaterialData(material).applyBlockPlaceToWorld(player, blockPlace);
                 }
             }
@@ -181,6 +168,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     // For example, placing seeds to place wheat
     // TODO: Make this compatible with previous versions by using XMaterial
     private Material transformMaterial(ItemStack stack) {
+        if (stack == null) return null;
         if (stack.getType() == Material.COCOA_BEANS) return Material.COCOA;
         if (stack.getType() == Material.INK_SAC && stack.getDurability() == 3) return Material.COCOA;
         if (stack.getType() == Material.FIRE_CHARGE) return Material.FIRE;

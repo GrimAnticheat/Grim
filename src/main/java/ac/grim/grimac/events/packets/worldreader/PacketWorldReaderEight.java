@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.data.ChangeBlockData;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
@@ -115,7 +114,7 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
                 int blockY = pos & 255;
                 int blockZ = pos >> 8 & 15;
 
-                player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, chunkX + blockX, blockY, chunkZ + blockZ, blockID));
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(chunkX + blockX, blockY, chunkZ + blockZ, blockID));
             }
 
         } catch (IllegalAccessException | NoSuchFieldException exception) {
