@@ -94,7 +94,6 @@ public class MovementCheckRunner extends PositionCheck {
             // Additionally, we don't want to, and it isn't needed, to update the world
             if (player.tasksNotFinished.compareAndSet(0, 1)) {
                 int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
-                player.compensatedWorld.tickUpdates(lastTransaction);
                 player.latencyUtils.handleAnticheatSyncTransaction(lastTransaction);
                 player.compensatedEntities.tickUpdates(lastTransaction);
                 player.compensatedFlying.canFlyLagCompensated(lastTransaction);
@@ -155,7 +154,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (!data.isJustTeleported) player.movementPackets++;
 
         // Tick updates AFTER updating bounding box and actual movement
-        player.compensatedWorld.tickUpdates(data.lastTransaction);
         player.compensatedWorld.tickPlayerInPistonPushingArea();
         player.latencyUtils.handleAnticheatSyncTransaction(data.lastTransaction);
 

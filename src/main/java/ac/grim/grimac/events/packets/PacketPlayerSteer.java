@@ -33,7 +33,6 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.lastTransactionReceived = player.packetStateData.packetLastTransactionReceived.get();
 
                 // Tick updates AFTER updating bounding box and actual movement
-                player.compensatedWorld.tickUpdates(player.lastTransactionReceived);
                 player.compensatedWorld.tickPlayerInPistonPushingArea();
 
                 // Stop transaction leaks

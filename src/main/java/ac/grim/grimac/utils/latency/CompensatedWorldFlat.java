@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
-import ac.grim.grimac.utils.data.PlayerOpenBlockData;
 import ac.grim.grimac.utils.nmsImplementations.Materials;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
@@ -114,20 +113,20 @@ public class CompensatedWorldFlat extends CompensatedWorld {
     }
 
     @Override
-    public void tickOpenable(PlayerOpenBlockData blockToOpen) {
-        FlatBlockState data = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
+    public void tickOpenable(int blockX, int blockY, int blockZ) {
+        FlatBlockState data = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY, blockZ);
 
         if (data.getBlockData() instanceof Door) {
             Door door = (Door) data.getBlockData();
-            FlatBlockState otherDoorState = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ);
+            FlatBlockState otherDoorState = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockZ);
 
             // Add the other door part to the likely to desync positions
-            player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ)));
+            player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(blockX, blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockZ)));
 
             if (otherDoorState.getBlockData() instanceof Door) {
                 Door otherDoor = (Door) otherDoorState.getBlockData().clone();
                 otherDoor.setOpen(!otherDoor.isOpen());
-                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockToOpen.blockZ, getFlattenedGlobalID(otherDoor));
+                player.compensatedWorld.updateBlock(blockX, blockY + (door.getHalf() == Bisected.Half.BOTTOM ? 1 : -1), blockZ, getFlattenedGlobalID(otherDoor));
             }
         }
 
@@ -135,7 +134,7 @@ public class CompensatedWorldFlat extends CompensatedWorld {
             // Do NOT change the getBlockData() without cloning otherwise you will corrupt the (grim) global palette!
             Openable openable = (Openable) data.getBlockData().clone();
             openable.setOpen(!openable.isOpen());
-            player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, getFlattenedGlobalID(openable));
+            player.compensatedWorld.updateBlock(blockX, blockY, blockZ, getFlattenedGlobalID(openable));
         }
     }
 

@@ -10,8 +10,6 @@ import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
 import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
 import ac.grim.grimac.checks.type.*;
-import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
-import ac.grim.grimac.manager.tick.impl.PositionTransactionSetter;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.anticheat.update.*;
@@ -43,12 +41,10 @@ public class CheckManager {
                 // This desync class causes too many desync's to be used in production, blocks missing on client side
                 // This has to be fixed with packet based block placing instead of spamming blocks to the player
                 //.put(AntiUseItemDesync.class, new AntiUseItemDesync(player))
-                .put(ResyncWorldUtil.class, new ResyncWorldUtil(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
                 .put(PredictionRunner.class, new PredictionRunner(player))
-                .put(PositionTransactionSetter.class, new PositionTransactionSetter(player))
                 .put(CompensatedCooldown.class, new CompensatedCooldown(player))
                 .build();
         rotationCheck = new ImmutableClassToInstanceMap.Builder<RotationCheck>()
@@ -156,9 +152,5 @@ public class CheckManager {
 
     public PostPredictionCheck getPostPredictionCheck(Class<? extends PostPredictionCheck> check) {
         return postPredictionCheck.get(check);
-    }
-
-    public ResyncWorldUtil getResyncWorldUtil() {
-        return ((ResyncWorldUtil) getPacketCheck(ResyncWorldUtil.class));
     }
 }

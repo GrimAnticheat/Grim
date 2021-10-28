@@ -2,6 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
+import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
@@ -133,7 +134,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // Deal with ghost blocks near the player (from anticheat/netty thread)
         // Only let us full resync once every two seconds to prevent unneeded netty load
         if (System.nanoTime() - lastWorldResync > 2e-9) {
-            player.getResyncWorldUtil().resyncPositions(player, player.boundingBox.copy().expand(1), false);
+            ResyncWorldUtil.resyncPositions(player, player.boundingBox.copy().expand(1), false);
             lastWorldResync = System.nanoTime();
         }
 

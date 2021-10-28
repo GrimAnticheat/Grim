@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets.worldreader;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
-import ac.grim.grimac.utils.data.ChangeBlockData;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -85,7 +84,7 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
 
                 int blockID = getByCombinedID(blockDataArray[i]);
 
-                player.compensatedWorld.worldChangedBlockQueue.add(new ChangeBlockData(player.lastTransactionSent.get() + 1, chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
             }
 
         } catch (IllegalAccessException | InvocationTargetException exception) {

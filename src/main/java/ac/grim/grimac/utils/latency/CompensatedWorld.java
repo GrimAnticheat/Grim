@@ -13,11 +13,11 @@ import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.PistonData;
+import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.enums.EntityType;
-import ac.grim.grimac.utils.lists.EvictingList;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
@@ -38,38 +38,23 @@ import org.bukkit.block.data.type.LightningRod;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
     public static BaseBlockState airData;
     public static Method getByCombinedID;
     public final GrimPlayer player;
-    public final EvictingList<TransPosData> posToTrans = new EvictingList<>(3);
     private final Map<Long, Column> chunks;
-    public ConcurrentSkipListSet<BasePlayerChangeBlockData> worldChangedBlockQueue = new ConcurrentSkipListSet<>((a, b) -> {
-        // We can't have elements with equal comparisons, otherwise they won't be added
-        if (a.transaction == b.transaction) {
-            boolean aOpenBlock = a instanceof PlayerOpenBlockData;
-            boolean bOpenBlock = b instanceof PlayerOpenBlockData;
-
-            if (aOpenBlock != bOpenBlock) return Boolean.compare(aOpenBlock, bOpenBlock);
-
-            return Integer.compare(a.hashCode(), b.hashCode());
-        }
-        return Integer.compare(a.transaction, b.transaction);
-    });
-    public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> unloadChunkQueue = new ConcurrentLinkedQueue<>();
-    public ConcurrentLinkedQueue<PistonData> pistonData = new ConcurrentLinkedQueue<>();
     public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> likelyDesyncBlockPositions = new ConcurrentLinkedQueue<>();
     // Packet locations for blocks
-    public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> packetLevelBlockLocations = new ConcurrentLinkedQueue<>();
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
-    public boolean isResync = false;
     // 1.17 with datapacks, and 1.18, have negative world offset values
     private int minHeight = 0;
     private int maxHeight = 255;
@@ -99,70 +84,6 @@ public class CompensatedWorld {
             }
         }
         return false;
-    }
-
-    public void tickUpdates(int lastTransactionReceived) {
-        while (true) {
-            Pair<Integer, Vector3i> data = unloadChunkQueue.peek();
-
-            if (data == null) break;
-
-            // The player hasn't gotten this update yet
-            if (data.getFirst() > lastTransactionReceived) {
-                break;
-            }
-
-            unloadChunkQueue.poll();
-
-            int chunkX = data.getSecond().getX();
-            int chunkZ = data.getSecond().getZ();
-
-            long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-
-            // Don't unload the chunk if this is a different chunk than what we actually wanted.
-            Column loadedChunk = getChunk(chunkX, chunkZ);
-            if (loadedChunk != null && loadedChunk.transaction < data.getFirst()) {
-                chunks.remove(chunkPosition);
-                openShulkerBoxes.removeIf(box -> box.position.getX() >> 4 == chunkX && box.position.getZ() >> 4 == chunkZ);
-            }
-        }
-
-        for (Iterator<BasePlayerChangeBlockData> it = worldChangedBlockQueue.iterator(); it.hasNext(); ) {
-            BasePlayerChangeBlockData changeBlockData = it.next();
-            if (changeBlockData.transaction > lastTransactionReceived) {
-                break;
-            }
-
-            it.remove();
-
-            if (changeBlockData instanceof PlayerChangeBlockData || changeBlockData instanceof PlayerOpenBlockData) {
-                likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ)));
-            }
-
-            if (changeBlockData instanceof PlayerOpenBlockData) {
-                tickOpenable((PlayerOpenBlockData) changeBlockData);
-                continue;
-            }
-
-            player.compensatedWorld.updateBlock(changeBlockData.blockX, changeBlockData.blockY, changeBlockData.blockZ, changeBlockData.getCombinedID());
-        }
-
-        while (true) {
-            PistonData data = pistonData.peek();
-
-            if (data == null) break;
-
-            // The player hasn't gotten this update yet
-            if (data.lastTransactionSent > lastTransactionReceived) {
-                break;
-            }
-
-            pistonData.poll();
-            activePistons.add(data);
-        }
-
-        // 3 ticks is enough for everything that needs to be processed to be processed
-        likelyDesyncBlockPositions.removeIf(data -> player.packetStateData.packetLastTransactionReceived.get() > data.getFirst());
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
@@ -200,32 +121,32 @@ public class CompensatedWorld {
         }
     }
 
-    public void tickOpenable(PlayerOpenBlockData blockToOpen) {
-        MagicBlockState data = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
+    public void tickOpenable(int blockX, int blockY, int blockZ) {
+        MagicBlockState data = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY, blockZ);
         WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(data);
 
         if (blockDataValue instanceof WrappedDoor) {
             WrappedDoor door = (WrappedDoor) blockDataValue;
-            MagicBlockState otherDoor = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY + (door.isBottom() ? 1 : -1), blockToOpen.blockZ);
+            MagicBlockState otherDoor = (MagicBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY + (door.isBottom() ? 1 : -1), blockZ);
 
             // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
             if (otherDoor.getMaterial() == data.getMaterial()) {
                 // The doors are probably connected
                 boolean isBottom = door.isBottom();
-                // Add the other door part to the likely to desync positions
-                player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 1 : -1), blockToOpen.blockZ)));
+                // Add the other door part to the likely to desync
+                player.compensatedWorld.likelyDesyncBlockPositions.add(new Pair<>(player.lastTransactionSent.get(), new Vector3i(blockX, blockY + (isBottom ? 1 : -1), blockZ)));
                 // 1.12- stores door data in the bottom door
                 if (!isBottom)
                     data = otherDoor;
                 // 1.13+ - We need to grab the bukkit block data, flip the open state, then get combined ID
                 // 1.12- - We can just flip a bit in the lower door and call it a day
                 int magicValue = data.getId() | ((data.getBlockData() ^ 0x4) << 12);
-                player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY + (isBottom ? 0 : -1), blockToOpen.blockZ, magicValue);
+                player.compensatedWorld.updateBlock(blockX, blockY + (isBottom ? 0 : -1), blockZ, magicValue);
             }
         } else if (blockDataValue instanceof WrappedTrapdoor || blockDataValue instanceof WrappedFenceGate) {
             // Take 12 most significant bytes -> the material ID.  Combine them with the new block magic data.
             int magicValue = data.getId() | ((data.getBlockData() ^ 0x4) << 12);
-            player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, magicValue);
+            player.compensatedWorld.updateBlock(blockX, blockY, blockZ, magicValue);
         }
     }
 
@@ -330,12 +251,9 @@ public class CompensatedWorld {
 
         y -= minHeight;
 
-        try {
-            BaseChunk chunk = column.getChunks()[y >> 4];
-            if (chunk != null) {
-                return chunk.get(x & 0xF, y & 0xF, z & 0xF);
-            }
-        } catch (Exception ignored) {
+        BaseChunk chunk = column.getChunks()[y >> 4];
+        if (chunk != null) {
+            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
         }
 
         return airData;
@@ -358,7 +276,7 @@ public class CompensatedWorld {
         } else if (state instanceof WrappedRedstoneTorch) {
             return face != BlockFace.UP ? ((WrappedRedstoneTorch) state).getPower() : 0;
         } else if (state instanceof WrappedMultipleFacingPower) {
-            return ((WrappedMultipleFacingPower) state).getDirections().contains(face) ? ((WrappedMultipleFacingPower) state).getPower() : 0;
+            return ((WrappedMultipleFacingPower) state).getDirections().contains(face.getOppositeFace()) ? ((WrappedMultipleFacingPower) state).getPower() : 0;
         } else if (state instanceof WrappedPower) {
             return ((WrappedPower) state).getPower();
         } else if (state instanceof WrappedWallTorchDirectionalPower) {
@@ -521,20 +439,10 @@ public class CompensatedWorld {
 
     public void removeChunkLater(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-        Column column = chunks.get(chunkPosition);
-
-        if (column == null) return;
-
-        // Signify that there could be a desync between this and netty
-        column.markedForRemoval = true;
-        unloadChunkQueue.add(new Pair<>(player.lastTransactionSent.get() + 1, new Vector3i(chunkX, 0, chunkZ)));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.chunks.remove(chunkPosition));
     }
 
     public void setMaxWorldHeight(int maxSectionHeight) {
-        if (maxSectionHeight % 16 != 0) {
-            throw new RuntimeException("Maximum world height must be a multiple of 16!");
-        }
-
         this.maxHeight = maxSectionHeight;
     }
 
@@ -543,10 +451,6 @@ public class CompensatedWorld {
     }
 
     public void setMinHeight(int minHeight) {
-        if (minHeight % 16 != 0) {
-            throw new RuntimeException("Minimum world height must be a multiple of 16!");
-        }
-
         this.minHeight = minHeight;
     }
 

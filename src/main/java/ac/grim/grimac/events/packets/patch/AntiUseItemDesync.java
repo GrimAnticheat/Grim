@@ -117,7 +117,7 @@ public class AntiUseItemDesync extends PacketCheck {
 
                     SimpleCollisionBox box = new SimpleCollisionBox(bestBlock, bestBlock);
 
-                    player.getResyncWorldUtil().resyncPositions(player, box.expand(1), true);
+                    ResyncWorldUtil.resyncPositions(player, box.expand(1), true);
                 }
             }
 
@@ -134,7 +134,7 @@ public class AntiUseItemDesync extends PacketCheck {
 
                 SimpleCollisionBox box = new SimpleCollisionBox(startPos, endPos).sort().expandMax(0, maxEye - minEye, 0);
 
-                player.getResyncWorldUtil().resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
+                ResyncWorldUtil.resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
                         GrimMath.floor(box.maxX), GrimMath.floor(box.maxY), GrimMath.floor(box.maxZ),
 
                         // Only resend source blocks, other blocks couldn't have been desync'd by this bug
@@ -165,7 +165,7 @@ public class AntiUseItemDesync extends PacketCheck {
 
                 SimpleCollisionBox box = new SimpleCollisionBox(startPos, endPos).sort().expandMax(0, maxEye - minEye, 0);
 
-                player.getResyncWorldUtil().resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
+                ResyncWorldUtil.resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
                         GrimMath.floor(box.maxX), GrimMath.floor(box.maxY), GrimMath.floor(box.maxZ),
 
                         // Only resend the blocks above source blocks to solve this bug
@@ -199,7 +199,7 @@ public class AntiUseItemDesync extends PacketCheck {
                 // Add 1 because you can place blocks in a way to extend your reach
                 SimpleCollisionBox box = new SimpleCollisionBox(startPos, endPos).sort().expandMax(0, maxEye - minEye, 0).expand(1);
 
-                player.getResyncWorldUtil().resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
+                ResyncWorldUtil.resyncPositions(player, GrimMath.floor(box.minX), GrimMath.floor(box.minY), GrimMath.floor(box.minZ),
                         GrimMath.floor(box.maxX), GrimMath.floor(box.maxY), GrimMath.floor(box.maxZ), state -> true, true);
             }
         }
