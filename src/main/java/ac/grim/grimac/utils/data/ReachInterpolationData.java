@@ -20,16 +20,25 @@ import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
-    public final SimpleCollisionBox targetLocation;
-    public SimpleCollisionBox startingLocation;
-    public int interpolationStepsLowBound = 0;
-    public int interpolationStepsHighBound = 0;
+    private final SimpleCollisionBox targetLocation;
+    private SimpleCollisionBox startingLocation;
+    private int interpolationStepsLowBound = 0;
+    private int interpolationStepsHighBound = 0;
 
     public ReachInterpolationData(SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine) {
         this.startingLocation = startingLocation;
         this.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8);
         if (isPointNine) interpolationStepsHighBound = 3;
     }
+
+    // While riding entities, there is no interpolation.
+    public ReachInterpolationData(SimpleCollisionBox finishedLoc) {
+        this.startingLocation = finishedLoc;
+        this.targetLocation = finishedLoc;
+        interpolationStepsLowBound = 3;
+        interpolationStepsHighBound = 3;
+    }
+
 
     // To avoid huge branching when bruteforcing interpolation -
     // we combine the collision boxes for the steps.

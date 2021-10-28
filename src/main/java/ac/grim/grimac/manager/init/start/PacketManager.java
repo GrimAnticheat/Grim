@@ -20,7 +20,6 @@ public class PacketManager implements Initable {
         PacketEvents.get().registerListener(new PacketPlayerDigging());
         PacketEvents.get().registerListener(new PacketPlayerAttack());
         PacketEvents.get().registerListener(new PacketEntityAction());
-        PacketEvents.get().registerListener(new PacketEntityReplication());
         PacketEvents.get().registerListener(new PacketBlockAction());
         PacketEvents.get().registerListener(new PacketFireworkListener());
         PacketEvents.get().registerListener(new PacketSelfMetadataListener());

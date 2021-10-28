@@ -42,13 +42,6 @@ public class GetBoundingBox {
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, false);
     }
 
-    public static SimpleCollisionBox getBoatBoundingBox(double centerX, double minY, double centerZ) {
-        double width = 1.375;
-        double height = 0.5625;
-
-        return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
-    }
-
     public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isRiptiding, boolean isSleeping, ClientVersion clientVersion) {
         if (isGliding || isSwimming || isRiptiding) {
             return 0.4;

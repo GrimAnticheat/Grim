@@ -1,14 +1,12 @@
 package ac.grim.grimac.utils.data.packetentity;
 
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.block.BlockFace;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 
 public class PacketEntityShulker extends PacketEntity {
     public BlockFace facing = BlockFace.DOWN;
 
-    public PacketEntityShulker(EntityType type, Vector3d position) {
-        super(type, position);
+    public PacketEntityShulker(GrimPlayer player, ac.grim.grimac.utils.enums.EntityType type, double x, double y, double z) {
+        super(player, type, x, y, z);
     }
 }

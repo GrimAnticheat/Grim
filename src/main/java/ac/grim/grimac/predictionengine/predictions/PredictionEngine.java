@@ -5,7 +5,6 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -15,7 +14,6 @@ import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
 import ac.grim.grimac.utils.nmsImplementations.JumpPower;
 import ac.grim.grimac.utils.nmsImplementations.Riptide;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -423,23 +421,6 @@ public class PredictionEngine {
 
         additionHorizontal += player.uncertaintyHandler.lastHorizontalOffset;
         additionVertical += player.uncertaintyHandler.lastVerticalOffset;
-
-        if (player.playerVehicle instanceof PacketEntityRideable && player.vehicleData.lastVehicleSwitch < 5) {
-            Vector3d playerPosition = player.playerVehicle.position;
-            SimpleCollisionBox uncertainBox = new SimpleCollisionBox(playerPosition, playerPosition);
-            for (Vector3d possiblePosition : ((PacketEntityRideable) player.playerVehicle).entityPositions) {
-                uncertainBox.expandToAbsoluteCoordinates(possiblePosition.getX(), possiblePosition.getY(), possiblePosition.getZ());
-            }
-
-            player.uncertaintyHandler.xNegativeUncertainty -= playerPosition.getX() - uncertainBox.minX;
-            player.uncertaintyHandler.zNegativeUncertainty -= playerPosition.getZ() - uncertainBox.minZ;
-            player.uncertaintyHandler.yNegativeUncertainty -= playerPosition.getY() - uncertainBox.minY;
-            player.uncertaintyHandler.yPositiveUncertainty -= playerPosition.getY() - uncertainBox.maxY;
-            player.uncertaintyHandler.xPositiveUncertainty -= playerPosition.getX() - uncertainBox.maxX;
-            player.uncertaintyHandler.zPositiveUncertainty -= playerPosition.getZ() - uncertainBox.maxZ;
-
-            player.uncertaintyHandler.yNegativeUncertainty -= 0.5;
-        }
 
         double uncertainPiston = 0;
         for (int x = 0; x < player.uncertaintyHandler.pistonPushing.size(); x++) {

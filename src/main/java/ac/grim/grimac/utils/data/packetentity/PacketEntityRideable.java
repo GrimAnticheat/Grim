@@ -1,8 +1,6 @@
 package ac.grim.grimac.utils.data.packetentity;
 
-import ac.grim.grimac.utils.lists.EvictingList;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import org.bukkit.entity.EntityType;
+import ac.grim.grimac.player.GrimPlayer;
 
 public class PacketEntityRideable extends PacketEntity {
 
@@ -12,10 +10,7 @@ public class PacketEntityRideable extends PacketEntity {
 
     public float movementSpeedAttribute = 0.1f;
 
-    public EvictingList<Vector3d> entityPositions = new EvictingList<>(3);
-
-    public PacketEntityRideable(EntityType type, Vector3d vector3d) {
-        super(type, vector3d);
-        entityPositions.add(vector3d);
+    public PacketEntityRideable(GrimPlayer player, ac.grim.grimac.utils.enums.EntityType type, double x, double y, double z) {
+        super(player, type, x, y, z);
     }
 }

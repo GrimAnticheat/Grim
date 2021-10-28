@@ -1,26 +1,28 @@
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 
 public class ShulkerData {
     public final int lastTransactionSent;
-    public final Vector3i position;
-    public boolean isClosing;
-    public PacketEntity entity;
+    private final boolean isClosing;
+
+    // Keep track of one of these two things, so we can remove this later
+    public PacketEntity entity = null;
+    public Vector3i blockPos = null;
 
     // Calculate if the player has no-push, and when to end the possibility of applying piston
-    public int ticksOfOpeningClosing = 0;
+    private int ticksOfOpeningClosing = 0;
 
     public ShulkerData(Vector3i position, int lastTransactionSent, boolean isClosing) {
         this.lastTransactionSent = lastTransactionSent;
-        this.position = position;
         this.isClosing = isClosing;
+        this.blockPos = position;
     }
 
     public ShulkerData(PacketEntity entity, int lastTransactionSent, boolean isClosing) {
         this.lastTransactionSent = lastTransactionSent;
-        this.position = new Vector3i((int) Math.floor(entity.position.getX()), (int) Math.floor(entity.position.getY()), (int) Math.floor(entity.position.getZ()));
         this.isClosing = isClosing;
         this.entity = entity;
     }
@@ -30,5 +32,12 @@ public class ShulkerData {
     // 25 is a very cautious number beyond
     public boolean tickIfGuaranteedFinished() {
         return isClosing && ++ticksOfOpeningClosing >= 25;
+    }
+
+    public SimpleCollisionBox getCollision() {
+        if (blockPos != null) {
+            return new SimpleCollisionBox(blockPos);
+        }
+        return entity.getPossibleCollisionBoxes();
     }
 }
