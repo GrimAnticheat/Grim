@@ -2,7 +2,6 @@ package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
-import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.Bukkit;
@@ -12,6 +11,8 @@ import org.bukkit.plugin.Plugin;
 import java.util.logging.Logger;
 
 public class ViaBackwardsManager implements Initable {
+    public static boolean isViaLegacyUpdated = true;
+
     @Override
     public void start() {
         LogUtil.info("Checking ViaBackwards Compatibility...");
@@ -39,7 +40,7 @@ public class ViaBackwardsManager implements Initable {
                             logger.warning(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
                             logger.warning(ChatColor.RED + "Supported  version: " + ChatColor.WHITE + "https://github.com/ViaVersion/ViaBackwards/actions/runs/1039987269");
 
-                            GrimPlayer.isViaLegacyUpdated = false;
+                            isViaLegacyUpdated = false;
                         }
                     }
                 }

@@ -58,9 +58,6 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
 
             player.compensatedFlying.setCanPlayerFly(abilities.isFlightAllowed());
             player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionSent.get() + 1, abilities.isFlying());
-            if (abilities.isFlying()) {
-                player.compensatedElytra.lastToggleFly = player.lastTransactionReceived.get();
-            }
 
             event.setPostTask(player::sendTransaction);
         }
