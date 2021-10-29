@@ -4,7 +4,6 @@ import io.github.retrooper.packetevents.utils.pair.Pair;
 
 import java.util.Iterator;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // Okay, this is meant to be a MODERN OOP class!
@@ -13,7 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class LatencyUtils {
     private final ConcurrentLinkedQueue<Pair<Integer, Runnable>> nettySyncTransactionMap = new ConcurrentLinkedQueue<>();
 
-    public static boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {
+    public static boolean getBestValue(Map<Integer, Boolean> hashMap, int lastTransactionReceived) {
         int bestKey = Integer.MIN_VALUE;
         // This value is always set because one value is always left in the maps
         boolean bestValue = false;

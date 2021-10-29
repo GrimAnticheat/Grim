@@ -4,27 +4,27 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import org.bukkit.block.BlockFace;
 
 public enum AxisUtil {
-    east(box -> {
+    EAST(box -> {
         box.maxX = 1;
         return box;
     }),
-    west(box -> {
+    WEST(box -> {
         box.minX = 0;
         return box;
     }),
-    north(box -> {
+    NORTH(box -> {
         box.minZ = 0;
         return box;
     }),
-    south(box -> {
+    SOUTH(box -> {
         box.maxZ = 1;
         return box;
     }),
-    up(box -> {
+    UP(box -> {
         box.minY = 0;
         return box;
     }),
-    down(box -> {
+    DOWN(box -> {
         box.maxY = 1;
         return box;
     });
@@ -56,18 +56,18 @@ public enum AxisUtil {
     public static AxisSelect getAxis(BlockFace face) {
         switch (face) {
             case EAST:
-                return east.select;
+                return EAST.select;
             case WEST:
-                return west.select;
+                return WEST.select;
             case NORTH:
-                return north.select;
+                return NORTH.select;
             case SOUTH:
-                return south.select;
+                return SOUTH.select;
             case UP:
-                return up.select;
+                return UP.select;
             case DOWN:
             default:
-                return down.select;
+                return DOWN.select;
         }
     }
 }

@@ -39,7 +39,7 @@ public class GrimMath {
         return Math.min(Math.abs(position % (1 / 640d)), Math.abs(Math.abs(position % (1 / 640d)) - (1 / 640d)));
     }
 
-    public static boolean equal(double d, double d2) {
+    public static boolean isCloseEnoughEquals(double d, double d2) {
         return Math.abs(d2 - d) < 9.999999747378752E-6;
     }
 

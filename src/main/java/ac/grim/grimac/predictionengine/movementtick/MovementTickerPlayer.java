@@ -13,6 +13,7 @@ public class MovementTickerPlayer extends MovementTicker {
         super(player);
     }
 
+    @Override
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
             new PredictionEngineWater().guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);
@@ -21,10 +22,12 @@ public class MovementTickerPlayer extends MovementTicker {
         }
     }
 
+    @Override
     public void doLavaMove() {
         new PredictionEngineLava().guessBestMovement(0.02F, player);
     }
 
+    @Override
     public void doNormalMove(float blockFriction) {
         new PredictionEngineNormal().guessBestMovement(BlockProperties.getFrictionInfluencedSpeed(blockFriction, player), player);
     }

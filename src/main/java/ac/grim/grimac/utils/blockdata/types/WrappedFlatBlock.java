@@ -5,15 +5,15 @@ import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 
 public class WrappedFlatBlock extends WrappedBlockDataValue {
-    private static BlockData AIR = null;
+    private static BlockData air = null;
 
     static {
         if (XMaterial.isNewVersion()) {
-            AIR = Material.AIR.createBlockData();
+            air = Material.AIR.createBlockData();
         }
     }
 
-    BlockData blockData = AIR;
+    BlockData blockData = air;
 
     public BlockData getBlockData() {
         return blockData;

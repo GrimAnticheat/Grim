@@ -83,7 +83,7 @@ public class BitStorage {
     public void set(int index, int value) {
         int cellIndex = cellIndex(index);
         int bitIndex = bitIndex(index, cellIndex);
-        this.data[cellIndex] = this.data[cellIndex] & ~(this.maxValue << bitIndex) | ((long) value & this.maxValue) << bitIndex;
+        this.data[cellIndex] = this.data[cellIndex] & ~(this.maxValue << bitIndex) | (value & this.maxValue) << bitIndex;
     }
 
     public int[] toIntArray() {

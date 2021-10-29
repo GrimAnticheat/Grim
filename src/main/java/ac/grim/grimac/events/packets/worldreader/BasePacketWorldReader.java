@@ -14,17 +14,16 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.Wrap
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.apache.commons.lang.NotImplementedException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
-    private static Method getByCombinedID;
+    private static final Method getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
 
     public BasePacketWorldReader() {
         super(PacketListenerPriority.MONITOR);
-
-        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
     }
 
     @Override
@@ -70,11 +69,11 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     public void handleMapChunkBulk(GrimPlayer player, PacketPlaySendEvent event) {
-
+        // Only exists in 1.7 and 1.8
     }
 
     public void handleMapChunk(GrimPlayer player, PacketPlaySendEvent event) {
-
+        throw new NotImplementedException();
     }
 
     public void addChunkToCache(GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
@@ -117,7 +116,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
-
+        throw new NotImplementedException();
     }
 
     public void handleUpdateBlockChange(GrimPlayer player, PacketPlaySendEvent event, WrappedPacketOutBlockChange wrappedBlockChange, int combinedID) {

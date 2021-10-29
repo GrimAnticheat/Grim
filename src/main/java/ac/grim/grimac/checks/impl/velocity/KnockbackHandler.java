@@ -19,7 +19,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @CheckData(name = "AntiKB", configName = "Knockback")
 public class KnockbackHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
-    GrimPlayer player;
 
     ConcurrentLinkedQueue<VelocityData> lastKnockbackKnownTaken = new ConcurrentLinkedQueue<>();
     VelocityData firstBreadOnlyKnockback = null;
@@ -32,7 +31,6 @@ public class KnockbackHandler extends PacketCheck {
 
     public KnockbackHandler(GrimPlayer player) {
         super(player);
-        this.player = player;
     }
 
     @Override

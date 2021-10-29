@@ -39,7 +39,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
             //
             // But plugins can still send this, so support it anyways
             if (player.compensatedPotions.getJumpAmplifier() != null) {
-                d1 = d0 + (double) ((float) (player.compensatedPotions.getJumpAmplifier() + 1) * 0.1F);
+                d1 = d0 + ((player.compensatedPotions.getJumpAmplifier() + 1) * 0.1F);
             } else {
                 d1 = d0;
             }

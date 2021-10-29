@@ -29,13 +29,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // setting the player back to a position where they were cheating
     public boolean hasAcceptedSetbackPosition = true;
     // Sync to netty
-    // Also safe from corruption from the vanilla anticheat!
     final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
-    // Map of teleports that bukkit is about to send to the player on netty
+    // Map of teleports that bukkit is about to send to the player on netty (fixes race condition)
     final ConcurrentLinkedDeque<Location> pendingTeleports = new ConcurrentLinkedDeque<>();
-    // Bukkit is shit and doesn't call the teleport event on join, we must not accidentally mark this
-    // packet as the vanilla anticheat as otherwise the player wouldn't spawn.
-    public boolean hasSentSpawnTeleport = false;
     // Sync to netty, a player MUST accept a teleport to spawn into the world
     public boolean hasAcceptedSpawnTeleport = false;
     // Was there a ghost block that forces us to block offsets until the player accepts their teleport?
@@ -65,6 +61,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * <p>
      * 2021-10-9 This method seems to be safe and doesn't allow bypasses
      */
+    @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // Desync is fixed
         if (predictionComplete.getData().isTeleport()) blockOffsets = false;
@@ -78,8 +75,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         } else if (hasAcceptedSetbackPosition) {
             safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ), lastMovementVel);
 
-            // Do NOT accept teleports as valid setback positions if the player has a current setback
-            // This is due to players being able to trigger new teleports with the vanilla anticheat
+            // We checked for a new pending setback above
             if (predictionComplete.getData().isTeleport()) {
                 // Avoid setting the player back to positions before this teleport
                 safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
@@ -134,24 +130,21 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             lastWorldResync = System.nanoTime();
         }
 
-        hasAcceptedSetbackPosition = false;
+        SetBackData newSetback = new SetBackData(position, xRot, yRot, velocity, vehicle, player.lastTransactionSent.get());
+        requiredSetBack = newSetback;
         int bukkitTeleports = bukkitTeleportsProcessed;
 
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-            if (bukkitTeleportsProcessed > bukkitTeleports || isPendingTeleport()) return;
-
-            requiredSetBack = new SetBackData(position, xRot, yRot, velocity, vehicle, player.lastTransactionSent.get());
+            // First one - if another plugin has sent a new teleport, don't override it
+            // (Fixes race condition at 0 latency conditions with teleports being immediately accepted)
+            // Second one - if there is a pending teleport, don't override it
+            // (Fixes race condition between bukkit and netty, we are sync to bukkit here)
+            if (bukkitTeleportsProcessed > bukkitTeleports || isPendingTeleport() || newSetback != requiredSetBack)
+                return;
 
             // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
             Entity playerVehicle = player.bukkitPlayer.getVehicle();
             player.bukkitPlayer.eject();
-
-            // Mojang is terrible and tied together:
-            // on fire, is crouching, riding, sprinting, swimming, invisible, has glowing effect, fall flying
-            // into one byte!  At least this gives me a very easy method to resync metadata on all server versions
-            boolean isSneaking = player.bukkitPlayer.isSneaking();
-            player.bukkitPlayer.setSneaking(!isSneaking);
-            player.bukkitPlayer.setSneaking(isSneaking);
 
             if (playerVehicle != null) {
                 // Stop the player from being able to teleport vehicles and simply re-enter them to continue
@@ -160,6 +153,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot));
             player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
+            // Override essentials giving player invulnerability on teleport
             player.setVulnerable();
         });
     }
@@ -329,74 +323,29 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * This means we have to discard teleports from the vanilla anticheat, as otherwise
      * it would allow the player to bypass our own setbacks
      */
-    public boolean addSentTeleport(Location position, int transaction) {
+    public void addSentTeleport(Location position, int transaction) {
         Location loc;
 
+        // Plugins are not allowed to teleport async, although we still have to support this (custom jars might allow this?)
         boolean wasTeleportEventCalled = false;
         for (Location location : pendingTeleports) {
-            if (location.getX() == position.getX() && (Math.abs(location.getY() - position.getY()) < 1e-7) && location.getZ() == position.getZ())
+            if (location.getX() == position.getX() && (Math.abs(location.getY() - position.getY()) < 1e-7) && location.getZ() == position.getZ()) {
                 wasTeleportEventCalled = true;
-        }
-
-        if (wasTeleportEventCalled) {
-            while ((loc = pendingTeleports.poll()) != null) {
-                if (loc.getX() != position.getX() || (Math.abs(loc.getY() - position.getY()) > 1e-7) || loc.getZ() != position.getZ())
-                    continue;
-
-                teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
-                return false;
+                break;
             }
         }
 
-
-        // Player hasn't spawned yet (Bukkit doesn't call event for first teleport)
-        // Bukkit is a piece of shit and doesn't call the teleport event for vehicle changes
-        // or on join
-        // or randomly sometimes
-        // NICE BUG FIX MD_5!
-        if (player.vanillaACTeleports == 0) {
-            hasSentSpawnTeleport = true;
-            teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
-            return false;
+        // We don't want the possibility of overriding a plugin teleport
+        // (Fixes race condition between bukkit and netty teleport handling)
+        if (wasTeleportEventCalled) {
+            while ((loc = pendingTeleports.poll()) != null) {
+                if (loc.getX() == position.getX() && (Math.abs(loc.getY() - position.getY()) < 1e-7) && loc.getZ() == position.getZ())
+                    break;
+            }
         }
 
-        // Where did this teleport come from?
-        // (Vanilla anticheat sent this!)
-        // We must sync to bukkit to avoid desync with bukkit target teleport, which
-        // would make the player be unable to interact with anything
-        //
-        // Unfortunately, the bukkit event was skipped
-        // This means we MAY misidentify a vehicle leave/exit teleport IF it occurs the same tick as the vanilla ac teleport
-        // However, this doesn't matter, at all, because it's all very close positionally (vehicle exit vs vanilla ac teleport)
-        // It is impossible for grim to override another PLUGIN's teleport
-        //
-        // On older versions, they call the teleport event with UNKNOWN on the vanilla teleport.  However, this is
-        // perfectly fine because they always call the teleport event.  If a 1.8 server reaches this variable,
-        // something went wrong. (We are sync to bukkit where we need to perfectly identify a vanilla ac teleport)
-        //
-        // Therefore, despite this not really being thread safe, since we check for plugin teleport before doing this
-        // it should all work out. (Revision 5)
-        player.vanillaACTeleports--;
-        int processed = bukkitTeleportsProcessed;
-        Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-            // A new teleport has overridden this, so the player is safe from a desync.
-            if (bukkitTeleportsProcessed > processed) return;
-
-            teleportPlayerToOverrideVanillaAC();
-        });
-
-        return true;
-    }
-
-    public void teleportPlayerToOverrideVanillaAC() {
-        player.bukkitPlayer.eject();
-
-        Location safePos = safeTeleportPosition.position;
-        safePos.setPitch(player.xRot);
-        safePos.setYaw(player.yRot);
-        player.bukkitPlayer.teleport(safeTeleportPosition.position);
-
-        player.setVulnerable();
+        // Player hasn't spawned yet (Bukkit doesn't call event for first teleport)
+        teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
     }
 }
 
