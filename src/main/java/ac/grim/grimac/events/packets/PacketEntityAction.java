@@ -44,15 +44,13 @@ public class PacketEntityAction extends PacketListenerAbstract {
                 case START_FALL_FLYING:
                     // Starting fall flying is client sided on 1.14 and below
                     if (player.getClientVersion().isOlderThan(ClientVersion.v_1_15)) return;
-
-                    player.compensatedElytra.lastToggleElytra = player.lastTransactionReceived.get();
                     ItemStack chestPlate = player.bukkitPlayer.getInventory().getChestplate();
 
                     // I have a bad feeling that there might be a way to fly without durability using this
                     // The server SHOULD resync by telling the client to stop using the elytra if they can't fly!
                     // TODO: This needs to check elytra durability (How do I do this cross server version?)
                     if (chestPlate != null && chestPlate.getType() == elytra) {
-                        player.compensatedElytra.tryAddStatus(player.lastTransactionReceived.get(), true);
+                        player.isGliding = true;
                     } else {
                         // A client is flying with a ghost elytra, resync
                         player.getSetbackTeleportUtil().executeForceResync();

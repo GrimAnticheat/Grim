@@ -115,7 +115,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // Send transaction BEFORE gliding so that any transition stuff will get removed
                         // by the uncertainty from switching with an elytra
                         int transactionSent = player.lastTransactionSent.get();
-                        player.compensatedElytra.tryAddStatus(transactionSent, isGliding);
+                        player.latencyUtils.addRealTimeTask(transactionSent, () -> player.isGliding = isGliding);
 
                         player.latencyUtils.addRealTimeTask(transactionSent, () -> {
                             player.uncertaintyHandler.lastMetadataDesync = 0;

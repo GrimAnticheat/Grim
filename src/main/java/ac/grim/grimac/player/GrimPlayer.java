@@ -3,6 +3,7 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.CheckManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
+import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -45,8 +46,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer {
-    public static boolean isViaLegacyUpdated = true;
-
     public final UUID playerUUID;
     public final int entityID;
     public final Player bukkitPlayer;
@@ -142,7 +141,6 @@ public class GrimPlayer {
     public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
     public CompensatedRiptide compensatedRiptide;
-    public CompensatedElytra compensatedElytra;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
     public CompensatedPotions compensatedPotions;
@@ -188,7 +186,7 @@ public class GrimPlayer {
         clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
 
         // We can't send transaction packets to this player, disable the anticheat for them
-        if (!isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_16_4)) {
+        if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_16_4)) {
             LogUtil.warn(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
             LogUtil.warn(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
             LogUtil.warn(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
@@ -221,7 +219,6 @@ public class GrimPlayer {
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedRiptide = new CompensatedRiptide(this);
-        compensatedElytra = new CompensatedElytra(this);
         compensatedEntities = new CompensatedEntities(this);
         compensatedPotions = new CompensatedPotions(this);
         trigHandler = new TrigHandler(this);

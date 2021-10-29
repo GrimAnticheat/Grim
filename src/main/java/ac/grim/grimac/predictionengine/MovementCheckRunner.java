@@ -76,7 +76,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.compensatedFlying.canFlyLagCompensated(lastTransaction);
         player.compensatedFireworks.getMaxFireworksAppliedPossible();
         player.compensatedRiptide.getCanRiptide();
-        player.compensatedElytra.isGlidingLagCompensated(lastTransaction);
     }
 
     private void check(PositionUpdate update) {
@@ -283,7 +282,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
 
         player.isFlying = player.compensatedFlying.canFlyLagCompensated(player.lastTransactionReceived.get());
-        player.isGliding = player.compensatedElytra.isGlidingLagCompensated(player.lastTransactionReceived.get()) && !player.isFlying;
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
         player.isRiptidePose = player.compensatedRiptide.getPose(player.lastTransactionReceived.get());
 
