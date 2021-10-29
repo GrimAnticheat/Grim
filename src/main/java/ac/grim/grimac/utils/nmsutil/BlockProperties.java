@@ -10,19 +10,19 @@ import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
-    private final static Material ICE = XMaterial.ICE.parseMaterial();
-    private final static Material SLIME = XMaterial.SLIME_BLOCK.parseMaterial();
-    private final static Material PACKED_ICE = XMaterial.PACKED_ICE.parseMaterial();
-    private final static Material FROSTED_ICE = XMaterial.FROSTED_ICE.parseMaterial();
-    private final static Material BLUE_ICE = XMaterial.BLUE_ICE.parseMaterial();
+    private static final Material ICE = XMaterial.ICE.parseMaterial();
+    private static final Material SLIME = XMaterial.SLIME_BLOCK.parseMaterial();
+    private static final Material PACKED_ICE = XMaterial.PACKED_ICE.parseMaterial();
+    private static final Material FROSTED_ICE = XMaterial.FROSTED_ICE.parseMaterial();
+    private static final Material BLUE_ICE = XMaterial.BLUE_ICE.parseMaterial();
 
-    private final static Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
-    private final static Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
+    private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
+    private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
 
     // WATER and STATIONARY_WATER on 1.12
     // WATER and BUBBLE_COLUMN on 1.13
-    private final static Material water;
-    private final static Material alsoWater;
+    private static final Material water;
+    private static final Material alsoWater;
 
     static {
         if (XMaterial.isNewVersion()) {
@@ -66,10 +66,6 @@ public class BlockProperties {
     }
 
     public static float getFrictionInfluencedSpeed(float f, GrimPlayer player) {
-        //Player bukkitPlayer = player.bukkitPlayer;
-
-        // Use base value because otherwise it isn't async safe.
-        // Well, more async safe, still isn't 100% safe.
         if (player.lastOnGround) {
             return (float) (player.speed * (0.21600002f / (f * f * f)));
         }
@@ -89,14 +85,9 @@ public class BlockProperties {
 
         if (player.specialFlying) {
             return player.flySpeed * 20 * (player.isSprinting ? 0.1f : 0.05f);
-
-        } else {
-            if (player.lastSprinting) {
-                return 0.026f;
-            } else {
-                return 0.02f;
-            }
         }
+
+        return player.lastSprinting ? 0.026f : 0.02f;
     }
 
     public static Material getOnBlock(GrimPlayer player, double x, double y, double z) {

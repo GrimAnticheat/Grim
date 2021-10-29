@@ -76,9 +76,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             lastPosLook = System.currentTimeMillis();
 
-            // TODO: Check for blocks within 0.03 of the player!
-            if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround)
-                player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;
+            // TODO: Check for blocks within 0.03 of the player's position before allowing ground to be true
+            player.packetStateData.didGroundStatusChangeWithoutPositionPacket = !hasPosition && onGround != player.packetStateData.packetPlayerOnGround;
 
             player.lastX = player.x;
             player.lastY = player.y;
