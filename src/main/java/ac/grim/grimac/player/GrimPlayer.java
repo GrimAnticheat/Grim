@@ -29,10 +29,7 @@ import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -55,13 +52,10 @@ public class GrimPlayer {
     public final Player bukkitPlayer;
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
-    public final ConcurrentLinkedQueue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
+    public final Queue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
     // Sync this to the netty thread because when spamming transactions, they can get out of order... somehow
     public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
-    // This is the most essential value and controls the threading
-    public AtomicInteger tasksNotFinished = new AtomicInteger(0);
-    public ConcurrentLinkedQueue<PredictionData> queuedPredictions = new ConcurrentLinkedQueue<>();
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
     public int vanillaACTeleports = 0;
@@ -77,21 +71,16 @@ public class GrimPlayer {
     public double gravity;
     public float friction;
     public double speed;
-    // Set from prediction data
     public double x;
     public double y;
     public double z;
     public float xRot;
     public float yRot;
     public boolean onGround;
-    // Set from the time that the movement packet was received, to be thread safe
     public boolean isSneaking;
     public boolean wasSneaking;
     public boolean isCrouching;
     public boolean isSprinting;
-    public int lastSlotSelected = 0;
-    public int ticksSinceLastSlotSwitch = 0;
-    public int tickSinceLastOffhand = 0;
     public AlmostBoolean isUsingItem;
     public boolean lastSprinting;
     public boolean isFlying;
@@ -99,7 +88,6 @@ public class GrimPlayer {
     // If a player collides with the ground, their flying will be set false after their movement
     // But we need to know if they were flying DURING the movement
     // Thankfully we can 100% recover from this using some logic in PredictionData
-    // grimPlayer.onGround && !data.isFlying && grimPlayer.isFlying || data.isFlying;
     // If the player touches the ground and was flying, and now isn't flying - the player was flying during movement
     // Or if the player is flying - the player is flying during movement
     public boolean specialFlying;
@@ -126,8 +114,6 @@ public class GrimPlayer {
     public float depthStriderLevel;
     public float flySpeed;
     public VehicleData vehicleData = new VehicleData();
-    // We determine this
-    public boolean isActuallyOnGround;
     // The client claims this
     public boolean clientClaimsLastOnGround;
     // Set from base tick
@@ -167,10 +153,7 @@ public class GrimPlayer {
     public Vector baseTickAddition = new Vector();
     public Vector baseTickWaterPushing = new Vector();
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
-    // For syncing together the main thread with the packet thread
-    public int lastTransactionAtStartOfTick = 0;
-    // For timer checks and fireworks
-    public int lastTransactionReceived = 0;
+    public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
     // Sync together block placing/breaking by waiting for the main thread
@@ -189,10 +172,12 @@ public class GrimPlayer {
     public Integer vehicle = null;
     public PacketEntity playerVehicle;
     public PacketEntity lastVehicle;
+    public GameMode gamemode;
     PacketTracker packetTracker;
     private ClientVersion clientVersion;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
+    public Vector3d bedPosition;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -249,7 +234,6 @@ public class GrimPlayer {
         movementCheckRunner = new MovementCheckRunner(this);
 
         playerWorld = bukkitPlayer.getLocation().getWorld();
-        packetStateData.playerWorld = bukkitPlayer.getLocation().getWorld();
         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
             compensatedWorld.setMinHeight(bukkitPlayer.getWorld().getMinHeight());
             compensatedWorld.setMaxWorldHeight(bukkitPlayer.getWorld().getMaxHeight());
@@ -268,15 +252,7 @@ public class GrimPlayer {
         lastXRot = bukkitPlayer.getLocation().getYaw();
         lastYRot = bukkitPlayer.getLocation().getPitch();
 
-        packetStateData.packetPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
-        packetStateData.packetPlayerXRot = bukkitPlayer.getLocation().getYaw();
-        packetStateData.packetPlayerYRot = bukkitPlayer.getLocation().getPitch();
-
-        packetStateData.lastPacketPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
-        packetStateData.lastPacketPlayerXRot = bukkitPlayer.getLocation().getYaw();
-        packetStateData.lastPacketPlayerYRot = bukkitPlayer.getLocation().getPitch();
-
-        packetStateData.gameMode = bukkitPlayer.getGameMode();
+        gamemode = bukkitPlayer.getGameMode();
 
         uncertaintyHandler.pistonPushing.add(0d);
         uncertaintyHandler.collidingEntities.add(0);
@@ -365,7 +341,7 @@ public class GrimPlayer {
                 if (data == null)
                     break;
 
-                int incrementingID = packetStateData.packetLastTransactionReceived.incrementAndGet();
+                int incrementingID = lastTransactionReceived.incrementAndGet();
                 transactionPing = (int) (System.nanoTime() - data.getSecond());
                 playerClockAtLeast = data.getSecond();
 

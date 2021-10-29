@@ -57,8 +57,8 @@ public class PistonEvent implements Listener {
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                PistonData data = new PistonData(event.getDirection(), boxes, player.lastTransactionAtStartOfTick, true, hasSlimeBlock, hasHoneyBlock);
-                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionAtStartOfTick + 1, () -> player.compensatedWorld.activePistons.add(data));
+                PistonData data = new PistonData(event.getDirection(), boxes, player.lastTransactionSent.get(), true, hasSlimeBlock, hasHoneyBlock);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.activePistons.add(data));
             }
         }
     }
@@ -110,8 +110,8 @@ public class PistonEvent implements Listener {
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                PistonData data = new PistonData(event.getDirection(), boxes, player.lastTransactionAtStartOfTick, false, hasSlimeBlock, hasHoneyBlock);
-                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionAtStartOfTick + 1, () -> player.compensatedWorld.activePistons.add(data));
+                PistonData data = new PistonData(event.getDirection(), boxes, player.lastTransactionSent.get(), false, hasSlimeBlock, hasHoneyBlock);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.activePistons.add(data));
             }
         }
     }

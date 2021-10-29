@@ -88,12 +88,10 @@ public class GhostBlockDetector extends PostPredictionCheck {
         if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
             SimpleCollisionBox largeExpandedBB = player.boundingBox.copy().expand(12, 0.5, 12);
 
-            synchronized (player.compensatedEntities.entityMap) {
-                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                    if (entity.type == EntityType.BOAT) {
-                        if (entity.getPossibleCollisionBoxes().isIntersected(largeExpandedBB)) {
-                            return true;
-                        }
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                if (entity.type == EntityType.BOAT) {
+                    if (entity.getPossibleCollisionBoxes().isIntersected(largeExpandedBB)) {
+                        return true;
                     }
                 }
             }

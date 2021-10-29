@@ -12,7 +12,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 // Eventually, a ton more transaction related stuff will be transferred to this class
 public class LatencyUtils {
     private final ConcurrentLinkedQueue<Pair<Integer, Runnable>> nettySyncTransactionMap = new ConcurrentLinkedQueue<>();
-    private final ConcurrentLinkedQueue<Pair<Integer, Runnable>> anticheatSyncTransactionMap = new ConcurrentLinkedQueue<>();
 
     public static boolean getBestValue(ConcurrentHashMap<Integer, Boolean> hashMap, int lastTransactionReceived) {
         int bestKey = Integer.MIN_VALUE;
@@ -44,10 +43,6 @@ public class LatencyUtils {
         nettySyncTransactionMap.add(new Pair<>(transaction, runnable));
     }
 
-    public void addAnticheatSyncTask(int transaction, Runnable runnable) {
-        anticheatSyncTransactionMap.add(new Pair<>(transaction, runnable));
-    }
-
     public void handleNettySyncTransaction(int transaction) {
         tickUpdates(nettySyncTransactionMap, transaction);
     }
@@ -62,9 +57,5 @@ public class LatencyUtils {
             next.getSecond().run();
             next = map.peek();
         }
-    }
-
-    public void handleAnticheatSyncTransaction(int transaction) {
-        tickUpdates(anticheatSyncTransactionMap, transaction);
     }
 }

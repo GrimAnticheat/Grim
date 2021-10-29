@@ -42,13 +42,13 @@ public class CompensatedFireworks {
             }
 
             // If the firework has 100% been destroyed on the client side
-            if (firework.getValue().destroyTime < player.lastTransactionReceived) {
+            if (firework.getValue().destroyTime < player.lastTransactionReceived.get()) {
                 firework.getValue().destroyTime = Integer.MAX_VALUE; // Don't destroy it twice
                 firework.getValue().destroyTick = player.movementPackets;
             }
 
             // If the firework hasn't applied yet
-            if (firework.getValue().creationTime > player.lastTransactionReceived) {
+            if (firework.getValue().creationTime > player.lastTransactionReceived.get()) {
                 continue;
             }
 

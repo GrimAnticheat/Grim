@@ -38,12 +38,12 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
             // - This causes you to stop flying in the same tick
             //
             // I mean, it's logical, but packet order is wrong.  At least it is easy to fix:
-            if (player.compensatedFlying.lastToggleTransaction == player.packetStateData.packetLastTransactionReceived.get())
-                player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived.get() + 1, abilities.isFlying());
+            if (player.compensatedFlying.lastToggleTransaction == player.lastTransactionReceived.get())
+                player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionReceived.get() + 1, abilities.isFlying());
             else
-                player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.packetStateData.packetLastTransactionReceived.get(), abilities.isFlying());
+                player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionReceived.get(), abilities.isFlying());
 
-            player.compensatedFlying.lastToggleTransaction = player.packetStateData.packetLastTransactionReceived.get();
+            player.compensatedFlying.lastToggleTransaction = player.lastTransactionReceived.get();
         }
     }
 
@@ -59,7 +59,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
             player.compensatedFlying.setCanPlayerFly(abilities.isFlightAllowed());
             player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionSent.get() + 1, abilities.isFlying());
             if (abilities.isFlying()) {
-                player.compensatedElytra.lastToggleFly = player.packetStateData.packetLastTransactionReceived.get();
+                player.compensatedElytra.lastToggleFly = player.lastTransactionReceived.get();
             }
 
             event.setPostTask(player::sendTransaction);

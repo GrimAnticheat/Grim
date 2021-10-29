@@ -47,18 +47,18 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                     // 1.8 players who are packet sprinting WILL get slowed
                     // 1.9+ players who are packet sprinting might not, based on attack cooldown
                     // Players with knockback enchantments always get slowed
-                    if ((player.packetStateData.isPacketSprinting && !hasNegativeKB && isLegacyPlayer) || hasKnockbackSword) {
-                        player.packetStateData.minPlayerAttackSlow += 1;
-                        player.packetStateData.maxPlayerAttackSlow += 1;
+                    if ((player.isSprinting && !hasNegativeKB && isLegacyPlayer) || hasKnockbackSword) {
+                        player.minPlayerAttackSlow += 1;
+                        player.maxPlayerAttackSlow += 1;
 
                         // Players cannot slow themselves twice in one tick without a knockback sword
                         if (!hasKnockbackSword) {
-                            player.packetStateData.minPlayerAttackSlow = 0;
-                            player.packetStateData.maxPlayerAttackSlow = 1;
+                            player.minPlayerAttackSlow = 0;
+                            player.maxPlayerAttackSlow = 1;
                         }
-                    } else if (!isLegacyPlayer && player.packetStateData.isPacketSprinting) {
+                    } else if (!isLegacyPlayer && player.isSprinting) {
                         // 1.9+ player who might have been slowed, but we can't be sure
-                        player.packetStateData.maxPlayerAttackSlow += 1;
+                        player.maxPlayerAttackSlow += 1;
                     }
                 }
             }

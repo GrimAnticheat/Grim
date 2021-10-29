@@ -50,11 +50,11 @@ public class MovementTicker {
         // Stepping movement USUALLY means the vehicle in on the ground as vehicles can't jump
         // Can be wrong with swim hopping into step, but this is rare and difficult to pull off
         // and would require a huge rewrite to support this rare edge case
-        player.isActuallyOnGround = (player.verticalCollision && inputVel.getY() < 0.0D)
+        boolean calculatedOnGround = (player.verticalCollision && inputVel.getY() < 0.0D)
                 || (player.inVehicle && player.uncertaintyHandler.isStepMovement);
         // If the player is on the ground with a y velocity of 0, let the player decide (too close to call)
         if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() > -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() <= 0)
-            player.isActuallyOnGround = player.onGround;
+            calculatedOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
@@ -63,7 +63,7 @@ public class MovementTicker {
         //
         // Trust the onGround status if the player is near the ground and they sent a ground packet
         if (player.inVehicle || !player.exemptOnGround()) {
-            player.onGround = player.isActuallyOnGround;
+            player.onGround = calculatedOnGround;
         }
 
         // This is around the place where the new bounding box gets set
@@ -183,50 +183,48 @@ public class MovementTicker {
             SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
             SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
 
-            synchronized (player.compensatedEntities.entityMap) {
-                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                    // Players can only push living entities
-                    // Players can also push boats or minecarts
-                    // The one exemption to a living entity is an armor stand
-                    if ((!EntityType.isLivingEntity(entity.bukkitEntityType) && entity.type != EntityType.BOAT && !EntityType.isMinecart(entity.type)) || entity.type == EntityType.ARMOR_STAND)
-                        continue;
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                // Players can only push living entities
+                // Players can also push boats or minecarts
+                // The one exemption to a living entity is an armor stand
+                if ((!EntityType.isLivingEntity(entity.bukkitEntityType) && entity.type != EntityType.BOAT && !EntityType.isMinecart(entity.type)) || entity.type == EntityType.ARMOR_STAND)
+                    continue;
 
-                    SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
+                SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
 
-                    if (expandedPlayerBox.isCollided(entityBox))
-                        possibleCollidingEntities++;
+                if (expandedPlayerBox.isCollided(entityBox))
+                    possibleCollidingEntities++;
 
-                    if (!playerBox.isCollided(entityBox))
-                        continue;
+                if (!playerBox.isCollided(entityBox))
+                    continue;
 
-                    double xDist = player.x - (entityBox.minX + entityBox.maxX) / 2;
-                    double zDist = player.z - (entityBox.minZ + entityBox.maxZ) / 2;
-                    double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
+                double xDist = player.x - (entityBox.minX + entityBox.maxX) / 2;
+                double zDist = player.z - (entityBox.minZ + entityBox.maxZ) / 2;
+                double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
 
-                    if (maxLength >= 0.01) {
-                        maxLength = Math.sqrt(maxLength);
-                        xDist /= maxLength;
-                        zDist /= maxLength;
+                if (maxLength >= 0.01) {
+                    maxLength = Math.sqrt(maxLength);
+                    xDist /= maxLength;
+                    zDist /= maxLength;
 
-                        double d3 = 1.0D / maxLength;
-                        d3 = Math.min(d3, 1.0);
+                    double d3 = 1.0D / maxLength;
+                    d3 = Math.min(d3, 1.0);
 
-                        xDist *= d3;
-                        zDist *= d3;
-                        xDist *= -0.05F;
-                        zDist *= -0.05F;
+                    xDist *= d3;
+                    zDist *= d3;
+                    xDist *= -0.05F;
+                    zDist *= -0.05F;
 
-                        if (xDist > 0) {
-                            player.uncertaintyHandler.xNegativeUncertainty += xDist;
-                        } else {
-                            player.uncertaintyHandler.zNegativeUncertainty += xDist;
-                        }
+                    if (xDist > 0) {
+                        player.uncertaintyHandler.xNegativeUncertainty += xDist;
+                    } else {
+                        player.uncertaintyHandler.zNegativeUncertainty += xDist;
+                    }
 
-                        if (zDist > 0) {
-                            player.uncertaintyHandler.xPositiveUncertainty += zDist;
-                        } else {
-                            player.uncertaintyHandler.zPositiveUncertainty += zDist;
-                        }
+                    if (zDist > 0) {
+                        player.uncertaintyHandler.xPositiveUncertainty += zDist;
+                    } else {
+                        player.uncertaintyHandler.zPositiveUncertainty += zDist;
                     }
                 }
             }

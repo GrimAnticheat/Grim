@@ -26,7 +26,7 @@ public class OffsetHandler extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         double offset = predictionComplete.getOffset();
 
-        boolean vehicle = predictionComplete.getData().inVehicle;
+        boolean vehicle = player.inVehicle;
 
         for (OffsetData offsetHandler : (vehicle ? vehicleOffsets : regularOffsets)) {
             if (offset > offsetHandler.getThreshold()) {

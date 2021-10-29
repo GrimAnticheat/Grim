@@ -18,7 +18,6 @@ import ac.grim.grimac.utils.nmsImplementations.ReachUtils;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -338,7 +337,7 @@ public class BlockPlace {
 
     // I believe this is correct, although I'm using a method here just in case it's a tick off... I don't trust Mojang
     public boolean isSecondaryUse() {
-        return player.packetStateData.isPacketSneaking;
+        return player.isSneaking;
     }
 
     public boolean isInWater() {
@@ -547,11 +546,10 @@ public class BlockPlace {
     // another damn desync added... maybe next decade it will get fixed and double the amount of issues.
     public Vector getClickedLocation() {
         SimpleCollisionBox box = new SimpleCollisionBox(getPlacedAgainstBlockLocation());
-        Vector3d from = player.packetStateData.packetPosition;
-        Vector look = ReachUtils.getLook(player, player.packetStateData.lastPacketPlayerXRot, player.packetStateData.lastPacketPlayerYRot);
+        Vector look = ReachUtils.getLook(player, player.xRot, player.yRot);
 
         // TODO: Calculate actual eye height (which can also desync!)
-        Vector eyePos = new Vector(from.getX(), from.getY() + 1.62, from.getZ());
+        Vector eyePos = new Vector(player.x, player.y + 1.62, player.z);
         Vector endReachPos = eyePos.clone().add(new Vector(look.getX() * 6, look.getY() * 6, look.getZ() * 6));
         Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos);
 
@@ -570,7 +568,7 @@ public class BlockPlace {
     // FOR FUCKS SAKE MOJANG WHY DIDN'T YOU FIX THIS WHEN YOU "FIXED" THE BUCKET DESYNC!
     // Are you that incompetent???  Fix the root cause!
     public BlockFace getPlayerFacing() {
-        return BY_2D[GrimMath.floor(player.packetStateData.packetPlayerXRot / 90.0D + 0.5D) & 3];
+        return BY_2D[GrimMath.floor(player.xRot / 90.0D + 0.5D) & 3];
     }
 
     public void set() {

@@ -13,10 +13,6 @@ public class EventManager implements Initable {
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), GrimAPI.INSTANCE.getPlugin());
 
-        if (XMaterial.supports(9)) {
-            Bukkit.getPluginManager().registerEvents(new PlayerOffhandEvent(), GrimAPI.INSTANCE.getPlugin());
-        }
-
         if (XMaterial.supports(13)) {
             Bukkit.getPluginManager().registerEvents(new RiptideEvent(), GrimAPI.INSTANCE.getPlugin());
         }

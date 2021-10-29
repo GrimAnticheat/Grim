@@ -2,9 +2,6 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.manager.tick.Tickable;
 import ac.grim.grimac.manager.tick.impl.ClientVersionSetter;
-import ac.grim.grimac.manager.tick.impl.LastTransactionSetter;
-import ac.grim.grimac.manager.tick.impl.QueueData;
-import ac.grim.grimac.manager.tick.impl.ThreadSetter;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import lombok.Getter;
@@ -18,12 +15,9 @@ public class TickManager {
 
     public TickManager() {
         syncTick = new ImmutableClassToInstanceMap.Builder<Tickable>()
-                .put(LastTransactionSetter.class, new LastTransactionSetter())
                 .build();
 
         asyncTick = new ImmutableClassToInstanceMap.Builder<Tickable>()
-                .put(ThreadSetter.class, new ThreadSetter())
-                .put(QueueData.class, new QueueData())
                 .put(ClientVersionSetter.class, new ClientVersionSetter())
                 .build();
     }

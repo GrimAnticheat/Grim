@@ -13,7 +13,7 @@ public class CompensatedPotions {
     }
 
     public void addPotionEffect(String type, int level, int entityID) {
-        player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get() + 1, () -> {
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
             ConcurrentHashMap<String, Integer> potions = potionsMap.get(entityID);
 
             if (potions == null) {
@@ -26,7 +26,7 @@ public class CompensatedPotions {
     }
 
     public void removePotionEffect(String type, int entityID) {
-        player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get() + 1, () -> {
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
             ConcurrentHashMap<String, Integer> potions = potionsMap.get(entityID);
 
             if (potions != null) {

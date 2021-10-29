@@ -68,10 +68,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // We must first check if the player has accepted their setback
         // If the setback isn't complete, then this position is illegitimate
-        if (predictionComplete.getData().acceptedSetback != null) {
+        if (predictionComplete.getData().getSetback() != null) {
             // If there is a new pending setback, don't desync from the netty thread
             // Reference == is fine, this object was passed along until now
-            if (predictionComplete.getData().acceptedSetback != requiredSetBack) return;
+            if (predictionComplete.getData().getSetback() != requiredSetBack) return;
             // The player did indeed accept the setback, and there are no new setbacks past now!
             hasAcceptedSetbackPosition = true;
             safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
@@ -80,7 +80,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             // Do NOT accept teleports as valid setback positions if the player has a current setback
             // This is due to players being able to trigger new teleports with the vanilla anticheat
-            if (predictionComplete.getData().isJustTeleported) {
+            if (predictionComplete.getData().isTeleport()) {
                 // Avoid setting the player back to positions before this teleport
                 safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
             }
@@ -123,7 +123,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (setbackVel.equals(new Vector())) setbackVel = data.velocity;
 
         blockMovementsUntilResync(data.position,
-                player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot,
+                player.xRot, player.yRot,
                 setbackVel, player.vehicle);
     }
 
@@ -162,7 +162,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 playerVehicle.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), playerVehicle.getLocation().getYaw(), playerVehicle.getLocation().getPitch()));
             }
 
-            player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), 41.12315918f, 12.419510391f));
+            player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot));
             player.bukkitPlayer.setVelocity(vehicle == null ? velocity : new Vector());
             player.setVulnerable();
         });
@@ -182,7 +182,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public TeleportAcceptData checkTeleportQueue(double x, double y, double z) {
         // Support teleports without teleport confirmations
         // If the player is in a vehicle when teleported, they will exit their vehicle
-        int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
+        int lastTransaction = player.lastTransactionReceived.get();
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
         while (true) {
@@ -235,7 +235,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @return - Whether the player has completed a teleport by being at this position
      */
     public boolean checkVehicleTeleportQueue(double x, double y, double z) {
-        int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
+        int lastTransaction = player.lastTransactionReceived.get();
 
         while (true) {
             Pair<Integer, Vector3d> teleportPos = player.vehicleData.vehicleTeleports.peek();
@@ -285,9 +285,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @return Whether the player has loaded the chunk or not
      */
     public boolean insideUnloadedChunk() {
-        int transaction = player.packetStateData.packetLastTransactionReceived.get();
-        double playerX = player.packetStateData.packetPosition.getX();
-        double playerZ = player.packetStateData.packetPosition.getZ();
+        int transaction = player.lastTransactionReceived.get();
+        double playerX = player.x;
+        double playerZ = player.z;
 
         Column column = player.compensatedWorld.getChunk(GrimMath.floor(playerX) >> 4, GrimMath.floor(playerZ) >> 4);
 
@@ -315,7 +315,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         pendingTeleports.add(position);
 
         hasAcceptedSetbackPosition = false;
-        requiredSetBack = new SetBackData(position, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot, new Vector(), null, player.lastTransactionSent.get(), true);
+        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, new Vector(), null, player.lastTransactionSent.get(), true);
         safeTeleportPosition = new SetbackLocationVelocity(position);
     }
 
@@ -396,8 +396,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         player.bukkitPlayer.eject();
 
         Location safePos = safeTeleportPosition.position;
-        safePos.setPitch(12.419510391f);
-        safePos.setYaw(41.12315918f);
+        safePos.setPitch(player.xRot);
+        safePos.setYaw(player.yRot);
         player.bukkitPlayer.teleport(safeTeleportPosition.position);
 
         player.setVulnerable();

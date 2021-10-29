@@ -28,8 +28,7 @@ public class VehicleEnterExitEvent implements Listener {
         if (player == null) return;
 
         player.sendTransaction();
-        player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = event.getVehicle().getEntityId());
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isInVehicle = true);
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.inVehicle = true);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -50,8 +49,7 @@ public class VehicleEnterExitEvent implements Listener {
         event.getVehicle().teleport(event.getVehicle().getLocation());
 
         player.sendTransaction();
-        player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = null);
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isInVehicle = false);
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.inVehicle = false);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -62,8 +60,7 @@ public class VehicleEnterExitEvent implements Listener {
                 if (player == null) continue;
 
                 player.sendTransaction();
-                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.vehicle = null);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isInVehicle = false);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.inVehicle = false);
             }
         }
     }

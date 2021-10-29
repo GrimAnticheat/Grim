@@ -26,7 +26,6 @@ import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -37,10 +36,7 @@ import org.bukkit.block.data.type.LightningRod;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -50,7 +46,7 @@ public class CompensatedWorld {
     public static Method getByCombinedID;
     public final GrimPlayer player;
     private final Map<Long, Column> chunks;
-    public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> likelyDesyncBlockPositions = new ConcurrentLinkedQueue<>();
+    public Queue<Pair<Integer, Vector3i>> likelyDesyncBlockPositions = new ConcurrentLinkedQueue<>();
     // Packet locations for blocks
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
@@ -60,7 +56,7 @@ public class CompensatedWorld {
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
-        chunks = Long2ObjectMaps.synchronize(new Long2ObjectOpenHashMap<>(81, 0.5f));
+        chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
     }
 
     public static void init() {
@@ -72,13 +68,11 @@ public class CompensatedWorld {
     }
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
-        synchronized (player.compensatedEntities.entityMap) {
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) {
-                    SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
-                    if (box.isIntersected(playerBox)) {
-                        return true;
-                    }
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) {
+                SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
+                if (box.isIntersected(playerBox)) {
+                    return true;
                 }
             }
         }
@@ -337,14 +331,12 @@ public class CompensatedWorld {
 
     public boolean isChunkLoaded(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-
         return chunks.containsKey(chunkPosition);
     }
 
     public void addToCache(Column chunk, int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
-
-        chunks.put(chunkPosition, chunk);
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> chunks.put(chunkPosition, chunk));
     }
 
     public Material getBukkitMaterialAt(double x, double y, double z) {

@@ -69,10 +69,9 @@ public class TeleportEvent implements Listener {
 
         player.sendTransaction();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            player.packetStateData.isPacketSneaking = false;
+            player.isSneaking = false;
         });
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.playerWorld = newWorld);
-        player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.playerWorld = newWorld);
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.playerWorld = newWorld);
 
         // Force the player to accept a teleport before respawning
         player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;

@@ -9,8 +9,6 @@ public class JumpPower {
     private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
 
     public static void jumpFromGround(GrimPlayer player, Vector vector) {
-        //Player bukkitPlayer = player.bukkitPlayer;
-
         float f = getJumpPower(player);
 
         if (player.jumpAmplifier != null) {
@@ -33,7 +31,7 @@ public class JumpPower {
         float f = getBlockJumpFactor(player, player.lastX, player.lastY, player.lastZ);
         float f2 = getBlockJumpFactor(player, player.lastX, player.lastY - 0.5000001, player.lastZ);
 
-        return (double) f == 1.0D ? f2 : f;
+        return f == 1.0D ? f2 : f;
     }
 
     private static float getBlockJumpFactor(GrimPlayer player, Double x, Double y, Double z) {

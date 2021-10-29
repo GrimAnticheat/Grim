@@ -117,7 +117,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         int transactionSent = player.lastTransactionSent.get();
                         player.compensatedElytra.tryAddStatus(transactionSent, isGliding);
 
-                        player.latencyUtils.addAnticheatSyncTask(transactionSent, () -> {
+                        player.latencyUtils.addRealTimeTask(transactionSent, () -> {
                             player.uncertaintyHandler.lastMetadataDesync = 0;
                             player.isSwimming = isSwimming;
                         });

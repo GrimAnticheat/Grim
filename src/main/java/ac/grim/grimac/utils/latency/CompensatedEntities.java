@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Locale;
 
 public class CompensatedEntities {
-    // I can't get FastUtils to work here
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
 
     public double playerEntityMovementSpeed = 0.1f;
@@ -139,15 +138,11 @@ public class CompensatedEntities {
             }
         }
 
-        synchronized (player.compensatedEntities.entityMap) {
-            entityMap.put(entityID, packetEntity);
-        }
+        entityMap.put(entityID, packetEntity);
     }
 
     public PacketEntity getEntity(int entityID) {
-        synchronized (player.compensatedEntities.entityMap) {
-            return entityMap.get(entityID);
-        }
+        return entityMap.get(entityID);
     }
 
     public void updateEntityMetadata(int entityID, List<WrappedWatchableObject> watchableObjects) {

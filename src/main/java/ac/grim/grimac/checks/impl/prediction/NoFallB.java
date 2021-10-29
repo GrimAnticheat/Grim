@@ -15,14 +15,14 @@ public class NoFallB extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // Exemptions
         // Don't check players in spectator
-        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && predictionComplete.getData().gameMode == GameMode.SPECTATOR)
+        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && player.gamemode == GameMode.SPECTATOR)
             return;
         // And don't check this long list of ground exemptions
         if (player.exemptOnGround()) return;
         // Don't check if the player was on a ghost block
         if (player.getSetbackTeleportUtil().blockOffsets) return;
         // Viaversion sends wrong ground status... (doesn't matter but is annoying)
-        if (predictionComplete.getData().isJustTeleported) return;
+        if (player.packetStateData.lastPacketWasTeleport) return;
 
         boolean invalid = player.clientClaimsLastOnGround != player.onGround;
 

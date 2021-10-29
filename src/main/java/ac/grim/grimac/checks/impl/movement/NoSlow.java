@@ -17,7 +17,7 @@ public class NoSlow extends PostPredictionCheck {
 
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // If the player was using an item for certain, and their predicted velocity had a flipped item
-        if (predictionComplete.getData().isUsingItem == AlmostBoolean.TRUE) {
+        if (player.isUsingItem == AlmostBoolean.TRUE) {
             if (bestOffset > offsetToFlag) {
                 increaseViolations();
                 alert("", "NoSlow", formatViolations());

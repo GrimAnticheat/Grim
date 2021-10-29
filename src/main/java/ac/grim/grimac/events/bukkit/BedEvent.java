@@ -16,11 +16,10 @@ public class BedEvent implements Listener {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player != null && !event.isCancelled()) {
             player.sendTransaction();
-            player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.isInBed = true);
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 Location bedPos = event.getBed().getLocation();
-                player.packetStateData.bedPosition = new Vector3d(bedPos.getBlockX() + 0.5, bedPos.getBlockY() + 0.5, bedPos.getBlockZ() + 0.5);
-                player.packetStateData.isInBed = true;
+                player.bedPosition = new Vector3d(bedPos.getBlockX() + 0.5, bedPos.getBlockY() + 0.5, bedPos.getBlockZ() + 0.5);
+                player.isInBed = true;
             });
         }
     }
@@ -30,8 +29,7 @@ public class BedEvent implements Listener {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player != null) {
             player.sendTransaction();
-            player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.isInBed = false);
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isInBed = false);
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.isInBed = false);
         }
     }
 }

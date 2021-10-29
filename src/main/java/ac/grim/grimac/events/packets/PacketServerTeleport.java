@@ -9,7 +9,6 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.position.WrappedPacketOutPosition;
 import io.github.retrooper.packetevents.utils.pair.Pair;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import org.bukkit.Location;
@@ -48,31 +47,18 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             //
             // If you do actually need this make an issue on GitHub with an explanation for why
             if ((relative & 1) == 1)
-                pos = pos.add(new Vector3d(player.packetStateData.packetPosition.x, 0, 0));
+                pos = pos.add(new Vector3d(player.x, 0, 0));
 
             if ((relative >> 1 & 1) == 1)
-                pos = pos.add(new Vector3d(0, player.packetStateData.packetPosition.y, 0));
+                pos = pos.add(new Vector3d(0, player.y, 0));
 
             if ((relative >> 2 & 1) == 1)
-                pos = pos.add(new Vector3d(0, 0, player.packetStateData.packetPosition.z));
+                pos = pos.add(new Vector3d(0, 0, player.z));
 
             teleport.setPosition(pos);
-
-            if (teleport.getPitch() == 12.419510391f && teleport.getYaw() == 41.12315918f) {
-                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8)) { // ViaVersion converts relative teleports
-                    teleport.setYaw(player.packetStateData.lastPacketPlayerXRot);
-                    teleport.setPitch(player.packetStateData.lastPacketPlayerYRot);
-                    teleport.setRelativeFlagsMask((byte) 0);
-                } else {
-                    teleport.setYaw(0);
-                    teleport.setPitch(0);
-                    teleport.setRelativeFlagsMask((byte) 0b11000);
-                }
-            } else {
-                teleport.setYaw(yaw);
-                teleport.setPitch(pitch);
-                teleport.setRelativeFlagsMask((byte) 0);
-            }
+            teleport.setYaw(yaw);
+            teleport.setPitch(pitch);
+            teleport.setRelativeFlagsMask((byte) 0);
 
             player.sendTransaction();
             final int lastTransactionSent = player.lastTransactionSent.get();

@@ -1,7 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.VectorData;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
@@ -22,7 +21,7 @@ public class CompensatedRiptide {
     }
 
     public void addRiptide() {
-        lagCompensatedRiptide.add(player.packetStateData.packetLastTransactionReceived.get());
+        lagCompensatedRiptide.add(player.lastTransactionReceived.get());
     }
 
     public void handleRemoveRiptide() {
@@ -41,7 +40,7 @@ public class CompensatedRiptide {
     }
 
     public boolean getCanRiptide() {
-        int lastTransactionReceived = player.lastTransactionReceived;
+        int lastTransactionReceived = player.lastTransactionReceived.get();
 
         if (player.inVehicle)
             return false;
