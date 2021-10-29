@@ -19,12 +19,10 @@ import java.util.List;
 @CheckData(name = "NoFall A")
 public class NoFallA extends PacketCheck {
 
-    private final GrimPlayer player;
     public boolean playerUsingNoGround = false;
 
     public NoFallA(GrimPlayer player) {
         super(player);
-        this.player = player;
     }
 
     @Override

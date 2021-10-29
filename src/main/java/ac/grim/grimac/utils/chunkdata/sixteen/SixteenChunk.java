@@ -11,11 +11,6 @@ import java.io.IOException;
 
 // Credit to https://github.com/Steveice10/MCProtocolLib/blob/master/src/main/java/com/github/steveice10/mc/protocol/data/game/chunk/Chunk.java
 public class SixteenChunk implements BaseChunk {
-    private static final int CHUNK_SIZE = 4096;
-    private static final int MIN_PALETTE_BITS_PER_ENTRY = 4;
-    private static final int MAX_PALETTE_BITS_PER_ENTRY = 8;
-    private static final int GLOBAL_PALETTE_BITS_PER_ENTRY = 14;
-    private static final int AIR = 0;
     private int blockCount;
     @NonNull
     private Palette palette;

@@ -23,6 +23,7 @@ public class DebugHandler extends PostPredictionCheck {
         super(player);
     }
 
+    @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         double offset = predictionComplete.getOffset();
 

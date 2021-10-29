@@ -26,7 +26,7 @@ public class Riptide {
         float f2 = -player.trigHandler.sin(f * ((float) Math.PI / 180F));
         float f3 = player.trigHandler.cos(f7 * ((float) Math.PI / 180F)) * player.trigHandler.cos(f * ((float) Math.PI / 180F));
         float f4 = (float) Math.sqrt(f1 * f1 + f2 * f2 + f3 * f3);
-        float f5 = 3.0F * ((1.0F + (float) j) / 4.0F);
+        float f5 = 3.0F * ((1.0F + j) / 4.0F);
         f1 = f1 * (f5 / f4);
         f2 = f2 * (f5 / f4);
         f3 = f3 * (f5 / f4);

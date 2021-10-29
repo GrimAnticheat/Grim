@@ -12,6 +12,7 @@ public class NoFallB extends PostPredictionCheck {
         super(player);
     }
 
+    @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // Exemptions
         // Don't check players in spectator

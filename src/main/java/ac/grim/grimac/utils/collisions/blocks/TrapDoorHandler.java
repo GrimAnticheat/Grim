@@ -25,7 +25,6 @@ public class TrapDoorHandler implements CollisionFactory {
                     return new SimpleCollisionBox(0.0, 0.0, 0.0, var2, 1.0, 1.0, false);
                 case WEST:
                     return new SimpleCollisionBox(1.0 - var2, 0.0, 0.0, 1.0, 1.0, 1.0, false);
-
             }
         } else {
             if (trapdoor.isBottom()) {

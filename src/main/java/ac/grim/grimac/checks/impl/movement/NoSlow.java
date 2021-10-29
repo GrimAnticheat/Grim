@@ -15,6 +15,7 @@ public class NoSlow extends PostPredictionCheck {
         super(player);
     }
 
+    @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // If the player was using an item for certain, and their predicted velocity had a flipped item
         if (player.isUsingItem == AlmostBoolean.TRUE) {

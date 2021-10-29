@@ -57,7 +57,6 @@ public class GrimPlayer {
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
-    public int vanillaACTeleports = 0;
     public boolean canSwimHop = false;
     public int riptideSpinAttackTicks = 0;
     public boolean hasGravity = true;

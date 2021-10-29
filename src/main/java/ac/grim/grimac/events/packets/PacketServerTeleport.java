@@ -30,8 +30,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             byte relative = teleport.getRelativeFlagsMask();
             Vector3d pos = teleport.getPosition();
-            float pitch = teleport.getPitch();
-            float yaw = teleport.getYaw();
 
             if (player == null) {
                 // Player teleport event gets called AFTER player join event
@@ -56,9 +54,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 pos = pos.add(new Vector3d(0, 0, player.z));
 
             teleport.setPosition(pos);
-            teleport.setYaw(yaw);
-            teleport.setPitch(pitch);
-            teleport.setRelativeFlagsMask((byte) 0);
+            teleport.setRelativeFlagsMask((byte) (relative & 0b11000));
 
             player.sendTransaction();
             final int lastTransactionSent = player.lastTransactionSent.get();
@@ -69,12 +65,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 pos.setY(pos.getY() - 1.62);
 
             Location target = new Location(player.bukkitPlayer.getWorld(), pos.getX(), pos.getY(), pos.getZ());
-            boolean cancel = player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent);
-
-            // It's the damn vanilla anticheat again!  We must override it!
-            if (cancel) {
-                event.setCancelled(true);
-            }
+            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent);
         }
 
         if (packetID == PacketType.Play.Server.VEHICLE_MOVE) {

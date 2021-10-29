@@ -43,7 +43,7 @@ public class MovementTicker {
             player.clientVelocity.setZ(0);
         }
 
-        player.horizontalCollision = !GrimMath.equal(inputVel.getX(), collide.getX()) || !GrimMath.equal(inputVel.getZ(), collide.getZ());
+        player.horizontalCollision = !GrimMath.isCloseEnoughEquals(inputVel.getX(), collide.getX()) || !GrimMath.isCloseEnoughEquals(inputVel.getZ(), collide.getZ());
         player.verticalCollision = inputVel.getY() != collide.getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
