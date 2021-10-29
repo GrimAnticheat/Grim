@@ -73,15 +73,21 @@ public class GrimPlayer {
     public double x;
     public double y;
     public double z;
+    public double lastX;
+    public double lastY;
+    public double lastZ;
     public float xRot;
     public float yRot;
+    public float lastXRot;
+    public float lastYRot;
     public boolean onGround;
+    public boolean lastOnGround;
     public boolean isSneaking;
     public boolean wasSneaking;
     public boolean isCrouching;
     public boolean isSprinting;
-    public AlmostBoolean isUsingItem;
     public boolean lastSprinting;
+    public AlmostBoolean isUsingItem;
     public boolean isFlying;
     public boolean wasFlying;
     // If a player collides with the ground, their flying will be set false after their movement
@@ -106,10 +112,6 @@ public class GrimPlayer {
     public boolean isInBed = false;
     public boolean lastInBed = false;
     public boolean isDead = false;
-    public Integer jumpAmplifier;
-    public Integer levitationAmplifier;
-    public Integer slowFallingAmplifier;
-    public Integer dolphinsGraceAmplifier;
     public float depthStriderLevel;
     public float flySpeed;
     public VehicleData vehicleData = new VehicleData();
@@ -124,13 +126,6 @@ public class GrimPlayer {
     public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
-    // Set after checks
-    public double lastX;
-    public double lastY;
-    public double lastZ;
-    public float lastXRot;
-    public float lastYRot;
-    public boolean lastOnGround;
     public boolean horizontalCollision;
     public boolean verticalCollision;
     public boolean clientControlledHorizontalCollision;

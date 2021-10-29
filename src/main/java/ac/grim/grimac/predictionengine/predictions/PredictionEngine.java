@@ -485,13 +485,13 @@ public class PredictionEngine {
         }
 
         // Initial end of tick levitation gets hidden by missing idle packet
-        if (player.levitationAmplifier != null && player.levitationAmplifier > 0 && player.clientVelocity.getY() < 0.1) {
-            maxVector.setY(((0.05 * (double) (player.levitationAmplifier + 1)) * 0.2) + 0.1);
+        if (player.compensatedPotions.getLevitationAmplifier() != null && player.compensatedPotions.getLevitationAmplifier() > 0 && player.clientVelocity.getY() < 0.1) {
+            maxVector.setY(((0.05 * (double) (player.compensatedPotions.getLevitationAmplifier() + 1)) * 0.2) + 0.1);
         }
 
         // Initial end of tick levitation gets hidden by missing idle packet
-        if (player.levitationAmplifier != null && player.levitationAmplifier < 0 && player.clientVelocity.getY() > -0.1) {
-            minVector.setY(((0.05 * (double) (player.levitationAmplifier + 1)) * 0.2) - 0.1);
+        if (player.compensatedPotions.getLevitationAmplifier() != null && player.compensatedPotions.getLevitationAmplifier() < 0 && player.clientVelocity.getY() > -0.1) {
+            minVector.setY(((0.05 * (double) (player.compensatedPotions.getLevitationAmplifier() + 1)) * 0.2) - 0.1);
         }
 
         // Handle 0.03 with fluid pushing players downwards

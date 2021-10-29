@@ -11,8 +11,8 @@ public class JumpPower {
     public static void jumpFromGround(GrimPlayer player, Vector vector) {
         float f = getJumpPower(player);
 
-        if (player.jumpAmplifier != null) {
-            f += 0.1f * (player.jumpAmplifier + 1);
+        if (player.compensatedPotions.getJumpAmplifier() != null) {
+            f += 0.1f * (player.compensatedPotions.getJumpAmplifier() + 1);
         }
 
         vector.setY(f);

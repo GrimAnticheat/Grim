@@ -111,8 +111,6 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Manually call prediction complete to handle teleport
             player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
-            // Issues with ghost blocks should now be resolved
-            player.getSetbackTeleportUtil().confirmPredictionTeleport();
 
             player.uncertaintyHandler.lastHorizontalOffset = 0;
             player.uncertaintyHandler.lastVerticalOffset = 0;
@@ -316,11 +314,6 @@ public class MovementCheckRunner extends PositionCheck {
 
         // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
         player.speed += player.isSprinting ? player.speed * 0.3f : 0;
-
-        player.jumpAmplifier = player.compensatedPotions.getPotionLevel("JUMP");
-        player.levitationAmplifier = player.compensatedPotions.getPotionLevel("LEVITATION");
-        player.slowFallingAmplifier = player.compensatedPotions.getPotionLevel("SLOW_FALLING");
-        player.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
 
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
