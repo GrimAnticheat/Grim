@@ -53,7 +53,7 @@ public class Reach extends PacketCheck {
         if (event.getPacketId() == PacketType.Play.Client.USE_ENTITY) {
             WrappedPacketInUseEntity action = new WrappedPacketInUseEntity(event.getNMSPacket());
 
-            if (player.packetStateData.gameMode == GameMode.CREATIVE) return;
+            if (player.gamemode == GameMode.CREATIVE) return;
             if (player.vehicle != null) return;
 
             checkReach(action.getEntityId());
@@ -92,7 +92,7 @@ public class Reach extends PacketCheck {
             double lowest = 6;
             for (double eyes : player.getPossibleEyeHeights()) {
                 SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-                Vector from = VectorUtils.fromVec3d(player.packetStateData.packetPosition).add(new Vector(0, eyes, 0));
+                Vector from = new Vector(player.x, player.y + eyes, player.z);
                 Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
                 lowest = Math.min(lowest, closestPoint.distance(from));
             }
@@ -135,24 +135,24 @@ public class Reach extends PacketCheck {
             if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
                 targetBox.expand(0.03);
 
-            Vector3d from = player.packetStateData.lastPacketPosition;
+            Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
 
             double minDistance = Double.MAX_VALUE;
 
             // https://bugs.mojang.com/browse/MC-67665
             List<Vector> possibleLookDirs = new ArrayList<>(Arrays.asList(
-                    ReachUtils.getLook(player, player.packetStateData.lastPacketPlayerXRot, player.packetStateData.packetPlayerYRot),
-                    ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot)
+                    ReachUtils.getLook(player, player.lastXRot, player.yRot),
+                    ReachUtils.getLook(player, player.xRot, player.yRot)
             ));
 
             // 1.9+ players could be a tick behind because we don't get skipped ticks
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
-                possibleLookDirs.add(ReachUtils.getLook(player, player.packetStateData.lastPacketPlayerXRot, player.packetStateData.lastPacketPlayerYRot));
+                possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.lastYRot));
             }
 
             // 1.7 players do not have any of these issues! They are always on the latest look vector
             if (player.getClientVersion().isOlderThan(ClientVersion.v_1_8)) {
-                possibleLookDirs = Collections.singletonList(ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot));
+                possibleLookDirs = Collections.singletonList(ReachUtils.getLook(player, player.xRot, player.yRot));
             }
 
             for (Vector lookVec : possibleLookDirs) {

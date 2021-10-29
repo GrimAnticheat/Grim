@@ -9,10 +9,9 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerStrider;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine;
+import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.AlmostBoolean;
-import ac.grim.grimac.utils.data.PredictionData;
 import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
@@ -22,21 +21,13 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsImplementations.*;
-import ac.grim.grimac.utils.threads.CustomThreadPoolExecutor;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 // This class is how we manage to safely do everything async
 // AtomicInteger allows us to make decisions safely - we can get and set values in one processor instruction
@@ -56,15 +47,11 @@ public class MovementCheckRunner extends PositionCheck {
     private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
     private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
 
-    public static CustomThreadPoolExecutor executor = new CustomThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
-            new LinkedBlockingQueue<>(), new ThreadFactoryBuilder().setDaemon(true).build());
-    public static ConcurrentLinkedQueue<PredictionData> waitingOnServerQueue = new ConcurrentLinkedQueue<>();
-
     public MovementCheckRunner(GrimPlayer player) {
         super(player);
     }
 
-    public void processAndCheckMovementPacket(PredictionData data) {
+    public void processAndCheckMovementPacket(PositionUpdate data) {
         // The player is in an unloaded chunk and didn't teleport
         // OR
         // This teleport wasn't valid as the player STILL hasn't loaded this damn chunk.
@@ -75,40 +62,24 @@ public class MovementCheckRunner extends PositionCheck {
             return;
         }
 
-        if (data.player.tasksNotFinished.getAndIncrement() == 0) {
-            executor.runCheck(data);
-        } else {
-            data.player.queuedPredictions.add(data);
-        }
+        check(data);
     }
 
     public void runTransactionQueue(GrimPlayer player) {
-        // This takes < 0.01 ms to run world and entity updates
-        // It stops a memory leak from all the lag compensation queue'ing and never ticking
-        CompletableFuture.runAsync(() -> {
-            // It is unsafe to modify the transaction world async if another check is running
-            // Adding 1 to the tasks blocks another check from running
-            //
-            // If there are no tasks queue'd, it is safe to modify these variables
-            //
-            // Additionally, we don't want to, and it isn't needed, to update the world
-            if (player.tasksNotFinished.compareAndSet(0, 1)) {
-                int lastTransaction = player.packetStateData.packetLastTransactionReceived.get();
-                player.latencyUtils.handleAnticheatSyncTransaction(lastTransaction);
-                player.compensatedFlying.canFlyLagCompensated(lastTransaction);
-                player.compensatedFireworks.getMaxFireworksAppliedPossible();
-                player.compensatedRiptide.getCanRiptide();
-                player.compensatedElytra.isGlidingLagCompensated(lastTransaction);
-
-                // As we incremented the tasks, we must now execute the next task, if there is one
-                executor.queueNext(player);
-            }
-        }, executor);
+        // It is unsafe to modify the transaction world async if another check is running
+        // Adding 1 to the tasks blocks another check from running
+        //
+        // If there are no tasks queue'd, it is safe to modify these variables
+        //
+        // Additionally, we don't want to, and it isn't needed, to update the world
+        int lastTransaction = player.lastTransactionReceived.get();
+        player.compensatedFlying.canFlyLagCompensated(lastTransaction);
+        player.compensatedFireworks.getMaxFireworksAppliedPossible();
+        player.compensatedRiptide.getCanRiptide();
+        player.compensatedElytra.isGlidingLagCompensated(lastTransaction);
     }
 
-    public void check(PredictionData data) {
-        GrimPlayer player = data.player;
-
+    private void check(PositionUpdate update) {
         // Note this before any updates
         boolean byGround = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
 
@@ -117,6 +88,41 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastStuckWest--;
         player.uncertaintyHandler.lastStuckSouth--;
         player.uncertaintyHandler.lastStuckNorth--;
+
+        if (update.isTeleport()) {
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.lastZ = player.z;
+            player.uncertaintyHandler.lastTeleportTicks = 0;
+
+            // Reset velocities
+            // Teleporting a vehicle does not reset its velocity
+            if (!player.inVehicle) {
+                player.clientVelocity = new Vector();
+            }
+
+            player.lastWasClimbing = 0;
+            player.canSwimHop = false;
+
+            // Teleports OVERRIDE explosions and knockback
+            player.checkManager.getExplosionHandler().forceExempt();
+            player.checkManager.getExplosionHandler().handlePlayerExplosion(0);
+            player.checkManager.getKnockbackHandler().forceExempt();
+            player.checkManager.getKnockbackHandler().handlePlayerKb(0);
+
+            // Manually call prediction complete to handle teleport
+            player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
+            // Issues with ghost blocks should now be resolved
+            player.getSetbackTeleportUtil().confirmPredictionTeleport();
+
+            player.uncertaintyHandler.lastHorizontalOffset = 0;
+            player.uncertaintyHandler.lastVerticalOffset = 0;
+
+            return;
+        }
+
+        player.lastOnGround = player.onGround;
+        player.onGround = update.isOnGround();
 
         // This must be done before updating the world to support bridging and sneaking at the edge of it
         if ((player.isSneaking || player.wasSneaking) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree) {
@@ -149,23 +155,21 @@ public class MovementCheckRunner extends PositionCheck {
             }
         }
 
-        player.lastTransactionReceived = data.lastTransaction;
-        if (!data.isJustTeleported) player.movementPackets++;
+        if (!update.isTeleport()) player.movementPackets++;
 
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickPlayerInPistonPushingArea();
-        player.latencyUtils.handleAnticheatSyncTransaction(data.lastTransaction);
 
         // Tick player vehicle after we update the packet entity state
         player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
         player.inVehicle = player.playerVehicle != null;
 
         // Update knockback and explosions after getting the vehicle
-        player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
-        player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, data.lastTransaction);
+        player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
+        player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
 
-        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(data.lastTransaction);
-        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(data.lastTransaction);
+        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
+        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
 
         // The game's movement is glitchy when switching between vehicles
         player.vehicleData.lastVehicleSwitch++;
@@ -183,25 +187,11 @@ public class MovementCheckRunner extends PositionCheck {
             player.checkManager.getKnockbackHandler().forceExempt();
         }
 
-        // Wtf, why does the player send vehicle packets when not in vehicle, I don't understand this part of shitty netcode
-
-        // If the check was for players moving in a vehicle, but after we just updated vehicles
-        // the player isn't in a vehicle, don't check.
-        if (data.inVehicle && player.vehicle == null) {
-            return;
-        }
-
-        // If the check was for a player out of a vehicle but the player is in a vehicle
-        if (!data.inVehicle && player.vehicle != null) {
-            return;
-        }
-
         if (player.playerVehicle != player.lastVehicle) {
-            data.isJustTeleported = true;
+            update.setTeleport(true);
 
             if (player.playerVehicle != null) {
-                Vector pos = new Vector(data.playerX, data.playerY, data.playerZ);
-
+                Vector pos = new Vector(player.x, player.y, player.z);
                 Vector cutTo = VectorUtils.cutBoxToVector(pos, player.playerVehicle.getPossibleCollisionBoxes());
 
                 // Stop players from teleporting when they enter a vehicle
@@ -216,46 +206,12 @@ public class MovementCheckRunner extends PositionCheck {
         player.lastVehicle = player.playerVehicle;
 
         if (player.isInBed != player.lastInBed) {
-            data.isJustTeleported = true;
+            update.setTeleport(true);
         }
         player.lastInBed = player.isInBed;
 
         // Teleporting is not a tick, don't run anything that we don't need to, to avoid falses
         player.uncertaintyHandler.lastTeleportTicks--;
-        if (data.isJustTeleported) {
-            player.x = data.playerX;
-            player.y = data.playerY;
-            player.z = data.playerZ;
-            player.lastX = player.x;
-            player.lastY = player.y;
-            player.lastZ = player.z;
-            player.uncertaintyHandler.lastTeleportTicks = 0;
-
-            // Reset velocities
-            // Teleporting a vehicle does not reset its velocity
-            if (!player.inVehicle) {
-                player.clientVelocity = new Vector();
-            }
-
-            player.lastWasClimbing = 0;
-            player.canSwimHop = false;
-
-            // Teleports OVERRIDE explosions and knockback
-            player.checkManager.getExplosionHandler().forceExempt();
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0);
-            player.checkManager.getKnockbackHandler().forceExempt();
-            player.checkManager.getKnockbackHandler().handlePlayerKb(0);
-
-            // Manually call prediction complete to handle teleport
-            player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, data));
-            // Issues with ghost blocks should now be resolved
-            player.getSetbackTeleportUtil().confirmPredictionTeleport();
-
-            player.uncertaintyHandler.lastHorizontalOffset = 0;
-            player.uncertaintyHandler.lastVerticalOffset = 0;
-
-            return;
-        }
 
         // Don't check sleeping players
         if (player.isInBed) return;
@@ -276,6 +232,7 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.inVehicle) {
             // Players are unable to take explosions in vehicles
             player.checkManager.getExplosionHandler().forceExempt();
+            player.isSprinting = false;
 
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.setPositionRaw(GetBoundingBox.getPacketEntityBoundingBox(player.x, player.y, player.z, player.playerVehicle));
@@ -287,7 +244,7 @@ public class MovementCheckRunner extends PositionCheck {
                 EntityControl control = ((EntityControl) player.checkManager.getPostPredictionCheck(EntityControl.class));
 
                 Material requiredItem = player.playerVehicle.type == EntityType.PIG ? CARROT_ON_A_STICK : WARPED_FUNGUS_ON_A_STICK;
-                ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
+                ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
 
                 boolean correctMainHand = mainHand != null && mainHand.getType() == requiredItem;
                 boolean correctOffhand = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) &&
@@ -309,35 +266,6 @@ public class MovementCheckRunner extends PositionCheck {
             }
         }
 
-        // Determine whether the player is being slowed by using an item
-        // Handle the player dropping food to stop eating
-        // We are sync'd to roughly the bukkit thread here
-        // Although we don't have inventory lag compensation so we can't fully sync
-        // Works unless the player spams their offhand button
-        ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(data.itemHeld);
-        ItemStack offHand = XMaterial.supports(9) ? player.bukkitPlayer.getInventory().getItemInOffHand() : null;
-        if (data.isUsingItem == AlmostBoolean.TRUE && (mainHand == null || !Materials.isUsable(mainHand.getType())) &&
-                (offHand == null || !Materials.isUsable(offHand.getType()))) {
-            data.isUsingItem = AlmostBoolean.MAYBE;
-        }
-
-        player.ticksSinceLastSlotSwitch++;
-        player.tickSinceLastOffhand++;
-        // Switching items results in the player no longer using an item
-        if (data.itemHeld != player.lastSlotSelected && data.usingHand == Hand.MAIN_HAND) {
-            player.ticksSinceLastSlotSwitch = 0;
-        }
-
-        // See shields without this, there's a bit of a delay before the slow applies.  Not sure why.  I blame Mojang.
-        if (player.ticksSinceLastSlotSwitch < 3 || player.tickSinceLastOffhand < 5)
-            data.isUsingItem = AlmostBoolean.MAYBE;
-
-        // Temporary hack so players can get slowed speed even when not using an item, when we aren't certain
-        // TODO: This shouldn't be needed if we latency compensate inventories
-        if (data.isUsingItem == AlmostBoolean.FALSE) data.isUsingItem = AlmostBoolean.MAYBE;
-
-        player.isUsingItem = data.isUsingItem;
-
         player.uncertaintyHandler.lastFlyingTicks++;
         if (player.isFlying) {
             player.fallDistance = 0;
@@ -346,34 +274,18 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
 
-        player.x = data.playerX;
-        player.y = data.playerY;
-        player.z = data.playerZ;
-        player.xRot = data.xRot;
-        player.yRot = data.yRot;
-
-        player.onGround = data.onGround;
-
         player.lastSprinting = player.isSprinting;
         player.wasFlying = player.isFlying;
         player.wasGliding = player.isGliding;
         player.lastRiptidePose = player.isRiptidePose;
         player.wasSwimming = player.isSwimming;
-        player.isSprinting = data.isSprinting;
         player.wasSneaking = player.isSneaking;
-        player.isSneaking = data.isSneaking;
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
 
-        player.isFlying = player.compensatedFlying.canFlyLagCompensated(data.lastTransaction);
-        player.isGliding = player.compensatedElytra.isGlidingLagCompensated(data.lastTransaction) && !player.isFlying;
+        player.isFlying = player.compensatedFlying.canFlyLagCompensated(player.lastTransactionReceived.get());
+        player.isGliding = player.compensatedElytra.isGlidingLagCompensated(player.lastTransactionReceived.get()) && !player.isFlying;
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
-        player.isRiptidePose = player.compensatedRiptide.getPose(data.lastTransaction);
-
-        player.lastSlotSelected = data.itemHeld;
-        player.tryingToRiptide = data.isTryingToRiptide;
-
-        player.minPlayerAttackSlow = data.minPlayerAttackSlow;
-        player.maxPlayerAttackSlow = data.maxPlayerAttackSlow;
+        player.isRiptidePose = player.compensatedRiptide.getPose(player.lastTransactionReceived.get());
 
         player.clientControlledVerticalCollision = Math.abs(player.y % (1 / 64D)) < 0.00001;
         // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
@@ -411,8 +323,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.levitationAmplifier = player.compensatedPotions.getPotionLevel("LEVITATION");
         player.slowFallingAmplifier = player.compensatedPotions.getPotionLevel("SLOW_FALLING");
         player.dolphinsGraceAmplifier = player.compensatedPotions.getPotionLevel("DOLPHINS_GRACE");
-
-        player.flySpeed = data.flySpeed;
 
         player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
@@ -478,7 +388,7 @@ public class MovementCheckRunner extends PositionCheck {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
-        } else if ((ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && data.gameMode == GameMode.SPECTATOR) || player.specialFlying) {
+        } else if ((ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && player.gamemode == GameMode.SPECTATOR) || player.specialFlying) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
             //
@@ -501,7 +411,7 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
-            player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = data.didGroundStatusChangeWithoutPositionPacket;
+            player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = player.packetStateData.didGroundStatusChangeWithoutPositionPacket;
 
             // Vehicles don't have jumping or that stupid < 0.03 thing
             // If the player isn't on the ground, a packet in between < 0.03 said they did
@@ -607,7 +517,7 @@ public class MovementCheckRunner extends PositionCheck {
         // we have a pending setback with a transaction greater than ours
         SetBackData setbackData = player.getSetbackTeleportUtil().getRequiredSetBack();
 
-        if (player.getSetbackTeleportUtil().blockOffsets && setbackData != null && setbackData.getTrans() + 1 > data.lastTransaction)
+        if (player.getSetbackTeleportUtil().blockOffsets && setbackData != null && setbackData.getTrans() + 1 > player.lastTransactionReceived.get())
             offset = 0;
 
         // Don't check players who are offline
@@ -617,7 +527,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         if (wasChecked) {
             // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
-            player.checkManager.onPredictionFinish(new PredictionComplete(offset, data));
+            player.checkManager.onPredictionFinish(new PredictionComplete(offset, update));
         } else {
             // The player wasn't checked, explosion and knockback status unknown
             player.checkManager.getExplosionHandler().forceExempt();
@@ -636,16 +546,9 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.lastMetadataDesync--;
 
-        player.lastX = player.x;
-        player.lastY = player.y;
-        player.lastZ = player.z;
-        player.lastXRot = player.xRot;
-        player.lastYRot = player.yRot;
-        player.lastOnGround = player.onGround;
-
-        player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, data.vehicleForward));
-        player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, data.vehicleHorizontal));
-        player.vehicleData.horseJump = data.horseJump;
+        player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
+        player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
+        player.vehicleData.horseJump = player.vehicleData.nextHorseJump;
 
         player.checkManager.getKnockbackHandler().handlePlayerKb(offset);
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset);

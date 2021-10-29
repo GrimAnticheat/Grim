@@ -57,7 +57,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             if (type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
-                player.packetStateData.slowedByUsingItemTransaction = player.packetStateData.packetLastTransactionReceived.get();
+                player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
                 if (XMaterial.supports(13)) {
                     ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
@@ -71,7 +71,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     if (j > 0) {
-                        player.packetStateData.tryingToRiptide = true;
+                        // TODO: Re-add riptide support
                     }
                 }
             }
@@ -95,14 +95,14 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
             if (player == null) return;
 
-            if (XMaterial.supports(8) && player.packetStateData.gameMode == GameMode.SPECTATOR)
+            if (XMaterial.supports(8) && player.gamemode == GameMode.SPECTATOR)
                 return;
 
             // This was an interaction with a block, not a use item
             if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9) && place.getDirection() != Direction.OTHER)
                 return;
 
-            player.packetStateData.slowedByUsingItemTransaction = player.packetStateData.packetLastTransactionReceived.get();
+            player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
             // https://github.com/Updated-NoCheatPlus/NoCheatPlus/blob/master/NCPCompatProtocolLib/src/main/java/fr/neatmonster/nocheatplus/checks/net/protocollib/NoSlow.java
@@ -117,7 +117,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                 // 1.14 and below players cannot eat in creative, exceptions are potions or milk
                 if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15) ||
-                        player.packetStateData.gameMode != GameMode.CREATIVE && material.isEdible())
+                        player.gamemode != GameMode.CREATIVE && material.isEdible())
                         || material == POTION || material == MILK_BUCKET) {
                     // pre1.9 splash potion
                     if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8) && item.getDurability() > 16384)
@@ -133,7 +133,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     // The other items that do require it
-                    if (item.getType().isEdible() && (event.getPlayer().getFoodLevel() < 20 || player.packetStateData.gameMode == GameMode.CREATIVE)) {
+                    if (item.getType().isEdible() && (event.getPlayer().getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE)) {
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
@@ -170,7 +170,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 // Players in survival can't use a bow without an arrow
                 // Crossbow charge checked previously
                 if (material == BOW || material == CROSSBOW) {
-                    player.packetStateData.slowedByUsingItem = (player.packetStateData.gameMode == GameMode.CREATIVE ||
+                    player.packetStateData.slowedByUsingItem = (player.gamemode == GameMode.CREATIVE ||
                             hasItem(player, ARROW) || hasItem(player, TIPPED_ARROW) || hasItem(player, SPECTRAL_ARROW)) ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
                     player.packetStateData.eatingHand = place.getHand();
                 }

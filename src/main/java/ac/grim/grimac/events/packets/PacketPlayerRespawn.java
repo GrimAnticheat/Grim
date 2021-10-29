@@ -27,11 +27,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.sendTransaction();
 
             if (health.getHealth() <= 0) {
-                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.isDead = true);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isDead = true);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.isDead = true);
             } else {
-                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.isDead = false);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.isDead = false);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.isDead = false);
             }
         }
     }

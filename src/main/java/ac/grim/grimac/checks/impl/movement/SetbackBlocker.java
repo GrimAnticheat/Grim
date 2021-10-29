@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.utils.vector.Vector3d;
 
 public class SetbackBlocker extends PacketCheck {
     public SetbackBlocker(GrimPlayer playerData) {
@@ -21,17 +22,17 @@ public class SetbackBlocker extends PacketCheck {
             }
 
             // Look is the only valid packet to send while in a vehicle
-            if (player.packetStateData.isInVehicle && event.getPacketId() != PacketType.Play.Client.LOOK && !player.packetStateData.lastPacketWasTeleport) {
+            if (player.inVehicle && event.getPacketId() != PacketType.Play.Client.LOOK && !player.packetStateData.lastPacketWasTeleport) {
                 event.setCancelled(true);
             }
 
             // The player is sleeping, should be safe to block position packets
-            if (player.packetStateData.isInBed && player.packetStateData.packetPosition.distanceSquared(player.packetStateData.bedPosition) > 1) {
+            if (player.isInBed && new Vector3d(player.x, player.y, player.z).distanceSquared(player.bedPosition) > 1) {
                 event.setCancelled(true);
             }
 
             // Player is dead
-            if (player.packetStateData.isDead) {
+            if (player.isDead) {
                 event.setCancelled(true);
             }
         }
@@ -42,17 +43,17 @@ public class SetbackBlocker extends PacketCheck {
             }
 
             // Don't let a player move a vehicle when not in a vehicle
-            if (!player.packetStateData.isInVehicle) {
+            if (!player.inVehicle) {
                 event.setCancelled(true);
             }
 
             // A player is sleeping while in a vehicle
-            if (player.packetStateData.isInBed) {
+            if (player.isInBed) {
                 event.setCancelled(true);
             }
 
             // Player is dead
-            if (player.packetStateData.isDead) {
+            if (player.isDead) {
                 event.setCancelled(true);
             }
         }

@@ -338,38 +338,36 @@ public class UncertaintyHandler {
 
         findCollision:
         {
-            synchronized (player.compensatedEntities.entityMap) {
-                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                    if ((entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) && entity != player.playerVehicle) {
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                if ((entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) && entity != player.playerVehicle) {
+                    if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                        hasHardCollision = true;
+                        break findCollision;
+                    }
+                }
+            }
+
+            // Stiders can walk on top of other striders
+            if (player.playerVehicle instanceof PacketEntityStrider) {
+                for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+                    PacketEntity entity = entityPair.getValue();
+                    if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
                         if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                             hasHardCollision = true;
                             break findCollision;
                         }
                     }
                 }
+            }
 
-                // Stiders can walk on top of other striders
-                if (player.playerVehicle instanceof PacketEntityStrider) {
-                    for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
-                        PacketEntity entity = entityPair.getValue();
-                        if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
-                            if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
-                                hasHardCollision = true;
-                                break findCollision;
-                            }
-                        }
-                    }
-                }
-
-                // Boats can collide with quite literally anything
-                if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
-                    for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
-                        PacketEntity entity = entityPair.getValue();
-                        if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
-                            if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
-                                hasHardCollision = true;
-                                break findCollision;
-                            }
+            // Boats can collide with quite literally anything
+            if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
+                for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+                    PacketEntity entity = entityPair.getValue();
+                    if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
+                        if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                            hasHardCollision = true;
+                            break findCollision;
                         }
                     }
                 }

@@ -35,7 +35,7 @@ public class NoFallA extends PacketCheck {
             WrappedPacketInFlying flying = new WrappedPacketInFlying(event.getNMSPacket());
 
             // We have the wrong world cached with chunks
-            if (player.bukkitPlayer.getWorld() != player.packetStateData.playerWorld) return;
+            if (player.bukkitPlayer.getWorld() != player.playerWorld) return;
             // The player hasn't spawned yet
             if (player.getSetbackTeleportUtil().insideUnloadedChunk()) return;
 
@@ -65,8 +65,8 @@ public class NoFallA extends PacketCheck {
 
                 SimpleCollisionBox feetBB;
 
-                Vector3d position = player.packetStateData.packetPosition;
-                Vector3d lastPos = player.packetStateData.lastPacketPosition;
+                Vector3d position = new Vector3d(player.x, player.y, player.z);
+                Vector3d lastPos = new Vector3d(player.lastX, player.lastY, player.lastZ);
 
                 feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(position.getX(), position.getY(), position.getZ(), 0.6, 0.001);
 
@@ -91,8 +91,7 @@ public class NoFallA extends PacketCheck {
 
     public boolean is003OnGround(boolean onGround) {
         if (onGround) {
-            Vector3d pos = player.packetStateData.packetPosition;
-            SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(pos.getX(), pos.getY(), pos.getZ(), 0.6, 0.001);
+            SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 0.001);
             feetBB.expand(0.03); // 0.03 can be in any direction
 
             return checkForBoxes(feetBB);

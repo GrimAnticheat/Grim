@@ -30,14 +30,9 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             // Multiple steer vehicles in a row, the player is not in control of their vehicle
             // We must do this SYNC! to netty, as to get the packet location of the vehicle
             // Otherwise other checks may false because the player's position is unknown.
-            if (player.tasksNotFinished.get() == 0 && player.packetStateData.receivedSteerVehicle && player.playerVehicle != null) {
-                player.lastTransactionReceived = player.packetStateData.packetLastTransactionReceived.get();
-
+            if (player.packetStateData.receivedSteerVehicle && player.playerVehicle != null) {
                 // Tick updates AFTER updating bounding box and actual movement
                 player.compensatedWorld.tickPlayerInPistonPushingArea();
-
-                // Stop transaction leaks
-                player.latencyUtils.handleAnticheatSyncTransaction(player.lastTransactionReceived);
 
                 // Note for the movement check
                 player.vehicleData.lastDummy = true;
@@ -51,11 +46,11 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.inVehicle = player.playerVehicle != null;
 
                 // Update knockback and explosions after getting the vehicle
-                player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
-                player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived);
+                player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
+                player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
 
-                player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived);
-                player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived);
+                player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
+                player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
 
                 // Not responsible for applying knockback/explosions
                 player.checkManager.getExplosionHandler().forceExempt();
@@ -75,8 +70,6 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.y = (vehiclePos.minY + vehiclePos.maxY) / 2;
                 player.z = (vehiclePos.minZ + vehiclePos.maxZ) / 2;
 
-                player.packetStateData.packetPosition = new Vector3d(player.x, player.y, player.z);
-
                 // Use bukkit location, not packet location, to stop ping spoof attacks on entity position
                 Entity playerVehicle = player.bukkitPlayer.getVehicle();
                 if (playerVehicle != null) {
@@ -94,9 +87,8 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
             player.packetStateData.receivedSteerVehicle = true;
 
-            player.packetStateData.packetVehicleForward = steer.getForwardValue();
-            player.packetStateData.packetVehicleHorizontal = steer.getSideValue();
+            player.vehicleData.nextVehicleForward = steer.getForwardValue();
+            player.vehicleData.nextVehicleForward = steer.getSideValue();
         }
     }
-
 }

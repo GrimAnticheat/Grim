@@ -88,7 +88,7 @@ public class PacketEntityReplication extends PacketCheck {
 
         if (packetID == PacketType.Play.Server.ENTITY_METADATA) {
             WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
-            player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects()));
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getWatchableObjects()));
         }
 
         if (packetID == PacketType.Play.Server.ENTITY_EFFECT) {
@@ -146,7 +146,7 @@ public class PacketEntityReplication extends PacketCheck {
             if (isDirectlyAffectingPlayer(player, entityID)) event.setPostTask(player::sendTransaction);
 
             if (player.entityID == entityID || entity instanceof PacketEntityHorse || entity instanceof PacketEntityRideable) {
-                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get() + 1,
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1,
                         () -> player.compensatedEntities.updateAttributes(entityID, attributes.getProperties()));
             }
         }
@@ -248,7 +248,7 @@ public class PacketEntityReplication extends PacketCheck {
             int[] destroyEntityIds = destroy.getEntityIds();
 
             for (int integer : destroyEntityIds) {
-                player.latencyUtils.addAnticheatSyncTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.entityMap.remove(integer));
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.entityMap.remove(integer));
             }
         }
     }

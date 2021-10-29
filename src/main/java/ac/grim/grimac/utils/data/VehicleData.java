@@ -15,11 +15,14 @@ public class VehicleData {
     public BoatEntityStatus oldStatus;
     public double waterLevel;
     public float deltaRotation;
+    public float nextVehicleHorizontal = 0f;
+    public float nextVehicleForward = 0f;
     public float vehicleHorizontal = 0f;
     public float vehicleForward = 0f;
     public int lastVehicleSwitch = 1000;
     public boolean lastDummy = false;
     public ConcurrentLinkedQueue<Pair<Integer, Vector3d>> vehicleTeleports = new ConcurrentLinkedQueue<>();
+    public float nextHorseJump = 0;
     public float horseJump = 0;
     public boolean horseJumping = false;
 

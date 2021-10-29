@@ -60,76 +60,81 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Don't check rotation since it changes between these packets, with the second being irrelevant.
             //
             // If a player sends a POS LOOK in a vehicle... then it was this stupid fucking mechanic
-            if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport) {
-                if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) &&
-                        player.packetStateData.packetPosition.equals(flying.getPosition())) || player.packetStateData.isInVehicle) {
-                    lastPosLook = System.currentTimeMillis();
-                    player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+            if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
+                    (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) &&
+                            new Vector3d(player.x, player.y, player.z).equals(flying.getPosition())) || player.inVehicle) {
+                lastPosLook = System.currentTimeMillis();
+                player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
-                    // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
-                    // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
-                    if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
-                        event.setCancelled(true);
-                    }
-                    return;
+                // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
+                // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
+                if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
+                    event.setCancelled(true);
                 }
+                return;
             }
 
             lastPosLook = System.currentTimeMillis();
 
+            // TODO: Check for blocks within 0.03 of the player!
             if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround)
                 player.packetStateData.didGroundStatusChangeWithoutPositionPacket = true;
 
-            player.packetStateData.lastPacketPlayerXRot = player.packetStateData.packetPlayerXRot;
-            player.packetStateData.lastPacketPlayerYRot = player.packetStateData.packetPlayerYRot;
-            player.packetStateData.lastPacketPosition = player.packetStateData.packetPosition;
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.lastZ = player.z;
+            player.lastXRot = player.xRot;
+            player.lastYRot = player.yRot;
+
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
 
-            // Go test with a 1.8 client on a 1.17 server, and you will see
             player.packetStateData.packetPlayerOnGround = onGround;
 
             if (hasLook) {
-                float xRot = flying.getYaw();
-                float yRot = flying.getPitch();
-
-                player.packetStateData.packetPlayerXRot = xRot;
-                player.packetStateData.packetPlayerYRot = yRot;
+                player.xRot = flying.getYaw();
+                player.yRot = flying.getPitch();
             }
 
             if (hasPosition) {
                 Vector3d position = flying.getPosition();
-                player.packetStateData.packetPosition = VectorUtils.clampVector(position);
+                Vector3d clampVector = VectorUtils.clampVector(position);
 
-                final PositionUpdate update = new PositionUpdate(player.packetStateData.lastPacketPosition, position, onGround, teleportData.isTeleport(), teleportData.getSetback());
+                player.x = clampVector.getX();
+                player.y = clampVector.getY();
+                player.z = clampVector.getZ();
+
+                final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.isTeleport(), teleportData.getSetback());
                 player.checkManager.onPositionUpdate(update);
             }
 
             if (hasLook) {
-                float xRot = flying.getYaw();
-                float yRot = flying.getPitch();
+                float deltaXRot = player.xRot - player.lastXRot;
+                float deltaYRot = player.yRot - player.lastYRot;
 
-                float deltaXRot = xRot - player.packetStateData.lastPacketPlayerXRot;
-                float deltaYRot = yRot - player.packetStateData.lastPacketPlayerYRot;
-
-                final RotationUpdate update = new RotationUpdate(player.packetStateData.lastPacketPlayerXRot, player.packetStateData.lastPacketPlayerYRot, xRot, yRot, deltaXRot, deltaYRot);
+                final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
                 player.checkManager.onRotationUpdate(update);
             }
 
             player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
             player.packetStateData.didLastMovementIncludePosition = hasPosition;
-            player.packetStateData.movementPacketsReceived++;
         }
 
         if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
             WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
             Vector3d position = move.getPosition();
 
-            player.packetStateData.lastPacketPosition = player.packetStateData.packetPosition;
-            player.packetStateData.packetPosition = VectorUtils.clampVector(position);
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.lastZ = player.z;
+
+            Vector3d clamp = VectorUtils.clampVector(position);
+            player.x = clamp.getX();
+            player.y = clamp.getY();
+            player.z = clamp.getZ();
 
             final boolean isTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
             player.packetStateData.lastPacketWasTeleport = isTeleport;
-            final VehiclePositionUpdate update = new VehiclePositionUpdate(player.packetStateData.packetPosition, position, move.getYaw(), move.getPitch(), isTeleport);
+            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), isTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;

@@ -284,22 +284,20 @@ public class Collisions {
             }
         }
 
-        synchronized (player.compensatedEntities.entityMap) {
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.type == EntityType.BOAT) {
-                    SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
-                    if (box.isIntersected(expandedBB)) {
-                        if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
-                        listOfBlocks.add(box);
-                    }
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if (entity.type == EntityType.BOAT) {
+                SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
+                if (box.isIntersected(expandedBB)) {
+                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+                    listOfBlocks.add(box);
                 }
+            }
 
-                if (entity.type == EntityType.SHULKER) {
-                    SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
-                    if (box.isIntersected(expandedBB)) {
-                        if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
-                        listOfBlocks.add(box);
-                    }
+            if (entity.type == EntityType.SHULKER) {
+                SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
+                if (box.isIntersected(expandedBB)) {
+                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+                    listOfBlocks.add(box);
                 }
             }
         }
