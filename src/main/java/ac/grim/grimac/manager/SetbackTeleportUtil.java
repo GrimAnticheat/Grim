@@ -66,12 +66,12 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * 2021-10-9 This method seems to be safe and doesn't allow bypasses
      */
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        // Desync is fixed
+        if (predictionComplete.getData().isTeleport()) blockOffsets = false;
+
         // We must first check if the player has accepted their setback
         // If the setback isn't complete, then this position is illegitimate
         if (predictionComplete.getData().getSetback() != null) {
-            // If there is a new pending setback, don't desync from the netty thread
-            // Reference == is fine, this object was passed along until now
-            if (predictionComplete.getData().getSetback() != requiredSetBack) return;
             // The player did indeed accept the setback, and there are no new setbacks past now!
             hasAcceptedSetbackPosition = true;
             safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
@@ -92,10 +92,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void executeForceResync() {
         blockOffsets = true;
         executeSetback();
-    }
-
-    public void confirmPredictionTeleport() {
-        blockOffsets = false;
     }
 
     public void executeSetback() {

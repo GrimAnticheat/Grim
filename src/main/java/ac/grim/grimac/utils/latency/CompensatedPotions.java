@@ -12,6 +12,22 @@ public class CompensatedPotions {
         this.player = player;
     }
 
+    public Integer getJumpAmplifier() {
+        return getPotionLevel("JUMP");
+    }
+
+    public Integer getLevitationAmplifier() {
+        return getPotionLevel("LEVITATION");
+    }
+
+    public Integer getSlowFallingAmplifier() {
+        return getPotionLevel("SLOW_FALLING");
+    }
+
+    public Integer getDolphinsGraceAmplifier() {
+        return getPotionLevel("DOLPHINS_GRACE");
+    }
+
     public void addPotionEffect(String type, int level, int entityID) {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
             ConcurrentHashMap<String, Integer> potions = potionsMap.get(entityID);

@@ -308,7 +308,7 @@ public class MovementTicker {
         double playerGravity = 0.08;
 
         boolean isFalling = player.actualMovement.getY() <= 0.0;
-        if (isFalling && player.slowFallingAmplifier != null) {
+        if (isFalling && player.compensatedPotions.getSlowFallingAmplifier() != null) {
             playerGravity = 0.01;
             // Set fall distance to 0 if the player has slow falling
             player.fallDistance = 0;
@@ -340,7 +340,7 @@ public class MovementTicker {
                 swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
-            if (XMaterial.supports(13) && player.dolphinsGraceAmplifier != null) {
+            if (XMaterial.supports(13) && player.compensatedPotions.getDolphinsGraceAmplifier() != null) {
                 swimFriction = 0.96F;
             }
 
