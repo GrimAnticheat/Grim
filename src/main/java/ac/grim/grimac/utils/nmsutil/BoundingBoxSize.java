@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.nmsImplementations;
+package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;

@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.blockdata.types;
 
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import ac.grim.grimac.utils.nmsutil.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.block.data.type.Chest;
 

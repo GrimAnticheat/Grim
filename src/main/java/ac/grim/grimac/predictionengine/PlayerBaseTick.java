@@ -6,7 +6,7 @@ import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.nmsImplementations.*;
+import ac.grim.grimac.utils.nmsutil.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.World;
 import org.bukkit.block.BlockFace;

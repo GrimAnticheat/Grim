@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.blockstate;
 
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import ac.grim.grimac.utils.nmsutil.XMaterial;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import org.bukkit.Material;
 

@@ -2,7 +2,7 @@ package ac.grim.grimac.predictionengine.movementtick;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.util.Vector;

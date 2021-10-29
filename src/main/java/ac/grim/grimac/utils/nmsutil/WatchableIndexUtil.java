@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.nmsImplementations;
+package ac.grim.grimac.utils.nmsutil;
 
 import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
 

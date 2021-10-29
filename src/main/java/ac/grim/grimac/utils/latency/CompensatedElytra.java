@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import ac.grim.grimac.utils.nmsutil.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 
 import java.util.concurrent.ConcurrentHashMap;
