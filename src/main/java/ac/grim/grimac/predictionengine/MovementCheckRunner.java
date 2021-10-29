@@ -118,7 +118,6 @@ public class MovementCheckRunner extends PositionCheck {
             return;
         }
 
-        player.lastOnGround = player.onGround;
         player.onGround = update.isOnGround();
 
         // This must be done before updating the world to support bridging and sneaking at the edge of it
@@ -270,15 +269,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
-
-        player.lastSprinting = player.isSprinting;
-        player.wasFlying = player.isFlying;
-        player.wasGliding = player.isGliding;
-        player.lastRiptidePose = player.isRiptidePose;
-        player.wasSwimming = player.isSwimming;
-        player.wasSneaking = player.isSneaking;
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
-
         player.isFlying = player.compensatedFlying.canFlyLagCompensated(player.lastTransactionReceived.get());
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
         player.isRiptidePose = player.compensatedRiptide.getPose(player.lastTransactionReceived.get());
@@ -485,6 +476,14 @@ public class MovementCheckRunner extends PositionCheck {
                 wasChecked = false;
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
+
+        player.lastOnGround = player.onGround;
+        player.lastSprinting = player.isSprinting;
+        player.wasFlying = player.isFlying;
+        player.wasGliding = player.isGliding;
+        player.lastRiptidePose = player.isRiptidePose;
+        player.wasSwimming = player.isSwimming;
+        player.wasSneaking = player.isSneaking;
 
         // No, don't comment about the sqrt call.  It doesn't matter at all on modern CPU's.
         double offset = player.predictedVelocity.vector.distance(player.actualMovement);
