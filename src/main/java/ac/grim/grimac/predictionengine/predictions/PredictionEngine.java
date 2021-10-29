@@ -9,10 +9,10 @@ import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
-import ac.grim.grimac.utils.nmsImplementations.JumpPower;
-import ac.grim.grimac.utils.nmsImplementations.Riptide;
+import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.JumpPower;
+import ac.grim.grimac.utils.nmsutil.Riptide;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.util.Vector;
 

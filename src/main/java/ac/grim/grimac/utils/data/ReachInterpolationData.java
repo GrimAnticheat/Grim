@@ -16,7 +16,7 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.nmsImplementations.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {

@@ -5,7 +5,7 @@ import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRide
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableNormal;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableWater;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableWaterLegacy;
-import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.util.Vector;
 

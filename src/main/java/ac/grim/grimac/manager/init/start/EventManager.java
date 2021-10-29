@@ -4,7 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.bukkit.*;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import ac.grim.grimac.utils.nmsutil.XMaterial;
 import org.bukkit.Bukkit;
 
 public class EventManager implements Initable {

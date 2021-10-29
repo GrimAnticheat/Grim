@@ -1,4 +1,4 @@
-package ac.grim.grimac.utils.nmsImplementations;
+package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;

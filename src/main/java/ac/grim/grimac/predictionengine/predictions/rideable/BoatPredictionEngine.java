@@ -8,9 +8,9 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
-import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
+import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 

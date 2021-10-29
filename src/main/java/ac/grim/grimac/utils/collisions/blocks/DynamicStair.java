@@ -9,7 +9,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
-import ac.grim.grimac.utils.nmsImplementations.Materials;
+import ac.grim.grimac.utils.nmsutil.Materials;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import org.bukkit.block.BlockFace;
 

@@ -8,7 +8,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.nmsImplementations.Collisions;
+import ac.grim.grimac.utils.nmsutil.Collisions;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 
 @CheckData(buffer = 3, maxBuffer = 3)
