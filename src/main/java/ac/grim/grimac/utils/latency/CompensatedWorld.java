@@ -35,15 +35,13 @@ import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.LightningRod;
 import org.bukkit.util.Vector;
 
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
-    public static BaseBlockState airData;
-    public static Method getByCombinedID;
+    private static BaseBlockState airData;
     public final GrimPlayer player;
     private final Map<Long, Column> chunks;
     public Queue<Pair<Integer, Vector3i>> likelyDesyncBlockPositions = new ConcurrentLinkedQueue<>();

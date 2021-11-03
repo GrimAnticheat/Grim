@@ -6,10 +6,8 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -40,8 +38,6 @@ public class CompensatedWorldFlat extends CompensatedWorld {
 
     public static void init() {
         // The global palette only exists in 1.13+, 1.12- uses magic values for everything
-        getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", 0);
-
         BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAPI.INSTANCE.getPlugin().getResource(XMaterial.getVersion() + ".txt"))));
         int paletteSize = (int) paletteReader.lines().count();
         // Reset the reader after counting

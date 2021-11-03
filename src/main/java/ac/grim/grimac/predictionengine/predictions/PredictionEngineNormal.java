@@ -24,16 +24,16 @@ public class PredictionEngineNormal extends PredictionEngine {
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();
         if (player.compensatedPotions.getLevitationAmplifier() != null) {
-            d9 += (0.05 * (double) (player.compensatedPotions.getLevitationAmplifier() + 1) - vector.getY()) * 0.2;
+            d9 += (0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1) - vector.getY()) * 0.2;
             // Reset fall distance with levitation
             player.fallDistance = 0;
         } else if (player.hasGravity) {
             d9 -= player.gravity;
         }
 
-        vector.setX(vector.getX() * (double) player.friction);
-        vector.setY(d9 * (double) 0.98F);
-        vector.setZ(vector.getZ() * (double) player.friction);
+        vector.setX(vector.getX() * player.friction);
+        vector.setY(d9 * 0.98F);
+        vector.setZ(vector.getZ() * player.friction);
     }
 
     @Override

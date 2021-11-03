@@ -430,25 +430,29 @@ public class PredictionEngine {
             maxVector.setY(0);
         }
 
-        // Initial end of tick levitation gets hidden by missing idle packet
-        if (player.compensatedPotions.getLevitationAmplifier() != null && player.compensatedPotions.getLevitationAmplifier() > 0 && player.clientVelocity.getY() < 0.1) {
-            maxVector.setY(((0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1)) * 0.2) + 0.1);
-        }
-
-        // Initial end of tick levitation gets hidden by missing idle packet
-        if (player.compensatedPotions.getLevitationAmplifier() != null && player.compensatedPotions.getLevitationAmplifier() < 0 && player.clientVelocity.getY() > -0.1) {
-            minVector.setY(((0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1)) * 0.2) - 0.1);
-        }
-
         // Handles stuff like missing idle packet causing gravity to be missed (plus 0.03 of course)
         double gravityOffset = player.pointThreeEstimator.getAdditionalVerticalUncertainty(vector.vector);
         if (gravityOffset > 0) {
             maxVector.setY(maxVector.getY() + gravityOffset);
         } else {
-            if (player.actualMovement.getY() < 0) {
-                int uashf = 0;
-            }
             minVector.setY(minVector.getY() + gravityOffset);
+        }
+
+        // Some plugin is spamming the player with gravity changes, levitation changes, and other fun stuff.
+        if (!player.pointThreeEstimator.canPredictNextVerticalMovement()) {
+            if (player.compensatedPotions.getLevitationAmplifier() != null) {
+                // Initial end of tick levitation gets hidden by missing idle packet
+                if (player.compensatedPotions.getLevitationAmplifier() >= 0) {
+                    maxVector.setY(((0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1)) * 0.2) + 0.1);
+                }
+
+                // Initial end of tick levitation gets hidden by missing idle packet
+                if (player.compensatedPotions.getLevitationAmplifier() < 0) {
+                    minVector.setY(((0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1)) * 0.2) - 0.1);
+                }
+            } else {
+                minVector.setY(minVector.getY() - 0.08);
+            }
         }
 
         // Hidden slime block bounces by missing idle tick and 0.03
