@@ -312,8 +312,6 @@ public class MovementCheckRunner extends PositionCheck {
         // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
         player.speed += player.isSprinting ? player.speed * 0.3f : 0;
 
-        player.uncertaintyHandler.wasLastOnGroundUncertain = false;
-
         player.uncertaintyHandler.lastGlidingChangeTicks--;
         if (player.isGliding != player.wasGliding) player.uncertaintyHandler.lastGlidingChangeTicks = 0;
 
@@ -399,24 +397,6 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Now that we have all the world updates, recalculate if the player is near the ground
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
-            player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket = player.packetStateData.didGroundStatusChangeWithoutPositionPacket;
-
-            // Vehicles don't have jumping or that stupid < 0.03 thing
-            // If the player isn't on the ground, a packet in between < 0.03 said they did
-            // And the player is reasonably touching the ground
-            //
-            // And the player isn't now near the ground due to a new block placed by the player
-            //
-            // Give some lenience and update the onGround status
-            if (player.uncertaintyHandler.didGroundStatusChangeWithoutPositionPacket && !player.lastOnGround
-                    && (player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree || byGround)
-                    // Restrict allowed 0.03 - patches fast towering bypass
-                    && player.clientVelocity.getY() < 0.03) {
-                player.lastOnGround = true;
-                player.uncertaintyHandler.wasLastOnGroundUncertain = true;
-                player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
-                player.clientClaimsLastOnGround = true;
-            }
 
             // This is wrong and the engine was not designed around stuff like this
             player.canGroundRiptide = ((player.clientClaimsLastOnGround && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
@@ -535,6 +515,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
         player.uncertaintyHandler.wasZeroPointThreeVertically = (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement()) || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain();
+        player.uncertaintyHandler.wasLastOnGroundUncertain = false;
 
         player.uncertaintyHandler.lastMetadataDesync--;
 

@@ -13,8 +13,6 @@ public class PacketStateData {
     public AlmostBoolean slowedByUsingItem = AlmostBoolean.FALSE;
     public int slowedByUsingItemTransaction = Integer.MIN_VALUE;
     public boolean receivedSteerVehicle = false;
-    // Marks when the player received a ground packet
-    public boolean didGroundStatusChangeWithoutPositionPacket = false;
     // This works on 1.8 only
     public boolean didLastLastMovementIncludePosition = false;
     public boolean didLastMovementIncludePosition = false;

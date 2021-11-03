@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -76,8 +77,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             lastPosLook = System.currentTimeMillis();
 
-            // TODO: Check for blocks within 0.03 of the player's position before allowing ground to be true
-            player.packetStateData.didGroundStatusChangeWithoutPositionPacket = !hasPosition && onGround != player.packetStateData.packetPlayerOnGround;
+            // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
+            boolean nearGround = Collisions.collide(player, 0, -0.03, 0).getY() != -0.03;
+            if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && !nearGround && player.clientVelocity.getY() < 0.03) {
+                player.lastOnGround = true;
+                player.uncertaintyHandler.wasLastOnGroundUncertain = true;
+                player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
+                player.clientClaimsLastOnGround = true;
+            }
 
             player.lastX = player.x;
             player.lastY = player.y;
