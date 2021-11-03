@@ -39,9 +39,6 @@ public class UncertaintyHandler {
     public double yPositiveUncertainty = 0;
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasZeroPointThreeVertically = false;
-    // Marks how much to allow the actual velocity to deviate from predicted when
-    // the previous lenience because of 0.03 would occur
-    public double gravityUncertainty = 0;
     public EvictingList<Double> slimeBlockUpwardsUncertainty = new EvictingList<>(2);
     // The player landed while jumping but without new position information because of 0.03
     public boolean wasLastOnGroundUncertain = false;
@@ -113,7 +110,6 @@ public class UncertaintyHandler {
         pistonX = 0;
         pistonY = 0;
         pistonZ = 0;
-        gravityUncertainty = 0;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
     }
