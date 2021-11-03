@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import lombok.Getter;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -93,8 +94,13 @@ public class PointThreeEstimator {
     private boolean isNearHorizontalFlowingLiquid = false; // We can't calculate the direction, only a toggle
     private boolean isNearVerticalFlowingLiquid = false; // We can't calculate exact values, once again a toggle
     private boolean isNearBubbleColumn = false; // We can't calculate exact values once again
+
     private boolean hasPositiveLevitation = false; // Positive potion effects [0, 128]
     private boolean hasNegativeLevitation = false; // Negative potion effects [-127, -1]
+    private boolean didLevitationChange = false; // We can't predict with an unknown amount of ticks between a levitation change
+
+    @Getter
+    private boolean wasAlwaysCertain = true;
 
     public PointThreeEstimator(GrimPlayer player) {
         this.player = player;
@@ -103,10 +109,11 @@ public class PointThreeEstimator {
     // Handle game events that occur between skipped ticks - thanks a lot mojang for removing the idle packet!
     public void handleChangeBlock(int x, int y, int z, BaseBlockState state) {
         CollisionBox data = CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state, x, y, z);
+        SimpleCollisionBox normalBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8);
 
         // Calculate head hitters.  Take a shortcut by checking if the player doesn't intersect with this block, but does
         // when the player vertically moves upwards by 0.03!  This is equivalent to the move method, but MUCH faster.
-        if (!player.boundingBox.copy().expand(0.03, 0, 0.03).isIntersected(data) && player.boundingBox.copy().offset(0.03, 0.03, 0.03).isIntersected(data)) {
+        if (!normalBox.copy().expand(0.03, 0, 0.03).isIntersected(data) && normalBox.copy().expand(0.03, 0.03, 0.03).isIntersected(data)) {
             headHitter = true;
         }
 
@@ -139,7 +146,7 @@ public class PointThreeEstimator {
      * and to just give them lenience
      */
     public boolean canPredictNextVerticalMovement() {
-        return !gravityChanged && !hasPositiveLevitation && !hasNegativeLevitation;
+        return !gravityChanged && !didLevitationChange;
     }
 
     public boolean controlsVerticalMovement() {
@@ -148,8 +155,15 @@ public class PointThreeEstimator {
 
     public void updatePlayerPotions(String potion, Integer level) {
         if (potion.equals("LEVITATION")) {
+            boolean oldPositiveLevitation = hasPositiveLevitation;
+            boolean oldNegativeLevitation = hasNegativeLevitation;
+
             hasPositiveLevitation = hasPositiveLevitation || (level != null && level >= 0);
             hasNegativeLevitation = hasNegativeLevitation || (level != null && level < 0);
+
+            if (oldPositiveLevitation != hasPositiveLevitation || oldNegativeLevitation != hasNegativeLevitation) {
+                didLevitationChange = true;
+            }
         }
     }
 
@@ -194,11 +208,18 @@ public class PointThreeEstimator {
         }
 
         Integer levitationAmplifier = player.compensatedPotions.getLevitationAmplifier();
+
+        boolean oldPositiveLevitation = hasPositiveLevitation;
+        boolean oldNegativeLevitation = hasNegativeLevitation;
+
         hasPositiveLevitation = levitationAmplifier != null && levitationAmplifier >= 0;
         hasNegativeLevitation = levitationAmplifier != null && levitationAmplifier < 0;
 
+        didLevitationChange = oldPositiveLevitation != hasPositiveLevitation || oldNegativeLevitation != hasNegativeLevitation;
+
         isGliding = player.isGliding;
         gravityChanged = false;
+        wasAlwaysCertain = true;
     }
 
     public void determineCanSkipTick(float speed, Set<VectorData> init) {
@@ -229,45 +250,58 @@ public class PointThreeEstimator {
 
     public double getAdditionalVerticalUncertainty(Vector vector) {
         if (headHitter) {
+            wasAlwaysCertain = false;
             // Head hitters return the vector to 0, and then apply gravity to it.
             // Not much room for abuse for this, so keep it lenient
             return -Math.max(0, vector.getY()) - 0.1;
         } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
+            wasAlwaysCertain = false;
             // This shouldn't be needed but stuck speed can desync very easily with 0.03...
             // Especially now that both sweet berries and cobwebs are affected by stuck speed and overwrite each other
             return -0.1;
-        } else if (canPredictNextVerticalMovement()) {
-            double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) ? 0.003 : 0.005;
-
-            // Use the
-            double yVel = vector.getY();
-            double maxYTraveled = 0;
-            boolean first = true;
-            do {
-                // If less than minimum movement, then set to 0
-                if (Math.abs(yVel) < minMovement) yVel = 0;
-
-                // Don't add the first vector to the movement.  We already counted it.
-                if (!first) {
-                    maxYTraveled += yVel;
-                }
-                first = false;
-
-                // Simulate end of tick vector
-                yVel = iterateGravity(player, yVel);
-
-                // We aren't making progress, avoid infinite loop
-                if (yVel == 0) break;
-            } while (Math.abs(maxYTraveled) < 0.03);
-            // Negate the current vector and replace it with the one we just simulated
-            return maxYTraveled;
-        } else {
-            // There's too much fuckery going on here with vertical movement (variables changing)
-            return -0.08;
         }
+
+        double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) ? 0.003 : 0.005;
+
+        // Use the
+        double yVel = vector.getY();
+        double maxYTraveled = 0;
+        boolean first = true;
+        do {
+            // If less than minimum movement, then set to 0
+            if (Math.abs(yVel) < minMovement) yVel = 0;
+
+            // Don't add the first vector to the movement.  We already counted it.
+            if (!first) {
+                maxYTraveled += yVel;
+            }
+            first = false;
+
+            // Simulate end of tick vector
+            yVel = iterateGravity(player, yVel);
+
+            // We aren't making progress, avoid infinite loop (This can be due to the player not having gravity)
+            if (yVel == 0) break;
+        } while (Math.abs(maxYTraveled + vector.getY()) < 0.03);
+
+        if (maxYTraveled != 0) {
+            wasAlwaysCertain = false;
+        }
+
+        // Negate the current vector and replace it with the one we just simulated
+        return maxYTraveled;
     }
 
     public double iterateGravity(GrimPlayer player, double y) {
-        return (y - player.gravity) * 0.98;
+        if (player.compensatedPotions.getLevitationAmplifier() != null) {
+            // This supports both positive and negative levitation
+            y += (0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1) - y * 0.2);
+        } else if (player.hasGravity) {
+            // Simulate gravity
+            y -= player.gravity;
+        }
+
+        // Simulate end of tick friction
+        return y * 0.98;
     }
 }
