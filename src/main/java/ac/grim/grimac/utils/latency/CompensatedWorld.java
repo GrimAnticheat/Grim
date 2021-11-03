@@ -109,6 +109,13 @@ public class CompensatedWorld {
                 }
 
                 chunk.set(x & 0xF, y & 0xF, z & 0xF, combinedID);
+
+                // Handle stupidity such as fluids changing in idle ticks.
+                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+                    player.pointThreeEstimator.handleChangeBlock(x, y, z, new FlatBlockState(combinedID));
+                } else {
+                    player.pointThreeEstimator.handleChangeBlock(x, y, z, new MagicBlockState(combinedID));
+                }
             }
         } catch (Exception ignored) {
         }

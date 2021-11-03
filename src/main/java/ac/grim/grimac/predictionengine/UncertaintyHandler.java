@@ -116,9 +116,6 @@ public class UncertaintyHandler {
         gravityUncertainty = 0;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
-
-        headingIntoWater = player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.3, 0.03, 0.3).expandMax(0, 1.8, 0));
-        headingIntoLava = player.compensatedWorld.containsLava(GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.3, 0.03, 0.3).expandMax(0, 1.8, 0));
     }
 
     public boolean countsAsZeroPointZeroThree(VectorData predicted) {
@@ -226,10 +223,14 @@ public class UncertaintyHandler {
         if (player.couldSkipTick && data.isKnockback())
             return 0.03;
 
-        if (controlsVerticalMovement()) {
+        if (player.pointThreeEstimator.controlsVerticalMovement()) {
             // Yeah, the second 0.06 isn't mathematically correct but fucking 0.03 fucks everything up...
             // Water pushing, elytras, EVERYTHING vertical movement gets messed up by this shit.  What the fuck mojang.  Why the fuck did you do this.
-            return has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.06 : lastLastMovementWasZeroPointZeroThree || wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket ? 0.03 : 0;
+            if (has003) return 0.06;
+            if (lastMovementWasZeroPointZeroThree) return 0.06;
+            if (lastLastMovementWasZeroPointZeroThree || wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
+                return 0.03;
+            return 0;
         }
 
         if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
@@ -301,34 +302,6 @@ public class UncertaintyHandler {
             offset -= 0.1;
 
         return Math.max(0, offset);
-    }
-
-    public boolean controlsVerticalMovement() {
-        return !player.hasGravity || player.wasTouchingWater || player.wasTouchingLava || headingIntoWater || headingIntoLava || influencedByBouncyBlock() || lastFlyingTicks < 3 || player.isGliding || player.isClimbing || player.lastWasClimbing != 0;
-    }
-
-    public boolean canSkipTick() {
-        // 0.03 is very bad with stuck speed multipliers
-        if (player.inVehicle) {
-            return false;
-        } else if (wasAffectedByStuckSpeed()) {
-            gravityUncertainty = -0.08;
-            return true;
-        } else if (influencedByBouncyBlock()) {
-            return true;
-        } else if (player.wasTouchingLava) {
-            return true;
-        } else
-            return lastTickWasNearGroundZeroPointZeroThree && didGroundStatusChangeWithoutPositionPacket && player.clientVelocity.getY() < 0.03;
-    }
-
-    // 0.04 is safe for speed 10, 0.03 is unsafe
-    // 0.0016 is safe for speed 1, 0.09 is unsafe
-    //
-    // Taking these approximate values gives us this, the same 0.03 value for each speed
-    // Don't give bonus for sprinting because sprinting against walls isn't possible
-    public double getZeroPointZeroThreeThreshold() {
-        return 0.01;
     }
 
     public void checkForHardCollision() {

@@ -37,6 +37,7 @@ public class CompensatedPotions {
                 potionsMap.put(entityID, potions);
             }
 
+            player.pointThreeEstimator.updatePlayerPotions(type, level);
             potions.put(type, level);
         });
     }
@@ -44,6 +45,8 @@ public class CompensatedPotions {
     public void removePotionEffect(String type, int entityID) {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
             ConcurrentHashMap<String, Integer> potions = potionsMap.get(entityID);
+
+            player.pointThreeEstimator.updatePlayerPotions(type, null);
 
             if (potions != null) {
                 potions.remove(type);

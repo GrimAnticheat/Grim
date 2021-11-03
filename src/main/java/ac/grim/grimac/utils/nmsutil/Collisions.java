@@ -57,7 +57,7 @@ public class Collisions {
     private static final Material BEACON = XMaterial.BEACON.parseMaterial();
 
     private static final double COLLISION_EPSILON = 1.0E-7;
-    private static final int absoluteMaxSize = 29999984;
+    private static final int ABSOLUTE_MAX_SIZE = 29999984;
 
     private static final List<List<Axis>> allAxisCombinations = Arrays.asList(
             Arrays.asList(Axis.Y, Axis.X, Axis.Z),
@@ -90,32 +90,8 @@ public class Collisions {
             Vector collisionResult = collideBoundingBoxLegacy(player, new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
-            // Also allow the non uncertain vector to be below 0 to attempt to fix false positives
-            boolean movingIntoGround = player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0)) ||
-                    // If the player is claiming that they were stepping
-                    // And the player's Y velocity is "close enough" to being downwards
-                    // And the last movement was 0.03 messing up stepping
-                    //
-                    // Additionally, the player must be stepping onto a block for this to work
-                    // not a "perfect" method to detect stepping, but it should cover this 0.03 edge case with small movement
-                    //
-                    // 9/14/2021
-                    // TODO: This might allow some sort of stepping bypass, although not a major one
-                    // I don't know how to fix this 0.03 issue
-                    // This is the setup in case you want to tweak this 0.03-related uncertainty:
-                    // TRAPDOOR SLAB
-                    // BLOCK
-                    //
-                    // DesiredY is reported as 0.003 when this situation occurs, give a bit more lenience though
-                    // Could allow step cheats that step onto 1.25 levels, although it's not much of a cheat
-                    // Additionally, I haven't been able to find this cheat yet, and will patch it if I find it.
-                    // But for now I'd rather keep this simpler rather than trying to blindly patch a
-                    // nonexistent cheat.
-                    (player.actualMovement.getY() > 0 && desiredY < 0.005 && !Collisions.isEmpty(player, GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).offset(0, -COLLISION_EPSILON, 0)))
-                    // Fix a false with cobwebs on top of soul sand (0.03) - We don't detect that the player actually would touch the ground this tick
-                    || (player.onGround && (player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.uncertaintyHandler.influencedByBouncyBlock()) && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
-                    // Fix a false when stepping underwater with high uncertainty (require fluid on eyes to stop players from exiting water with stepping movement)
-                    || (player.onGround && player.uncertaintyHandler.controlsVerticalMovement() && !Collisions.isEmpty(player, GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).offset(0, -COLLISION_EPSILON, 0)));
+            // 0.03 movement must compensate for stepping elsewhere.  Too much of a hack to include in this method.
+            boolean movingIntoGround = player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0));
             double stepUpHeight = player.getMaxUpStep();
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
@@ -180,10 +156,10 @@ public class Collisions {
 
             // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions (optimization)
             if (Math.abs(player.x + centerX) + 16 > size || Math.abs(player.z + centerZ) + 16 > size) {
-                double minX = Math.floor(GrimMath.clamp(centerX - size, -absoluteMaxSize, absoluteMaxSize));
-                double minZ = Math.floor(GrimMath.clamp(centerZ - size, -absoluteMaxSize, absoluteMaxSize));
-                double maxX = Math.ceil(GrimMath.clamp(centerX + size, -absoluteMaxSize, absoluteMaxSize));
-                double maxZ = Math.ceil(GrimMath.clamp(centerZ + size, -absoluteMaxSize, absoluteMaxSize));
+                double minX = Math.floor(GrimMath.clamp(centerX - size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
+                double minZ = Math.floor(GrimMath.clamp(centerZ - size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
+                double maxX = Math.ceil(GrimMath.clamp(centerX + size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
+                double maxZ = Math.ceil(GrimMath.clamp(centerZ + size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
 
                 // If the player is fully within the worldborder
                 if (player.boundingBox.minX > minX - 1.0E-7D && player.boundingBox.maxX < maxX + 1.0E-7D

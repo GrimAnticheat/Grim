@@ -6,6 +6,7 @@ import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class SimpleCollisionBox implements CollisionBox {
@@ -33,6 +34,11 @@ public class SimpleCollisionBox implements CollisionBox {
 
     public SimpleCollisionBox(Vector3i pos) {
         this(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1);
+    }
+
+    // If you want to set a full block from a point
+    public SimpleCollisionBox(double minX, double minY, double minZ) {
+        this(minX, minY, minZ, minX + 1, minY + 1, minZ + 1, true);
     }
 
     // Use only if you don't know the fullBlock status, which is rare
@@ -168,6 +174,22 @@ public class SimpleCollisionBox implements CollisionBox {
         return other.maxX > this.minX && other.minX < this.maxX
                 && other.maxY > this.minY && other.minY < this.maxY
                 && other.maxZ > this.minZ && other.minZ < this.maxZ;
+    }
+
+    public boolean isIntersected(CollisionBox other) {
+        // Optimization - don't allocate a list if this is just a SimpleCollisionBox
+        if (other instanceof SimpleCollisionBox) {
+            return isIntersected((SimpleCollisionBox) other);
+        }
+
+        List<SimpleCollisionBox> boxes = new ArrayList<>();
+        other.downCast(boxes);
+
+        for (SimpleCollisionBox box : boxes) {
+            if (isIntersected(box)) return true;
+        }
+
+        return false;
     }
 
     public boolean collidesVertically(SimpleCollisionBox other) {

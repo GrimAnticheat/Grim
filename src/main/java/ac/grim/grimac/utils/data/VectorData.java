@@ -18,14 +18,16 @@ public class VectorData {
         this.lastVector = lastVector;
         this.vectorType = vectorType;
 
-        isKnockback = lastVector.isKnockback;
-        isExplosion = lastVector.isExplosion;
-        isTrident = lastVector.isTrident;
-        isZeroPointZeroThree = lastVector.isZeroPointZeroThree;
-        isSwimHop = lastVector.isSwimHop;
-        isFlipSneaking = lastVector.isFlipSneaking;
-        isFlipItem = lastVector.isFlipItem;
-        isJump = lastVector.isJump;
+        if (lastVector != null) {
+            isKnockback = lastVector.isKnockback;
+            isExplosion = lastVector.isExplosion;
+            isTrident = lastVector.isTrident;
+            isZeroPointZeroThree = lastVector.isZeroPointZeroThree;
+            isSwimHop = lastVector.isSwimHop;
+            isFlipSneaking = lastVector.isFlipSneaking;
+            isFlipItem = lastVector.isFlipItem;
+            isJump = lastVector.isJump;
+        }
 
         addVectorType(vectorType);
     }

@@ -214,6 +214,9 @@ public class MovementCheckRunner extends PositionCheck {
 
         if (!player.inVehicle) {
             player.speed = player.compensatedEntities.playerEntityMovementSpeed;
+            if (player.hasGravity != player.playerEntityHasGravity) {
+                player.pointThreeEstimator.updatePlayerGravity();
+            }
             player.hasGravity = player.playerEntityHasGravity;
         }
 
@@ -233,6 +236,9 @@ public class MovementCheckRunner extends PositionCheck {
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.setPositionRaw(GetBoundingBox.getPacketEntityBoundingBox(player.x, player.y, player.z, player.playerVehicle));
 
+            if (player.hasGravity != player.playerVehicle.hasGravity) {
+                player.pointThreeEstimator.updatePlayerGravity();
+            }
             player.hasGravity = player.playerVehicle.hasGravity;
 
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
@@ -446,11 +452,7 @@ public class MovementCheckRunner extends PositionCheck {
 
             new PlayerBaseTick(player).doBaseTick();
             new MovementTickerPlayer(player).livingEntityAIStep();
-
-            // 0.03 is rare with gliding, so, therefore, to try and patch falses, we should update with the vanilla order
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && (player.isGliding || player.wasGliding)) {
-                new PlayerBaseTick(player).updatePlayerPose();
-            }
+            new PlayerBaseTick(player).updatePlayerPose();
 
         } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
             wasChecked = true;
@@ -532,7 +534,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.uncertaintyHandler.countsAsZeroPointZeroThree(player.predictedVelocity);
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.wasLastOnGroundUncertain;
-        player.uncertaintyHandler.wasZeroPointThreeVertically = player.uncertaintyHandler.gravityUncertainty != 0 || (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.uncertaintyHandler.controlsVerticalMovement());
+        player.uncertaintyHandler.wasZeroPointThreeVertically = player.uncertaintyHandler.gravityUncertainty != 0 || (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement());
 
         player.uncertaintyHandler.lastMetadataDesync--;
 
@@ -544,6 +546,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset);
         player.trigHandler.setOffset(oldClientVel, offset);
         player.compensatedRiptide.handleRemoveRiptide();
+        player.pointThreeEstimator.endOfTickTick();
     }
 
     /**

@@ -5,6 +5,7 @@ import ac.grim.grimac.manager.CheckManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
+import ac.grim.grimac.predictionengine.PointThreeEstimator;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -139,6 +140,7 @@ public class GrimPlayer {
     public CompensatedEntities compensatedEntities;
     public CompensatedPotions compensatedPotions;
     public LatencyUtils latencyUtils = new LatencyUtils();
+    public PointThreeEstimator pointThreeEstimator;
     public TrigHandler trigHandler;
     public PacketStateData packetStateData;
     // Keep track of basetick stuff
@@ -217,6 +219,7 @@ public class GrimPlayer {
         compensatedPotions = new CompensatedPotions(this);
         trigHandler = new TrigHandler(this);
         uncertaintyHandler = new UncertaintyHandler(this);
+        pointThreeEstimator = new PointThreeEstimator(this);
 
         packetStateData = new PacketStateData();
         packetStateData.lastSlotSelected = bukkitPlayer.getInventory().getHeldItemSlot();
