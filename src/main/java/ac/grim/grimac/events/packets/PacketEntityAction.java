@@ -51,6 +51,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     // TODO: This needs to check elytra durability (How do I do this cross server version?)
                     if (chestPlate != null && chestPlate.getType() == elytra) {
                         player.isGliding = true;
+                        player.pointThreeEstimator.updatePlayerGliding();
                     } else {
                         // A client is flying with a ghost elytra, resync
                         player.getSetbackTeleportUtil().executeForceResync();
