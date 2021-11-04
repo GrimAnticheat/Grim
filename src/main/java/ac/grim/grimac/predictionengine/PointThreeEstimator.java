@@ -236,17 +236,12 @@ public class PointThreeEstimator {
         }
     }
 
+    // This method can be improved by using the actual movement to see if 0.03 was feasible...
     public void determineCanSkipTick(float speed, Set<VectorData> init) {
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
 
-        // A player cannot go past 0.06 + their speed if they skipped the previous tick
-        // This is due to the acceleration of the player being too high
-        boolean possibleToAccelerate = player.actualMovement.clone().setY(0).lengthSquared() < 0.06 * 0.06 + speed * speed;
-
-        // Computing the next part is relatively expensive, so only do it if we need to
-        if (!possibleToAccelerate) return;
-
+        // Takes 0.01 millis, on average, to compute... this should be improved eventually
         for (VectorData data : init) {
             Vector collisionResult = Collisions.collide(player, data.vector.getX(), data.vector.getY(), data.vector.getZ());
 
