@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -149,8 +150,11 @@ public class PointThreeEstimator {
         return !gravityChanged && !didLevitationChange;
     }
 
+    // This is left just in case 0.03 is abused vertically?  I don't see how it could be abused, so let's have the
+    // cheat developers have a go at it.  Returns true rather than calculates to reduce falses.
     public boolean controlsVerticalMovement() {
-        return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding;
+        // isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding
+        return true;
     }
 
     public void updatePlayerPotions(String potion, Integer level) {
@@ -243,7 +247,10 @@ public class PointThreeEstimator {
 
         // Takes 0.01 millis, on average, to compute... this should be improved eventually
         for (VectorData data : init) {
-            Vector collisionResult = Collisions.collide(player, data.vector.getX(), data.vector.getY(), data.vector.getZ());
+            // Try to get the vector as close to zero as possible to give the best chance at 0.03...
+            Vector toZeroVec = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector());
+            // Collide to handle mostly gravity, but other scenarios similar to this.
+            Vector collisionResult = Collisions.collide(player, toZeroVec.getX(), toZeroVec.getY(), toZeroVec.getZ());
 
             double minHorizLength = Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed;
             double length = Math.abs(collisionResult.getY()) + Math.max(0, minHorizLength);

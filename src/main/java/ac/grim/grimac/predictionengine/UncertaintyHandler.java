@@ -249,10 +249,6 @@ public class UncertaintyHandler {
             offset -= 0.25;
         }
 
-        if (player.uncertaintyHandler.isSteppingNearBubbleColumn) {
-            offset -= 0.09;
-        }
-
         if (player.uncertaintyHandler.stuckOnEdge > -3) {
             offset -= 0.05;
         }
