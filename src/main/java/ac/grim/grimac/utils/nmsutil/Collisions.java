@@ -477,8 +477,8 @@ public class Collisions {
         } else if (vector.getY() >= -0.08D) {
             return false;
         } else {
-            double d0 = Math.abs((double) locationX + 0.5D - player.lastX);
-            double d1 = Math.abs((double) locationZ + 0.5D - player.lastZ);
+            double d0 = Math.abs(locationX + 0.5D - player.lastX);
+            double d1 = Math.abs(locationZ + 0.5D - player.lastZ);
             // Calculate player width using bounding box, which will change while swimming or gliding
             double d2 = 0.4375D + ((player.pose.width) / 2.0F);
             return d0 + 1.0E-7D > d2 || d1 + 1.0E-7D > d2;

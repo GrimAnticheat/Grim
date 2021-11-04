@@ -394,6 +394,10 @@ public class PredictionEngine {
             bonusY += 0.1;
         }
 
+        // Handle horizontal fluid pushing within 0.03
+        double horizontalFluid = player.pointThreeEstimator.getHorizontalFluidPushingUncertainty(vector);
+        additionHorizontal += horizontalFluid;
+
         Vector uncertainty = new Vector(avgColliding * 0.04 + uncertainPiston, additionVertical + uncertainPiston, avgColliding * 0.04 + uncertainPiston);
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal, -bonusY + player.uncertaintyHandler.yNegativeUncertainty, player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal);
         Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
@@ -426,19 +430,29 @@ public class PredictionEngine {
             }
         }
 
+        // Handle the player landing within 0.03 movement
         if ((player.uncertaintyHandler.wasLastOnGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.vector.getY() < 0) {
             maxVector.setY(0);
         }
 
         // Handles stuff like missing idle packet causing gravity to be missed (plus 0.03 of course)
-        double gravityOffset = player.pointThreeEstimator.getAdditionalVerticalUncertainty(vector.vector);
+        double gravityOffset = player.pointThreeEstimator.getAdditionalVerticalUncertainty(vector);
         if (gravityOffset > 0) {
             maxVector.setY(maxVector.getY() + gravityOffset);
         } else {
             minVector.setY(minVector.getY() + gravityOffset);
         }
 
-        // Some plugin is spamming the player with gravity changes, levitation changes, and other fun stuff.
+        // Handle vertical fluid pushing within 0.03
+        double verticalFluid = player.pointThreeEstimator.getVerticalFluidPushingUncertainty(vector);
+        minVector.setY(minVector.getY() - verticalFluid);
+
+        // Handle vertical bubble column stupidity within 0.03
+        double bubbleFluid = player.pointThreeEstimator.getVerticalBubbleUncertainty(vector);
+        maxVector.setY(maxVector.getY() + bubbleFluid);
+
+        // We can't simulate the player's Y velocity, unknown number of ticks with a gravity change
+        // Feel free to simulate all 104857600000000000000000000 possibilities!
         if (!player.pointThreeEstimator.canPredictNextVerticalMovement()) {
             if (player.compensatedPotions.getLevitationAmplifier() != null) {
                 // Initial end of tick levitation gets hidden by missing idle packet

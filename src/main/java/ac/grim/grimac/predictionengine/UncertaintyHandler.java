@@ -187,11 +187,6 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
-        boolean has003 = data.isZeroPointZeroThree();
-
-        if (has003 && isSteppingNearBubbleColumn)
-            return 0.35;
-
         if (lastThirtyMillionHardBorder > -3)
             return 0.15;
 
@@ -220,7 +215,7 @@ public class UncertaintyHandler {
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
             // Yeah, the second 0.06 isn't mathematically correct but fucking 0.03 fucks everything up...
             // Water pushing, elytras, EVERYTHING vertical movement gets messed up by this shit.  What the fuck mojang.  Why the fuck did you do this.
-            if (has003) return 0.06;
+            if (data.isZeroPointZeroThree()) return 0.06;
             if (lastMovementWasZeroPointZeroThree) return 0.06;
             if (lastLastMovementWasZeroPointZeroThree || wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
                 return 0.03;
@@ -300,48 +295,53 @@ public class UncertaintyHandler {
 
     public void checkForHardCollision() {
         // Look for boats the player could collide with
+        player.uncertaintyHandler.lastHardCollidingLerpingEntity--;
+        if (hasHardCollision()) player.uncertaintyHandler.lastHardCollidingLerpingEntity = 0;
+    }
+
+    private boolean hasHardCollision() {
         SimpleCollisionBox expandedBB = player.boundingBox.copy().expandToCoordinate(player.clientVelocity.getX(), player.clientVelocity.getY(), player.clientVelocity.getZ()).expand(1);
-        boolean hasHardCollision = false;
+        return regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
+    }
 
-        findCollision:
-        {
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if ((entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) && entity != player.playerVehicle) {
-                    if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
-                        hasHardCollision = true;
-                        break findCollision;
-                    }
-                }
+    private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            if ((entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) && entity != player.playerVehicle &&
+                    entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                return true;
             }
+        }
 
-            // Stiders can walk on top of other striders
-            if (player.playerVehicle instanceof PacketEntityStrider) {
-                for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
-                    PacketEntity entity = entityPair.getValue();
-                    if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
-                        if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
-                            hasHardCollision = true;
-                            break findCollision;
-                        }
-                    }
-                }
-            }
+        return false;
+    }
 
-            // Boats can collide with quite literally anything
-            if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
-                for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
-                    PacketEntity entity = entityPair.getValue();
-                    if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())) {
-                        if (entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
-                            hasHardCollision = true;
-                            break findCollision;
-                        }
-                    }
+    private boolean striderCollision(SimpleCollisionBox expandedBB) {
+        // Stiders can walk on top of other striders
+        if (player.playerVehicle instanceof PacketEntityStrider) {
+            for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+                PacketEntity entity = entityPair.getValue();
+                if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())
+                        && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                    return true;
                 }
             }
         }
 
-        player.uncertaintyHandler.lastHardCollidingLerpingEntity--;
-        if (hasHardCollision) player.uncertaintyHandler.lastHardCollidingLerpingEntity = 0;
+        return false;
+    }
+
+    private boolean boatCollision(SimpleCollisionBox expandedBB) {
+        // Boats can collide with quite literally anything
+        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
+            for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
+                PacketEntity entity = entityPair.getValue();
+                if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey()) &&
+                        entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

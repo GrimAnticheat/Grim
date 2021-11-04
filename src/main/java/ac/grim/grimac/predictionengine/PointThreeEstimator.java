@@ -187,25 +187,7 @@ public class PointThreeEstimator {
         // The last tick determines whether the player is swimming for the next tick
         isNearFluid = player.compensatedWorld.containsLiquid(pointThreeBox);
 
-        // Check for flowing water
-        for (int bbX = GrimMath.floor(pointThreeBox.minX); bbX <= GrimMath.ceil(pointThreeBox.maxX); bbX++) {
-            for (int bbY = GrimMath.floor(pointThreeBox.minX); bbY <= GrimMath.ceil(pointThreeBox.maxX); bbY++) {
-                for (int bbZ = GrimMath.floor(pointThreeBox.minX); bbZ <= GrimMath.ceil(pointThreeBox.maxX); bbZ++) {
-                    Vector flow = FluidTypeFlowing.getFlow(player, bbX, bbY, bbZ);
-                    if (flow.getX() != 0 || flow.getZ() != 0) {
-                        isNearHorizontalFlowingLiquid = true;
-                    }
-                    if (flow.getY() != 0) {
-                        isNearVerticalFlowingLiquid = true;
-                    }
-
-                    Material mat = player.compensatedWorld.getBukkitMaterialAt(bbX, bbY, bbZ);
-                    if (Materials.checkFlag(player.compensatedWorld.getBukkitMaterialAt(bbX, bbY, bbZ), Materials.CLIMBABLE) || mat == Material.POWDER_SNOW) {
-                        isNearClimbable = true;
-                    }
-                }
-            }
-        }
+        checkNearbyBlocks(pointThreeBox);
 
         Integer levitationAmplifier = player.compensatedPotions.getLevitationAmplifier();
 
@@ -220,6 +202,38 @@ public class PointThreeEstimator {
         isGliding = player.isGliding;
         gravityChanged = false;
         wasAlwaysCertain = true;
+    }
+
+    private void checkNearbyBlocks(SimpleCollisionBox pointThreeBox) {
+        // Reset variables
+        isNearHorizontalFlowingLiquid = false;
+        isNearVerticalFlowingLiquid = false;
+        isNearClimbable = false;
+        isNearBubbleColumn = false;
+
+        // Check for flowing water
+        for (int bbX = GrimMath.floor(pointThreeBox.minX); bbX <= GrimMath.ceil(pointThreeBox.maxX); bbX++) {
+            for (int bbY = GrimMath.floor(pointThreeBox.minY); bbY <= GrimMath.ceil(pointThreeBox.maxY); bbY++) {
+                for (int bbZ = GrimMath.floor(pointThreeBox.minZ); bbZ <= GrimMath.ceil(pointThreeBox.maxZ); bbZ++) {
+                    Vector flow = FluidTypeFlowing.getFlow(player, bbX, bbY, bbZ);
+                    if (flow.getX() != 0 || flow.getZ() != 0) {
+                        isNearHorizontalFlowingLiquid = true;
+                    }
+                    if (flow.getY() != 0) {
+                        isNearVerticalFlowingLiquid = true;
+                    }
+
+                    Material mat = player.compensatedWorld.getBukkitMaterialAt(bbX, bbY, bbZ);
+                    if (Materials.checkFlag(player.compensatedWorld.getBukkitMaterialAt(bbX, bbY, bbZ), Materials.CLIMBABLE) || mat == Material.POWDER_SNOW) {
+                        isNearClimbable = true;
+                    }
+
+                    if (mat == Material.BUBBLE_COLUMN) {
+                        isNearBubbleColumn = true;
+                    }
+                }
+            }
+        }
     }
 
     public void determineCanSkipTick(float speed, Set<VectorData> init) {
@@ -248,23 +262,42 @@ public class PointThreeEstimator {
         player.couldSkipTick = minimum < 0.03;
     }
 
-    public double getAdditionalVerticalUncertainty(Vector vector) {
+    public double getHorizontalFluidPushingUncertainty(VectorData vector) {
+        // We don't know if the player was in the water because of zero point fucking three
+        return isNearHorizontalFlowingLiquid && vector.isZeroPointZeroThree() ? 0.014 : 0;
+    }
+
+    public double getVerticalFluidPushingUncertainty(VectorData vector) {
+        // We don't know if the player was in the water because of zero point fucking three
+        return isNearVerticalFlowingLiquid && vector.isZeroPointZeroThree() ? 0.014 : 0;
+    }
+
+    public double getVerticalBubbleUncertainty(VectorData vectorData) {
+        return isNearBubbleColumn && vectorData.isZeroPointZeroThree() ? 0.35 : 0;
+    }
+
+    public double getAdditionalVerticalUncertainty(VectorData vector) {
+        double fluidAddition = vector.isZeroPointZeroThree() ? 0.014 : 0;
+
         if (headHitter) {
             wasAlwaysCertain = false;
             // Head hitters return the vector to 0, and then apply gravity to it.
             // Not much room for abuse for this, so keep it lenient
-            return -Math.max(0, vector.getY()) - 0.1;
+            return -Math.max(0, vector.vector.getY()) - 0.1 - fluidAddition;
         } else if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
             wasAlwaysCertain = false;
             // This shouldn't be needed but stuck speed can desync very easily with 0.03...
             // Especially now that both sweet berries and cobwebs are affected by stuck speed and overwrite each other
-            return -0.1;
+            return -0.1 - fluidAddition;
         }
+
+        // The player couldn't have skipped their Y tick here... no point to simulate (and stop a bypass)
+        if (!vector.isZeroPointZeroThree()) return 0;
 
         double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) ? 0.003 : 0.005;
 
-        // Use the
-        double yVel = vector.getY();
+        // This should likely be refactored, but it works well.
+        double yVel = vector.vector.getY();
         double maxYTraveled = 0;
         boolean first = true;
         do {
@@ -282,7 +315,7 @@ public class PointThreeEstimator {
 
             // We aren't making progress, avoid infinite loop (This can be due to the player not having gravity)
             if (yVel == 0) break;
-        } while (Math.abs(maxYTraveled + vector.getY()) < 0.03);
+        } while (Math.abs(maxYTraveled + vector.vector.getY()) < 0.03);
 
         if (maxYTraveled != 0) {
             wasAlwaysCertain = false;
@@ -292,7 +325,7 @@ public class PointThreeEstimator {
         return maxYTraveled;
     }
 
-    public double iterateGravity(GrimPlayer player, double y) {
+    private double iterateGravity(GrimPlayer player, double y) {
         if (player.compensatedPotions.getLevitationAmplifier() != null) {
             // This supports both positive and negative levitation
             y += (0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1) - y * 0.2);
