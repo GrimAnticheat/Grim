@@ -178,36 +178,31 @@ public class PredictionEngine {
 
     // 0.03 has some quite bad interactions with velocity + explosions (one extremely stupid line of code... thanks mojang)
     private void addZeroPointThreeToPossibilities(float speed, GrimPlayer player, List<VectorData> possibleVelocities) {
-        Set<VectorData> zeroStuff = new HashSet<>();
+        Set<VectorData> pointThreePossibilities = new HashSet<>();
 
-        // Allow the player's Y velocity to be 0 if they are in water/lava (0.03 issue)
+        // For now just let the player control their Y velocity within 0.03.  Gravity should stop exploits.
+        // 0.03 - 0.784 < -0.03 = can't skip next tick
         Vector pointThreeVector = new Vector();
-        if (!player.pointThreeEstimator.controlsVerticalMovement())
-            pointThreeVector.setY(player.clientVelocity.getY() * player.stuckSpeedMultiplier.getY());
 
-        VectorData zeroData = new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree);
-        zeroStuff.add(zeroData);
+        pointThreePossibilities.add(new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree));
 
+        // Swim hop
+        if (player.canSwimHop && !player.onGround) { // onGround can still be used here, else generic 0.03
+            pointThreePossibilities.add(new VectorData(new Vector(0, 0.3, 0), VectorData.VectorType.ZeroPointZeroThree));
+        }
+        // Climbing
+        if (player.lastWasClimbing != 0) { // climbing horizontal stuff can be strange, sometimes, with 0.03
+            pointThreePossibilities.add(new VectorData(new Vector(0, player.lastWasClimbing, 0), VectorData.VectorType.ZeroPointZeroThree));
+        }
+
+        // Swimming vertically can add more Y velocity than normal
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
-            zeroStuff = PredictionEngineWater.transformSwimmingVectors(player, zeroStuff);
+            pointThreePossibilities = PredictionEngineWater.transformSwimmingVectors(player, pointThreePossibilities);
         }
-
-        Set<VectorData> jumpingPossibility = new HashSet<>();
-        jumpingPossibility.add(new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree));
-
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
-            jumpingPossibility = PredictionEngineWater.transformSwimmingVectors(player, jumpingPossibility);
-        }
-
-        addJumpsToPossibilities(player, jumpingPossibility);
-        // Secure the ability to get predicted a new vector by forcing the player to be able to jump here
-        // Adding jumps to possibilities is a secure method
-        if (jumpingPossibility.size() > 1) {
-            zeroStuff.addAll(jumpingPossibility);
-        }
-
-        addExplosionRiptideToPossibilities(player, zeroStuff);
-        possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, zeroStuff, speed));
+        // This is a secure method to add jumping vectors to this list
+        addJumpsToPossibilities(player, pointThreePossibilities);
+        addExplosionRiptideToPossibilities(player, pointThreePossibilities);
+        possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, pointThreePossibilities, speed));
     }
 
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
@@ -252,27 +247,40 @@ public class PredictionEngine {
     }
 
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
+        // Swim hop, riptide bounce, climbing, slime block bounces, knockback
         Set<VectorData> velocities = player.getPossibleVelocities();
-
+        // Packet stuff is done first
         addExplosionRiptideToPossibilities(player, velocities);
+        // Inputs are done before player ticking
+        addAttackSlowToPossibilities(player, velocities);
+        // Fluid pushing is done BEFORE 0.003
+        addFluidPushingToStartingVectors(player, velocities);
+        // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
+        applyMovementThreshold(player, velocities);
+        addJumpsToPossibilities(player, velocities);
 
-        Set<VectorData> velocitiesToReturn = new HashSet<>(velocities);
+        return velocities;
+    }
 
+    private void addAttackSlowToPossibilities(GrimPlayer player, Set<VectorData> velocities) {
         for (int x = 1; x <= player.maxPlayerAttackSlow; x++) {
-            for (VectorData data : new HashSet<>(velocitiesToReturn)) {
-                velocitiesToReturn.add(data.returnNewModified(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
+            for (VectorData data : new HashSet<>(velocities)) {
+                velocities.add(data.returnNewModified(data.vector.clone().multiply(new Vector(0.6, 1, 0.6)), VectorData.VectorType.AttackSlow));
             }
         }
+    }
 
-        // Fluid pushing is done AFTER 0.003
-        addFluidPushingToStartingVectors(player, velocitiesToReturn);
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+    }
 
-        // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
+    // Renamed from applyPointZeroZeroThree to avoid confusion with applyZeroPointZeroThree
+    public void applyMovementThreshold(GrimPlayer player, Set<VectorData> velocities) {
         double minimumMovement = 0.003D;
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8)) {
             minimumMovement = 0.005D;
+        }
 
-        for (VectorData vector : velocitiesToReturn) {
+        for (VectorData vector : velocities) {
             if (Math.abs(vector.vector.getX()) < minimumMovement) {
                 vector.vector.setX(0D);
             }
@@ -285,13 +293,6 @@ public class PredictionEngine {
                 vector.vector.setZ(0D);
             }
         }
-
-        addJumpsToPossibilities(player, velocitiesToReturn);
-
-        return velocitiesToReturn;
-    }
-
-    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
     }
 
     public void addExplosionRiptideToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
@@ -359,7 +360,7 @@ public class PredictionEngine {
         return Double.compare(a.vector.distanceSquared(player.actualMovement), b.vector.distanceSquared(player.actualMovement));
     }
 
-    private Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector, Vector targetVec) {
+    public Vector handleStartingVelocityUncertainty(GrimPlayer player, VectorData vector, Vector targetVec) {
         double avgColliding = GrimMath.calculateAverage(player.uncertaintyHandler.collidingEntities);
 
         double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
