@@ -79,9 +79,6 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     private void check(PositionUpdate update) {
-        // Note this before any updates
-        boolean byGround = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
-
         player.uncertaintyHandler.stuckOnEdge--;
         player.uncertaintyHandler.lastStuckEast--;
         player.uncertaintyHandler.lastStuckWest--;

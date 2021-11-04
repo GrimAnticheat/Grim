@@ -64,7 +64,7 @@ public class PredictionEngine {
 
         // Client velocity - before collision and carried into the next tick
         // Predicted velocity - after collision and not carried into the next tick
-        new MovementTickerPlayer(player).move(player.clientVelocity, player.predictedVelocity.vector);
+        new MovementTickerPlayer(player).move(player.clientVelocity.clone(), player.predictedVelocity.vector);
         endOfTick(player, player.gravity, player.friction);
     }
 
