@@ -425,7 +425,7 @@ public class PlayerBaseTick {
                     if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
                         fluidHeight = Math.min(fluidHeight, 8 / 9D);
 
-                    if (fluidHeight == 0 || (fluidHeightToWorld = (float) y + fluidHeight) < aABB.minY)
+                    if (fluidHeight == 0 || (fluidHeightToWorld = y + fluidHeight) < aABB.minY)
                         continue;
 
                     hasTouched = true;
@@ -445,7 +445,7 @@ public class PlayerBaseTick {
 
         if (vec3.lengthSquared() > 0.0) {
             if (n7 > 0) {
-                vec3 = vec3.multiply(1.0 / (double) n7);
+                vec3 = vec3.multiply(1.0 / n7);
             }
 
             if (player.inVehicle) {
@@ -458,9 +458,8 @@ public class PlayerBaseTick {
                 // Store the vector before handling 0.003, so knockback can use it
                 player.baseTickAddWaterPushing(vec3);
 
-                Vector vec33 = player.clientVelocity.clone();
                 vec3 = vec3.multiply(multiplier);
-                if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
+                if (Math.abs(player.clientVelocity.getX()) < 0.003 && Math.abs(player.clientVelocity.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
                     vec3 = vec3.normalize().multiply(0.0045000000000000005);
                 }
 

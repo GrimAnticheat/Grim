@@ -26,8 +26,6 @@ public class FluidTypeFlowing {
     private static final Material SEA_LANTERN = XMaterial.SEA_LANTERN.parseMaterial();
     private static final Material CONDUIT = XMaterial.CONDUIT.parseMaterial();
 
-    private static final Material LILY_PAD = XMaterial.LILY_PAD.parseMaterial();
-
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
         ClientVersion version = player.getClientVersion();
