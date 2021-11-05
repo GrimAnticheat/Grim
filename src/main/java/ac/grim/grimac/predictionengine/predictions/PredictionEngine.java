@@ -184,6 +184,13 @@ public class PredictionEngine {
         // 0.03 - 0.784 < -0.03 = can't skip next tick
         Vector pointThreeVector = new Vector();
 
+        // Stop a bypass (and fix falses) by carrying over the player's current velocity IF they couldn't have modified it
+        if (!player.pointThreeEstimator.controlsVerticalMovement()) {
+            pointThreeVector.setY(player.clientVelocity.getY());
+        } else { // Carry over the current Y velocity to try and help with gravity issues
+            pointThreePossibilities.add(new VectorData(new Vector(0, player.clientVelocity.getY(), 0), VectorData.VectorType.ZeroPointZeroThree));
+        }
+
         pointThreePossibilities.add(new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree));
 
         // Swim hop
