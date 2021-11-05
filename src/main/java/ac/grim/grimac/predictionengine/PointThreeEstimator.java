@@ -150,11 +150,8 @@ public class PointThreeEstimator {
         return !gravityChanged && !didLevitationChange;
     }
 
-    // This is left just in case 0.03 is abused vertically?  I don't see how it could be abused, so let's have the
-    // cheat developers have a go at it.  Returns true rather than calculates to reduce falses.
     public boolean controlsVerticalMovement() {
-        // isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding
-        return true;
+        return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding;
     }
 
     public void updatePlayerPotions(String potion, Integer level) {
