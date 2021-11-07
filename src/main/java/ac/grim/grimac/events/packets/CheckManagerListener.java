@@ -79,9 +79,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
             boolean nearGround = Collisions.collide(player, 0, -0.03, 0).getY() != -0.03;
-            if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && !nearGround && player.clientVelocity.getY() < 0.03) {
+            if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && nearGround && player.clientVelocity.getY() < 0.03) {
                 player.lastOnGround = true;
-                player.uncertaintyHandler.wasLastOnGroundUncertain = true;
+                player.uncertaintyHandler.onGroundUncertain = true;
                 player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
                 player.clientClaimsLastOnGround = true;
             }
