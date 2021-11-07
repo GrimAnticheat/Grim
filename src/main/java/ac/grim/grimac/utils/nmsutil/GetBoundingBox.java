@@ -25,7 +25,7 @@ public class GetBoundingBox {
     // Size shifting on 1.14+ (19w12a): 0.6 width 1.5 height
     // Size while gliding/swimming: 0.6 width 0.6 height
     // Size while sleeping: 0.2 width 0.2 height
-    private static SimpleCollisionBox getPlayerBoundingBox(GrimPlayer player, double centerX, double minY, double centerZ) {
+    public static SimpleCollisionBox getPlayerBoundingBox(GrimPlayer player, double centerX, double minY, double centerZ) {
         double width = player.pose.width;
         double height = player.pose.height;
 
