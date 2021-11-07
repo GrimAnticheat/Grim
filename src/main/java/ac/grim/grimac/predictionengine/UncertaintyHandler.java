@@ -41,7 +41,7 @@ public class UncertaintyHandler {
     public boolean wasZeroPointThreeVertically = false;
     public EvictingList<Double> slimeBlockUpwardsUncertainty = new EvictingList<>(2);
     // The player landed while jumping but without new position information because of 0.03
-    public boolean wasLastOnGroundUncertain = false;
+    public boolean onGroundUncertain = false;
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
     public boolean lastPacketWasGroundPacket = false;
     // Marks previous lastPacketWasGroundPacket from last tick
