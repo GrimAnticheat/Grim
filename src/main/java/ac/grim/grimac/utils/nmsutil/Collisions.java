@@ -91,30 +91,8 @@ public class Collisions {
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
             // 0.03 movement must compensate for stepping elsewhere.  Too much of a hack to include in this method.
-            //
-            // This is a hack to avoid stepping messing with 0.03 mitigation. /tableflip
-            boolean movingIntoGround = clientVelY != Integer.MIN_VALUE && (player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0)));
+            boolean movingIntoGround = (player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0))) || player.pointThreeEstimator.closeEnoughToGroundToStepWithPointThree(data);
             double stepUpHeight = player.getMaxUpStep();
-
-            // This is intensive, only run it if we need it... compensate for stepping with 0.03
-            //
-            // This is technically wrong
-            // A player can 0.03 while stepping while slightly going off of the block, in order to not
-            // be vertically colliding (for 1.14+ clients only)
-            //
-            // To that I say... how the fuck do you even do that?
-            // Yes, it's possible, but slightly going off mainly occurs when going at high speeds
-            // and 0.03 when the player is barely moving
-            //
-            // This can cause falses in other parts of the anticheat, so it's better just to hope the
-            // player doesn't step AND 0.03 AND step off at the same time... (even if they do, other
-            // 0.03 mitigation systems MAY be able to fix this)
-            if (data != null && player.clientControlledVerticalCollision && !movingIntoGround) {
-                SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, 0.03, 0);
-                // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
-                Vector collide = collideBoundingBoxLegacy(new Vector(0, -0.2, 0), expandedBB, desiredMovementCollisionBoxes, order);
-                movingIntoGround = collide.getY() != -0.2;
-            }
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
             // If not, just return the collisions without stepping up that we calculated earlier
