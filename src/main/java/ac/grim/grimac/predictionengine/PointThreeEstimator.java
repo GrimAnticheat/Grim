@@ -237,6 +237,34 @@ public class PointThreeEstimator {
         }
     }
 
+    public boolean closeEnoughToGroundToStepWithPointThree(VectorData data) {
+        // This is intensive, only run it if we need it... compensate for stepping with 0.03
+        //
+        // This is technically wrong
+        // A player can 0.03 while stepping while slightly going off of the block, in order to not
+        // be vertically colliding (for 1.14+ clients only)
+        //
+        // To that I say... how the fuck do you even do that?
+        // Yes, it's possible, but slightly going off mainly occurs when going at high speeds
+        // and 0.03 when the player is barely moving
+        //
+        // This can cause falses in other parts of the anticheat, so it's better just to hope the
+        // player doesn't step AND 0.03 AND step off at the same time... (even if they do, other
+        // 0.03 mitigation systems MAY be able to fix this)
+        //
+        // I give up.
+        if (player.clientControlledVerticalCollision && data != null && data.isZeroPointZeroThree()) {
+            SimpleCollisionBox playerBox = player.boundingBox;
+            player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, 0.03, 0);
+            // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
+            Vector collisionResult = Collisions.collide(player, 0, -0.2, 0);
+            player.boundingBox = playerBox;
+            return collisionResult.getY() != -0.2;
+        }
+
+        return false;
+    }
+
     // This method can be improved by using the actual movement to see if 0.03 was feasible...
     public void determineCanSkipTick(float speed, Set<VectorData> init) {
         // Determine if the player can make an input below 0.03
