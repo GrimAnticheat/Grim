@@ -263,12 +263,14 @@ public class PointThreeEstimator {
 
     public double getHorizontalFluidPushingUncertainty(VectorData vector) {
         // We don't know if the player was in the water because of zero point fucking three
-        return isNearHorizontalFlowingLiquid && vector.isZeroPointZeroThree() ? 0.014 : 0;
+        // End of tick and start of tick can double this fluid motion, so we need to double it
+        return isNearHorizontalFlowingLiquid && vector.isZeroPointZeroThree() ? 0.014 * 2 : 0;
     }
 
     public double getVerticalFluidPushingUncertainty(VectorData vector) {
         // We don't know if the player was in the water because of zero point fucking three
-        return isNearVerticalFlowingLiquid && vector.isZeroPointZeroThree() ? 0.014 : 0;
+        // End of tick and start of tick can double this fluid motion, so we need to double it
+        return isNearVerticalFlowingLiquid && vector.isZeroPointZeroThree() ? 0.014 * 2 : 0;
     }
 
     public double getVerticalBubbleUncertainty(VectorData vectorData) {
