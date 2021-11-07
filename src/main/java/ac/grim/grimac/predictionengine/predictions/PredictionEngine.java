@@ -551,13 +551,6 @@ public class PredictionEngine {
         if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT)
             return false;
 
-        // This uses the new bounding box
-        boolean canCollideHorizontally = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8).expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -0.01, 0.5));
-
-        if (!canCollideHorizontally)
-            return false;
-
         // Vanilla system ->
         // Requirement 1 - The player must be in water or lava
         // Requirement 2 - The player must have X position + X movement, Y position + Y movement - Y position before tick + 0.6, Z position + Z movement have no collision
@@ -579,9 +572,12 @@ public class PredictionEngine {
 
         SimpleCollisionBox oldBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6, 1.8);
 
-        // This uses the old bounding box
-        // (Water/lava checked before movement)
-        return player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1));
+        if (!player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1))) return false;
+
+        boolean canCollideHorizontally = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8).expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
+
+        return canCollideHorizontally;
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
