@@ -98,7 +98,7 @@ public class PredictionEngine {
             if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
                 continue;
 
-            Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY());
+            Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY(), clientVelAfterInput);
 
             if (testX == outputVel.getX()) { // the player didn't have X collision, don't ruin offset by collision epsilon
                 primaryPushMovement.setX(primaryPushMovement.getX() - xAdditional);
