@@ -91,7 +91,9 @@ public class Collisions {
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
             // 0.03 movement must compensate for stepping elsewhere.  Too much of a hack to include in this method.
-            boolean movingIntoGround = player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0));
+            //
+            // This is a hack to avoid stepping messing with 0.03 mitigation. /tableflip
+            boolean movingIntoGround = clientVelY != Integer.MIN_VALUE && (player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0)));
             double stepUpHeight = player.getMaxUpStep();
 
             // This is intensive, only run it if we need it... compensate for stepping with 0.03

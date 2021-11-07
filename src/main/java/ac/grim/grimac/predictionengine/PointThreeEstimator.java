@@ -242,12 +242,17 @@ public class PointThreeEstimator {
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
 
+        // Fixes an issue where 0.03 causes an issue with 0.03 mitigation because slightly moving the player
+        // -_- this game sucks
+        SimpleCollisionBox oldPlayerBox = player.boundingBox;
+        player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03);
+
         // Takes 0.01 millis, on average, to compute... this should be improved eventually
         for (VectorData data : init) {
             // Try to get the vector as close to zero as possible to give the best chance at 0.03...
             Vector toZeroVec = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector());
             // Collide to handle mostly gravity, but other scenarios similar to this.
-            Vector collisionResult = Collisions.collide(player, toZeroVec.getX(), toZeroVec.getY(), toZeroVec.getZ());
+            Vector collisionResult = Collisions.collide(player, toZeroVec.getX(), toZeroVec.getY(), toZeroVec.getZ(), Integer.MIN_VALUE, null);
 
             double minHorizLength = Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed;
             double length = Math.abs(collisionResult.getY()) + Math.max(0, minHorizLength);
@@ -256,6 +261,8 @@ public class PointThreeEstimator {
 
             if (minimum < 0.03) break;
         }
+
+        player.boundingBox = oldPlayerBox;
 
         // As long as we are mathematically correct here, this should be perfectly accurate
         player.couldSkipTick = minimum < 0.03;
