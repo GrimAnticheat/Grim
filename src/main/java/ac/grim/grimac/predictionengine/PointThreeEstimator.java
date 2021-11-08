@@ -271,6 +271,11 @@ public class PointThreeEstimator {
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
 
+        if (isNearClimbable()) { // Due to skipping ticks, and 0.03, sneaking can get hidden on ladders...
+            player.couldSkipTick = true;
+            return;
+        }
+
         // Fixes an issue where 0.03 causes an issue with 0.03 mitigation because slightly moving the player
         // -_- this game sucks
         SimpleCollisionBox oldPlayerBox = player.boundingBox;
