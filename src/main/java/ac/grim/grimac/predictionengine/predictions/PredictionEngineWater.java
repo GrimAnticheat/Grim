@@ -60,8 +60,8 @@ public class PredictionEngineWater extends PredictionEngine {
 
     @Override
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
-        // "hacky" climbing where player enters ladder within 0.03 movement
-        if (player.lastWasClimbing == 0 && player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+        // "hacky" climbing where player enters ladder within 0.03 movement (WHY THE FUCK DOES 0.03 EXIST???)
+        if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
             player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
         }

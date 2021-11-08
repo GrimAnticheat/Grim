@@ -86,6 +86,7 @@ public class PointThreeEstimator {
     // If the player was within 0.03 of water between now and the last movement
     private boolean isNearFluid = false;
     // If a player places a ladder in a worldguard region etc.
+    @Getter
     private boolean isNearClimbable = false;
     // If a player stops and star gliding all within 0.03
     private boolean isGliding = false;
