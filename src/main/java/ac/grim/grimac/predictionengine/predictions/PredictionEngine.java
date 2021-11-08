@@ -197,10 +197,6 @@ public class PredictionEngine {
         if (player.canSwimHop && !player.onGround) { // onGround can still be used here, else generic 0.03
             pointThreePossibilities.add(new VectorData(new Vector(0, 0.3, 0), VectorData.VectorType.ZeroPointZeroThree));
         }
-        // Climbing
-        if (player.lastWasClimbing != 0) { // climbing horizontal stuff can be strange, sometimes, with 0.03
-            pointThreePossibilities.add(new VectorData(new Vector(0, player.lastWasClimbing, 0), VectorData.VectorType.ZeroPointZeroThree));
-        }
 
         // Swimming vertically can add more Y velocity than normal
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
