@@ -397,6 +397,10 @@ public class GrimPlayer {
         return this.fluidOnEyes == tag;
     }
 
+    public double getEyeHeight() {
+        return GetBoundingBox.getEyeHeight(isCrouching, isGliding, isSwimming, isRiptidePose, isInBed, getClientVersion());
+    }
+
     public Pose getSneakingPose() {
         return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
     }

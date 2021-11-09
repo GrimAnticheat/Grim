@@ -7,10 +7,19 @@ import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
+import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
+import ac.grim.grimac.utils.collisions.CollisionData;
+import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.Ray;
+import ac.grim.grimac.utils.nmsutil.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -26,6 +35,11 @@ import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.BiFunction;
 
 public class CheckManagerListener extends PacketListenerAbstract {
 
@@ -33,6 +47,77 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
+    }
+
+    // Copied from MCP...
+    // Returns null if there isn't anything.
+    //
+    // I do have to admit that I'm starting to like bifunctions/new java 8 things more than I originally did.
+    // although I still don't understand Mojang's obsession with streams in some of the hottest methods... that kills performance
+    static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<BaseBlockState, Vector3i, HitData> predicate) {
+        // I guess go back by the collision epsilon?
+        double endX = GrimMath.lerp(-1.0E-7D, end.x, start.x);
+        double endY = GrimMath.lerp(-1.0E-7D, end.y, start.y);
+        double endZ = GrimMath.lerp(-1.0E-7D, end.z, start.z);
+        double startX = GrimMath.lerp(-1.0E-7D, start.x, end.x);
+        double startY = GrimMath.lerp(-1.0E-7D, start.y, end.y);
+        double startZ = GrimMath.lerp(-1.0E-7D, start.z, end.z);
+        int floorStartX = GrimMath.floor(startX);
+        int floorStartY = GrimMath.floor(startY);
+        int floorStartZ = GrimMath.floor(startZ);
+
+
+        if (start.equals(end)) return null;
+
+        BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(floorStartX, floorStartY, floorStartZ);
+        HitData apply = predicate.apply(state, new Vector3i(floorStartX, floorStartY, floorStartZ));
+
+        if (apply != null) {
+            return apply;
+        }
+
+        double xDiff = endX - startX;
+        double yDiff = endY - startY;
+        double zDiff = endZ - startZ;
+        int xSign = GrimMath.sign(xDiff);
+        int ySign = GrimMath.sign(yDiff);
+        int zSign = GrimMath.sign(zDiff);
+
+        double posXInverse = xSign == 0 ? Double.MAX_VALUE : xSign / xDiff;
+        double posYInverse = ySign == 0 ? Double.MAX_VALUE : ySign / yDiff;
+        double posZInverse = zSign == 0 ? Double.MAX_VALUE : zSign / zDiff;
+
+        double d12 = posXInverse * (xSign > 0 ? 1.0D - GrimMath.frac(startX) : GrimMath.frac(startX));
+        double d13 = posYInverse * (ySign > 0 ? 1.0D - GrimMath.frac(startY) : GrimMath.frac(startY));
+        double d14 = posZInverse * (zSign > 0 ? 1.0D - GrimMath.frac(startZ) : GrimMath.frac(startZ));
+
+        // Can't figure out what this code does currently
+        while (d12 <= 1.0D || d13 <= 1.0D || d14 <= 1.0D) {
+            if (d12 < d13) {
+                if (d12 < d14) {
+                    floorStartX += xSign;
+                    d12 += posXInverse;
+                } else {
+                    floorStartZ += zSign;
+                    d14 += posZInverse;
+                }
+            } else if (d13 < d14) {
+                floorStartY += ySign;
+                d13 += posYInverse;
+            } else {
+                floorStartZ += zSign;
+                d14 += posZInverse;
+            }
+
+            state = player.compensatedWorld.getWrappedBlockStateAt(floorStartX, floorStartY, floorStartZ);
+            apply = predicate.apply(state, new Vector3i(floorStartX, floorStartY, floorStartZ));
+
+            if (apply != null) {
+                return apply;
+            }
+        }
+
+        return null;
     }
 
     @Override
@@ -150,7 +235,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
             Vector3i blockPosition = place.getBlockPosition();
             Direction face = place.getDirection();
-
+            // TODO: Support offhand!
             ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             Material material = transformMaterial(placedWith);
             BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material);
@@ -159,6 +244,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
                 Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
                 player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
+                return;
+            }
+
+            // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
+            if (material == XMaterial.LILY_PAD.parseMaterial()) {
+                placeLilypad(player, blockPlace);
                 return;
             }
 
@@ -174,6 +265,37 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Call the packet checks last as they can modify the contents of the packet
         // Such as the NoFall check setting the player to not be on the ground
         player.checkManager.onPacketReceive(event);
+    }
+
+    private void placeWaterLavaSnowBucket(GrimPlayer player, BlockPlace blockPlace) {
+        HitData data = getNearestHitResult(player, false);
+    }
+
+    private void placeBucket(GrimPlayer player, BlockPlace blockPlace) {
+        HitData data = getNearestHitResult(player, true);
+
+    }
+
+    private void placeScaffolding(GrimPlayer player, BlockPlace blockPlace) {
+        HitData data = getNearestHitResult(player, false);
+
+    }
+
+    private void placeLilypad(GrimPlayer player, BlockPlace blockPlace) {
+        HitData data = getNearestHitResult(player, true);
+        if (data != null) {
+            // A lilypad cannot replace a fluid
+            if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
+                return;
+            // We checked for a full fluid block below here.
+            if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
+                    || data.getState().getMaterial() == Material.ICE || data.getState().getMaterial() == Material.FROSTED_ICE) {
+                Vector3i pos = data.getPosition().clone();
+                pos.setY(pos.getY() + 1);
+
+                blockPlace.set(pos, BlockStateHelper.create(blockPlace.getMaterial()));
+            }
+        }
     }
 
     // For example, placing seeds to place wheat
@@ -192,6 +314,45 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (stack.getType() == Material.REDSTONE) return Material.REDSTONE_WIRE;
 
         return stack.getType();
+    }
+
+    private HitData getNearestHitResult(GrimPlayer player, boolean waterSourcesHaveHitbox) {
+        // TODO: When we do this post-tick (fix desync) switch to lastX
+        Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
+        Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
+        Ray trace = new Ray(player, startingPos.getX(), startingPos.getY(), startingPos.getZ(), player.xRot, player.yRot);
+        Vector endVec = trace.getPointAtDistance(6);
+        Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
+
+        return traverseBlocks(player, startingPos, endPos, (block, vector3i) -> {
+            CollisionBox data = CollisionData.getData(block.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            List<SimpleCollisionBox> boxes = new ArrayList<>();
+            data.downCast(boxes);
+
+            double bestHitResult = Double.MAX_VALUE;
+            Vector bestHitLoc = null;
+            for (SimpleCollisionBox box : boxes) {
+                Vector hitLoc = box.intersectsRay(trace, 0, 6);
+                if (hitLoc != null && hitLoc.distanceSquared(startingVec) < bestHitResult) {
+                    bestHitResult = hitLoc.distanceSquared(startingVec);
+                    bestHitLoc = new Vector(hitLoc.getX() % 1, hitLoc.getY() % 1, hitLoc.getZ() % 1);
+                }
+            }
+            if (bestHitLoc != null) {
+                return new HitData(vector3i, bestHitLoc, block);
+            }
+
+            if (waterSourcesHaveHitbox && player.compensatedWorld.isWaterSourceBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ())) {
+                double waterHeight = player.compensatedWorld.getWaterFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
+                SimpleCollisionBox box = new SimpleCollisionBox(vector3i.getX(), vector3i.getY(), vector3i.getZ(), vector3i.getX() + 1, vector3i.getY() + waterHeight, vector3i.getZ() + 1);
+                Vector hitLoc = box.intersectsRay(trace, 0, 6);
+                if (hitLoc != null) {
+                    return new HitData(vector3i, new Vector(hitLoc.getX() % 1, hitLoc.getY() % 1, hitLoc.getZ() % 1), block);
+                }
+            }
+
+            return null;
+        });
     }
 
     @Override
