@@ -25,6 +25,27 @@ public class GrimMath {
         return Math.min(d, d3);
     }
 
+    public static double lerp(double lerpAmount, double start, double end) {
+        return start + lerpAmount * (end - start);
+    }
+
+    public static int sign(double p_14206_) {
+        if (p_14206_ == 0.0D) {
+            return 0;
+        } else {
+            return p_14206_ > 0.0D ? 1 : -1;
+        }
+    }
+
+    public static double frac(double p_14186_) {
+        return p_14186_ - lfloor(p_14186_);
+    }
+
+    public static long lfloor(double p_14135_) {
+        long i = (long) p_14135_;
+        return p_14135_ < (double) i ? i - 1L : i;
+    }
+
     // Find the closest distance to (1 / 64)
     // All poses horizontal length is 0.2 or 0.6 (0.1 or 0.3)
     // and we call this from the player's position

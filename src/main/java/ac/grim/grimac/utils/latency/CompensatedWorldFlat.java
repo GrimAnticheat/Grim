@@ -184,7 +184,12 @@ public class CompensatedWorldFlat extends CompensatedWorld {
             return ((Levelled) ((FlatBlockState) bukkitBlock).getBlockData()).getLevel() == 0;
         }
 
-        // These blocks are also considered source blocks
+        // Waterlogged blocks are always source blocks
+        if (Materials.isWater(player.getClientVersion(), bukkitBlock)) {
+            return true;
+        }
+
+        // These blocks are also considered source blocks (kelp, bubble column, etc.)
         return Materials.checkFlag(bukkitBlock.getMaterial(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? Materials.WATER_SOURCE : Materials.WATER_SOURCE_LEGACY);
     }
 

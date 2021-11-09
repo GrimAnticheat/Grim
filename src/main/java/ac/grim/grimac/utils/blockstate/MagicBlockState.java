@@ -2,11 +2,13 @@ package ac.grim.grimac.utils.blockstate;
 
 import ac.grim.grimac.utils.nmsutil.XMaterial;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import lombok.ToString;
 import org.bukkit.Material;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+@ToString
 public class MagicBlockState implements BaseBlockState {
     private static final Material air = XMaterial.AIR.parseMaterial();
     private static final Method getMaterialMethod;

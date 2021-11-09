@@ -1,9 +1,11 @@
 package ac.grim.grimac.utils.blockstate;
 
 import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
+import lombok.ToString;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 
+@ToString
 public class FlatBlockState implements BaseBlockState {
     BlockData blockData;
     int globalID;
