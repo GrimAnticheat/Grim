@@ -15,31 +15,10 @@ public class HitData {
     BaseBlockState state;
     BlockFace closestDirection;
 
-    public HitData(Vector3i position, Vector blockHitLocation, BaseBlockState state) {
+    public HitData(Vector3i position, Vector blockHitLocation, BlockFace closestDirection, BaseBlockState state) {
         this.position = position;
         this.blockHitLocation = blockHitLocation;
+        this.closestDirection = closestDirection;
         this.state = state;
-        closestDirection = getNearest(blockHitLocation.getX(), blockHitLocation.getY(), blockHitLocation.getZ());
-    }
-
-    private BlockFace getNearest(double x, double y, double z) {
-        return getNearest((float) x, (float) y, (float) z);
-    }
-
-    private BlockFace getNearest(float x, float y, float z) {
-        BlockFace direction = BlockFace.NORTH;
-        float f = Float.MIN_VALUE;
-
-        for (BlockFace direction1 : BlockFace.values()) {
-            if (!direction1.isCartesian()) continue;
-
-            float f1 = x * direction1.getModX() + y * direction1.getModY() + z * direction1.getModZ();
-            if (f1 > f) {
-                f = f1;
-                direction = direction1;
-            }
-        }
-
-        return direction;
     }
 }

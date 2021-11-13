@@ -3,17 +3,21 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import io.github.retrooper.packetevents.utils.pair.Pair;
+import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 public class ReachUtils {
-    // Copied from 1.8 nms, don't ask me what it does.
-    public static Vector calculateIntercept(SimpleCollisionBox self, Vector origin, Vector end) {
+    // Copied from 1.8... I couldn't figure out 1.14+. "Enterprise" java code is unreadable!
+    public static Pair<Vector, BlockFace> calculateIntercept(SimpleCollisionBox self, Vector origin, Vector end) {
         Vector minX = getIntermediateWithXValue(origin, end, self.minX);
         Vector maxX = getIntermediateWithXValue(origin, end, self.maxX);
         Vector minY = getIntermediateWithYValue(origin, end, self.minY);
         Vector maxY = getIntermediateWithYValue(origin, end, self.maxY);
         Vector minZ = getIntermediateWithZValue(origin, end, self.minZ);
         Vector maxZ = getIntermediateWithZValue(origin, end, self.maxZ);
+
+        BlockFace bestFace = null;
 
         if (!isVecInYZ(self, minX)) {
             minX = null;
@@ -43,29 +47,35 @@ public class ReachUtils {
 
         if (minX != null) {
             best = minX;
+            bestFace = BlockFace.WEST;
         }
 
         if (maxX != null && (best == null || origin.distanceSquared(maxX) < origin.distanceSquared(best))) {
             best = maxX;
+            bestFace = BlockFace.EAST;
         }
 
         if (minY != null && (best == null || origin.distanceSquared(minY) < origin.distanceSquared(best))) {
             best = minY;
+            bestFace = BlockFace.DOWN;
         }
 
         if (maxY != null && (best == null || origin.distanceSquared(maxY) < origin.distanceSquared(best))) {
             best = maxY;
+            bestFace = BlockFace.UP;
         }
 
         if (minZ != null && (best == null || origin.distanceSquared(minZ) < origin.distanceSquared(best))) {
             best = minZ;
+            bestFace = BlockFace.NORTH;
         }
 
         if (maxZ != null && (best == null || origin.distanceSquared(maxZ) < origin.distanceSquared(best))) {
             best = maxZ;
+            bestFace = BlockFace.SOUTH;
         }
 
-        return best;
+        return new Pair<>(best, bestFace);
     }
 
     /**

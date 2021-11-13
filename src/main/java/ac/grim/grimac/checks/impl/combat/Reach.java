@@ -160,7 +160,7 @@ public class Reach extends PacketCheck {
                     Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
                     Vector endReachPos = eyePos.clone().add(new Vector(lookVec.getX() * 6, lookVec.getY() * 6, lookVec.getZ() * 6));
 
-                    Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos);
+                    Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).getFirst();
 
                     if (ReachUtils.isVecInside(targetBox, eyePos)) {
                         minDistance = 0;
