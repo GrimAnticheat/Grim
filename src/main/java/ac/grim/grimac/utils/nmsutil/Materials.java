@@ -450,8 +450,14 @@ public class Materials {
     }
 
     public static boolean isPlaceableLiquidBucket(Material mat) {
-        return mat == AXOLOTL_BUCKET || mat == COD_BUCKET || mat == LAVA_BUCKET || mat == PUFFERFISH_BUCKET
+        return mat == AXOLOTL_BUCKET || mat == COD_BUCKET || mat == PUFFERFISH_BUCKET
                 || mat == SALMON_BUCKET || mat == TROPICAL_FISH_BUCKET || mat == WATER_BUCKET;
+    }
+
+    public static Material transformBucketMaterial(Material mat) {
+        if (mat == Material.LAVA_BUCKET) return Material.LAVA;
+        if (isPlaceableLiquidBucket(mat)) return Material.WATER;
+        return null;
     }
 
     // We are taking a shortcut here for the sake of speed and reducing world lookups

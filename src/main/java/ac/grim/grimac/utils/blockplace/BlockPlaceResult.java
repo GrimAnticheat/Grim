@@ -569,6 +569,32 @@ public enum BlockPlaceResult {
                     || mat.name().contains("SIGN")) // And signs
             .toArray(Material[]::new)),
 
+
+    GLOW_LICHEN((player, place) -> {
+        BlockData lichen = place.getExistingBlockBlockData();
+        Set<BlockFace> faces = lichen.getMaterial() == Material.GLOW_LICHEN ? ((GlowLichen) lichen).getFaces() : new HashSet<>();
+
+        for (BlockFace face : place.getNearestPlacingDirections()) {
+            // Face already exists.
+            if (faces.contains(face)) continue;
+
+            if (place.isFullFace(face)) {
+                faces.add(face);
+                break;
+            }
+        }
+
+        // Create fresh block data
+        GlowLichen toSet = (GlowLichen) Material.GLOW_LICHEN.createBlockData();
+
+        // Apply the new faces
+        for (BlockFace face : faces) {
+            toSet.setFace(face, faces.contains(face));
+        }
+
+        place.set(toSet);
+    }, XMaterial.GLOW_LICHEN.parseMaterial()),
+
     FACE_ATTACHED_HORIZONTAL_DIRECTIONAL((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
             if (place.isFullFace(face)) {
@@ -577,8 +603,7 @@ public enum BlockPlaceResult {
             }
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BUTTON") // Find all buttons
-                    || mat.name().contains("LEVER") // And levers
-                    || mat.name().contains("LICHEN")) // Add lichen too
+                    || mat.name().contains("LEVER")) // And levers
             .toArray(Material[]::new)),
 
     GRINDSTONE((player, place) -> { // Grindstones do not have special survivability requirements

@@ -19,6 +19,7 @@ import ac.grim.grimac.utils.nmsutil.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -31,7 +32,9 @@ import java.util.List;
 
 public class BlockPlace {
     private static final BlockFace[] BY_2D = new BlockFace[]{BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
+    @Setter
     Vector3i blockPosition;
+    @Setter
     Direction face;
     private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
     boolean isCancelled = false;
@@ -464,6 +467,7 @@ public class BlockPlace {
         return isCancelled;
     }
 
+    // TODO: "Replaceable" needs to be supported
     public Vector3i getPlacedBlockPos() {
         int x = blockPosition.getX() + getNormalBlockFace().getX();
         int y = blockPosition.getY() + getNormalBlockFace().getY();
@@ -501,6 +505,7 @@ public class BlockPlace {
         set(blockPos, state);
     }
 
+    // TODO: Check if replaceable
     public void set(Vector3i position, BaseBlockState state) {
         if (state instanceof FlatBlockState) {
             Bukkit.broadcastMessage("Placed " + ((FlatBlockState) state).getBlockData().getAsString(false));

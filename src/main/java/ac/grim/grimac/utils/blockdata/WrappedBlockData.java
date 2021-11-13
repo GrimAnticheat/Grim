@@ -377,6 +377,19 @@ public enum WrappedBlockData {
         }
     }, XMaterial.SNOW.parseMaterial()),
 
+    AGEABLE(new WrappedAgeable() {
+        public void getWrappedData(FlatBlockState data) {
+            Ageable ageable = (Ageable) data.getBlockData();
+            setAge(ageable.getAge());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            setAge(data.getBlockData());
+        }
+    }, XMaterial.BEETROOT.parseMaterial(), XMaterial.CARROT.parseMaterial(), XMaterial.POTATO.parseMaterial(),
+            XMaterial.WHEAT.parseMaterial(), XMaterial.NETHER_WART.parseMaterial(),
+            XMaterial.PUMPKIN_STEM.parseMaterial(), XMaterial.MELON_STEM.parseMaterial()),
+
     FRAME(new WrappedFrame() {
         public void getWrappedData(FlatBlockState data) {
             EndPortalFrame frame = (EndPortalFrame) data.getBlockData();
@@ -566,7 +579,17 @@ public enum WrappedBlockData {
         }
     }, XMaterial.LEVER.parseMaterial()),
 
-    TRIPWIRE(new WrappedDirectionalPower() {
+    TRIPWIRE(new WrappedTripwire() {
+        public void getWrappedData(FlatBlockState data) {
+            setAttached(((TripwireHook) data.getBlockData()).isAttached());
+        }
+
+        public void getWrappedData(MagicBlockState data) {
+            setAttached((data.getBlockData() & 0x4) == 0x4);
+        }
+    }, XMaterial.TRIPWIRE.parseMaterial()),
+
+    TRIPWIRE_HOOK(new WrappedDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {
             setDirection(((Directional) data.getBlockData()).getFacing());
             setPowered(((Redstone) data.getBlockData()).isPowered());
@@ -928,7 +951,8 @@ public enum WrappedBlockData {
             XMaterial.POINTED_DRIPSTONE.parseMaterial(), XMaterial.AMETHYST_CLUSTER.parseMaterial(),
             XMaterial.POWDER_SNOW.parseMaterial(), XMaterial.SMALL_AMETHYST_BUD.parseMaterial(),
             XMaterial.MEDIUM_AMETHYST_BUD.parseMaterial(), XMaterial.LARGE_AMETHYST_BUD.parseMaterial(),
-            XMaterial.CANDLE.parseMaterial(), XMaterial.LAVA.parseMaterial()), // Lava is only solid on 1.16+
+            XMaterial.CANDLE.parseMaterial(), XMaterial.LAVA.parseMaterial(),
+            XMaterial.ATTACHED_MELON_STEM.parseMaterial(), XMaterial.ATTACHED_PUMPKIN_STEM.parseMaterial()), // Lava is only solid on 1.16+
 
 
     NO_DATA(new WrappedBlockDataValue(), XMaterial.AIR.parseMaterial());
