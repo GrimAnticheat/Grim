@@ -9,7 +9,7 @@ import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
-import ac.grim.grimac.utils.collisions.CollisionData;
+import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
@@ -34,6 +34,8 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.bukkit.Material;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -231,6 +233,45 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.receivedSteerVehicle = false;
         }
 
+        // Check for interactable first (door, etc)
+        // TODO: Buttons and other interactables (they would block the player from placing another block)
+        if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId()) && !player.isSneaking) {
+            WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
+            Vector3i blockPosition = place.getBlockPosition();
+            BlockPlace blockPlace = new BlockPlace(player, blockPosition, null, null);
+
+            // Right-clicking a trapdoor/door/etc.
+            if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
+                Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
+                player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
+                return;
+            }
+        }
+
+        if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
+            WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
+
+            // TODO: Support offhand!
+            ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+            Material material = transformMaterial(placedWith);
+            BlockPlace blockPlace = new BlockPlace(player, null, null, material);
+
+            // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
+            if (material == XMaterial.LILY_PAD.parseMaterial()) {
+                placeLilypad(player, blockPlace); // Pass a block place because lily pads have a hitbox
+                return;
+            }
+
+            Material toBucketMat = Materials.transformBucketMaterial(material);
+            if (toBucketMat != null) {
+                placeWaterLavaSnowBucket(player, blockPlace, toBucketMat);
+            }
+
+            if (material == Material.BUCKET) {
+                placeBucket(player, blockPlace);
+            }
+        }
+
         if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId())) {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
             Vector3i blockPosition = place.getBlockPosition();
@@ -239,19 +280,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             Material material = transformMaterial(placedWith);
             BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material);
-
-            // Right-clicking a trapdoor/door/etc.
-            if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
-                Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
-                player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
-                return;
-            }
-
-            // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
-            if (material == XMaterial.LILY_PAD.parseMaterial()) {
-                placeLilypad(player, blockPlace);
-                return;
-            }
 
             if (placedWith != null && material.isBlock()) {
                 player.checkManager.onBlockPlace(blockPlace);
@@ -267,26 +295,69 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.checkManager.onPacketReceive(event);
     }
 
-    private void placeWaterLavaSnowBucket(GrimPlayer player, BlockPlace blockPlace) {
-        HitData data = getNearestHitResult(player, false);
+    private void placeWaterLavaSnowBucket(GrimPlayer player, BlockPlace blockPlace, Material toPlace) {
+        HitData data = getNearestHitResult(player, toPlace, false);
+        if (data != null) {
+            blockPlace.setBlockPosition(data.getPosition());
+            blockPlace.setFace(Direction.valueOf(data.getClosestDirection().name()));
+
+            // If we hit a waterloggable block, then the bucket is directly placed
+            // Otherwise, use the face to determine where to place the bucket
+            if (Materials.isPlaceableLiquidBucket(blockPlace.getMaterial()) && ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+                BlockData existing = blockPlace.getExistingBlockBlockData();
+                if (existing instanceof Waterlogged) {
+                    Waterlogged waterlogged = (Waterlogged) existing.clone(); // Don't corrupt palette
+                    waterlogged.setWaterlogged(true);
+                    blockPlace.set(waterlogged);
+                    return;
+                }
+            }
+
+            // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging
+            blockPlace.set(toPlace);
+        }
     }
 
     private void placeBucket(GrimPlayer player, BlockPlace blockPlace) {
-        HitData data = getNearestHitResult(player, true);
+        HitData data = getNearestHitResult(player, null, true);
+        if (data != null) {
+            if (data.getState().getMaterial() == Material.POWDER_SNOW) {
+                blockPlace.set(Material.AIR);
+                return;
+            }
 
-    }
+            // We didn't hit fluid
+            if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) == 0)
+                return;
 
-    private void placeScaffolding(GrimPlayer player, BlockPlace blockPlace) {
-        HitData data = getNearestHitResult(player, false);
+            blockPlace.setBlockPosition(data.getPosition());
+            blockPlace.setFace(Direction.valueOf(data.getClosestDirection().name()));
 
+            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+                BlockData existing = blockPlace.getExistingBlockBlockData();
+                if (existing instanceof Waterlogged) {
+                    Waterlogged waterlogged = (Waterlogged) existing.clone(); // Don't corrupt palette
+                    waterlogged.setWaterlogged(false);
+                    blockPlace.set(waterlogged);
+                    return;
+                }
+            }
+
+            // Therefore, not waterlogged and is a fluid, and is therefore a source block
+            blockPlace.set(Material.AIR);
+        }
     }
 
     private void placeLilypad(GrimPlayer player, BlockPlace blockPlace) {
-        HitData data = getNearestHitResult(player, true);
+        HitData data = getNearestHitResult(player, null, true);
         if (data != null) {
             // A lilypad cannot replace a fluid
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
+
+            blockPlace.setBlockPosition(data.getPosition());
+            blockPlace.setFace(Direction.valueOf(data.getClosestDirection().name()));
+
             // We checked for a full fluid block below here.
             if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
                     || data.getState().getMaterial() == Material.ICE || data.getState().getMaterial() == Material.FROSTED_ICE) {
@@ -312,11 +383,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (stack.getType() == Material.MELON_SEEDS) return Material.MELON_STEM;
         if (stack.getType() == Material.WHEAT_SEEDS) return Material.WHEAT;
         if (stack.getType() == Material.REDSTONE) return Material.REDSTONE_WIRE;
+        if (stack.getType() == Material.POWDER_SNOW_BUCKET) return Material.POWDER_SNOW;
 
         return stack.getType();
     }
 
-    private HitData getNearestHitResult(GrimPlayer player, boolean waterSourcesHaveHitbox) {
+    private HitData getNearestHitResult(GrimPlayer player, Material heldItem, boolean sourcesHaveHitbox) {
         // TODO: When we do this post-tick (fix desync) switch to lastX
         Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
@@ -325,7 +397,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         Vector3d endPos = new Vector3d(endVec.getX(), endVec.getY(), endVec.getZ());
 
         return traverseBlocks(player, startingPos, endPos, (block, vector3i) -> {
-            CollisionBox data = CollisionData.getData(block.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            CollisionBox data = HitboxData.getBlockHitbox(player, heldItem, player.getClientVersion(), block, vector3i.getX(), vector3i.getY(), vector3i.getZ());
             List<SimpleCollisionBox> boxes = new ArrayList<>();
             data.downCast(boxes);
 
@@ -335,15 +407,17 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 Vector hitLoc = box.intersectsRay(trace, 0, 6);
                 if (hitLoc != null && hitLoc.distanceSquared(startingVec) < bestHitResult) {
                     bestHitResult = hitLoc.distanceSquared(startingVec);
-                    bestHitLoc = new Vector(hitLoc.getX() % 1, hitLoc.getY() % 1, hitLoc.getZ() % 1);
+                    bestHitLoc = new Vector(hitLoc.getX() - box.minX, hitLoc.getY() - box.minY, hitLoc.getZ() - box.minZ);
                 }
             }
             if (bestHitLoc != null) {
                 return new HitData(vector3i, bestHitLoc, block);
             }
 
-            if (waterSourcesHaveHitbox && player.compensatedWorld.isWaterSourceBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ())) {
-                double waterHeight = player.compensatedWorld.getWaterFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
+            if (sourcesHaveHitbox &&
+                    (player.compensatedWorld.isWaterSourceBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ())
+                            || player.compensatedWorld.getLavaFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ()) == (8 / 9f))) {
+                double waterHeight = player.compensatedWorld.getFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
                 SimpleCollisionBox box = new SimpleCollisionBox(vector3i.getX(), vector3i.getY(), vector3i.getZ(), vector3i.getX() + 1, vector3i.getY() + waterHeight, vector3i.getZ() + 1);
                 Vector hitLoc = box.intersectsRay(trace, 0, 6);
                 if (hitLoc != null) {

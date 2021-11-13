@@ -138,7 +138,7 @@ public class PointThreeEstimator {
             isNearFluid = true;
         }
 
-        if (Materials.checkFlag(state.getMaterial(), Materials.CLIMBABLE) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+        if ((state.getMaterial() == Material.POWDER_SNOW || Materials.checkFlag(state.getMaterial(), Materials.CLIMBABLE)) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
     }

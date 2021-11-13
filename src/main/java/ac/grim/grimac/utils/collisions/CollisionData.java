@@ -164,7 +164,6 @@ public enum CollisionData {
                     && !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
             .toArray(Material[]::new)),
 
-
     SLAB((player, version, data, x, y, z) -> {
         if (((WrappedSlab) data).isDouble()) {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -194,6 +193,13 @@ public enum CollisionData {
                 return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
         }
     }, Arrays.stream(Material.values()).filter(mat -> (mat.name().contains("HEAD") || mat.name().contains("SKULL")) && !mat.name().contains("PISTON")).toArray(Material[]::new)),
+
+    BANNER(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D),
+            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("BANNER")).toArray(Material[]::new)),
+
+    CORAL_FAN((player, version, data, x, y, z) -> {
+        return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 4.0D, 14.0D);
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("CORAL_FAN")).toArray(Material[]::new)),
 
     DOOR(new DoorHandler(), Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_DOOR"))
             .toArray(Material[]::new)),
@@ -260,6 +266,45 @@ public enum CollisionData {
 
         return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 9.0D, 16.0D);
     }, XMaterial.STONECUTTER.parseMaterial()),
+
+    SWEET_BERRY((player, version, data, x, y, z) -> {
+        Ageable berry = (Ageable) ((WrappedFlatBlock) data).getBlockData();
+        if (berry.getAge() == 0) {
+            return new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
+        } else if (berry.getAge() < 3) {
+            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
+        }
+        return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+    }, XMaterial.SWEET_BERRY_BUSH.parseMaterial()),
+
+    SAPLING(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
+            XMaterial.SPRUCE_SAPLING.parseMaterial(), XMaterial.ACACIA_SAPLING.parseMaterial(),
+            XMaterial.BIRCH_SAPLING.parseMaterial(), XMaterial.DARK_OAK_SAPLING.parseMaterial(),
+            XMaterial.OAK_SAPLING.parseMaterial(), XMaterial.JUNGLE_SAPLING.parseMaterial()),
+
+    ROOTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
+            XMaterial.WARPED_ROOTS.parseMaterial(), XMaterial.CRIMSON_ROOTS.parseMaterial()),
+
+    FLOWER(new HexCollisionBox(5.0D, 0.0D, 5.0D, 11.0D, 10.0D, 11.0D),
+            XMaterial.DANDELION.parseMaterial(),
+            XMaterial.POPPY.parseMaterial(), XMaterial.BLUE_ORCHID.parseMaterial(),
+            XMaterial.ALLIUM.parseMaterial(), XMaterial.AZURE_BLUET.parseMaterial(),
+            XMaterial.RED_TULIP.parseMaterial(), XMaterial.ORANGE_TULIP.parseMaterial(),
+            XMaterial.WHITE_TULIP.parseMaterial(), XMaterial.PINK_TULIP.parseMaterial(),
+            XMaterial.OXEYE_DAISY.parseMaterial(), XMaterial.CORNFLOWER.parseMaterial(),
+            XMaterial.LILY_OF_THE_VALLEY.parseMaterial()),
+
+    DEAD_BUSH(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D), XMaterial.DEAD_BUSH.parseMaterial()),
+
+    SUGARCANE(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 16.0D, 14.0D), XMaterial.SUGAR_CANE.parseMaterial()),
+
+    NETHER_SPROUTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 3.0D, 14.0D), XMaterial.NETHER_SPROUTS.parseMaterial()),
+
+    TALL_GRASS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
+            XMaterial.TALL_GRASS.parseMaterial(), XMaterial.FERN.parseMaterial()),
+
+    SEA_GRASS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
+            XMaterial.SEAGRASS.parseMaterial()),
 
     BELL((player, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.v_1_13_2))
@@ -390,6 +435,37 @@ public enum CollisionData {
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 15.0D, 15.0D); // post
     }, XMaterial.HONEY_BLOCK.parseMaterial()),
 
+    SPORE_BLOSSOM(new HexCollisionBox(2.0D, 13.0D, 2.0D, 14.0D, 16.0D, 14.0D), XMaterial.SPORE_BLOSSOM.parseMaterial()),
+
+    GLOW_LICHEN((player, version, data, x, y, z) -> {
+        GlowLichen lichen = (GlowLichen) ((WrappedFlatBlock) data).getBlockData();
+
+        ComplexCollisionBox box = new ComplexCollisionBox();
+        for (BlockFace face : lichen.getFaces()) {
+            switch (face) {
+                case UP:
+                    box.add(new HexCollisionBox(0.0D, 15.0D, 0.0D, 16.0D, 16.0D, 16.0D));
+                    break;
+                case DOWN:
+                    box.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D));
+                    break;
+                case WEST:
+                    box.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 16.0D, 16.0D));
+                    break;
+                case EAST:
+                    box.add(new HexCollisionBox(15.0D, 0.0D, 0.0D, 16.0D, 16.0D, 16.0D));
+                    break;
+                case NORTH:
+                    box.add(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 1.0D));
+                    break;
+                case SOUTH:
+                    box.add(new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
+                    break;
+            }
+        }
+
+        return box;
+    }, XMaterial.GLOW_LICHEN.parseMaterial()),
 
     DRAGON_EGG_BLOCK(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), XMaterial.DRAGON_EGG.parseMaterial()),
 
@@ -496,16 +572,6 @@ public enum CollisionData {
 
         return new HexCollisionBox(6.5D, 6.5D, 0.0D, 9.5D, 9.5D, 16.0D);
     }, XMaterial.CHAIN.parseMaterial()),
-
-    SWEET_BERRY((player, version, data, x, y, z) -> {
-        Ageable berry = (Ageable) ((WrappedFlatBlock) data).getBlockData();
-
-        if (berry.getAge() == 0) {
-            return new HexCollisionBox(3.0D, 0.0D, 3.0D, 13.0D, 8.0D, 13.0D);
-        }
-
-        return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D);
-    }, XMaterial.SWEET_BERRY_BUSH.parseMaterial()),
 
     CHORUS_PLANT(new DynamicChorusPlant(), XMaterial.CHORUS_PLANT.parseMaterial()),
 
@@ -745,12 +811,50 @@ public enum CollisionData {
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL_SIGN"))
             .toArray(Material[]::new)),
 
+    WALL_FAN((player, version, data, x, y, z) -> {
+        CoralWallFan fan = (CoralWallFan) ((WrappedFlatBlock) data).getBlockData();
+
+        switch (fan.getFacing()) {
+            case NORTH:
+                return new HexCollisionBox(0.0D, 4.0D, 5.0D, 16.0D, 12.0D, 16.0D);
+            case SOUTH:
+                return new HexCollisionBox(0.0D, 4.0D, 0.0D, 16.0D, 12.0D, 11.0D);
+            case WEST:
+                return new HexCollisionBox(5.0D, 4.0D, 0.0D, 16.0D, 12.0D, 16.0D);
+            case EAST:
+            default:
+                return new HexCollisionBox(0.0D, 4.0D, 0.0D, 11.0D, 12.0D, 16.0D);
+        }
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL_FAN")).toArray(Material[]::new)),
+
+    CORAL_PLANT((player, version, data, x, y, z) -> {
+        return new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 15.0D, 14.0D);
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().endsWith("_CORAL")).toArray(Material[]::new)),
 
     // The nether signes map to sign post and other regular sign
     SIGN(new SimpleCollisionBox(0.25, 0.0, 0.25, 0.75, 1.0, 0.75, false),
             Arrays.stream(Material.values()).filter(mat -> mat.name().contains("SIGN") && !mat.name().contains("WALL"))
                     .toArray(Material[]::new)),
 
+    BEETROOT((player, version, data, x, y, z) -> {
+        WrappedAgeable ageable = (WrappedAgeable) data;
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, (ageable.getAge() + 1) * 2, 1.0D);
+    }, XMaterial.BEETROOT.parseMaterial()),
+
+    WHEAT((player, version, data, x, y, z) -> {
+        WrappedAgeable ageable = (WrappedAgeable) data;
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, (ageable.getAge() + 1) * 2, 1.0D);
+    }, XMaterial.WHEAT.parseMaterial()),
+
+    CARROT_NETHERWART((player, version, data, x, y, z) -> {
+        WrappedAgeable ageable = (WrappedAgeable) data;
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, ageable.getAge() + 2, 1.0D);
+    }, XMaterial.CARROT.parseMaterial(), XMaterial.NETHER_WART.parseMaterial()),
+
+    NETHER_WART((player, version, data, x, y, z) -> {
+        WrappedAgeable ageable = (WrappedAgeable) data;
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 1.0D, 5 + (ageable.getAge() * 3), 1.0D);
+    }, XMaterial.NETHER_WART.parseMaterial()),
 
     BUTTON((player, version, data, x, y, z) -> {
         WrappedDirectionalPower button = (WrappedDirectionalPower) data;
@@ -796,6 +900,63 @@ public enum CollisionData {
         return NoCollisionBox.INSTANCE;
 
     }, XMaterial.LEVER.parseMaterial()),
+
+    PRESSURE_PLATE((player, version, data, x, y, z) -> {
+        WrappedPower power = ((WrappedPower) data);
+
+        if (power.getPower() == 15) { // Pressed
+            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 0.5D, 15.0D);
+        }
+
+        return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
+    }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("PLATE")).toArray(Material[]::new)),
+
+    TRIPWIRE((player, version, data, x, y, z) -> {
+        WrappedTripwire power = ((WrappedTripwire) data);
+        if (power.isAttached()) {
+            return new HexCollisionBox(0.0D, 1.0D, 0.0D, 16.0D, 2.5D, 16.0D);
+        }
+        return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D);
+    }, XMaterial.TRIPWIRE.parseMaterial()),
+
+    ATTACHED_PUMPKIN_STEM((player, version, data, x, y, z) -> {
+        if (version.isOlderThan(ClientVersion.v_1_13))
+            return new HexCollisionBox(7.0D, 0.0D, 7.0D, 9.0D, 16.0D, 9.0D);
+
+        Directional directional = (Directional) ((WrappedFlatBlock) data).getBlockData();
+        switch (directional.getFacing()) {
+            case SOUTH:
+                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 16.0D);
+            case WEST:
+                return new HexCollisionBox(0.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D);
+            case NORTH:
+                return new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 10.0D, 10.0D);
+            case EAST:
+            default:
+                return new HexCollisionBox(6.0D, 0.0D, 6.0D, 16.0D, 10.0D, 10.0D);
+        }
+    }, XMaterial.ATTACHED_MELON_STEM.parseMaterial(), XMaterial.ATTACHED_PUMPKIN_STEM.parseMaterial()),
+
+    PUMPKIN_STEM((player, version, data, x, y, z) -> {
+        WrappedAgeable ageable = (WrappedAgeable) data;
+        return new HexCollisionBox(7, 0, 7, 9, 2 * (ageable.getAge() + 1), 9);
+    }, XMaterial.PUMPKIN_STEM.parseMaterial(), XMaterial.MELON_STEM.parseMaterial()),
+
+    TRIPWIRE_HOOK((player, version, data, x, y, z) -> {
+        WrappedDirectionalPower directional = (WrappedDirectionalPower) data;
+
+        switch (directional.getDirection()) {
+            case NORTH:
+                return new HexCollisionBox(5.0D, 0.0D, 10.0D, 11.0D, 10.0D, 16.0D);
+            case SOUTH:
+                return new HexCollisionBox(5.0D, 0.0D, 0.0D, 11.0D, 10.0D, 6.0D);
+            case WEST:
+                return new HexCollisionBox(10.0D, 0.0D, 5.0D, 16.0D, 10.0D, 11.0D);
+            case EAST:
+            default:
+                return new HexCollisionBox(0.0D, 0.0D, 5.0D, 6.0D, 10.0D, 11.0D);
+        }
+    }, XMaterial.TRIPWIRE_HOOK.parseMaterial()),
 
     TORCH(new HexCollisionBox(6.0D, 0.0D, 6.0D, 10.0D, 10.0D, 10.0D),
             XMaterial.TORCH.parseMaterial(), XMaterial.REDSTONE_TORCH.parseMaterial()),
@@ -953,13 +1114,7 @@ public enum CollisionData {
         return getAmethystBox(version, cluster.getFacing(), 5, 3);
     }, XMaterial.LARGE_AMETHYST_BUD.parseMaterial()),
 
-    NONE(NoCollisionBox.INSTANCE, XMaterial.REDSTONE_WIRE.parseMaterial(), XMaterial.POWERED_RAIL.parseMaterial(),
-            XMaterial.RAIL.parseMaterial(), XMaterial.ACTIVATOR_RAIL.parseMaterial(), XMaterial.DETECTOR_RAIL.parseMaterial(), XMaterial.AIR.parseMaterial(), XMaterial.TALL_GRASS.parseMaterial(),
-            XMaterial.TRIPWIRE.parseMaterial(), XMaterial.TRIPWIRE_HOOK.parseMaterial()),
-
-    NONE2(NoCollisionBox.INSTANCE,
-            Arrays.stream(Material.values()).filter(mat -> mat.name().contains("_PLATE"))
-                    .toArray(Material[]::new)),
+    NONE(NoCollisionBox.INSTANCE, XMaterial.AIR.parseMaterial()),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true),
             XMaterial.STONE.parseMaterial());
@@ -981,8 +1136,8 @@ public enum CollisionData {
         }
     }
 
-    private final Material[] materials;
-    private CollisionBox box;
+    public final Material[] materials;
+    public CollisionBox box;
     public CollisionFactory dynamic;
 
     CollisionData(CollisionBox box, Material... materials) {
