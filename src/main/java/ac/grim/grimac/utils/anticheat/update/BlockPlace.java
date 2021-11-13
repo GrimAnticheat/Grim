@@ -556,7 +556,7 @@ public class BlockPlace {
         // TODO: Calculate actual eye height (which can also desync!)
         Vector eyePos = new Vector(player.x, player.y + 1.62, player.z);
         Vector endReachPos = eyePos.clone().add(new Vector(look.getX() * 6, look.getY() * 6, look.getZ() * 6));
-        Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos);
+        Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).getFirst();
 
         // Bring this back to relative to the block
         // The player didn't even click the block... (we should force resync BEFORE we get here!)

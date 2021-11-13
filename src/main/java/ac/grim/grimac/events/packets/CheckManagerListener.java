@@ -16,10 +16,7 @@ import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsutil.Collisions;
-import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.nmsutil.Ray;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
+import ac.grim.grimac.utils.nmsutil.*;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -28,12 +25,15 @@ import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
+import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.inventory.ItemStack;
@@ -403,15 +403,23 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             double bestHitResult = Double.MAX_VALUE;
             Vector bestHitLoc = null;
+            BlockFace bestFace = null;
+
             for (SimpleCollisionBox box : boxes) {
-                Vector hitLoc = box.intersectsRay(trace, 0, 6);
-                if (hitLoc != null && hitLoc.distanceSquared(startingVec) < bestHitResult) {
+                Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(6));
+                if (intercept.getFirst() == null) continue; // No intercept
+
+                Vector hitLoc = intercept.getFirst();
+
+                if (hitLoc.distanceSquared(startingVec) < bestHitResult) {
                     bestHitResult = hitLoc.distanceSquared(startingVec);
-                    bestHitLoc = new Vector(hitLoc.getX() - box.minX, hitLoc.getY() - box.minY, hitLoc.getZ() - box.minZ);
+                    bestHitLoc = hitLoc;
+                    bestFace = intercept.getSecond();
                 }
             }
             if (bestHitLoc != null) {
-                return new HitData(vector3i, bestHitLoc, block);
+                Bukkit.broadcastMessage(bestFace + " ");
+                return new HitData(vector3i, bestHitLoc, bestFace, block);
             }
 
             if (sourcesHaveHitbox &&
@@ -419,9 +427,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
                             || player.compensatedWorld.getLavaFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ()) == (8 / 9f))) {
                 double waterHeight = player.compensatedWorld.getFluidLevelAt(vector3i.getX(), vector3i.getY(), vector3i.getZ());
                 SimpleCollisionBox box = new SimpleCollisionBox(vector3i.getX(), vector3i.getY(), vector3i.getZ(), vector3i.getX() + 1, vector3i.getY() + waterHeight, vector3i.getZ() + 1);
-                Vector hitLoc = box.intersectsRay(trace, 0, 6);
-                if (hitLoc != null) {
-                    return new HitData(vector3i, new Vector(hitLoc.getX() % 1, hitLoc.getY() % 1, hitLoc.getZ() % 1), block);
+
+                Pair<Vector, BlockFace> intercept = ReachUtils.calculateIntercept(box, trace.getOrigin(), trace.getPointAtDistance(6));
+
+                if (intercept.getFirst() != null) {
+                    return new HitData(vector3i, intercept.getFirst(), intercept.getSecond(), block);
                 }
             }
 
