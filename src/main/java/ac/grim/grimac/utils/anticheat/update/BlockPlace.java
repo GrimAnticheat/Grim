@@ -19,11 +19,16 @@ import ac.grim.grimac.utils.nmsutil.XMaterial;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Candle;
+import org.bukkit.block.data.type.GlowLichen;
+import org.bukkit.block.data.type.SeaPickle;
+import org.bukkit.block.data.type.TurtleEgg;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -36,6 +41,8 @@ public class BlockPlace {
     Vector3i blockPosition;
     @Setter
     Direction face;
+    @Getter
+    boolean replaceClicked;
     private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
     boolean isCancelled = false;
     private static final Material SNOW = XMaterial.SNOW.parseMaterial();
@@ -54,11 +61,69 @@ public class BlockPlace {
         this.blockPosition = blockPosition;
         this.face = face;
         this.material = material;
+
+        BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
+        WrappedBlockDataValue placedAgainst = WrappedBlockData.getMaterialData(state).getData(state);
+        this.replaceClicked = canBeReplaced(material, state, placedAgainst);
     }
 
-    public WrappedBlockDataValue getPlacedAgainstData() {
-        BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
-        return WrappedBlockData.getMaterialData(player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation())).getData(state);
+    private boolean canBeReplaced(Material heldItem, BaseBlockState state, WrappedBlockDataValue placedAgainst) {
+        // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
+        boolean baseReplaceable = state.getMaterial() != heldItem && Materials.checkFlag(state.getMaterial(), Materials.REPLACEABLE);
+
+        if (state.getMaterial().name().endsWith("CANDLE")) {
+            Candle candle = (Candle) ((FlatBlockState) state).getBlockData();
+            return heldItem == state.getMaterial() && candle.getCandles() < 4 && !isSecondaryUse();
+        }
+        if (state.getMaterial() == Material.SEA_PICKLE) {
+            SeaPickle pickle = (SeaPickle) ((FlatBlockState) state).getBlockData();
+            return heldItem == pickle.getMaterial() && pickle.getPickles() < 4 && !isSecondaryUse();
+        }
+        if (state.getMaterial() == Material.TURTLE_EGG) {
+            TurtleEgg egg = (TurtleEgg) ((FlatBlockState) state).getBlockData();
+            return heldItem == egg.getMaterial() && egg.getEggs() < 4 && !isSecondaryUse();
+        }
+        if (state.getMaterial() == Material.GLOW_LICHEN) {
+            GlowLichen lichen = (GlowLichen) ((FlatBlockState) state).getBlockData();
+            return lichen.getFaces().size() < lichen.getAllowedFaces().size() || heldItem != Material.GLOW_LICHEN;
+        }
+        if (state.getMaterial() == Material.SCAFFOLDING) {
+            return heldItem == Material.SCAFFOLDING;
+        }
+        if (placedAgainst instanceof WrappedSlab) {
+            WrappedSlab slab = (WrappedSlab) placedAgainst;
+            if (slab.isDouble() || state.getMaterial() != heldItem) return false;
+
+            // Here vanilla refers from
+            // Set check can replace -> get block -> call block canBeReplaced -> check can replace boolean (default true)
+            // uh... what?  I'm unsure what Mojang is doing here.  I think they just made a stupid mistake.
+            // as this code is quite old.
+            boolean flag = getClickedLocation().getY() > 0.5D;
+            BlockFace clickedFace = getBlockFace();
+            if (slab.isBottom()) {
+                return clickedFace == BlockFace.UP || flag && isFaceHorizontal();
+            } else {
+                return clickedFace == BlockFace.DOWN || !flag && isFaceHorizontal();
+            }
+        }
+        if (placedAgainst instanceof WrappedSnow) {
+            int layers = ((WrappedSnow) placedAgainst).getLayers();
+            if (heldItem == state.getMaterial() && layers < 7) { // We index at 0 (less than 8 layers)
+                return true;
+            } else {
+                return layers == 0; // index at 0, (1 layer)
+            }
+        }
+        if (state.getMaterial() == Material.VINE) {
+            return baseReplaceable || (heldItem == state.getMaterial() && ((WrappedMultipleFacing) placedAgainst).getDirections().size() < 5); // up, north, east, west, south
+        }
+
+        return baseReplaceable;
+    }
+
+    public WrappedBlockDataValue getExistingBlockData() {
+        BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedBlockPos());
+        return WrappedBlockData.getMaterialData(state).getData(state);
     }
 
     public BlockData getExistingBlockBlockData() {
@@ -467,8 +532,9 @@ public class BlockPlace {
         return isCancelled;
     }
 
-    // TODO: "Replaceable" needs to be supported
     public Vector3i getPlacedBlockPos() {
+        if (replaceClicked) return blockPosition.clone();
+
         int x = blockPosition.getX() + getNormalBlockFace().getX();
         int y = blockPosition.getY() + getNormalBlockFace().getY();
         int z = blockPosition.getZ() + getNormalBlockFace().getZ();
@@ -505,10 +571,9 @@ public class BlockPlace {
         set(blockPos, state);
     }
 
-    // TODO: Check if replaceable
     public void set(Vector3i position, BaseBlockState state) {
         if (state instanceof FlatBlockState) {
-            Bukkit.broadcastMessage("Placed " + ((FlatBlockState) state).getBlockData().getAsString(false));
+            Bukkit.broadcastMessage("Placed " + ((FlatBlockState) state).getBlockData().getAsString(false) + " at " + position);
         }
 
         player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getCombinedId());

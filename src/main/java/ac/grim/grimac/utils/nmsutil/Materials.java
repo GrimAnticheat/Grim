@@ -235,12 +235,13 @@ public class Materials {
         // Hopefully with PacketEvents 2.0, all the errors from replacement blocks will go away
         // (Such as a solid blacklist block going to a non-solid blacklist block)
         markAs(XMaterial.GRASS, PLANT); // Replaceable plant
-        markAs(XMaterial.GRASS, PLANT);
+        markAs(XMaterial.GRASS, REPLACEABLE);
         markAs(XMaterial.FERN, PLANT); // Replaceable plant
         markAs(XMaterial.FERN, REPLACEABLE);
         markAs(XMaterial.DEAD_BUSH, PLANT); // Replaceable plant
         markAs(XMaterial.DEAD_BUSH, REPLACEABLE);
         markAs(XMaterial.TALL_SEAGRASS, PLANT); // Replaceable
+        markAs(XMaterial.TALL_GRASS, REPLACEABLE);
         markAs(XMaterial.DANDELION, PLANT); // plant
         markAs(XMaterial.POPPY, PLANT); // plant
         markAs(XMaterial.BLUE_ORCHID, PLANT); // plant
@@ -256,7 +257,7 @@ public class Materials {
         markAs(XMaterial.WHEAT, PLANT); // plant
         markAs(XMaterial.SUGAR_CANE, PLANT); // plant
         markAs(XMaterial.VINE, PLANT); // replaceable plant
-        markAs(XMaterial.VINE, PLANT);
+        markAs(XMaterial.VINE, REPLACEABLE);
         markAs(XMaterial.GLOW_LICHEN, PLANT); // replaceable plant
         markAs(XMaterial.GLOW_LICHEN, REPLACEABLE);
         markAs(XMaterial.LILY_PAD, PLANT); // plant
@@ -269,7 +270,7 @@ public class Materials {
         markAs(XMaterial.ROSE_BUSH, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
         markAs(XMaterial.PEONY, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
         markAs(XMaterial.TALL_GRASS, PLANT); // replaceable plant
-        markAs(XMaterial.TALL_GRASS, PLANT);
+        markAs(XMaterial.TALL_GRASS, REPLACEABLE);
         markAs(XMaterial.LARGE_FERN, PLANT); // replaceable plant
         markAs(XMaterial.LARGE_FERN, REPLACEABLE);
         markAs(XMaterial.CHORUS_PLANT, PLANT); // plant
@@ -298,8 +299,7 @@ public class Materials {
         markAs(XMaterial.BIG_DRIPLEAF, PLANT); // plant
         markAs(XMaterial.SMALL_DRIPLEAF, PLANT); // plant
         markAs(XMaterial.HANGING_ROOTS, PLANT); // replaceable plant
-
-        markAs(XMaterial.SNOW, REPLACEABLE); // I don't understand snow... it's only replaceable on layer 1
+        markAs(XMaterial.HANGING_ROOTS, REPLACEABLE); // replaceable plant
 
         NO_PLACE_LIQUIDS.add(XMaterial.WATER.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.LAVA.parseMaterial());

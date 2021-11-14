@@ -55,7 +55,7 @@ public enum BlockPlaceResult {
 
     SNOW((player, place) -> {
         Vector3i against = place.getPlacedAgainstBlockLocation();
-        WrappedBlockDataValue blockState = place.getPlacedAgainstData();
+        WrappedBlockDataValue blockState = place.getExistingBlockData();
         int layers = 0;
         if (blockState instanceof WrappedSnow) {
             layers = ((WrappedSnow) blockState).getLayers() + 1; // convert to bukkit indexing at 1
@@ -81,7 +81,7 @@ public enum BlockPlaceResult {
     SLAB((player, place) -> {
         Vector clickedPos = place.getClickedLocation();
         Slab slabData = (Slab) place.getMaterial().createBlockData();
-        WrappedBlockDataValue existing = place.getPlacedAgainstData();
+        WrappedBlockDataValue existing = place.getExistingBlockData();
 
         boolean clickedTop = clickedPos.getY() > 0.5;
 
@@ -917,7 +917,7 @@ public enum BlockPlaceResult {
             XMaterial.RED_TULIP.parseMaterial(), XMaterial.ORANGE_TULIP.parseMaterial(),
             XMaterial.WHITE_TULIP.parseMaterial(), XMaterial.PINK_TULIP.parseMaterial(),
             XMaterial.OXEYE_DAISY.parseMaterial(), XMaterial.CORNFLOWER.parseMaterial(),
-            XMaterial.LILY_OF_THE_VALLEY.parseMaterial()),
+            XMaterial.LILY_OF_THE_VALLEY.parseMaterial(), XMaterial.GRASS.parseMaterial()),
 
     NO_DATA((player, place) -> {
         place.set(BlockStateHelper.create(place.getMaterial()));
