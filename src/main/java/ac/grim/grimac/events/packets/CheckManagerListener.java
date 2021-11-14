@@ -254,21 +254,20 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // TODO: Support offhand!
             ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             Material material = transformMaterial(placedWith);
-            BlockPlace blockPlace = new BlockPlace(player, null, null, material);
 
             // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
             if (material == XMaterial.LILY_PAD.parseMaterial()) {
-                placeLilypad(player, blockPlace); // Pass a block place because lily pads have a hitbox
+                placeLilypad(player); // Pass a block place because lily pads have a hitbox
                 return;
             }
 
             Material toBucketMat = Materials.transformBucketMaterial(material);
             if (toBucketMat != null) {
-                placeWaterLavaSnowBucket(player, blockPlace, toBucketMat);
+                placeWaterLavaSnowBucket(player, toBucketMat);
             }
 
             if (material == Material.BUCKET) {
-                placeBucket(player, blockPlace);
+                placeBucket(player);
             }
         }
 
@@ -295,11 +294,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.checkManager.onPacketReceive(event);
     }
 
-    private void placeWaterLavaSnowBucket(GrimPlayer player, BlockPlace blockPlace, Material toPlace) {
+    private void placeWaterLavaSnowBucket(GrimPlayer player, Material toPlace) {
         HitData data = getNearestHitResult(player, toPlace, false);
         if (data != null) {
-            blockPlace.setBlockPosition(data.getPosition());
-            blockPlace.setFace(Direction.valueOf(data.getClosestDirection().name()));
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), toPlace);
 
             // If we hit a waterloggable block, then the bucket is directly placed
             // Otherwise, use the face to determine where to place the bucket
@@ -318,9 +316,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private void placeBucket(GrimPlayer player, BlockPlace blockPlace) {
+    private void placeBucket(GrimPlayer player) {
         HitData data = getNearestHitResult(player, null, true);
         if (data != null) {
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.BUCKET);
+
             if (data.getState().getMaterial() == Material.POWDER_SNOW) {
                 blockPlace.set(Material.AIR);
                 return;
@@ -329,9 +329,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // We didn't hit fluid
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) == 0)
                 return;
-
-            blockPlace.setBlockPosition(data.getPosition());
-            blockPlace.setFace(Direction.valueOf(data.getClosestDirection().name()));
 
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
                 BlockData existing = blockPlace.getExistingBlockBlockData();
@@ -348,15 +345,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private void placeLilypad(GrimPlayer player, BlockPlace blockPlace) {
+    private void placeLilypad(GrimPlayer player) {
         HitData data = getNearestHitResult(player, null, true);
         if (data != null) {
             // A lilypad cannot replace a fluid
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
 
-            blockPlace.setBlockPosition(data.getPosition());
-            blockPlace.setFace(Direction.valueOf(data.getClosestDirection().name()));
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.LILY_PAD);
 
             // We checked for a full fluid block below here.
             if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
