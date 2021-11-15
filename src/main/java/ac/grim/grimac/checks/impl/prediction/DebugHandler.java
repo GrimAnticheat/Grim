@@ -46,7 +46,9 @@ public class DebugHandler extends PostPredictionCheck {
 
         String p = color + "P: " + predicted.getX() + " " + predicted.getY() + " " + predicted.getZ();
         String a = color + "A: " + actually.getX() + " " + actually.getY() + " " + actually.getZ();
-        String o = ChatColor.DARK_GRAY + "" + player.couldSkipTick + "->0.03->" + player.skippedTickInActualMovement + color + " O: " + offset;
+        String canSkipTick = (player.couldSkipTick + " ").substring(0, 1);
+        String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
+        String o = ChatColor.GRAY + "" + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
 
         String prefix = getPlayer().bukkitPlayer.getName() + " ";
 
