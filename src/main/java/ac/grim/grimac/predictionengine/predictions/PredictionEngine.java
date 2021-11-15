@@ -70,6 +70,11 @@ public class PredictionEngine {
 
     private void doPredictions(GrimPlayer player, List<VectorData> possibleVelocities, float speed) {
         // Sorting is an optimization and a requirement
+        //
+        // TODO: Sorting is unnecessary and slow!
+        // We KNOW the order that we should run things anyways! Use it instead! No lists needed!
+        // Will be a good performance boost!  Although not essential as right now there's larger issues
+        // than a lost hundredth millisecond here and there. Readability/Accuracy > Performance currently.
         possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
 
         double bestInput = Double.MAX_VALUE;
@@ -78,10 +83,20 @@ public class PredictionEngine {
         Vector beforeCollisionMovement = null;
         Vector originalClientVel = player.clientVelocity;
 
+        player.skippedTickInActualMovement = false;
+
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
             Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
             Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
+
+            Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
+            // Check if this vector could ever possible beat the last vector in terms of accuracy
+            if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
+                continue;
+
+            // We already found a good input.
+            if (bestInput < 0.00001 * 0.00001) continue;
 
             // TODO: Remove this expansion
             double xAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
@@ -93,10 +108,6 @@ public class PredictionEngine {
             double testY = primaryPushMovement.getY() - yAdditional;
             double testZ = primaryPushMovement.getZ() + zAdditional;
             primaryPushMovement = new Vector(testX, testY, testZ);
-
-            Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, testY), 0, testX, Math.max(0.6, testY), testZ).sort());
-            if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
-                continue;
 
             Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY(), clientVelAfterInput);
 
@@ -119,6 +130,11 @@ public class PredictionEngine {
             handleHardCodedBorder = clampMovementToHardBorder(player, outputVel, handleHardCodedBorder);
 
             double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
+
+            // Check if this possiblity is zero point zero three and is "close enough" to the player's actual movement
+            if (clientVelAfterInput.isZeroPointZeroThree() && resultAccuracy < 0.001 * 0.001) {
+                player.skippedTickInActualMovement = true;
+            }
 
             // This allows us to always check the percentage of knockback taken
             // A player cannot simply ignore knockback without us measuring how off it was
@@ -154,19 +170,11 @@ public class PredictionEngine {
                     resultAccuracy += 0.0001 * 0.0001;
 
                 bestInput = resultAccuracy;
+            }
 
-                // Optimization - Close enough, other inputs won't get closer
-                // This works as knockback and explosions are run first
-                //
-                // Note that sometimes the first and closest velocity isn't the closest because collisions
-                // The player may only be able to move a slight amount compared to what the initial vector shows
-                //
-                // 0.001 was causing issues with horizontal collision resulting in 1e-4 (which should flag checks!)
-                // Ladders are the best way to see this behavior
-                // Remember this is squared, so it is actually 0.00001
-                //
-                // This should likely be the value for the predictions to flag the movement as invalid
-                if (resultAccuracy < 0.00001 * 0.00001) break;
+            // Close enough, there's no reason to continue our predictions.
+            if (player.skippedTickInActualMovement && bestInput < 1e-5 * 1e-5) {
+                break;
             }
         }
 
@@ -333,22 +341,28 @@ public class PredictionEngine {
         // Put explosions and knockback first so they are applied to the player
         // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
         if (a.isExplosion())
-            aScore -= 4;
+            aScore -= 5;
 
         if (a.isKnockback())
-            aScore -= 4;
+            aScore -= 5;
 
         if (b.isExplosion())
-            bScore -= 4;
+            bScore -= 5;
 
         if (b.isKnockback())
-            bScore -= 4;
+            bScore -= 5;
 
         if (a.isFlipItem())
             aScore += 3;
 
         if (b.isFlipItem())
             bScore += 3;
+
+        if (a.isZeroPointZeroThree())
+            aScore -= 1;
+
+        if (b.isZeroPointZeroThree())
+            bScore -= 1;
 
         // If the player is on the ground but the vector leads the player off the ground
         if (player.onGround && a.vector.getY() >= 0)

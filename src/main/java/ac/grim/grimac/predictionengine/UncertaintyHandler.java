@@ -91,9 +91,6 @@ public class UncertaintyHandler {
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
-    public boolean headingIntoWater = false;
-    public boolean headingIntoLava = false;
-
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
 
@@ -110,36 +107,6 @@ public class UncertaintyHandler {
         pistonZ = 0;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
-    }
-
-    public boolean countsAsZeroPointZeroThree(VectorData predicted) {
-        // First tick movement should always be considered zero point zero three
-        // Shifting movement is somewhat buggy because 0.03
-        if (stuckOnEdge == -2 || wasAffectedByStuckSpeed() || isSteppingNearBubbleColumn)
-            return true;
-
-        // Explicitly is 0.03 movement
-        if (predicted.isZeroPointZeroThree())
-            return true;
-
-        if (player.uncertaintyHandler.stuckOnEdge > -3)
-            return true;
-
-        // Uncertainty was given here for 0.03-influenced movement
-        if (predicted.isSwimHop())
-            return true;
-
-        // Movement is too low to determine whether this is zero point zero three
-        if (player.couldSkipTick && player.actualMovement.lengthSquared() < 0.01)
-            return true;
-
-        if ((lastFlyingTicks < 3) && Math.abs(predicted.vector.getY()) < 0.2 && predicted.vector.getY() != 0 && player.actualMovement.lengthSquared() < 0.2)
-            return true;
-
-        if (player.riptideSpinAttackTicks > 18)
-            return true;
-
-        return isSteppingOnIce && lastTickWasNearGroundZeroPointZeroThree && player.actualMovement.clone().setY(0).lengthSquared() < 0.01;
     }
 
     public boolean wasAffectedByStuckSpeed() {

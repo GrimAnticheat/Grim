@@ -129,7 +129,15 @@ public class GrimPlayer {
     public boolean verticalCollision;
     public boolean clientControlledHorizontalCollision;
     public boolean clientControlledVerticalCollision;
+    // Okay, this is our 0.03 detection
+    //
+    // couldSkipTick determines if an input could have resulted in the player skipping a tick < 0.03
+    //
+    // skippedTickInActualMovement determines if, relative to actual movement, the player didn't move enough
+    // and a 0.03 vector was "close enough" to be an accurate prediction
     public boolean couldSkipTick = false;
+    // This determines if the
+    public boolean skippedTickInActualMovement = false;
     public boolean canGroundRiptide = false;
     // You cannot initialize everything here for some reason
     public CompensatedFlying compensatedFlying;
@@ -149,9 +157,6 @@ public class GrimPlayer {
     public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
-    // Sync together block placing/breaking by waiting for the main thread
-    // This sucks, but it's the only "real" option
-    // Either we have to do the work of the server async to figure out whether a block placed, or we wait for the server to do it
     public VelocityData firstBreadKB = null;
     public VelocityData likelyKB = null;
     public VelocityData firstBreadExplosion = null;

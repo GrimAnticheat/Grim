@@ -39,7 +39,7 @@ public class BlockProperties {
 
         double searchBelowAmount = 0.5000001;
 
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15))
+        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_15))
             searchBelowAmount = 1;
 
         Material material = player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY - searchBelowAmount, player.lastZ);

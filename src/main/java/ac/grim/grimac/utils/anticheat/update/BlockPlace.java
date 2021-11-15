@@ -191,7 +191,7 @@ public class BlockPlace {
             return false;
         } else if (blockMaterial == SNOW) {
             WrappedSnow snow = (WrappedSnow) dataValue;
-            return snow.getLayers() == 8;
+            return snow.getLayers() == 7;
         } else if (Materials.checkFlag(blockMaterial, Materials.STAIRS)) {
             WrappedStairs stairs = (WrappedStairs) dataValue;
 
@@ -572,6 +572,14 @@ public class BlockPlace {
     }
 
     public void set(Vector3i position, BaseBlockState state) {
+        CollisionBox box = CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state, position.getX(), position.getY(), position.getZ());
+
+        // A player cannot place a block in themselves.  THANKS MOJANG THIS CAN DESYNC BECAUSE OF ZERO POINT ZERO FUCKING THREE!
+        // Great job!  It's only been an issue for years!  One fucking second to fix but you are too incompetent to change a single value.
+        if (box.isIntersected(player.boundingBox)) {
+            return;
+        }
+
         if (state instanceof FlatBlockState) {
             Bukkit.broadcastMessage("Placed " + ((FlatBlockState) state).getBlockData().getAsString(false) + " at " + position);
         }
