@@ -748,15 +748,15 @@ public enum BlockPlaceResult {
     }, XMaterial.CAVE_VINES.parseMaterial()),
 
     WEEPING_VINE((player, place) -> {
-        Material below = place.getDirectionalFlatState(BlockFace.DOWN).getMaterial();
-        if (place.isFullFace(BlockFace.UP) || below == Material.TWISTING_VINES || below == Material.TWISTING_VINES_PLANT) {
+        Material below = place.getDirectionalFlatState(BlockFace.UP).getMaterial();
+        if (place.isFullFace(BlockFace.UP) || below == Material.WEEPING_VINES || below == Material.WEEPING_VINES_PLANT) {
             place.set(place.getMaterial());
         }
     }, XMaterial.WEEPING_VINES.parseMaterial()),
 
     TWISTED_VINE((player, place) -> {
-        Material below = place.getDirectionalFlatState(BlockFace.UP).getMaterial();
-        if (place.isFullFace(BlockFace.DOWN) || below == Material.WEEPING_VINES || below == Material.WEEPING_VINES_PLANT) {
+        Material below = place.getDirectionalFlatState(BlockFace.DOWN).getMaterial();
+        if (place.isFullFace(BlockFace.DOWN) || below == Material.TWISTING_VINES || below == Material.TWISTING_VINES_PLANT) {
             place.set(place.getMaterial());
         }
     }, XMaterial.TWISTING_VINES.parseMaterial()),
