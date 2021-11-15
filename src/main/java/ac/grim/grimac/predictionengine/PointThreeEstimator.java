@@ -255,15 +255,19 @@ public class PointThreeEstimator {
         //
         // I give up.
         if (player.clientControlledVerticalCollision && data != null && data.isZeroPointZeroThree()) {
-            SimpleCollisionBox playerBox = player.boundingBox;
-            player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, 0.03, 0);
-            // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
-            Vector collisionResult = Collisions.collide(player, 0, -0.2, 0);
-            player.boundingBox = playerBox;
-            return collisionResult.getY() != -0.2;
+            return checkForGround();
         }
 
         return false;
+    }
+
+    private boolean checkForGround() {
+        SimpleCollisionBox playerBox = player.boundingBox;
+        player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, 0.03, 0);
+        // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
+        Vector collisionResult = Collisions.collide(player, 0, -0.2, 0);
+        player.boundingBox = playerBox;
+        return collisionResult.getY() != -0.2;
     }
 
     // This method can be improved by using the actual movement to see if 0.03 was feasible...
@@ -281,6 +285,8 @@ public class PointThreeEstimator {
         SimpleCollisionBox oldPlayerBox = player.boundingBox;
         player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03);
 
+        boolean couldStep = checkForGround();
+
         // Takes 0.01 millis, on average, to compute... this should be improved eventually
         for (VectorData data : init) {
             // Try to get the vector as close to zero as possible to give the best chance at 0.03...
@@ -288,8 +294,12 @@ public class PointThreeEstimator {
             // Collide to handle mostly gravity, but other scenarios similar to this.
             Vector collisionResult = Collisions.collide(player, toZeroVec.getX(), toZeroVec.getY(), toZeroVec.getZ(), Integer.MIN_VALUE, null);
 
+            // If this tick is the tick after y velocity was by 0, a stepping movement is POSSIBLE to have been hidden
+            // A bit hacky... is there a better way?  I'm unsure...
+            boolean likelyStepSkip = data.vector.getY() > -0.08 && data.vector.getY() < 0.03;
+
             double minHorizLength = Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed;
-            double length = Math.abs(collisionResult.getY()) + Math.max(0, minHorizLength);
+            double length = (couldStep && likelyStepSkip ? 0 : Math.abs(collisionResult.getY())) + Math.max(0, minHorizLength);
 
             minimum = Math.min(minimum, length);
 
