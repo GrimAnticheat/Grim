@@ -49,6 +49,7 @@ public class UncertaintyHandler {
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
+    public boolean isSteppingOnHoney = false;
     public boolean wasSteppingOnBouncyBlock = false;
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
@@ -67,8 +68,6 @@ public class UncertaintyHandler {
     public boolean lastTickWasNearGroundZeroPointZeroThree = false;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = false;
-    // Give horizontal lenience if two movements ago was 0.03 because especially on ice it matters
-    public boolean lastLastMovementWasZeroPointZeroThree = false;
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
@@ -115,7 +114,12 @@ public class UncertaintyHandler {
 
     public double getOffsetHorizontal(VectorData data) {
         boolean has003 = data.isZeroPointZeroThree();
-        double pointThree = has003 ? 0.06 : lastMovementWasZeroPointZeroThree ? 0.03 : lastLastMovementWasZeroPointZeroThree ? 0.03 : 0;
+
+        // 0.91 * 0.6 * 0.06 = 0.03276 + 0.03 offset
+        double pointThree = has003 ? 0.06276 : 0;
+
+        if (lastMovementWasZeroPointZeroThree)
+            pointThree = 0.03;
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
         if (player.couldSkipTick && data.isKnockback())
@@ -125,8 +129,17 @@ public class UncertaintyHandler {
         if (data.isSwimHop() || data.isTrident())
             pointThree = 0.06;
 
-        if (has003 && (influencedByBouncyBlock() || isSteppingOnIce))
-            pointThree = 0.1;
+        // 0.06 * 0.91 * 0.8 = max + 0.03 offset
+        if (has003 && (influencedByBouncyBlock() || isSteppingOnHoney))
+            pointThree = 0.07368;
+
+        // 0.06 * 0.91 * 0.989 = max + 0.03 offset
+        if (has003 && isSteppingOnIce)
+            pointThree = 0.084;
+
+        // 0.06 * 0.91 = max + 0.03 offset
+        if (has003 && (player.isGliding || player.lastOnGround || player.specialFlying))
+            pointThree = 0.0846;
 
         if (player.vehicleData.lastVehicleSwitch < 6)
             pointThree = 0.1;
@@ -136,6 +149,7 @@ public class UncertaintyHandler {
 
         if (lastThirtyMillionHardBorder > -3)
             pointThree = 0.15;
+
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
             pointThree = Math.max(pointThree, player.speed * 1.6);
         }
@@ -184,7 +198,7 @@ public class UncertaintyHandler {
             // Water pushing, elytras, EVERYTHING vertical movement gets messed up by this shit.  What the fuck mojang.  Why the fuck did you do this.
             if (data.isZeroPointZeroThree()) return 0.06;
             if (lastMovementWasZeroPointZeroThree) return 0.06;
-            if (lastLastMovementWasZeroPointZeroThree || wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
+            if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
                 return 0.03;
             return 0;
         }

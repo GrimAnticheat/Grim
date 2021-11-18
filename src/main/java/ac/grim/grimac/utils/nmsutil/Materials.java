@@ -138,6 +138,7 @@ public class Materials {
         // Base water, flowing on 1.12- but not on 1.13+ servers
         markAs(XMaterial.WATER, WATER);
         markAs(XMaterial.WATER, WATER_LEGACY);
+
         if (XMaterial.isNewVersion()) {
             markAs(XMaterial.KELP, WATER_SOURCE);
             markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);

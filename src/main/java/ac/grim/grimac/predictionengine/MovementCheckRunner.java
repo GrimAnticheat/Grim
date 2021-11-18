@@ -312,10 +312,12 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastGlidingChangeTicks--;
         if (player.isGliding != player.wasGliding) player.uncertaintyHandler.lastGlidingChangeTicks = 0;
 
+
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
-        player.uncertaintyHandler.isSteppingOnIce = Materials.checkFlag(BlockProperties.getOnBlock(player, player.lastX, player.lastY, player.lastZ), Materials.ICE_BLOCKS);
+        player.uncertaintyHandler.isSteppingOnIce = Collisions.hasMaterial(player, Materials.ICE_BLOCKS);
+        player.uncertaintyHandler.isSteppingOnHoney = Collisions.hasMaterial(player, XMaterial.HONEY_BLOCK.parseMaterial(), -0.03);
         player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.hasMaterial(player, BUBBLE_COLUMN, -1);
 
         // Update firework end/start uncertainty
@@ -506,7 +508,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.predictedVelocity.isTrident())
             player.riptideSpinAttackTicks = 20;
 
-        player.uncertaintyHandler.lastLastMovementWasZeroPointZeroThree = player.uncertaintyHandler.lastMovementWasZeroPointZeroThree;
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.skippedTickInActualMovement;
         player.uncertaintyHandler.wasZeroPointThreeVertically = (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement()) || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain();
 

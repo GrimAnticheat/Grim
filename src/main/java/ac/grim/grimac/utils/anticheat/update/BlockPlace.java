@@ -69,7 +69,7 @@ public class BlockPlace {
 
     private boolean canBeReplaced(Material heldItem, BaseBlockState state, WrappedBlockDataValue placedAgainst) {
         // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
-        boolean baseReplaceable = state.getMaterial() != heldItem && Materials.checkFlag(state.getMaterial(), Materials.REPLACEABLE);
+        boolean baseReplaceable = state.getMaterial() != heldItem && Materials.checkFlag(state.getMaterial(), Materials.REPLACEABLE); // TODO: Buckets correctly!
 
         if (state.getMaterial().name().endsWith("CANDLE")) {
             Candle candle = (Candle) ((FlatBlockState) state).getBlockData();
@@ -577,6 +577,13 @@ public class BlockPlace {
         // A player cannot place a block in themselves.  THANKS MOJANG THIS CAN DESYNC BECAUSE OF ZERO POINT ZERO FUCKING THREE!
         // Great job!  It's only been an issue for years!  One fucking second to fix but you are too incompetent to change a single value.
         if (box.isIntersected(player.boundingBox)) {
+            return;
+        }
+
+        // If a block already exists here, then we can't override it.
+        BaseBlockState existingState = player.compensatedWorld.getWrappedBlockStateAt(position);
+        WrappedBlockDataValue wrappedExisting = WrappedBlockData.getMaterialData(existingState).getData(existingState);
+        if (!canBeReplaced(material, existingState, wrappedExisting)) {
             return;
         }
 
