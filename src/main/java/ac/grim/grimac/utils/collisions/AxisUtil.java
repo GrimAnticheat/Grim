@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import io.github.retrooper.packetevents.utils.player.Direction;
 import org.bukkit.block.BlockFace;
 
 public enum AxisUtil {
@@ -69,5 +70,9 @@ public enum AxisUtil {
             default:
                 return DOWN.select;
         }
+    }
+
+    public static AxisSelect getAxis(Direction direction) {
+        return getAxis(BlockFace.valueOf(direction.name()));
     }
 }

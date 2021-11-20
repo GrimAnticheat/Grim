@@ -307,6 +307,33 @@ public class Materials {
         NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_WATER.parseMaterial());
         NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_LAVA.parseMaterial());
 
+        // Important blocks where we need to ignore right-clicking on for placing blocks
+        // We can ignore stuff like right-clicking a pumpkin with shears... can we?  OFFHANDS?
+        markAs(XMaterial.BARREL, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.BEACON, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.BREWING_STAND, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.CARTOGRAPHY_TABLE, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.CHEST, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.TRAPPED_CHEST, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.COMPARATOR, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.CRAFTING_TABLE, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.DAYLIGHT_DETECTOR, CLIENT_SIDE_INTERACTABLE);
+        markLegacyAs("DAYLIGHT_DETECTOR_INVERTED", CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.DISPENSER, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.DRAGON_EGG, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.ENCHANTING_TABLE, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.ENDER_CHEST, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.GRINDSTONE, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.HOPPER, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.LEVER, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.LIGHT, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.LOOM, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.NOTE_BLOCK, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.REPEATER, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.SMITHING_TABLE, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.STONECUTTER, CLIENT_SIDE_INTERACTABLE);
+        markAs(XMaterial.CAKE, CLIENT_SIDE_INTERACTABLE);
+
         for (Material mat : Material.values()) {
             if (!mat.isBlock()) continue;
             if (checkFlag(mat, LAVA)) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
@@ -324,6 +351,24 @@ public class Materials {
                     MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
                 }
             }
+
+            if (mat.name().contains("ANVIL")) {
+                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+            }
+            if (mat.name().contains("BED")) {
+                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+            }
+            if (mat.name().contains("BUTTON")) {
+                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+            }
+            if (mat.name().contains("SHULKER")) {
+                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+            }
+            if (mat.name().contains("SIGN")) {
+                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+            }
+            if (mat.name().contains("POTTED")) MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
+
             if (mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
                     !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH")) {
                 MATERIAL_FLAGS[mat.ordinal()] |= SHAPE_EXCEEDS_CUBE;
