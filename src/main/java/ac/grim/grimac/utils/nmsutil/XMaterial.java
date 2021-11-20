@@ -1502,6 +1502,14 @@ public enum XMaterial {
         return Optional.empty();
     }
 
+
+    public static XMaterial fromMaterial(Material material) {
+        for (XMaterial materials : VALUES) {
+            if (materials.parseMaterial() == material) return materials;
+        }
+        return null;
+    }
+
     /**
      * Gets the ID (Magic value) of the material.
      * https://www.minecraftinfo.com/idlist.htm
@@ -1570,6 +1578,104 @@ public enum XMaterial {
         if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
 
         return version;
+    }
+
+    public static boolean isCompostable(XMaterial material) {
+        switch (material) {
+            case JUNGLE_LEAVES:
+            case OAK_LEAVES:
+            case SPRUCE_LEAVES:
+            case DARK_OAK_LEAVES:
+            case ACACIA_LEAVES:
+            case BIRCH_LEAVES:
+            case AZALEA_LEAVES:
+            case OAK_SAPLING:
+            case SPRUCE_SAPLING:
+            case BIRCH_SAPLING:
+            case JUNGLE_SAPLING:
+            case ACACIA_SAPLING:
+            case DARK_OAK_SAPLING:
+            case BEETROOT_SEEDS:
+            case DRIED_KELP:
+            case GRASS:
+            case KELP:
+            case MELON_SEEDS:
+            case PUMPKIN_SEEDS:
+            case SEAGRASS:
+            case SWEET_BERRIES:
+            case GLOW_BERRIES:
+            case WHEAT_SEEDS:
+            case MOSS_CARPET:
+            case SMALL_DRIPLEAF:
+            case HANGING_ROOTS:
+            case DRIED_KELP_BLOCK:
+            case TALL_GRASS:
+            case AZALEA:
+            case CACTUS:
+            case SUGAR_CANE:
+            case VINE:
+            case NETHER_SPROUTS:
+            case WEEPING_VINES:
+            case TWISTING_VINES:
+            case MELON_SLICE:
+            case GLOW_LICHEN:
+            case SEA_PICKLE:
+            case LILY_PAD:
+            case PUMPKIN:
+            case CARVED_PUMPKIN:
+            case MELON:
+            case APPLE:
+            case BEETROOT:
+            case CARROT:
+            case COCOA_BEANS:
+            case POTATO:
+            case WHEAT:
+            case BROWN_MUSHROOM:
+            case RED_MUSHROOM:
+            case MUSHROOM_STEM:
+            case CRIMSON_FUNGUS:
+            case WARPED_FUNGUS:
+            case NETHER_WART:
+            case CRIMSON_ROOTS:
+            case WARPED_ROOTS:
+            case SHROOMLIGHT:
+            case DANDELION:
+            case POPPY:
+            case BLUE_ORCHID:
+            case ALLIUM:
+            case AZURE_BLUET:
+            case RED_TULIP:
+            case ORANGE_TULIP:
+            case WHITE_TULIP:
+            case PINK_TULIP:
+            case OXEYE_DAISY:
+            case CORNFLOWER:
+            case LILY_OF_THE_VALLEY:
+            case WITHER_ROSE:
+            case FERN:
+            case SUNFLOWER:
+            case LILAC:
+            case ROSE_BUSH:
+            case PEONY:
+            case LARGE_FERN:
+            case SPORE_BLOSSOM:
+            case MOSS_BLOCK:
+            case BIG_DRIPLEAF:
+            case HAY_BLOCK:
+            case BROWN_MUSHROOM_BLOCK:
+            case RED_MUSHROOM_BLOCK:
+            case NETHER_WART_BLOCK:
+            case WARPED_WART_BLOCK:
+            case FLOWERING_AZALEA:
+            case BREAD:
+            case BAKED_POTATO:
+            case COOKIE:
+            case CAKE:
+            case PUMPKIN_PIE:
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**

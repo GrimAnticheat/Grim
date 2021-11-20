@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
@@ -54,13 +55,17 @@ public class BlockPlace {
 
     private static final Material LADDER = XMaterial.LADDER.parseMaterial();
     GrimPlayer player;
+    @Getter
     Material material;
+    @Getter
+    HitData hitData;
 
-    public BlockPlace(GrimPlayer player, Vector3i blockPosition, Direction face, Material material) {
+    public BlockPlace(GrimPlayer player, Vector3i blockPosition, Direction face, Material material, HitData hitData) {
         this.player = player;
         this.blockPosition = blockPosition;
         this.face = face;
         this.material = material;
+        this.hitData = hitData;
 
         BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
         WrappedBlockDataValue placedAgainst = WrappedBlockData.getMaterialData(state).getData(state);
@@ -524,10 +529,6 @@ public class BlockPlace {
         return face == Direction.NORTH || face == Direction.SOUTH;
     }
 
-    public Material getMaterial() {
-        return material;
-    }
-
     public boolean isCancelled() {
         return isCancelled;
     }
@@ -630,11 +631,12 @@ public class BlockPlace {
     // No mojang, you really do need to track client ticks to get their accurate eye height.
     // another damn desync added... maybe next decade it will get fixed and double the amount of issues.
     public Vector getClickedLocation() {
+        // TODO: Is this correct??? I believe it is.
         SimpleCollisionBox box = new SimpleCollisionBox(getPlacedAgainstBlockLocation());
         Vector look = ReachUtils.getLook(player, player.xRot, player.yRot);
 
-        // TODO: Calculate actual eye height (which can also desync!)
-        Vector eyePos = new Vector(player.x, player.y + 1.62, player.z);
+        // TODO: Calculate actual eye height (which can also desync! FOR FUCKS SAKE MOJANG)
+        Vector eyePos = new Vector(player.x, player.y + player.getEyeHeight(), player.z);
         Vector endReachPos = eyePos.clone().add(new Vector(look.getX() * 6, look.getY() * 6, look.getZ() * 6));
         Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).getFirst();
 
@@ -642,9 +644,9 @@ public class BlockPlace {
         // The player didn't even click the block... (we should force resync BEFORE we get here!)
         if (intercept == null) return new Vector();
 
-        intercept.setX(intercept.getX() % 1);
-        intercept.setY(intercept.getY() % 1);
-        intercept.setZ(intercept.getZ() % 1);
+        intercept.setX(intercept.getX() - box.minX);
+        intercept.setY(intercept.getY() - box.minY);
+        intercept.setZ(intercept.getZ() - box.minZ);
 
         return intercept;
     }

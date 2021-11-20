@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
+import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.collisions.HitboxData;
@@ -31,7 +32,6 @@ import io.github.retrooper.packetevents.utils.player.Direction;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -237,13 +237,24 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // TODO: Buttons and other interactables (they would block the player from placing another block)
         if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId()) && !player.isSneaking) {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
+
+            ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+            Material material = transformMaterial(placedWith);
+
             Vector3i blockPosition = place.getBlockPosition();
-            BlockPlace blockPlace = new BlockPlace(player, blockPosition, null, null);
+            BlockPlace blockPlace = new BlockPlace(player, blockPosition, null, material, getNearestHitResult(player, null, true));
 
             // Right-clicking a trapdoor/door/etc.
             if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
                 Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
                 player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
+                return;
+            }
+
+            // This also has side effects
+            // This method is for when the block doesn't always consume the click
+            // This causes a ton of desync's but mojang doesn't seem to care...
+            if (ConsumesBlockPlace.consumesPlace(player, player.compensatedWorld.getWrappedBlockStateAt(blockPlace.getPlacedAgainstBlockLocation()), blockPlace)) {
                 return;
             }
         }
@@ -275,10 +286,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
             Vector3i blockPosition = place.getBlockPosition();
             Direction face = place.getDirection();
+
             // TODO: Support offhand!
             ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             Material material = transformMaterial(placedWith);
-            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material);
+            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material, getNearestHitResult(player, null, true));
 
             if (placedWith != null && material.isBlock()) {
                 player.checkManager.onBlockPlace(blockPlace);
@@ -297,7 +309,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     private void placeWaterLavaSnowBucket(GrimPlayer player, Material toPlace) {
         HitData data = getNearestHitResult(player, toPlace, false);
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), toPlace);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), toPlace, data);
 
             // If we hit a waterloggable block, then the bucket is directly placed
             // Otherwise, use the face to determine where to place the bucket
@@ -319,7 +331,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     private void placeBucket(GrimPlayer player) {
         HitData data = getNearestHitResult(player, null, true);
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.BUCKET);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.BUCKET, data);
 
             if (data.getState().getMaterial() == Material.POWDER_SNOW) {
                 blockPlace.set(Material.AIR);
@@ -352,7 +364,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
 
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.LILY_PAD);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.LILY_PAD, data);
 
             // We checked for a full fluid block below here.
             if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
@@ -380,6 +392,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (stack.getType() == Material.WHEAT_SEEDS) return Material.WHEAT;
         if (stack.getType() == Material.REDSTONE) return Material.REDSTONE_WIRE;
         if (stack.getType() == Material.POWDER_SNOW_BUCKET) return Material.POWDER_SNOW;
+        if (stack.getType() == Material.SWEET_BERRIES) return Material.SWEET_BERRY_BUSH;
 
         return stack.getType();
     }
@@ -414,7 +427,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
             if (bestHitLoc != null) {
-                Bukkit.broadcastMessage(bestFace + " ");
                 return new HitData(vector3i, bestHitLoc, bestFace, block);
             }
 

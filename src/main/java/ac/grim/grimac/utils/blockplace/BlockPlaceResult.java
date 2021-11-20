@@ -537,7 +537,7 @@ public enum BlockPlaceResult {
         if (isTorch) {
             dir = (Directional) Material.WALL_TORCH.createBlockData();
         } else if (place.getMaterial().name().contains("HEAD") || place.getMaterial().name().contains("SKULL")) {
-            dir = (Directional) Material.PLAYER_HEAD.createBlockData();
+            dir = (Directional) Material.PLAYER_WALL_HEAD.createBlockData();
         } else {
             dir = (Directional) Material.OAK_WALL_SIGN.createBlockData();
         }
