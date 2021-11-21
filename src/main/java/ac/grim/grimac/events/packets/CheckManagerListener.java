@@ -15,6 +15,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
@@ -23,6 +24,7 @@ import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
+import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedPacketInBlockDig;
 import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
@@ -33,10 +35,13 @@ import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -232,6 +237,145 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;
+        }
+
+        if (packetID == PacketType.Play.Client.BLOCK_DIG) {
+            WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
+
+
+            if (dig.getDigType() == WrappedPacketInBlockDig.PlayerDigType.STOP_DESTROY_BLOCK) {
+                BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
+                // Not unbreakable
+                if (XMaterial.getHardness(XMaterial.fromMaterial(block.getMaterial())) != -1.0f) {
+                    player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
+                }
+            }
+
+            if (dig.getDigType() == WrappedPacketInBlockDig.PlayerDigType.START_DESTROY_BLOCK) {
+                // GET destroy speed
+                // Starts with itemstack get destroy speed
+                ItemStack tool = player.bukkitPlayer.getItemInHand();
+
+                BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
+
+                boolean isBestTool = false;
+                float speedMultiplier = 1.0f;
+
+                // TODO: Check if we have the right level to mine the block
+                // 1.13 and below need their own huge methods to support this...
+                if (tool.getType().name().endsWith("_AXE")) {
+                    isBestTool = Tag.MINEABLE_AXE.isTagged(block.getMaterial());
+                } else if (tool.getType().name().endsWith("_PICKAXE")) {
+                    isBestTool = Tag.MINEABLE_PICKAXE.isTagged(block.getMaterial());
+                } else if (tool.getType().name().endsWith("_SHOVEL")) {
+                    isBestTool = Tag.MINEABLE_SHOVEL.isTagged(block.getMaterial());
+                }
+
+                // TODO: Shears and swords
+                if (isBestTool) {
+                    if (tool.getType().name().contains("WOOD")) {
+                        speedMultiplier = 2.0f;
+                    } else if (tool.getType().name().contains("STONE")) {
+                        speedMultiplier = 4.0f;
+                    } else if (tool.getType().name().contains("IRON")) {
+                        speedMultiplier = 6.0f;
+                    } else if (tool.getType().name().contains("DIAMOND")) {
+                        speedMultiplier = 8.0f;
+                    } else if (tool.getType().name().contains("GOLD")) {
+                        speedMultiplier = 12.0f;
+                    } else if (tool.getType().name().contains("NETHERITE")) {
+                        speedMultiplier = 9.0f;
+                    }
+                }
+
+                float blockHardness = XMaterial.getHardness(XMaterial.fromMaterial(block.getMaterial()));
+
+                if (isBestTool) {
+                    if (blockHardness == -1.0f) {
+                        speedMultiplier = 0;
+                    } else {
+                        int digSpeed = tool.getEnchantmentLevel(Enchantment.DIG_SPEED);
+                        if (digSpeed > 0) {
+                            speedMultiplier += digSpeed * digSpeed + 1;
+                        }
+                    }
+                }
+
+                Integer digSpeed = player.compensatedPotions.getPotionLevel("DIG_SPEED");
+                Integer conduit = player.compensatedPotions.getPotionLevel("CONDUIT_POWER");
+
+                if (digSpeed != null || conduit != null) {
+                    int i = 0;
+                    int j = 0;
+                    if (digSpeed != null) {
+                        i = digSpeed;
+                    }
+
+                    if (conduit != null) {
+                        j = conduit;
+                    }
+
+                    int hasteLevel = Math.max(i, j);
+
+                    speedMultiplier *= 1 + (0.2 * hasteLevel);
+                }
+
+                Integer miningFatigue = player.compensatedPotions.getPotionLevel("SLOW_DIGGING");
+
+                if (miningFatigue != null) {
+                    switch (miningFatigue) {
+                        case 0:
+                            speedMultiplier *= 0.3;
+                            break;
+                        case 1:
+                            speedMultiplier *= 0.09;
+                            break;
+                        case 2:
+                            speedMultiplier *= 0.0027;
+                            break;
+                        default:
+                            speedMultiplier *= 0.00081;
+                    }
+                }
+
+                boolean hasAquaAffinity = false;
+
+                ItemStack helmet = player.bukkitPlayer.getInventory().getHelmet();
+                ItemStack chestplate = player.bukkitPlayer.getInventory().getChestplate();
+                ItemStack leggings = player.bukkitPlayer.getInventory().getLeggings();
+                ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
+
+                if ((helmet != null && helmet.containsEnchantment(Enchantment.WATER_WORKER)) ||
+                        (chestplate != null && chestplate.containsEnchantment(Enchantment.WATER_WORKER)) ||
+                        (leggings != null && leggings.containsEnchantment(Enchantment.WATER_WORKER)) ||
+                        (boots != null && boots.containsEnchantment(Enchantment.WATER_WORKER))) {
+                    hasAquaAffinity = true;
+                }
+
+                if (player.fluidOnEyes == FluidTag.WATER && !hasAquaAffinity) {
+                    speedMultiplier /= 5;
+                }
+
+                if (!player.onGround) {
+                    speedMultiplier /= 5;
+                }
+
+                float damage = speedMultiplier / blockHardness;
+
+                boolean canHarvest = !XMaterial.requiresCorrectTool(XMaterial.fromMaterial(block.getMaterial())) || isBestTool;
+                if (canHarvest) {
+                    damage /= 30;
+                } else {
+                    damage /= 100;
+                }
+
+                //Instant breaking
+                if (damage > 1 || player.gamemode == GameMode.CREATIVE) {
+                    player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(),
+                            0);
+                }
+            }
+
         }
 
         // Check for interactable first (door, etc)
