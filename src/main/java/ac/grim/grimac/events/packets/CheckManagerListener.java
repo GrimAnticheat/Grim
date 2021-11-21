@@ -29,6 +29,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.Wrapp
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Direction;
+import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
@@ -234,28 +235,37 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         // Check for interactable first (door, etc)
-        // TODO: Buttons and other interactables (they would block the player from placing another block)
-        if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId()) && !player.isSneaking) {
+        if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId())) {
             WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
 
             ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             Material material = transformMaterial(placedWith);
 
-            Vector3i blockPosition = place.getBlockPosition();
-            BlockPlace blockPlace = new BlockPlace(player, blockPosition, null, material, getNearestHitResult(player, null, true));
+            boolean onlyAir = material == null || material == Material.AIR;
 
-            // Right-clicking a trapdoor/door/etc.
-            if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
-                Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
-                player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
-                return;
+            if (XMaterial.supports(9)) {
+                ItemStack offhand = player.bukkitPlayer.getInventory().getItemInOffHand();
+                onlyAir = onlyAir && offhand.getType() == Material.AIR;
             }
 
-            // This also has side effects
-            // This method is for when the block doesn't always consume the click
-            // This causes a ton of desync's but mojang doesn't seem to care...
-            if (ConsumesBlockPlace.consumesPlace(player, player.compensatedWorld.getWrappedBlockStateAt(blockPlace.getPlacedAgainstBlockLocation()), blockPlace)) {
-                return;
+            // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
+            if ((!player.isSneaking || onlyAir) && place.getHand() == Hand.MAIN_HAND) {
+                Vector3i blockPosition = place.getBlockPosition();
+                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getDirection(), material, getNearestHitResult(player, null, true));
+
+                // Right-clicking a trapdoor/door/etc.
+                if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
+                    Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
+                    player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
+                    return;
+                }
+
+                // This also has side effects
+                // This method is for when the block doesn't always consume the click
+                // This causes a ton of desync's but mojang doesn't seem to care...
+                if (ConsumesBlockPlace.consumesPlace(player, player.compensatedWorld.getWrappedBlockStateAt(blockPlace.getPlacedAgainstBlockLocation()), blockPlace)) {
+                    return;
+                }
             }
         }
 

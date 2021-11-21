@@ -35,6 +35,11 @@ public class ConsumesBlockPlace {
             Bell bell = (Bell) data;
             return goodBellHit(player, bell, place);
         }
+        if (data.getMaterial() == XMaterial.CANDLE_CAKE.parseMaterial()) {
+            Cake cake = (Cake) Material.CAKE.createBlockData();
+            cake.setBites(1);
+            place.set(cake);
+        }
         if (data instanceof Cake) {
             Cake cake = (Cake) data;
             if (cake.getBites() == 0 && place.getMaterial() != null && place.getMaterial().name().endsWith("CANDLE")) {
@@ -43,8 +48,10 @@ public class ConsumesBlockPlace {
             }
 
             if (player.gamemode == GameMode.CREATIVE || player.bukkitPlayer.getFoodLevel() < 20) {
-                if (cake.getBites() + 1 != cake.getMaximumBites()) {
-                    cake.setBites(cake.getBites() + 1);
+                if (cake.getBites() + 1 != 7) {
+                    Cake clone = (Cake) cake.clone();
+                    clone.setBites(cake.getBites() + 1);
+                    place.set(clone);
                 } else {
                     place.set(Material.AIR);
                 }
@@ -119,13 +126,14 @@ public class ConsumesBlockPlace {
         if (direction != Direction.UP && direction != Direction.DOWN && !(p_49742_ > (double) 0.8124F)) {
             BlockFace dir = bell.getFacing();
             Bell.Attachment attachment = bell.getAttachment();
+            BlockFace dir2 = BlockFace.valueOf(direction.name());
 
             switch (attachment) {
                 case FLOOR:
-                    return AxisUtil.getAxis(dir) == AxisUtil.getAxis(direction);
+                    return AxisUtil.isSameAxis(dir, dir2);
                 case SINGLE_WALL:
                 case DOUBLE_WALL:
-                    return AxisUtil.getAxis(dir) != AxisUtil.getAxis(direction);
+                    return !AxisUtil.isSameAxis(dir, dir2);
                 case CEILING:
                     return true;
                 default:

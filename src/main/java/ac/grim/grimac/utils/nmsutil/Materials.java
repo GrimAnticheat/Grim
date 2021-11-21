@@ -332,7 +332,6 @@ public class Materials {
         markAs(XMaterial.REPEATER, CLIENT_SIDE_INTERACTABLE);
         markAs(XMaterial.SMITHING_TABLE, CLIENT_SIDE_INTERACTABLE);
         markAs(XMaterial.STONECUTTER, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.CAKE, CLIENT_SIDE_INTERACTABLE);
 
         for (Material mat : Material.values()) {
             if (!mat.isBlock()) continue;
