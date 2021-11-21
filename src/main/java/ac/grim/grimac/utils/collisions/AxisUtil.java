@@ -72,6 +72,12 @@ public enum AxisUtil {
         }
     }
 
+    public static boolean isSameAxis(BlockFace one, BlockFace two) {
+        return (one == BlockFace.WEST || one == BlockFace.EAST) && (two == BlockFace.WEST || two == BlockFace.EAST) ||
+                (one == BlockFace.NORTH || one == BlockFace.SOUTH) && (two == BlockFace.NORTH || two == BlockFace.SOUTH) ||
+                (one == BlockFace.UP || one == BlockFace.DOWN) && (two == BlockFace.UP || two == BlockFace.DOWN);
+    }
+
     public static AxisSelect getAxis(Direction direction) {
         return getAxis(BlockFace.valueOf(direction.name()));
     }
