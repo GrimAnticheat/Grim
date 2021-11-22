@@ -84,7 +84,7 @@ public class VectorData {
         }
     }
 
-    // TODO: For debugging everything should have it's own type!
+    // TODO: This is a stupid idea that slows everything down, remove it! There are easier ways to debug grim.
     // Would make false positives really easy to fix
     // But seriously, we could trace the code to find the mistake
     public enum VectorType {

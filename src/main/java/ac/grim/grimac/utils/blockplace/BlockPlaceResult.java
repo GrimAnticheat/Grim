@@ -36,7 +36,6 @@ import java.util.Set;
 public enum BlockPlaceResult {
 
     // If the block only has directional data
-    // TODO: Add skulls to this
     ANVIL((player, place) -> {
         if (Version.isFlat()) {
             Directional data = (Directional) place.getMaterial().createBlockData();
@@ -799,7 +798,7 @@ public enum BlockPlaceResult {
         TrapDoor door = (TrapDoor) place.getMaterial().createBlockData();
 
         BlockFace direction = place.getBlockFace();
-        if (!place.replaceClicked() && BlockFaceHelper.isFaceHorizontal(direction)) {
+        if (!place.isReplaceClicked() && BlockFaceHelper.isFaceHorizontal(direction)) {
             door.setFacing(direction);
             boolean clickedTop = place.getClickedLocation().getY() > 0.5;
             Bisected.Half half = clickedTop ? Bisected.Half.TOP : Bisected.Half.BOTTOM;

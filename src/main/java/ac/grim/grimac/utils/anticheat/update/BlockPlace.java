@@ -453,7 +453,7 @@ public class BlockPlace {
     public List<BlockFace> getNearestPlacingDirections() {
         BlockFace[] faces = getNearestLookingDirections().toArray(new BlockFace[0]);
 
-        if (!replaceClicked()) {
+        if (!isReplaceClicked()) {
             BlockFace direction = getBlockFace();
 
             // Blame mojang for this code, not me
@@ -468,11 +468,6 @@ public class BlockPlace {
         }
 
         return Arrays.asList(faces);
-    }
-
-    // TODO:
-    public boolean replaceClicked() {
-        return false;
     }
 
     private List<BlockFace> getNearestLookingDirections() {
@@ -631,11 +626,9 @@ public class BlockPlace {
     // No mojang, you really do need to track client ticks to get their accurate eye height.
     // another damn desync added... maybe next decade it will get fixed and double the amount of issues.
     public Vector getClickedLocation() {
-        // TODO: Is this correct??? I believe it is.
         SimpleCollisionBox box = new SimpleCollisionBox(getPlacedAgainstBlockLocation());
         Vector look = ReachUtils.getLook(player, player.xRot, player.yRot);
 
-        // TODO: Calculate actual eye height (which can also desync! FOR FUCKS SAKE MOJANG)
         Vector eyePos = new Vector(player.x, player.y + player.getEyeHeight(), player.z);
         Vector endReachPos = eyePos.clone().add(new Vector(look.getX() * 6, look.getY() * 6, look.getZ() * 6));
         Vector intercept = ReachUtils.calculateIntercept(box, eyePos, endReachPos).getFirst();

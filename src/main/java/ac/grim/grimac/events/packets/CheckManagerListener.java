@@ -256,12 +256,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 // Starts with itemstack get destroy speed
                 ItemStack tool = player.bukkitPlayer.getItemInHand();
 
+                // A creative mode player cannot break things with a sword!
+                if (player.gamemode == GameMode.CREATIVE && tool.getType().name().contains("SWORD")) {
+                    return;
+                }
+
                 BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
 
                 boolean isBestTool = false;
                 float speedMultiplier = 1.0f;
 
-                // TODO: Check if we have the right level to mine the block
                 // 1.13 and below need their own huge methods to support this...
                 if (tool.getType().name().endsWith("_AXE")) {
                     isBestTool = Tag.MINEABLE_AXE.isTagged(block.getMaterial());
@@ -271,21 +275,63 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     isBestTool = Tag.MINEABLE_SHOVEL.isTagged(block.getMaterial());
                 }
 
-                // TODO: Shears and swords
                 if (isBestTool) {
-                    if (tool.getType().name().contains("WOOD")) {
+                    int tier = 0;
+                    if (tool.getType().name().contains("WOOD")) { // Tier 0
                         speedMultiplier = 2.0f;
-                    } else if (tool.getType().name().contains("STONE")) {
+                    } else if (tool.getType().name().contains("STONE")) { // Tier 1
                         speedMultiplier = 4.0f;
-                    } else if (tool.getType().name().contains("IRON")) {
+                        tier = 1;
+                    } else if (tool.getType().name().contains("IRON")) { // Tier 2
                         speedMultiplier = 6.0f;
-                    } else if (tool.getType().name().contains("DIAMOND")) {
+                        tier = 2;
+                    } else if (tool.getType().name().contains("DIAMOND")) { // Tier 3
                         speedMultiplier = 8.0f;
-                    } else if (tool.getType().name().contains("GOLD")) {
+                        tier = 3;
+                    } else if (tool.getType().name().contains("GOLD")) { // Tier 0
                         speedMultiplier = 12.0f;
-                    } else if (tool.getType().name().contains("NETHERITE")) {
+                    } else if (tool.getType().name().contains("NETHERITE")) { // Tier 4
                         speedMultiplier = 9.0f;
+                        tier = 4;
                     }
+
+                    if (tier < 3 && Tag.NEEDS_DIAMOND_TOOL.isTagged(block.getMaterial())) {
+                        isBestTool = false;
+                    } else if (tier < 2 && Tag.NEEDS_IRON_TOOL.isTagged(block.getMaterial())) {
+                        isBestTool = false;
+                    } else if (tier < 1 && Tag.NEEDS_STONE_TOOL.isTagged(block.getMaterial())) {
+                        isBestTool = false;
+                    }
+                }
+
+                // Shears can mine some blocks faster
+                if (tool.getType() == XMaterial.SHEARS.parseMaterial()) {
+                    if (block.getMaterial() == XMaterial.COBWEB.parseMaterial() || Materials.checkFlag(block.getMaterial(), Materials.LEAVES)) {
+                        speedMultiplier = 15.0f;
+                    } else if (block.getMaterial().name().contains("WOOL")) {
+                        speedMultiplier = 5.0f;
+                    } else if (block.getMaterial() == XMaterial.VINE.parseMaterial() ||
+                            block.getMaterial() == XMaterial.GLOW_LICHEN.parseMaterial()) {
+                        speedMultiplier = 2.0f;
+                    }
+
+                    isBestTool = block.getMaterial() == XMaterial.COBWEB.parseMaterial() ||
+                            block.getMaterial() == XMaterial.REDSTONE_WIRE.parseMaterial() ||
+                            block.getMaterial() == XMaterial.TRIPWIRE.parseMaterial();
+                }
+
+                // Swords can also mine some blocks faster
+                if (tool.getType().name().contains("SWORD")) {
+                    if (block.getMaterial() == XMaterial.COBWEB.parseMaterial()) {
+                        speedMultiplier = 15.0f;
+                    } else if (Materials.checkFlag(block.getMaterial(), Materials.PLANT) ||
+                            Materials.checkFlag(block.getMaterial(), Materials.LEAVES) ||
+                            block.getMaterial() == XMaterial.PUMPKIN.parseMaterial() ||
+                            block.getMaterial() == XMaterial.MELON.parseMaterial()) {
+                        speedMultiplier = 1.5f;
+                    }
+
+                    isBestTool = block.getMaterial() == XMaterial.COBWEB.parseMaterial();
                 }
 
                 float blockHardness = XMaterial.getHardness(XMaterial.fromMaterial(block.getMaterial()));
