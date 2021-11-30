@@ -37,6 +37,7 @@ public class CheckManager {
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
+                //.put(CompensatedInventory.class, new CompensatedInventory(player))
                 .put(NoFallA.class, new NoFallA(player))
                 .put(TimerCheck.class, new TimerCheck(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
