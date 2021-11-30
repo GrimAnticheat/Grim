@@ -43,7 +43,7 @@ public class FifteenChunk implements BaseChunk {
         int blockCount = 0;
         // 1.14 and 1.15 include block count in chunk data
         // In 1.13 we don't send that, so there is no need to keep track of it
-        if (XMaterial.getVersion() != 13) {
+        if (hasBlockCount) {
             blockCount = in.readShort();
         }
 
@@ -62,7 +62,7 @@ public class FifteenChunk implements BaseChunk {
     public static void write(NetOutput out, FifteenChunk chunk) throws IOException {
         // ViaVersion should handle not writing block count in 1.13, as vanilla doesn't include it
         // It would probably crash the client if we tried writing it
-        if (XMaterial.getVersion() != 13) {
+        if (hasBlockCount) {
             out.writeShort(chunk.getBlockCount());
         }
 
