@@ -3,8 +3,8 @@ package ac.grim.grimac.utils.chunkdata.sixteen;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
+import ac.grim.grimac.utils.chunkdata.eighteen.SingletonPalette;
 import com.github.steveice10.packetlib.io.NetInput;
-import com.github.steveice10.packetlib.io.NetOutput;
 import lombok.NonNull;
 
 import java.io.IOException;
@@ -14,14 +14,13 @@ public class SixteenChunk implements BaseChunk {
     private int blockCount;
     @NonNull
     private Palette palette;
-    @NonNull
     private BitStorage storage;
 
     public SixteenChunk() {
         this(0, new ListPalette(4), new BitStorage(4, 4096));
     }
 
-    public SixteenChunk(int blockCount, @NonNull Palette palette, @NonNull BitStorage storage) {
+    public SixteenChunk(int blockCount, @NonNull Palette palette, BitStorage storage) {
         this.blockCount = blockCount;
         this.palette = palette;
         this.storage = storage;
@@ -31,25 +30,13 @@ public class SixteenChunk implements BaseChunk {
         int blockCount = in.readShort();
         int bitsPerEntry = in.readUnsignedByte();
         Palette palette = readPalette(bitsPerEntry, in);
-        BitStorage storage = new BitStorage(bitsPerEntry, 4096, in.readLongs(in.readVarInt()));
-        return new SixteenChunk(blockCount, palette, storage);
-    }
 
-    public static void write(NetOutput out, SixteenChunk chunk) throws IOException {
-        out.writeShort(chunk.blockCount);
-        out.writeByte(chunk.storage.getBitsPerEntry());
-        if (!(chunk.palette instanceof GlobalPalette)) {
-            int paletteLength = chunk.palette.size();
-            out.writeVarInt(paletteLength);
-
-            for (int i = 0; i < paletteLength; ++i) {
-                out.writeVarInt(chunk.palette.idToState(i));
-            }
+        if (!(palette instanceof SingletonPalette)) {
+            BitStorage storage = new BitStorage(bitsPerEntry, 4096, in.readLongs(in.readVarInt()));
+            return new SixteenChunk(blockCount, palette, storage);
         }
 
-        long[] data = chunk.storage.getData();
-        out.writeVarInt(data.length);
-        out.writeLongs(data);
+        return new SixteenChunk(blockCount, palette, null);
     }
 
     private static Palette createPalette(int bitsPerEntry) {
@@ -61,7 +48,9 @@ public class SixteenChunk implements BaseChunk {
     }
 
     private static Palette readPalette(int bitsPerEntry, NetInput in) throws IOException {
-        if (bitsPerEntry <= 4) {
+        if (bitsPerEntry == 0) {
+            return new SingletonPalette(in);
+        } else if (bitsPerEntry <= 4) {
             return new ListPalette(bitsPerEntry, in);
         } else {
             return bitsPerEntry <= 8 ? new MapPalette(bitsPerEntry, in) : new GlobalPalette();

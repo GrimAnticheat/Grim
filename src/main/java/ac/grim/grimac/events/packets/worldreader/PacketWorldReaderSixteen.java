@@ -3,18 +3,19 @@ package ac.grim.grimac.events.packets.worldreader;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
+import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
-import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import org.bukkit.Bukkit;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.BitSet;
 
 public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
@@ -26,17 +27,33 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
         try {
             int chunkX = packet.getChunkX();
             int chunkZ = packet.getChunkZ();
-            BitSet bitSet = packet.getBitSet();
 
-            BaseChunk[] chunks = new SixteenChunk[bitSet.size()];
+            BaseChunk[] chunks;
+
             byte[] chunkData = packet.getCompressedData();
-
             NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
-            for (int index = 0; index < chunks.length; ++index) {
-                if (bitSet.get(index)) {
-                    chunks[index] = SixteenChunk.read(dataIn);
+            if (XMaterial.getVersion() < 18) {
+                BitSet bitSet = packet.getBitSet().get();
+
+                chunks = new SixteenChunk[bitSet.size()];
+
+                for (int index = 0; index < chunks.length; ++index) {
+                    if (bitSet.get(index)) {
+                        chunks[index] = SixteenChunk.read(dataIn);
+                    }
                 }
+            } else {
+                // TODO: Get the world height correctly
+                BaseChunk[] temp = new SixteenChunk[1000];
+                int total = 0;
+
+                while (dataIn.available() > 0) {
+                    temp[total++] = SixteenChunk.read(dataIn);
+                }
+
+                Bukkit.broadcastMessage(total + "");
+                chunks = temp;
             }
 
             boolean isGroundUp = packet.isGroundUpContinuous().orElse(true);
@@ -56,15 +73,10 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
             int positionPos = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 1 : 0;
             Object position = packet.readAnyObject(positionPos);
 
-            // In 1.16, chunk sections are used.  The have X, Y, and Z
-            Method getX = Reflection.getMethod(position.getClass(), "getX", 0);
-            Method getZ = Reflection.getMethod(position.getClass(), "getZ", 0);
-
-            int chunkX = (int) getX.invoke(position) << 4;
-            int chunkZ = (int) getZ.invoke(position) << 4;
-
-            Method getY = Reflection.getMethod(position.getClass(), "getY", 0);
-            int chunkY = (int) getY.invoke(position) << 4;
+            // In 1.16, chunk sections are used.  The have X, Y, and Z values
+            int chunkX = (int) NMSUtils.getBlockPosX.invoke(position) << 4;
+            int chunkY = (int) NMSUtils.getBlockPosY.invoke(position) << 4;
+            int chunkZ = (int) NMSUtils.getBlockPosZ.invoke(position) << 4;
 
             short[] blockPositions = packet.readShortArray(0);
 

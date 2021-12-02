@@ -31,7 +31,7 @@ public class PacketWorldReaderNine extends BasePacketWorldReader {
             int chunkZ = packet.getChunkZ();
 
             byte[] chunkData = packet.getCompressedData();
-            BitSet bitSet = packet.getBitSet();
+            BitSet bitSet = packet.getBitSet().get();
             NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
             BaseChunk[] chunks = new BaseChunk[16];

@@ -5,6 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.nmsutil.XMaterial;
 import io.github.retrooper.packetevents.event.PacketListenerAbstract;
 import io.github.retrooper.packetevents.event.PacketListenerPriority;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -15,20 +16,37 @@ import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.apache.commons.lang.NotImplementedException;
+import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
-    private static final Method getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
+    private static final Method getByCombinedID;
 
     public BasePacketWorldReader() {
         super(PacketListenerPriority.MONITOR);
     }
 
+    static {
+        if (XMaterial.getVersion() >= 18) {
+            // The mapping is called i now for some reason.
+            getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "i", int.class);
+        } else {
+            getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
+        }
+    }
+
     @Override
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
+
+        if (packetID != PacketType.Play.Server.CHAT && packetID != PacketType.Play.Server.PING)
+            Bukkit.broadcastMessage(event.getPacketName());
+
+        if (event.getPacketName().equalsIgnoreCase("ClientboundLevelChunkWithLightPacket")) {
+            int x = 0;
+        }
 
         if (packetID == PacketType.Play.Server.UNLOAD_CHUNK) {
             WrappedPacketOutUnloadChunk unloadChunk = new WrappedPacketOutUnloadChunk(event.getNMSPacket());

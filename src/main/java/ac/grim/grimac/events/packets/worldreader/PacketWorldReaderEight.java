@@ -68,7 +68,7 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
 
             ShortBuffer buf = ByteBuffer.wrap(packet.getCompressedData()).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer();
             BaseChunk[] chunks = new BaseChunk[16];
-            BitSet set = packet.getBitSet();
+            BitSet set = packet.getBitSet().get();
 
             readChunk(buf, chunks, set);
 

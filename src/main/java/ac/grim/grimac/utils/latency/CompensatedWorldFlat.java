@@ -38,10 +38,14 @@ public class CompensatedWorldFlat extends CompensatedWorld {
 
     public static void init() {
         // The global palette only exists in 1.13+, 1.12- uses magic values for everything
-        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAPI.INSTANCE.getPlugin().getResource(XMaterial.getVersion() + ".txt"))));
+        int version = XMaterial.getVersion();
+        // 1.18 and 1.17 have the same palette... no need to duplicate it
+        if (version == 18) version = 17;
+
+        BufferedReader paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAPI.INSTANCE.getPlugin().getResource(version + ".txt"))));
         int paletteSize = (int) paletteReader.lines().count();
         // Reset the reader after counting
-        paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAPI.INSTANCE.getPlugin().getResource(XMaterial.getVersion() + ".txt"))));
+        paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAPI.INSTANCE.getPlugin().getResource(version + ".txt"))));
 
         globalPaletteToBlockData = new ArrayList<>(paletteSize);
 
