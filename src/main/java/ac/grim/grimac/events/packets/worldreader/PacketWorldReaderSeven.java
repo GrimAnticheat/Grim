@@ -44,7 +44,7 @@ public class PacketWorldReaderSeven extends BasePacketWorldReader {
         SevenChunk[] chunks = new SevenChunk[16];
 
         ByteBuffer buf = ByteBuffer.wrap(data).order(ByteOrder.LITTLE_ENDIAN);
-        readChunk(buf, chunks, packet.getBitSet());
+        readChunk(buf, chunks, packet.getBitSet().get());
 
         addChunkToCache(player, chunks, packet.isGroundUpContinuous().get(), chunkX, chunkZ);
     }
