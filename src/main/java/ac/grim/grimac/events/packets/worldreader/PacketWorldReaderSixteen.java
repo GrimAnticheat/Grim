@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets.worldreader;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -11,7 +10,6 @@ import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
 import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import org.bukkit.Bukkit;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -33,27 +31,14 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
             byte[] chunkData = packet.getCompressedData();
             NetInput dataIn = new StreamNetInput(new ByteArrayInputStream(chunkData));
 
-            if (XMaterial.getVersion() < 18) {
-                BitSet bitSet = packet.getBitSet().get();
+            BitSet bitSet = packet.getBitSet().get();
 
-                chunks = new SixteenChunk[bitSet.size()];
+            chunks = new SixteenChunk[bitSet.size()];
 
-                for (int index = 0; index < chunks.length; ++index) {
-                    if (bitSet.get(index)) {
-                        chunks[index] = SixteenChunk.read(dataIn);
-                    }
+            for (int index = 0; index < chunks.length; ++index) {
+                if (bitSet.get(index)) {
+                    chunks[index] = SixteenChunk.read(dataIn);
                 }
-            } else {
-                // TODO: Get the world height correctly
-                BaseChunk[] temp = new SixteenChunk[1000];
-                int total = 0;
-
-                while (dataIn.available() > 0) {
-                    temp[total++] = SixteenChunk.read(dataIn);
-                }
-
-                Bukkit.broadcastMessage(total + "");
-                chunks = temp;
             }
 
             boolean isGroundUp = packet.isGroundUpContinuous().orElse(true);
@@ -68,15 +53,15 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
     public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
 
-        try {
-            // Section Position or Chunk Section - depending on version
-            int positionPos = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 1 : 0;
-            Object position = packet.readAnyObject(positionPos);
+        // Section Position or Chunk Section - depending on version
+        int positionPos = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 1 : 0;
+        Object position = packet.readAnyObject(positionPos);
 
+        try {
             // In 1.16, chunk sections are used.  The have X, Y, and Z values
-            int chunkX = (int) NMSUtils.getBlockPosX.invoke(position) << 4;
-            int chunkY = (int) NMSUtils.getBlockPosY.invoke(position) << 4;
-            int chunkZ = (int) NMSUtils.getBlockPosZ.invoke(position) << 4;
+            int chunkX = (Integer) NMSUtils.getBlockPosX.invoke(position) << 4;
+            int chunkY = (Integer) NMSUtils.getBlockPosY.invoke(position) << 4;
+            int chunkZ = (Integer) NMSUtils.getBlockPosZ.invoke(position) << 4;
 
             short[] blockPositions = packet.readShortArray(0);
 
@@ -98,9 +83,8 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(chunkX + blockX, chunkY + blockY, chunkZ + blockZ, blockID));
             }
-
-        } catch (IllegalAccessException | InvocationTargetException exception) {
-            exception.printStackTrace();
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            e.printStackTrace();
         }
     }
 

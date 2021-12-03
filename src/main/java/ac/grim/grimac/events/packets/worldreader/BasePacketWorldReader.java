@@ -41,13 +41,6 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     public void onPacketPlaySend(PacketPlaySendEvent event) {
         byte packetID = event.getPacketId();
 
-        if (packetID != PacketType.Play.Server.CHAT && packetID != PacketType.Play.Server.PING)
-            Bukkit.broadcastMessage(event.getPacketName());
-
-        if (event.getPacketName().equalsIgnoreCase("ClientboundLevelChunkWithLightPacket")) {
-            int x = 0;
-        }
-
         if (packetID == PacketType.Play.Server.UNLOAD_CHUNK) {
             WrappedPacketOutUnloadChunk unloadChunk = new WrappedPacketOutUnloadChunk(event.getNMSPacket());
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());

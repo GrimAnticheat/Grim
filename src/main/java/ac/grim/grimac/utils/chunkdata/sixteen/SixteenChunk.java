@@ -47,13 +47,23 @@ public class SixteenChunk implements BaseChunk {
         }
     }
 
-    private static Palette readPalette(int bitsPerEntry, NetInput in) throws IOException {
+    public static Palette readPalette(int bitsPerEntry, NetInput in) throws IOException {
         if (bitsPerEntry == 0) {
             return new SingletonPalette(in);
         } else if (bitsPerEntry <= 4) {
             return new ListPalette(bitsPerEntry, in);
         } else {
             return bitsPerEntry <= 8 ? new MapPalette(bitsPerEntry, in) : new GlobalPalette();
+        }
+    }
+
+    public static Palette readBiomePalette(int bitsPerEntry, NetInput in) throws IOException {
+        if (bitsPerEntry == 0) {
+            return new SingletonPalette(in);
+        } else if (bitsPerEntry <= 1) {
+            return new ListPalette(bitsPerEntry, in);
+        } else {
+            return bitsPerEntry <= 3 ? new MapPalette(bitsPerEntry, in) : new GlobalPalette();
         }
     }
 
