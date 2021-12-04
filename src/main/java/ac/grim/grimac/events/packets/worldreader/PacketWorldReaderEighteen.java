@@ -28,31 +28,32 @@ public class PacketWorldReaderEighteen extends PacketWorldReaderSixteen {
 
             List<BaseChunk> temp = new ArrayList<>();
 
-            while (dataIn.available() > 0) {
-                try {
-                    SixteenChunk chunk = SixteenChunk.read(dataIn);
-                    temp.add(chunk);
+            while (dataIn.available() > 7) { // If less than 8, known bad data at end of the array (thanks mojang)
+                // (minimum one short - 2 bytes - for block count)
+                // (smallest palette container is 1 byte (length) + 1 byte (singleton palette) + 1 byte (array size))
+                // two palette containers, so eight total bytes!
+                //
+                // As the tail end of this bad array is always 0, then we know the minimum size to be a valid chunk!
+                // This occurs due to a miscalculation for the array size in Mojang's code.
+                SixteenChunk chunk = SixteenChunk.read(dataIn);
+                temp.add(chunk);
 
-                    // Skip past the biome data
-                    int length = dataIn.readUnsignedByte();
+                // Skip past the biome data
+                int length = dataIn.readUnsignedByte();
 
-                    // Simulate reading past the palette for biomes
-                    if (length > 3) { // Writes nothing
-                        // do nothing
-                    } else if (length == 0) { // Writes the single member of the palette
-                        dataIn.readVarInt(); // Read single member of palette
-                    } else { // Writes size, then var ints for each size
-                        int paletteLength = dataIn.readVarInt();
-                        for (int i = 0; i < paletteLength; i++) {
-                            dataIn.readVarInt();
-                        }
+                // Simulate reading past the palette for biomes
+                if (length > 3) { // Writes nothing
+                    // do nothing
+                } else if (length == 0) { // Writes the single member of the palette
+                    dataIn.readVarInt(); // Read single member of palette
+                } else { // Writes size, then var ints for each size
+                    int paletteLength = dataIn.readVarInt();
+                    for (int i = 0; i < paletteLength; i++) {
+                        dataIn.readVarInt();
                     }
-
-                    dataIn.readLongs(dataIn.readVarInt());
-                } catch (IOException e) { // Sometimes mojang sends extra byte data that isn't a chunk, unsure why... bug?
-                    // TODO: Read the world size with packets instead of bukkit to avoid using exception to hack around mojang's bug
-                    break;
                 }
+
+                dataIn.readLongs(dataIn.readVarInt());
             }
 
             // Ground up was removed in 1.17
