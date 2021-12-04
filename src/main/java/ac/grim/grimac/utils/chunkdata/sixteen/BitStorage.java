@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.chunkdata.sixteen;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.NonNull;
 
 // Credit to https://github.com/Steveice10/MCProtocolLib/blob/master/src/main/java/com/github/steveice10/mc/protocol/data/game/chunk/BitStorage.java
 @EqualsAndHashCode
@@ -31,7 +30,7 @@ public class BitStorage {
     };
 
     @Getter
-    private final @NonNull long[] data;
+    private final long[] data;
     @Getter
     private final int bitsPerEntry;
     @Getter
@@ -43,26 +42,29 @@ public class BitStorage {
     private final long divideAdd;
     private final int divideShift;
 
+    public BitStorage() {
+        data = null;
+        bitsPerEntry = 0;
+        size = 0;
+        maxValue = 0;
+        valuesPerLong = 0;
+        divideMultiply = 0;
+        divideAdd = 0;
+        divideShift = 0;
+    }
+
     public BitStorage(int bitsPerEntry, int size) {
         this(bitsPerEntry, size, null);
     }
 
     public BitStorage(int bitsPerEntry, int size, long[] data) {
-        if (bitsPerEntry < 1 || bitsPerEntry > 32) {
-            throw new IllegalArgumentException("bitsPerEntry must be between 1 and 32, inclusive.");
-        }
-
         this.bitsPerEntry = bitsPerEntry;
         this.size = size;
-
         this.maxValue = (1L << bitsPerEntry) - 1L;
         this.valuesPerLong = (char) (64 / bitsPerEntry);
         int expectedLength = (size + this.valuesPerLong - 1) / this.valuesPerLong;
-        if (data != null) {
-            if (data.length != expectedLength) {
-                throw new IllegalArgumentException("Expected " + expectedLength + " longs but got " + data.length + " longs");
-            }
 
+        if (data != null) {
             this.data = data;
         } else {
             this.data = new long[expectedLength];

@@ -4,6 +4,7 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.eighteen.SingletonPalette;
+import ac.grim.grimac.utils.chunkdata.eighteen.SingletonStorage;
 import com.github.steveice10.packetlib.io.NetInput;
 import lombok.NonNull;
 
@@ -27,16 +28,21 @@ public class SixteenChunk implements BaseChunk {
     }
 
     public static SixteenChunk read(NetInput in) throws IOException {
-        int blockCount = in.readShort();
-        int bitsPerEntry = in.readUnsignedByte();
+        int blockCount = in.readShort(); // Always included
+        int bitsPerEntry = in.readUnsignedByte(); // Always included
+
+        // Global sends a varInt of 0
         Palette palette = readPalette(bitsPerEntry, in);
 
+        long[] longs = in.readLongs(in.readVarInt());
+
+        // Size of global palette serialized is 0, linear/hashmap is size varInt, then read the varInt # of entries, single is one varInt
         if (!(palette instanceof SingletonPalette)) {
-            BitStorage storage = new BitStorage(bitsPerEntry, 4096, in.readLongs(in.readVarInt()));
+            BitStorage storage = new BitStorage(bitsPerEntry, 4096, longs);
             return new SixteenChunk(blockCount, palette, storage);
         }
 
-        return new SixteenChunk(blockCount, palette, null);
+        return new SixteenChunk(blockCount, palette, new SingletonStorage());
     }
 
     private static Palette createPalette(int bitsPerEntry) {
