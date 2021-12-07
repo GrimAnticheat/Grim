@@ -72,6 +72,9 @@ public enum CollisionData {
         return NoCollisionBox.INSTANCE;
     }, XMaterial.LAVA.parseMaterial()),
 
+    WATER(NoCollisionBox.INSTANCE, XMaterial.WATER.parseMaterial(), XMaterial.STATIONARY_WATER.parseMaterial(),
+            XMaterial.STATIONARY_WATER.parseMaterial()),
+
     BREWINGSTAND((player, version, block, x, y, z) -> {
         int base = 0;
 

@@ -547,8 +547,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 return;
             }
 
-            // We didn't hit fluid
-            if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) == 0)
+            // We didn't hit fluid source
+            if (!player.compensatedWorld.isWaterSourceBlock(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()))
                 return;
 
             if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
