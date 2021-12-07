@@ -8,12 +8,10 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.nmsutil.Collisions;
-import ac.grim.grimac.utils.nmsutil.FluidTypeFlowing;
-import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.*;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -101,6 +99,14 @@ public class PointThreeEstimator {
     private boolean hasNegativeLevitation = false; // Negative potion effects [-127, -1]
     private boolean didLevitationChange = false; // We can't predict with an unknown amount of ticks between a levitation change
 
+    // If the world changed in a way that allowed the player to skip a tick between ticks
+    // Just pillar upwards with high latency to see this happen... it happens a lot due to shitty netcode
+    private boolean sneakyPointThree = false;
+
+    @Setter
+    @Getter
+    private boolean isPushing = true;
+
     @Getter
     private boolean wasAlwaysCertain = true;
 
@@ -136,6 +142,13 @@ public class PointThreeEstimator {
             }
 
             isNearFluid = true;
+        }
+
+        if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+            if (!sneakyPointThree && !player.couldSkipTick && !isPushing) {
+                determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
+            }
+            sneakyPointThree = sneakyPointThree || isPushing || player.couldSkipTick;
         }
 
         if ((state.getMaterial() == Material.POWDER_SNOW || Materials.checkFlag(state.getMaterial(), Materials.CLIMBABLE)) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
@@ -204,6 +217,8 @@ public class PointThreeEstimator {
         isGliding = player.isGliding;
         gravityChanged = false;
         wasAlwaysCertain = true;
+        sneakyPointThree = false;
+        isPushing = false;
     }
 
     private void checkNearbyBlocks(SimpleCollisionBox pointThreeBox) {
@@ -275,7 +290,7 @@ public class PointThreeEstimator {
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
 
-        if (isNearClimbable()) { // Due to skipping ticks, and 0.03, sneaking can get hidden on ladders...
+        if (isNearClimbable() || sneakyPointThree || isPushing) {
             player.couldSkipTick = true;
             return;
         }

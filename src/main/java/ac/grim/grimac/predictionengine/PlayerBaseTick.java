@@ -217,11 +217,13 @@ public class PlayerBaseTick {
 
 
     private void moveTowardsClosestSpace(double xPosition, double zPosition) {
+        player.boundingBox = player.boundingBox.expand(0.03); // 0.03... thanks mojang!
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
             moveTowardsClosestSpaceModern(xPosition, zPosition);
         } else {
             moveTowardsClosestSpaceLegacy(xPosition, zPosition);
         }
+        player.boundingBox = player.boundingBox.expand(-0.03);
     }
 
     // Mojang is incompetent and this will push the player out a lot when using elytras
@@ -264,20 +266,28 @@ public class PlayerBaseTick {
                 i = 5;
             }
 
-            if (i == 0) {
-                player.clientVelocity.setX(-0.1F);
+            if (i == 0) { // Negative X
+                player.uncertaintyHandler.xNegativeUncertainty -= 0.1;
+                player.uncertaintyHandler.xPositiveUncertainty += 0.1;
+                player.pointThreeEstimator.setPushing(true);
             }
 
-            if (i == 1) {
-                player.clientVelocity.setX(0.1F);
+            if (i == 1) { // Positive X
+                player.uncertaintyHandler.xNegativeUncertainty -= 0.1;
+                player.uncertaintyHandler.xPositiveUncertainty += 0.1;
+                player.pointThreeEstimator.setPushing(true);
             }
 
-            if (i == 4) {
-                player.clientVelocity.setZ(-0.1F);
+            if (i == 4) { // Negative Z
+                player.uncertaintyHandler.zNegativeUncertainty -= 0.1;
+                player.uncertaintyHandler.zPositiveUncertainty += 0.1;
+                player.pointThreeEstimator.setPushing(true);
             }
 
-            if (i == 5) {
-                player.clientVelocity.setZ(0.1F);
+            if (i == 5) { // Positive Z
+                player.uncertaintyHandler.zNegativeUncertainty -= 0.1;
+                player.uncertaintyHandler.zPositiveUncertainty += 0.1;
+                player.pointThreeEstimator.setPushing(true);
             }
         }
     }
@@ -322,9 +332,13 @@ public class PlayerBaseTick {
         }
         if (direction != null) {
             if (direction == BlockFace.WEST || direction == BlockFace.EAST) {
-                player.clientVelocity.setX(0.1 * (double) direction.getModX());
+                player.uncertaintyHandler.xPositiveUncertainty += 0.1;
+                player.uncertaintyHandler.xNegativeUncertainty -= 0.1;
+                player.pointThreeEstimator.setPushing(true);
             } else {
-                player.clientVelocity.setZ(0.1 * (double) direction.getModZ());
+                player.uncertaintyHandler.zPositiveUncertainty += 0.1;
+                player.uncertaintyHandler.zNegativeUncertainty -= 0.1;
+                player.pointThreeEstimator.setPushing(true);
             }
         }
     }

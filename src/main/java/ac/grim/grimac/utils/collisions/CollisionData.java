@@ -300,8 +300,10 @@ public enum CollisionData {
 
     NETHER_SPROUTS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 3.0D, 14.0D), XMaterial.NETHER_SPROUTS.parseMaterial()),
 
-    TALL_GRASS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
-            XMaterial.TALL_GRASS.parseMaterial(), XMaterial.FERN.parseMaterial()),
+    GRASS_FERN(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 13.0D, 14.0D),
+            XMaterial.GRASS.parseMaterial(), XMaterial.FERN.parseMaterial()),
+
+    TALL_GRASS(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), XMaterial.TALL_GRASS.parseMaterial()),
 
     SEA_GRASS(new HexCollisionBox(2.0D, 0.0D, 2.0D, 14.0D, 12.0D, 14.0D),
             XMaterial.SEAGRASS.parseMaterial()),
@@ -1120,10 +1122,12 @@ public enum CollisionData {
             XMaterial.STONE.parseMaterial());
 
     private static final CollisionData[] lookup = new CollisionData[Material.values().length];
+    private static final CollisionData[] raw_lookup = new CollisionData[Material.values().length];
 
     static {
         for (CollisionData data : values()) {
             for (Material mat : data.materials) lookup[mat.ordinal()] = data;
+            for (Material mat : data.materials) raw_lookup[mat.ordinal()] = data;
         }
 
         // If a block is not solid, then it does not have a collision box
@@ -1133,6 +1137,7 @@ public enum CollisionData {
 
         for (Material mat : Material.values()) {
             if (lookup[mat.ordinal()] == null) lookup[mat.ordinal()] = DEFAULT;
+            if (raw_lookup[mat.ordinal()] == null) raw_lookup[mat.ordinal()] = DEFAULT;
         }
     }
 
@@ -1262,6 +1267,10 @@ public enum CollisionData {
 
     public static CollisionData getData(Material material) {
         return lookup[material.ordinal()];
+    }
+
+    public static CollisionData getRawData(Material material) {
+        return raw_lookup[material.ordinal()];
     }
 
     public CollisionBox getMovementCollisionBox(GrimPlayer player, ClientVersion version, BaseBlockState block, int x, int y, int z) {

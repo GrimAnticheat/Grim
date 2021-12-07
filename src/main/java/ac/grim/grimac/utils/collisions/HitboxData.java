@@ -200,7 +200,7 @@ public enum HitboxData {
 
         if (data == null) {
             // Fall back to collision boxes
-            return CollisionData.getData(block.getMaterial()).getMovementCollisionBox(player, version, block, x, y, z);
+            return CollisionData.getRawData(block.getMaterial()).getMovementCollisionBox(player, version, block, x, y, z);
         }
 
         // Simple collision box to override

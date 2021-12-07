@@ -170,8 +170,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             lastPosLook = System.currentTimeMillis();
 
+            SimpleCollisionBox oldBB = player.boundingBox;
+            player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.66, 1.8);
             // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
             boolean nearGround = Collisions.collide(player, 0, -0.03, 0).getY() != -0.03;
+            player.boundingBox = oldBB;
             if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && nearGround && player.clientVelocity.getY() < 0.03) {
                 player.lastOnGround = true;
                 player.uncertaintyHandler.onGroundUncertain = true;
@@ -510,10 +513,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
         HitData data = getNearestHitResult(player, toPlace, false);
         if (data != null) {
             BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), toPlace, data);
+            // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
+
 
             // If we hit a waterloggable block, then the bucket is directly placed
             // Otherwise, use the face to determine where to place the bucket
             if (Materials.isPlaceableLiquidBucket(blockPlace.getMaterial()) && ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+                blockPlace.setReplaceClicked(true); // See what's in the existing place
                 BlockData existing = blockPlace.getExistingBlockBlockData();
                 if (existing instanceof Waterlogged) {
                     Waterlogged waterlogged = (Waterlogged) existing.clone(); // Don't corrupt palette
@@ -523,15 +529,18 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging
+            // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
+            blockPlace.setReplaceClicked(false);
             blockPlace.set(toPlace);
         }
     }
 
     private void placeBucket(GrimPlayer player) {
         HitData data = getNearestHitResult(player, null, true);
+
         if (data != null) {
             BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.BUCKET, data);
+            blockPlace.setReplaceClicked(true); // Replace the block clicked, not the block in the direction
 
             if (data.getState().getMaterial() == Material.POWDER_SNOW) {
                 blockPlace.set(Material.AIR);
@@ -559,12 +568,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     private void placeLilypad(GrimPlayer player) {
         HitData data = getNearestHitResult(player, null, true);
+
         if (data != null) {
             // A lilypad cannot replace a fluid
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
 
             BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.LILY_PAD, data);
+            blockPlace.setReplaceClicked(false); // Not possible with use item
 
             // We checked for a full fluid block below here.
             if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0

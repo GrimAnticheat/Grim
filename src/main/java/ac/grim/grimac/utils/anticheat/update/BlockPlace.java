@@ -43,6 +43,7 @@ public class BlockPlace {
     @Setter
     Direction face;
     @Getter
+    @Setter
     boolean replaceClicked;
     private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
     boolean isCancelled = false;
