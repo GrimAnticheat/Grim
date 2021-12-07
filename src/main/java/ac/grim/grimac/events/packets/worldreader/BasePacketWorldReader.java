@@ -16,7 +16,6 @@ import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import org.apache.commons.lang.NotImplementedException;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -134,7 +133,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
 
         int range = (player.getTransactionPing() / 100) + 16;
-        if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
+        if (player.sendTrans && Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
             event.setPostTask(player::sendTransaction);
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));

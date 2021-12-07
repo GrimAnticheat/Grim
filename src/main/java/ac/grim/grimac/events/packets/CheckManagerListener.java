@@ -157,6 +157,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
                     (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) &&
                             new Vector3d(player.x, player.y, player.z).equals(flying.getPosition())) || player.inVehicle) {
+                // We will take the rotation though
+                player.lastXRot = player.xRot;
+                player.lastYRot = player.yRot;
+
+                player.xRot = flying.getYaw();
+                player.yRot = flying.getPitch();
+
+                float deltaXRot = player.xRot - player.lastXRot;
+                float deltaYRot = player.yRot - player.lastYRot;
+
+                final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
+                player.checkManager.onRotationUpdate(update);
+
                 lastPosLook = System.currentTimeMillis();
                 player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
@@ -188,8 +201,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.lastXRot = player.xRot;
             player.lastYRot = player.yRot;
 
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
-
             player.packetStateData.packetPlayerOnGround = onGround;
 
             if (hasLook) {
@@ -209,13 +220,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.checkManager.onPositionUpdate(update);
             }
 
-            if (hasLook) {
+            if (hasLook && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
                 float deltaXRot = player.xRot - player.lastXRot;
                 float deltaYRot = player.yRot - player.lastYRot;
 
                 final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
                 player.checkManager.onRotationUpdate(update);
             }
+
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
 
             player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
             player.packetStateData.didLastMovementIncludePosition = hasPosition;

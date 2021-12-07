@@ -67,11 +67,11 @@ public class OffsetHandler extends PostPredictionCheck {
         double percentHorizontalOffset = horizontalOffset / totalOffset;
         double percentVerticalOffset = verticalOffset / totalOffset;
 
-        // Don't let players carry more than 0.001 offset into the next tick
+        // Don't let players carry more than 0.01 offset into the next tick
         // (I was seeing cheats try to carry 1,000,000,000 offset into the next tick!)
         //
         // This value so that setting back with high ping doesn't allow players to gather high client velocity
-        double minimizedOffset = Math.min(offset, 0.001);
+        double minimizedOffset = Math.min(offset, 0.01);
 
         // Normalize offsets
         player.uncertaintyHandler.lastHorizontalOffset = minimizedOffset * percentHorizontalOffset;

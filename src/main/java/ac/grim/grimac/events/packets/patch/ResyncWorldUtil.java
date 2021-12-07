@@ -1,11 +1,14 @@
 package ac.grim.grimac.events.packets.patch;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
 import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 
 import java.util.function.Predicate;
 
@@ -20,6 +23,16 @@ public class ResyncWorldUtil {
     }
 
     public static void resyncPositions(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ, Predicate<Pair<BaseBlockState, Vector3i>> shouldSend, boolean likelyDesync) {
-        // TODO: Use bukkit, PR a multi block change wrapper to packetevents
+        Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+            player.sendTrans = false;
+            for (int x = minX; x <= maxX; x++) {
+                for (int y = minY; y <= maxY; y++) {
+                    for (int z = minZ; z <= maxZ; z++) {
+                        player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), player.bukkitPlayer.getWorld().getBlockData(x, y, z));
+                    }
+                }
+            }
+            player.sendTrans = true;
+        });
     }
 }

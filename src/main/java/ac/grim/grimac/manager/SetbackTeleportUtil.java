@@ -123,9 +123,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // Don't teleport cross world, it will break more than it fixes.
         if (position.getWorld() != player.bukkitPlayer.getWorld()) return;
 
-        // Deal with ghost blocks near the player (from anticheat/netty thread)
-        // Only let us full resync once every two seconds to prevent unneeded netty load
-        if (System.nanoTime() - lastWorldResync > 2e-9) {
+        // Only let us full resync once every ten seconds to prevent unneeded bukkit load
+        if (System.nanoTime() - lastWorldResync > 10e-9) {
             ResyncWorldUtil.resyncPositions(player, player.boundingBox.copy().expand(1), false);
             lastWorldResync = System.nanoTime();
         }
