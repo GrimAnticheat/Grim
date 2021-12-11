@@ -15,6 +15,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.latency.CompensatedCooldown;
+import ac.grim.grimac.utils.latency.CompensatedInventory;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
@@ -37,7 +38,7 @@ public class CheckManager {
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
-                //.put(CompensatedInventory.class, new CompensatedInventory(player))
+                .put(CompensatedInventory.class, new CompensatedInventory(player))
                 .put(NoFallA.class, new NoFallA(player))
                 .put(TimerCheck.class, new TimerCheck(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
@@ -117,7 +118,7 @@ public class CheckManager {
         return (ExplosionHandler) getPacketCheck(ExplosionHandler.class);
     }
 
-    private PacketCheck getPacketCheck(Class<? extends PacketCheck> check) {
+    public PacketCheck getPacketCheck(Class<? extends PacketCheck> check) {
         return packetChecks.get(check);
     }
 
