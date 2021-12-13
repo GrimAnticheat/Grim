@@ -2,6 +2,9 @@ package ac.grim.grimac.utils.inventory;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
+import ac.grim.grimac.utils.inventory.slot.EquipmentSlot;
+import ac.grim.grimac.utils.inventory.slot.ResultSlot;
+import ac.grim.grimac.utils.inventory.slot.Slot;
 import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 
@@ -20,16 +23,31 @@ public class Inventory extends AbstractContainerMenu {
     WrappedStack carriedItem;
 
     public Inventory(GrimPlayer player, WrappedStack[] playerInventory, WrappedStack carriedItem) {
-
         this.playerInventory = playerInventory;
         this.carriedItem = carriedItem;
+
+        super.setPlayer(player);
+        super.setPlayerInventory(this);
 
         for (int i = 0; i < playerInventory.length; i++) {
             playerInventory[i] = WrappedStack.empty();
         }
 
-        super.setPlayer(player);
-        super.setPlayerInventory(this);
+        // Result slot
+        addSlot(new ResultSlot(this, 0));
+        // Crafting slots
+        for (int i = 0; i < 4; i++) {
+            addSlot(new Slot(this, i));
+        }
+        for (int i = 0; i < 4; i++) {
+            addSlot(new EquipmentSlot(EquipmentType.byArmorID(i), this, i + 4));
+        }
+        // Inventory slots
+        for (int i = 0; i < 9 * 4; i++) {
+            addSlot(new Slot(this, i + 9));
+        }
+        // Offhand
+        addSlot(new Slot(this, 45));
     }
 
     public WrappedStack getHeldItem() {
@@ -63,7 +81,7 @@ public class Inventory extends AbstractContainerMenu {
     @Override
     public void setItem(int slot, WrappedStack item) {
         if (slot >= 0 && slot < TOTAL_SIZE)
-            playerInventory[slot].set(item.getStack());
+            playerInventory[slot] = item;
     }
 
     public boolean add(WrappedStack p_36055_) {
@@ -137,11 +155,6 @@ public class Inventory extends AbstractContainerMenu {
         }
     }
 
-    // Hard coded
-    private int getMaxStackSize() {
-        return 64;
-    }
-
     public boolean add(int p_36041_, WrappedStack p_36042_) {
         if (p_36042_.isEmpty()) {
             return false;
@@ -180,6 +193,60 @@ public class Inventory extends AbstractContainerMenu {
                 }
             }
         }
+    }
+
+    @Override
+    public WrappedStack quickMoveStack(int slotID) {
+        WrappedStack original = WrappedStack.empty();
+        Slot slot = getSlots().get(slotID);
+
+        if (slot != null && slot.hasItem()) {
+            WrappedStack toMove = slot.getItem();
+            original = toMove.copy();
+            EquipmentType equipmentslot = EquipmentType.getEquipmentSlotForItem(original);
+            if (slotID == 0) {
+                if (!this.moveItemStackTo(toMove, 9, 45, true)) {
+                    return WrappedStack.empty();
+                }
+            } else if (slotID >= 1 && slotID < 5) {
+                if (!this.moveItemStackTo(toMove, 9, 45, false)) {
+                    return WrappedStack.empty();
+                }
+            } else if (slotID >= 5 && slotID < 9) {
+                if (!this.moveItemStackTo(toMove, 9, 45, false)) {
+                    return WrappedStack.empty();
+                }
+            } else if (equipmentslot.isArmor() && !getSlots().get(8 - equipmentslot.getIndex()).hasItem()) {
+                int i = 8 - equipmentslot.getIndex();
+                if (!this.moveItemStackTo(toMove, i, i + 1, false)) {
+                    return WrappedStack.empty();
+                }
+            } else if (equipmentslot == EquipmentType.OFFHAND && !getSlots().get(45).hasItem()) {
+                if (!this.moveItemStackTo(toMove, 45, 46, false)) {
+                    return WrappedStack.empty();
+                }
+            } else if (slotID >= 9 && slotID < 36) {
+                if (!this.moveItemStackTo(toMove, 36, 45, false)) {
+                    return WrappedStack.empty();
+                }
+            } else if (slotID >= 36 && slotID < 45) {
+                if (!this.moveItemStackTo(toMove, 9, 36, false)) {
+                    return WrappedStack.empty();
+                }
+            } else if (!this.moveItemStackTo(toMove, 9, 45, false)) {
+                return WrappedStack.empty();
+            }
+
+            if (toMove.isEmpty()) {
+                slot.set(WrappedStack.empty());
+            }
+
+            if (toMove.getCount() == original.getCount()) {
+                return WrappedStack.empty();
+            }
+        }
+
+        return original;
     }
 
     @Override

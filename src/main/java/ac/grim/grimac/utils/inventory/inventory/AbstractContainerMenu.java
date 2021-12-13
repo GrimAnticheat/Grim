@@ -40,6 +40,12 @@ public abstract class AbstractContainerMenu {
 
     }
 
+    public Slot addSlot(Slot slot) {
+        slot.index = this.slots.size();
+        this.slots.add(slot);
+        return slot;
+    }
+
     public static int getQuickcraftHeader(int p_38948_) {
         return p_38948_ & 3;
     }
@@ -202,7 +208,7 @@ public abstract class AbstractContainerMenu {
                     if (slotItem.isEmpty()) {
                         if (!carriedItem.isEmpty()) {
                             int l2 = clickAction == ClickAction.PRIMARY ? carriedItem.getCount() : 1;
-                            this.setCarried(slotItem.safeInsert(carriedItem, l2));
+                            this.setCarried(slot.safeInsert(carriedItem, l2));
                         }
                     } else if (slot.mayPickup()) {
                         if (carriedItem.isEmpty()) {
@@ -215,7 +221,7 @@ public abstract class AbstractContainerMenu {
                         } else if (slotItem.mayPlace(carriedItem)) {
                             if (slotItem.isSameItemSameTags(carriedItem)) {
                                 int j3 = clickAction == ClickAction.PRIMARY ? carriedItem.getCount() : 1;
-                                this.setCarried(slotItem.safeInsert(carriedItem, j3));
+                                this.setCarried(slot.safeInsert(carriedItem, j3));
                             } else if (carriedItem.getCount() <= slot.getMaxStackSize(carriedItem)) {
                                 slot.set(carriedItem);
                                 this.setCarried(slotItem);
@@ -300,6 +306,86 @@ public abstract class AbstractContainerMenu {
         }
     }
 
+    protected boolean moveItemStackTo(WrappedStack toMove, int min, int max, boolean reverse) {
+        boolean flag = false;
+        int i = min;
+        if (reverse) {
+            i = max - 1;
+        }
+
+        if (toMove.getItem().getMaxStackSize() > 1) {
+            while (!toMove.isEmpty()) {
+                if (reverse) {
+                    if (i < min) {
+                        break;
+                    }
+                } else if (i >= max) {
+                    break;
+                }
+
+                Slot slot = this.slots.get(i);
+                WrappedStack itemstack = slot.getItem();
+                if (!itemstack.isEmpty() && WrappedStack.isSameItemSameTags(toMove, itemstack)) {
+                    int j = itemstack.getCount() + toMove.getCount();
+                    if (j <= toMove.getMaxStackSize()) {
+                        toMove.setCount(0);
+                        itemstack.setCount(j);
+                        flag = true;
+                    } else if (itemstack.getCount() < toMove.getMaxStackSize()) {
+                        toMove.shrink(toMove.getMaxStackSize() - itemstack.getCount());
+                        itemstack.setCount(toMove.getMaxStackSize());
+                        flag = true;
+                    }
+                }
+
+                if (reverse) {
+                    --i;
+                } else {
+                    ++i;
+                }
+            }
+        }
+
+        if (!toMove.isEmpty()) {
+            if (reverse) {
+                i = max - 1;
+            } else {
+                i = min;
+            }
+
+            while (true) {
+                if (reverse) {
+                    if (i < min) {
+                        break;
+                    }
+                } else if (i >= max) {
+                    break;
+                }
+
+                Slot slot1 = this.slots.get(i);
+                WrappedStack itemstack1 = slot1.getItem();
+                if (itemstack1.isEmpty() && slot1.mayPlace(toMove)) {
+                    if (toMove.getCount() > slot1.getMaxStackSize()) {
+                        slot1.set(toMove.split(slot1.getMaxStackSize()));
+                    } else {
+                        slot1.set(toMove.split(toMove.getCount()));
+                    }
+
+                    flag = true;
+                    break;
+                }
+
+                if (reverse) {
+                    --i;
+                } else {
+                    ++i;
+                }
+            }
+        }
+
+        return flag;
+    }
+
     public boolean canTakeItemForPickAll(WrappedStack p_38908_, Slot p_38909_) {
         return true;
     }
@@ -325,4 +411,8 @@ public abstract class AbstractContainerMenu {
     }
 
     public abstract void setItem(int item, WrappedStack stack);
+
+    public int getMaxStackSize() {
+        return 64;
+    }
 }

@@ -10,7 +10,8 @@ public class ClientVersionSetter implements Tickable {
     @Override
     public void tick() {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            Bukkit.broadcastMessage(((CompensatedInventory) player.checkManager.getPacketCheck(CompensatedInventory.class)).getHeldItem().toString());
+            Bukkit.broadcastMessage(((CompensatedInventory) player.checkManager.getPacketCheck(CompensatedInventory.class)).getHeldItem().toString() +
+                    ((CompensatedInventory) player.checkManager.getPacketCheck(CompensatedInventory.class)).inventory.getCarried().getStack());
             if (player.getClientVersion().getProtocolVersion() == -1) player.pollClientVersion();
         }
     }

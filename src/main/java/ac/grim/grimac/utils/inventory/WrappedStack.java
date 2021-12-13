@@ -41,7 +41,7 @@ public class WrappedStack {
 
     @NotNull
     public ItemStack getStack() {
-        return stack == null ? new ItemStack(Material.AIR) : stack;
+        return isEmpty() ? new ItemStack(Material.AIR) : stack;
     }
 
     public void set(ItemStack stack) {
@@ -49,7 +49,7 @@ public class WrappedStack {
     }
 
     public int getCount() {
-        return stack == null ? 0 : stack.getAmount();
+        return isEmpty() ? 0 : stack.getAmount();
     }
 
     public void setCount(int amount) {
@@ -85,28 +85,13 @@ public class WrappedStack {
 
     public int getMaxStackSize() {
         if (stack == null) return 0;
+        // NO BUKKIT, AIR HAS A MAX STACK SIZE OF 64!
+        if (stack.getType() == Material.AIR) return 64;
         return stack.getMaxStackSize();
     }
 
-    public WrappedStack safeInsert(WrappedStack p_150657_, int p_150658_) {
-        if (!p_150657_.isEmpty() && this.mayPlace(p_150657_)) {
-            int i = Math.min(Math.min(p_150658_, p_150657_.getCount()), p_150657_.getMaxStackSize() - getCount());
-            if (isEmpty()) {
-                set(p_150657_.split(i).getStack());
-            } else if (isSameItemSameTags(p_150657_)) {
-                p_150657_.shrink(i);
-                grow(i);
-            }
-
-            return p_150657_;
-        } else {
-            return p_150657_;
-        }
-    }
-
-
     public boolean isSameItemSameTags(WrappedStack p_150731_) {
-        return getStack().isSimilar(p_150731_.getStack());
+        return (isEmpty() && p_150731_.isEmpty()) || getStack().isSimilar(p_150731_.getStack());
     }
 
     public boolean mayPlace(WrappedStack p_40231_) {

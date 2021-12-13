@@ -31,8 +31,12 @@ public class Slot {
         container.setItem(index, itemstack2);
     }
 
+    public int getMaxStackSize() {
+        return container.getMaxStackSize();
+    }
+
     public int getMaxStackSize(WrappedStack itemstack2) {
-        return itemstack2.getMaxStackSize();
+        return Math.min(itemstack2.getMaxStackSize(), getMaxStackSize());
     }
 
     public boolean mayPickup() {
@@ -64,6 +68,23 @@ public class Slot {
 
                 return Optional.of(itemstack);
             }
+        }
+    }
+
+    public WrappedStack safeInsert(WrappedStack stack, int amount) {
+        if (!stack.isEmpty() && this.mayPlace(stack)) {
+            WrappedStack itemstack = this.getItem();
+            int i = Math.min(Math.min(amount, stack.getCount()), this.getMaxStackSize(stack) - itemstack.getCount());
+            if (itemstack.isEmpty()) {
+                this.set(stack.split(i));
+            } else if (WrappedStack.isSameItemSameTags(itemstack, stack)) {
+                stack.shrink(i);
+                itemstack.grow(i);
+                this.set(itemstack);
+            }
+            return stack;
+        } else {
+            return stack;
         }
     }
 

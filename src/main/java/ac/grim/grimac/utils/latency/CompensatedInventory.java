@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.inventory.ClickType;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.WrappedStack;
 import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
-import ac.grim.grimac.utils.inventory.slot.Slot;
 import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
@@ -20,6 +19,7 @@ import io.github.retrooper.packetevents.packetwrappers.play.in.windowclick.Wrapp
 import io.github.retrooper.packetevents.packetwrappers.play.out.openwindow.WrappedPacketOutOpenWindow;
 import io.github.retrooper.packetevents.packetwrappers.play.out.setslot.WrappedPacketOutSetSlot;
 import io.github.retrooper.packetevents.packetwrappers.play.out.windowitems.WrappedPacketOutWindowItems;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
@@ -40,17 +40,14 @@ public class CompensatedInventory extends PacketCheck {
     // 36-44 is the hotbar
     // 9 is top left, through 35 being the bottom right.
     int openWindowID = 0;
-    Inventory inventory;
+    // Temporarily public for debugging
+    public Inventory inventory;
     AbstractContainerMenu menu;
 
     public CompensatedInventory(GrimPlayer playerData) {
         super(playerData);
         inventory = new Inventory(playerData, new WrappedStack[46], WrappedStack.empty());
         menu = inventory;
-
-        for (int i = 0; i < 46; i++) {
-            inventory.getSlots().add(new Slot(inventory, i));
-        }
     }
 
     public ItemStack getHeldItem() {
@@ -97,6 +94,8 @@ public class CompensatedInventory extends PacketCheck {
             int slot = click.getWindowSlot();
             // Self-explanatory, look at the enum's values
             ClickType clickType = ClickType.values()[click.getMode()];
+
+            Bukkit.broadcastMessage("Clicked " + button + " " + slot + " " + clickType);
 
             menu.doClick(button, slot, clickType);
         }
