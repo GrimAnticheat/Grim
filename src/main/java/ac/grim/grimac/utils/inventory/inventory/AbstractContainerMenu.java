@@ -152,7 +152,7 @@ public abstract class AbstractContainerMenu {
                     if (this.quickcraftSlots.size() == 1) {
                         int l = (this.quickcraftSlots.iterator().next()).slotListIndex;
                         this.resetQuickCraft();
-                        this.doClick(l, this.quickcraftType, ClickType.PICKUP);
+                        this.doClick(this.quickcraftType, l, ClickType.PICKUP);
                         return;
                     }
 
