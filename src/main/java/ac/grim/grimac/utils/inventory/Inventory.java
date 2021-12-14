@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
 import ac.grim.grimac.utils.inventory.slot.EquipmentSlot;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
+import lombok.Getter;
 import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
 
@@ -16,72 +17,45 @@ public class Inventory extends AbstractContainerMenu {
     private static final int SLOT_LEGGINGS = 7;
     private static final int SLOT_BOOTS = 8;
     private static final int TOTAL_SIZE = 46;
-    private static final int ITEMS_START = 9;
-    private static final int ITEMS_END = 45;
+    public static final int ITEMS_START = 9;
+    public static final int ITEMS_END = 45;
     public int selected = 0;
-    WrappedStack[] playerInventory;
-    WrappedStack carriedItem;
+    @Getter
+    InventoryStorage playerInventory;
 
-    public Inventory(GrimPlayer player, WrappedStack[] playerInventory, WrappedStack carriedItem) {
+    public Inventory(GrimPlayer player, InventoryStorage playerInventory) {
         this.playerInventory = playerInventory;
-        this.carriedItem = carriedItem;
 
         super.setPlayer(player);
         super.setPlayerInventory(this);
 
-        for (int i = 0; i < playerInventory.length; i++) {
-            playerInventory[i] = WrappedStack.empty();
-        }
-
         // Result slot
-        addSlot(new ResultSlot(this, 0));
+        addSlot(new ResultSlot(playerInventory, 0));
         // Crafting slots
         for (int i = 0; i < 4; i++) {
-            addSlot(new Slot(this, i));
+            addSlot(new Slot(playerInventory, i));
         }
         for (int i = 0; i < 4; i++) {
-            addSlot(new EquipmentSlot(EquipmentType.byArmorID(i), this, i + 4));
+            addSlot(new EquipmentSlot(EquipmentType.byArmorID(i), playerInventory, i + 4));
         }
         // Inventory slots
         for (int i = 0; i < 9 * 4; i++) {
-            addSlot(new Slot(this, i + 9));
+            addSlot(new Slot(playerInventory, i + 9));
         }
         // Offhand
-        addSlot(new Slot(this, 45));
+        addSlot(new Slot(playerInventory, 45));
     }
 
     public WrappedStack getHeldItem() {
-        return playerInventory[selected + HOTBAR_OFFSET];
+        return playerInventory.getItem(selected + HOTBAR_OFFSET);
     }
 
     public void setHeldItem(ItemStack item) {
-        playerInventory[selected + HOTBAR_OFFSET] = new WrappedStack(item);
+        playerInventory.setItem(selected + HOTBAR_OFFSET, new WrappedStack(item));
     }
 
     public WrappedStack getOffhandItem() {
-        return playerInventory[SLOT_OFFHAND];
-    }
-
-    public WrappedStack getCarriedItem() {
-        return carriedItem;
-    }
-
-    public void setCarriedItem(WrappedStack carriedItem) {
-        this.carriedItem = carriedItem;
-    }
-
-    @Override
-    public WrappedStack getItem(int slot) {
-        if (slot >= 0 && slot < TOTAL_SIZE)
-            return playerInventory[slot];
-
-        return WrappedStack.empty();
-    }
-
-    @Override
-    public void setItem(int slot, WrappedStack item) {
-        if (slot >= 0 && slot < TOTAL_SIZE)
-            playerInventory[slot] = item;
+        return playerInventory.getItem(SLOT_OFFHAND);
     }
 
     public boolean add(WrappedStack p_36055_) {
@@ -89,8 +63,8 @@ public class Inventory extends AbstractContainerMenu {
     }
 
     public int getFreeSlot() {
-        for (int i = 0; i < playerInventory.length; ++i) {
-            if (getItem(i).isEmpty()) {
+        for (int i = 0; i < playerInventory.items.length; ++i) {
+            if (playerInventory.getItem(i).isEmpty()) {
                 return i;
             }
         }
@@ -105,7 +79,7 @@ public class Inventory extends AbstractContainerMenu {
             return 40;
         } else {
             for (int i = ITEMS_START; i <= ITEMS_END; ++i) {
-                if (this.hasRemainingSpaceForItem(getItem(i), toAdd)) {
+                if (this.hasRemainingSpaceForItem(playerInventory.getItem(i), toAdd)) {
                     return i;
                 }
             }
@@ -129,12 +103,12 @@ public class Inventory extends AbstractContainerMenu {
 
     private int addResource(int slot, WrappedStack stack) {
         int i = stack.getCount();
-        WrappedStack itemstack = getItem(slot);
+        WrappedStack itemstack = playerInventory.getItem(slot);
 
         if (itemstack.isEmpty()) {
             itemstack = stack.copy();
             itemstack.setCount(0);
-            setItem(slot, itemstack);
+            playerInventory.setItem(slot, itemstack);
         }
 
         int j = i;
@@ -165,7 +139,7 @@ public class Inventory extends AbstractContainerMenu {
                 }
 
                 if (p_36041_ >= 0) {
-                    setItem(p_36041_, p_36042_.copy().getStack());
+                    playerInventory.setItem(p_36041_, new WrappedStack(p_36042_.copy().getStack()));
                     p_36042_.setCount(0);
                     return true;
                 } else if (player.gamemode == GameMode.CREATIVE) {
@@ -247,10 +221,5 @@ public class Inventory extends AbstractContainerMenu {
         }
 
         return original;
-    }
-
-    @Override
-    public WrappedStack removeItem(int index, int amount) {
-        return removeItem(playerInventory, index, amount);
     }
 }

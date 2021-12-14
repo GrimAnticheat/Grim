@@ -12,6 +12,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.GameMode;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -30,20 +31,30 @@ public abstract class AbstractContainerMenu {
     Inventory playerInventory;
     @Getter
     List<Slot> slots = new ArrayList<>();
+    @Getter
+    @NotNull
+    WrappedStack carriedItem;
 
     public AbstractContainerMenu(GrimPlayer player, Inventory playerInventory) {
         this.player = player;
         this.playerInventory = playerInventory;
+        this.carriedItem = WrappedStack.empty();
     }
 
     public AbstractContainerMenu() {
-
+        this.carriedItem = WrappedStack.empty();
     }
 
     public Slot addSlot(Slot slot) {
-        slot.index = this.slots.size();
+        slot.slotListIndex = this.slots.size();
         this.slots.add(slot);
         return slot;
+    }
+
+    public void addFourRowPlayerInventory() {
+        for (int slot = Inventory.ITEMS_START; slot <= Inventory.ITEMS_END; slot++) {
+            addSlot(new Slot(playerInventory.getPlayerInventory(), slot));
+        }
     }
 
     public static int getQuickcraftHeader(int p_38948_) {
@@ -82,10 +93,6 @@ public abstract class AbstractContainerMenu {
         p_38925_.grow(p_38926_);
     }
 
-    public static WrappedStack removeItem(WrappedStack[] list, int slot, int amount) {
-        return slot >= 0 && slot < list.length && !list[slot].isEmpty() && amount > 0 ? list[slot].split(amount) : WrappedStack.empty();
-    }
-
     protected void resetQuickCraft() {
         this.quickcraftStatus = 0;
         this.quickcraftSlots.clear();
@@ -102,19 +109,20 @@ public abstract class AbstractContainerMenu {
     }
 
     public WrappedStack getCarried() {
-        return playerInventory.getCarriedItem();
+        return getCarriedItem();
     }
 
     public void setCarried(WrappedStack stack) {
-        playerInventory.setCarriedItem(stack);
+        // Cannot be null
+        carriedItem = stack == null ? WrappedStack.empty() : stack;
     }
 
     public WrappedStack getPlayerInventoryItem(int slot) {
-        return playerInventory.getItem(slot);
+        return playerInventory.getPlayerInventory().getItem(slot);
     }
 
     public void setPlayerInventoryItem(int slot, ItemStack stack) {
-        playerInventory.setItem(slot, stack);
+        playerInventory.getPlayerInventory().setItem(slot, new WrappedStack(stack));
     }
 
     public void doClick(int button, int slotID, ClickType clickType) {
@@ -142,7 +150,7 @@ public abstract class AbstractContainerMenu {
             } else if (this.quickcraftStatus == 2) {
                 if (!this.quickcraftSlots.isEmpty()) {
                     if (this.quickcraftSlots.size() == 1) {
-                        int l = (this.quickcraftSlots.iterator().next()).index;
+                        int l = (this.quickcraftSlots.iterator().next()).slotListIndex;
                         this.resetQuickCraft();
                         this.doClick(l, this.quickcraftType, ClickType.PICKUP);
                         return;
@@ -272,7 +280,7 @@ public abstract class AbstractContainerMenu {
                     }
                 }
             }
-        } else if (clickType == ClickType.CLONE && player.gamemode == GameMode.CREATIVE && slotID >= 0 && playerInventory.getCarried().isEmpty()) {
+        } else if (clickType == ClickType.CLONE && player.gamemode == GameMode.CREATIVE && slotID >= 0 && carriedItem.isEmpty()) {
             Slot slot5 = getSlot(slotID);
             if (slot5.hasItem()) {
                 WrappedStack itemstack6 = slot5.getItem().copy();
@@ -401,16 +409,6 @@ public abstract class AbstractContainerMenu {
     public boolean canDragTo(Slot slot) {
         return true;
     }
-
-    public abstract WrappedStack removeItem(int index, int amount);
-
-    public abstract WrappedStack getItem(int index);
-
-    public void setItem(int index, ItemStack stack) {
-        setItem(index, new WrappedStack(stack));
-    }
-
-    public abstract void setItem(int item, WrappedStack stack);
 
     public int getMaxStackSize() {
         return 64;

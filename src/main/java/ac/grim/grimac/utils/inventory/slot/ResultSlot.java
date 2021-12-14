@@ -1,12 +1,12 @@
 package ac.grim.grimac.utils.inventory.slot;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.WrappedStack;
-import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
 
 public class ResultSlot extends Slot {
 
-    public ResultSlot(AbstractContainerMenu container, int slot) {
+    public ResultSlot(InventoryStorage container, int slot) {
         super(container, slot);
     }
 

@@ -1,22 +1,24 @@
 package ac.grim.grimac.utils.inventory.slot;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.WrappedStack;
-import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Optional;
 
 public class Slot {
-    public int index;
-    AbstractContainerMenu container;
+    public final int inventoryStorageSlot;
+    public int slotListIndex;
+    InventoryStorage container;
 
-    public Slot(AbstractContainerMenu container, int slot) {
+    public Slot(InventoryStorage container, int slot) {
         this.container = container;
-        this.index = slot;
+        this.inventoryStorageSlot = slot;
     }
 
     public WrappedStack getItem() {
-        return container.getItem(index);
+        return container.getItem(inventoryStorageSlot);
     }
 
     public boolean hasItem() {
@@ -28,7 +30,7 @@ public class Slot {
     }
 
     public void set(WrappedStack itemstack2) {
-        container.setItem(index, itemstack2);
+        container.setItem(inventoryStorageSlot, itemstack2);
     }
 
     public int getMaxStackSize() {
@@ -89,7 +91,7 @@ public class Slot {
     }
 
     public WrappedStack remove(int p_40227_) {
-        return this.container.removeItem(this.index, p_40227_);
+        return this.container.removeItem(this.inventoryStorageSlot, p_40227_);
     }
 
     public void onTake(GrimPlayer p_150645_, WrappedStack p_150646_) {
@@ -103,5 +105,9 @@ public class Slot {
 
     public boolean mayPickup(GrimPlayer p_40228_) {
         return true;
+    }
+
+    public void set(ItemStack itemStack) {
+        set(new WrappedStack(itemStack));
     }
 }

@@ -3,14 +3,14 @@ package ac.grim.grimac.utils.inventory.slot;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import ac.grim.grimac.utils.inventory.EquipmentType;
+import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.WrappedStack;
-import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
 import org.bukkit.GameMode;
 
 public class EquipmentSlot extends Slot {
     EquipmentType type;
 
-    public EquipmentSlot(EquipmentType type, AbstractContainerMenu menu, int slot) {
+    public EquipmentSlot(EquipmentType type, InventoryStorage menu, int slot) {
         super(menu, slot);
         this.type = type;
     }

@@ -5,7 +5,9 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class WrappedStack {
-    private ItemStack stack;
+    // Allowing this to be modified causes way too many issues
+    // Even the amount of items in this stack being mutable might cause issues... let's see though.
+    private final ItemStack stack;
 
     public WrappedStack(ItemStack stack) {
         this.stack = stack;
@@ -42,10 +44,6 @@ public class WrappedStack {
     @NotNull
     public ItemStack getStack() {
         return isEmpty() ? new ItemStack(Material.AIR) : stack;
-    }
-
-    public void set(ItemStack stack) {
-        this.stack = stack;
     }
 
     public int getCount() {
