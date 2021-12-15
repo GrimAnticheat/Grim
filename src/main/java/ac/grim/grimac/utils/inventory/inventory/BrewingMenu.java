@@ -1,0 +1,137 @@
+package ac.grim.grimac.utils.inventory.inventory;
+
+import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.inventory.BrewingHelper;
+import ac.grim.grimac.utils.inventory.Inventory;
+import ac.grim.grimac.utils.inventory.InventoryStorage;
+import ac.grim.grimac.utils.inventory.WrappedStack;
+import ac.grim.grimac.utils.inventory.slot.Slot;
+import org.bukkit.Material;
+
+public class BrewingMenu extends AbstractContainerMenu {
+    public BrewingMenu(GrimPlayer player, Inventory playerInventory) {
+        super(player, playerInventory);
+
+        InventoryStorage containerStorage = new InventoryStorage(4);
+
+        addSlot(new PotionSlot(containerStorage, 0));
+        addSlot(new PotionSlot(containerStorage, 1));
+        addSlot(new PotionSlot(containerStorage, 2));
+        addSlot(new IngredientsSlot(containerStorage, 3));
+
+        // TODO: Pre-1.9 clients don't have this slot (ViaVersion will translate this)
+        addSlot(new FuelSlot(containerStorage, 0));
+
+        addFourRowPlayerInventory();
+    }
+
+    @Override
+    public WrappedStack quickMoveStack(int slotID) {
+        WrappedStack itemstack = WrappedStack.empty();
+        Slot slot = this.slots.get(slotID);
+        if (slot != null && slot.hasItem()) {
+            WrappedStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            if ((slotID < 0 || slotID > 2) && slotID != 3 && slotID != 4) {
+                if (FuelSlot.mayPlaceItem(itemstack)) {
+                    if (this.moveItemStackTo(itemstack1, 4, 5, false) || IngredientsSlot.mayPlaceItem(itemstack1) && !this.moveItemStackTo(itemstack1, 3, 4, false)) {
+                        return WrappedStack.empty();
+                    }
+                } else if (IngredientsSlot.mayPlaceItem(itemstack1)) {
+                    if (!this.moveItemStackTo(itemstack1, 3, 4, false)) {
+                        return WrappedStack.empty();
+                    }
+                } else if (PotionSlot.mayPlaceItem(itemstack) && itemstack.getCount() == 1) {
+                    if (!this.moveItemStackTo(itemstack1, 0, 3, false)) {
+                        return WrappedStack.empty();
+                    }
+                } else if (slotID >= 5 && slotID < 32) {
+                    if (!this.moveItemStackTo(itemstack1, 32, 41, false)) {
+                        return WrappedStack.empty();
+                    }
+                } else if (slotID >= 32 && slotID < 41) {
+                    if (!this.moveItemStackTo(itemstack1, 5, 32, false)) {
+                        return WrappedStack.empty();
+                    }
+                } else if (!this.moveItemStackTo(itemstack1, 5, 41, false)) {
+                    return WrappedStack.empty();
+                }
+            } else {
+                if (!this.moveItemStackTo(itemstack1, 5, 41, true)) {
+                    return WrappedStack.empty();
+                }
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.set(WrappedStack.empty());
+            }
+
+            if (itemstack1.getCount() == itemstack.getCount()) {
+                return WrappedStack.empty();
+            }
+
+            slot.onTake(player, itemstack1);
+        }
+
+        return itemstack;
+    }
+
+    static class FuelSlot extends Slot {
+        public FuelSlot(InventoryStorage container, int slot) {
+            super(container, slot);
+        }
+
+        public boolean mayPlace(WrappedStack p_39111_) {
+            return mayPlaceItem(p_39111_);
+        }
+
+        public static boolean mayPlaceItem(WrappedStack p_39113_) {
+            return p_39113_.getItem() == Material.BLAZE_POWDER;
+        }
+
+        public int getMaxStackSize() {
+            return 64;
+        }
+    }
+
+    static class IngredientsSlot extends Slot {
+        public IngredientsSlot(InventoryStorage container, int slot) {
+            super(container, slot);
+        }
+
+        public boolean mayPlace(WrappedStack p_39121_) {
+            return mayPlaceItem(p_39121_);
+        }
+
+        public static boolean mayPlaceItem(WrappedStack stack) {
+            return BrewingHelper.isBaseModifier(stack.getItem()) || BrewingHelper.isEffectIngredient(stack.getItem());
+        }
+
+        public int getMaxStackSize() {
+            return 64;
+        }
+    }
+
+    static class PotionSlot extends Slot {
+        public PotionSlot(InventoryStorage container, int slot) {
+            super(container, slot);
+        }
+
+        public boolean mayPlace(WrappedStack p_39132_) {
+            return mayPlaceItem(p_39132_);
+        }
+
+        public int getMaxStackSize() {
+            return 1;
+        }
+
+        public void onTake(GrimPlayer player, WrappedStack p_150500_) {
+            // Useless server sided achievement things
+            super.onTake(player, p_150500_);
+        }
+
+        public static boolean mayPlaceItem(WrappedStack p_39134_) {
+            return p_39134_.getItem().name().endsWith("POTION") || p_39134_.getItem() == Material.GLASS_BOTTLE;
+        }
+    }
+}

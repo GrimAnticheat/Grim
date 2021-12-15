@@ -398,8 +398,8 @@ public abstract class AbstractContainerMenu {
         return true;
     }
 
-    public WrappedStack quickMoveStack(int p_38942_) {
-        return this.slots.get(p_38942_).getItem();
+    public WrappedStack quickMoveStack(int slotID) {
+        return this.slots.get(slotID).getItem();
     }
 
     public Slot getSlot(int slotID) {

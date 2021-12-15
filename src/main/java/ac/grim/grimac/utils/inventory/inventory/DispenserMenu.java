@@ -6,16 +6,13 @@ import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.WrappedStack;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 
-public class BasicInventoryMenu extends AbstractContainerMenu {
-    int rows;
-
-    public BasicInventoryMenu(GrimPlayer player, Inventory playerInventory, int rows) {
+public class DispenserMenu extends AbstractContainerMenu {
+    public DispenserMenu(GrimPlayer player, Inventory playerInventory) {
         super(player, playerInventory);
-        this.rows = rows;
 
-        InventoryStorage containerStorage = new InventoryStorage(rows * 9);
+        InventoryStorage containerStorage = new InventoryStorage(9);
 
-        for (int i = 0; i < rows * 9; i++) {
+        for (int i = 0; i < 9; i++) {
             addSlot(new Slot(containerStorage, i));
         }
 
@@ -29,17 +26,23 @@ public class BasicInventoryMenu extends AbstractContainerMenu {
         if (slot != null && slot.hasItem()) {
             WrappedStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            if (slotID < this.rows * 9) {
-                if (!this.moveItemStackTo(itemstack1, this.rows * 9, this.slots.size(), true)) {
+            if (slotID < 9) {
+                if (!this.moveItemStackTo(itemstack1, 9, 45, true)) {
                     return WrappedStack.empty();
                 }
-            } else if (!this.moveItemStackTo(itemstack1, 0, this.rows * 9, false)) {
+            } else if (!this.moveItemStackTo(itemstack1, 0, 9, false)) {
                 return WrappedStack.empty();
             }
 
             if (itemstack1.isEmpty()) {
                 slot.set(WrappedStack.empty());
             }
+
+            if (itemstack1.getCount() == itemstack.getCount()) {
+                return WrappedStack.empty();
+            }
+
+            slot.onTake(player, itemstack1);
         }
 
         return itemstack;

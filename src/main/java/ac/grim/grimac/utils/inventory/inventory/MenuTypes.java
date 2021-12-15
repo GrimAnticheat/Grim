@@ -16,29 +16,37 @@ public class MenuTypes {
             case 5: // 9x6
                 return new BasicInventoryMenu(player, playerInventory, id + 1); // don't repeat yourself :)
             case 6: // 3x3 (SimpleContainer)
-
-            case 7: // anvil - Painful
-
-            case 8: // beacon - Not too painful
-
-            case 9: // blast furnace (AbstractFurnaceMenu)
-            case 10: // brewing stand - Lots of lines for items allowed but not too bad
-
-            case 11: // crafting table - somewhat annoying
-
-            case 12: // enchantment table - Seems difficult
-
+                return new DispenserMenu(player, playerInventory);
+            case 7: // anvil - Painful // TODO: Not complete!
+                return new AnvilMenu(player, playerInventory);
+            case 8: // beacon - Not too painful - COMPLETE!
+                return new BeaconMenu(player, playerInventory);
+            case 9: // blast furnace
             case 13: // furnace (AbstractFurnaceMenu)
-            case 14: // grindstone
-            case 15: // hopper - SimpleContainer
-
-            case 16: // lectern
-            case 17: // loom
-            case 18: // merchant
-            case 19: // smithing
             case 20: // smoker
-            case 21: // cartographer
-            case 22: // stonecutter - not bad
+                return new FurnaceMenu(player, playerInventory); // don't repeat yourself, furnaces act the same without server sided logic
+            case 10: // brewing stand
+                return new BrewingMenu(player, playerInventory);
+            case 11: // crafting table - somewhat annoying // TODO: Not complete!
+                return new CraftingMenu(player, playerInventory);
+            case 12: // enchantment table
+                return new EnchantmentMenu(player, playerInventory);
+            case 14: // grindstone // TODO: Not complete!
+                return new GrindstoneMenu(player, playerInventory);
+            case 15: // hopper - SimpleContainer
+                return new HopperMenu(player, playerInventory);
+            case 16: // lectern
+                return new LecternMenu(player, playerInventory);
+            case 17: // loom // TODO: This requires a LOT of NBT modification
+
+            case 18: // merchant // TODO: Somewhat complicated due to client sided buttons
+
+            case 19: // smithing // TODO: Annoying similar to anvils with crafting recipes
+
+            case 21: // cartographer - // TODO: onCraftedThing, which requires tags
+
+            case 22: // stonecutter - // TODO: Not complete, more annoying recipes
+
         }
 
         return null;

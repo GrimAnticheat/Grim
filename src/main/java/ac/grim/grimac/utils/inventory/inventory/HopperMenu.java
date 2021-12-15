@@ -6,16 +6,12 @@ import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.WrappedStack;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 
-public class BasicInventoryMenu extends AbstractContainerMenu {
-    int rows;
-
-    public BasicInventoryMenu(GrimPlayer player, Inventory playerInventory, int rows) {
+public class HopperMenu extends AbstractContainerMenu{
+    public HopperMenu(GrimPlayer player, Inventory playerInventory) {
         super(player, playerInventory);
-        this.rows = rows;
 
-        InventoryStorage containerStorage = new InventoryStorage(rows * 9);
-
-        for (int i = 0; i < rows * 9; i++) {
+        InventoryStorage containerStorage = new InventoryStorage(5);
+        for (int i = 0; i < 5; i++) {
             addSlot(new Slot(containerStorage, i));
         }
 
@@ -29,11 +25,11 @@ public class BasicInventoryMenu extends AbstractContainerMenu {
         if (slot != null && slot.hasItem()) {
             WrappedStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            if (slotID < this.rows * 9) {
-                if (!this.moveItemStackTo(itemstack1, this.rows * 9, this.slots.size(), true)) {
+            if (slotID < 5) {
+                if (!this.moveItemStackTo(itemstack1, 5, this.slots.size(), true)) {
                     return WrappedStack.empty();
                 }
-            } else if (!this.moveItemStackTo(itemstack1, 0, this.rows * 9, false)) {
+            } else if (!this.moveItemStackTo(itemstack1, 0, 5, false)) {
                 return WrappedStack.empty();
             }
 
@@ -44,4 +40,5 @@ public class BasicInventoryMenu extends AbstractContainerMenu {
 
         return itemstack;
     }
+
 }
