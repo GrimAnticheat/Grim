@@ -4,9 +4,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.data.VectorData;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -25,7 +25,7 @@ public class PredictionEngineRideableUtils {
     }
 
     public static List<VectorData> applyInputsToVelocityPossibilities(Vector movementVector, GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> returnVectors = new ArrayList<>();
+        List<VectorData> returnVectors = new ObjectArrayList<>();
 
         for (VectorData possibleLastTickOutput : possibleVectors) {
             VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(new PredictionEngine().getMovementResultFromInput(player, movementVector, speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);

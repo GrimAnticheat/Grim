@@ -7,10 +7,10 @@ import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.io.IOException;
 import java.nio.ShortBuffer;
-import java.util.ArrayList;
 import java.util.List;
 
 public class TwelveChunk implements BaseChunk {
@@ -22,7 +22,7 @@ public class TwelveChunk implements BaseChunk {
     public TwelveChunk(NetInput in) throws IOException {
         this.bitsPerEntry = in.readUnsignedByte();
 
-        this.states = new ArrayList<>();
+        this.states = new ObjectArrayList<>();
         int stateCount = in.readVarInt();
         for (int i = 0; i < stateCount; i++) {
             this.states.add(readBlockState(in));
@@ -35,7 +35,7 @@ public class TwelveChunk implements BaseChunk {
         Int2IntMap reversePalette = new Int2IntOpenHashMap(32, 0.5f);
         reversePalette.defaultReturnValue(-1);
 
-        states = new ArrayList<>();
+        states = new ObjectArrayList<>();
         states.add(AIR);
         reversePalette.put(0, 0);
 
@@ -62,7 +62,7 @@ public class TwelveChunk implements BaseChunk {
 
                         List<MagicBlockState> oldStates = this.states;
                         if (this.bitsPerEntry > 8) {
-                            oldStates = new ArrayList<>(this.states);
+                            oldStates = new ObjectArrayList<>(this.states);
                             this.states.clear();
                             reversePalette.clear();
                             this.bitsPerEntry = 16;
@@ -86,7 +86,7 @@ public class TwelveChunk implements BaseChunk {
     public TwelveChunk() {
         this.bitsPerEntry = 4;
 
-        this.states = new ArrayList<>();
+        this.states = new ObjectArrayList<>();
         this.states.add(AIR);
 
         this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, 4096);
@@ -134,7 +134,7 @@ public class TwelveChunk implements BaseChunk {
 
                 List<MagicBlockState> oldStates = this.states;
                 if (this.bitsPerEntry > 8) {
-                    oldStates = new ArrayList<>(this.states);
+                    oldStates = new ObjectArrayList<>(this.states);
                     this.states.clear();
                     this.bitsPerEntry = 16;
                 }

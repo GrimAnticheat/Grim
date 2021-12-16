@@ -11,8 +11,8 @@ import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import java.util.ArrayList;
 import java.util.List;
 
 // Catches NoFalls that obey the (1 / 64) rule
@@ -101,7 +101,7 @@ public class NoFallA extends PacketCheck {
     }
 
     private boolean checkForBoxes(SimpleCollisionBox playerBB) {
-        List<SimpleCollisionBox> boxes = new ArrayList<>();
+        List<SimpleCollisionBox> boxes = new ObjectArrayList<>();
         Collisions.getCollisionBoxes(player, playerBB, boxes, false);
 
         for (SimpleCollisionBox box : boxes) {

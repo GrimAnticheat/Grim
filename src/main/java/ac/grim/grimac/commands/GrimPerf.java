@@ -10,6 +10,7 @@ import org.bukkit.command.CommandSender;
 
 @CommandAlias("grim|grimac")
 public class GrimPerf extends BaseCommand {
+
     @Subcommand("perf|performance")
     @CommandPermission("grim.performance")
     public void onPerformance(CommandSender sender) {

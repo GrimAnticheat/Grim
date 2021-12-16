@@ -6,10 +6,10 @@ import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -20,20 +20,19 @@ public class FifteenChunk implements BaseChunk {
     private static final int AIR_ID = 0;
     private static final boolean hasBlockCount;
 
-    private int blockCount;
-    private int bitsPerEntry;
-
-    private @NonNull List<BlockState> states;
-    private @NonNull LegacyFlexibleStorage storage;
-
     static {
         hasBlockCount = XMaterial.getVersion() != 13;
     }
 
+    private int blockCount;
+    private int bitsPerEntry;
+    private @NonNull List<BlockState> states;
+    private @NonNull LegacyFlexibleStorage storage;
+
     public FifteenChunk() {
         this.bitsPerEntry = 4;
 
-        this.states = new ArrayList<>();
+        this.states = new ObjectArrayList<>();
         this.states.add(AIR);
 
         this.storage = new LegacyFlexibleStorage(this.bitsPerEntry, 4096);
@@ -49,7 +48,7 @@ public class FifteenChunk implements BaseChunk {
 
         int bitsPerEntry = in.readUnsignedByte();
 
-        List<BlockState> states = new ArrayList<>();
+        List<BlockState> states = new ObjectArrayList<>();
         int stateCount = bitsPerEntry > 8 ? 0 : in.readVarInt();
         for (int i = 0; i < stateCount; i++) {
             states.add(BlockState.read(in));
@@ -106,7 +105,7 @@ public class FifteenChunk implements BaseChunk {
 
                 List<BlockState> oldStates = this.states;
                 if (this.bitsPerEntry > 8) {
-                    oldStates = new ArrayList<>(this.states);
+                    oldStates = new ObjectArrayList<>(this.states);
                     this.states.clear();
                     this.bitsPerEntry = 13;
                 }

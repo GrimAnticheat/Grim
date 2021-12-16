@@ -21,17 +21,17 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
+    // Sync to netty
+    // Also safe from corruption from the vanilla anticheat!
+    final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
+    // Map of teleports that bukkit is about to send to the player on netty
+    final ConcurrentLinkedDeque<Location> pendingTeleports = new ConcurrentLinkedDeque<>();
     // Sync to NETTY (Why does the bukkit thread have to modify this, can we avoid it?)
     // I think it should be safe enough because the worst that can happen is we overwrite another plugin teleport
     //
     // This is required because the required setback position is not sync to bukkit, and we must avoid
     // setting the player back to a position where they were cheating
     public boolean hasAcceptedSetbackPosition = true;
-    // Sync to netty
-    // Also safe from corruption from the vanilla anticheat!
-    final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
-    // Map of teleports that bukkit is about to send to the player on netty
-    final ConcurrentLinkedDeque<Location> pendingTeleports = new ConcurrentLinkedDeque<>();
     // Bukkit is shit and doesn't call the teleport event on join, we must not accidentally mark this
     // packet as the vanilla anticheat as otherwise the player wouldn't spawn.
     public boolean hasSentSpawnTeleport = false;

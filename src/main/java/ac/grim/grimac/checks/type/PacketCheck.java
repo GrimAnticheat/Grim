@@ -19,6 +19,5 @@ public class PacketCheck extends Check<Object> {
     }
 
     public void onPositionUpdate(final PositionUpdate positionUpdate) {
-
     }
 }

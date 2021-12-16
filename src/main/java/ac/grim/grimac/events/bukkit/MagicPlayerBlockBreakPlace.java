@@ -41,6 +41,19 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         return transaction;
     }
 
+    public static int getPlayerTransactionForBucket(GrimPlayer player, Location pos) {
+        synchronized (player.compensatedWorld.posToTrans) {
+            for (TransPosData posData : player.compensatedWorld.posToTrans) {
+                if (posData.getPosX() == pos.getX() && posData.getPosY() == pos.getY() && posData.getPosZ() == pos.getZ()) {
+                    return posData.getTrans();
+                }
+            }
+
+            // The flying packet got processed instantly
+            return player.packetStateData.packetLastTransactionReceived.get();
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onBlockPlaceEvent(BlockPlaceEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
@@ -80,19 +93,6 @@ public class MagicPlayerBlockBreakPlace implements Listener {
         int trans = MagicPlayerBlockBreakPlace.getPlayerTransactionForBucket(player, player.bukkitPlayer.getLocation());
         ChangeBlockData data = new ChangeBlockData(trans, block.getX(), block.getY(), block.getZ(), combinedID);
         player.compensatedWorld.worldChangedBlockQueue.add(data);
-    }
-
-    public static int getPlayerTransactionForBucket(GrimPlayer player, Location pos) {
-        synchronized (player.compensatedWorld.posToTrans) {
-            for (TransPosData posData : player.compensatedWorld.posToTrans) {
-                if (posData.getPosX() == pos.getX() && posData.getPosY() == pos.getY() && posData.getPosZ() == pos.getZ()) {
-                    return posData.getTrans();
-                }
-            }
-
-            // The flying packet got processed instantly
-            return player.packetStateData.packetLastTransactionReceived.get();
-        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

@@ -6,8 +6,8 @@ import ac.grim.grimac.utils.chunkdata.BaseChunk;
 public class Column {
     public final int x;
     public final int z;
-    public BaseChunk[] chunks;
     public final int transaction;
+    public BaseChunk[] chunks;
     public boolean markedForRemoval = false;
 
     public Column(int x, int z, BaseChunk[] chunks, int transaction) {

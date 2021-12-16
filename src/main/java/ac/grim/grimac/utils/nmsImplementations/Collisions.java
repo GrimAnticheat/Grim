@@ -18,6 +18,7 @@ import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
@@ -25,7 +26,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.BubbleColumn;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
@@ -77,7 +77,7 @@ public class Collisions {
     public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ, double clientVelY) {
         if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
 
-        List<SimpleCollisionBox> desiredMovementCollisionBoxes = new ArrayList<>();
+        List<SimpleCollisionBox> desiredMovementCollisionBoxes = new ObjectArrayList<>();
         getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ), desiredMovementCollisionBoxes, false);
 
         double bestInput = Double.MAX_VALUE;
@@ -124,7 +124,7 @@ public class Collisions {
                 player.uncertaintyHandler.isStepMovement = true;
 
                 // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
-                List<SimpleCollisionBox> stepUpCollisionBoxes = new ArrayList<>();
+                List<SimpleCollisionBox> stepUpCollisionBoxes = new ObjectArrayList<>();
                 getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, stepUpHeight, desiredZ), stepUpCollisionBoxes, false);
 
                 Vector regularStepUp = collideBoundingBoxLegacy(player, new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, stepUpCollisionBoxes, order);
@@ -188,7 +188,7 @@ public class Collisions {
                 // If the player is fully within the worldborder
                 if (player.boundingBox.minX > minX - 1.0E-7D && player.boundingBox.maxX < maxX + 1.0E-7D
                         && player.boundingBox.minZ > minZ - 1.0E-7D && player.boundingBox.maxZ < maxZ + 1.0E-7D) {
-                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+                    if (listOfBlocks == null) listOfBlocks = new ObjectArrayList<>();
 
                     // South border
                     listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, maxZ, maxX, Double.POSITIVE_INFINITY, maxZ, false));
@@ -289,7 +289,7 @@ public class Collisions {
                 if (entity.type == EntityType.BOAT) {
                     SimpleCollisionBox box = GetBoundingBox.getBoatBoundingBox(entity.position.getX(), entity.position.getY(), entity.position.getZ());
                     if (box.isIntersected(expandedBB)) {
-                        if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+                        if (listOfBlocks == null) listOfBlocks = new ObjectArrayList<>();
                         listOfBlocks.add(box);
                     }
                 }
@@ -297,7 +297,7 @@ public class Collisions {
                 if (entity.type == EntityType.SHULKER) {
                     SimpleCollisionBox box = GetBoundingBox.getBoundingBoxFromPosAndSize(entity.position.getX(), entity.position.getY(), entity.position.getZ(), 1, 1);
                     if (box.isIntersected(expandedBB)) {
-                        if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
+                        if (listOfBlocks == null) listOfBlocks = new ObjectArrayList<>();
                         listOfBlocks.add(box);
                     }
                 }

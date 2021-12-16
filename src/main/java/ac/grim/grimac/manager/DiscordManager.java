@@ -2,6 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.math.GrimMath;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
@@ -25,9 +26,8 @@ public class DiscordManager implements Initable {
 
             client = WebhookClient.withUrl(config.getString("webhook", ""));
             client.setTimeout(15000); // Requests expire after 15 seconds
-
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.error("Couldn't initialize Discord webhook integration", e);
         }
     }
 

@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class VehicleEnterExitEvent implements Listener {
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onVehicleEnter(VehicleEnterEvent event) {
         if (!(event.getEntered() instanceof Player)) return;

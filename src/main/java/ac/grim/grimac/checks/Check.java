@@ -13,26 +13,21 @@ import org.bukkit.configuration.file.FileConfiguration;
 @Getter
 public class Check<T> {
     protected final GrimPlayer player;
+    public double violations;
+    public double decay;
+    public double setbackVL;
+    public double alertVL;
+    public int alertInterval;
+    public int alertCount;
+    public boolean secretTestServerVLStyle = false;
     private double buffer;
     private double maxBuffer;
     private double setback;
     private double flagCooldown;
     private double vlMultiplier;
-
-    public double violations;
-    public double decay;
-
-    public double setbackVL;
-
-    public double alertVL;
-    public int alertInterval;
-    public int alertCount;
-
     private String checkName;
     private String configName;
     private long reset;
-
-    public boolean secretTestServerVLStyle = false;
 
     public Check(final GrimPlayer player) {
         this.player = player;

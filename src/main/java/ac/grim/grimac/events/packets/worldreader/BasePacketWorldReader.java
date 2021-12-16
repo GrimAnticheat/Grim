@@ -71,11 +71,9 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     public void handleMapChunkBulk(GrimPlayer player, PacketPlaySendEvent event) {
-
     }
 
     public void handleMapChunk(GrimPlayer player, PacketPlaySendEvent event) {
-
     }
 
     public void addChunkToCache(GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
@@ -119,7 +117,6 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
-
     }
 
     public void handleUpdateBlockChange(GrimPlayer player, PacketPlaySendEvent event, WrappedPacketOutBlockChange wrappedBlockChange, int combinedID) {

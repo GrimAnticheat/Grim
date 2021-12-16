@@ -56,6 +56,10 @@ public class SimpleCollisionBox implements CollisionBox {
         maxY += height;
     }
 
+    public SimpleCollisionBox(BoundingBox box) {
+        this(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
+    }
+
     public SimpleCollisionBox expand(double x, double y, double z) {
         this.minX -= x;
         this.minY -= y;
@@ -64,10 +68,6 @@ public class SimpleCollisionBox implements CollisionBox {
         this.maxY += y;
         this.maxZ += z;
         return sort();
-    }
-
-    public SimpleCollisionBox(BoundingBox box) {
-        this(box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ);
     }
 
     public SimpleCollisionBox sort() {

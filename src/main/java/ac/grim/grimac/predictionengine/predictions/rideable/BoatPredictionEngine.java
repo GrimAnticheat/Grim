@@ -11,10 +11,10 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsImplementations.BlockProperties;
 import ac.grim.grimac.utils.nmsImplementations.Collisions;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -140,7 +140,7 @@ public class BoatPredictionEngine extends PredictionEngine {
 
     @Override
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
-        List<VectorData> vectors = new ArrayList<>();
+        List<VectorData> vectors = new ObjectArrayList<>();
 
         for (VectorData data : possibleVectors) {
             controlBoat(player, data.vector);

@@ -11,6 +11,5 @@ public class VehicleCheck extends Check<VehiclePositionUpdate> {
     }
 
     public void process(final VehiclePositionUpdate vehicleUpdate) {
-
     }
 }

@@ -11,6 +11,7 @@ import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBedLeaveEvent;
 
 public class BedEvent implements Listener {
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerBedEnterEvent(PlayerBedEnterEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());

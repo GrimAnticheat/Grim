@@ -11,6 +11,5 @@ public class RotationCheck extends Check<RotationUpdate> {
     }
 
     public void process(final RotationUpdate rotationUpdate) {
-
     }
 }

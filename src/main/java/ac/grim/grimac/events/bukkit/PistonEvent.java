@@ -5,6 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.nmsImplementations.XMaterial;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -14,10 +15,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PistonEvent implements Listener {
+
     Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
     Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
 
@@ -26,7 +27,7 @@ public class PistonEvent implements Listener {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;
 
-        List<SimpleCollisionBox> boxes = new ArrayList<>();
+        List<SimpleCollisionBox> boxes = new ObjectArrayList<>();
         for (Block block : event.getBlocks()) {
             boxes.add(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true)
                     .offset(block.getX(),
@@ -77,7 +78,7 @@ public class PistonEvent implements Listener {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;
 
-        List<SimpleCollisionBox> boxes = new ArrayList<>();
+        List<SimpleCollisionBox> boxes = new ObjectArrayList<>();
         BlockFace face = event.getDirection();
 
         // The event was called without blocks and is therefore in the right direction

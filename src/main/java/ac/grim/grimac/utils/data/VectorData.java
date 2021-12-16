@@ -82,6 +82,14 @@ public class VectorData {
         }
     }
 
+    @Override
+    public String toString() {
+        return "VectorData{" +
+                "vectorType=" + vectorType +
+                ", vector=" + vector +
+                '}';
+    }
+
     // TODO: For debugging everything should have it's own type!
     // Would make false positives really easy to fix
     // But seriously, we could trace the code to find the mistake
@@ -114,13 +122,5 @@ public class VectorData {
         AttackSlow,
         Flip_Sneaking,
         Flip_Use_Item
-    }
-
-    @Override
-    public String toString() {
-        return "VectorData{" +
-                "vectorType=" + vectorType +
-                ", vector=" + vector +
-                '}';
     }
 }

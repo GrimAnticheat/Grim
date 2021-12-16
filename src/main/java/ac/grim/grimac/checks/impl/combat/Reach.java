@@ -32,12 +32,12 @@ import io.github.retrooper.packetevents.packetwrappers.play.out.namedentityspawn
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -158,7 +158,7 @@ public class Reach extends PacketCheck {
             double minDistance = Double.MAX_VALUE;
 
             // https://bugs.mojang.com/browse/MC-67665
-            List<Vector> possibleLookDirs = new ArrayList<>(Arrays.asList(
+            List<Vector> possibleLookDirs = new ObjectArrayList<>(Arrays.asList(
                     ReachUtils.getLook(player, player.packetStateData.lastPacketPlayerXRot, player.packetStateData.packetPlayerYRot),
                     ReachUtils.getLook(player, player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot)
             ));

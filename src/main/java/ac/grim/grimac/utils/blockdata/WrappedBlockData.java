@@ -330,7 +330,7 @@ public enum WrappedBlockData {
 
         }
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
-            !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
+                    !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH"))
             .toArray(Material[]::new)),
 
     STAIRS(new WrappedStairs() {

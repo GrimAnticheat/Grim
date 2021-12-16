@@ -5,6 +5,7 @@ import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 
 public class PostCheck extends PacketCheck {
+
     private final byte packet;
     public long lastFlying, lastPacket;
     private boolean sent = false;

@@ -17,10 +17,10 @@ import io.github.retrooper.packetevents.utils.nms.NMSUtils;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.player.Hand;
 import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class PacketSelfMetadataListener extends PacketListenerAbstract {
@@ -64,7 +64,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
                     // Use a new arraylist to avoid a concurrent modification exception
                     List<Object> metadataStuff = entityMetadata.readList(0);
-                    List<Object> metadata = new ArrayList<>(metadataStuff);
+                    List<Object> metadata = new ObjectArrayList<>(metadataStuff);
 
                     // Remove the pose metadata from the list
                     metadata.removeIf(element -> {

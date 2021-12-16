@@ -12,6 +12,7 @@ import io.github.retrooper.packetevents.utils.pair.Pair;
 import io.github.retrooper.packetevents.utils.player.ClientVersion;
 import io.github.retrooper.packetevents.utils.reflection.Reflection;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.data.Bisected;
@@ -26,7 +27,6 @@ import java.io.InputStreamReader;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -48,7 +48,7 @@ public class CompensatedWorldFlat extends CompensatedWorld {
         // Reset the reader after counting
         paletteReader = new BufferedReader(new InputStreamReader(Objects.requireNonNull(GrimAPI.INSTANCE.getPlugin().getResource(XMaterial.getVersion() + ".txt"))));
 
-        globalPaletteToBlockData = new ArrayList<>(paletteSize);
+        globalPaletteToBlockData = new ObjectArrayList<>(paletteSize);
 
         String line;
 
@@ -113,6 +113,11 @@ public class CompensatedWorldFlat extends CompensatedWorld {
         return false;
     }
 
+    public static int getFlattenedGlobalID(BlockData blockData) {
+        int id = globalPaletteToBlockData.indexOf(blockData);
+        return id == -1 ? 0 : id;
+    }
+
     @Override
     public void tickOpenable(PlayerOpenBlockData blockToOpen) {
         FlatBlockState data = (FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ);
@@ -137,11 +142,6 @@ public class CompensatedWorldFlat extends CompensatedWorld {
             openable.setOpen(!openable.isOpen());
             player.compensatedWorld.updateBlock(blockToOpen.blockX, blockToOpen.blockY, blockToOpen.blockZ, getFlattenedGlobalID(openable));
         }
-    }
-
-    public static int getFlattenedGlobalID(BlockData blockData) {
-        int id = globalPaletteToBlockData.indexOf(blockData);
-        return id == -1 ? 0 : id;
     }
 
     @Override

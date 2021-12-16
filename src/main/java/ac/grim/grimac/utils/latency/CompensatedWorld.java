@@ -30,6 +30,7 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.longs.Long2ObjectMaps;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 
@@ -63,7 +64,7 @@ public class CompensatedWorld {
     public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> likelyDesyncBlockPositions = new ConcurrentLinkedQueue<>();
     // Packet locations for blocks
     public ConcurrentLinkedQueue<Pair<Integer, Vector3i>> packetLevelBlockLocations = new ConcurrentLinkedQueue<>();
-    public List<PistonData> activePistons = new ArrayList<>();
+    public List<PistonData> activePistons = new ObjectArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
     public boolean isResync = false;
     // 1.17 with datapacks, and 1.18, have negative world offset values
@@ -81,6 +82,10 @@ public class CompensatedWorld {
         } else {
             airData = new MagicBlockState(0, 0);
         }
+    }
+
+    public static long chunkPositionToLong(int x, int z) {
+        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
@@ -350,10 +355,6 @@ public class CompensatedWorld {
     public Column getChunk(int chunkX, int chunkZ) {
         long chunkPosition = chunkPositionToLong(chunkX, chunkZ);
         return chunks.get(chunkPosition);
-    }
-
-    public static long chunkPositionToLong(int x, int z) {
-        return ((x & 0xFFFFFFFFL) << 32L) | (z & 0xFFFFFFFFL);
     }
 
     public boolean isChunkLoaded(int chunkX, int chunkZ) {

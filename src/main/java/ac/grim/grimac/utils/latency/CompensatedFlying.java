@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 // Accept that the server can change the player's packets without an update response from the player
 // Accept that the player's flying status lies when landing on the ground (Worked around in GrimPlayer.specialFlying)
 //
-// This isn't perfect but it's damn close and should be the best public open source flight lag compensation system
+// This isn't perfect, but it's damn close and should be the best public open source flight lag compensation system
 public class CompensatedFlying {
     private final ConcurrentHashMap<Integer, Boolean> lagCompensatedCanFlyMap = new ConcurrentHashMap<>();
     private final GrimPlayer player;

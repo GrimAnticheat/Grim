@@ -5,11 +5,11 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.math.GrimMath;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -87,11 +87,11 @@ public class OffsetHandler extends PostPredictionCheck {
     public void reload() {
         secretTestServerVLStyle = getConfig().getBoolean("test-mode", false);
 
-        List<OffsetData> offsets = new ArrayList<>();
+        List<OffsetData> offsets = new ObjectArrayList<>();
         loadOffsets(offsets, "Prediction");
         this.regularOffsets = offsets;
 
-        List<OffsetData> vehicleOffsets = new ArrayList<>();
+        List<OffsetData> vehicleOffsets = new ObjectArrayList<>();
         loadOffsets(vehicleOffsets, "Vehicle");
         this.vehicleOffsets = vehicleOffsets;
 

@@ -5,18 +5,18 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 @CheckData(name = "Prediction (Debug)", buffer = 0)
 public class DebugHandler extends PostPredictionCheck {
 
-    List<Player> listeners = Collections.synchronizedList(new ArrayList<>());
+    List<Player> listeners = Collections.synchronizedList(new ObjectArrayList<>());
     boolean outputToConsole = false;
 
     public DebugHandler(GrimPlayer player) {

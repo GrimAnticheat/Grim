@@ -8,6 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 
 public class PlayerOffhandEvent implements Listener {
+
     @EventHandler(priority = EventPriority.MONITOR)
     public void onOffhandEvent(PlayerSwapHandItemsEvent event) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());

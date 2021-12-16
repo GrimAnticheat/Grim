@@ -16,13 +16,13 @@ import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
 import io.github.retrooper.packetevents.packettype.PacketType;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -95,7 +95,7 @@ public class AntiUseItemDesync extends PacketCheck {
                     Vector startingPos = new Vector(pos.getX(), pos.getY() + eyeHeight, pos.getZ());
                     Ray trace = new Ray(player, pos.getX(), pos.getY() + eyeHeight, pos.getZ(), player.packetStateData.packetPlayerXRot, player.packetStateData.packetPlayerYRot);
                     Vector endPos = trace.getPointAtDistance(6);
-                    List<SimpleCollisionBox> worldBoxes = new ArrayList<>();
+                    List<SimpleCollisionBox> worldBoxes = new ObjectArrayList<>();
                     Collisions.getCollisionBoxes(player, new SimpleCollisionBox(pos.getX(), pos.getY() + eyeHeight, pos.getZ(), endPos.getX(), endPos.getY(), endPos.getZ()).sort(), worldBoxes, false);
 
                     double bestDistance = Double.MAX_VALUE;

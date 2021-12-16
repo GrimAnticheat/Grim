@@ -20,6 +20,7 @@ import io.github.retrooper.packetevents.utils.server.ServerVersion;
 import io.github.retrooper.packetevents.utils.vector.Vector3d;
 import io.github.retrooper.packetevents.utils.vector.Vector3i;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.block.BlockFace;
 
 import java.util.*;
@@ -170,7 +171,7 @@ public class CompensatedEntities {
                 if (entity.removeTrans > lastTransactionReceived) continue;
                 int entityID = entry.getKey();
 
-                if (entitiesToRemove == null) entitiesToRemove = new ArrayList<>();
+                if (entitiesToRemove == null) entitiesToRemove = new ObjectArrayList<>();
                 entitiesToRemove.add(entityID);
                 player.compensatedPotions.removeEntity(entityID);
                 player.checkManager.getReach().removeEntity(entityID);

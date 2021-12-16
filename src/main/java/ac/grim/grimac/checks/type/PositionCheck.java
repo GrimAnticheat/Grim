@@ -11,6 +11,5 @@ public class PositionCheck extends Check<PositionUpdate> {
     }
 
     public void onPositionUpdate(final PositionUpdate positionUpdate) {
-
     }
 }

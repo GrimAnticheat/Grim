@@ -216,7 +216,7 @@ public class GrimPlayer {
         // Geyser players don't have Java movement
         if (PacketEvents.get().getPlayerUtils().isGeyserPlayer(playerUUID)) return;
 
-        Location loginLocation = player.getLocation();
+        Location loginLocation = bukkitPlayer.getLocation();
         lastX = loginLocation.getX();
         lastY = loginLocation.getY();
         lastZ = loginLocation.getZ();
@@ -250,33 +250,33 @@ public class GrimPlayer {
         checkManager = new CheckManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
-        playerWorld = bukkitPlayer.getLocation().getWorld();
-        packetStateData.playerWorld = bukkitPlayer.getLocation().getWorld();
+        playerWorld = bukkitPlayer.getWorld();
+        packetStateData.playerWorld = loginLocation.getWorld();
         if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
             compensatedWorld.setMinHeight(bukkitPlayer.getWorld().getMinHeight());
             compensatedWorld.setMaxWorldHeight(bukkitPlayer.getWorld().getMaxHeight());
         }
 
-        x = bukkitPlayer.getLocation().getX();
-        y = bukkitPlayer.getLocation().getY();
-        z = bukkitPlayer.getLocation().getZ();
-        xRot = bukkitPlayer.getLocation().getYaw();
-        yRot = bukkitPlayer.getLocation().getPitch();
+        x = loginLocation.getX();
+        y = loginLocation.getY();
+        z = loginLocation.getZ();
+        xRot = loginLocation.getYaw();
+        yRot = loginLocation.getPitch();
         isDead = bukkitPlayer.isDead();
 
-        lastX = bukkitPlayer.getLocation().getX();
-        lastY = bukkitPlayer.getLocation().getY();
-        lastZ = bukkitPlayer.getLocation().getZ();
-        lastXRot = bukkitPlayer.getLocation().getYaw();
-        lastYRot = bukkitPlayer.getLocation().getPitch();
+        lastX = loginLocation.getX();
+        lastY = loginLocation.getY();
+        lastZ = loginLocation.getZ();
+        lastXRot = loginLocation.getYaw();
+        lastYRot = loginLocation.getPitch();
 
-        packetStateData.packetPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
-        packetStateData.packetPlayerXRot = bukkitPlayer.getLocation().getYaw();
-        packetStateData.packetPlayerYRot = bukkitPlayer.getLocation().getPitch();
+        packetStateData.packetPosition = new Vector3d(loginLocation.getX(), loginLocation.getY(), loginLocation.getZ());
+        packetStateData.packetPlayerXRot = loginLocation.getYaw();
+        packetStateData.packetPlayerYRot = loginLocation.getPitch();
 
-        packetStateData.lastPacketPosition = new Vector3d(bukkitPlayer.getLocation().getX(), bukkitPlayer.getLocation().getY(), bukkitPlayer.getLocation().getZ());
-        packetStateData.lastPacketPlayerXRot = bukkitPlayer.getLocation().getYaw();
-        packetStateData.lastPacketPlayerYRot = bukkitPlayer.getLocation().getPitch();
+        packetStateData.lastPacketPosition = new Vector3d(loginLocation.getX(), loginLocation.getY(), loginLocation.getZ());
+        packetStateData.lastPacketPlayerXRot = loginLocation.getYaw();
+        packetStateData.lastPacketPlayerYRot = loginLocation.getPitch();
 
         packetStateData.gameMode = bukkitPlayer.getGameMode();
 

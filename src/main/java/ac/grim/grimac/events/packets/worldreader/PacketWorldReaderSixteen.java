@@ -20,6 +20,18 @@ import java.util.BitSet;
 
 public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
 
+    public static int sixteenSectionRelativeX(short data) {
+        return data >>> 8 & 15;
+    }
+
+    public static int sixteenSectionRelativeY(short data) {
+        return data & 15;
+    }
+
+    public static int sixteenSectionRelativeZ(short data) {
+        return data >>> 4 & 15;
+    }
+
     @Override
     public void handleMapChunk(GrimPlayer player, PacketPlaySendEvent event) {
         WrappedPacketOutMapChunk packet = new WrappedPacketOutMapChunk(event.getNMSPacket());
@@ -91,17 +103,5 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
         } catch (IllegalAccessException | InvocationTargetException exception) {
             exception.printStackTrace();
         }
-    }
-
-    public static int sixteenSectionRelativeX(short data) {
-        return data >>> 8 & 15;
-    }
-
-    public static int sixteenSectionRelativeY(short data) {
-        return data & 15;
-    }
-
-    public static int sixteenSectionRelativeZ(short data) {
-        return data >>> 4 & 15;
     }
 }

@@ -1503,34 +1503,6 @@ public enum XMaterial {
     }
 
     /**
-     * Gets the ID (Magic value) of the material.
-     * https://www.minecraftinfo.com/idlist.htm
-     *
-     * @return the ID of the material or <b>-1</b> if it's not a legacy material or the server doesn't support the material.
-     * @see #matchXMaterial(int, byte)
-     * @since 2.2.0
-     */
-    @SuppressWarnings("deprecation")
-    public int getId() {
-        if (this.data != 0 || this.version >= 13) return -1;
-        Material material = this.parseMaterial();
-        if (material == null) return -1;
-        if (Data.ISFLAT && !material.isLegacy()) return -1;
-        return material.getId();
-    }
-
-    /**
-     * Parses the material of this XMaterial.
-     *
-     * @return the material related to this XMaterial based on the server version.
-     * @since 1.0.0
-     */
-    @Nullable
-    public Material parseMaterial() {
-        return this.material;
-    }
-
-    /**
      * Checks if the specified version is the same version or higher than the current server version.
      *
      * @param version the major version to be checked. "1." is ignored. E.g. 1.12 = 12 | 1.9 = 9
@@ -1570,6 +1542,34 @@ public enum XMaterial {
         if (version.indexOf('.') != lastDot) version = version.substring(0, lastDot);
 
         return version;
+    }
+
+    /**
+     * Gets the ID (Magic value) of the material.
+     * https://www.minecraftinfo.com/idlist.htm
+     *
+     * @return the ID of the material or <b>-1</b> if it's not a legacy material or the server doesn't support the material.
+     * @see #matchXMaterial(int, byte)
+     * @since 2.2.0
+     */
+    @SuppressWarnings("deprecation")
+    public int getId() {
+        if (this.data != 0 || this.version >= 13) return -1;
+        Material material = this.parseMaterial();
+        if (material == null) return -1;
+        if (Data.ISFLAT && !material.isLegacy()) return -1;
+        return material.getId();
+    }
+
+    /**
+     * Parses the material of this XMaterial.
+     *
+     * @return the material related to this XMaterial based on the server version.
+     * @since 1.0.0
+     */
+    @Nullable
+    public Material parseMaterial() {
+        return this.material;
     }
 
     /**
