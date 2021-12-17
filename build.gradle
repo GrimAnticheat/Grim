@@ -1,44 +1,21 @@
 plugins {
     id 'java'
     id 'maven-publish'
-    id "com.github.johnrengelman.shadow" version "7.0.0"
+    id 'com.github.johnrengelman.shadow' version '7.1.1'
+    id 'io.freefair.lombok' version '6.3.0'
 }
 
 repositories {
     mavenLocal()
-    maven {
-        url = uri('https://papermc.io/repo/repository/maven-public/')
-    }
-
-    maven {
-        url = uri('https://jitpack.io/')
-    }
-
-    maven {
-        url = uri('https://repo.dmulloy2.net/repository/public/')
-    }
-
-    maven {
-        url = uri('https://repo.opencollab.dev/maven-snapshots/')
-    }
-
-    maven {
-        url = uri('https://repo.maven.apache.org/maven2/')
-    }
-
-    maven {
-        url = uri('https://repo.viaversion.com')
-    }
-
-    maven {
-        url = "https://repo.aikar.co/content/groups/aikar/"
-    }
-
-    maven {
-        url = "https://repo.essentialsx.net/releases/"
-    }
-    
     mavenCentral()
+    maven { url = 'https://papermc.io/repo/repository/maven-public/' }
+    maven { url = 'https://jitpack.io/' }
+    maven { url = 'https://repo.dmulloy2.net/repository/public/' }
+    maven { url = 'https://repo.opencollab.dev/maven-snapshots/' }
+    maven { url = 'https://repo.maven.apache.org/maven2/' }
+    maven { url = 'https://repo.viaversion.com' }
+    maven { url = 'https://repo.aikar.co/content/groups/aikar/' }
+    maven { url = 'https://repo.essentialsx.net/releases/' }
 }
 
 dependencies {
@@ -46,19 +23,13 @@ dependencies {
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:2.2.1'
-    implementation 'club.minnced:discord-webhooks:0.7.2'
-    implementation 'it.unimi.dsi:fastutil:8.2.1'
+    implementation 'club.minnced:discord-webhooks:0.7.4'
+    implementation 'it.unimi.dsi:fastutil:8.5.6'
 
     compileOnly 'org.spigotmc:spigot-api:1.17-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.0.0'
-    compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
-    compileOnly group: 'net.essentialsx', name: 'EssentialsX', version: '2.19.0'
-
-    compileOnly 'org.projectlombok:lombok:1.18.22'
-    annotationProcessor 'org.projectlombok:lombok:1.18.22'
-
-    testCompileOnly 'org.projectlombok:lombok:1.18.22'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+    compileOnly 'org.apache.logging.log4j:log4j-core:2.16.0'
+    compileOnly 'net.essentialsx:EssentialsX:2.19.0'
 }
 
 group = 'ac.grim.grimac'
