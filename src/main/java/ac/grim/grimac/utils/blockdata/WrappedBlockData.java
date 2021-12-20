@@ -4,7 +4,6 @@ import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
-import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
 import org.bukkit.Material;
@@ -652,7 +651,7 @@ public enum WrappedBlockData {
             HashSet<BlockFace> directions = new HashSet<>();
 
             for (BlockFace face : BlockFace.values()) {
-                if (BlockFaceHelper.isFaceHorizontal(face)) {
+                if (face == BlockFace.NORTH || face == BlockFace.EAST || face == BlockFace.SOUTH || face == BlockFace.WEST) {
                     if (redstone.getFace(face) != RedstoneWire.Connection.NONE) {
                         directions.add(face);
                     }

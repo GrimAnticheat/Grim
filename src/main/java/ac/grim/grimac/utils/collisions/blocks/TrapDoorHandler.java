@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 public class TrapDoorHandler implements CollisionFactory {
     @Override

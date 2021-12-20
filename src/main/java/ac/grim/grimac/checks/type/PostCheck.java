@@ -1,8 +1,8 @@
 package ac.grim.grimac.checks.type;
 
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
 
 public class PostCheck extends PacketCheck {
     private final byte packet;
@@ -16,8 +16,8 @@ public class PostCheck extends PacketCheck {
     }
 
     // Flag only when its both a post and a flag
-    public void onPacketReceive(final PacketPlayReceiveEvent event) {
-        if (PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId())) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (WrapperPlayClientFlying.isInstanceOfFlying(event.getPacketType())) {
             final long now = System.currentTimeMillis();
             final long delay = now - lastPacket;
 

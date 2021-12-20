@@ -21,12 +21,14 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.useentity.WrappedPacketInUseEntity;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import org.bukkit.GameMode;
 import org.bukkit.util.Vector;
 
@@ -49,9 +51,9 @@ public class Reach extends PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(final PacketPlayReceiveEvent event) {
-        if (event.getPacketId() == PacketType.Play.Client.USE_ENTITY) {
-            WrappedPacketInUseEntity action = new WrappedPacketInUseEntity(event.getNMSPacket());
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+            WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
 
             if (player.gamemode == GameMode.CREATIVE) return;
             if (player.vehicle != null) return;
@@ -63,7 +65,7 @@ public class Reach extends PacketCheck {
             }
         }
 
-        if (PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId())) {
+        if (WrapperPlayClientFlying.isInstanceOfFlying(event.getPacketType())) {
             // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
             if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
                 return;
@@ -86,7 +88,7 @@ public class Reach extends PacketCheck {
     // Meaning that the other check should be the only one that flags.
     private boolean isKnownInvalid(int entityID) {
         PacketEntity reachEntity = player.compensatedEntities.entityMap.get(entityID);
-        boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
+        boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
         if (reachEntity != null) {
             double lowest = 6;
@@ -116,13 +118,13 @@ public class Reach extends PacketCheck {
             //
             // This will likely be fixed with PacketEvents 2.0, where our listener is before ViaVersion
             // Don't attempt to fix it with this version of PacketEvents, it's not worth our time when 2.0 will fix it.
-            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
                 targetBox.expand(0.03125);
             }
 
             // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
             // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
-            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
                 targetBox.expand(0.1f);
             }
 
@@ -132,7 +134,7 @@ public class Reach extends PacketCheck {
             // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
             //
             // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
-            if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9))
+            if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9))
                 targetBox.expand(0.03);
 
             Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
@@ -146,12 +148,12 @@ public class Reach extends PacketCheck {
             ));
 
             // 1.9+ players could be a tick behind because we don't get skipped ticks
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
                 possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.lastYRot));
             }
 
             // 1.7 players do not have any of these issues! They are always on the latest look vector
-            if (player.getClientVersion().isOlderThan(ClientVersion.v_1_8)) {
+            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
                 possibleLookDirs = Collections.singletonList(ReachUtils.getLook(player, player.xRot, player.yRot));
             }
 

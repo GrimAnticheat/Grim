@@ -1,12 +1,12 @@
 package ac.grim.grimac.utils.nmsutil;
 
-import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 
 import java.util.List;
 
 public class WatchableIndexUtil {
-    public static WrappedWatchableObject getIndex(List<WrappedWatchableObject> objects, int index) {
-        for (WrappedWatchableObject object : objects) {
+    public static EntityData getIndex(List<EntityData> objects, int index) {
+        for (EntityData object : objects) {
             if (object.getIndex() == index) return object;
         }
 

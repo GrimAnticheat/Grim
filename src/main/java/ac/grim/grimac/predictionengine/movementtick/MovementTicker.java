@@ -8,10 +8,10 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -70,7 +70,7 @@ public class MovementTicker {
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
-        if (!player.wasTouchingWater && (player.playerVehicle == null || player.playerVehicle.type != EntityType.BOAT)) {
+        if (!player.wasTouchingWater && (player.playerVehicle == null || player.playerVehicle.type != EntityTypes.BOAT)) {
             new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
         }
 
@@ -89,20 +89,20 @@ public class MovementTicker {
             // If the client supports slime blocks
             // And the block is a slime block
             // Or the block is honey and was replaced by viaversion
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
-                    && (onBlock == SLIME_BLOCK || (onBlock == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)))) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
+                    && (onBlock == SLIME_BLOCK || (onBlock == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)))) {
                 if (player.isSneaking) { // Slime blocks use shifting instead of sneaking
                     player.clientVelocity.setY(0);
                 } else {
                     if (player.clientVelocity.getY() < 0.0) {
                         player.clientVelocity.setY(-player.clientVelocity.getY() *
-                                (player.playerVehicle != null && !EntityType.isLivingEntity(player.playerVehicle.bukkitEntityType) ? 0.8 : 1.0));
+                                (player.playerVehicle != null && !player.playerVehicle.isLivingEntity() ? 0.8 : 1.0));
                     }
                 }
-            } else if (Materials.checkFlag(onBlock, Materials.BED) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12)) {
+            } else if (Materials.checkFlag(onBlock, Materials.BED) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 if (player.clientVelocity.getY() < 0.0) {
                     player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 *
-                            (player.playerVehicle != null && !EntityType.isLivingEntity(player.playerVehicle.bukkitEntityType) ? 0.8 : 1.0));
+                            (player.playerVehicle != null && !player.playerVehicle.isLivingEntity() ? 0.8 : 1.0));
                 }
             } else {
                 player.clientVelocity.setY(0);
@@ -130,7 +130,7 @@ public class MovementTicker {
         player.stuckSpeedMultiplier = new Vector(1, 1, 1);
 
         // 1.15 and older clients use the handleInsideBlocks method for lava
-        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_16))
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_16))
             player.wasTouchingLava = false;
 
         Collisions.handleInsideBlocks(player);
@@ -172,7 +172,7 @@ public class MovementTicker {
         }
 
         // 1.7 and 1.8 do not have player collision
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
             return;
 
         int possibleCollidingEntities = 0;
@@ -187,7 +187,7 @@ public class MovementTicker {
                 // Players can only push living entities
                 // Players can also push boats or minecarts
                 // The one exemption to a living entity is an armor stand
-                if ((!EntityType.isLivingEntity(entity.bukkitEntityType) && entity.type != EntityType.BOAT && !EntityType.isMinecart(entity.type)) || entity.type == EntityType.ARMOR_STAND)
+                if (!entity.isLivingEntity() && entity.type != EntityTypes.BOAT && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
                     continue;
 
                 SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
@@ -233,7 +233,7 @@ public class MovementTicker {
         player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
 
         // Work around a bug introduced in 1.14 where a player colliding with an X and Z wall maintains X momentum
-        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
             return;
 
         boolean xAxisPositiveCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMax(player.speed, 0, 0));
@@ -324,7 +324,7 @@ public class MovementTicker {
 
         if (player.wasTouchingWater && !player.specialFlying) {
             // 0.8F seems hardcoded in
-            swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? 0.9F : 0.8F;
+            swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
 
             if (player.depthStriderLevel > 3.0F) {
@@ -348,7 +348,7 @@ public class MovementTicker {
 
             // 1.13 and below players can't climb ladders while touching water
             // yes, 1.13 players cannot climb ladders underwater
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.isClimbing) {
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.isClimbing) {
                 player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
             }
 
@@ -358,7 +358,7 @@ public class MovementTicker {
                 doLavaMove();
 
                 // Lava movement changed in 1.16
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16) && player.slightlyTouchingLava) {
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.slightlyTouchingLava) {
                     player.clientVelocity = player.clientVelocity.multiply(new Vector(0.5D, 0.800000011920929D, 0.5D));
                     player.clientVelocity = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity);
                 } else {

@@ -3,13 +3,12 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 public class Riptide {
     public static Vector getRiptideVelocity(GrimPlayer player) {
-        ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
-        ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
+        org.bukkit.inventory.ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
+        org.bukkit.inventory.ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
         int j;
         if (main.getType() == Material.TRIDENT) {

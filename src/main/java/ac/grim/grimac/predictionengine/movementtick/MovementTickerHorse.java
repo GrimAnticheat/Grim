@@ -4,7 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
 public class MovementTickerHorse extends MovementTickerLivingVehicle {
@@ -69,6 +69,6 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
     @Override
     public void livingEntityAIStep() {
         super.livingEntityAIStep();
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) Collisions.handleInsideBlocks(player);
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) Collisions.handleInsideBlocks(player);
     }
 }

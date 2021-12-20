@@ -17,14 +17,13 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.player.Direction;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Candle;
 import org.bukkit.block.data.type.GlowLichen;
@@ -40,8 +39,7 @@ public class BlockPlace {
     private static final BlockFace[] BY_2D = new BlockFace[]{BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
     @Setter
     Vector3i blockPosition;
-    @Setter
-    Direction face;
+    protected static final BlockFace[] UPDATE_SHAPE_ORDER = new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP};
     @Getter
     @Setter
     boolean replaceClicked;
@@ -60,8 +58,10 @@ public class BlockPlace {
     Material material;
     @Getter
     HitData hitData;
+    @Setter
+    BlockFace face;
 
-    public BlockPlace(GrimPlayer player, Vector3i blockPosition, Direction face, Material material, HitData hitData) {
+    public BlockPlace(GrimPlayer player, Vector3i blockPosition, BlockFace face, Material material, HitData hitData) {
         this.player = player;
         this.blockPosition = blockPosition;
         this.face = face;
@@ -71,60 +71,6 @@ public class BlockPlace {
         BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
         WrappedBlockDataValue placedAgainst = WrappedBlockData.getMaterialData(state).getData(state);
         this.replaceClicked = canBeReplaced(material, state, placedAgainst);
-    }
-
-    private boolean canBeReplaced(Material heldItem, BaseBlockState state, WrappedBlockDataValue placedAgainst) {
-        // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
-        boolean baseReplaceable = state.getMaterial() != heldItem && Materials.checkFlag(state.getMaterial(), Materials.REPLACEABLE); // TODO: Buckets correctly!
-
-        if (state.getMaterial().name().endsWith("CANDLE")) {
-            Candle candle = (Candle) ((FlatBlockState) state).getBlockData();
-            return heldItem == state.getMaterial() && candle.getCandles() < 4 && !isSecondaryUse();
-        }
-        if (state.getMaterial() == Material.SEA_PICKLE) {
-            SeaPickle pickle = (SeaPickle) ((FlatBlockState) state).getBlockData();
-            return heldItem == pickle.getMaterial() && pickle.getPickles() < 4 && !isSecondaryUse();
-        }
-        if (state.getMaterial() == Material.TURTLE_EGG) {
-            TurtleEgg egg = (TurtleEgg) ((FlatBlockState) state).getBlockData();
-            return heldItem == egg.getMaterial() && egg.getEggs() < 4 && !isSecondaryUse();
-        }
-        if (state.getMaterial() == Material.GLOW_LICHEN) {
-            GlowLichen lichen = (GlowLichen) ((FlatBlockState) state).getBlockData();
-            return lichen.getFaces().size() < lichen.getAllowedFaces().size() || heldItem != Material.GLOW_LICHEN;
-        }
-        if (state.getMaterial() == Material.SCAFFOLDING) {
-            return heldItem == Material.SCAFFOLDING;
-        }
-        if (placedAgainst instanceof WrappedSlab) {
-            WrappedSlab slab = (WrappedSlab) placedAgainst;
-            if (slab.isDouble() || state.getMaterial() != heldItem) return false;
-
-            // Here vanilla refers from
-            // Set check can replace -> get block -> call block canBeReplaced -> check can replace boolean (default true)
-            // uh... what?  I'm unsure what Mojang is doing here.  I think they just made a stupid mistake.
-            // as this code is quite old.
-            boolean flag = getClickedLocation().getY() > 0.5D;
-            BlockFace clickedFace = getBlockFace();
-            if (slab.isBottom()) {
-                return clickedFace == BlockFace.UP || flag && isFaceHorizontal();
-            } else {
-                return clickedFace == BlockFace.DOWN || !flag && isFaceHorizontal();
-            }
-        }
-        if (placedAgainst instanceof WrappedSnow) {
-            int layers = ((WrappedSnow) placedAgainst).getLayers();
-            if (heldItem == state.getMaterial() && layers < 7) { // We index at 0 (less than 8 layers)
-                return true;
-            } else {
-                return layers == 0; // index at 0, (1 layer)
-            }
-        }
-        if (state.getMaterial() == Material.VINE) {
-            return baseReplaceable || (heldItem == state.getMaterial() && ((WrappedMultipleFacing) placedAgainst).getDirections().size() < 5); // up, north, east, west, south
-        }
-
-        return baseReplaceable;
     }
 
     public WrappedBlockDataValue getExistingBlockData() {
@@ -180,66 +126,58 @@ public class BlockPlace {
         return !Materials.checkFlag(state.getMaterial(), Materials.SOLID_BLACKLIST);
     }
 
-    public boolean isFullFace(BlockFace relative) {
-        BaseBlockState state = getDirectionalState(relative);
+    private boolean canBeReplaced(Material heldItem, BaseBlockState state, WrappedBlockDataValue placedAgainst) {
+        // Cave vines and weeping vines have a special case... that always returns false (just like the base case for it!)
+        boolean baseReplaceable = state.getMaterial() != heldItem && Materials.checkFlag(state.getMaterial(), Materials.REPLACEABLE); // TODO: Buckets correctly!
 
-        BlockFace face = relative.getOppositeFace();
+        if (state.getMaterial().name().endsWith("CANDLE")) {
+            Candle candle = (Candle) ((FlatBlockState) state).getBlockData();
+            return heldItem == state.getMaterial() && candle.getCandles() < 4 && !isSecondaryUse();
+        }
+        if (state.getMaterial() == Material.SEA_PICKLE) {
+            SeaPickle pickle = (SeaPickle) ((FlatBlockState) state).getBlockData();
+            return heldItem == pickle.getMaterial() && pickle.getPickles() < 4 && !isSecondaryUse();
+        }
+        if (state.getMaterial() == Material.TURTLE_EGG) {
+            TurtleEgg egg = (TurtleEgg) ((FlatBlockState) state).getBlockData();
+            return heldItem == egg.getMaterial() && egg.getEggs() < 4 && !isSecondaryUse();
+        }
+        if (state.getMaterial() == Material.GLOW_LICHEN) {
+            GlowLichen lichen = (GlowLichen) ((FlatBlockState) state).getBlockData();
+            return lichen.getFaces().size() < lichen.getAllowedFaces().size() || heldItem != Material.GLOW_LICHEN;
+        }
+        if (state.getMaterial() == Material.SCAFFOLDING) {
+            return heldItem == Material.SCAFFOLDING;
+        }
+        if (placedAgainst instanceof WrappedSlab) {
+            WrappedSlab slab = (WrappedSlab) placedAgainst;
+            if (slab.isDouble() || state.getMaterial() != heldItem) return false;
 
-        WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(state);
-        AxisSelect axis = AxisUtil.getAxis(face);
-
-        CollisionBox box = CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state);
-
-        Material blockMaterial = state.getMaterial();
-
-        if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
-            // Leaves can't support blocks
-            return false;
-        } else if (blockMaterial == SNOW) {
-            WrappedSnow snow = (WrappedSnow) dataValue;
-            return snow.getLayers() == 7;
-        } else if (Materials.checkFlag(blockMaterial, Materials.STAIRS)) {
-            WrappedStairs stairs = (WrappedStairs) dataValue;
-
-            if (face == BlockFace.UP) {
-                return stairs.getUpsideDown();
-            }
-            if (face == BlockFace.DOWN) {
-                return !stairs.getUpsideDown();
-            }
-
-            return stairs.getDirection() == face;
-        } else if (blockMaterial == COMPOSTER) { // Composters have solid faces except for on the top
-            return face != BlockFace.UP;
-        } else if (blockMaterial == SOUL_SAND) { // Soul sand is considered to be a full block when placing things
-            return true;
-        } else if (blockMaterial == LADDER) { // Yes, although it breaks immediately, you can place blocks on ladders
-            WrappedDirectional ladder = (WrappedDirectional) dataValue;
-            return ladder.getDirection().getOppositeFace() == face;
-        } else if (Materials.checkFlag(blockMaterial, Materials.TRAPDOOR)) { // You can place blocks that need solid faces on trapdoors
-            WrappedTrapdoor trapdoor = (WrappedTrapdoor) dataValue;
-            return trapdoor.getDirection().getOppositeFace() == face && trapdoor.isOpen();
-        } else if (Materials.checkFlag(blockMaterial, Materials.DOOR)) { // You can place blocks that need solid faces on doors
-            CollisionData data = CollisionData.getData(blockMaterial);
-
-            if (data.dynamic instanceof DoorHandler) {
-                int x = getPlacedAgainstBlockLocation().getX();
-                int y = getPlacedAgainstBlockLocation().getY();
-                int z = getPlacedAgainstBlockLocation().getZ();
-                BlockFace dir = ((DoorHandler) data.dynamic).fetchDirection(player, player.getClientVersion(), dataValue, x, y, z);
-                return dir.getOppositeFace() == face;
+            // Here vanilla refers from
+            // Set check can replace -> get block -> call block canBeReplaced -> check can replace boolean (default true)
+            // uh... what?  I'm unsure what Mojang is doing here.  I think they just made a stupid mistake.
+            // as this code is quite old.
+            boolean flag = getClickedLocation().getY() > 0.5D;
+            BlockFace clickedFace = getDirection();
+            if (slab.isBottom()) {
+                return clickedFace == BlockFace.UP || flag && isFaceHorizontal();
+            } else {
+                return clickedFace == BlockFace.DOWN || !flag && isFaceHorizontal();
             }
         }
-
-        List<SimpleCollisionBox> collisions = new ArrayList<>();
-        box.downCast(collisions);
-
-        for (SimpleCollisionBox simpleBox : collisions) {
-            if (axis.modify(simpleBox).isFullBlockNoCache()) return true;
+        if (placedAgainst instanceof WrappedSnow) {
+            int layers = ((WrappedSnow) placedAgainst).getLayers();
+            if (heldItem == state.getMaterial() && layers < 7) { // We index at 0 (less than 8 layers)
+                return true;
+            } else {
+                return layers == 0; // index at 0, (1 layer)
+            }
+        }
+        if (state.getMaterial() == Material.VINE) {
+            return baseReplaceable || (heldItem == state.getMaterial() && ((WrappedMultipleFacing) placedAgainst).getDirections().size() < 5); // up, north, east, west, south
         }
 
-        // Not an explicit edge case and is complicated, so isn't a full face
-        return false;
+        return baseReplaceable;
     }
 
     public boolean isFaceFullCenter(BlockFace facing) {
@@ -293,58 +231,66 @@ public class BlockPlace {
         return false;
     }
 
-    // I have to be the first anticheat to actually account for this... wish me luck
-    // It's interested that redstone code is actually really simple, but has so many quirks
-    // we don't need to account for these quirks though as they are more related to block updates.
-    public boolean isBlockPlacedPowered() {
-        Vector3i placed = getPlacedBlockPos();
+    public boolean isFullFace(BlockFace relative) {
+        BaseBlockState state = getDirectionalState(relative);
+        BlockFace face = relative.getOppositeFace();
+        org.bukkit.block.BlockFace bukkitFace = org.bukkit.block.BlockFace.valueOf(face.name());
 
-        for (BlockFace face : BlockFace.values()) {
-            if (!face.isCartesian()) continue;
-            Vector3i modified = placed.clone();
+        WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(state);
+        AxisSelect axis = AxisUtil.getAxis(face);
 
-            modified.setX(placed.getX() + face.getModX());
-            modified.setY(placed.getY() + face.getModY());
-            modified.setZ(placed.getZ() + face.getModZ());
+        CollisionBox box = CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state);
 
-            // A block next to the player is providing power.  Therefore the block is powered
-            if (player.compensatedWorld.getRawPowerAtState(face, modified.getX(), modified.getY(), modified.getZ()) > 0) {
-                return true;
+        Material blockMaterial = state.getMaterial();
+
+        if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
+            // Leaves can't support blocks
+            return false;
+        } else if (blockMaterial == SNOW) {
+            WrappedSnow snow = (WrappedSnow) dataValue;
+            return snow.getLayers() == 7;
+        } else if (Materials.checkFlag(blockMaterial, Materials.STAIRS)) {
+            WrappedStairs stairs = (WrappedStairs) dataValue;
+
+            if (face == BlockFace.UP) {
+                return stairs.getUpsideDown();
+            }
+            if (face == BlockFace.DOWN) {
+                return !stairs.getUpsideDown();
             }
 
-            // Check if a block can even provide power... bukkit doesn't have a method for this?
-            BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(modified);
 
-            boolean isByDefaultConductive = !Materials.isSolidBlockingBlacklist(state.getMaterial(), player.getClientVersion()) &&
-                    CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state).isFullBlock();
+            return stairs.getDirection() == bukkitFace;
+        } else if (blockMaterial == COMPOSTER) { // Composters have solid faces except for on the top
+            return face != BlockFace.UP;
+        } else if (blockMaterial == SOUL_SAND) { // Soul sand is considered to be a full block when placing things
+            return true;
+        } else if (blockMaterial == LADDER) { // Yes, although it breaks immediately, you can place blocks on ladders
+            WrappedDirectional ladder = (WrappedDirectional) dataValue;
+            return ladder.getDirection().getOppositeFace() == bukkitFace;
+        } else if (Materials.checkFlag(blockMaterial, Materials.TRAPDOOR)) { // You can place blocks that need solid faces on trapdoors
+            WrappedTrapdoor trapdoor = (WrappedTrapdoor) dataValue;
+            return trapdoor.getDirection().getOppositeFace() == bukkitFace && trapdoor.isOpen();
+        } else if (Materials.checkFlag(blockMaterial, Materials.DOOR)) { // You can place blocks that need solid faces on doors
+            CollisionData data = CollisionData.getData(blockMaterial);
 
-            // Soul sand is exempt from this check.
-            // Glass, moving pistons, beacons, redstone blocks (for some reason) and observers are not conductive
-            // Otherwise, if something is solid blocking and a full block, then it is conductive
-            if (state.getMaterial() != SOUL_SAND &&
-                    Materials.checkFlag(state.getMaterial(), Materials.GLASS_BLOCK) || state.getMaterial() == Material.MOVING_PISTON
-                    || state.getMaterial() == Material.BEACON || state.getMaterial() ==
-                    Material.REDSTONE_BLOCK || state.getMaterial() == Material.OBSERVER || !isByDefaultConductive) {
-                continue;
-            }
-
-            // There's a better way to do this, but this is "good enough"
-            // Mojang probably does it in a worse way than this.
-            for (BlockFace recursive : BlockFace.values()) {
-                if (!face.isCartesian()) continue;
-                Vector3i poweredRecursive = placed.clone();
-
-                poweredRecursive.setX(modified.getX() + recursive.getModX());
-                poweredRecursive.setY(modified.getY() + recursive.getModY());
-                poweredRecursive.setZ(modified.getZ() + recursive.getModZ());
-
-                // A block next to the player is directly powered.  Therefore, the block is powered
-                if (player.compensatedWorld.getDirectSignalAtState(recursive, poweredRecursive.getX(), poweredRecursive.getY(), poweredRecursive.getZ()) > 0) {
-                    return true;
-                }
+            if (data.dynamic instanceof DoorHandler) {
+                int x = getPlacedAgainstBlockLocation().getX();
+                int y = getPlacedAgainstBlockLocation().getY();
+                int z = getPlacedAgainstBlockLocation().getZ();
+                org.bukkit.block.BlockFace dir = ((DoorHandler) data.dynamic).fetchDirection(player, player.getClientVersion(), dataValue, x, y, z);
+                return dir.getOppositeFace() == bukkitFace;
             }
         }
 
+        List<SimpleCollisionBox> collisions = new ArrayList<>();
+        box.downCast(collisions);
+
+        for (SimpleCollisionBox simpleBox : collisions) {
+            if (axis.modify(simpleBox).isFullBlockNoCache()) return true;
+        }
+
+        // Not an explicit edge case and is complicated, so isn't a full face
         return false;
     }
 
@@ -438,37 +384,65 @@ public class BlockPlace {
         return isOn(Material.DIRT, Material.GRASS_BLOCK, Material.PODZOL, Material.COARSE_DIRT, Material.MYCELIUM, Material.ROOTED_DIRT, Material.MOSS_BLOCK);
     }
 
-    public Direction getDirection() {
-        return face;
-    }
+    // I have to be the first anticheat to actually account for this... wish me luck
+    // It's interested that redstone code is actually really simple, but has so many quirks
+    // we don't need to account for these quirks though as they are more related to block updates.
+    public boolean isBlockPlacedPowered() {
+        Vector3i placed = getPlacedBlockPos();
 
-    public BlockFace getBlockFace() {
-        return BlockFace.valueOf(getDirection().name());
+        for (BlockFace face : BlockFace.CARTESIAN_VALUES) {
+            Vector3i modified = placed.clone();
+
+            modified.setX(placed.getX() + face.getModX());
+            modified.setY(placed.getY() + face.getModY());
+            modified.setZ(placed.getZ() + face.getModZ());
+
+            // A block next to the player is providing power.  Therefore the block is powered
+            if (player.compensatedWorld.getRawPowerAtState(face, modified.getX(), modified.getY(), modified.getZ()) > 0) {
+                return true;
+            }
+
+            // Check if a block can even provide power... bukkit doesn't have a method for this?
+            BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(modified);
+
+            boolean isByDefaultConductive = !Materials.isSolidBlockingBlacklist(state.getMaterial(), player.getClientVersion()) &&
+                    CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state).isFullBlock();
+
+            // Soul sand is exempt from this check.
+            // Glass, moving pistons, beacons, redstone blocks (for some reason) and observers are not conductive
+            // Otherwise, if something is solid blocking and a full block, then it is conductive
+            if (state.getMaterial() != SOUL_SAND &&
+                    Materials.checkFlag(state.getMaterial(), Materials.GLASS_BLOCK) || state.getMaterial() == Material.MOVING_PISTON
+                    || state.getMaterial() == Material.BEACON || state.getMaterial() ==
+                    Material.REDSTONE_BLOCK || state.getMaterial() == Material.OBSERVER || !isByDefaultConductive) {
+                continue;
+            }
+
+            // There's a better way to do this, but this is "good enough"
+            // Mojang probably does it in a worse way than this.
+            for (BlockFace recursive : BlockFace.CARTESIAN_VALUES) {
+                Vector3i poweredRecursive = placed.clone();
+
+                poweredRecursive.setX(modified.getX() + recursive.getModX());
+                poweredRecursive.setY(modified.getY() + recursive.getModY());
+                poweredRecursive.setZ(modified.getZ() + recursive.getModZ());
+
+                // A block next to the player is directly powered.  Therefore, the block is powered
+                if (player.compensatedWorld.getDirectSignalAtState(recursive, poweredRecursive.getX(), poweredRecursive.getY(), poweredRecursive.getZ()) > 0) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     public BlockFace[] getHorizontalFaces() {
         return BY_2D;
     }
 
-    // Copied from vanilla nms
-    public List<BlockFace> getNearestPlacingDirections() {
-        BlockFace[] faces = getNearestLookingDirections().toArray(new BlockFace[0]);
-
-        if (!isReplaceClicked()) {
-            BlockFace direction = getBlockFace();
-
-            // Blame mojang for this code, not me
-            int i;
-            for (i = 0; i < faces.length && faces[i] != direction.getOppositeFace(); ++i) {
-            }
-
-            if (i > 0) {
-                System.arraycopy(faces, 0, faces, 1, i);
-                faces[0] = direction.getOppositeFace();
-            }
-        }
-
-        return Arrays.asList(faces);
+    public BlockFace getDirection() {
+        return face;
     }
 
     private List<BlockFace> getNearestLookingDirections() {
@@ -506,23 +480,39 @@ public class BlockPlace {
         return player.yRot < 0.0F ? BlockFace.UP : BlockFace.DOWN;
     }
 
-    public boolean isFaceHorizontal() {
-        Direction face = getDirection();
-        return face == Direction.NORTH || face == Direction.EAST || face == Direction.SOUTH || face == Direction.WEST;
+    // Copied from vanilla nms
+    public List<BlockFace> getNearestPlacingDirections() {
+        BlockFace[] faces = getNearestLookingDirections().toArray(new BlockFace[0]);
+
+        if (!isReplaceClicked()) {
+            BlockFace direction = getDirection();
+
+            // Blame mojang for this code, not me
+            int i;
+            for (i = 0; i < faces.length && faces[i] != direction.getOppositeFace(); ++i) {
+            }
+
+            if (i > 0) {
+                System.arraycopy(faces, 0, faces, 1, i);
+                faces[0] = direction.getOppositeFace();
+            }
+        }
+
+        return Arrays.asList(faces);
     }
 
     public boolean isFaceVertical() {
         return !isFaceHorizontal();
     }
 
-    public boolean isXAxis() {
-        Direction face = getDirection();
-        return face == Direction.WEST || face == Direction.EAST;
+    public boolean isFaceHorizontal() {
+        BlockFace face = getDirection();
+        return face == BlockFace.NORTH || face == BlockFace.EAST || face == BlockFace.SOUTH || face == BlockFace.WEST;
     }
 
-    public boolean isZAxis() {
-        Direction face = getDirection();
-        return face == Direction.NORTH || face == Direction.SOUTH;
+    public boolean isXAxis() {
+        BlockFace face = getDirection();
+        return face == BlockFace.WEST || face == BlockFace.EAST;
     }
 
     public boolean isCancelled() {
@@ -591,11 +581,14 @@ public class BlockPlace {
         player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getCombinedId());
     }
 
-    protected static final Direction[] UPDATE_SHAPE_ORDER = new Direction[]{Direction.WEST, Direction.EAST, Direction.NORTH, Direction.SOUTH, Direction.DOWN, Direction.UP};
+    public boolean isZAxis() {
+        BlockFace face = getDirection();
+        return face == BlockFace.NORTH || face == BlockFace.SOUTH;
+    }
 
     // We need to now run block
     public void tryCascadeBlockUpdates(Vector3i pos) {
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2)) return;
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) return;
 
         cascadeBlockUpdates(pos);
     }

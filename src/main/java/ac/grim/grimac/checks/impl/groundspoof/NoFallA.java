@@ -7,10 +7,13 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPosition;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPositionRotation;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientRotation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,20 +29,34 @@ public class NoFallA extends PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(PacketPlayReceiveEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (PacketType.Play.Client.Util.isInstanceOfFlying(packetID)) {
-            WrappedPacketInFlying flying = new WrappedPacketInFlying(event.getNMSPacket());
-
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (WrapperPlayClientFlying.isInstanceOfFlying(event.getPacketType())) {
             // We have the wrong world cached with chunks
             if (player.bukkitPlayer.getWorld() != player.playerWorld) return;
             // The player hasn't spawned yet
             if (player.getSetbackTeleportUtil().insideUnloadedChunk()) return;
 
+            WrapperPlayClientFlying wrapper = null;
+            boolean hasPosition = false;
+
+            // Flying packet types
+            if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
+                wrapper = new WrapperPlayClientPosition(event);
+                hasPosition = true;
+            } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
+                wrapper = new WrapperPlayClientPositionRotation(event);
+                hasPosition = true;
+            } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
+                wrapper = new WrapperPlayClientRotation(event);
+            } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING) {
+                wrapper = new WrapperPlayClientFlying(event);
+            }
+
+            assert wrapper != null;
+
             // Force teleports to have onGround set to false, might patch NoFall on some version.
             if (player.packetStateData.lastPacketWasTeleport) {
-                flying.setOnGround(false);
+                wrapper.setOnGround(false);
                 return;
             }
 
@@ -48,16 +65,14 @@ public class NoFallA extends PacketCheck {
             // So we make the player touch the ground, and therefore they take fall damage
             if (playerUsingNoGround) {
                 playerUsingNoGround = false;
-                flying.setOnGround(true);
+                wrapper.setOnGround(true);
                 return;
             }
 
             // If the player claims to be on the ground
-            if (flying.isOnGround()) {
-                boolean hasPosition = packetID == PacketType.Play.Client.POSITION || packetID == PacketType.Play.Client.POSITION_LOOK;
-
+            if (wrapper.isOnGround()) {
                 if (!hasPosition) {
-                    if (!is003OnGround(flying.isOnGround())) flying.setOnGround(false);
+                    if (!is003OnGround(wrapper.isOnGround())) wrapper.setOnGround(false);
                     return;
                 }
 
@@ -82,7 +97,7 @@ public class NoFallA extends PacketCheck {
 
                 if (checkForBoxes(feetBB)) return;
 
-                flying.setOnGround(false);
+                wrapper.setOnGround(false);
             }
         }
     }

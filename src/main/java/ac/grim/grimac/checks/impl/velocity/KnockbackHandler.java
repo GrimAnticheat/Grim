@@ -6,11 +6,12 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.GrimMath;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.out.entityvelocity.WrappedPacketOutEntityVelocity;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,14 +35,12 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     @Override
-    public void onPacketSend(final PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Server.ENTITY_VELOCITY) {
-            WrappedPacketOutEntityVelocity velocity = new WrappedPacketOutEntityVelocity(event.getNMSPacket());
+    public void onPacketSend(final PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
+            WrapperPlayServerEntityVelocity velocity = new WrapperPlayServerEntityVelocity(event);
             int entityId = velocity.getEntityId();
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             // Detect whether this knockback packet affects the player or if it is useless

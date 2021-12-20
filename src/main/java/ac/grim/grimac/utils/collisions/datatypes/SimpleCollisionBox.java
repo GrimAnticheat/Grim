@@ -1,8 +1,8 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.utils.nmsutil.Ray;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 

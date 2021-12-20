@@ -4,40 +4,40 @@ import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.events.packets.worldreader.*;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import io.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+
 
 public class PacketManager implements Initable {
     @Override
     public void start() {
         LogUtil.info("Registering packets...");
 
-        PacketEvents.get().registerListener(new PacketPlayerAbilities());
-        PacketEvents.get().registerListener(new PacketPingListener());
-        PacketEvents.get().registerListener(new PacketPlayerDigging());
-        PacketEvents.get().registerListener(new PacketPlayerAttack());
-        PacketEvents.get().registerListener(new PacketEntityAction());
-        PacketEvents.get().registerListener(new PacketBlockAction());
-        PacketEvents.get().registerListener(new PacketFireworkListener());
-        PacketEvents.get().registerListener(new PacketSelfMetadataListener());
-        PacketEvents.get().registerListener(new PacketServerTeleport());
-        PacketEvents.get().registerListener(new PacketPlayerCooldown());
-        PacketEvents.get().registerListener(new PacketPlayerRespawn());
-        PacketEvents.get().registerListener(new CheckManagerListener());
-        PacketEvents.get().registerListener(new PacketPlayerSteer());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerAbilities());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPingListener());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerDigging());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerAttack());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketEntityAction());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketBlockAction());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketSelfMetadataListener());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketServerTeleport());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerCooldown());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerRespawn());
+        PacketEvents.getAPI().getEventManager().registerListener(new CheckManagerListener());
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerSteer());
 
-        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_18)) {
-            PacketEvents.get().registerListener(new PacketWorldReaderEighteen());
-        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_16)) {
-            PacketEvents.get().registerListener(new PacketWorldReaderSixteen());
-        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
-            PacketEvents.get().registerListener(new PacketWorldReaderNine());
-        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8)) {
-            PacketEvents.get().registerListener(new PacketWorldReaderEight());
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
+            PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderEighteen());
+        } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
+            PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderSixteen());
+        } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+            PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderNine());
+        } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8)) {
+            PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderEight());
         } else {
-            PacketEvents.get().registerListener(new PacketWorldReaderSeven());
+            PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderSeven());
         }
 
-        PacketEvents.get().init();
+        PacketEvents.getAPI().init();
     }
 }

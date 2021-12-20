@@ -5,8 +5,8 @@ import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
-import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import com.github.retrooper.packetevents.util.reflection.Reflection;
+import io.github.retrooper.packetevents.utils.MinecraftReflectionUtil;
 import org.bukkit.Bukkit;
 import sun.misc.Unsafe;
 
@@ -29,7 +29,7 @@ public class TickEndEvent implements Initable {
     public void start() {
         // Inject so we can add the final transaction pre-flush event
         try {
-            Object connection = NMSUtils.getMinecraftServerConnection();
+            Object connection = MinecraftReflectionUtil.getMinecraftServerConnectionInstance();
 
             Field connectionsList = Reflection.getField(connection.getClass(), List.class, 1);
             List<Object> endOfTickObject = (List<Object>) connectionsList.get(connection);

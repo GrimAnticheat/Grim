@@ -4,9 +4,9 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.math.GrimMath;
-import io.github.retrooper.packetevents.utils.pair.Pair;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 

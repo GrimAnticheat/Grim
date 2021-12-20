@@ -1,8 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
-import io.github.retrooper.packetevents.utils.pair.Pair;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3d;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 

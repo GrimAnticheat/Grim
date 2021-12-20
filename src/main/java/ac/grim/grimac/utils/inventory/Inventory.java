@@ -5,9 +5,9 @@ import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
 import ac.grim.grimac.utils.inventory.slot.EquipmentSlot;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import lombok.Getter;
 import org.bukkit.GameMode;
-import org.bukkit.inventory.ItemStack;
 
 public class Inventory extends AbstractContainerMenu {
     public static final int SLOT_OFFHAND = 45;
@@ -46,19 +46,19 @@ public class Inventory extends AbstractContainerMenu {
         addSlot(new Slot(playerInventory, 45));
     }
 
-    public WrappedStack getHeldItem() {
+    public ItemStack getHeldItem() {
         return playerInventory.getItem(selected + HOTBAR_OFFSET);
     }
 
     public void setHeldItem(ItemStack item) {
-        playerInventory.setItem(selected + HOTBAR_OFFSET, new WrappedStack(item));
+        playerInventory.setItem(selected + HOTBAR_OFFSET, item);
     }
 
-    public WrappedStack getOffhandItem() {
+    public ItemStack getOffhandItem() {
         return playerInventory.getItem(SLOT_OFFHAND);
     }
 
-    public boolean add(WrappedStack p_36055_) {
+    public boolean add(ItemStack p_36055_) {
         return this.add(-1, p_36055_);
     }
 
@@ -72,7 +72,7 @@ public class Inventory extends AbstractContainerMenu {
         return -1;
     }
 
-    public int getSlotWithRemainingSpace(WrappedStack toAdd) {
+    public int getSlotWithRemainingSpace(ItemStack toAdd) {
         if (this.hasRemainingSpaceForItem(getHeldItem(), toAdd)) {
             return this.selected;
         } else if (this.hasRemainingSpaceForItem(getOffhandItem(), toAdd)) {
@@ -88,36 +88,36 @@ public class Inventory extends AbstractContainerMenu {
         }
     }
 
-    private boolean hasRemainingSpaceForItem(WrappedStack one, WrappedStack two) {
-        return !one.isEmpty() && WrappedStack.isSameItemSameTags(one, two) && one.getCount() < one.getMaxStackSize() && one.getCount() < this.getMaxStackSize();
+    private boolean hasRemainingSpaceForItem(ItemStack one, ItemStack two) {
+        return !one.isEmpty() && ItemStack.isSameItemSameTags(one, two) && one.getAmount() < one.getMaxStackSize() && one.getAmount() < this.getMaxStackSize();
     }
 
-    private int addResource(WrappedStack resource) {
+    private int addResource(ItemStack resource) {
         int i = this.getSlotWithRemainingSpace(resource);
         if (i == -1) {
             i = this.getFreeSlot();
         }
 
-        return i == -1 ? resource.getCount() : this.addResource(i, resource);
+        return i == -1 ? resource.getAmount() : this.addResource(i, resource);
     }
 
-    private int addResource(int slot, WrappedStack stack) {
-        int i = stack.getCount();
-        WrappedStack itemstack = playerInventory.getItem(slot);
+    private int addResource(int slot, ItemStack stack) {
+        int i = stack.getAmount();
+        ItemStack itemstack = playerInventory.getItem(slot);
 
         if (itemstack.isEmpty()) {
             itemstack = stack.copy();
-            itemstack.setCount(0);
+            itemstack.setAmount(0);
             playerInventory.setItem(slot, itemstack);
         }
 
         int j = i;
-        if (i > itemstack.getMaxStackSize() - itemstack.getCount()) {
-            j = itemstack.getMaxStackSize() - itemstack.getCount();
+        if (i > itemstack.getMaxStackSize() - itemstack.getAmount()) {
+            j = itemstack.getMaxStackSize() - itemstack.getAmount();
         }
 
-        if (j > this.getMaxStackSize() - itemstack.getCount()) {
-            j = this.getMaxStackSize() - itemstack.getCount();
+        if (j > this.getMaxStackSize() - itemstack.getAmount()) {
+            j = this.getMaxStackSize() - itemstack.getAmount();
         }
 
         if (j == 0) {
@@ -129,7 +129,7 @@ public class Inventory extends AbstractContainerMenu {
         }
     }
 
-    public boolean add(int p_36041_, WrappedStack p_36042_) {
+    public boolean add(int p_36041_, ItemStack p_36042_) {
         if (p_36042_.isEmpty()) {
             return false;
         } else {
@@ -139,11 +139,11 @@ public class Inventory extends AbstractContainerMenu {
                 }
 
                 if (p_36041_ >= 0) {
-                    playerInventory.setItem(p_36041_, new WrappedStack(p_36042_.copy().getStack()));
-                    p_36042_.setCount(0);
+                    playerInventory.setItem(p_36041_, p_36042_.copy());
+                    p_36042_.setAmount(0);
                     return true;
                 } else if (player.gamemode == GameMode.CREATIVE) {
-                    p_36042_.setCount(0);
+                    p_36042_.setAmount(0);
                     return true;
                 } else {
                     return false;
@@ -151,72 +151,72 @@ public class Inventory extends AbstractContainerMenu {
             } else {
                 int i;
                 do {
-                    i = p_36042_.getCount();
+                    i = p_36042_.getAmount();
                     if (p_36041_ == -1) {
-                        p_36042_.setCount(this.addResource(p_36042_));
+                        p_36042_.setAmount(this.addResource(p_36042_));
                     } else {
-                        p_36042_.setCount(this.addResource(p_36041_, p_36042_));
+                        p_36042_.setAmount(this.addResource(p_36041_, p_36042_));
                     }
-                } while (!p_36042_.isEmpty() && p_36042_.getCount() < i);
+                } while (!p_36042_.isEmpty() && p_36042_.getAmount() < i);
 
-                if (p_36042_.getCount() == i && player.gamemode == GameMode.CREATIVE) {
-                    p_36042_.setCount(0);
+                if (p_36042_.getAmount() == i && player.gamemode == GameMode.CREATIVE) {
+                    p_36042_.setAmount(0);
                     return true;
                 } else {
-                    return p_36042_.getCount() < i;
+                    return p_36042_.getAmount() < i;
                 }
             }
         }
     }
 
     @Override
-    public WrappedStack quickMoveStack(int slotID) {
-        WrappedStack original = WrappedStack.empty();
+    public ItemStack quickMoveStack(int slotID) {
+        ItemStack original = ItemStack.EMPTY;
         Slot slot = getSlots().get(slotID);
 
         if (slot != null && slot.hasItem()) {
-            WrappedStack toMove = slot.getItem();
+            ItemStack toMove = slot.getItem();
             original = toMove.copy();
             EquipmentType equipmentslot = EquipmentType.getEquipmentSlotForItem(original);
             if (slotID == 0) {
                 if (!this.moveItemStackTo(toMove, 9, 45, true)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (slotID >= 1 && slotID < 5) {
                 if (!this.moveItemStackTo(toMove, 9, 45, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (slotID >= 5 && slotID < 9) {
                 if (!this.moveItemStackTo(toMove, 9, 45, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (equipmentslot.isArmor() && !getSlots().get(8 - equipmentslot.getIndex()).hasItem()) {
                 int i = 8 - equipmentslot.getIndex();
                 if (!this.moveItemStackTo(toMove, i, i + 1, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (equipmentslot == EquipmentType.OFFHAND && !getSlots().get(45).hasItem()) {
                 if (!this.moveItemStackTo(toMove, 45, 46, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (slotID >= 9 && slotID < 36) {
                 if (!this.moveItemStackTo(toMove, 36, 45, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (slotID >= 36 && slotID < 45) {
                 if (!this.moveItemStackTo(toMove, 9, 36, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (!this.moveItemStackTo(toMove, 9, 45, false)) {
-                return WrappedStack.empty();
+                return ItemStack.EMPTY;
             }
 
             if (toMove.isEmpty()) {
-                slot.set(WrappedStack.empty());
+                slot.set(ItemStack.EMPTY);
             }
 
-            if (toMove.getCount() == original.getCount()) {
-                return WrappedStack.empty();
+            if (toMove.getAmount() == original.getAmount()) {
+                return ItemStack.EMPTY;
             }
         }
 

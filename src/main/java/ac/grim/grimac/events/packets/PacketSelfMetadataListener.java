@@ -4,23 +4,18 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
-import io.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
-import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
-import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedPacketOutEntityMetadata;
-import io.github.retrooper.packetevents.packetwrappers.play.out.entitymetadata.WrappedWatchableObject;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.player.Hand;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
+import org.bukkit.entity.Player;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class PacketSelfMetadataListener extends PacketListenerAbstract {
@@ -29,17 +24,15 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
+    public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
+            WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
 
-        if (packetID == PacketType.Play.Server.ENTITY_METADATA) {
-            WrappedPacketOutEntityMetadata entityMetadata = new WrappedPacketOutEntityMetadata(event.getNMSPacket());
-            if (entityMetadata.getEntityId() == event.getPlayer().getEntityId()) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            if (player == null)
+                return;
 
-                if (player == null)
-                    return;
-
+            if (entityMetadata.getEntityId() == player.entityID) {
                 // 1.14+ poses:
                 // - Client: I am sneaking
                 // - Client: I am no longer sneaking
@@ -61,53 +54,23 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 // to the player on old servers... because the player just overrides this pose the very next tick
                 //
                 // It makes no sense to me why mojang is doing this, it has to be a bug.
-                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_14)) {
-                    // Use a new arraylist to avoid a concurrent modification exception
-                    List<Object> metadataStuff = entityMetadata.readList(0);
-                    List<Object> metadata = new ArrayList<>(metadataStuff);
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
+                    List<EntityData> metadataStuff = entityMetadata.getEntityMetadata();
 
                     // Remove the pose metadata from the list
-                    metadata.removeIf(element -> {
-                        Object dataWatcherObject = new WrappedPacket(new NMSPacket(element)).readAnyObject(0);
-                        WrappedPacket wrappedDataWatcher = new WrappedPacket(new NMSPacket(dataWatcherObject));
-                        return wrappedDataWatcher.readInt(0) == 6;
-                    });
+                    metadataStuff.removeIf(element -> element.getIndex() == 6);
 
-                    // If there was pose metadata in the list
-                    if (metadata.size() != metadataStuff.size() && !metadata.isEmpty()) {
-                        try {
-                            // We need to find a constructor for the entity metadata packet
-                            // Warning: Do not modify the current packet being sent as it is being sent to multiple people
-                            // You must create a new packet to remove poses from metadata
-                            Constructor<?> constructor = event.getNMSPacket().getRawNMSPacket().getClass().getConstructor(int.class, NMSUtils.dataWatcherClass, boolean.class);
-
-                            // Generate a metadata packet using a new data watcher, to avoid concurrent modification exceptions
-                            Object nmsEntity = NMSUtils.getNMSEntity(event.getPlayer());
-                            Object dataWatcher = NMSUtils.generateDataWatcher(nmsEntity);
-                            Object watcherPacket = constructor.newInstance(player.entityID, dataWatcher, true);
-
-                            // Write the modified list to this new packet
-                            new WrappedPacket(new NMSPacket(watcherPacket)).writeList(0, metadata);
-                            // And send it to the player
-                            PacketEvents.get().getPlayerUtils().sendNMSPacket(event.getPlayer(), watcherPacket);
-
-                            // Then cancel this packet to avoid poses getting sent to the player
-                            event.setCancelled(true);
-                            return;
-                        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
-                            e.printStackTrace();
-                        }
-                    }
+                    entityMetadata.setEntityMetadata(metadataStuff);
                 }
 
-                WrappedWatchableObject watchable = WatchableIndexUtil.getIndex(entityMetadata.getWatchableObjects(), 0);
+                EntityData watchable = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), 0);
 
                 if (watchable != null) {
-                    Object zeroBitField = watchable.getRawValue();
+                    Object zeroBitField = watchable.getValue();
 
                     if (zeroBitField instanceof Byte) {
                         byte field = (byte) zeroBitField;
-                        boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9);
+                        boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
                         boolean isSwimming = (field & 0x10) == 0x10;
 
                         player.sendTransaction();
@@ -127,13 +90,13 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     }
                 }
 
-                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) &&
-                        player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
-                    WrappedWatchableObject riptide = WatchableIndexUtil.getIndex(entityMetadata.getWatchableObjects(), ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 8 : 7);
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) &&
+                        player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
+                    EntityData riptide = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 8 : 7);
 
                     // This one only present if it changed
-                    if (riptide != null && riptide.getRawValue() instanceof Byte) {
-                        boolean isRiptiding = (((byte) riptide.getRawValue()) & 0x04) == 0x04;
+                    if (riptide != null && riptide.getValue() instanceof Byte) {
+                        boolean isRiptiding = (((byte) riptide.getValue()) & 0x04) == 0x04;
 
                         player.compensatedRiptide.setPose(isRiptiding);
 
@@ -151,9 +114,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // - Server: Okay, I will not make you eat or stop eating because it makes sense that the server doesn't control a player's eating.
                         //
                         // This was added for stuff like shields, but IMO it really should be all client sided
-                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9)) {
-                            boolean isActive = (((byte) riptide.getRawValue()) & 0x01) == 0x01;
-                            boolean hand = (((byte) riptide.getRawValue()) & 0x01) == 0x01;
+                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                            boolean isActive = (((byte) riptide.getValue()) & 0x01) == 0x01;
+                            boolean hand = (((byte) riptide.getValue()) & 0x01) == 0x01;
 
                             player.sendTransaction();
 
@@ -172,7 +135,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                                     player.packetStateData.slowedByUsingItem = isActive ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
 
                                     if (isActive) {
-                                        player.packetStateData.eatingHand = hand ? Hand.MAIN_HAND : Hand.OFF_HAND;
+                                        player.packetStateData.eatingHand = hand ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
                                     }
                                 }
                             });

@@ -4,11 +4,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.fifteen.FifteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
+import com.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import com.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
+import com.github.retrooper.packetevents.utils.server.ServerVersion;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -18,8 +18,8 @@ public class PacketWorldReaderNine extends BasePacketWorldReader {
     boolean isThirteenOrOlder, isFlattened;
 
     public PacketWorldReaderNine() {
-        isThirteenOrOlder = ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_14);
-        isFlattened = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13);
+        isThirteenOrOlder = PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_14);
+        isFlattened = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
     }
 
     @Override

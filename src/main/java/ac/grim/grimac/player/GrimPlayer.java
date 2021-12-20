@@ -11,28 +11,28 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
+import ac.grim.grimac.utils.lists.ConcurrentList;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.earth2me.essentials.Essentials;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
-import io.github.retrooper.packetevents.PacketEvents;
-import io.github.retrooper.packetevents.packetwrappers.play.out.ping.WrappedPacketOutPing;
-import io.github.retrooper.packetevents.packetwrappers.play.out.transaction.WrappedPacketOutTransaction;
-import io.github.retrooper.packetevents.utils.list.ConcurrentList;
-import io.github.retrooper.packetevents.utils.pair.Pair;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import io.github.retrooper.packetevents.utils.versionlookup.viaversion.ViaVersionLookupUtils;
+import io.github.retrooper.packetevents.utils.GeyserUtil;
+import io.github.retrooper.packetevents.utils.dependencies.viaversion.ViaVersionUtil;
 import org.bukkit.*;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
@@ -184,10 +184,10 @@ public class GrimPlayer {
         this.entityID = player.getEntityId();
         this.playerWorld = player.getWorld();
 
-        clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
+        clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
 
         // We can't send transaction packets to this player, disable the anticheat for them
-        if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_16_4)) {
+        if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
             LogUtil.warn(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
             LogUtil.warn(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
             LogUtil.warn(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
@@ -196,7 +196,7 @@ public class GrimPlayer {
         }
 
         // Geyser players don't have Java movement
-        if (PacketEvents.get().getPlayerUtils().isGeyserPlayer(playerUUID)) return;
+        if (GeyserUtil.isGeyserPlayer(playerUUID)) return;
 
         Location loginLocation = player.getLocation();
         lastX = loginLocation.getX();
@@ -206,7 +206,7 @@ public class GrimPlayer {
         isFlying = bukkitPlayer.isFlying();
         wasFlying = bukkitPlayer.isFlying();
 
-        if (ViaVersionLookupUtils.isAvailable()) {
+        if (ViaVersionUtil.isAvailable()) {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
             packetTracker = connection != null ? connection.getPacketTracker() : null;
         }
@@ -233,7 +233,7 @@ public class GrimPlayer {
         movementCheckRunner = new MovementCheckRunner(this);
 
         playerWorld = bukkitPlayer.getLocation().getWorld();
-        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
             compensatedWorld.setMinHeight(bukkitPlayer.getWorld().getMinHeight());
             compensatedWorld.setMaxWorldHeight(bukkitPlayer.getWorld().getMaxHeight());
         }
@@ -364,7 +364,7 @@ public class GrimPlayer {
     public float getMaxUpStep() {
         if (playerVehicle == null) return 0.6f;
 
-        if (playerVehicle.type == EntityType.BOAT) {
+        if (playerVehicle.type == EntityTypes.BOAT) {
             return 0f;
         }
 
@@ -377,10 +377,10 @@ public class GrimPlayer {
         try {
             addTransactionSend(transactionID);
 
-            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
-                PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutPing(transactionID));
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
+                PacketEvents.getAPI().getPlayerManager().sendPacket(bukkitPlayer, new WrapperPlayServerPing(transactionID));
             } else {
-                PacketEvents.get().getPlayerUtils().sendPacket(bukkitPlayer, new WrappedPacketOutTransaction(0, transactionID, false));
+                PacketEvents.getAPI().getPlayerManager().sendPacket(bukkitPlayer, new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
             }
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -408,11 +408,11 @@ public class GrimPlayer {
     }
 
     public Pose getSneakingPose() {
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
+        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
     }
 
     public void pollClientVersion() {
-        this.clientVersion = PacketEvents.get().getPlayerUtils().getClientVersion(bukkitPlayer);
+        this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
     }
 
     public ClientVersion getClientVersion() {
@@ -438,9 +438,9 @@ public class GrimPlayer {
     }
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height
-        if (getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) { // Elytra, sneaking (1.14), standing
+        if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) { // Elytra, sneaking (1.14), standing
             return Arrays.asList(0.4, 1.27, 1.62);
-        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) { // Elytra, sneaking, standing
+        } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // Elytra, sneaking, standing
             return Arrays.asList(0.4, 1.54, 1.62);
         } else { // Only sneaking or standing
             return Arrays.asList(1.54, 1.62);
@@ -448,7 +448,7 @@ public class GrimPlayer {
     }
 
     public int getKeepAlivePing() {
-        return PacketEvents.get().getPlayerUtils().getPing(bukkitPlayer);
+        return PacketEvents.getAPI().getPlayerManager().getPing(bukkitPlayer);
     }
 
     public int getTransactionPing() {

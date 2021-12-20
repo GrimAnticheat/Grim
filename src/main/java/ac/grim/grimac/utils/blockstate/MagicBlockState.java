@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.blockstate;
 
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import com.github.retrooper.packetevents.util.reflection.Reflection;
 import lombok.ToString;
 import org.bukkit.Material;
 

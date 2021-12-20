@@ -1,8 +1,9 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,8 +35,8 @@ public class CompensatedRiptide {
     }
 
     public boolean getPose(int lastTransaction) {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) &&
-                ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13) &&
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) &&
+                PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) &&
                 LatencyUtils.getBestValue(lagCompensatedPose, lastTransaction);
     }
 

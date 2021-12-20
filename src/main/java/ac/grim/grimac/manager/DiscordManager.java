@@ -6,7 +6,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
-import io.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.PacketEvents;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.awt.*;

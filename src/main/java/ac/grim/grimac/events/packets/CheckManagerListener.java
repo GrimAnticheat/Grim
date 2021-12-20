@@ -14,35 +14,33 @@ import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedPacketInBlockDig;
-import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
-import io.github.retrooper.packetevents.packetwrappers.play.in.flying.WrappedPacketInFlying;
-import io.github.retrooper.packetevents.packetwrappers.play.in.vehiclemove.WrappedPacketInVehicleMove;
-import io.github.retrooper.packetevents.utils.pair.Pair;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.player.Direction;
-import io.github.retrooper.packetevents.utils.player.Hand;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.client.*;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -128,114 +126,123 @@ public class CheckManagerListener extends PacketListenerAbstract {
         return null;
     }
 
-    @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        byte packetID = event.getPacketId();
+    private void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, PacketReceiveEvent event) {
+        player.packetStateData.lastPacketWasTeleport = false;
+        TeleportAcceptData teleportData = null;
+        if (hasPosition) {
+            Vector3d position = VectorUtils.clampVector(new Vector3d(x, y, z));
+            teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
+            player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
+        }
 
-        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-        if (player == null) return;
-
-        if (PacketType.Play.Client.Util.isInstanceOfFlying(packetID)) {
-            WrappedPacketInFlying flying = new WrappedPacketInFlying(event.getNMSPacket());
-
-            boolean hasPosition = packetID == PacketType.Play.Client.POSITION || packetID == PacketType.Play.Client.POSITION_LOOK;
-            boolean hasLook = packetID == PacketType.Play.Client.LOOK || packetID == PacketType.Play.Client.POSITION_LOOK;
-            boolean onGround = flying.isOnGround();
-
-            player.packetStateData.lastPacketWasTeleport = false;
-            TeleportAcceptData teleportData = null;
-            if (hasPosition) {
-                Vector3d position = VectorUtils.clampVector(flying.getPosition());
-                teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
-                player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
-            }
-
-            // Don't check duplicate 1.17 packets (Why would you do this mojang?)
-            // Don't check rotation since it changes between these packets, with the second being irrelevant.
-            //
-            // If a player sends a POS LOOK in a vehicle... then it was this stupid fucking mechanic
-            if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
-                    (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) &&
-                            new Vector3d(player.x, player.y, player.z).equals(flying.getPosition())) || player.inVehicle) {
-                // We will take the rotation though
-                player.lastXRot = player.xRot;
-                player.lastYRot = player.yRot;
-
-                player.xRot = flying.getYaw();
-                player.yRot = flying.getPitch();
-
-                float deltaXRot = player.xRot - player.lastXRot;
-                float deltaYRot = player.yRot - player.lastYRot;
-
-                final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
-                player.checkManager.onRotationUpdate(update);
-
-                lastPosLook = System.currentTimeMillis();
-                player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
-
-                // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
-                // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
-                if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8)) {
-                    event.setCancelled(true);
-                }
-                return;
-            }
-
-            lastPosLook = System.currentTimeMillis();
-
-            SimpleCollisionBox oldBB = player.boundingBox;
-            player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.66, 1.8);
-            // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
-            boolean nearGround = Collisions.collide(player, 0, -0.03, 0).getY() != -0.03;
-            player.boundingBox = oldBB;
-            if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && nearGround && player.clientVelocity.getY() < 0.03) {
-                player.lastOnGround = true;
-                player.uncertaintyHandler.onGroundUncertain = true;
-                player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
-                player.clientClaimsLastOnGround = true;
-            }
-
-            player.lastX = player.x;
-            player.lastY = player.y;
-            player.lastZ = player.z;
+        // Don't check duplicate 1.17 packets (Why would you do this mojang?)
+        // Don't check rotation since it changes between these packets, with the second being irrelevant.
+        //
+        // If a player sends a POS LOOK in a vehicle... then it was this stupid fucking mechanic
+        if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
+                (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+                        new Vector3d(player.x, player.y, player.z).equals(new Vector3d(x, y, z))) || player.inVehicle) {
+            // We will take the rotation though
             player.lastXRot = player.xRot;
             player.lastYRot = player.yRot;
 
-            player.packetStateData.packetPlayerOnGround = onGround;
+            player.xRot = yaw;
+            player.yRot = pitch;
 
-            if (hasLook) {
-                player.xRot = flying.getYaw();
-                player.yRot = flying.getPitch();
+            float deltaXRot = player.xRot - player.lastXRot;
+            float deltaYRot = player.yRot - player.lastYRot;
+
+            final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
+            player.checkManager.onRotationUpdate(update);
+
+            lastPosLook = System.currentTimeMillis();
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+
+            // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
+            // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
+                event.setCancelled(true);
             }
-
-            if (hasPosition) {
-                Vector3d position = flying.getPosition();
-                Vector3d clampVector = VectorUtils.clampVector(position);
-
-                player.x = clampVector.getX();
-                player.y = clampVector.getY();
-                player.z = clampVector.getZ();
-
-                final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.isTeleport(), teleportData.getSetback());
-                player.checkManager.onPositionUpdate(update);
-            }
-
-            if (hasLook && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                float deltaXRot = player.xRot - player.lastXRot;
-                float deltaYRot = player.yRot - player.lastYRot;
-
-                final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
-                player.checkManager.onRotationUpdate(update);
-            }
-
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
-
-            player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
-            player.packetStateData.didLastMovementIncludePosition = hasPosition;
+            return;
         }
 
-        if (packetID == PacketType.Play.Client.VEHICLE_MOVE) {
-            WrappedPacketInVehicleMove move = new WrappedPacketInVehicleMove(event.getNMSPacket());
+        lastPosLook = System.currentTimeMillis();
+
+        SimpleCollisionBox oldBB = player.boundingBox;
+        player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.66, 1.8);
+        // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
+        boolean nearGround = Collisions.collide(player, 0, -0.03, 0).getY() != -0.03;
+        player.boundingBox = oldBB;
+        if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && nearGround && player.clientVelocity.getY() < 0.03) {
+            player.lastOnGround = true;
+            player.uncertaintyHandler.onGroundUncertain = true;
+            player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
+            player.clientClaimsLastOnGround = true;
+        }
+
+        player.lastX = player.x;
+        player.lastY = player.y;
+        player.lastZ = player.z;
+        player.lastXRot = player.xRot;
+        player.lastYRot = player.yRot;
+
+        player.packetStateData.packetPlayerOnGround = onGround;
+
+        if (hasLook) {
+            player.xRot = yaw;
+            player.yRot = pitch;
+        }
+
+        if (hasPosition) {
+            Vector3d position = new Vector3d(x, y, z);
+            Vector3d clampVector = VectorUtils.clampVector(position);
+
+            player.x = clampVector.getX();
+            player.y = clampVector.getY();
+            player.z = clampVector.getZ();
+
+            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.isTeleport(), teleportData.getSetback());
+            player.checkManager.onPositionUpdate(update);
+        }
+
+        if (hasLook && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+            float deltaXRot = player.xRot - player.lastXRot;
+            float deltaYRot = player.yRot - player.lastYRot;
+
+            final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
+            player.checkManager.onRotationUpdate(update);
+        }
+
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
+
+        player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
+        player.packetStateData.didLastMovementIncludePosition = hasPosition;
+    }
+
+    @Override
+    public void onPacketReceive(PacketReceiveEvent event) {
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+        if (player == null) return;
+
+        // Flying packet types
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
+            WrapperPlayClientPosition wrapper = new WrapperPlayClientPosition(event);
+            Vector3d pos = wrapper.getPosition();
+            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), 0, 0, true, false, wrapper.isOnGround(), event);
+        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
+            WrapperPlayClientPositionRotation wrapper = new WrapperPlayClientPositionRotation(event);
+            Vector3d pos = wrapper.getPosition();
+            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), wrapper.getYaw(), wrapper.getPitch(), true, true, wrapper.isOnGround(), event);
+        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
+            WrapperPlayClientRotation wrapper = new WrapperPlayClientRotation(event);
+            handleFlying(player, 0, 0, 0, wrapper.getYaw(), wrapper.getPitch(), false, true, wrapper.isOnGround(), event);
+        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING) {
+            WrapperPlayClientFlying wrapper = new WrapperPlayClientFlying(event);
+            handleFlying(player, 0, 0, 0, 0, 0, false, false, wrapper.isOnGround(), event);
+        }
+
+        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
+            WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
             Vector3d position = move.getPosition();
 
             player.lastX = player.x;
@@ -255,11 +262,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.receivedSteerVehicle = false;
         }
 
-        if (packetID == PacketType.Play.Client.BLOCK_DIG) {
-            WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+            WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
-
-            if (dig.getDigType() == WrappedPacketInBlockDig.PlayerDigType.STOP_DESTROY_BLOCK) {
+            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.FINISHED_DIGGING) {
                 BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
                 // Not unbreakable
                 if (XMaterial.getHardness(XMaterial.fromMaterial(block.getMaterial())) != -1.0f) {
@@ -267,10 +273,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            if (dig.getDigType() == WrappedPacketInBlockDig.PlayerDigType.START_DESTROY_BLOCK) {
+            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.START_DIGGING) {
                 // GET destroy speed
                 // Starts with itemstack get destroy speed
-                ItemStack tool = player.bukkitPlayer.getItemInHand();
+                org.bukkit.inventory.ItemStack tool = player.bukkitPlayer.getItemInHand();
 
                 // A creative mode player cannot break things with a sword!
                 if (player.gamemode == GameMode.CREATIVE && tool.getType().name().contains("SWORD")) {
@@ -363,8 +369,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     }
                 }
 
-                Integer digSpeed = player.compensatedPotions.getPotionLevel("DIG_SPEED");
-                Integer conduit = player.compensatedPotions.getPotionLevel("CONDUIT_POWER");
+                Integer digSpeed = player.compensatedPotions.getPotionLevel(PotionTypes.HASTE);
+                Integer conduit = player.compensatedPotions.getPotionLevel(PotionTypes.CONDUIT_POWER);
 
                 if (digSpeed != null || conduit != null) {
                     int i = 0;
@@ -382,7 +388,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     speedMultiplier *= 1 + (0.2 * hasteLevel);
                 }
 
-                Integer miningFatigue = player.compensatedPotions.getPotionLevel("SLOW_DIGGING");
+                Integer miningFatigue = player.compensatedPotions.getPotionLevel(PotionTypes.MINING_FATIGUE);
 
                 if (miningFatigue != null) {
                     switch (miningFatigue) {
@@ -402,10 +408,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 boolean hasAquaAffinity = false;
 
-                ItemStack helmet = player.bukkitPlayer.getInventory().getHelmet();
-                ItemStack chestplate = player.bukkitPlayer.getInventory().getChestplate();
-                ItemStack leggings = player.bukkitPlayer.getInventory().getLeggings();
-                ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
+                org.bukkit.inventory.ItemStack helmet = player.bukkitPlayer.getInventory().getHelmet();
+                org.bukkit.inventory.ItemStack chestplate = player.bukkitPlayer.getInventory().getChestplate();
+                org.bukkit.inventory.ItemStack leggings = player.bukkitPlayer.getInventory().getLeggings();
+                org.bukkit.inventory.ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
 
                 if ((helmet != null && helmet.containsEnchantment(Enchantment.WATER_WORKER)) ||
                         (chestplate != null && chestplate.containsEnchantment(Enchantment.WATER_WORKER)) ||
@@ -440,24 +446,27 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         }
 
-        // Check for interactable first (door, etc)
-        if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId())) {
-            WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
+        boolean isBlockPlace = event.getPacketType() == (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) ?
+                PacketType.Play.Client.USE_ITEM : PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT);
 
-            ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+        // Check for interactable first (door, etc)
+        if (isBlockPlace) {
+            WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
+
+            org.bukkit.inventory.ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             Material material = transformMaterial(placedWith);
 
             boolean onlyAir = material == null || material == Material.AIR;
 
             if (XMaterial.supports(9)) {
-                ItemStack offhand = player.bukkitPlayer.getInventory().getItemInOffHand();
+                org.bukkit.inventory.ItemStack offhand = player.bukkitPlayer.getInventory().getItemInOffHand();
                 onlyAir = onlyAir && offhand.getType() == Material.AIR;
             }
 
             // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
-            if ((!player.isSneaking || onlyAir) && place.getHand() == Hand.MAIN_HAND) {
+            if ((!player.isSneaking || onlyAir) && place.getHand() == InteractionHand.MAIN_HAND) {
                 Vector3i blockPosition = place.getBlockPosition();
-                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getDirection(), material, getNearestHitResult(player, null, true));
+                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getFace(), material, getNearestHitResult(player, null, true));
 
                 // Right-clicking a trapdoor/door/etc.
                 if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
@@ -475,11 +484,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
         }
 
-        if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
-            WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
 
             // TODO: Support offhand!
-            ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+            org.bukkit.inventory.ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             Material material = transformMaterial(placedWith);
 
             // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
@@ -498,13 +507,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
         }
 
-        if (PacketType.Play.Client.Util.isBlockPlace(event.getPacketId())) {
-            WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
+        if (isBlockPlace) {
+            WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
             Vector3i blockPosition = place.getBlockPosition();
-            Direction face = place.getDirection();
+            BlockFace face = place.getFace();
 
             // TODO: Support offhand!
-            ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+            org.bukkit.inventory.ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
             Material material = transformMaterial(placedWith);
             BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material, getNearestHitResult(player, null, true));
 
@@ -525,13 +534,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
     private void placeWaterLavaSnowBucket(GrimPlayer player, Material toPlace) {
         HitData data = getNearestHitResult(player, toPlace, false);
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), toPlace, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), toPlace, data);
             // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
 
 
             // If we hit a waterloggable block, then the bucket is directly placed
             // Otherwise, use the face to determine where to place the bucket
-            if (Materials.isPlaceableLiquidBucket(blockPlace.getMaterial()) && ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+            if (Materials.isPlaceableLiquidBucket(blockPlace.getMaterial()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 blockPlace.setReplaceClicked(true); // See what's in the existing place
                 BlockData existing = blockPlace.getExistingBlockBlockData();
                 if (existing instanceof Waterlogged) {
@@ -552,7 +561,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         HitData data = getNearestHitResult(player, null, true);
 
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.BUCKET, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), Material.BUCKET, data);
             blockPlace.setReplaceClicked(true); // Replace the block clicked, not the block in the direction
 
             if (data.getState().getMaterial() == Material.POWDER_SNOW) {
@@ -564,7 +573,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (!player.compensatedWorld.isWaterSourceBlock(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()))
                 return;
 
-            if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 BlockData existing = blockPlace.getExistingBlockBlockData();
                 if (existing instanceof Waterlogged) {
                     Waterlogged waterlogged = (Waterlogged) existing.clone(); // Don't corrupt palette
@@ -587,7 +596,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
 
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), Direction.valueOf(data.getClosestDirection().name()), Material.LILY_PAD, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), Material.LILY_PAD, data);
             blockPlace.setReplaceClicked(false); // Not possible with use item
 
             // We checked for a full fluid block below here.
@@ -603,7 +612,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     // For example, placing seeds to place wheat
     // TODO: Make this compatible with previous versions by using XMaterial
-    private Material transformMaterial(ItemStack stack) {
+    private Material transformMaterial(org.bukkit.inventory.ItemStack stack) {
         if (stack == null) return null;
         if (stack.getType() == Material.COCOA_BEANS) return Material.COCOA;
         if (stack.getType() == Material.INK_SAC && stack.getDurability() == 3) return Material.COCOA;
@@ -672,8 +681,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+    public void onPacketSend(PacketSendEvent event) {
+        GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
         if (player == null) return;
 
         player.checkManager.onPacketSend(event);

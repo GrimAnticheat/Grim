@@ -4,21 +4,22 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedPacketInBlockDig;
-import io.github.retrooper.packetevents.packetwrappers.play.in.blockplace.WrappedPacketInBlockPlace;
-import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.WrappedPacketInHeldItemSlot;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.player.Direction;
-import io.github.retrooper.packetevents.utils.player.Hand;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.CrossbowMeta;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
@@ -44,24 +45,21 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        byte packetID = event.getPacketId();
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
 
-        if (packetID == PacketType.Play.Client.BLOCK_DIG) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
-            WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
-            WrappedPacketInBlockDig.PlayerDigType type = dig.getDigType();
+            WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
-            if (type == WrappedPacketInBlockDig.PlayerDigType.RELEASE_USE_ITEM) {
+            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.RELEASE_USE_ITEM) {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
                 if (XMaterial.supports(13)) {
-                    ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
-                    ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
+                    org.bukkit.inventory.ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
+                    org.bukkit.inventory.ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
                     int j = 0;
                     if (main.getType() == TRIDENT) {
@@ -77,36 +75,36 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
         }
 
-        if (packetID == PacketType.Play.Client.HELD_ITEM_SLOT) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
-            WrappedPacketInHeldItemSlot slot = new WrappedPacketInHeldItemSlot(event.getNMSPacket());
+            WrapperPlayClientHeldItemChange slot = new WrapperPlayClientHeldItemChange(event);
 
             // Stop people from spamming the server with out of bounds exceptions
-            if (slot.getCurrentSelectedSlot() > 8) return;
+            if (slot.getSlot() > 8) return;
 
-            player.packetStateData.lastSlotSelected = slot.getCurrentSelectedSlot();
+            player.packetStateData.lastSlotSelected = slot.getSlot();
         }
 
-        if (packetID == PacketType.Play.Client.BLOCK_PLACE) {
-            WrappedPacketInBlockPlace place = new WrappedPacketInBlockPlace(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             if (XMaterial.supports(8) && player.gamemode == GameMode.SPECTATOR)
                 return;
 
             // This was an interaction with a block, not a use item
-            if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9) && place.getDirection() != Direction.OTHER)
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) && place.getFace() != BlockFace.OTHER)
                 return;
 
             player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
             // Design inspired by NoCheatPlus, but rewritten to be faster
             // https://github.com/Updated-NoCheatPlus/NoCheatPlus/blob/master/NCPCompatProtocolLib/src/main/java/fr/neatmonster/nocheatplus/checks/net/protocollib/NoSlow.java
-            ItemStack item = place.getHand() == Hand.MAIN_HAND ? player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected) : player.bukkitPlayer.getInventory().getItemInOffHand();
+            org.bukkit.inventory.ItemStack item = place.getHand() == InteractionHand.MAIN_HAND ? player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected) : player.bukkitPlayer.getInventory().getItemInOffHand();
             if (item != null) {
                 Material material = item.getType();
 
@@ -116,11 +114,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 }
 
                 // 1.14 and below players cannot eat in creative, exceptions are potions or milk
-                if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15) ||
+                if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15) ||
                         player.gamemode != GameMode.CREATIVE && material.isEdible())
                         || material == POTION || material == MILK_BUCKET) {
                     // pre1.9 splash potion
-                    if (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8) && item.getDurability() > 16384)
+                    if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) && item.getDurability() > 16384)
                         return;
 
                     // Eatable items that don't require any hunger to eat
@@ -133,7 +131,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     // The other items that do require it
-                    if (item.getType().isEdible() && (event.getPlayer().getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE)) {
+                    // TODO: Food level lag compensation
+                    if (item.getType().isEdible() && (((Player) event.getPlayer()).getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE)) {
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
@@ -177,9 +176,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                 // Only 1.8 and below players can block with swords
                 if (material.toString().endsWith("_SWORD")) {
-                    if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8))
+                    if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
-                    else if (ServerVersion.getVersion().isOlderThan(ServerVersion.v_1_9)) // ViaVersion stuff
+                    else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) // ViaVersion stuff
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
                 }
             } else {
@@ -190,7 +189,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
     private boolean hasItem(GrimPlayer player, Material material) {
         return material != null && player.bukkitPlayer.getInventory().contains(material)
-                || (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && (player.bukkitPlayer.getInventory().getItemInOffHand().getType() == ARROW
+                || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && (player.bukkitPlayer.getInventory().getItemInOffHand().getType() == ARROW
                 || player.bukkitPlayer.getInventory().getItemInOffHand().getType() == TIPPED_ARROW
                 || player.bukkitPlayer.getInventory().getItemInOffHand().getType() == SPECTRAL_ARROW));
     }

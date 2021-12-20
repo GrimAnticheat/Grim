@@ -6,7 +6,7 @@ import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRide
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableWater;
 import ac.grim.grimac.predictionengine.predictions.rideable.PredictionEngineRideableWaterLegacy;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
 public class MovementTickerLivingVehicle extends MovementTicker {
@@ -18,7 +18,7 @@ public class MovementTickerLivingVehicle extends MovementTicker {
 
     @Override
     public void doWaterMove(float swimSpeed, boolean isFalling, float swimFriction) {
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
             new PredictionEngineRideableWater(movementInput).guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);
         } else {
             new PredictionEngineRideableWaterLegacy(movementInput).guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);

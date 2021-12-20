@@ -2,7 +2,7 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.Location;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

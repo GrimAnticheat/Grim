@@ -11,10 +11,11 @@ import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 
 public class DynamicPane extends DynamicConnecting implements CollisionFactory {
 
@@ -28,7 +29,7 @@ public class DynamicPane extends DynamicConnecting implements CollisionFactory {
         boolean west;
 
         // 1.13+ servers on 1.13+ clients send the full fence data
-        if (XMaterial.isNewVersion() && version.isNewerThanOrEquals(ClientVersion.v_1_13)) {
+        if (XMaterial.isNewVersion() && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
             WrappedMultipleFacing pane = (WrappedMultipleFacing) block;
 
             east = pane.getDirections().contains(BlockFace.EAST);
@@ -43,11 +44,11 @@ public class DynamicPane extends DynamicConnecting implements CollisionFactory {
         }
 
         // On 1.7 and 1.8 clients, and 1.13+ clients on 1.7 and 1.8 servers, the glass pane is + instead of |
-        if (!north && !south && !east && !west && (version.isOlderThanOrEquals(ClientVersion.v_1_8) || (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_8_8) && version.isNewerThanOrEquals(ClientVersion.v_1_13)))) {
+        if (!north && !south && !east && !west && (version.isOlderThanOrEquals(ClientVersion.V_1_8) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) && version.isNewerThanOrEquals(ClientVersion.V_1_13)))) {
             north = south = east = west = true;
         }
 
-        if (version.isNewerThanOrEquals(ClientVersion.v_1_9)) {
+        if (version.isNewerThanOrEquals(ClientVersion.V_1_9)) {
             return COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy();
         } else { // 1.8 and below clients have pane bounding boxes one pixel less
             ComplexCollisionBox boxes = new ComplexCollisionBox();

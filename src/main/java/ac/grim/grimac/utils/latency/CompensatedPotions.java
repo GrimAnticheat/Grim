@@ -1,36 +1,38 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.protocol.potion.PotionType;
+import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CompensatedPotions {
     private final GrimPlayer player;
-    private final ConcurrentHashMap<Integer, ConcurrentHashMap<String, Integer>> potionsMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Integer, ConcurrentHashMap<PotionType, Integer>> potionsMap = new ConcurrentHashMap<>();
 
     public CompensatedPotions(GrimPlayer player) {
         this.player = player;
     }
 
     public Integer getJumpAmplifier() {
-        return getPotionLevel("JUMP");
+        return getPotionLevel(PotionTypes.JUMP_BOOST);
     }
 
     public Integer getLevitationAmplifier() {
-        return getPotionLevel("LEVITATION");
+        return getPotionLevel(PotionTypes.LEVITATION);
     }
 
     public Integer getSlowFallingAmplifier() {
-        return getPotionLevel("SLOW_FALLING");
+        return getPotionLevel(PotionTypes.SLOW_FALLING);
     }
 
     public Integer getDolphinsGraceAmplifier() {
-        return getPotionLevel("DOLPHINS_GRACE");
+        return getPotionLevel(PotionTypes.DOLPHINS_GRACE);
     }
 
-    public void addPotionEffect(String type, int level, int entityID) {
+    public void addPotionEffect(PotionType type, int level, int entityID) {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-            ConcurrentHashMap<String, Integer> potions = potionsMap.get(entityID);
+            ConcurrentHashMap<PotionType, Integer> potions = potionsMap.get(entityID);
 
             if (potions == null) {
                 potions = new ConcurrentHashMap<>();
@@ -42,9 +44,9 @@ public class CompensatedPotions {
         });
     }
 
-    public void removePotionEffect(String type, int entityID) {
+    public void removePotionEffect(PotionType type, int entityID) {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
-            ConcurrentHashMap<String, Integer> potions = potionsMap.get(entityID);
+            ConcurrentHashMap<PotionType, Integer> potions = potionsMap.get(entityID);
 
             player.pointThreeEstimator.updatePlayerPotions(type, null);
 
@@ -54,8 +56,8 @@ public class CompensatedPotions {
         });
     }
 
-    public Integer getPotionLevel(String type) {
-        ConcurrentHashMap<String, Integer> effects;
+    public Integer getPotionLevel(PotionType type) {
+        ConcurrentHashMap<PotionType, Integer> effects;
         if (player.vehicle == null) {
             effects = potionsMap.get(player.entityID);
         } else {

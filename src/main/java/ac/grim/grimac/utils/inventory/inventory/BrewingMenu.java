@@ -4,7 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.BrewingHelper;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.WrappedStack;
+import ac.grim.grimac.utils.inventory.ItemStack;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import org.bukkit.Material;
 
@@ -26,48 +26,48 @@ public class BrewingMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public WrappedStack quickMoveStack(int slotID) {
-        WrappedStack itemstack = WrappedStack.empty();
+    public ItemStack quickMoveStack(int slotID) {
+        ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotID);
         if (slot != null && slot.hasItem()) {
-            WrappedStack itemstack1 = slot.getItem();
+            ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             if ((slotID < 0 || slotID > 2) && slotID != 3 && slotID != 4) {
                 if (FuelSlot.mayPlaceItem(itemstack)) {
                     if (this.moveItemStackTo(itemstack1, 4, 5, false) || IngredientsSlot.mayPlaceItem(itemstack1) && !this.moveItemStackTo(itemstack1, 3, 4, false)) {
-                        return WrappedStack.empty();
+                        return ItemStack.EMPTY;
                     }
                 } else if (IngredientsSlot.mayPlaceItem(itemstack1)) {
                     if (!this.moveItemStackTo(itemstack1, 3, 4, false)) {
-                        return WrappedStack.empty();
+                        return ItemStack.EMPTY;
                     }
-                } else if (PotionSlot.mayPlaceItem(itemstack) && itemstack.getCount() == 1) {
+                } else if (PotionSlot.mayPlaceItem(itemstack) && itemstack.getAmount() == 1) {
                     if (!this.moveItemStackTo(itemstack1, 0, 3, false)) {
-                        return WrappedStack.empty();
+                        return ItemStack.EMPTY;
                     }
                 } else if (slotID >= 5 && slotID < 32) {
                     if (!this.moveItemStackTo(itemstack1, 32, 41, false)) {
-                        return WrappedStack.empty();
+                        return ItemStack.EMPTY;
                     }
                 } else if (slotID >= 32 && slotID < 41) {
                     if (!this.moveItemStackTo(itemstack1, 5, 32, false)) {
-                        return WrappedStack.empty();
+                        return ItemStack.EMPTY;
                     }
                 } else if (!this.moveItemStackTo(itemstack1, 5, 41, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else {
                 if (!this.moveItemStackTo(itemstack1, 5, 41, true)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             }
 
             if (itemstack1.isEmpty()) {
-                slot.set(WrappedStack.empty());
+                slot.set(ItemStack.EMPTY);
             }
 
-            if (itemstack1.getCount() == itemstack.getCount()) {
-                return WrappedStack.empty();
+            if (itemstack1.getAmount() == itemstack.getAmount()) {
+                return ItemStack.EMPTY;
             }
 
             slot.onTake(player, itemstack1);
@@ -81,12 +81,12 @@ public class BrewingMenu extends AbstractContainerMenu {
             super(container, slot);
         }
 
-        public boolean mayPlace(WrappedStack p_39111_) {
-            return mayPlaceItem(p_39111_);
+        public static boolean mayPlaceItem(ItemStack p_39113_) {
+            return p_39113_.getItem() == Material.BLAZE_POWDER;
         }
 
-        public static boolean mayPlaceItem(WrappedStack p_39113_) {
-            return p_39113_.getItem() == Material.BLAZE_POWDER;
+        public boolean mayPlace(ItemStack p_39111_) {
+            return mayPlaceItem(p_39111_);
         }
 
         public int getMaxStackSize() {
@@ -99,12 +99,12 @@ public class BrewingMenu extends AbstractContainerMenu {
             super(container, slot);
         }
 
-        public boolean mayPlace(WrappedStack p_39121_) {
-            return mayPlaceItem(p_39121_);
+        public static boolean mayPlaceItem(ItemStack stack) {
+            return BrewingHelper.isBaseModifier(stack.getItem()) || BrewingHelper.isEffectIngredient(stack.getItem());
         }
 
-        public static boolean mayPlaceItem(WrappedStack stack) {
-            return BrewingHelper.isBaseModifier(stack.getItem()) || BrewingHelper.isEffectIngredient(stack.getItem());
+        public boolean mayPlace(ItemStack p_39121_) {
+            return mayPlaceItem(p_39121_);
         }
 
         public int getMaxStackSize() {
@@ -117,21 +117,21 @@ public class BrewingMenu extends AbstractContainerMenu {
             super(container, slot);
         }
 
-        public boolean mayPlace(WrappedStack p_39132_) {
-            return mayPlaceItem(p_39132_);
+        public static boolean mayPlaceItem(ItemStack p_39134_) {
+            return p_39134_.getItem().name().endsWith("POTION") || p_39134_.getItem() == Material.GLASS_BOTTLE;
         }
 
         public int getMaxStackSize() {
             return 1;
         }
 
-        public void onTake(GrimPlayer player, WrappedStack p_150500_) {
-            // Useless server sided achievement things
-            super.onTake(player, p_150500_);
+        public boolean mayPlace(ItemStack p_39132_) {
+            return mayPlaceItem(p_39132_);
         }
 
-        public static boolean mayPlaceItem(WrappedStack p_39134_) {
-            return p_39134_.getItem().name().endsWith("POTION") || p_39134_.getItem() == Material.GLASS_BOTTLE;
+        public void onTake(GrimPlayer player, ItemStack p_150500_) {
+            // Useless server sided achievement things
+            super.onTake(player, p_150500_);
         }
     }
 }

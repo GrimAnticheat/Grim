@@ -1,60 +1,40 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.packetentity.latency.FireworkData;
+import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 
-import java.util.Iterator;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.ArrayList;
+import java.util.List;
 
-public class CompensatedFireworks {
-    // Be concurrent to support async/multithreaded entity tracker
-    ConcurrentHashMap<Integer, FireworkData> lagCompensatedFireworksMap = new ConcurrentHashMap<>();
-    boolean canPlayerFly;
+public class CompensatedFireworks extends PostPredictionCheck {
+    // As this is sync to one player, this does not have to be concurrent
+    List<Integer> activeFireworks = new ArrayList<>();
+    List<Integer> fireworksToRemoveNextTick = new ArrayList<>();
+
     GrimPlayer player;
 
     public CompensatedFireworks(GrimPlayer player) {
+        super(player);
         this.player = player;
-        this.canPlayerFly = player.bukkitPlayer.getAllowFlight();
+    }
+
+    @Override
+    public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        // Remove all the fireworks that were removed in the last tick
+        activeFireworks.removeAll(fireworksToRemoveNextTick);
+        fireworksToRemoveNextTick.clear();
     }
 
     public void addNewFirework(int entityID) {
-        lagCompensatedFireworksMap.put(entityID, new FireworkData(player));
+        activeFireworks.add(entityID);
     }
 
     public void removeFirework(int entityID) {
-        FireworkData fireworkData = lagCompensatedFireworksMap.get(entityID);
-        if (fireworkData == null) return;
-
-        lagCompensatedFireworksMap.get(entityID).setDestroyed();
+        fireworksToRemoveNextTick.add(entityID);
     }
 
     public int getMaxFireworksAppliedPossible() {
-        int fireworks = 0;
-
-        Iterator<Map.Entry<Integer, FireworkData>> iterator = lagCompensatedFireworksMap.entrySet().iterator();
-        while (iterator.hasNext()) {
-            Map.Entry<Integer, FireworkData> firework = iterator.next();
-
-            if (firework.getValue().destroyTick < player.movementPackets - 1) {
-                iterator.remove();
-                continue;
-            }
-
-            // If the firework has 100% been destroyed on the client side
-            if (firework.getValue().destroyTime < player.lastTransactionReceived.get()) {
-                firework.getValue().destroyTime = Integer.MAX_VALUE; // Don't destroy it twice
-                firework.getValue().destroyTick = player.movementPackets;
-            }
-
-            // If the firework hasn't applied yet
-            if (firework.getValue().creationTime > player.lastTransactionReceived.get()) {
-                continue;
-            }
-
-            fireworks++;
-        }
-
-        return fireworks;
+        return activeFireworks.size();
     }
 }

@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.inventory;
 
 import ac.grim.grimac.utils.nmsutil.XMaterial;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import org.bukkit.Material;
 
 public enum EquipmentType {
@@ -26,8 +27,8 @@ public enum EquipmentType {
         }
     }
 
-    public static EquipmentType getEquipmentSlotForItem(WrappedStack p_147234_) {
-        Material item = p_147234_.getItem();
+    public static EquipmentType getEquipmentSlotForItem(ItemStack p_147234_) {
+        Material item = p_147234_.getType();
         if (item == XMaterial.CARVED_PUMPKIN.parseMaterial() || (item.name().contains("SKULL") ||
                 (item.name().contains("HEAD") && !item.name().contains("PISTON")))) {
             return HEAD;

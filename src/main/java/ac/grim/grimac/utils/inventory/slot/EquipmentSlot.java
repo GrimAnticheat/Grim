@@ -4,7 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import ac.grim.grimac.utils.inventory.EquipmentType;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.WrappedStack;
+import ac.grim.grimac.utils.inventory.ItemStack;
 import org.bukkit.GameMode;
 
 public class EquipmentSlot extends Slot {
@@ -21,12 +21,12 @@ public class EquipmentSlot extends Slot {
     }
 
     @Override
-    public boolean mayPlace(WrappedStack p_39746_) {
+    public boolean mayPlace(ItemStack p_39746_) {
         return type == EquipmentType.getEquipmentSlotForItem(p_39746_);
     }
 
     public boolean mayPickup(GrimPlayer p_39744_) {
-        WrappedStack itemstack = this.getItem();
+        ItemStack itemstack = this.getItem();
         return (itemstack.isEmpty() || p_39744_.gamemode == GameMode.CREATIVE || !EnchantmentHelper.hasBindingCurse(itemstack)) && super.mayPickup(p_39744_);
     }
 }

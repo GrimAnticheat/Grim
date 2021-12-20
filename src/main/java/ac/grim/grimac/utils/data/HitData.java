@@ -1,11 +1,11 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.ToString;
-import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 @Getter

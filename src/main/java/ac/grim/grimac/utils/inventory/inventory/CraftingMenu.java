@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.inventory.inventory;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.WrappedStack;
+import ac.grim.grimac.utils.inventory.ItemStack;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 
@@ -23,36 +23,36 @@ public class CraftingMenu extends AbstractContainerMenu {
     }
 
     @Override
-    public WrappedStack quickMoveStack(int slotID) {
-        WrappedStack itemstack = WrappedStack.empty();
+    public ItemStack quickMoveStack(int slotID) {
+        ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotID);
         if (slot != null && slot.hasItem()) {
-            WrappedStack itemstack1 = slot.getItem();
+            ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             if (slotID == 0) {
                 if (!this.moveItemStackTo(itemstack1, 10, 46, true)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (slotID >= 10 && slotID < 46) {
                 if (!this.moveItemStackTo(itemstack1, 1, 10, false)) {
                     if (slotID < 37) {
                         if (!this.moveItemStackTo(itemstack1, 37, 46, false)) {
-                            return WrappedStack.empty();
+                            return ItemStack.EMPTY;
                         }
                     } else if (!this.moveItemStackTo(itemstack1, 10, 37, false)) {
-                        return WrappedStack.empty();
+                        return ItemStack.EMPTY;
                     }
                 }
             } else if (!this.moveItemStackTo(itemstack1, 10, 46, false)) {
-                return WrappedStack.empty();
+                return ItemStack.EMPTY;
             }
 
             if (itemstack1.isEmpty()) {
-                slot.set(WrappedStack.empty());
+                slot.set(ItemStack.EMPTY);
             }
 
-            if (itemstack1.getCount() == itemstack.getCount()) {
-                return WrappedStack.empty();
+            if (itemstack1.getAmount() == itemstack.getAmount()) {
+                return ItemStack.EMPTY;
             }
 
             slot.onTake(player, itemstack1);

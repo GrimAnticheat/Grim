@@ -2,27 +2,22 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
-import ac.grim.grimac.utils.inventory.ClickType;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.WrappedStack;
 import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
 import ac.grim.grimac.utils.inventory.inventory.MenuTypes;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
-import io.github.retrooper.packetevents.packetwrappers.play.in.blockdig.WrappedPacketInBlockDig;
-import io.github.retrooper.packetevents.packetwrappers.play.in.helditemslot.WrappedPacketInHeldItemSlot;
-import io.github.retrooper.packetevents.packetwrappers.play.in.windowclick.WrappedPacketInWindowClick;
-import io.github.retrooper.packetevents.packetwrappers.play.out.openwindow.WrappedPacketOutOpenWindow;
-import io.github.retrooper.packetevents.packetwrappers.play.out.setslot.WrappedPacketOutSetSlot;
-import io.github.retrooper.packetevents.packetwrappers.play.out.windowitems.WrappedPacketOutWindowItems;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
@@ -59,11 +54,11 @@ public class CompensatedInventory extends PacketCheck {
         return inventory.getHeldItem().getStack();
     }
 
-    public void onPacketReceive(final PacketPlayReceiveEvent event) {
-        if (event.getPacketId() == PacketType.Play.Client.BLOCK_DIG) {
-            WrappedPacketInBlockDig dig = new WrappedPacketInBlockDig(event.getNMSPacket());
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
+            WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
-            if (dig.getDigType() == WrappedPacketInBlockDig.PlayerDigType.DROP_ITEM) {
+            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.DROP_ITEM) {
                 ItemStack heldItem = inventory.getHeldItem().getStack();
                 if (heldItem != null) {
                     heldItem.setAmount(heldItem.getAmount() - 1);
@@ -74,62 +69,62 @@ public class CompensatedInventory extends PacketCheck {
                 inventory.setHeldItem(heldItem);
             }
 
-            if (dig.getDigType() == WrappedPacketInBlockDig.PlayerDigType.DROP_ALL_ITEMS) {
+            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.DROP_ITEM_STACK) {
                 inventory.setHeldItem(null);
             }
         }
 
-        if (event.getPacketId() == PacketType.Play.Client.HELD_ITEM_SLOT) {
-            WrappedPacketInHeldItemSlot slot = new WrappedPacketInHeldItemSlot(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
+            WrapperPlayClientHeldItemChange slot = new WrapperPlayClientHeldItemChange(event);
 
             // Stop people from spamming the server with an out-of-bounds exception
-            if (slot.getCurrentSelectedSlot() > 8) return;
+            if (slot.getSlot() > 8) return;
 
-            inventory.selected = slot.getCurrentSelectedSlot();
+            inventory.selected = slot.getSlot();
         }
 
-        if (event.getPacketId() == PacketType.Play.Client.WINDOW_CLICK) {
-            WrappedPacketInWindowClick click = new WrappedPacketInWindowClick(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
+            WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
 
             // 0 for left click
             // 1 for right click
-            int button = click.getWindowButton();
+            int button = click.getButton();
             // Offset by the number of slots in the inventory actively open
             // Is -999 when clicking off the screen
-            int slot = click.getWindowSlot();
+            int slot = click.getSlot();
             // Self-explanatory, look at the enum's values
-            ClickType clickType = ClickType.values()[click.getMode()];
+            WrapperPlayClientClickWindow.WindowClickType clickType = click.getWindowClickType();
 
             Bukkit.broadcastMessage("Clicked " + button + " " + slot + " " + clickType);
 
             menu.doClick(button, slot, clickType);
         }
 
-        if (event.getPacketId() == PacketType.Play.Client.CLOSE_WINDOW) {
+        if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             menu = inventory;
-            menu.setCarried(WrappedStack.empty()); // Reset carried item
+            menu.setCarried(ItemStack.EMPTY); // Reset carried item
         }
     }
 
     public boolean isEmpty(ItemStack stack) {
         if (stack == null) return true;
-        if (stack.getType() == Material.AIR) return true;
+        if (stack.getType() == ItemTypes.AIR) return true;
         return stack.getAmount() <= 0;
     }
 
-    public void onPacketSend(final PacketPlaySendEvent event) {
+    public void onPacketSend(final PacketSendEvent event) {
         // Not 1:1 MCP, based on Wiki.VG to be simpler as we need less logic...
         // For example, we don't need permanent storage, only storing data until the client closes the window
         // We also don't need a lot of server-sided only logic
-        if (event.getPacketId() == PacketType.Play.Server.OPEN_WINDOW) {
-            WrappedPacketOutOpenWindow open = new WrappedPacketOutOpenWindow(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+            WrapperPlayServerOpenWindow open = new WrapperPlayServerOpenWindow(event);
 
             // There doesn't seem to be a check against using 0 as the window ID - let's consider that an invalid packet
             // It will probably mess up a TON of logic both client and server sided, so don't do that!
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                openWindowID = open.getWindowId();
+                openWindowID = open.getContainerId();
 
-                AbstractContainerMenu newMenu = MenuTypes.getMenuFromID(player, inventory, open.getInventoryTypeId().get());
+                AbstractContainerMenu newMenu = MenuTypes.getMenuFromID(player, inventory, open.getType());
                 if (newMenu != null) {
                     menu = newMenu;
                 }
@@ -137,8 +132,9 @@ public class CompensatedInventory extends PacketCheck {
         }
 
         // 1:1 MCP - supports plugins sending stupid packets for stupid reasons that point to an invalid horse
-        if (event.getPacketId() == PacketType.Play.Server.OPEN_WINDOW_HORSE) {
-            WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
+            // TODO: Horse windows!  Need to write this wrapper for 1.14+
+            /*WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
             int windowID = packet.readInt(0);
             int slotCount = packet.readInt(1);
             int entityID = packet.readInt(2);
@@ -150,34 +146,34 @@ public class CompensatedInventory extends PacketCheck {
                     openWindowID = windowID;
                     //openedInventory = new ArrayList<>(offset);
                 }
-            });
+            });*/
         }
 
         // Is this mapped wrong?  Should it be ClientboundMerchantOffersPacket?  What is this packet?
-        if (event.getPacketId() == PacketType.Play.Server.OPEN_WINDOW_MERCHANT) {
+        if (event.getPacketType() == PacketType.Play.Server.TRADE_LIST) {
 
         }
 
         // 1:1 MCP
-        if (event.getPacketId() == PacketType.Play.Server.CLOSE_WINDOW) {
+        if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
             // Disregard provided window ID, client doesn't care...
             // We need to do this because the client doesn't send a packet when closing the window
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 openWindowID = 0;
                 menu = inventory;
-                menu.setCarried(WrappedStack.empty()); // Reset carried item
+                menu.setCarried(ItemStack.EMPTY); // Reset carried item
             });
         }
 
         // Should be 1:1 MCP
-        if (event.getPacketId() == PacketType.Play.Server.WINDOW_ITEMS) {
-            WrappedPacketOutWindowItems items = new WrappedPacketOutWindowItems(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
+            WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
 
             // State ID is how the game tries to handle latency compensation.
             // Unsure if we need to know about this.
             if (items.getWindowId() == 0) { // Player inventory
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    List<ItemStack> slots = items.getSlots();
+                    List<ItemStack> slots = items.getItems();
                     for (int i = 0; i < slots.size(); i++) {
                         inventory.getSlot(i).set(slots.get(i));
                     }
@@ -185,7 +181,7 @@ public class CompensatedInventory extends PacketCheck {
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     if (items.getWindowId() == openWindowID) {
-                        List<ItemStack> slots = items.getSlots();
+                        List<ItemStack> slots = items.getItems();
                         for (int i = 0; i < slots.size(); i++) {
                             menu.getSlot(i).set(slots.get(i));
                         }
@@ -195,23 +191,23 @@ public class CompensatedInventory extends PacketCheck {
         }
 
         // Also 1:1 MCP
-        if (event.getPacketId() == PacketType.Play.Server.SET_SLOT) {
+        if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
             // Only edit hotbar (36 to 44) if window ID is 0
             // Set cursor by putting -1 as window ID and as slot
             // Window ID -2 means any slot can be used
-            WrappedPacketOutSetSlot slot = new WrappedPacketOutSetSlot(event.getNMSPacket());
+            WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 if (slot.getWindowId() == -1) { // Carried item
-                    inventory.setCarried(new WrappedStack(slot.getItemStack()));
+                    inventory.setCarried(new ItemStack(slot.getItem()));
                 } else if (slot.getWindowId() == -2) { // Any slot is allowed to change in inventory
-                    inventory.getSlot(slot.getSlot()).set(slot.getItemStack());
+                    inventory.getSlot(slot.getSlot()).set(slot.getItem());
                 } else if (slot.getWindowId() == 0) { // Player hotbar
                     if (slot.getSlot() >= 36 && slot.getSlot() <= 44) { // Client ignored if not in range
-                        inventory.getSlot(slot.getSlot()).set(slot.getItemStack());
+                        inventory.getSlot(slot.getSlot()).set(slot.getItem());
                     }
                 } else if (slot.getWindowId() == openWindowID) { // Opened inventory
-                    menu.getSlot(slot.getSlot()).set(slot.getItemStack());
+                    menu.getSlot(slot.getSlot()).set(slot.getItem());
                 }
             });
         }

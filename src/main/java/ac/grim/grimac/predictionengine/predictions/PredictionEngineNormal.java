@@ -7,9 +7,8 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
@@ -70,14 +69,14 @@ public class PredictionEngineNormal extends PredictionEngine {
 
         boolean walkingOnPowderSnow = false;
 
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17) &&
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                 player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z) == POWDER_SNOW) {
-            ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
+            org.bukkit.inventory.ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
             walkingOnPowderSnow = boots != null && boots.getType() == LEATHER_BOOTS;
         }
 
         // Force 1.13.2 and below players to have something to collide with horizontally to climb
-        if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+        if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5))) || walkingOnPowderSnow) {
             Vector ladder = player.clientVelocity.clone().setY(0.2);
             staticVectorEndOfTick(player, ladder);
@@ -98,7 +97,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         // We still do climbing at the end, as it uses a different client velocity
         //
         // Force 1.13.2 and below players to have something to collide with horizontally to climb
-        if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+        if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
 
             // Calculate the Y velocity after friction

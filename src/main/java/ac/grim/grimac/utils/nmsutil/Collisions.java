@@ -14,10 +14,10 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
@@ -106,7 +106,7 @@ public class Collisions {
                 Vector regularStepUp = collideBoundingBoxLegacy(new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, stepUpCollisionBoxes, order);
 
                 // 1.7 clients do not have this stepping bug fix
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                     Vector stepUpBugFix = collideBoundingBoxLegacy(new Vector(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), stepUpCollisionBoxes, order);
                     if (stepUpBugFix.getY() < stepUpHeight) {
                         Vector stepUpBugFixResult = collideBoundingBoxLegacy(new Vector(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), stepUpCollisionBoxes, order).add(stepUpBugFix);
@@ -117,7 +117,7 @@ public class Collisions {
                 }
 
                 if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(collisionResult)) {
-                    collisionResult = regularStepUp.add(collideBoundingBoxLegacy(new Vector(0, -regularStepUp.getY() + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? desiredY : 0), 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), stepUpCollisionBoxes, order));
+                    collisionResult = regularStepUp.add(collideBoundingBoxLegacy(new Vector(0, -regularStepUp.getY() + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? desiredY : 0), 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), stepUpCollisionBoxes, order));
                 }
             }
 
@@ -261,7 +261,7 @@ public class Collisions {
         }
 
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.type == EntityType.BOAT) {
+            if (entity.type == EntityTypes.BOAT) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(expandedBB)) {
                     if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
@@ -269,7 +269,7 @@ public class Collisions {
                 }
             }
 
-            if (entity.type == EntityType.SHULKER) {
+            if (entity.type == EntityTypes.SHULKER) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(expandedBB)) {
                     if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
@@ -324,7 +324,7 @@ public class Collisions {
             double x = vec3.getX();
             double z = vec3.getZ();
 
-            double maxStepDown = overrideVersion || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_11) ? -player.getMaxUpStep() : -1 + COLLISION_EPSILON;
+            double maxStepDown = overrideVersion || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_11) ? -player.getMaxUpStep() : -1 + COLLISION_EPSILON;
 
             while (x != 0.0 && isEmpty(player, player.boundingBox.copy().offset(x, maxStepDown, 0.0))) {
                 if (x < 0.05D && x >= -0.05D) {
@@ -368,7 +368,7 @@ public class Collisions {
 
     private static boolean isAboveGround(GrimPlayer player) {
         // https://bugs.mojang.com/browse/MC-2404
-        return player.lastOnGround || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16_2) && (player.fallDistance < player.getMaxUpStep() &&
+        return player.lastOnGround || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && (player.fallDistance < player.getMaxUpStep() &&
                 !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0))));
     }
 
@@ -393,30 +393,30 @@ public class Collisions {
                     }
 
                     if (blockType == SWEET_BERRY_BUSH
-                            && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
+                            && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
                         player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
                     }
 
                     if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z)
-                            && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) {
+                            && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
                         player.stuckSpeedMultiplier = new Vector(0.8999999761581421, 1.5, 0.8999999761581421);
                     }
 
-                    if (blockType == Material.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.v_1_15)) {
+                    if (blockType == Material.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
                         player.clientVelocity.setX(player.clientVelocity.getX() * 0.4D);
                         player.clientVelocity.setZ(player.clientVelocity.getZ() * 0.4D);
                     }
 
-                    if (Materials.checkFlag(blockType, Materials.LAVA) && player.getClientVersion().isOlderThan(ClientVersion.v_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
+                    if (Materials.checkFlag(blockType, Materials.LAVA) && player.getClientVersion().isOlderThan(ClientVersion.V_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
                         player.wasTouchingLava = true;
                     }
 
-                    if (blockType == BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+                    if (blockType == BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                         BaseBlockState blockAbove = player.compensatedWorld.getWrappedBlockStateAt(i, j + 1, k);
                         BlockData bubbleData = ((FlatBlockState) block).getBlockData();
                         BubbleColumn bubbleColumn = (BubbleColumn) bubbleData;
 
-                        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
+                        if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT) {
                             if (!Materials.checkFlag(blockAbove.getMaterial(), Materials.AIR)) {
                                 if (bubbleColumn.isDrag()) {
                                     player.clientVelocity.setY(Math.max(-0.3D, player.clientVelocity.getY() - 0.03D));
@@ -448,7 +448,7 @@ public class Collisions {
                         player.fallDistance = 0;
                     }
 
-                    if (blockType == HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_15)) {
+                    if (blockType == HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
                         if (isSlidingDown(player.clientVelocity, player, i, j, j)) {
                             if (player.clientVelocity.getY() < -0.13D) {
                                 double d0 = -0.05 / player.clientVelocity.getY();
@@ -506,11 +506,11 @@ public class Collisions {
                         return true;
                     }
 
-                    if (blockType == SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
+                    if (blockType == SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
                         return true;
                     }
 
-                    if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) {
+                    if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
                         return true;
                     }
                 }
@@ -528,7 +528,7 @@ public class Collisions {
                     if (doesBlockSuffocate(player, x, y, z)) {
                         // Mojang re-added soul sand pushing by checking if the player is actually in the block
                         // (This is why from 1.14-1.15 soul sand didn't push)
-                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16)) {
+                        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
                             BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
                             Material mat = data.getMaterial();
                             CollisionBox box = CollisionData.getData(mat).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
@@ -554,27 +554,27 @@ public class Collisions {
 
         // 1.13- players can not be pushed by blocks that can emit power, for some reason, while 1.14+ players can
         if (mat == OBSERVER || mat == REDSTONE_BLOCK)
-            return player.getClientVersion().isNewerThan(ClientVersion.v_1_13_2);
+            return player.getClientVersion().isNewerThan(ClientVersion.V_1_13_2);
         // Tnt only pushes on 1.14+ clients
-        if (mat == TNT) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
+        if (mat == TNT) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
         // Farmland only pushes on 1.16+ clients
-        if (mat == FARMLAND) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
+        if (mat == FARMLAND) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
         // 1.14-1.15 doesn't push with soul sand, the rest of the versions do
         if (mat == SOUL_SAND)
-            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16) || player.getClientVersion().isOlderThan(ClientVersion.v_1_14);
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) || player.getClientVersion().isOlderThan(ClientVersion.V_1_14);
         // 1.13 and below exempt piston bases, while 1.14+ look to see if they are a full block or not
-        if ((mat == PISTON_BASE || mat == STICKY_PISTON_BASE) && player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
+        if ((mat == PISTON_BASE || mat == STICKY_PISTON_BASE) && player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
             return false;
         // 1.13 and below exempt ICE and FROSTED_ICE, 1.14 have them push
         if (mat == ICE || mat == FROSTED_ICE)
-            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
         // I believe leaves and glass are consistently exempted across all versions
         if (Materials.checkFlag(mat, Materials.LEAVES) || Materials.checkFlag(mat, Materials.GLASS_BLOCK)) return false;
         // 1.16 players are pushed by dirt paths, 1.8 players don't have this block, so it gets converted to a full block
         if (mat == DIRT_PATH)
-            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16) || player.getClientVersion().isOlderThan(ClientVersion.v_1_9);
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) || player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
         // Only 1.14+ players are pushed by beacons
-        if (mat == BEACON) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14);
+        if (mat == BEACON) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
 
         // Thank god I already have the solid blocking blacklist written, but all these are exempt
         if (Materials.isSolidBlockingBlacklist(mat, player.getClientVersion())) return false;
@@ -591,10 +591,10 @@ public class Collisions {
     // This is terrible code lmao.  I need to refactor to add a new player bounding box, or somehow play with block mappings,
     // so I can automatically map honey -> slime and other important ViaVersion replacement blocks
     public static boolean hasSlimeBlock(GrimPlayer player) {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
                 && (hasMaterial(player, SLIME_BLOCK, -1) ||
-                (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_14_4)
-                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)
+                (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)
+                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
                         && hasMaterial(player, HONEY_BLOCK, -1)));
     }
 
@@ -682,7 +682,7 @@ public class Collisions {
         }
 
         // ViaVersion replacement block -> sweet berry bush to vines
-        if (blockMaterial == SWEET_BERRY_BUSH && player.getClientVersion().isOlderThan(ClientVersion.v_1_14)) {
+        if (blockMaterial == SWEET_BERRY_BUSH && player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             return true;
         }
 

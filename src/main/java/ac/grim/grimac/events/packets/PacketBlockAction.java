@@ -3,13 +3,16 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
+import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.out.blockaction.WrappedPacketOutBlockAction;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockAction;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.Player;
 
 // If a player doesn't get this packet, then they don't know the shulker box is currently opened
 // Meaning if a player enters a chunk with an opened shulker box, they see the shulker box as closed.
@@ -24,20 +27,21 @@ public class PacketBlockAction extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Server.BLOCK_ACTION) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+    public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.BLOCK_ACTION) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
-            WrappedPacketOutBlockAction blockAction = new WrappedPacketOutBlockAction(event.getNMSPacket());
+            WrapperPlayServerBlockAction blockAction = new WrapperPlayServerBlockAction(event);
             Vector3i blockPos = blockAction.getBlockPosition();
 
-            if (Materials.checkFlag(blockAction.getBlockType(), Materials.SHULKER)) {
+            // TODO: Legacy support
+            BlockData blockData = CompensatedWorldFlat.globalPaletteToBlockData.get(blockAction.getBlockTypeId());
+
+            if (Materials.checkFlag(blockData.getMaterial(), Materials.SHULKER)) {
                 // Param is the number of viewers of the shulker box.
                 // Hashset with .equals() set to be position
-                if (blockAction.getActionParam() >= 1) {
+                if (blockAction.getActionData() >= 1) {
                     ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), false);
                     player.compensatedWorld.openShulkerBoxes.add(data);
                 } else {

@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.inventory.slot;
 
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.WrappedStack;
+import ac.grim.grimac.utils.inventory.ItemStack;
 import org.bukkit.Material;
 
 public class FurnaceFuelSlot extends Slot{
@@ -11,12 +11,12 @@ public class FurnaceFuelSlot extends Slot{
     }
 
     @Override
-    public boolean mayPlace(WrappedStack stack) {
+    public boolean mayPlace(ItemStack stack) {
         return stack.getStack().getType().isFuel() || stack.getStack().getType() == Material.BUCKET;
     }
 
     @Override
-    public int getMaxStackSize(WrappedStack stack) {
+    public int getMaxStackSize(ItemStack stack) {
         if (stack.getStack().getType() == Material.BUCKET) {
             return 1;
         }

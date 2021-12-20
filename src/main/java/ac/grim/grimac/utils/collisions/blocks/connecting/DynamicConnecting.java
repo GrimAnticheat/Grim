@@ -5,13 +5,15 @@ import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.WrappedFenceGate;
 import ac.grim.grimac.utils.blockdata.types.WrappedStairs;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
+import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 
 public class DynamicConnecting {
     private static final Material BARRIER = XMaterial.BARRIER.parseMaterial();
@@ -62,29 +64,31 @@ public class DynamicConnecting {
         if (!Materials.checkFlag(target, Materials.FENCE) && isBlacklisted(target))
             return false;
 
+        org.bukkit.block.BlockFace bukkitFace = BlockFaceHelper.toBukkitFace(direction);
+
         // 1.9-1.11 clients don't have BARRIER exemption
         // https://bugs.mojang.com/browse/MC-9565
-        if (target == BARRIER) return player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) ||
-                player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) &&
-                        player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_11_1);
+        if (target == BARRIER) return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) ||
+                player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
+                        player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_11_1);
 
         if (Materials.checkFlag(target, Materials.STAIRS)) {
             // 1.12 clients generate their own data, 1.13 clients use the server's data
             // 1.11- versions don't allow fences to connect to the back sides of stairs
-            if (v.isOlderThan(ClientVersion.v_1_12) || (ServerVersion.getVersion().isOlderThanOrEquals(ServerVersion.v_1_11) && v.isNewerThanOrEquals(ClientVersion.v_1_13)))
+            if (v.isOlderThan(ClientVersion.V_1_12) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_11) && v.isNewerThanOrEquals(ClientVersion.V_1_13)))
                 return false;
             WrappedStairs stairs = (WrappedStairs) WrappedBlockData.getMaterialData(targetBlock);
 
-            return stairs.getDirection().getOppositeFace() == direction;
+            return stairs.getDirection().getOppositeFace() == bukkitFace;
         } else if (canConnectToGate() && Materials.checkFlag(target, Materials.GATE)) {
             WrappedFenceGate gate = (WrappedFenceGate) WrappedBlockData.getMaterialData(targetBlock);
             // 1.4-1.11 clients don't check for fence gate direction
             // https://bugs.mojang.com/browse/MC-94016
-            if (v.isOlderThanOrEquals(ClientVersion.v_1_11_1)) return true;
+            if (v.isOlderThanOrEquals(ClientVersion.V_1_11_1)) return true;
 
-            BlockFace f1 = gate.getDirection();
-            BlockFace f2 = f1.getOppositeFace();
-            return direction != f1 && direction != f2;
+            org.bukkit.block.BlockFace f1 = gate.getDirection();
+            org.bukkit.block.BlockFace f2 = f1.getOppositeFace();
+            return bukkitFace != f1 && bukkitFace != f2;
         } else {
             if (fence == target) return true;
 

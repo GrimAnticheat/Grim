@@ -15,13 +15,12 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.nmsutil.Dripstone;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.Direction;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3i;
 import io.papermc.lib.PaperLib;
 import org.bukkit.Axis;
 import org.bukkit.Material;
 import org.bukkit.Tag;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
@@ -96,9 +95,9 @@ public enum BlockPlaceResult {
             && !mat.name().contains("DOUBLE")).toArray(Material[]::new)),
 
     STAIRS((player, place) -> {
-        BlockFace direction = place.getBlockFace();
+        BlockFace direction = place.getDirection();
         Stairs stair = (Stairs) place.getMaterial().createBlockData();
-        stair.setFacing(place.getPlayerFacing());
+        stair.setFacing(BlockFaceHelper.toBukkitFace(place.getPlayerFacing()));
 
         Bisected.Half half = (direction != BlockFace.DOWN && (direction == BlockFace.UP || place.getClickedLocation().getY() < 0.5D)) ? Bisected.Half.BOTTOM : Bisected.Half.TOP;
         stair.setHalf(half);
@@ -108,17 +107,17 @@ public enum BlockPlaceResult {
 
     END_ROD((player, place) -> {
         Directional endRod = (Directional) place.getMaterial().createBlockData();
-        endRod.setFacing(place.getBlockFace());
+        endRod.setFacing(BlockFaceHelper.toBukkitFace(place.getDirection()));
         place.set(endRod);
     }, XMaterial.END_ROD.parseMaterial(), XMaterial.LIGHTNING_ROD.parseMaterial()),
 
     LADDER((player, place) -> {
         // Horizontal ladders aren't a thing
         if (place.isFaceVertical()) return;
-        if (!place.isFullFace(place.getBlockFace().getOppositeFace())) return;
+        if (!place.isFullFace(place.getDirection().getOppositeFace())) return;
 
         Directional ladder = (Directional) place.getMaterial().createBlockData();
-        ladder.setFacing(place.getBlockFace());
+        ladder.setFacing(BlockFaceHelper.toBukkitFace(place.getDirection()));
         place.set(ladder);
     }, XMaterial.LADDER.parseMaterial()),
 
@@ -133,8 +132,8 @@ public enum BlockPlaceResult {
     // 1.13+ only blocks from here below!  No need to write everything twice
     AMETHYST_CLUSTER((player, place) -> {
         AmethystCluster amethyst = (AmethystCluster) place.getMaterial().createBlockData();
-        amethyst.setFacing(place.getBlockFace());
-        if (place.isFullFace(place.getBlockFace().getOppositeFace())) place.set(amethyst);
+        amethyst.setFacing(BlockFaceHelper.toBukkitFace(place.getDirection()));
+        if (place.isFullFace(place.getDirection().getOppositeFace())) place.set(amethyst);
     }, XMaterial.AMETHYST_CLUSTER.parseMaterial()),
 
     BAMBOO((player, place) -> {
@@ -157,7 +156,7 @@ public enum BlockPlaceResult {
     }, XMaterial.BAMBOO.parseMaterial(), XMaterial.BAMBOO_SAPLING.parseMaterial()),
 
     BELL((player, place) -> {
-        Direction direction = place.getDirection();
+        BlockFace direction = place.getDirection();
         Bell bell = (Bell) place.getMaterial().createBlockData();
 
         boolean canSurvive = !Materials.checkFlag(place.getPlacedAgainstMaterial(), Materials.GATE);
@@ -165,15 +164,15 @@ public enum BlockPlaceResult {
         if (!canSurvive) return;
 
         if (place.isFaceVertical()) {
-            if (direction == Direction.DOWN) {
+            if (direction == BlockFace.DOWN) {
                 bell.setAttachment(Bell.Attachment.CEILING);
                 canSurvive = place.isFaceFullCenter(BlockFace.UP);
             }
-            if (direction == Direction.UP) {
+            if (direction == BlockFace.UP) {
                 bell.setAttachment(Bell.Attachment.FLOOR);
                 canSurvive = place.isFullFace(BlockFace.DOWN);
             }
-            bell.setFacing(place.getPlayerFacing());
+            bell.setFacing(BlockFaceHelper.toBukkitFace(place.getPlayerFacing()));
         } else {
             boolean flag = place.isXAxis()
                     && place.isFullFace(BlockFace.EAST)
@@ -183,9 +182,9 @@ public enum BlockPlaceResult {
                     && place.isFullFace(BlockFace.SOUTH)
                     && place.isFullFace(BlockFace.NORTH);
 
-            bell.setFacing(place.getBlockFace().getOppositeFace());
+            bell.setFacing(BlockFaceHelper.toBukkitFace(place.getDirection().getOppositeFace()));
             bell.setAttachment(flag ? Bell.Attachment.DOUBLE_WALL : Bell.Attachment.SINGLE_WALL);
-            canSurvive = place.isFullFace(place.getBlockFace().getOppositeFace());
+            canSurvive = place.isFullFace(place.getDirection().getOppositeFace());
 
             if (canSurvive) {
                 place.set(bell);
@@ -234,7 +233,7 @@ public enum BlockPlaceResult {
 
     CHAIN((player, place) -> {
         Chain chain = (Chain) place.getMaterial().createBlockData();
-        BlockFace face = place.getBlockFace();
+        BlockFace face = place.getDirection();
 
         switch (face) {
             case EAST:
@@ -260,7 +259,7 @@ public enum BlockPlaceResult {
             Material mat = place.getDirectionalState(face).getMaterial();
             if (mat == Material.JUNGLE_LOG || mat == Material.STRIPPED_JUNGLE_LOG || mat == Material.JUNGLE_WOOD) {
                 Cocoa data = (Cocoa) place.getMaterial().createBlockData();
-                data.setFacing(face);
+                data.setFacing(BlockFaceHelper.toBukkitFace(face));
                 place.set(face, new FlatBlockState(data));
                 break;
             }
@@ -278,9 +277,9 @@ public enum BlockPlaceResult {
     }, XMaterial.DIRT_PATH.parseMaterial()),
 
     HOPPER((player, place) -> {
-        BlockFace opposite = place.getBlockFace().getOppositeFace();
+        BlockFace opposite = place.getDirection().getOppositeFace();
         Hopper hopper = (Hopper) place.getMaterial().createBlockData();
-        hopper.setFacing(place.isFaceVertical() ? BlockFace.DOWN : opposite);
+        hopper.setFacing(BlockFaceHelper.toBukkitFace(place.isFaceVertical() ? BlockFace.DOWN : opposite));
         place.set(hopper);
     }, XMaterial.HOPPER.parseMaterial()),
 
@@ -305,8 +304,10 @@ public enum BlockPlaceResult {
         BlockFace primaryDirection = place.getNearestVerticalDirection().getOppositeFace(); // The player clicked downwards, so use upwards
         BlockData typePlacingOn = place.getDirectionalFlatState(primaryDirection.getOppositeFace()).getBlockData(); // Block we are placing on
 
+        org.bukkit.block.BlockFace primaryDir = BlockFaceHelper.toBukkitFace(primaryDirection);
+
         // Check to see if we can place on the block or there is dripstone on the block that we are placing on also pointing upwards
-        boolean primarySameType = typePlacingOn instanceof PointedDripstone && ((PointedDripstone) typePlacingOn).getVerticalDirection() == primaryDirection;
+        boolean primarySameType = typePlacingOn instanceof PointedDripstone && ((PointedDripstone) typePlacingOn).getVerticalDirection() == primaryDir;
         boolean primaryValid = place.isFullFace(primaryDirection.getOppositeFace()) || primarySameType;
 
         // Try to use the opposite direction, just to see if switching directions makes it valid.
@@ -314,9 +315,9 @@ public enum BlockPlaceResult {
             BlockFace secondaryDirection = primaryDirection.getOppositeFace(); // See if placing it DOWNWARDS is valid
             BlockData secondaryType = place.getDirectionalFlatState(secondaryDirection.getOppositeFace()).getBlockData(); // Get the block above us
             // Check if the dripstone above us is also facing downwards
-            boolean secondarySameType = secondaryType instanceof PointedDripstone && ((PointedDripstone) secondaryType).getVerticalDirection() == secondaryDirection;
+            boolean secondarySameType = secondaryType instanceof PointedDripstone && ((PointedDripstone) secondaryType).getVerticalDirection() == primaryDir;
 
-            primaryDirection = secondaryDirection;
+            primaryDir = BlockFaceHelper.toBukkitFace(secondaryDirection);
             // Update block survivability
             primaryValid = place.isFullFace(secondaryDirection.getOppositeFace()) || secondarySameType;
         }
@@ -325,7 +326,7 @@ public enum BlockPlaceResult {
         if (!primaryValid) return;
 
         PointedDripstone toPlace = (PointedDripstone) Material.POINTED_DRIPSTONE.createBlockData();
-        toPlace.setVerticalDirection(primaryDirection); // This block is facing UPWARDS as placed on the top face
+        toPlace.setVerticalDirection(primaryDir); // This block is facing UPWARDS as placed on the top face
 
         // We then have to calculate the thickness of the dripstone
         //
@@ -361,7 +362,7 @@ public enum BlockPlaceResult {
 
     PISTON_BASE((player, place) -> {
         Piston piston = (Piston) place.getMaterial().createBlockData();
-        piston.setFacing(place.getNearestVerticalDirection().getOppositeFace());
+        piston.setFacing(BlockFaceHelper.toBukkitFace(place.getNearestVerticalDirection().getOppositeFace()));
         place.set(piston);
     }, XMaterial.PISTON.parseMaterial(), XMaterial.STICKY_PISTON.parseMaterial()),
 
@@ -549,7 +550,7 @@ public enum BlockPlaceResult {
                 if (BlockFaceHelper.isFaceHorizontal(face)) {
                     boolean canPlace = isHead || ((isWallSign || place.isFullFace(face)) && (isTorch || place.isSolid(face)));
                     if (canPlace && face != BlockFace.UP) { // center requires nothing (head), full face (torch), or solid (sign)
-                        dir.setFacing(face.getOppositeFace());
+                        dir.setFacing(BlockFaceHelper.toBukkitFace(face.getOppositeFace()));
                         place.set(dir);
                         return;
                     }
@@ -571,14 +572,14 @@ public enum BlockPlaceResult {
 
     GLOW_LICHEN((player, place) -> {
         BlockData lichen = place.getExistingBlockBlockData();
-        Set<BlockFace> faces = lichen.getMaterial() == Material.GLOW_LICHEN ? ((GlowLichen) lichen).getFaces() : new HashSet<>();
+        Set<org.bukkit.block.BlockFace> faces = lichen.getMaterial() == Material.GLOW_LICHEN ? ((GlowLichen) lichen).getFaces() : new HashSet<>();
 
         for (BlockFace face : place.getNearestPlacingDirections()) {
             // Face already exists.
-            if (faces.contains(face)) continue;
+            if (faces.contains(BlockFaceHelper.toBukkitFace(face))) continue;
 
             if (place.isFullFace(face)) {
-                faces.add(face);
+                faces.add(BlockFaceHelper.toBukkitFace(face));
                 break;
             }
         }
@@ -587,7 +588,7 @@ public enum BlockPlaceResult {
         GlowLichen toSet = (GlowLichen) Material.GLOW_LICHEN.createBlockData();
 
         // Apply the new faces
-        for (BlockFace face : faces) {
+        for (org.bukkit.block.BlockFace face : faces) {
             toSet.setFace(face, faces.contains(face));
         }
 
@@ -612,7 +613,7 @@ public enum BlockPlaceResult {
         } else {
             stone.setAttachedFace(FaceAttachable.AttachedFace.WALL);
         }
-        stone.setFacing(place.getPlayerFacing());
+        stone.setFacing(BlockFaceHelper.toBukkitFace(place.getPlayerFacing()));
         place.set(stone);
     }, Arrays.stream(Material.values()).filter(mat -> mat.name().contains("GRINDSTONE")) // GRINDSTONE
             .toArray(Material[]::new)),
@@ -627,7 +628,7 @@ public enum BlockPlaceResult {
                     // If it's a torch, create a wall torch
                     // Otherwise, it's going to be a head.  The type of this head also doesn't matter.
                     Directional dir = (Directional) Material.BLACK_WALL_BANNER.createBlockData();
-                    dir.setFacing(face.getOppositeFace());
+                    dir.setFacing(BlockFaceHelper.toBukkitFace(face.getOppositeFace()));
                     place.set(dir);
                 } else {
                     place.set(place.getMaterial());
@@ -682,7 +683,7 @@ public enum BlockPlaceResult {
     }, XMaterial.FIRE.parseMaterial(), XMaterial.SOUL_FIRE.parseMaterial()), // soul fire isn't directly placeable
 
     TRIPWIRE_HOOK((player, place) -> {
-        if (place.isFaceHorizontal() && place.isFullFace(place.getBlockFace().getOppositeFace())) {
+        if (place.isFaceHorizontal() && place.isFullFace(place.getDirection().getOppositeFace())) {
             place.set(place.getMaterial());
         }
     }, XMaterial.TRIPWIRE_HOOK.parseMaterial()),
@@ -705,7 +706,7 @@ public enum BlockPlaceResult {
                 if (BlockFaceHelper.isFaceHorizontal(face)) {
                     if (canPlace) { // center requires nothing (head), full face (torch), or solid (sign)
                         Directional coralFan = (Directional) Material.FIRE_CORAL_WALL_FAN.createBlockData();
-                        coralFan.setFacing(face);
+                        coralFan.setFacing(BlockFaceHelper.toBukkitFace(face));
                         place.set(coralFan);
                         return;
                     }
@@ -782,7 +783,7 @@ public enum BlockPlaceResult {
 
     FENCE_GATE((player, place) -> {
         Gate gate = (Gate) place.getMaterial().createBlockData();
-        gate.setFacing(place.getPlayerFacing());
+        gate.setFacing(BlockFaceHelper.toBukkitFace(place.getPlayerFacing()));
 
         // Check for redstone signal!
         if (place.isBlockPlacedPowered()) {
@@ -797,14 +798,14 @@ public enum BlockPlaceResult {
     TRAPDOOR((player, place) -> {
         TrapDoor door = (TrapDoor) place.getMaterial().createBlockData();
 
-        BlockFace direction = place.getBlockFace();
+        BlockFace direction = place.getDirection();
         if (!place.isReplaceClicked() && BlockFaceHelper.isFaceHorizontal(direction)) {
-            door.setFacing(direction);
+            door.setFacing(BlockFaceHelper.toBukkitFace(direction));
             boolean clickedTop = place.getClickedLocation().getY() > 0.5;
             Bisected.Half half = clickedTop ? Bisected.Half.TOP : Bisected.Half.BOTTOM;
             door.setHalf(half);
         } else {
-            door.setFacing(place.getPlayerFacing().getOppositeFace());
+            door.setFacing(BlockFaceHelper.toBukkitFace(place.getPlayerFacing().getOppositeFace()));
             Bisected.Half half = direction == BlockFace.UP ? Bisected.Half.BOTTOM : Bisected.Half.TOP;
             door.setHalf(half);
         }
@@ -820,7 +821,7 @@ public enum BlockPlaceResult {
     DOOR((player, place) -> {
         if (place.isFullFace(BlockFace.DOWN) && place.isBlockFaceOpen(BlockFace.UP)) {
             Door door = (Door) place.getMaterial().createBlockData();
-            door.setFacing(place.getPlayerFacing());
+            door.setFacing(BlockFaceHelper.toBukkitFace(place.getPlayerFacing()));
 
             // Get the hinge
             BlockFace playerFacing = place.getPlayerFacing();
@@ -829,15 +830,15 @@ public enum BlockPlaceResult {
             BaseBlockState ccwState = place.getDirectionalState(ccw);
             CollisionBox ccwBox = CollisionData.getData(ccwState.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), ccwState);
 
-            Vector aboveCCWPos = place.getClickedLocation().add(ccw.getDirection()).add(new Vector(0, 1, 0));
+            Vector aboveCCWPos = place.getClickedLocation().add(new Vector(ccw.getModX(), ccw.getModY(), ccw.getModZ())).add(new Vector(0, 1, 0));
             BaseBlockState aboveCCWState = player.compensatedWorld.getWrappedBlockStateAt(aboveCCWPos);
             CollisionBox aboveCCWBox = CollisionData.getData(aboveCCWState.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), aboveCCWState);
 
-            BlockFace cw = BlockFaceHelper.getClockWise(playerFacing);
+            BlockFace cw = BlockFaceHelper.getPEClockWise(playerFacing);
             BaseBlockState cwState = place.getDirectionalState(cw);
             CollisionBox cwBox = CollisionData.getData(cwState.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), cwState);
 
-            Vector aboveCWPos = place.getClickedLocation().add(cw.getDirection()).add(new Vector(0, 1, 0));
+            Vector aboveCWPos = place.getClickedLocation().add(new Vector(cw.getModX(), cw.getModY(), cw.getModZ())).add(new Vector(0, 1, 0));
             BaseBlockState aboveCWState = player.compensatedWorld.getWrappedBlockStateAt(aboveCWPos);
             CollisionBox aboveCWBox = CollisionData.getData(aboveCWState.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), aboveCWState);
 

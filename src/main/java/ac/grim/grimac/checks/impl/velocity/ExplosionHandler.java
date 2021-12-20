@@ -1,15 +1,14 @@
 package ac.grim.grimac.checks.impl.velocity;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.GrimMath;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.out.explosion.WrappedPacketOutExplosion;
-import io.github.retrooper.packetevents.utils.vector.Vector3f;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.util.Vector3f;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -33,16 +32,13 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     @Override
-    public void onPacketSend(final PacketPlaySendEvent event) {
-        if (event.getPacketId() == PacketType.Play.Server.EXPLOSION) {
-            WrappedPacketOutExplosion explosion = new WrappedPacketOutExplosion(event.getNMSPacket());
+    public void onPacketSend(final PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
+            WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(event);
 
-            Vector3f velocity = explosion.getPlayerVelocity();
+            Vector3f velocity = explosion.getPlayerMotion();
 
             if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
-                if (player == null) return;
-
                 player.sendTransaction();
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
                 event.setPostTask(player::sendTransaction);

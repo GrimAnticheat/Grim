@@ -3,7 +3,8 @@ package ac.grim.grimac.checks.impl.prediction;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.GameMode;
 
 public class NoFallB extends PostPredictionCheck {
@@ -16,7 +17,7 @@ public class NoFallB extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // Exemptions
         // Don't check players in spectator
-        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && player.gamemode == GameMode.SPECTATOR)
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.gamemode == GameMode.SPECTATOR)
             return;
         // And don't check this long list of ground exemptions
         if (player.exemptOnGround()) return;

@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.util.Vector3i;
 
 public class ShulkerData {
     public final int lastTransactionSent;

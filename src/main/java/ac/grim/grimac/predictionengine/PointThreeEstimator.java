@@ -9,7 +9,9 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.potion.PotionType;
+import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Material;
@@ -168,8 +170,8 @@ public class PointThreeEstimator {
         return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding;
     }
 
-    public void updatePlayerPotions(String potion, Integer level) {
-        if (potion.equals("LEVITATION")) {
+    public void updatePlayerPotions(PotionType potion, Integer level) {
+        if (potion == PotionTypes.LEVITATION) {
             boolean oldPositiveLevitation = hasPositiveLevitation;
             boolean oldNegativeLevitation = hasNegativeLevitation;
 
@@ -361,7 +363,7 @@ public class PointThreeEstimator {
         // The player couldn't have skipped their Y tick here... no point to simulate (and stop a bypass)
         if (!vector.isZeroPointZeroThree()) return 0;
 
-        double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) ? 0.003 : 0.005;
+        double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.003 : 0.005;
 
         // This should likely be refactored, but it works well.
         double yVel = vector.vector.getY();

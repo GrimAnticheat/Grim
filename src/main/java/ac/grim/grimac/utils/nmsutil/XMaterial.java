@@ -22,11 +22,11 @@
  */
 package ac.grim.grimac.utils.nmsutil;
 
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.WordUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -2833,8 +2833,6 @@ public enum XMaterial {
     /**
      * The data value of this material <a href="https://minecraft.gamepedia.com/Java_Edition_data_values/Pre-flattening">pre-flattening</a>.
      * <p>
-     * Can be accessed with {@link ItemStack#getData()} then {@code MaterialData#getData()}
-     * or {@link ItemStack#getDurability()} if not damageable.
      *
      * @return data of this material, or 0 if none.
      * @since 1.0.0

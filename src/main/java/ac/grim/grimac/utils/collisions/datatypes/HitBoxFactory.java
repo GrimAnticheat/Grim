@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
 
 public interface HitBoxFactory {

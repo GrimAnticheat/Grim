@@ -2,14 +2,14 @@ package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.World;
-import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 public class PlayerBaseTick {
@@ -54,11 +54,11 @@ public class PlayerBaseTick {
         // Tick order is entityBaseTick and then the aiStep stuff
         // This code is in the wrong place, I'll fix it later
 
-        player.isCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) ? !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
-                && ((player.isCrouching || player.getClientVersion().isNewerThan(ClientVersion.v_1_14_4) ? player.wasSneaking : player.isSneaking)
+        player.isCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
+                && ((player.isCrouching || player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4) ? player.wasSneaking : player.isSneaking)
                 || player.isInBed || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
                 : player.isSneaking; // Sneaking on 1.7-1.13 is just the status the player sends us.  Nothing complicated.
-        player.isSlowMovement = player.isCrouching || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
+        player.isSlowMovement = player.isCrouching || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) &&
                 // If the player is in the swimming pose
                 // Or if the player is not gliding, and the player's pose is fall flying
                 // and the player is not touching water (yes, this also can override the gliding slowness)
@@ -76,7 +76,7 @@ public class PlayerBaseTick {
         float f = BlockProperties.getBlockSpeedFactor(player);
         player.blockSpeedMultiplier = new Vector(f, 1.0, f);
 
-        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14)) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             updatePlayerSize();
         }
     }
@@ -89,19 +89,19 @@ public class PlayerBaseTick {
 
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
 
-        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
         double d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
         if (d1 > d0) {
             player.fluidOnEyes = FluidTag.WATER;
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2))
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2))
                 player.wasEyeInWater = true;
             return;
         }
 
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2))
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2))
             player.wasEyeInWater = false;
 
         d1 = (float) Math.floor(d0) + player.compensatedWorld.getWaterFluidLevelAt(player.lastX, d0, player.lastZ);
@@ -114,10 +114,10 @@ public class PlayerBaseTick {
         updateInWaterStateAndDoWaterCurrentPushing();
         double d = player.playerWorld.getEnvironment() == World.Environment.NETHER ? 0.007 : 0.0023333333333333335;
         // 1.15 and below clients use block collisions to check for being in lava
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16))
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16))
             player.wasTouchingLava = this.updateFluidHeightAndDoFluidPushing(FluidTag.LAVA, d);
             // 1.13 and below clients use this stupid method to check if in lava
-        else if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14)) {
+        else if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             SimpleCollisionBox playerBox = player.boundingBox.copy().expand(-0.1F, -0.4F, -0.1F);
             player.wasTouchingLava = player.compensatedWorld.containsLava(playerBox);
         }
@@ -135,9 +135,9 @@ public class PlayerBaseTick {
                 pose = Pose.SWIMMING;
             } else if (player.isRiptidePose) {
                 pose = Pose.SPIN_ATTACK;
-            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9) && player.getClientVersion().isOlderThan(ClientVersion.v_1_14) && player.isSneaking) {
+            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && player.getClientVersion().isOlderThan(ClientVersion.V_1_14) && player.isSneaking) {
                 pose = Pose.NINE_CROUCHING;
-            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.isCrouching && !player.specialFlying) {
+            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.isCrouching && !player.specialFlying) {
                 pose = Pose.CROUCHING;
             } else {
                 pose = Pose.STANDING;
@@ -145,7 +145,7 @@ public class PlayerBaseTick {
 
             // I'm not too sure about this code, but it appears like this is only a 1.14+ feature
             // In my testing this seems good but still don't have full confidence for versions like 1.13
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) &&
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) &&
                     !player.inVehicle && !canEnterPose(player, pose, player.x, player.y, player.z)) {
                 if (canEnterPose(player, Pose.CROUCHING, player.x, player.y, player.z)) {
                     pose = Pose.CROUCHING;
@@ -167,7 +167,7 @@ public class PlayerBaseTick {
         } else if (player.isInBed) {
             pose = Pose.SLEEPING;
         } else if (!player.isSwimming && !player.isRiptidePose) {
-            if (player.isSneaking && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+            if (player.isSneaking && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
                 pose = Pose.NINE_CROUCHING;
             } else {
                 pose = Pose.STANDING;
@@ -196,7 +196,7 @@ public class PlayerBaseTick {
 
     public void updateSwimming() {
         // This doesn't seem like the right place for determining swimming, but it's fine for now
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
             player.isSwimming = false;
         } else if (player.isFlying) {
             player.isSwimming = false;
@@ -208,7 +208,7 @@ public class PlayerBaseTick {
             } else {
                 // Requirement added in 1.17 to fix player glitching between two swimming states
                 // while swimming with feet in air and eyes in water
-                boolean feetInWater = player.getClientVersion().isOlderThan(ClientVersion.v_1_17)
+                boolean feetInWater = player.getClientVersion().isOlderThan(ClientVersion.V_1_17)
                         || player.compensatedWorld.getWaterFluidLevelAt(player.lastX, player.lastY, player.lastZ) > 0;
                 player.isSwimming = player.lastSprinting && player.wasEyeInWater && player.wasTouchingWater && feetInWater;
             }
@@ -218,7 +218,7 @@ public class PlayerBaseTick {
 
     private void moveTowardsClosestSpace(double xPosition, double zPosition) {
         player.boundingBox = player.boundingBox.expand(0.03); // 0.03... thanks mojang!
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
             moveTowardsClosestSpaceModern(xPosition, zPosition);
         } else {
             moveTowardsClosestSpaceLegacy(xPosition, zPosition);
@@ -344,13 +344,13 @@ public class PlayerBaseTick {
     }
 
     public void updateInWaterStateAndDoWaterCurrentPushing() {
-        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT);
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT);
         if (player.wasTouchingWater)
             player.fallDistance = 0;
     }
 
     public boolean updateFluidHeightAndDoFluidPushing(FluidTag tag, double multiplier) {
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
             return updateFluidHeightAndDoFluidPushingModern(tag, multiplier);
         }
 
@@ -436,7 +436,7 @@ public class PlayerBaseTick {
                         fluidHeight = player.compensatedWorld.getLavaFluidLevelAt(x, y, z);
                     }
 
-                    if (player.getClientVersion().isOlderThan(ClientVersion.v_1_14))
+                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
                         fluidHeight = Math.min(fluidHeight, 8 / 9D);
 
                     if (fluidHeight == 0 || (fluidHeightToWorld = y + fluidHeight) < aABB.minY)
@@ -468,7 +468,7 @@ public class PlayerBaseTick {
             }
 
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
-            if (tag != FluidTag.LAVA || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16)) {
+            if (tag != FluidTag.LAVA || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
                 // Store the vector before handling 0.003, so knockback can use it
                 player.baseTickAddWaterPushing(vec3);
 

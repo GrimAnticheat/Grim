@@ -6,10 +6,10 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 @CheckData(buffer = 3, maxBuffer = 3)
 public class GhostBlockDetector extends PostPredictionCheck {
@@ -85,11 +85,11 @@ public class GhostBlockDetector extends PostPredictionCheck {
         // Simply setback, don't ban, if a player gets a violation by a boat.
         // Note that we allow setting back to the ground for this one, to try and mitigate
         // the effect that this buggy behavior has on players
-        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
             SimpleCollisionBox largeExpandedBB = player.boundingBox.copy().expand(12, 0.5, 12);
 
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                if (entity.type == EntityType.BOAT) {
+                if (entity.type == EntityTypes.BOAT) {
                     if (entity.getPossibleCollisionBoxes().isIntersected(largeExpandedBB)) {
                         return true;
                     }

@@ -8,9 +8,9 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -56,12 +56,12 @@ public class DynamicChorusPlant implements CollisionFactory {
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         // ViaVersion replacement block (Purple wool)
-        if (version.isOlderThanOrEquals(ClientVersion.v_1_8))
+        if (version.isOlderThanOrEquals(ClientVersion.V_1_8))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         // Player is 1.12- on 1.13 server
         // Player is 1.12 on 1.12 server
-        if (version.isOlderThanOrEquals(ClientVersion.v_1_12_2)) {
+        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
             return getLegacyBoundingBox(player, version, x, y, z);
         }
 
@@ -96,7 +96,7 @@ public class DynamicChorusPlant implements CollisionFactory {
         Set<BlockFace> faces = new HashSet<>();
 
         // 1.13 clients on 1.12 servers don't see chorus flowers attached to chorus because of a ViaVersion bug
-        Material versionFlower = version.isOlderThanOrEquals(ClientVersion.v_1_12_2) ? CHORUS_FLOWER : null;
+        Material versionFlower = version.isOlderThanOrEquals(ClientVersion.V_1_12_2) ? CHORUS_FLOWER : null;
 
         Material downBlock = player.compensatedWorld.getBukkitMaterialAt(x, y - 1, z);
         Material upBlock = player.compensatedWorld.getBukkitMaterialAt(x, y + 1, z);

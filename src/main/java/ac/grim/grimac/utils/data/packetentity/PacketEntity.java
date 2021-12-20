@@ -18,12 +18,11 @@ package ac.grim.grimac.utils.data.packetentity;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.ReachInterpolationData;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
-
-import java.util.Locale;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.util.Vector3d;
 
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity {
@@ -43,16 +42,39 @@ public class PacketEntity {
     public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
         this.serverPos = new Vector3d(x, y, z);
         this.type = type;
-        this.bukkitEntityType = org.bukkit.entity.EntityType.valueOf(type.toString().toUpperCase(Locale.ROOT));
         this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getPacketEntityBoundingBox(x, y, z, this),
-                serverPos.getX(), serverPos.getY(), serverPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9));
+                serverPos.getX(), serverPos.getY(), serverPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9));
+    }
+
+    public boolean isLivingEntity() {
+        return EntityTypes.typeHasParent(type, EntityTypes.LIVINGENTITY);
+    }
+
+    public boolean isMinecart() {
+        return EntityTypes.typeHasParent(type, EntityTypes.MINECART_ABSTRACT);
+    }
+
+    public boolean isHorse() {
+        return EntityTypes.typeHasParent(type, EntityTypes.ABSTRACT_HORSE);
+    }
+
+    public boolean isAgeable() {
+        return EntityTypes.typeHasParent(type, EntityTypes.ABSTRACT_AGEABLE);
+    }
+
+    public boolean isAnimal() {
+        return EntityTypes.typeHasParent(type, EntityTypes.ABSTRACT_ANIMAL);
+    }
+
+    public boolean isSize() {
+        return type == EntityTypes.PHANTOM || type == EntityTypes.SLIME || type == EntityTypes.MAGMA_CUBE;
     }
 
     // Set the old packet location to the new one
     // Set the new packet location to the updated packet location
     public void onFirstTransaction(double x, double y, double z, GrimPlayer player) {
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), x, y, z, player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9));
+        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), x, y, z, player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9));
     }
 
     // Remove the possibility of the old packet location

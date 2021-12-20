@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.utils.pair.Pair;
+import ac.grim.grimac.utils.data.Pair;
 import org.bukkit.util.Vector;
 
 // Copied directly from Hawk

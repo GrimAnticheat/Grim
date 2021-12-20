@@ -3,19 +3,19 @@ package ac.grim.grimac.checks.type;
 import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 
-public class PacketCheck extends Check<Object> {
+public abstract class PacketCheck extends Check<Object> {
 
     public PacketCheck(final GrimPlayer playerData) {
         super(playerData);
     }
 
-    public void onPacketReceive(final PacketPlayReceiveEvent event) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
     }
 
-    public void onPacketSend(final PacketPlaySendEvent event) {
+    public void onPacketSend(final PacketSendEvent event) {
     }
 
     public void onPositionUpdate(final PositionUpdate positionUpdate) {

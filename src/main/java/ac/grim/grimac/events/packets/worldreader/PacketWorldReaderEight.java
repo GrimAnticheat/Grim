@@ -4,11 +4,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packetwrappers.NMSPacket;
-import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
-import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
-import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import com.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import com.github.retrooper.packetevents.packetwrappers.NMSPacket;
+import com.github.retrooper.packetevents.packetwrappers.WrappedPacket;
+import com.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
+import com.github.retrooper.packetevents.utils.reflection.Reflection;
 
 import java.lang.reflect.Field;
 import java.nio.ByteBuffer;

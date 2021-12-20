@@ -13,22 +13,23 @@ import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
 import ac.grim.grimac.utils.chunkdata.twelve.TwelveChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.pair.Pair;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Powerable;
 import org.bukkit.block.data.type.Lectern;
@@ -67,7 +68,7 @@ public class CompensatedWorld {
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) {
+            if (entity.type == EntityTypes.BOAT || entity.type == EntityTypes.SHULKER) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(playerBox)) {
                     return true;
@@ -88,11 +89,11 @@ public class CompensatedWorld {
                 BaseChunk chunk = column.getChunks()[y >> 4];
 
                 if (chunk == null) {
-                    if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_16)) {
+                    if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
                         column.getChunks()[y >> 4] = new SixteenChunk();
-                    } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+                    } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                         column.getChunks()[y >> 4] = new FifteenChunk();
-                    } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8)) {
+                    } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8)) {
                         column.getChunks()[y >> 4] = new TwelveChunk();
                     } else {
                         column.getChunks()[y >> 4] = new SevenChunk();
@@ -109,7 +110,7 @@ public class CompensatedWorld {
                 chunk.set(x & 0xF, y & 0xF, z & 0xF, combinedID);
 
                 // Handle stupidity such as fluids changing in idle ticks.
-                if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_13)) {
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                     player.pointThreeEstimator.handleChangeBlock(x, y, z, new FlatBlockState(combinedID));
                 } else {
                     player.pointThreeEstimator.handleChangeBlock(x, y, z, new MagicBlockState(combinedID));
@@ -168,7 +169,7 @@ public class CompensatedWorld {
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
 
-                    if (data.hasSlimeBlock || (data.hasHoneyBlock && player.getClientVersion().isOlderThan(ClientVersion.v_1_15_2))) {
+                    if (data.hasSlimeBlock || (data.hasHoneyBlock && player.getClientVersion().isOlderThan(ClientVersion.V_1_15_2))) {
                         player.uncertaintyHandler.slimePistonBounces.add(data.direction);
                     }
 

@@ -2,27 +2,28 @@ package ac.grim.grimac.checks.impl.movement;
 
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
 
 public class SetbackBlocker extends PacketCheck {
     public SetbackBlocker(GrimPlayer playerData) {
         super(playerData);
     }
 
-    public void onPacketReceive(final PacketPlayReceiveEvent event) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
         // Don't block teleport packets
         if (player.packetStateData.lastPacketWasTeleport) return;
 
-        if (PacketType.Play.Client.Util.isInstanceOfFlying(event.getPacketId())) {
+        if (WrapperPlayClientFlying.isInstanceOfFlying(event.getPacketType())) {
             // The player must obey setbacks
             if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
                 event.setCancelled(true);
             }
 
             // Look is the only valid packet to send while in a vehicle
-            if (player.inVehicle && event.getPacketId() != PacketType.Play.Client.LOOK && !player.packetStateData.lastPacketWasTeleport) {
+            if (player.inVehicle && event.getPacketType() != PacketType.Play.Client.PLAYER_ROTATION && !player.packetStateData.lastPacketWasTeleport) {
                 event.setCancelled(true);
             }
 
@@ -37,7 +38,7 @@ public class SetbackBlocker extends PacketCheck {
             }
         }
 
-        if (event.getPacketId() == PacketType.Play.Client.VEHICLE_MOVE) {
+        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
             if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
                 event.setCancelled(true);
             }

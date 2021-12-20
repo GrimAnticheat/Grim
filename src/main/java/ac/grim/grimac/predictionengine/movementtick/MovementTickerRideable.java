@@ -3,7 +3,7 @@ package ac.grim.grimac.predictionengine.movementtick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.nmsutil.Collisions;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.apache.commons.lang.NotImplementedException;
 
 public class MovementTickerRideable extends MovementTickerLivingVehicle {
@@ -34,6 +34,6 @@ public class MovementTickerRideable extends MovementTickerLivingVehicle {
     @Override
     public void livingEntityTravel() {
         super.livingEntityTravel();
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_17)) Collisions.handleInsideBlocks(player);
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) Collisions.handleInsideBlocks(player);
     }
 }

@@ -3,10 +3,10 @@ package ac.grim.grimac.events.packets.worldreader;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
+import com.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import com.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;

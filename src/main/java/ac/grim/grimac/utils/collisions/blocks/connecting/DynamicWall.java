@@ -9,9 +9,9 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Wall;
@@ -26,32 +26,32 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
         int north, south, west, east, up;
         north = south = west = east = up = 0;
 
-        if (state instanceof FlatBlockState && version.isNewerThan(ClientVersion.v_1_12_2)) {
+        if (state instanceof FlatBlockState && version.isNewerThan(ClientVersion.V_1_12_2)) {
             BlockData data = ((FlatBlockState) state).getBlockData();
             if (XMaterial.supports(16)) {
                 Wall wall = (Wall) data;
 
-                if (wall.getHeight(BlockFace.NORTH) != Wall.Height.NONE)
-                    north += wall.getHeight(BlockFace.NORTH) == Wall.Height.LOW ? 1 : 2;
+                if (wall.getHeight(org.bukkit.block.BlockFace.NORTH) != Wall.Height.NONE)
+                    north += wall.getHeight(org.bukkit.block.BlockFace.NORTH) == Wall.Height.LOW ? 1 : 2;
 
-                if (wall.getHeight(BlockFace.EAST) != Wall.Height.NONE)
-                    east += wall.getHeight(BlockFace.EAST) == Wall.Height.LOW ? 1 : 2;
+                if (wall.getHeight(org.bukkit.block.BlockFace.EAST) != Wall.Height.NONE)
+                    east += wall.getHeight(org.bukkit.block.BlockFace.EAST) == Wall.Height.LOW ? 1 : 2;
 
-                if (wall.getHeight(BlockFace.SOUTH) != Wall.Height.NONE)
-                    south += wall.getHeight(BlockFace.SOUTH) == Wall.Height.LOW ? 1 : 2;
+                if (wall.getHeight(org.bukkit.block.BlockFace.SOUTH) != Wall.Height.NONE)
+                    south += wall.getHeight(org.bukkit.block.BlockFace.SOUTH) == Wall.Height.LOW ? 1 : 2;
 
-                if (wall.getHeight(BlockFace.WEST) != Wall.Height.NONE)
-                    west += wall.getHeight(BlockFace.WEST) == Wall.Height.LOW ? 1 : 2;
+                if (wall.getHeight(org.bukkit.block.BlockFace.WEST) != Wall.Height.NONE)
+                    west += wall.getHeight(org.bukkit.block.BlockFace.WEST) == Wall.Height.LOW ? 1 : 2;
 
                 if (wall.isUp())
                     up = 1;
             } else {
                 MultipleFacing facing = (MultipleFacing) data;
-                north = facing.getFaces().contains(BlockFace.NORTH) ? 1 : 0;
-                east = facing.getFaces().contains(BlockFace.EAST) ? 1 : 0;
-                south = facing.getFaces().contains(BlockFace.SOUTH) ? 1 : 0;
-                west = facing.getFaces().contains(BlockFace.WEST) ? 1 : 0;
-                up = facing.getFaces().contains(BlockFace.UP) ? 1 : 0;
+                north = facing.getFaces().contains(org.bukkit.block.BlockFace.NORTH) ? 1 : 0;
+                east = facing.getFaces().contains(org.bukkit.block.BlockFace.EAST) ? 1 : 0;
+                south = facing.getFaces().contains(org.bukkit.block.BlockFace.SOUTH) ? 1 : 0;
+                west = facing.getFaces().contains(org.bukkit.block.BlockFace.WEST) ? 1 : 0;
+                up = facing.getFaces().contains(org.bukkit.block.BlockFace.UP) ? 1 : 0;
             }
         } else {
             north = connectsTo(player, version, x, y, z, BlockFace.NORTH) ? 1 : 0;
@@ -62,7 +62,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
         }
 
         // On 1.13+ clients the bounding box is much more complicated
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
             ComplexCollisionBox box = new ComplexCollisionBox();
 
             // Proper and faster way would be to compute all this beforehand
@@ -134,7 +134,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
         boolean east;
         boolean up;
 
-        if (XMaterial.isNewVersion() && version.isNewerThan(ClientVersion.v_1_12_2)) {
+        if (XMaterial.isNewVersion() && version.isNewerThan(ClientVersion.V_1_12_2)) {
             WrappedMultipleFacing pane = (WrappedMultipleFacing) block;
 
             east = pane.getDirections().contains(BlockFace.EAST);
@@ -151,7 +151,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
         }
 
         // On 1.13+ clients the bounding box is much more complicated
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
             // Proper and faster way would be to compute all this beforehand
             if (up) {
                 ComplexCollisionBox box = new ComplexCollisionBox(COLLISION_BOXES[getAABBIndex(north, east, south, west)].copy());

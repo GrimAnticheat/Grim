@@ -16,13 +16,14 @@ import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -242,11 +243,11 @@ public class MovementCheckRunner extends PositionCheck {
             if (player.playerVehicle instanceof PacketEntityRideable) {
                 EntityControl control = ((EntityControl) player.checkManager.getPostPredictionCheck(EntityControl.class));
 
-                Material requiredItem = player.playerVehicle.type == EntityType.PIG ? CARROT_ON_A_STICK : WARPED_FUNGUS_ON_A_STICK;
-                ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+                Material requiredItem = player.playerVehicle.type == EntityTypes.PIG ? CARROT_ON_A_STICK : WARPED_FUNGUS_ON_A_STICK;
+                org.bukkit.inventory.ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
 
                 boolean correctMainHand = mainHand != null && mainHand.getType() == requiredItem;
-                boolean correctOffhand = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) &&
+                boolean correctOffhand = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) &&
                         player.bukkitPlayer.getInventory().getItemInOffHand().getType() == requiredItem;
 
                 if (!correctMainHand && !correctOffhand) {
@@ -289,7 +290,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
         // ViaVersion messes up flight speed for 1.7 players
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_7_10) && player.isFlying)
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && player.isFlying)
             player.isSprinting = true;
 
         // Stop stuff like clients using elytra in a vehicle...
@@ -301,7 +302,7 @@ public class MovementCheckRunner extends PositionCheck {
             player.isGliding = false;
             player.specialFlying = false;
 
-            if (player.playerVehicle.type != EntityType.PIG && player.playerVehicle.type != EntityType.STRIDER) {
+            if (player.playerVehicle.type != EntityTypes.PIG && player.playerVehicle.type != EntityTypes.STRIDER) {
                 player.isClimbing = false;
             }
         }
@@ -318,7 +319,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Collisions.hasMaterial(player, Materials.ICE_BLOCKS);
         player.uncertaintyHandler.isSteppingOnHoney = Collisions.hasMaterial(player, XMaterial.HONEY_BLOCK.parseMaterial(), -0.03);
-        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && Collisions.hasMaterial(player, BUBBLE_COLUMN, -1);
+        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Collisions.hasMaterial(player, BUBBLE_COLUMN, -1);
 
         // Update firework end/start uncertainty
         player.uncertaintyHandler.lastFireworkStatusChange--;
@@ -340,7 +341,7 @@ public class MovementCheckRunner extends PositionCheck {
         // and they are intersecting with these glitched bounding boxes
         // give them a decent amount of uncertainty and don't ban them for mojang's stupid mistake
         boolean isGlitchy = player.uncertaintyHandler.isNearGlitchyBlock;
-        player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.v_1_9) && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03), checkData -> Materials.isAnvil(checkData.getMaterial()) || Materials.isWoodenChest(checkData.getMaterial()));
+        player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03), checkData -> Materials.isAnvil(checkData.getMaterial()) || Materials.isWoodenChest(checkData.getMaterial()));
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
 
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
@@ -355,7 +356,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         player.uncertaintyHandler.lastUnderwaterFlyingHack--;
-        if (player.specialFlying && player.getClientVersion().isOlderThan(ClientVersion.v_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
+        if (player.specialFlying && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
             player.uncertaintyHandler.lastUnderwaterFlyingHack = 0;
         }
 
@@ -373,7 +374,7 @@ public class MovementCheckRunner extends PositionCheck {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
-        } else if ((ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_8) && player.gamemode == GameMode.SPECTATOR) || player.specialFlying) {
+        } else if ((PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.gamemode == GameMode.SPECTATOR) || player.specialFlying) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
             //
@@ -388,7 +389,7 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Depth strider was added in 1.8
             ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
-            if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_8)) {
+            if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 player.depthStriderLevel = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
             } else {
                 player.depthStriderLevel = 0;
@@ -433,22 +434,22 @@ public class MovementCheckRunner extends PositionCheck {
             new MovementTickerPlayer(player).livingEntityAIStep();
             new PlayerBaseTick(player).updatePlayerPose();
 
-        } else if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_9)) {
+        } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             wasChecked = true;
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
             // The player can't use entities (or the server just checks the entities)
-            if (player.playerVehicle.type == EntityType.BOAT) {
+            if (player.playerVehicle.type == EntityTypes.BOAT) {
                 new PlayerBaseTick(player).doBaseTick();
                 // Speed doesn't affect anything with boat movement
                 new BoatPredictionEngine(player).guessBestMovement(0, player);
             } else if (player.playerVehicle instanceof PacketEntityHorse) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerHorse(player).livingEntityAIStep();
-            } else if (player.playerVehicle.type == EntityType.PIG) {
+            } else if (player.playerVehicle.type == EntityTypes.PIG) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerPig(player).livingEntityAIStep();
-            } else if (player.playerVehicle.type == EntityType.STRIDER) {
+            } else if (player.playerVehicle.type == EntityTypes.STRIDER) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerStrider(player).livingEntityAIStep();
                 MovementTickerStrider.floatStrider(player);
@@ -518,7 +519,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastMetadataDesync--;
 
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
-        player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
+        player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));
         player.vehicleData.horseJump = player.vehicleData.nextHorseJump;
 
         player.checkManager.getKnockbackHandler().handlePlayerKb(offset);

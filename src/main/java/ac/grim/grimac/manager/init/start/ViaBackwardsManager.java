@@ -3,7 +3,8 @@ package ac.grim.grimac.manager.init.start;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
@@ -20,7 +21,7 @@ public class ViaBackwardsManager implements Initable {
         // We have a more accurate version of this patch
         System.setProperty("com.viaversion.ignorePaperBlockPlacePatch", "true");
 
-        if (ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17)) {
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
             // Enable ping -> transaction packet
             System.setProperty("com.viaversion.handlePingsAsInvAcknowledgements", "true");
 

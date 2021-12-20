@@ -4,13 +4,14 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.steervehicle.WrappedPacketInSteerVehicle;
-import io.github.retrooper.packetevents.utils.vector.Vector3d;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 
 public class PacketPlayerSteer extends PacketListenerAbstract {
 
@@ -19,12 +20,11 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        byte packetID = event.getPacketId();
+    public void onPacketReceive(PacketReceiveEvent event) {
 
-        if (packetID == PacketType.Play.Client.STEER_VEHICLE) {
-            WrappedPacketInSteerVehicle steer = new WrappedPacketInSteerVehicle(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+        if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
+            WrapperPlayClientSteerVehicle steer = new WrapperPlayClientSteerVehicle(event);
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             // Multiple steer vehicles in a row, the player is not in control of their vehicle
@@ -87,8 +87,8 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
             player.packetStateData.receivedSteerVehicle = true;
 
-            player.vehicleData.nextVehicleForward = steer.getForwardValue();
-            player.vehicleData.nextVehicleForward = steer.getSideValue();
+            player.vehicleData.nextVehicleForward = steer.getForward();
+            player.vehicleData.nextVehicleHorizontal = steer.getSideways();
         }
     }
 }

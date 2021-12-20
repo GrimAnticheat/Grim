@@ -3,12 +3,12 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
-import ac.grim.grimac.utils.enums.EntityType;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 
 public class BoundingBoxSize {
     public static double getWidth(PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
-        if (packetEntity.type == EntityType.TURTLE && packetEntity.isBaby) return 0.36;
+        if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.36;
         return getWidthMinusBaby(packetEntity) * (packetEntity.isBaby ? 0.5 : 1);
     }
 

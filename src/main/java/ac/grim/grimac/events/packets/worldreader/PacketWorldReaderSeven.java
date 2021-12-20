@@ -5,12 +5,12 @@ import ac.grim.grimac.utils.chunkdata.seven.ByteArray3d;
 import ac.grim.grimac.utils.chunkdata.seven.NibbleArray3d;
 import ac.grim.grimac.utils.chunkdata.seven.SevenChunk;
 import ac.grim.grimac.utils.chunks.Column;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
-import io.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
-import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
-import io.github.retrooper.packetevents.utils.reflection.Reflection;
+import com.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import com.github.retrooper.packetevents.packetwrappers.WrappedPacket;
+import com.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
+import com.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
+import com.github.retrooper.packetevents.utils.nms.NMSUtils;
+import com.github.retrooper.packetevents.utils.reflection.Reflection;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;

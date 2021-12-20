@@ -2,11 +2,12 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.out.updatehealth.WrappedPacketOutUpdateHealth;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
+import org.bukkit.entity.Player;
 
 public class PacketPlayerRespawn extends PacketListenerAbstract {
 
@@ -15,13 +16,11 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
+    public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.UPDATE_HEALTH) {
+            WrapperPlayServerUpdateHealth health = new WrapperPlayServerUpdateHealth(event);
 
-        if (packetID == PacketType.Play.Server.UPDATE_HEALTH) {
-            WrappedPacketOutUpdateHealth health = new WrappedPacketOutUpdateHealth(event.getNMSPacket());
-
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             player.sendTransaction();

@@ -4,7 +4,7 @@ import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.Material;
 
 public class AirLiquidPlace extends BlockPlaceCheck {

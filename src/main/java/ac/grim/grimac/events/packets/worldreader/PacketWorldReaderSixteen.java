@@ -3,13 +3,13 @@ package ac.grim.grimac.events.packets.worldreader;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunkdata.sixteen.SixteenChunk;
+import com.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
+import com.github.retrooper.packetevents.packetwrappers.WrappedPacket;
+import com.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
+import com.github.retrooper.packetevents.utils.nms.NMSUtils;
+import com.github.retrooper.packetevents.utils.server.ServerVersion;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.stream.StreamNetInput;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packetwrappers.WrappedPacket;
-import io.github.retrooper.packetevents.packetwrappers.play.out.mapchunk.WrappedPacketOutMapChunk;
-import io.github.retrooper.packetevents.utils.nms.NMSUtils;
-import io.github.retrooper.packetevents.utils.server.ServerVersion;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -54,7 +54,7 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
         WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
 
         // Section Position or Chunk Section - depending on version
-        int positionPos = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 1 : 0;
+        int positionPos = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 1 : 0;
         Object position = packet.readAnyObject(positionPos);
 
         try {
@@ -65,7 +65,7 @@ public class PacketWorldReaderSixteen extends PacketWorldReaderNine {
 
             short[] blockPositions = packet.readShortArray(0);
 
-            int blockDataPos = ServerVersion.getVersion().isNewerThanOrEquals(ServerVersion.v_1_17) ? 3 : 2;
+            int blockDataPos = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 3 : 2;
             Object[] blockDataArray = (Object[]) packet.readAnyObject(blockDataPos);
 
             int range = (player.getTransactionPing() / 100) + 32;

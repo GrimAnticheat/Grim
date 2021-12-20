@@ -7,8 +7,8 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import org.bukkit.block.BlockFace;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.block.data.type.Chest;
 
 // In 1.12, chests don't have data that say what type of chest they are, other than direction
@@ -21,7 +21,7 @@ public class DynamicChest implements CollisionFactory {
 
 
         // 1.13+ clients on 1.13+ servers
-        if (chest.isModern() && version.isNewerThanOrEquals(ClientVersion.v_1_13)) {
+        if (chest.isModern() && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
             if (chest.getType() == Chest.Type.SINGLE) {
                 return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 14.0D, 15.0D);
             }

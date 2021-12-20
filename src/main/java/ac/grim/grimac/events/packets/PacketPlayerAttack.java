@@ -3,17 +3,17 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.useentity.WrappedPacketInUseEntity;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
 
 public class PacketPlayerAttack extends PacketListenerAbstract {
 
@@ -22,26 +22,26 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        if (event.getPacketId() == PacketType.Play.Client.USE_ENTITY) {
-            WrappedPacketInUseEntity action = new WrappedPacketInUseEntity(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
+            WrapperPlayClientInteractEntity interact = new WrapperPlayClientInteractEntity(event);
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
 
             if (player == null) return;
 
-            if (action.getAction() == WrappedPacketInUseEntity.EntityUseAction.ATTACK) {
-                ItemStack heldItem = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
-                Entity attackedEntity = action.getEntity();
+            if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
+                org.bukkit.inventory.ItemStack heldItem = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+                PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
 
                 // You don't get a release use item with block hitting with a sword?
-                if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.v_1_9)) {
+                if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
                     if (heldItem.getType().toString().endsWith("_SWORD"))
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 }
 
-                if (attackedEntity != null && (!(attackedEntity instanceof LivingEntity) || attackedEntity instanceof Player)) {
+                if (entity != null && (!(entity.type instanceof LivingEntity) || entity.type == EntityTypes.PLAYER)) {
                     boolean hasKnockbackSword = heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0;
-                    boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8);
+                    boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8);
                     boolean hasNegativeKB = heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) < 0;
 
                     // 1.8 players who are packet sprinting WILL get slowed

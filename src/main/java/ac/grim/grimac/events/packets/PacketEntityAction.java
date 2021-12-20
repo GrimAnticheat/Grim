@@ -3,14 +3,14 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.entityaction.WrappedPacketInEntityAction;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
+import org.bukkit.entity.Player;
 
 public class PacketEntityAction extends PacketListenerAbstract {
 
@@ -21,10 +21,10 @@ public class PacketEntityAction extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        if (event.getPacketId() == PacketType.Play.Client.ENTITY_ACTION) {
-            WrappedPacketInEntityAction action = new WrappedPacketInEntityAction(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.ENTITY_ACTION) {
+            WrapperPlayClientEntityAction action = new WrapperPlayClientEntityAction(event);
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
 
             if (player == null) return;
 
@@ -41,10 +41,10 @@ public class PacketEntityAction extends PacketListenerAbstract {
                 case STOP_SNEAKING:
                     player.isSneaking = false;
                     break;
-                case START_FALL_FLYING:
+                case START_FLYING_WITH_ELYTRA:
                     // Starting fall flying is client sided on 1.14 and below
-                    if (player.getClientVersion().isOlderThan(ClientVersion.v_1_15)) return;
-                    ItemStack chestPlate = player.bukkitPlayer.getInventory().getChestplate();
+                    if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return;
+                    org.bukkit.inventory.ItemStack chestPlate = player.bukkitPlayer.getInventory().getChestplate();
 
                     // I have a bad feeling that there might be a way to fly without durability using this
                     // The server SHOULD resync by telling the client to stop using the elytra if they can't fly!
@@ -57,7 +57,7 @@ public class PacketEntityAction extends PacketListenerAbstract {
                         player.getSetbackTeleportUtil().executeForceResync();
                     }
                     break;
-                case START_RIDING_JUMP:
+                case START_JUMPING_WITH_HORSE:
                     player.vehicleData.nextHorseJump = action.getJumpBoost();
                     break;
             }

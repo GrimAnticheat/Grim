@@ -5,14 +5,14 @@ import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.enums.EntityType;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -207,7 +207,7 @@ public class PredictionEngine {
         }
 
         // Swimming vertically can add more Y velocity than normal
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) && player.isSwimming) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && player.isSwimming) {
             pointThreePossibilities = PredictionEngineWater.transformSwimmingVectors(player, pointThreePossibilities);
         }
         // This is a secure method to add jumping vectors to this list
@@ -242,7 +242,7 @@ public class PredictionEngine {
     public void addFluidPushingToStartingVectors(GrimPlayer player, Set<VectorData> data) {
         for (VectorData vectorData : data) {
             if (vectorData.isKnockback() && player.baseTickWaterPushing.lengthSquared() != 0) {
-                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13)) {
+                if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                     Vector vec33 = vectorData.vector.clone();
                     Vector vec3 = player.baseTickWaterPushing.clone().multiply(0.014);
                     if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
@@ -287,7 +287,7 @@ public class PredictionEngine {
     // Renamed from applyPointZeroZeroThree to avoid confusion with applyZeroPointZeroThree
     public void applyMovementThreshold(GrimPlayer player, Set<VectorData> velocities) {
         double minimumMovement = 0.003D;
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_8)) {
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
             minimumMovement = 0.005D;
         }
 
@@ -558,7 +558,7 @@ public class PredictionEngine {
 
     public boolean canSwimHop(GrimPlayer player) {
         // Boats cannot swim hop, all other living entities should be able to.
-        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT)
+        if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT)
             return false;
 
         // Vanilla system ->

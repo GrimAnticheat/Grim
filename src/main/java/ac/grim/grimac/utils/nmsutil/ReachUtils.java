@@ -3,8 +3,8 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import io.github.retrooper.packetevents.utils.pair.Pair;
-import org.bukkit.block.BlockFace;
+import ac.grim.grimac.utils.data.Pair;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.util.Vector;
 
 public class ReachUtils {

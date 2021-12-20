@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data.packetentity;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 
 public class PacketEntityHorse extends PacketEntity {
 
@@ -19,7 +20,7 @@ public class PacketEntityHorse extends PacketEntity {
     // If any one of the three scenarios is false, we are fine
     // If you do see a plugin doing this, please tell me which packet it is
 
-    public PacketEntityHorse(GrimPlayer player, ac.grim.grimac.utils.enums.EntityType type, double x, double y, double z) {
+    public PacketEntityHorse(GrimPlayer player, EntityType type, double x, double y, double z) {
         super(player, type, x, y, z);
     }
 }

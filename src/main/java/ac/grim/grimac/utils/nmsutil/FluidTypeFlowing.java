@@ -6,7 +6,7 @@ import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
@@ -98,7 +98,7 @@ public class FluidTypeFlowing {
         if (blockMaterial == ICE) return false;
 
         // 1.11 and below clients use a different method to determine solid faces
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12)) {
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
             if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON) {
                 WrappedPistonBase pistonBase = (WrappedPistonBase) dataValue;
                 return pistonBase.getDirection().getOppositeFace() == direction ||
@@ -109,7 +109,7 @@ public class FluidTypeFlowing {
             }
         }
 
-        if (player.getClientVersion().isOlderThan(ClientVersion.v_1_12)) {
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_12)) {
             // No bush, cocoa, wart, reed
             // No double grass, tall grass, or vine
             // No button, flower pot, ladder, lever, rail, redstone, redstone wire, skull, torch, trip wire, or trip wire hook
@@ -117,7 +117,7 @@ public class FluidTypeFlowing {
             // No snow
             // Otherwise, solid
             return !Materials.checkFlag(blockMaterial, Materials.SOLID_BLACKLIST);
-        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_12) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_13_2)) {
+        } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
             // 1.12/1.13 exempts stairs, pistons, sticky pistons, and piston heads.
             // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
             //
@@ -139,7 +139,7 @@ public class FluidTypeFlowing {
         } else {
             if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
                 // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
-                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_15_2);
+                return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
             } else if (blockMaterial == SNOW) {
                 WrappedSnow snow = (WrappedSnow) dataValue;
                 return snow.getLayers() == 8;
@@ -149,7 +149,7 @@ public class FluidTypeFlowing {
             } else if (blockMaterial == COMPOSTER) {
                 return true;
             } else if (blockMaterial == SOUL_SAND) {
-                return player.getClientVersion().isOlderThanOrEquals(ClientVersion.v_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_16);
+                return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
             } else if (blockMaterial == LADDER) {
                 WrappedDirectional ladder = (WrappedDirectional) dataValue;
                 return ladder.getDirection().getOppositeFace() == direction;

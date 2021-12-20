@@ -1,6 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
-import io.github.retrooper.packetevents.utils.pair.Pair;
+import ac.grim.grimac.utils.data.Pair;
 
 import java.util.Iterator;
 import java.util.Map;

@@ -10,8 +10,8 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import org.bukkit.block.BlockFace;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 import java.util.stream.IntStream;
 
@@ -118,7 +118,7 @@ public class DynamicStair implements CollisionFactory {
         WrappedStairs stairs = (WrappedStairs) block;
 
         // If server is 1.13+ and client is also 1.13+, we can read the block's data directly
-        if (stairs.getShapeOrdinal() != -1 && version.isNewerThanOrEquals(ClientVersion.v_1_13)) {
+        if (stairs.getShapeOrdinal() != -1 && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
             return (stairs.getUpsideDown() ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[getShapeIndex(stairs, stairs.getShapeOrdinal())]].copy();
         } else {
             // We need to read the world to determine the stair's block shape for:

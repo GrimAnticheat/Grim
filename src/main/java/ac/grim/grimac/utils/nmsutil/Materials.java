@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
@@ -469,11 +469,11 @@ public class Materials {
     }
 
     public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
-        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
+        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
     }
 
     public static boolean isWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
-        if (clientVersion.isOlderThanOrEquals(ClientVersion.v_1_12_2)) return false;
+        if (clientVersion.isOlderThanOrEquals(ClientVersion.V_1_12_2)) return false;
         if (!XMaterial.isNewVersion()) return false;
 
         FlatBlockState flat = (FlatBlockState) state;
@@ -481,13 +481,13 @@ public class Materials {
         Material mat = blockData.getMaterial();
 
         // Waterlogged lanterns were added in 1.16.2
-        if (clientVersion.isOlderThan(ClientVersion.v_1_16_2) && (mat == LANTERN || mat == SOUL_LANTERN))
+        if (clientVersion.isOlderThan(ClientVersion.V_1_16_2) && (mat == LANTERN || mat == SOUL_LANTERN))
             return false;
         // ViaVersion small dripleaf -> fern (not waterlogged)
-        if (clientVersion.isOlderThan(ClientVersion.v_1_17) && mat == SMALL_DRIPLEAF)
+        if (clientVersion.isOlderThan(ClientVersion.V_1_17) && mat == SMALL_DRIPLEAF)
             return false;
         // Waterlogged rails were added in 1.17
-        if (clientVersion.isOlderThan(ClientVersion.v_1_17) &&
+        if (clientVersion.isOlderThan(ClientVersion.V_1_17) &&
                 (mat == RAIL || mat == POWERED_RAIL || mat == ACTIVATOR_RAIL || mat == DETECTOR_RAIL))
             return false;
 
@@ -521,7 +521,7 @@ public class Materials {
 
         // 1.13-1.15 had banners on the blacklist - removed in 1.16, not implemented in 1.12 and below
         if (Materials.checkFlag(mat, BANNER))
-            return ver.isNewerThanOrEquals(ClientVersion.v_1_13) && ver.isOlderThan(ClientVersion.v_1_16);
+            return ver.isNewerThanOrEquals(ClientVersion.V_1_13) && ver.isOlderThan(ClientVersion.V_1_16);
 
         return false;
     }
@@ -539,6 +539,6 @@ public class Materials {
     }
 
     public static boolean isWaterIgnoringWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
-        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.v_1_13) ? WATER : WATER_LEGACY);
+        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13) ? WATER : WATER_LEGACY);
     }
 }

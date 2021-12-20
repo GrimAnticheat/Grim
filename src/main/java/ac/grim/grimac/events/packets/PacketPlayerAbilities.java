@@ -2,13 +2,14 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.abilities.WrappedPacketInAbilities;
-import io.github.retrooper.packetevents.packetwrappers.play.out.abilities.WrappedPacketOutAbilities;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerAbilities;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerAbilities;
+import org.bukkit.entity.Player;
 
 public class PacketPlayerAbilities extends PacketListenerAbstract {
 
@@ -17,10 +18,10 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        if (event.getPacketId() == PacketType.Play.Client.ABILITIES) {
-            WrappedPacketInAbilities abilities = new WrappedPacketInAbilities(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ABILITIES) {
+            WrapperPlayClientPlayerAbilities abilities = new WrapperPlayClientPlayerAbilities(event);
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             // In one tick you can do the following
@@ -48,10 +49,10 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        if (event.getPacketId() == PacketType.Play.Server.ABILITIES) {
-            WrappedPacketOutAbilities abilities = new WrappedPacketOutAbilities(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+    public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.PLAYER_ABILITIES) {
+            WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
 
             // Occurs on login - we set if the player can fly on PlayerJoinEvent
             if (player == null) return;

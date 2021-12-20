@@ -3,8 +3,10 @@ package ac.grim.grimac.checks.impl.movement;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
 
 @CheckData(name = "Timer (Experimental)", configName = "TimerA", flagCooldown = 1000, maxBuffer = 5)
 public class TimerCheck extends PacketCheck {
@@ -56,14 +58,14 @@ public class TimerCheck extends PacketCheck {
     }
 
     @Override
-    public void onPacketReceive(final PacketPlayReceiveEvent event) {
-        if (hasGottenMovementAfterTransaction && checkForTransaction(event.getPacketId())) {
+    public void onPacketReceive(final PacketReceiveEvent event) {
+        if (hasGottenMovementAfterTransaction && checkForTransaction(event.getPacketType())) {
             knownPlayerClockTime = lastMovementPlayerClock;
             lastMovementPlayerClock = player.getPlayerClockAtLeast();
             hasGottenMovementAfterTransaction = false;
         }
 
-        if (checkReturnPacketType(event.getPacketId())) return;
+        if (checkReturnPacketType(event.getPacketType())) return;
 
         hasGottenMovementAfterTransaction = true;
 
@@ -89,14 +91,14 @@ public class TimerCheck extends PacketCheck {
         timerBalanceRealTime = Math.max(timerBalanceRealTime, lastMovementPlayerClock - clockDrift);
     }
 
-    public boolean checkForTransaction(byte packetType) {
+    public boolean checkForTransaction(PacketTypeCommon packetType) {
         return packetType == PacketType.Play.Client.PONG ||
-                packetType == PacketType.Play.Client.TRANSACTION;
+                packetType == PacketType.Play.Client.WINDOW_CONFIRMATION;
     }
 
-    public boolean checkReturnPacketType(byte packetType) {
+    public boolean checkReturnPacketType(PacketTypeCommon packetType) {
         // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
-        return !PacketType.Play.Client.Util.isInstanceOfFlying(packetType) ||
+        return !WrapperPlayClientFlying.isInstanceOfFlying(packetType) ||
                 player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate;
     }
 

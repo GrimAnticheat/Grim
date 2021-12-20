@@ -9,9 +9,9 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
 
 public class DynamicFence extends DynamicConnecting implements CollisionFactory {
     private static final Material NETHER_BRICK_FENCE = XMaterial.NETHER_BRICK_FENCE.parseMaterial();
@@ -25,7 +25,7 @@ public class DynamicFence extends DynamicConnecting implements CollisionFactory 
         boolean west;
 
         // 1.13+ servers on 1.13+ clients send the full fence data
-        if (XMaterial.isNewVersion() && version.isNewerThanOrEquals(ClientVersion.v_1_13)) {
+        if (XMaterial.isNewVersion() && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
             WrappedMultipleFacing fence = (WrappedMultipleFacing) block;
 
             east = fence.getDirections().contains(BlockFace.EAST);

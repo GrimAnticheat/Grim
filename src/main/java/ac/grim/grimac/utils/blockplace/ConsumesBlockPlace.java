@@ -7,11 +7,10 @@ import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.collisions.AxisUtil;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.player.Direction;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Tag;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
@@ -118,15 +117,15 @@ public class ConsumesBlockPlace {
     }
 
     private static boolean goodBellHit(GrimPlayer player, Bell bell, BlockPlace place) {
-        Direction direction = place.getDirection();
+        BlockFace direction = place.getDirection();
         return isProperHit(bell, direction, place.getHitData().getRelativeBlockHitLocation().getY());
     }
 
-    private static boolean isProperHit(Bell bell, Direction direction, double p_49742_) {
-        if (direction != Direction.UP && direction != Direction.DOWN && !(p_49742_ > (double) 0.8124F)) {
-            BlockFace dir = bell.getFacing();
+    private static boolean isProperHit(Bell bell, BlockFace direction, double p_49742_) {
+        if (direction != BlockFace.UP && direction != BlockFace.DOWN && !(p_49742_ > (double) 0.8124F)) {
+            org.bukkit.block.BlockFace dir = bell.getFacing();
             Bell.Attachment attachment = bell.getAttachment();
-            BlockFace dir2 = BlockFace.valueOf(direction.name());
+            org.bukkit.block.BlockFace dir2 = org.bukkit.block.BlockFace.valueOf(direction.name());
 
             switch (attachment) {
                 case FLOOR:

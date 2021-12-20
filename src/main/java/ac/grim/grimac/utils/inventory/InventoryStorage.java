@@ -1,26 +1,28 @@
 package ac.grim.grimac.utils.inventory;
 
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+
 public class InventoryStorage {
-    WrappedStack[] items;
+    ItemStack[] items;
 
     public InventoryStorage(int size) {
-        this.items = new WrappedStack[size];
+        this.items = new ItemStack[size];
 
         for (int i = 0; i < size; i++) {
-            items[i] = WrappedStack.empty();
+            items[i] = ItemStack.EMPTY;
         }
     }
 
-    public void setItem(int item, WrappedStack stack) {
+    public void setItem(int item, ItemStack stack) {
         items[item] = stack;
     }
 
-    public WrappedStack getItem(int index) {
+    public ItemStack getItem(int index) {
         return items[index];
     }
 
-    public WrappedStack removeItem(int slot, int amount) {
-        return slot >= 0 && slot < items.length && !items[slot].isEmpty() && amount > 0 ? items[slot].split(amount) : WrappedStack.empty();
+    public ItemStack removeItem(int slot, int amount) {
+        return slot >= 0 && slot < items.length && !items[slot].isEmpty() && amount > 0 ? items[slot].split(amount) : ItemStack.EMPTY;
     }
 
     public int getMaxStackSize() {

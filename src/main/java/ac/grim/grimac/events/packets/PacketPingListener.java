@@ -2,14 +2,17 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import io.github.retrooper.packetevents.event.PacketListenerAbstract;
-import io.github.retrooper.packetevents.event.PacketListenerPriority;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import io.github.retrooper.packetevents.packettype.PacketType;
-import io.github.retrooper.packetevents.packetwrappers.play.in.pong.WrappedPacketInPong;
-import io.github.retrooper.packetevents.packetwrappers.play.in.transaction.WrappedPacketInTransaction;
-import io.github.retrooper.packetevents.utils.pair.Pair;
+import ac.grim.grimac.utils.data.Pair;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPong;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientWindowConfirmation;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
+import org.bukkit.entity.Player;
 
 public class PacketPingListener extends PacketListenerAbstract {
 
@@ -19,16 +22,14 @@ public class PacketPingListener extends PacketListenerAbstract {
     }
 
     @Override
-    public void onPacketPlayReceive(PacketPlayReceiveEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Client.TRANSACTION) {
-            WrappedPacketInTransaction transaction = new WrappedPacketInTransaction(event.getNMSPacket());
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
+            WrapperPlayClientWindowConfirmation transaction = new WrapperPlayClientWindowConfirmation(event);
             short id = transaction.getActionNumber();
 
             // Vanilla always uses an ID starting from 1
             if (id <= 0) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
                 if (player == null) return;
 
                 // Check if we sent this packet before cancelling it
@@ -38,14 +39,14 @@ public class PacketPingListener extends PacketListenerAbstract {
             }
         }
 
-        if (packetID == PacketType.Play.Client.PONG) {
-            WrappedPacketInPong pong = new WrappedPacketInPong(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Client.PONG) {
+            WrapperPlayClientPong pong = new WrapperPlayClientPong(event);
 
             int id = pong.getId();
             // If it wasn't below 0, it wasn't us
             // If it wasn't in short range, it wasn't us either
             if (id == (short) id) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
                 if (player == null) return;
                 if (player.addTransactionResponse((short) id)) {
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
@@ -55,24 +56,22 @@ public class PacketPingListener extends PacketListenerAbstract {
         }
 
         // Prevent players from OOM'ing the server by running through queue's on keepalive
-        if (packetID == PacketType.Play.Client.KEEP_ALIVE) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+        if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
             player.movementCheckRunner.runTransactionQueue(player);
         }
     }
 
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Server.TRANSACTION) {
-            WrappedPacketInTransaction transaction = new WrappedPacketInTransaction(event.getNMSPacket());
-            short id = transaction.getActionNumber();
+    public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.WINDOW_CONFIRMATION) {
+            WrapperPlayServerWindowConfirmation confirmation = new WrapperPlayServerWindowConfirmation(event);
+            short id = confirmation.getActionId();
 
             // Vanilla always uses an ID starting from 1
             if (id <= 0) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
                 if (player == null) return;
 
                 if (player.didWeSendThatTrans.remove((Short) id)) {
@@ -82,13 +81,13 @@ public class PacketPingListener extends PacketListenerAbstract {
             }
         }
 
-        if (packetID == PacketType.Play.Server.PING) {
-            WrappedPacketInPong pong = new WrappedPacketInPong(event.getNMSPacket());
+        if (event.getPacketType() == PacketType.Play.Server.PING) {
+            WrapperPlayServerPing pong = new WrapperPlayServerPing(event);
 
             int id = pong.getId();
             // Check if in the short range, we only use short range
             if (id == (short) id) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
                 if (player == null) return;
                 // Cast ID twice so we can use the list
                 Short shortID = ((short) id);

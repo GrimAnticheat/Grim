@@ -15,11 +15,12 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.latency.CompensatedCooldown;
+import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
+import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
-import io.github.retrooper.packetevents.event.impl.PacketPlayReceiveEvent;
-import io.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
 
 public class CheckManager {
     ClassToInstanceMap<PacketCheck> packetChecks;
@@ -65,6 +66,7 @@ public class CheckManager {
                 .put(EntityControl.class, new EntityControl(player))
                 .put(NoSlow.class, new NoSlow(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
+                .put(CompensatedFireworks.class, new CompensatedFireworks(player))
                 .build();
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
@@ -84,11 +86,11 @@ public class CheckManager {
         return vehicleCheck.get(check);
     }
 
-    public void onPacketReceive(final PacketPlayReceiveEvent packet) {
+    public void onPacketReceive(final PacketReceiveEvent packet) {
         packetChecks.values().forEach(packetCheck -> packetCheck.onPacketReceive(packet));
     }
 
-    public void onPacketSend(final PacketPlaySendEvent packet) {
+    public void onPacketSend(final PacketSendEvent packet) {
         packetChecks.values().forEach(packetCheck -> packetCheck.onPacketSend(packet));
     }
 

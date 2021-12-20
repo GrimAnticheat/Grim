@@ -4,11 +4,11 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.XMaterial;
-import io.github.retrooper.packetevents.utils.pair.Pair;
-import io.github.retrooper.packetevents.utils.player.ClientVersion;
-import io.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.data.Bisected;
@@ -194,7 +194,7 @@ public class CompensatedWorldFlat extends CompensatedWorld {
         }
 
         // These blocks are also considered source blocks (kelp, bubble column, etc.)
-        return Materials.checkFlag(bukkitBlock.getMaterial(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.v_1_13) ? Materials.WATER_SOURCE : Materials.WATER_SOURCE_LEGACY);
+        return Materials.checkFlag(bukkitBlock.getMaterial(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? Materials.WATER_SOURCE : Materials.WATER_SOURCE_LEGACY);
     }
 
     @Override

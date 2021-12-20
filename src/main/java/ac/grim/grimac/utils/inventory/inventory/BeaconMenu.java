@@ -3,7 +3,7 @@ package ac.grim.grimac.utils.inventory.inventory;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.WrappedStack;
+import ac.grim.grimac.utils.inventory.ItemStack;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import org.bukkit.Tag;
 
@@ -16,7 +16,7 @@ public class BeaconMenu extends AbstractContainerMenu{
 
         addSlot(new Slot(containerStorage, 0) {
             @Override
-            public boolean mayPlace(WrappedStack itemstack) {
+            public boolean mayPlace(ItemStack itemstack) {
                 return Tag.ITEMS_BEACON_PAYMENT_ITEMS.isTagged(itemstack.getItem());
             }
 
@@ -30,38 +30,38 @@ public class BeaconMenu extends AbstractContainerMenu{
     }
 
     @Override
-    public WrappedStack quickMoveStack(int slotID) {
-        WrappedStack itemstack = WrappedStack.empty();
+    public ItemStack quickMoveStack(int slotID) {
+        ItemStack itemstack = ItemStack.EMPTY;
         Slot slot = this.slots.get(slotID);
         if (slot != null && slot.hasItem()) {
-            WrappedStack itemstack1 = slot.getItem();
+            ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
             if (slotID == 0) {
                 if (!this.moveItemStackTo(itemstack1, 1, 37, true)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
-            } else if (!getSlot(0).hasItem() && getSlot(0).mayPlace(itemstack1) && itemstack1.getCount() == 1) {
+            } else if (!getSlot(0).hasItem() && getSlot(0).mayPlace(itemstack1) && itemstack1.getAmount() == 1) {
                 if (!this.moveItemStackTo(itemstack1, 0, 1, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (slotID >= 1 && slotID < 28) {
                 if (!this.moveItemStackTo(itemstack1, 28, 37, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (slotID >= 28 && slotID < 37) {
                 if (!this.moveItemStackTo(itemstack1, 1, 28, false)) {
-                    return WrappedStack.empty();
+                    return ItemStack.EMPTY;
                 }
             } else if (!this.moveItemStackTo(itemstack1, 1, 37, false)) {
-                return WrappedStack.empty();
+                return ItemStack.EMPTY;
             }
 
             if (itemstack1.isEmpty()) {
-                slot.set(WrappedStack.empty());
+                slot.set(ItemStack.EMPTY);
             }
 
-            if (itemstack1.getCount() == itemstack.getCount()) {
-                return WrappedStack.empty();
+            if (itemstack1.getAmount() == itemstack.getAmount()) {
+                return ItemStack.EMPTY;
             }
 
             slot.onTake(player, itemstack1);
