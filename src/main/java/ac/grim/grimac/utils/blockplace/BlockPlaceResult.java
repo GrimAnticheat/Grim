@@ -14,7 +14,6 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.nmsutil.Dripstone;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3i;
 import io.papermc.lib.PaperLib;
@@ -41,7 +40,7 @@ public enum BlockPlaceResult {
             data.setFacing(BlockFaceHelper.getClockWise(place.getPlayerFacing()));
             place.set(new FlatBlockState(data));
         }
-    }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
+    }, ItemTypes.ANVIL, ItemTypes.CHIPPED_ANVIL, ItemTypes.DAMAGED_ANVIL),
 
     // The client only predicts one of the individual bed blocks, interestingly
     BED((player, place) -> {
@@ -74,7 +73,7 @@ public enum BlockPlaceResult {
             }
         }
 
-    }, XMaterial.SNOW.parseMaterial()),
+    }, ItemTypes.SNOW),
 
     SLAB((player, place) -> {
         Vector clickedPos = place.getClickedLocation();
@@ -109,7 +108,7 @@ public enum BlockPlaceResult {
         Directional endRod = (Directional) place.getMaterial().createBlockData();
         endRod.setFacing(BlockFaceHelper.toBukkitFace(place.getDirection()));
         place.set(endRod);
-    }, XMaterial.END_ROD.parseMaterial(), XMaterial.LIGHTNING_ROD.parseMaterial()),
+    }, ItemTypes.END_ROD, ItemTypes.LIGHTNING_ROD),
 
     LADDER((player, place) -> {
         // Horizontal ladders aren't a thing
@@ -119,7 +118,7 @@ public enum BlockPlaceResult {
         Directional ladder = (Directional) place.getMaterial().createBlockData();
         ladder.setFacing(BlockFaceHelper.toBukkitFace(place.getDirection()));
         place.set(ladder);
-    }, XMaterial.LADDER.parseMaterial()),
+    }, ItemTypes.LADDER),
 
     FARM_BLOCK((player, place) -> {
         // What we also need to check:
@@ -127,14 +126,14 @@ public enum BlockPlaceResult {
         if (!Materials.checkFlag(above.getMaterial(), Materials.SOLID_BLACKLIST) || Materials.checkFlag(above.getMaterial(), Materials.GATE) || above.getMaterial() == Material.MOVING_PISTON) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.FARMLAND.parseMaterial()),
+    }, ItemTypes.FARMLAND),
 
     // 1.13+ only blocks from here below!  No need to write everything twice
     AMETHYST_CLUSTER((player, place) -> {
         AmethystCluster amethyst = (AmethystCluster) place.getMaterial().createBlockData();
         amethyst.setFacing(BlockFaceHelper.toBukkitFace(place.getDirection()));
         if (place.isFullFace(place.getDirection().getOppositeFace())) place.set(amethyst);
-    }, XMaterial.AMETHYST_CLUSTER.parseMaterial()),
+    }, ItemTypes.AMETHYST_CLUSTER),
 
     BAMBOO((player, place) -> {
         Vector3i clicked = place.getPlacedAgainstBlockLocation();
@@ -153,7 +152,7 @@ public enum BlockPlaceResult {
                 }
             }
         }
-    }, XMaterial.BAMBOO.parseMaterial(), XMaterial.BAMBOO_SAPLING.parseMaterial()),
+    }, ItemTypes.BAMBOO, ItemTypes.BAMBOO_SAPLING),
 
     BELL((player, place) -> {
         BlockFace direction = place.getDirection();
@@ -196,7 +195,7 @@ public enum BlockPlaceResult {
             canSurvive = place.isFullFace(flag1 ? BlockFace.DOWN : BlockFace.UP);
         }
         if (canSurvive) place.set(bell);
-    }, XMaterial.BELL.parseMaterial()),
+    }, ItemTypes.BELL),
 
     CANDLE((player, place) -> {
         BlockData existing = place.getExistingBlockBlockData();
@@ -229,7 +228,7 @@ public enum BlockPlaceResult {
         }
 
         place.set(pickle);
-    }, XMaterial.SEA_PICKLE.parseMaterial()),
+    }, ItemTypes.SEA_PICKLE),
 
     CHAIN((player, place) -> {
         Chain chain = (Chain) place.getMaterial().createBlockData();
@@ -251,7 +250,7 @@ public enum BlockPlaceResult {
         }
 
         place.set(chain);
-    }, XMaterial.CHAIN.parseMaterial()),
+    }, ItemTypes.CHAIN),
 
     COCOA((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
@@ -264,7 +263,7 @@ public enum BlockPlaceResult {
                 break;
             }
         }
-    }, XMaterial.COCOA.parseMaterial()),
+    }, ItemTypes.COCOA),
 
     DIRT_PATH((player, place) -> {
         BaseBlockState state = place.getDirectionalState(BlockFace.UP);
@@ -274,14 +273,14 @@ public enum BlockPlaceResult {
         } else {
             place.set(Material.DIRT);
         }
-    }, XMaterial.DIRT_PATH.parseMaterial()),
+    }, ItemTypes.DIRT_PATH),
 
     HOPPER((player, place) -> {
         BlockFace opposite = place.getDirection().getOppositeFace();
         Hopper hopper = (Hopper) place.getMaterial().createBlockData();
         hopper.setFacing(BlockFaceHelper.toBukkitFace(place.isFaceVertical() ? BlockFace.DOWN : opposite));
         place.set(hopper);
-    }, XMaterial.HOPPER.parseMaterial()),
+    }, ItemTypes.HOPPER),
 
     LANTERN((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
@@ -297,7 +296,7 @@ public enum BlockPlaceResult {
             place.set(new FlatBlockState(lantern));
             return;
         }
-    }, XMaterial.LANTERN.parseMaterial(), XMaterial.SOUL_LANTERN.parseMaterial()),
+    }, ItemTypes.LANTERN, ItemTypes.SOUL_LANTERN),
 
     POINTED_DRIPSTONE((player, place) -> {
         // To explain what Mojang is doing, take the example of placing on top face
@@ -340,7 +339,7 @@ public enum BlockPlaceResult {
         Dripstone.update(player, toPlace, placedPos.getX(), placedPos.getY(), placedPos.getZ(), place.isSecondaryUse());
 
         place.set(toPlace);
-    }, XMaterial.POINTED_DRIPSTONE.parseMaterial()),
+    }, ItemTypes.POINTED_DRIPSTONE),
 
     CACTUS((player, place) -> {
         for (BlockFace face : place.getHorizontalFaces()) {
@@ -352,26 +351,26 @@ public enum BlockPlaceResult {
         if (place.isOn(Material.CACTUS, Material.SAND, Material.RED_SAND) && !place.isLava(BlockFace.UP)) {
             place.set();
         }
-    }, XMaterial.CACTUS.parseMaterial()),
+    }, ItemTypes.CACTUS),
 
     CAKE((player, place) -> {
         if (place.isSolid(BlockFace.DOWN)) {
             place.set();
         }
-    }, XMaterial.CAKE.parseMaterial(), XMaterial.CANDLE_CAKE.parseMaterial()),
+    }, ItemTypes.CAKE, ItemTypes.CANDLE_CAKE),
 
     PISTON_BASE((player, place) -> {
         Piston piston = (Piston) place.getMaterial().createBlockData();
         piston.setFacing(BlockFaceHelper.toBukkitFace(place.getNearestVerticalDirection().getOppositeFace()));
         place.set(piston);
-    }, XMaterial.PISTON.parseMaterial(), XMaterial.STICKY_PISTON.parseMaterial()),
+    }, ItemTypes.PISTON, ItemTypes.STICKY_PISTON),
 
     AZALEA((player, place) -> {
         BaseBlockState below = place.getBelowState();
         if (place.isOnDirt() || below.getMaterial() == Material.FARMLAND || below.getMaterial() == Material.CLAY) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.AZALEA.parseMaterial()),
+    }, ItemTypes.AZALEA),
 
     CROP((player, place) -> {
         BaseBlockState below = place.getBelowState();
@@ -386,8 +385,8 @@ public enum BlockPlaceResult {
                 }
             });
         }
-    }, XMaterial.CARROTS.parseMaterial(), XMaterial.BEETROOTS.parseMaterial(), XMaterial.POTATOES.parseMaterial(),
-            XMaterial.PUMPKIN_STEM.parseMaterial(), XMaterial.MELON_STEM.parseMaterial(), XMaterial.WHEAT.parseMaterial()),
+    }, ItemTypes.CARROTS, ItemTypes.BEETROOTS, ItemTypes.POTATOES,
+            ItemTypes.PUMPKIN_STEM, ItemTypes.MELON_STEM, ItemTypes.WHEAT),
 
     SUGARCANE((player, place) -> {
         if (place.isOn(Material.SUGAR_CANE)) {
@@ -411,7 +410,7 @@ public enum BlockPlaceResult {
                 }
             }
         }
-    }, XMaterial.SUGAR_CANE.parseMaterial()),
+    }, ItemTypes.SUGAR_CANE),
 
     CARPET((player, place) -> {
         if (!Materials.checkFlag(place.getBelowState().getMaterial(), Materials.AIR)) {
@@ -445,7 +444,7 @@ public enum BlockPlaceResult {
         } else {
             place.set();
         }
-    }, XMaterial.CHORUS_FLOWER.parseMaterial()),
+    }, ItemTypes.CHORUS_FLOWER),
 
     CHORUS_PLANT((player, place) -> {
         BaseBlockState blockstate = place.getBelowState();
@@ -474,7 +473,7 @@ public enum BlockPlaceResult {
         if (blockstate.getMaterial() == Material.CHORUS_PLANT || blockstate.getMaterial() == Material.END_STONE) {
             place.set();
         }
-    }, XMaterial.CHORUS_PLANT.parseMaterial()),
+    }, ItemTypes.CHORUS_PLANT),
 
     DEAD_BUSH((player, place) -> {
         BaseBlockState below = place.getBelowState();
@@ -482,7 +481,7 @@ public enum BlockPlaceResult {
                 below.getMaterial().name().contains("TERRACOTTA") || place.isOnDirt()) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.DEAD_BUSH.parseMaterial()),
+    }, ItemTypes.DEAD_BUSH),
 
     DIODE((player, place) -> {
         if (place.isFaceRigid(BlockFace.DOWN)) {
@@ -490,39 +489,39 @@ public enum BlockPlaceResult {
         }
     }, Materials.matchLegacy("LEGACY_DIODE_BLOCK_OFF"), Materials.matchLegacy("LEGACY_DIODE_BLOCK_ON"),
             Materials.matchLegacy("LEGACY_REDSTONE_COMPARATOR_ON"), Materials.matchLegacy("LEGACY_REDSTONE_COMPARATOR_OFF"),
-            XMaterial.REPEATER.parseMaterial(), XMaterial.COMPARATOR.parseMaterial(),
-            XMaterial.REDSTONE_WIRE.parseMaterial()),
+            ItemTypes.REPEATER, ItemTypes.COMPARATOR,
+            ItemTypes.REDSTONE_WIRE),
 
     FUNGUS((player, place) -> {
         if (place.isOn(Material.CRIMSON_NYLIUM, Material.WARPED_NYLIUM, Material.MYCELIUM, Material.SOUL_SOIL, Material.FARMLAND) || place.isOnDirt()) {
             place.set();
         }
-    }, XMaterial.CRIMSON_FUNGUS.parseMaterial(), XMaterial.WARPED_FUNGUS.parseMaterial()),
+    }, ItemTypes.CRIMSON_FUNGUS, ItemTypes.WARPED_FUNGUS),
 
     SPROUTS((player, place) -> {
         if (place.isOn(Material.CRIMSON_NYLIUM, Material.WARPED_NYLIUM, Material.SOUL_SOIL, Material.FARMLAND) || place.isOnDirt()) {
             place.set();
         }
-    }, XMaterial.NETHER_SPROUTS.parseMaterial(), XMaterial.WARPED_ROOTS.parseMaterial(), XMaterial.CRIMSON_ROOTS.parseMaterial()),
+    }, ItemTypes.NETHER_SPROUTS, ItemTypes.WARPED_ROOTS, ItemTypes.CRIMSON_ROOTS),
 
     NETHER_WART((player, place) -> {
         if (place.isOn(Material.SOUL_SAND)) {
             place.set();
         }
-    }, XMaterial.NETHER_WART.parseMaterial()),
+    }, ItemTypes.NETHER_WART),
 
     WATERLILY((player, place) -> {
         BaseBlockState below = place.getDirectionalState(BlockFace.DOWN);
         if (!place.isInLiquid() && (Materials.isWater(player.getClientVersion(), below) || place.isOn(Material.ICE, Material.FROSTED_ICE))) {
             place.set();
         }
-    }, XMaterial.LILY_PAD.parseMaterial()),
+    }, ItemTypes.LILY_PAD),
 
     WITHER_ROSE((player, place) -> {
         if (place.isOn(Material.NETHERRACK, Material.SOUL_SAND, Material.SOUL_SOIL, Material.FARMLAND) || place.isOnDirt()) {
             place.set();
         }
-    }, XMaterial.WITHER_ROSE.parseMaterial()),
+    }, ItemTypes.WITHER_ROSE),
 
     // Blocks that have both wall and standing states
     TORCH_OR_HEAD((player, place) -> {
@@ -593,7 +592,7 @@ public enum BlockPlaceResult {
         }
 
         place.set(toSet);
-    }, XMaterial.GLOW_LICHEN.parseMaterial()),
+    }, ItemTypes.GLOW_LICHEN),
 
     FACE_ATTACHED_HORIZONTAL_DIRECTIONAL((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
@@ -644,33 +643,33 @@ public enum BlockPlaceResult {
         if (place.isFullFace(BlockFace.DOWN) || existing.getMaterial() == Material.BIG_DRIPLEAF || existing.getMaterial() == Material.BIG_DRIPLEAF_STEM) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.BIG_DRIPLEAF.parseMaterial()),
+    }, ItemTypes.BIG_DRIPLEAF),
 
     SMALL_DRIPLEAF((player, place) -> {
         BlockData existing = place.getDirectionalFlatState(BlockFace.DOWN).getBlockData();
         if (place.isBlockFaceOpen(BlockFace.UP) && Tag.SMALL_DRIPLEAF_PLACEABLE.isTagged(existing.getMaterial()) || (place.isInWater() && (place.isOnDirt() || existing.getMaterial() == Material.FARMLAND))) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.SMALL_DRIPLEAF.parseMaterial()),
+    }, ItemTypes.SMALL_DRIPLEAF),
 
     SEAGRASS((player, place) -> {
         BlockData existing = place.getDirectionalFlatState(BlockFace.DOWN).getBlockData();
         if (place.isInWater() && place.isFullFace(BlockFace.DOWN) && existing.getMaterial() != Material.MAGMA_BLOCK) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.SEAGRASS.parseMaterial()),
+    }, ItemTypes.SEAGRASS),
 
     HANGING_ROOT((player, place) -> {
         if (place.isFullFace(BlockFace.UP)) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.HANGING_ROOTS.parseMaterial()),
+    }, ItemTypes.HANGING_ROOTS),
 
     SPORE_BLOSSOM((player, place) -> {
         if (place.isFullFace(BlockFace.UP) && !place.isInWater()) {
             place.set();
         }
-    }, XMaterial.SPORE_BLOSSOM.parseMaterial()),
+    }, ItemTypes.SPORE_BLOSSOM),
 
     FIRE((player, place) -> {
         boolean byFlammable = false;
@@ -680,13 +679,13 @@ public enum BlockPlaceResult {
         if (byFlammable || place.isFullFace(BlockFace.DOWN)) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.FIRE.parseMaterial(), XMaterial.SOUL_FIRE.parseMaterial()), // soul fire isn't directly placeable
+    }, ItemTypes.FIRE, ItemTypes.SOUL_FIRE), // soul fire isn't directly placeable
 
     TRIPWIRE_HOOK((player, place) -> {
         if (place.isFaceHorizontal() && place.isFullFace(place.getDirection().getOppositeFace())) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.TRIPWIRE_HOOK.parseMaterial()),
+    }, ItemTypes.TRIPWIRE_HOOK),
 
     CORAL_PLANT((player, place) -> {
         if (place.isFullFace(BlockFace.DOWN)) {
@@ -738,28 +737,28 @@ public enum BlockPlaceResult {
         if (below != Material.MAGMA_BLOCK && (place.isFullFace(BlockFace.DOWN) || below == Material.KELP || below == Material.KELP_PLANT) && place.isInWater()) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.KELP.parseMaterial()),
+    }, ItemTypes.KELP),
 
     CAVE_VINE((player, place) -> {
         Material below = place.getDirectionalFlatState(BlockFace.UP).getMaterial();
         if (place.isFullFace(BlockFace.DOWN) || below == Material.CAVE_VINES || below == Material.CAVE_VINES_PLANT) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.CAVE_VINES.parseMaterial()),
+    }, ItemTypes.CAVE_VINES),
 
     WEEPING_VINE((player, place) -> {
         Material below = place.getDirectionalFlatState(BlockFace.UP).getMaterial();
         if (place.isFullFace(BlockFace.UP) || below == Material.WEEPING_VINES || below == Material.WEEPING_VINES_PLANT) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.WEEPING_VINES.parseMaterial()),
+    }, ItemTypes.WEEPING_VINES),
 
     TWISTED_VINE((player, place) -> {
         Material below = place.getDirectionalFlatState(BlockFace.DOWN).getMaterial();
         if (place.isFullFace(BlockFace.DOWN) || below == Material.TWISTING_VINES || below == Material.TWISTING_VINES_PLANT) {
             place.set(place.getMaterial());
         }
-    }, XMaterial.TWISTING_VINES.parseMaterial()),
+    }, ItemTypes.TWISTING_VINES),
 
     // Vine logic
     // If facing up, then there is a face facing up.
@@ -779,7 +778,7 @@ public enum BlockPlaceResult {
                 return;
             }
         }
-    }, XMaterial.VINE.parseMaterial()),
+    }, ItemTypes.VINE),
 
     FENCE_GATE((player, place) -> {
         Gate gate = (Gate) place.getMaterial().createBlockData();
@@ -886,8 +885,8 @@ public enum BlockPlaceResult {
             place.set();
             place.setAbove(); // Client predicts block above
         }
-    }, XMaterial.TALL_GRASS.parseMaterial(), XMaterial.LARGE_FERN.parseMaterial(), XMaterial.SUNFLOWER.parseMaterial(),
-            XMaterial.LILAC.parseMaterial(), XMaterial.ROSE_BUSH.parseMaterial(), XMaterial.PEONY.parseMaterial()),
+    }, ItemTypes.TALL_GRASS, ItemTypes.LARGE_FERN, ItemTypes.SUNFLOWER,
+            ItemTypes.LILAC, ItemTypes.ROSE_BUSH, ItemTypes.PEONY),
 
     MUSHROOM((player, place) -> {
         if (Tag.MUSHROOM_GROW_BLOCK.isTagged(place.getBelowMaterial())) {
@@ -902,26 +901,26 @@ public enum BlockPlaceResult {
                 }
             });
         }
-    }, XMaterial.BROWN_MUSHROOM.parseMaterial(), XMaterial.RED_MUSHROOM.parseMaterial()),
+    }, ItemTypes.BROWN_MUSHROOM, ItemTypes.RED_MUSHROOM),
 
     BUSH_BLOCK_TYPE((player, place) -> {
         if (place.isOnDirt() || place.isOn(Material.FARMLAND)) {
             place.set();
         }
-    }, XMaterial.SPRUCE_SAPLING.parseMaterial(), XMaterial.ACACIA_SAPLING.parseMaterial(),
-            XMaterial.BIRCH_SAPLING.parseMaterial(), XMaterial.DARK_OAK_SAPLING.parseMaterial(),
-            XMaterial.OAK_SAPLING.parseMaterial(), XMaterial.JUNGLE_SAPLING.parseMaterial(),
-            XMaterial.SWEET_BERRY_BUSH.parseMaterial(), XMaterial.DANDELION.parseMaterial(),
-            XMaterial.POPPY.parseMaterial(), XMaterial.BLUE_ORCHID.parseMaterial(),
-            XMaterial.ALLIUM.parseMaterial(), XMaterial.AZURE_BLUET.parseMaterial(),
-            XMaterial.RED_TULIP.parseMaterial(), XMaterial.ORANGE_TULIP.parseMaterial(),
-            XMaterial.WHITE_TULIP.parseMaterial(), XMaterial.PINK_TULIP.parseMaterial(),
-            XMaterial.OXEYE_DAISY.parseMaterial(), XMaterial.CORNFLOWER.parseMaterial(),
-            XMaterial.LILY_OF_THE_VALLEY.parseMaterial(), XMaterial.GRASS.parseMaterial()),
+    }, ItemTypes.SPRUCE_SAPLING, ItemTypes.ACACIA_SAPLING,
+            ItemTypes.BIRCH_SAPLING, ItemTypes.DARK_OAK_SAPLING,
+            ItemTypes.OAK_SAPLING, ItemTypes.JUNGLE_SAPLING,
+            ItemTypes.SWEET_BERRY_BUSH, ItemTypes.DANDELION,
+            ItemTypes.POPPY, ItemTypes.BLUE_ORCHID,
+            ItemTypes.ALLIUM, ItemTypes.AZURE_BLUET,
+            ItemTypes.RED_TULIP, ItemTypes.ORANGE_TULIP,
+            ItemTypes.WHITE_TULIP, ItemTypes.PINK_TULIP,
+            ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
+            ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.GRASS),
 
     NO_DATA((player, place) -> {
         place.set(BlockStateHelper.create(place.getMaterial()));
-    }, XMaterial.AIR.parseMaterial());
+    }, ItemTypes.AIR);
 
     private static final BlockPlaceResult[] lookup = new BlockPlaceResult[Material.values().length];
 

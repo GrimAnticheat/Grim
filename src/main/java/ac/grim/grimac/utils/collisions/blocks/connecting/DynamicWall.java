@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
@@ -28,7 +27,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
 
         if (state instanceof FlatBlockState && version.isNewerThan(ClientVersion.V_1_12_2)) {
             BlockData data = ((FlatBlockState) state).getBlockData();
-            if (XMaterial.supports(16)) {
+            if (ItemTypes.supports(16)) {
                 Wall wall = (Wall) data;
 
                 if (wall.getHeight(org.bukkit.block.BlockFace.NORTH) != Wall.Height.NONE)
@@ -134,7 +133,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
         boolean east;
         boolean up;
 
-        if (XMaterial.isNewVersion() && version.isNewerThan(ClientVersion.V_1_12_2)) {
+        if (ItemTypes.isNewVersion() && version.isNewerThan(ClientVersion.V_1_12_2)) {
             WrappedMultipleFacing pane = (WrappedMultipleFacing) block;
 
             east = pane.getDirections().contains(BlockFace.EAST);

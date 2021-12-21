@@ -31,30 +31,30 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class Collisions {
-    private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
-    private static final Material COBWEB = XMaterial.COBWEB.parseMaterial();
-    private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
-    private static final Material SWEET_BERRY_BUSH = XMaterial.SWEET_BERRY_BUSH.parseMaterial();
-    private static final Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
-    private static final Material POWDER_SNOW = XMaterial.POWDER_SNOW.parseMaterial();
+    private static final Material HONEY_BLOCK = ItemTypes.HONEY_BLOCK;
+    private static final Material COBWEB = ItemTypes.COBWEB;
+    private static final Material BUBBLE_COLUMN = ItemTypes.BUBBLE_COLUMN;
+    private static final Material SWEET_BERRY_BUSH = ItemTypes.SWEET_BERRY_BUSH;
+    private static final Material SLIME_BLOCK = ItemTypes.SLIME_BLOCK;
+    private static final Material POWDER_SNOW = ItemTypes.POWDER_SNOW;
 
-    private static final Material LADDER = XMaterial.LADDER.parseMaterial();
+    private static final Material LADDER = ItemTypes.LADDER;
 
-    private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
+    private static final Material PISTON_HEAD = ItemTypes.PISTON_HEAD;
 
-    private static final Material OBSERVER = XMaterial.OBSERVER.parseMaterial();
-    private static final Material REDSTONE_BLOCK = XMaterial.REDSTONE_BLOCK.parseMaterial();
+    private static final Material OBSERVER = ItemTypes.OBSERVER;
+    private static final Material REDSTONE_BLOCK = ItemTypes.REDSTONE_BLOCK;
 
-    private static final Material ICE = XMaterial.ICE.parseMaterial();
-    private static final Material FROSTED_ICE = XMaterial.FROSTED_ICE.parseMaterial();
+    private static final Material ICE = ItemTypes.ICE;
+    private static final Material FROSTED_ICE = ItemTypes.FROSTED_ICE;
 
-    private static final Material TNT = XMaterial.TNT.parseMaterial();
-    private static final Material FARMLAND = XMaterial.FARMLAND.parseMaterial();
-    private static final Material DIRT_PATH = XMaterial.DIRT_PATH.parseMaterial();
-    private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
-    private static final Material PISTON_BASE = XMaterial.PISTON.parseMaterial();
-    private static final Material STICKY_PISTON_BASE = XMaterial.STICKY_PISTON.parseMaterial();
-    private static final Material BEACON = XMaterial.BEACON.parseMaterial();
+    private static final Material TNT = ItemTypes.TNT;
+    private static final Material FARMLAND = ItemTypes.FARMLAND;
+    private static final Material DIRT_PATH = ItemTypes.DIRT_PATH;
+    private static final Material SOUL_SAND = ItemTypes.SOUL_SAND;
+    private static final Material PISTON_BASE = ItemTypes.PISTON;
+    private static final Material STICKY_PISTON_BASE = ItemTypes.STICKY_PISTON;
+    private static final Material BEACON = ItemTypes.BEACON;
 
     private static final double COLLISION_EPSILON = 1.0E-7;
     private static final int ABSOLUTE_MAX_SIZE = 29999984;
@@ -145,7 +145,7 @@ public class Collisions {
 
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
-        if (player.clientControlledHorizontalCollision && XMaterial.supports(8) && player.playerWorld != null) {
+        if (player.clientControlledHorizontalCollision && ItemTypes.supports(8) && player.playerWorld != null) {
             WorldBorder border = player.playerWorld.getWorldBorder();
             double centerX = border.getCenter().getX();
             double centerZ = border.getCenter().getZ();

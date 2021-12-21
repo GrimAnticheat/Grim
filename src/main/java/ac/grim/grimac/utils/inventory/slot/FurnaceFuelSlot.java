@@ -1,10 +1,10 @@
 package ac.grim.grimac.utils.inventory.slot;
 
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.ItemStack;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 
-public class FurnaceFuelSlot extends Slot{
+public class FurnaceFuelSlot extends Slot {
 
     public FurnaceFuelSlot(InventoryStorage container, int slot) {
         super(container, slot);
@@ -12,12 +12,12 @@ public class FurnaceFuelSlot extends Slot{
 
     @Override
     public boolean mayPlace(ItemStack stack) {
-        return stack.getStack().getType().isFuel() || stack.getStack().getType() == Material.BUCKET;
+        return stack.getType().getAttributes().contains(ItemTypes.ItemAttribute.FUEL) || stack.getType() == ItemTypes.BUCKET;
     }
 
     @Override
     public int getMaxStackSize(ItemStack stack) {
-        if (stack.getStack().getType() == Material.BUCKET) {
+        if (stack.getType() == ItemTypes.BUCKET) {
             return 1;
         }
         return super.getMaxStackSize(stack);

@@ -51,7 +51,7 @@ public class CompensatedInventory extends PacketCheck {
     }
 
     public ItemStack getHeldItem() {
-        return inventory.getHeldItem().getStack();
+        return inventory.getHeldItem();
     }
 
     public void onPacketReceive(final PacketReceiveEvent event) {
@@ -59,7 +59,7 @@ public class CompensatedInventory extends PacketCheck {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.DROP_ITEM) {
-                ItemStack heldItem = inventory.getHeldItem().getStack();
+                ItemStack heldItem = inventory.getHeldItem();
                 if (heldItem != null) {
                     heldItem.setAmount(heldItem.getAmount() - 1);
                     if (heldItem.getAmount() <= 0) {
@@ -199,7 +199,7 @@ public class CompensatedInventory extends PacketCheck {
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 if (slot.getWindowId() == -1) { // Carried item
-                    inventory.setCarried(new ItemStack(slot.getItem()));
+                    inventory.setCarried(slot.getItem());
                 } else if (slot.getWindowId() == -2) { // Any slot is allowed to change in inventory
                     inventory.getSlot(slot.getSlot()).set(slot.getItem());
                 } else if (slot.getWindowId() == 0) { // Player hotbar

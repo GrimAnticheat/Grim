@@ -21,7 +21,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -59,7 +58,7 @@ public class CompensatedWorld {
     }
 
     public static void init() {
-        if (XMaterial.isNewVersion()) {
+        if (ItemTypes.isNewVersion()) {
             airData = new FlatBlockState(0);
         } else {
             airData = new MagicBlockState(0, 0);

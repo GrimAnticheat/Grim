@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
@@ -21,9 +20,9 @@ import java.util.Set;
 public class DynamicChorusPlant implements CollisionFactory {
     private static final BlockFace[] directions = new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN};
     private static final CollisionBox[] modernShapes = makeShapes();
-    private static final Material END_STONE = XMaterial.END_STONE.parseMaterial();
-    private static final Material CHORUS_FLOWER = XMaterial.CHORUS_FLOWER.parseMaterial();
-    private static final Material CHORUS_PLANT = XMaterial.CHORUS_PLANT.parseMaterial();
+    private static final Material END_STONE = ItemTypes.END_STONE;
+    private static final Material CHORUS_FLOWER = ItemTypes.CHORUS_FLOWER;
+    private static final Material CHORUS_PLANT = ItemTypes.CHORUS_PLANT;
 
     private static CollisionBox[] makeShapes() {
         float f = 0.5F - (float) 0.3125;
@@ -67,7 +66,7 @@ public class DynamicChorusPlant implements CollisionFactory {
 
         Set<BlockFace> directions;
 
-        if (XMaterial.isNewVersion()) {
+        if (ItemTypes.isNewVersion()) {
             // Player is 1.13 on 1.13 server
             directions = ((WrappedMultipleFacing) block).getDirections();
         } else {

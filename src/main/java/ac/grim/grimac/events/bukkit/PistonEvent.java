@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -18,8 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PistonEvent implements Listener {
-    Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
-    Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
+    Material SLIME_BLOCK = ItemTypes.SLIME_BLOCK;
+    Material HONEY_BLOCK = ItemTypes.HONEY_BLOCK;
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPistonPushEvent(BlockPistonExtendEvent event) {

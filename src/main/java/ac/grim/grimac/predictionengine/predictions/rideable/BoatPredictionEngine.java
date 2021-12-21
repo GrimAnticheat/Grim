@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
@@ -19,7 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 public class BoatPredictionEngine extends PredictionEngine {
-    private static final Material LILY_PAD = XMaterial.LILY_PAD.parseMaterial();
+    private static final Material LILY_PAD = ItemTypes.LILY_PAD;
 
     public BoatPredictionEngine(GrimPlayer player) {
         player.vehicleData.midTickY = 0;

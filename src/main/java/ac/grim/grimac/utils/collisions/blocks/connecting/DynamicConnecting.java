@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -16,19 +15,19 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
 
 public class DynamicConnecting {
-    private static final Material BARRIER = XMaterial.BARRIER.parseMaterial();
-    private static final Material CARVED_PUMPKIN = XMaterial.CARVED_PUMPKIN.parseMaterial();
-    private static final Material JACK_O_LANTERN = XMaterial.JACK_O_LANTERN.parseMaterial();
-    private static final Material PUMPKIN = XMaterial.PUMPKIN.parseMaterial();
-    private static final Material MELON = XMaterial.MELON.parseMaterial();
-    private static final Material BEACON = XMaterial.BEACON.parseMaterial();
-    private static final Material GLOWSTONE = XMaterial.GLOWSTONE.parseMaterial();
-    private static final Material SEA_LANTERN = XMaterial.SEA_LANTERN.parseMaterial();
-    private static final Material ICE = XMaterial.ICE.parseMaterial();
+    private static final Material BARRIER = ItemTypes.BARRIER;
+    private static final Material CARVED_PUMPKIN = ItemTypes.CARVED_PUMPKIN;
+    private static final Material JACK_O_LANTERN = ItemTypes.JACK_O_LANTERN;
+    private static final Material PUMPKIN = ItemTypes.PUMPKIN;
+    private static final Material MELON = ItemTypes.MELON;
+    private static final Material BEACON = ItemTypes.BEACON;
+    private static final Material GLOWSTONE = ItemTypes.GLOWSTONE;
+    private static final Material SEA_LANTERN = ItemTypes.SEA_LANTERN;
+    private static final Material ICE = ItemTypes.ICE;
 
-    private static final Material PISTON = XMaterial.PISTON.parseMaterial();
-    private static final Material STICKY_PISTON = XMaterial.STICKY_PISTON.parseMaterial();
-    private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
+    private static final Material PISTON = ItemTypes.PISTON;
+    private static final Material STICKY_PISTON = ItemTypes.STICKY_PISTON;
+    private static final Material PISTON_HEAD = ItemTypes.PISTON_HEAD;
 
     public static CollisionBox[] makeShapes(float p_196408_1_, float p_196408_2_, float p_196408_3_, float p_196408_4_, float p_196408_5_, boolean includeCenter) {
         float middleMin = 8.0F - p_196408_1_;

@@ -19,7 +19,10 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
-import ac.grim.grimac.utils.nmsutil.*;
+import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import ac.grim.grimac.utils.nmsutil.Materials;
+import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -44,9 +47,9 @@ import org.bukkit.util.Vector;
 // If stage 0 - Add one and add the data to the workers
 // If stage 1 - Add the data to the queue and add one
 public class MovementCheckRunner extends PositionCheck {
-    private static final Material CARROT_ON_A_STICK = XMaterial.CARROT_ON_A_STICK.parseMaterial();
-    private static final Material WARPED_FUNGUS_ON_A_STICK = XMaterial.WARPED_FUNGUS_ON_A_STICK.parseMaterial();
-    private static final Material BUBBLE_COLUMN = XMaterial.BUBBLE_COLUMN.parseMaterial();
+    private static final Material CARROT_ON_A_STICK = ItemTypes.CARROT_ON_A_STICK;
+    private static final Material WARPED_FUNGUS_ON_A_STICK = ItemTypes.WARPED_FUNGUS_ON_A_STICK;
+    private static final Material BUBBLE_COLUMN = ItemTypes.BUBBLE_COLUMN;
 
     public MovementCheckRunner(GrimPlayer player) {
         super(player);
@@ -318,7 +321,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
         player.uncertaintyHandler.isSteppingOnIce = Collisions.hasMaterial(player, Materials.ICE_BLOCKS);
-        player.uncertaintyHandler.isSteppingOnHoney = Collisions.hasMaterial(player, XMaterial.HONEY_BLOCK.parseMaterial(), -0.03);
+        player.uncertaintyHandler.isSteppingOnHoney = Collisions.hasMaterial(player, ItemTypes.HONEY_BLOCK, -0.03);
         player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Collisions.hasMaterial(player, BUBBLE_COLUMN, -1);
 
         // Update firework end/start uncertainty
@@ -389,7 +392,7 @@ public class MovementCheckRunner extends PositionCheck {
 
             // Depth strider was added in 1.8
             ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
-            if (boots != null && XMaterial.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+            if (boots != null && ItemTypes.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
                 player.depthStriderLevel = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
             } else {
                 player.depthStriderLevel = 0;

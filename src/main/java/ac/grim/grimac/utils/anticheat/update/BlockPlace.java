@@ -16,7 +16,6 @@ import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3i;
@@ -43,16 +42,16 @@ public class BlockPlace {
     @Getter
     @Setter
     boolean replaceClicked;
-    private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
+    private static final Material SOUL_SAND = ItemTypes.SOUL_SAND;
     boolean isCancelled = false;
-    private static final Material SNOW = XMaterial.SNOW.parseMaterial();
-    private static final Material COMPOSTER = XMaterial.COMPOSTER.parseMaterial();
+    private static final Material SNOW = ItemTypes.SNOW;
+    private static final Material COMPOSTER = ItemTypes.COMPOSTER;
 
     public Vector3i getPlacedAgainstBlockLocation() {
         return blockPosition;
     }
 
-    private static final Material LADDER = XMaterial.LADDER.parseMaterial();
+    private static final Material LADDER = ItemTypes.LADDER;
     GrimPlayer player;
     @Getter
     Material material;

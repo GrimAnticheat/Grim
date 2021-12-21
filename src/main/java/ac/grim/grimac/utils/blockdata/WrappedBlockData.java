@@ -5,7 +5,6 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.*;
@@ -36,7 +35,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, XMaterial.ANVIL.parseMaterial(), XMaterial.CHIPPED_ANVIL.parseMaterial(), XMaterial.DAMAGED_ANVIL.parseMaterial()),
+    }, ItemTypes.ANVIL, ItemTypes.CHIPPED_ANVIL, ItemTypes.DAMAGED_ANVIL),
 
     VINE(new WrappedMultipleFacing() {
         public void getWrappedData(FlatBlockState data) {
@@ -59,7 +58,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, XMaterial.VINE.parseMaterial()),
+    }, ItemTypes.VINE),
 
     HOPPER(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
@@ -86,7 +85,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, XMaterial.HOPPER.parseMaterial()),
+    }, ItemTypes.HOPPER),
 
     CHORUS_PLANT(new WrappedMultipleFacing() {
         public void getWrappedData(FlatBlockState data) {
@@ -97,7 +96,7 @@ public enum WrappedBlockData {
             // 1.12 doesn't store this blocks' data.
             // It is determined by the state of the world
         }
-    }, XMaterial.CHORUS_PLANT.parseMaterial()),
+    }, ItemTypes.CHORUS_PLANT),
 
     SLAB(new WrappedSlab() {
         public void getWrappedData(FlatBlockState data) {
@@ -209,7 +208,7 @@ public enum WrappedBlockData {
 
             setTrapped(data.getMaterial() == Material.TRAPPED_CHEST);
         }
-    }, XMaterial.CHEST.parseMaterial(), XMaterial.TRAPPED_CHEST.parseMaterial()),
+    }, ItemTypes.CHEST, ItemTypes.TRAPPED_CHEST),
 
 
     CAKE(new WrappedCake() {
@@ -221,7 +220,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
             setSlices(data.getBlockData());
         }
-    }, XMaterial.CAKE.parseMaterial()),
+    }, ItemTypes.CAKE),
 
     COCOA(new WrappedCocoaBeans() {
         public void getWrappedData(FlatBlockState data) {
@@ -248,7 +247,7 @@ public enum WrappedBlockData {
 
             setAge(data.getBlockData() >> 2 & (1 << 2) - 1);
         }
-    }, XMaterial.COCOA.parseMaterial()),
+    }, ItemTypes.COCOA),
 
     GATE(new WrappedFenceGate() {
         public void getWrappedData(FlatBlockState data) {
@@ -307,7 +306,7 @@ public enum WrappedBlockData {
     // 1.16 has the Wall data type, 1.13-1.15 uses MultipleFacing
     WALL(new WrappedMultipleFacing() {
         public void getWrappedData(FlatBlockState data) {
-            if (XMaterial.supports(16)) {
+            if (ItemTypes.supports(16)) {
                 Wall wall = (Wall) data.getBlockData();
                 Set<BlockFace> directions = new HashSet<>();
 
@@ -374,7 +373,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
             setLayers(data.getBlockData());
         }
-    }, XMaterial.SNOW.parseMaterial()),
+    }, ItemTypes.SNOW),
 
     AGEABLE(new WrappedAgeable() {
         public void getWrappedData(FlatBlockState data) {
@@ -385,9 +384,9 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
             setAge(data.getBlockData());
         }
-    }, XMaterial.BEETROOT.parseMaterial(), XMaterial.CARROT.parseMaterial(), XMaterial.POTATO.parseMaterial(),
-            XMaterial.WHEAT.parseMaterial(), XMaterial.NETHER_WART.parseMaterial(),
-            XMaterial.PUMPKIN_STEM.parseMaterial(), XMaterial.MELON_STEM.parseMaterial()),
+    }, ItemTypes.BEETROOT, ItemTypes.CARROT, ItemTypes.POTATO,
+            ItemTypes.WHEAT, ItemTypes.NETHER_WART,
+            ItemTypes.PUMPKIN_STEM, ItemTypes.MELON_STEM),
 
     FRAME(new WrappedFrame() {
         public void getWrappedData(FlatBlockState data) {
@@ -398,7 +397,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
             setHasEye((data.getBlockData() & 0x04) == 4);
         }
-    }, XMaterial.END_PORTAL_FRAME.parseMaterial()),
+    }, ItemTypes.END_PORTAL_FRAME),
 
     ROD(new WrappedDirectional() {
         public void getWrappedData(FlatBlockState data) {
@@ -429,7 +428,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, XMaterial.END_ROD.parseMaterial(), XMaterial.LIGHTNING_ROD.parseMaterial()),
+    }, ItemTypes.END_ROD, ItemTypes.LIGHTNING_ROD),
 
 
     SHULKER_BOX(new WrappedDirectional() {
@@ -543,7 +542,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, XMaterial.LADDER.parseMaterial()),
+    }, ItemTypes.LADDER),
 
     LEVER(new WrappedDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {
@@ -576,7 +575,7 @@ public enum WrappedBlockData {
             }
             setPowered((data.getBlockData() & 0x8) == 0x8);
         }
-    }, XMaterial.LEVER.parseMaterial()),
+    }, ItemTypes.LEVER),
 
     TRIPWIRE(new WrappedTripwire() {
         public void getWrappedData(FlatBlockState data) {
@@ -586,7 +585,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
             setAttached((data.getBlockData() & 0x4) == 0x4);
         }
-    }, XMaterial.TRIPWIRE.parseMaterial()),
+    }, ItemTypes.TRIPWIRE),
 
     TRIPWIRE_HOOK(new WrappedDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {
@@ -611,7 +610,7 @@ public enum WrappedBlockData {
             }
             setPowered((data.getBlockData() & 0x8) == 0x8);
         }
-    }, XMaterial.TRIPWIRE_HOOK.parseMaterial()),
+    }, ItemTypes.TRIPWIRE_HOOK),
 
     OBSERVER(new WrappedDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {
@@ -642,7 +641,7 @@ public enum WrappedBlockData {
             }
             setPowered((data.getBlockData() & 0x8) == 0x8);
         }
-    }, XMaterial.OBSERVER.parseMaterial()),
+    }, ItemTypes.OBSERVER),
 
     REDSTONE_WIRE(new WrappedMultipleFacingPower() {
         public void getWrappedData(FlatBlockState data) {
@@ -666,7 +665,7 @@ public enum WrappedBlockData {
         public void getWrappedData(MagicBlockState data) {
             setPower(data.getBlockData());
         }
-    }, XMaterial.REDSTONE_WIRE.parseMaterial()),
+    }, ItemTypes.REDSTONE_WIRE),
 
     WALL_TORCH(new WrappedWallTorchDirectionalPower() {
         public void getWrappedData(FlatBlockState data) {
@@ -696,7 +695,7 @@ public enum WrappedBlockData {
             }
             setPowered((data.getBlockData() & 0x8) == 0x8);
         }
-    }, XMaterial.WALL_TORCH.parseMaterial(), XMaterial.REDSTONE_WALL_TORCH.parseMaterial()),
+    }, ItemTypes.WALL_TORCH, ItemTypes.REDSTONE_WALL_TORCH),
 
     REDSTONE_TORCH(new WrappedRedstoneTorch() {
         public void getWrappedData(FlatBlockState data) {
@@ -707,7 +706,7 @@ public enum WrappedBlockData {
             // Stored in name again because mojang -_-
             setPower(data.getMaterial().name().equalsIgnoreCase("REDSTONE_TORCH_ON") ? 15 : 0);
         }
-    }, XMaterial.REDSTONE_TORCH.parseMaterial(),
+    }, ItemTypes.REDSTONE_TORCH,
             Materials.matchLegacy("REDSTONE_TORCH_OFF"), Materials.matchLegacy("REDSTONE_TORCH_ON")),
 
     PISTON_BASE(new WrappedPistonBase() {
@@ -745,7 +744,7 @@ public enum WrappedBlockData {
                 }
             }
         }
-    }, XMaterial.PISTON.parseMaterial(), XMaterial.STICKY_PISTON.parseMaterial()),
+    }, ItemTypes.PISTON, ItemTypes.STICKY_PISTON),
 
     PISTON_EXTENSION(new WrappedPiston() {
         public void getWrappedData(FlatBlockState data) {
@@ -780,7 +779,7 @@ public enum WrappedBlockData {
                     break;
             }
         }
-    }, XMaterial.PISTON_HEAD.parseMaterial()),
+    }, ItemTypes.PISTON_HEAD),
 
     RAILS(new WrappedRails() {
         public void getWrappedData(FlatBlockState data) {
@@ -853,7 +852,7 @@ public enum WrappedBlockData {
             }
         }
     }, Materials.matchLegacy("LEGACY_DIODE_BLOCK_OFF"), Materials.matchLegacy("LEGACY_DIODE_BLOCK_ON"),
-            XMaterial.REPEATER.parseMaterial()),
+            ItemTypes.REPEATER),
 
     DOOR(new WrappedDoor() {
         public void getWrappedData(FlatBlockState data) {
@@ -941,20 +940,20 @@ public enum WrappedBlockData {
         public void getWrappedData(FlatBlockState data) {
             setBlockData(data.getBlockData());
         }
-    }, XMaterial.BELL.parseMaterial(), XMaterial.LANTERN.parseMaterial(), XMaterial.SOUL_LANTERN.parseMaterial(),
-            XMaterial.GRINDSTONE.parseMaterial(), XMaterial.CHAIN.parseMaterial(),
-            XMaterial.SWEET_BERRIES.parseMaterial(), XMaterial.SEA_PICKLE.parseMaterial(),
-            XMaterial.CAMPFIRE.parseMaterial(), XMaterial.SOUL_CAMPFIRE.parseMaterial(),
-            XMaterial.TURTLE_EGG.parseMaterial(), XMaterial.SCAFFOLDING.parseMaterial(),
-            XMaterial.SCULK_SENSOR.parseMaterial(), XMaterial.BIG_DRIPLEAF.parseMaterial(),
-            XMaterial.POINTED_DRIPSTONE.parseMaterial(), XMaterial.AMETHYST_CLUSTER.parseMaterial(),
-            XMaterial.POWDER_SNOW.parseMaterial(), XMaterial.SMALL_AMETHYST_BUD.parseMaterial(),
-            XMaterial.MEDIUM_AMETHYST_BUD.parseMaterial(), XMaterial.LARGE_AMETHYST_BUD.parseMaterial(),
-            XMaterial.CANDLE.parseMaterial(), XMaterial.LAVA.parseMaterial(),
-            XMaterial.ATTACHED_MELON_STEM.parseMaterial(), XMaterial.ATTACHED_PUMPKIN_STEM.parseMaterial()), // Lava is only solid on 1.16+
+    }, ItemTypes.BELL, ItemTypes.LANTERN, ItemTypes.SOUL_LANTERN,
+            ItemTypes.GRINDSTONE, ItemTypes.CHAIN,
+            ItemTypes.SWEET_BERRIES, ItemTypes.SEA_PICKLE,
+            ItemTypes.CAMPFIRE, ItemTypes.SOUL_CAMPFIRE,
+            ItemTypes.TURTLE_EGG, ItemTypes.SCAFFOLDING,
+            ItemTypes.SCULK_SENSOR, ItemTypes.BIG_DRIPLEAF,
+            ItemTypes.POINTED_DRIPSTONE, ItemTypes.AMETHYST_CLUSTER,
+            ItemTypes.POWDER_SNOW, ItemTypes.SMALL_AMETHYST_BUD,
+            ItemTypes.MEDIUM_AMETHYST_BUD, ItemTypes.LARGE_AMETHYST_BUD,
+            ItemTypes.CANDLE, ItemTypes.LAVA,
+            ItemTypes.ATTACHED_MELON_STEM, ItemTypes.ATTACHED_PUMPKIN_STEM), // Lava is only solid on 1.16+
 
 
-    NO_DATA(new WrappedBlockDataValue(), XMaterial.AIR.parseMaterial());
+    NO_DATA(new WrappedBlockDataValue(), ItemTypes.AIR);
 
     private static final WrappedBlockData[] lookup = new WrappedBlockData[Material.values().length];
 

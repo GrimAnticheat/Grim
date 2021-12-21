@@ -2,347 +2,135 @@ package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 public class Materials {
     public static final int SOLID = 0b00000000000000000000000000001;
     public static final int CLIMBABLE = 0b00000000000000000000000000010;
+
     public static final int WALL = 0b00000000000000000000000000100;
     public static final int STAIRS = 0b00000000000000000000000001000;
     public static final int SLABS = 0b00000000000000000000000010000;
+
     public static final int WATER = 0b00000000000000000000000100000;
     public static final int LAVA = 0b00000000000000000000001000000;
+
     public static final int BUTTON = 0b00000000000000000000010000000;
+
     public static final int ICE_BLOCKS = 0b00000000000000000000100000000;
+
     public static final int FENCE = 0b00000000000000000001000000000;
     public static final int GATE = 0b00000000000000000010000000000;
     public static final int BED = 0b00000000000000000100000000000;
     public static final int AIR = 0b00000000000000001000000000000;
+
     public static final int TRAPDOOR = 0b00000000000000010000000000000;
+
     public static final int WATER_SOURCE = 0b00000000000000100000000000000;
+
     public static final int LEAVES = 0b00000000000001000000000000000;
     public static final int DOOR = 0b00000000000010000000000000000;
     public static final int SHULKER = 0b00000000000100000000000000000;
+
     public static final int GLASS_BLOCK = 0b00000000001000000000000000000;
     public static final int GLASS_PANE = 0b00000000010000000000000000000;
+
     public static final int WATER_LEGACY = 0b00000000100000000000000000000;
     public static final int WATER_SOURCE_LEGACY = 0b00000001000000000000000000000;
     public static final int CLIENT_SIDE_INTERACTABLE = 0b00000010000000000000000000000;
     public static final int PLANT = 0b00000100000000000000000000000;
     public static final int CAULDRON = 0b00001000000000000000000000000;
     public static final int SHAPE_EXCEEDS_CUBE = 0b00010000000000000000000000000;
+
     // Warning: This is not accurate for 1.13-1.15 clients, use the method for those clients
     public static final int SOLID_BLACKLIST = 0b00100000000000000000000000000;
     public static final int BANNER = 0b01000000000000000000000000000;
     // What blocks can new blocks simply replace entirely when placing?
     public static final int REPLACEABLE = 0b10000000000000000000000000000;
 
-    private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
-    private static final Material BOW = XMaterial.BOW.parseMaterial();
-    private static final Material TRIDENT = XMaterial.TRIDENT.parseMaterial();
-    private static final Material SHIELD = XMaterial.SHIELD.parseMaterial();
+    private static final Set<StateType> NO_PLACE_LIQUIDS = new HashSet<>();
+    private static final Set<StateType> GLASS_BLOCKS = new HashSet<>();
+    private static final Set<StateType> GLASS_PANES = new HashSet<>();
+    private static final Set<StateType> WATER_LIQUIDS = new HashSet<>();
+    private static final Set<StateType> WATER_LIQUIDS_LEGACY = new HashSet<>();
+    private static final Set<StateType> LAVA_LIQUIDS = new HashSet<>();
+    private static final Set<StateType> WATER_SOURCES = new HashSet<>();
+    private static final Set<StateType> WATER_SOURCES_LEGACY = new HashSet<>();
 
-    private static final Material LANTERN = XMaterial.LANTERN.parseMaterial();
-    private static final Material SOUL_LANTERN = XMaterial.SOUL_LANTERN.parseMaterial();
-    private static final Material SMALL_DRIPLEAF = XMaterial.SMALL_DRIPLEAF.parseMaterial();
+    private static final Set<StateType> CLIENT_SIDE = new HashSet<>();
 
-    private static final Material AXOLOTL_BUCKET = XMaterial.AXOLOTL_BUCKET.parseMaterial();
-    private static final Material COD_BUCKET = XMaterial.COD_BUCKET.parseMaterial();
-    private static final Material LAVA_BUCKET = XMaterial.LAVA_BUCKET.parseMaterial();
-    private static final Material PUFFERFISH_BUCKET = XMaterial.PUFFERFISH_BUCKET.parseMaterial();
-    private static final Material SALMON_BUCKET = XMaterial.SALMON_BUCKET.parseMaterial();
-    private static final Material TROPICAL_FISH_BUCKET = XMaterial.TROPICAL_FISH_BUCKET.parseMaterial();
-    private static final Material WATER_BUCKET = XMaterial.WATER_BUCKET.parseMaterial();
-
-    private static final Material ANVIL = XMaterial.ANVIL.parseMaterial();
-    private static final Material CHIPPED_ANVIL = XMaterial.CHIPPED_ANVIL.parseMaterial();
-    private static final Material DAMAGED_ANVIL = XMaterial.DAMAGED_ANVIL.parseMaterial();
-
-    private static final Material CHEST = XMaterial.CHEST.parseMaterial();
-    private static final Material TRAPPED_CHEST = XMaterial.TRAPPED_CHEST.parseMaterial();
-
-    private static final Material RAIL = XMaterial.RAIL.parseMaterial();
-    private static final Material ACTIVATOR_RAIL = XMaterial.ACTIVATOR_RAIL.parseMaterial();
-    private static final Material DETECTOR_RAIL = XMaterial.DETECTOR_RAIL.parseMaterial();
-    private static final Material POWERED_RAIL = XMaterial.POWERED_RAIL.parseMaterial();
-
-    private static final int[] MATERIAL_FLAGS = new int[Material.values().length];
-    private static final Set<Material> NO_PLACE_LIQUIDS = new HashSet<>();
 
     static {
-        for (int i = 0; i < MATERIAL_FLAGS.length; i++) {
-            Material material = Material.values()[i];
-
-            if (material.isSolid()) {
-                MATERIAL_FLAGS[i] |= SOLID;
-            }
-            if (material.name().endsWith("_STAIRS")) {
-                MATERIAL_FLAGS[i] |= STAIRS;
-            }
-
-            if (material.name().contains("SLAB") || material.name().contains("_STEP") && !material.name().contains("LEGACY")) {
-                MATERIAL_FLAGS[i] |= SLABS;
-            }
-        }
-
-        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_PLATE")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("SIGN")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("_BANNER")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("CORAL") && !xMaterial.name().contains("BLOCK")).forEach(Materials::markAsNotSolid);
-        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("POTTED")).forEach(Materials::markAsSolid);
-        Arrays.stream(Material.values()).sequential().filter(xMaterial -> xMaterial.name().contains("HEAD") || xMaterial.name().contains("SKULL")).forEach(Materials::markAsSolid);
-
-        // fix some types where isSolid() returns the wrong value
-        markAs(XMaterial.SLIME_BLOCK, SOLID);
-        markAs(XMaterial.REPEATER, SOLID);
-        markAs(XMaterial.SNOW, SOLID);
-        markAs(XMaterial.ANVIL, SOLID);
-        markAs(XMaterial.LILY_PAD, SOLID);
-        markAs(XMaterial.FLOWER_POT, SOLID);
-        markAs(XMaterial.SEA_PICKLE, SOLID);
-        markAs(XMaterial.TURTLE_EGG, SOLID);
-        markAs(XMaterial.CHORUS_FLOWER, SOLID);
-        markAs(XMaterial.CHORUS_PLANT, SOLID);
-        markAs(XMaterial.LADDER, SOLID);
-
-        markAs(XMaterial.END_ROD, SOLID);
-        markAs(XMaterial.SCAFFOLDING, SOLID);
-        markAs(XMaterial.COCOA, SOLID);
-
-        // Thanks a lot striders: optimization - don't mark as solid when striders don't exist
-        // If you are unaware, striders can walk on lava
-        if (XMaterial.supports(16))
-            markAs(XMaterial.LAVA, SOLID);
-
-        // 1.17 isSolid() mistakes, I think MD_5 just gave up with marking stuff as solid
-        markAs(XMaterial.SCULK_SENSOR, SOLID);
-        markAs(XMaterial.POWDER_SNOW, SOLID);
-        markAs(XMaterial.BIG_DRIPLEAF, SOLID);
-        markAs(XMaterial.AZALEA, SOLID);
-        markAs(XMaterial.FLOWERING_AZALEA, SOLID);
-        markAs(XMaterial.POINTED_DRIPSTONE, SOLID);
-
-
         // Lava hasn't changed, other than STATIONARY_LAVA material on 1.12- servers
-        markAs(XMaterial.LAVA, LAVA);
-        markAs(XMaterial.STATIONARY_LAVA, LAVA);
-
+        LAVA_LIQUIDS.add(StateTypes.LAVA);
 
         // Base water, flowing on 1.12- but not on 1.13+ servers
-        markAs(XMaterial.WATER, WATER);
-        markAs(XMaterial.WATER, WATER_LEGACY);
+        WATER_LIQUIDS.add(StateTypes.WATER);
+        WATER_LIQUIDS_LEGACY.add(StateTypes.WATER);
 
-        if (XMaterial.isNewVersion()) {
-            markAs(XMaterial.KELP, WATER_SOURCE);
-            markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);
-        }
+        // Becomes grass for legacy versions
+        WATER_LIQUIDS.add(StateTypes.KELP);
+        WATER_SOURCES.add(StateTypes.KELP);
+        WATER_LIQUIDS.add(StateTypes.KELP_PLANT);
+        WATER_SOURCES.add(StateTypes.KELP_PLANT);
 
-        // This is not water on 1.12- players
-        markAs(XMaterial.SEAGRASS, WATER);
-        markAs(XMaterial.SEAGRASS, WATER_SOURCE);
-
-        // This is not water on 1.12- players
-        markAs(XMaterial.TALL_SEAGRASS, WATER);
-        markAs(XMaterial.TALL_SEAGRASS, WATER_SOURCE);
-
-        // This is not water on 1.12- players
-        markAs(XMaterial.KELP, WATER);
-        markAs(XMaterial.KELP, WATER_SOURCE);
+        // Is translated to air for legacy versions
+        WATER_SOURCES.add(StateTypes.BUBBLE_COLUMN);
+        WATER_LIQUIDS_LEGACY.add(StateTypes.BUBBLE_COLUMN);
+        WATER_LIQUIDS.add(StateTypes.BUBBLE_COLUMN);
+        WATER_SOURCES_LEGACY.add(StateTypes.BUBBLE_COLUMN);
 
         // This is not water on 1.12- players
-        markAs(XMaterial.KELP_PLANT, WATER);
-        markAs(XMaterial.KELP_PLANT, WATER_SOURCE);
+        WATER_SOURCES.add(StateTypes.SEAGRASS);
+        WATER_LIQUIDS.add(StateTypes.SEAGRASS);
 
-        // This is replaced by water on 1.12- players
-        markAs(XMaterial.BUBBLE_COLUMN, WATER);
-        markAs(XMaterial.BUBBLE_COLUMN, WATER_LEGACY);
-        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE);
-        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);
+        // This is not water on 1.12- players`
+        WATER_SOURCES.add(StateTypes.TALL_SEAGRASS);
+        WATER_LIQUIDS.add(StateTypes.TALL_SEAGRASS);
 
-        // This is the 1.12 still water block
-        markAs(XMaterial.STATIONARY_WATER, WATER);
-        markAs(XMaterial.STATIONARY_WATER, WATER_LEGACY);
-        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE);
-        markAs(XMaterial.BUBBLE_COLUMN, WATER_SOURCE_LEGACY);
-
-        // Mark blocks as climbable
-        markAs(XMaterial.LADDER, CLIMBABLE);
-        markAs(XMaterial.VINE, CLIMBABLE);
-        markAs(XMaterial.SCAFFOLDING, CLIMBABLE);
-        markAs(XMaterial.WEEPING_VINES, CLIMBABLE);
-        markAs(XMaterial.WEEPING_VINES_PLANT, CLIMBABLE);
-        markAs(XMaterial.TWISTING_VINES, CLIMBABLE);
-        markAs(XMaterial.TWISTING_VINES_PLANT, CLIMBABLE);
-        markAs(XMaterial.CAVE_VINES, CLIMBABLE);
-        markAs(XMaterial.CAVE_VINES_PLANT, CLIMBABLE);
-
-        // Piston heads have bounding boxes that exceed their own cube
-        markAs(XMaterial.PISTON_HEAD, SHAPE_EXCEEDS_CUBE);
-
-        // The solid blacklist affects water pushing code
-        // It's vanilla name is "Solid"
-        // The code for this has rarely changed except with that banner oddity
-        //
-        // Solid has nothing to do with collision in Vanilla, unlike in Grim
-        // (This is due to the Materials system in vanilla being much different from our system, as supporting
-        // 11 different versions of materials is really... really... hard)
-        markAs(XMaterial.END_ROD, SOLID_BLACKLIST);
-
-        markAs(XMaterial.LADDER, SOLID_BLACKLIST);
-        markAs(XMaterial.LEVER, SOLID_BLACKLIST);
-        markAs(XMaterial.RAIL, SOLID_BLACKLIST);
-        markAs(XMaterial.ACTIVATOR_RAIL, SOLID_BLACKLIST);
-        markAs(XMaterial.DETECTOR_RAIL, SOLID_BLACKLIST);
-        markAs(XMaterial.POWERED_RAIL, SOLID_BLACKLIST);
-        markAs(XMaterial.REDSTONE, SOLID_BLACKLIST);
-        markAs(XMaterial.REDSTONE_WIRE, SOLID_BLACKLIST);
-        markAs(XMaterial.REDSTONE_TORCH, SOLID_BLACKLIST);
-        markAs(XMaterial.REPEATER, SOLID_BLACKLIST);
-        markAs(XMaterial.COMPARATOR, SOLID_BLACKLIST);
-
-        markAs(XMaterial.SCAFFOLDING, SOLID_BLACKLIST);
-        // Cobwebs are their own thing in the blacklist and don't have a category, or have their own category
-        markAs(XMaterial.COBWEB, SOLID_BLACKLIST);
-
-        markLegacyAs("LEGACY_DIODE_BLOCK_OFF", SOLID_BLACKLIST);
-        markLegacyAs("LEGACY_DIODE_BLOCK_ON", SOLID_BLACKLIST);
-        markLegacyAs("LEGACY_REDSTONE_COMPARATOR_ON", SOLID_BLACKLIST);
-        markLegacyAs("LEGACY_REDSTONE_COMPARATOR_OFF", SOLID_BLACKLIST);
-
-        markAs(XMaterial.REDSTONE_WALL_TORCH, SOLID_BLACKLIST);
-        markAs(XMaterial.SOUL_TORCH, SOLID_BLACKLIST);
-        markAs(XMaterial.SOUL_WALL_TORCH, SOLID_BLACKLIST);
-        markAs(XMaterial.TORCH, SOLID_BLACKLIST);
-        markAs(XMaterial.WALL_TORCH, SOLID_BLACKLIST);
-        markAs(XMaterial.TRIPWIRE, SOLID_BLACKLIST);
-        markAs(XMaterial.TRIPWIRE_HOOK, SOLID_BLACKLIST);
-        // Exempt as fire
-        markAs(XMaterial.SNOW, SOLID_BLACKLIST); // Fire
-        markAs(XMaterial.SOUL_FIRE, SOLID_BLACKLIST); // Fire
-        // Transparent
-        markAs(XMaterial.FIRE, SOLID_BLACKLIST);
-        markAs(XMaterial.STRUCTURE_VOID, SOLID_BLACKLIST);
-        // Portals are exempted
-        markAs(XMaterial.NETHER_PORTAL, SOLID_BLACKLIST); // PORTAL
-        markAs(XMaterial.END_PORTAL, SOLID_BLACKLIST); // PORTAL
-        // This is a bit messy, but these are all the plants in 1.17 (all blacklisted for blocking movement)
-        // Hopefully with PacketEvents 2.0, all the errors from replacement blocks will go away
-        // (Such as a solid blacklist block going to a non-solid blacklist block)
-        markAs(XMaterial.GRASS, PLANT); // Replaceable plant
-        markAs(XMaterial.GRASS, REPLACEABLE);
-        markAs(XMaterial.FERN, PLANT); // Replaceable plant
-        markAs(XMaterial.FERN, REPLACEABLE);
-        markAs(XMaterial.DEAD_BUSH, PLANT); // Replaceable plant
-        markAs(XMaterial.DEAD_BUSH, REPLACEABLE);
-        markAs(XMaterial.TALL_SEAGRASS, PLANT); // Replaceable
-        markAs(XMaterial.TALL_GRASS, REPLACEABLE);
-        markAs(XMaterial.DANDELION, PLANT); // plant
-        markAs(XMaterial.POPPY, PLANT); // plant
-        markAs(XMaterial.BLUE_ORCHID, PLANT); // plant
-        markAs(XMaterial.ALLIUM, PLANT); // plant
-        markAs(XMaterial.AZURE_BLUET, PLANT); // plant
-        // tulip done in loop
-        markAs(XMaterial.OXEYE_DAISY, PLANT); // plant
-        markAs(XMaterial.CORNFLOWER, PLANT); // plant
-        markAs(XMaterial.WITHER_ROSE, PLANT); // plant
-        markAs(XMaterial.LILY_OF_THE_VALLEY, PLANT); // plant
-        markAs(XMaterial.BROWN_MUSHROOM, PLANT); // plant
-        markAs(XMaterial.RED_MUSHROOM, PLANT); // plant
-        markAs(XMaterial.WHEAT, PLANT); // plant
-        markAs(XMaterial.SUGAR_CANE, PLANT); // plant
-        markAs(XMaterial.VINE, PLANT); // replaceable plant
-        markAs(XMaterial.VINE, REPLACEABLE);
-        markAs(XMaterial.GLOW_LICHEN, PLANT); // replaceable plant
-        markAs(XMaterial.GLOW_LICHEN, REPLACEABLE);
-        markAs(XMaterial.LILY_PAD, PLANT); // plant
-        markAs(XMaterial.NETHER_WART, PLANT); // plant
-        markAs(XMaterial.COCOA, PLANT); // plant
-        markAs(XMaterial.CARROTS, PLANT); // plant
-        markAs(XMaterial.POTATO, PLANT); // plant
-        markAs(XMaterial.SUNFLOWER, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
-        markAs(XMaterial.LILAC, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
-        markAs(XMaterial.ROSE_BUSH, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
-        markAs(XMaterial.PEONY, PLANT); // replaceable plant - MARKED AS NOT REPLACEABLE MANUALLY!
-        markAs(XMaterial.TALL_GRASS, PLANT); // replaceable plant
-        markAs(XMaterial.TALL_GRASS, REPLACEABLE);
-        markAs(XMaterial.LARGE_FERN, PLANT); // replaceable plant
-        markAs(XMaterial.LARGE_FERN, REPLACEABLE);
-        markAs(XMaterial.CHORUS_PLANT, PLANT); // plant
-        markAs(XMaterial.CHORUS_FLOWER, PLANT); // plant
-        markAs(XMaterial.BEETROOT, PLANT); // plant
-        markAs(XMaterial.KELP, PLANT); // water plant
-        markAs(XMaterial.KELP_PLANT, PLANT); // water plant
-        markAs(XMaterial.SEA_PICKLE, PLANT); // water plant
-        markAs(XMaterial.BAMBOO, PLANT); // plant
-        markAs(XMaterial.BAMBOO_SAPLING, PLANT); // plant
-        markAs(XMaterial.SWEET_BERRY_BUSH, PLANT); // plant
-        markAs(XMaterial.WARPED_FUNGUS, PLANT);  // plant
-        markAs(XMaterial.CRIMSON_FUNGUS, PLANT); // plant
-        markAs(XMaterial.WEEPING_VINES, PLANT); // plant
-        markAs(XMaterial.WEEPING_VINES_PLANT, PLANT); // plant
-        markAs(XMaterial.TWISTING_VINES, PLANT); // plant
-        markAs(XMaterial.TWISTING_VINES_PLANT, PLANT);// plant
-        markAs(XMaterial.CRIMSON_ROOTS, PLANT); // Replaceable fireproof plant
-        markAs(XMaterial.CRIMSON_ROOTS, REPLACEABLE);
-        markAs(XMaterial.CAVE_VINES, PLANT); // plant
-        markAs(XMaterial.CAVE_VINES_PLANT, PLANT); // plant
-        markAs(XMaterial.SPORE_BLOSSOM, PLANT); // plant
-        markAs(XMaterial.AZALEA, PLANT); // plant
-        markAs(XMaterial.FLOWERING_AZALEA, PLANT); // plant
-        markAs(XMaterial.MOSS_CARPET, PLANT); // plant
-        markAs(XMaterial.BIG_DRIPLEAF, PLANT); // plant
-        markAs(XMaterial.SMALL_DRIPLEAF, PLANT); // plant
-        markAs(XMaterial.HANGING_ROOTS, PLANT); // replaceable plant
-        markAs(XMaterial.HANGING_ROOTS, REPLACEABLE); // replaceable plant
-
-        NO_PLACE_LIQUIDS.add(XMaterial.WATER.parseMaterial());
-        NO_PLACE_LIQUIDS.add(XMaterial.LAVA.parseMaterial());
-        NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_WATER.parseMaterial());
-        NO_PLACE_LIQUIDS.add(XMaterial.STATIONARY_LAVA.parseMaterial());
+        NO_PLACE_LIQUIDS.add(StateTypes.WATER);
+        NO_PLACE_LIQUIDS.add(StateTypes.LAVA);
 
         // Important blocks where we need to ignore right-clicking on for placing blocks
-        // We can ignore stuff like right-clicking a pumpkin with shears... can we?  OFFHANDS?
-        markAs(XMaterial.BARREL, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.BEACON, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.BREWING_STAND, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.CARTOGRAPHY_TABLE, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.CHEST, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.TRAPPED_CHEST, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.COMPARATOR, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.CRAFTING_TABLE, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.DAYLIGHT_DETECTOR, CLIENT_SIDE_INTERACTABLE);
-        markLegacyAs("DAYLIGHT_DETECTOR_INVERTED", CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.DISPENSER, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.DRAGON_EGG, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.ENCHANTING_TABLE, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.ENDER_CHEST, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.GRINDSTONE, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.HOPPER, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.LEVER, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.LIGHT, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.LOOM, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.NOTE_BLOCK, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.REPEATER, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.SMITHING_TABLE, CLIENT_SIDE_INTERACTABLE);
-        markAs(XMaterial.STONECUTTER, CLIENT_SIDE_INTERACTABLE);
+        // We can ignore stuff like right-clicking a pumpkin with shears...
+        CLIENT_SIDE.add(StateTypes.BARREL);
+        CLIENT_SIDE.add(StateTypes.BEACON);
+        CLIENT_SIDE.add(StateTypes.BREWING_STAND);
+        CLIENT_SIDE.add(StateTypes.CARTOGRAPHY_TABLE);
+        CLIENT_SIDE.add(StateTypes.CHEST);
+        CLIENT_SIDE.add(StateTypes.TRAPPED_CHEST);
+        CLIENT_SIDE.add(StateTypes.COMPARATOR);
+        CLIENT_SIDE.add(StateTypes.CRAFTING_TABLE);
+        CLIENT_SIDE.add(StateTypes.DAYLIGHT_DETECTOR);
+        CLIENT_SIDE.add(StateTypes.DISPENSER);
+        CLIENT_SIDE.add(StateTypes.DRAGON_EGG);
+        CLIENT_SIDE.add(StateTypes.ENCHANTING_TABLE);
+        CLIENT_SIDE.add(StateTypes.ENDER_CHEST);
+        CLIENT_SIDE.add(StateTypes.GRINDSTONE);
+        CLIENT_SIDE.add(StateTypes.HOPPER);
+        CLIENT_SIDE.add(StateTypes.LEVER);
+        CLIENT_SIDE.add(StateTypes.LIGHT);
+        CLIENT_SIDE.add(StateTypes.LOOM);
+        CLIENT_SIDE.add(StateTypes.NOTE_BLOCK);
+        CLIENT_SIDE.add(StateTypes.REPEATER);
+        CLIENT_SIDE.add(StateTypes.SMITHING_TABLE);
+        CLIENT_SIDE.add(StateTypes.STONECUTTER);
 
         for (Material mat : Material.values()) {
             if (!mat.isBlock()) continue;
-            if (checkFlag(mat, LAVA)) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (checkFlag(mat, PLANT)) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-
-            if (checkFlag(mat, WATER)) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
-            if (checkFlag(mat, LAVA)) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
 
             if (mat.name().contains("FENCE") && !mat.name().equalsIgnoreCase("IRON_FENCE")) {
-                MATERIAL_FLAGS[mat.ordinal()] |= SHAPE_EXCEEDS_CUBE;
                 if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
                 else {
                     MATERIAL_FLAGS[mat.ordinal()] |= GATE;
@@ -350,6 +138,8 @@ public class Materials {
                     MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
                 }
             }
+
+            BlockTags.FLOWER_POTS
 
             if (mat.name().contains("ANVIL")) {
                 MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
@@ -368,58 +158,86 @@ public class Materials {
             }
             if (mat.name().contains("POTTED")) MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
 
-            if (mat.name().contains("WALL") && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER") &&
-                    !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH")) {
-                MATERIAL_FLAGS[mat.ordinal()] |= SHAPE_EXCEEDS_CUBE;
-                MATERIAL_FLAGS[mat.ordinal()] |= WALL;
-            }
-            if (mat.name().contains("BED") && !mat.name().contains("ROCK")) MATERIAL_FLAGS[mat.ordinal()] |= BED;
             if (mat.name().contains("ICE")) MATERIAL_FLAGS[mat.ordinal()] |= ICE_BLOCKS;
-            if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] |= GATE;
-            if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= AIR;
-            if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().endsWith("AIR")) MATERIAL_FLAGS[mat.ordinal()] |= REPLACEABLE;
+
             if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR")) {
-                MATERIAL_FLAGS[mat.ordinal()] |= TRAPDOOR;
                 if (!mat.name().contains("IRON"))
                     MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
             }
 
             if (mat.name().contains("_BANNER")) MATERIAL_FLAGS[mat.ordinal()] |= BANNER;
-            if (mat.name().contains("LEAVES")) MATERIAL_FLAGS[mat.ordinal()] |= LEAVES;
-            if (mat.name().contains("DIODE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
-            if (mat.name().contains("COMPARATOR")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
-            if (mat.name().contains("_DOOR")) MATERIAL_FLAGS[mat.ordinal()] |= DOOR;
             if (mat.name().contains("_DOOR") && !mat.name().contains("IRON"))
                 MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-            if (mat.name().contains("SHULKER_BOX")) MATERIAL_FLAGS[mat.ordinal()] |= SHULKER;
             if (mat.name().contains("GLASS") && !mat.name().contains("PANE") && !mat.name().contains("THIN_GLASS"))
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_BLOCK;
             // THIN_GLASS and IRON_FENCE are 1.8 names for these materials
             if ((mat.name().contains("GLASS") && mat.name().contains("PANE")) || mat.name().contains("THIN_GLASS") || mat.name().contains("IRON_FENCE"))
                 MATERIAL_FLAGS[mat.ordinal()] |= GLASS_PANE;
-            if (mat.name().contains("SKULL") || mat.name().contains("HEAD"))
-                MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             if (mat.name().contains("_SIGN")) markAsNotSolid(mat);
-            if (mat.name().contains("BUTTON")) MATERIAL_FLAGS[mat.ordinal()] |= BUTTON;
-            if (mat.name().contains("CANDLE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID;
             // 1.17 separates the types of cauldrons
             if (mat.name().contains("CAULDRON")) MATERIAL_FLAGS[mat.ordinal()] |= CAULDRON;
-            if (mat.name().contains("BUTTON")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("SKULL") || mat.name().contains("HEAD"))
-                MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("CARPET")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("SAPLING") && !mat.name().contains("BAMBOO"))
-                MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("TULIP")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("STEM")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("SEED")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("CORAL") && !mat.name().contains("DEAD") && !mat.name().contains("WALL"))
-                MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("POTTED")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
-            if (mat.name().contains("CANDLE")) MATERIAL_FLAGS[mat.ordinal()] |= SOLID_BLACKLIST;
         }
+    }
+
+    public static boolean checkStairs(StateType type) {
+        return BlockTags.STAIRS.contains(type);
+    }
+
+    public static boolean checkSlabs(StateType type) {
+        return BlockTags.SLABS.contains(type);
+    }
+
+    public static boolean checkWall(StateType type) {
+        return BlockTags.WALLS.contains(type);
+    }
+
+    public static boolean checkButton(StateType type) {
+        return BlockTags.BUTTONS.contains(type);
+    }
+
+    public static boolean checkFence(StateType type) {
+        return BlockTags.FENCES.contains(type);
+    }
+
+    public static boolean checkGate(StateType type) {
+        return BlockTags.FENCE_GATES.contains(type);
+    }
+
+    public static boolean checkBed(StateType type) {
+        return BlockTags.BEDS.contains(type);
+    }
+
+    public static boolean checkAir(StateType type) {
+        return type.isAir();
+    }
+
+    public static boolean checkLeaves(StateType type) {
+        return BlockTags.LEAVES.contains(type);
+    }
+
+    public static boolean checkDoor(StateType type) {
+        return BlockTags.DOORS.contains(type);
+    }
+
+    public static boolean checkShulker(StateType type) {
+        return BlockTags.SHULKER_BOXES.contains(type);
+    }
+
+    public static boolean checkGlassBlock(StateType type) {
+
+    }
+
+    public static boolean checkGlassPane(StateType type) {
+
+    }
+
+    public static boolean checkClimable(StateType type) {
+        return BlockTags.CLIMBABLE.contains(type);
+    }
+
+    public static boolean checkCauldron(StateType type) {
+        return BlockTags.CAULDRONS.contains(type);
     }
 
     private static void markAsNotSolid(Material material) {
@@ -427,41 +245,17 @@ public class Materials {
         MATERIAL_FLAGS[material.ordinal()] &= Integer.MAX_VALUE - 1;
     }
 
-    private static void markAs(XMaterial material, int flag) {
+    private static void markAs(StateTypes material, int flag) {
         // Set the flag only if the version has the material
-        if (material.parseMaterial() != null) {
-            MATERIAL_FLAGS[material.parseMaterial().ordinal()] |= flag;
+        if (material != null) {
+            MATERIAL_FLAGS[material.ordinal()] |= flag;
         }
     }
 
-    private static void markLegacyAs(String material, int flag) {
-        Material mat = matchLegacy(material);
-        // Set the flag only if the version has the material
-        if (mat != null) {
-            MATERIAL_FLAGS[mat.ordinal()] |= flag;
-        }
-    }
-
-    public static Material matchLegacy(String material) {
-        if (XMaterial.isNewVersion()) {
-            return null;
-        }
-        return Material.getMaterial(material.replace("LEGACY_", ""));
-    }
-
-    private static void markAsSolid(Material material) {
-        // Set the flag only if the version has the material
-        MATERIAL_FLAGS[material.ordinal()] |= Materials.SOLID;
-    }
-
-    public static int getBitmask(Material material) {
-        return MATERIAL_FLAGS[material.ordinal()];
-    }
-
-    public static boolean isUsable(Material material) {
-        return material != null && (material.isEdible() || material == Material.POTION || material == Material.MILK_BUCKET
-                || material == CROSSBOW || material == BOW || material.toString().endsWith("SWORD")
-                || material == TRIDENT || material == SHIELD);
+    public static boolean isUsable(ItemType material) {
+        return material != null && (material.hasAttribute(ItemTypes.ItemAttribute.EDIBLE) || material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET
+                || material == ItemTypes.CROSSBOW || material == ItemTypes.BOW || material.toString().endsWith("SWORD")
+                || material == ItemTypes.TRIDENT || material == ItemTypes.SHIELD);
     }
 
     public static boolean checkFlag(Material material, int flag) {
@@ -474,7 +268,7 @@ public class Materials {
 
     public static boolean isWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
         if (clientVersion.isOlderThanOrEquals(ClientVersion.V_1_12_2)) return false;
-        if (!XMaterial.isNewVersion()) return false;
+        if (!ItemTypes.isNewVersion()) return false;
 
         FlatBlockState flat = (FlatBlockState) state;
         BlockData blockData = flat.getBlockData();
@@ -494,14 +288,14 @@ public class Materials {
         return blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged();
     }
 
-    public static boolean isPlaceableLiquidBucket(Material mat) {
-        return mat == AXOLOTL_BUCKET || mat == COD_BUCKET || mat == PUFFERFISH_BUCKET
-                || mat == SALMON_BUCKET || mat == TROPICAL_FISH_BUCKET || mat == WATER_BUCKET;
+    public static boolean isPlaceableLiquidBucket(ItemType mat) {
+        return mat == ItemTypes.AXOLOTL_BUCKET || mat == ItemTypes.COD_BUCKET || mat == ItemTypes.PUFFERFISH_BUCKET
+                || mat == ItemTypes.SALMON_BUCKET || mat == ItemTypes.TROPICAL_FISH_BUCKET || mat == ItemTypes.WATER_BUCKET;
     }
 
-    public static Material transformBucketMaterial(Material mat) {
-        if (mat == Material.LAVA_BUCKET) return Material.LAVA;
-        if (isPlaceableLiquidBucket(mat)) return Material.WATER;
+    public static Material transformBucketMaterial(ItemType mat) {
+        if (mat == Material.LAVA_BUCKET) return ItemTypes.LAVA;
+        if (isPlaceableLiquidBucket(mat)) return ItemTypes.WATER;
         return null;
     }
 
@@ -526,15 +320,15 @@ public class Materials {
         return false;
     }
 
-    public static boolean isAnvil(Material mat) {
-        return mat == ANVIL || mat == CHIPPED_ANVIL || mat == DAMAGED_ANVIL;
+    public static boolean isAnvil(StateType mat) {
+        return BlockTags.ANVIL.contains(mat);
     }
 
-    public static boolean isWoodenChest(Material mat) {
-        return mat == CHEST || mat == TRAPPED_CHEST;
+    public static boolean isWoodenChest(StateType mat) {
+        return mat == StateTypes.CHEST || mat == StateTypes.TRAPPED_CHEST;
     }
 
-    public static boolean isNoPlaceLiquid(Material material) {
+    public static boolean isNoPlaceLiquid(StateType material) {
         return NO_PLACE_LIQUIDS.contains(material);
     }
 

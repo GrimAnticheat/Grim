@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
@@ -14,7 +13,7 @@ import org.bukkit.entity.Player;
 
 public class PacketEntityAction extends PacketListenerAbstract {
 
-    Material elytra = XMaterial.ELYTRA.parseMaterial();
+    Material elytra = ItemTypes.ELYTRA;
 
     public PacketEntityAction() {
         super(PacketListenerPriority.LOW);

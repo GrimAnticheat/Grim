@@ -3,12 +3,11 @@ package ac.grim.grimac.utils.inventory.inventory;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.ItemStack;
 import ac.grim.grimac.utils.inventory.slot.FurnaceFuelSlot;
 import ac.grim.grimac.utils.inventory.slot.FurnaceResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
-import org.bukkit.Bukkit;
-import org.bukkit.inventory.FurnaceRecipe;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -40,21 +39,13 @@ public class FurnaceMenu extends AbstractContainerMenu {
             } else if (slotID != 1 && slotID != 0) {
                 AtomicBoolean canSmelt = new AtomicBoolean(false);
 
-                // Check if the item can be smelted
-                Bukkit.recipeIterator().forEachRemaining((recipe) -> {
-                    if (recipe instanceof FurnaceRecipe) {
-                        FurnaceRecipe furnaceRecipe = (FurnaceRecipe) recipe;
-                        if (furnaceRecipe.getInput().isSimilar(itemstack1.getStack())) {
-                            canSmelt.set(true);
-                        }
-                    }
-                });
+                // TODO: Smelting recipes (Sent to the player but still painful)
 
                 if (canSmelt.get()) {
                     if (!this.moveItemStackTo(itemstack1, 0, 1, false)) {
                         return ItemStack.EMPTY;
                     }
-                } else if (itemstack1.getItem().isFuel()) {
+                } else if (itemstack1.getType().getAttributes().contains(ItemTypes.ItemAttribute.FUEL)) {
                     if (!this.moveItemStackTo(itemstack1, 1, 2, false)) {
                         return ItemStack.EMPTY;
                     }

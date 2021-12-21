@@ -5,7 +5,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
@@ -28,7 +27,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     static {
-        if (XMaterial.getVersion() >= 18) {
+        if (ItemTypes.getVersion() >= 18) {
             // The mapping is called i now for some reason.
             getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "i", int.class);
         } else {

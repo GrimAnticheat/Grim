@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.collisions.AxisUtil;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -34,7 +33,7 @@ public class ConsumesBlockPlace {
             Bell bell = (Bell) data;
             return goodBellHit(player, bell, place);
         }
-        if (data.getMaterial() == XMaterial.CANDLE_CAKE.parseMaterial()) {
+        if (data.getMaterial() == ItemTypes.CANDLE_CAKE) {
             Cake cake = (Cake) Material.CAKE.createBlockData();
             cake.setBites(1);
             place.set(cake);
@@ -42,7 +41,7 @@ public class ConsumesBlockPlace {
         if (data instanceof Cake) {
             Cake cake = (Cake) data;
             if (cake.getBites() == 0 && place.getMaterial() != null && place.getMaterial().name().endsWith("CANDLE")) {
-                place.set(XMaterial.CANDLE_CAKE.parseMaterial());
+                place.set(ItemTypes.CANDLE_CAKE);
                 return true;
             }
 
@@ -69,7 +68,7 @@ public class ConsumesBlockPlace {
             }
             return false;
         }
-        if (data instanceof Ageable && data.getMaterial() == XMaterial.SWEET_BERRY_BUSH.parseMaterial()) {
+        if (data instanceof Ageable && data.getMaterial() == ItemTypes.SWEET_BERRY_BUSH) {
             Ageable ageable = (Ageable) data;
             if (ageable.getAge() != 3 && place.getMaterial() == Material.BONE_MEAL) {
                 return false;
@@ -96,9 +95,9 @@ public class ConsumesBlockPlace {
             // Only affects OP players, will fix eventually (also few desyncs from no minecraft lag compensation)
             return player.bukkitPlayer.isOp() && player.gamemode == GameMode.CREATIVE;
         }
-        if (data.getMaterial() == XMaterial.COMPOSTER.parseMaterial() && data instanceof Levelled) {
+        if (data.getMaterial() == ItemTypes.COMPOSTER && data instanceof Levelled) {
             Levelled levelled = (Levelled) data;
-            if (XMaterial.isCompostable(XMaterial.fromMaterial(place.getMaterial())) && levelled.getLevel() < 8) {
+            if (ItemTypes.isCompostable(ItemTypes.fromMaterial(place.getMaterial())) && levelled.getLevel() < 8) {
                 return true;
             }
             return levelled.getLevel() == 8;
@@ -147,7 +146,7 @@ public class ConsumesBlockPlace {
         // Hey look, it's another DESYNC MOJANG
         if (state.getMaterial() == Material.CAKE) {
             if (state.getBlockData() == 0 && place.getMaterial() != null && place.getMaterial().name().endsWith("CANDLE")) {
-                place.set(XMaterial.CANDLE_CAKE.parseMaterial());
+                place.set(ItemTypes.CANDLE_CAKE);
                 return true;
             }
 

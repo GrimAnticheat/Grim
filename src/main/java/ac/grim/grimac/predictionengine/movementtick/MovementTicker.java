@@ -17,8 +17,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class MovementTicker {
-    private static final Material SLIME_BLOCK = XMaterial.SLIME_BLOCK.parseMaterial();
-    private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
+    private static final Material SLIME_BLOCK = ItemTypes.SLIME_BLOCK;
+    private static final Material HONEY_BLOCK = ItemTypes.HONEY_BLOCK;
 
     public final Player bukkitPlayer;
     public final GrimPlayer player;
@@ -340,7 +340,7 @@ public class MovementTicker {
                 swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
-            if (XMaterial.supports(13) && player.compensatedPotions.getDolphinsGraceAmplifier() != null) {
+            if (ItemTypes.supports(13) && player.compensatedPotions.getDolphinsGraceAmplifier() != null) {
                 swimFriction = 0.96F;
             }
 

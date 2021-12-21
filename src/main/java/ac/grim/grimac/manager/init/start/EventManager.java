@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.bukkit.*;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import org.bukkit.Bukkit;
 
 public class EventManager implements Initable {
@@ -13,7 +12,7 @@ public class EventManager implements Initable {
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), GrimAPI.INSTANCE.getPlugin());
 
-        if (XMaterial.supports(13)) {
+        if (ItemTypes.supports(13)) {
             Bukkit.getPluginManager().registerEvents(new RiptideEvent(), GrimAPI.INSTANCE.getPlugin());
         }
 

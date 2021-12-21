@@ -17,7 +17,6 @@ import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.lists.ConcurrentList;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.earth2me.essentials.Essentials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -211,7 +210,7 @@ public class GrimPlayer {
             packetTracker = connection != null ? connection.getPacketTracker() : null;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (ItemTypes.isNewVersion()) {
             compensatedWorld = new CompensatedWorldFlat(this);
         } else {
             compensatedWorld = new CompensatedWorld(this);

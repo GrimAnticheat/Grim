@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.chunkdata.fifteen;
 import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.chunkdata.BaseChunk;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.steveice10.packetlib.io.NetInput;
 import com.github.steveice10.packetlib.io.NetOutput;
 import lombok.*;
@@ -27,7 +26,7 @@ public class FifteenChunk implements BaseChunk {
     private @NonNull LegacyFlexibleStorage storage;
 
     static {
-        hasBlockCount = XMaterial.getVersion() != 13;
+        hasBlockCount = ItemTypes.getVersion() != 13;
     }
 
     public FifteenChunk() {

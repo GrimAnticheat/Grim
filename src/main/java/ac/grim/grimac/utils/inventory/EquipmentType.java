@@ -1,8 +1,8 @@
 package ac.grim.grimac.utils.inventory;
 
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 
 public enum EquipmentType {
     MAINHAND,
@@ -28,35 +28,35 @@ public enum EquipmentType {
     }
 
     public static EquipmentType getEquipmentSlotForItem(ItemStack p_147234_) {
-        Material item = p_147234_.getType();
-        if (item == XMaterial.CARVED_PUMPKIN.parseMaterial() || (item.name().contains("SKULL") ||
-                (item.name().contains("HEAD") && !item.name().contains("PISTON")))) {
+        ItemType item = p_147234_.getType();
+        if (item == ItemTypes.CARVED_PUMPKIN || (item.getIdentifier().getKey().contains("SKULL") ||
+                (item.getIdentifier().getKey().contains("HEAD") && !item.getIdentifier().getKey().contains("PISTON")))) {
             return HEAD;
         }
-        if (item == XMaterial.ELYTRA.parseMaterial()) {
+        if (item == ItemTypes.ELYTRA) {
             return CHEST;
         }
-        if (item == XMaterial.LEATHER_BOOTS.parseMaterial() || item == XMaterial.CHAINMAIL_BOOTS.parseMaterial()
-                || item == XMaterial.IRON_BOOTS.parseMaterial() || item == XMaterial.DIAMOND_BOOTS.parseMaterial()
-                || item == XMaterial.GOLDEN_BOOTS.parseMaterial() || item == XMaterial.NETHERITE_BOOTS.parseMaterial()) {
+        if (item == ItemTypes.LEATHER_BOOTS || item == ItemTypes.CHAINMAIL_BOOTS
+                || item == ItemTypes.IRON_BOOTS || item == ItemTypes.DIAMOND_BOOTS
+                || item == ItemTypes.GOLDEN_BOOTS || item == ItemTypes.NETHERITE_BOOTS) {
             return FEET;
         }
-        if (item == XMaterial.LEATHER_LEGGINGS.parseMaterial() || item == XMaterial.CHAINMAIL_LEGGINGS.parseMaterial()
-                || item == XMaterial.IRON_LEGGINGS.parseMaterial() || item == XMaterial.DIAMOND_LEGGINGS.parseMaterial()
-                || item == XMaterial.GOLDEN_LEGGINGS.parseMaterial() || item == XMaterial.NETHERITE_LEGGINGS.parseMaterial()) {
+        if (item == ItemTypes.LEATHER_LEGGINGS || item == ItemTypes.CHAINMAIL_LEGGINGS
+                || item == ItemTypes.IRON_LEGGINGS || item == ItemTypes.DIAMOND_LEGGINGS
+                || item == ItemTypes.GOLDEN_LEGGINGS || item == ItemTypes.NETHERITE_LEGGINGS) {
             return LEGS;
         }
-        if (item == XMaterial.LEATHER_CHESTPLATE.parseMaterial() || item == XMaterial.CHAINMAIL_CHESTPLATE.parseMaterial()
-                || item == XMaterial.IRON_CHESTPLATE.parseMaterial() || item == XMaterial.DIAMOND_CHESTPLATE.parseMaterial()
-                || item == XMaterial.GOLDEN_CHESTPLATE.parseMaterial() || item == XMaterial.NETHERITE_CHESTPLATE.parseMaterial()) {
+        if (item == ItemTypes.LEATHER_CHESTPLATE || item == ItemTypes.CHAINMAIL_CHESTPLATE
+                || item == ItemTypes.IRON_CHESTPLATE || item == ItemTypes.DIAMOND_CHESTPLATE
+                || item == ItemTypes.GOLDEN_CHESTPLATE || item == ItemTypes.NETHERITE_CHESTPLATE) {
             return CHEST;
         }
-        if (item == XMaterial.LEATHER_HELMET.parseMaterial() || item == XMaterial.CHAINMAIL_HELMET.parseMaterial()
-                || item == XMaterial.IRON_HELMET.parseMaterial() || item == XMaterial.DIAMOND_HELMET.parseMaterial()
-                || item == XMaterial.GOLDEN_HELMET.parseMaterial() || item == XMaterial.NETHERITE_HELMET.parseMaterial()) {
+        if (item == ItemTypes.LEATHER_HELMET || item == ItemTypes.CHAINMAIL_HELMET
+                || item == ItemTypes.IRON_HELMET || item == ItemTypes.DIAMOND_HELMET
+                || item == ItemTypes.GOLDEN_HELMET || item == ItemTypes.NETHERITE_HELMET) {
             return HEAD;
         }
-        return XMaterial.SHIELD.parseMaterial() == item ? OFFHAND : MAINHAND;
+        return ItemTypes.SHIELD == item ? OFFHAND : MAINHAND;
     }
 
     public boolean isArmor() {

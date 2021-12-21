@@ -1,7 +1,7 @@
 package ac.grim.grimac.utils.inventory.slot;
 
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public class FurnaceResultSlot extends Slot{
     public FurnaceResultSlot(InventoryStorage container, int slot) {

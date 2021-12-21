@@ -3,9 +3,9 @@ package ac.grim.grimac.utils.inventory.inventory;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.ItemStack;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public class CraftingMenu extends AbstractContainerMenu {
     public CraftingMenu(GrimPlayer player, Inventory playerInventory) {

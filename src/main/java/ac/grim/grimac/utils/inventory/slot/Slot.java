@@ -107,8 +107,4 @@ public class Slot {
     public boolean mayPickup(GrimPlayer p_40228_) {
         return true;
     }
-
-    public void set(ItemStack itemStack) {
-        set(new ItemStack(itemStack));
-    }
 }

@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.AlmostBoolean;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -24,21 +23,21 @@ import org.bukkit.inventory.meta.CrossbowMeta;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
 
-    private static final Material CROSSBOW = XMaterial.CROSSBOW.parseMaterial();
-    private static final Material BOW = XMaterial.BOW.parseMaterial();
-    private static final Material TRIDENT = XMaterial.TRIDENT.parseMaterial();
-    private static final Material SHIELD = XMaterial.SHIELD.parseMaterial();
+    private static final Material CROSSBOW = ItemTypes.CROSSBOW;
+    private static final Material BOW = ItemTypes.BOW;
+    private static final Material TRIDENT = ItemTypes.TRIDENT;
+    private static final Material SHIELD = ItemTypes.SHIELD;
 
-    private static final Material ARROW = XMaterial.ARROW.parseMaterial();
-    private static final Material TIPPED_ARROW = XMaterial.TIPPED_ARROW.parseMaterial();
-    private static final Material SPECTRAL_ARROW = XMaterial.SPECTRAL_ARROW.parseMaterial();
+    private static final Material ARROW = ItemTypes.ARROW;
+    private static final Material TIPPED_ARROW = ItemTypes.TIPPED_ARROW;
+    private static final Material SPECTRAL_ARROW = ItemTypes.SPECTRAL_ARROW;
 
-    private static final Material POTION = XMaterial.POTION.parseMaterial();
-    private static final Material MILK_BUCKET = XMaterial.MILK_BUCKET.parseMaterial();
+    private static final Material POTION = ItemTypes.POTION;
+    private static final Material MILK_BUCKET = ItemTypes.MILK_BUCKET;
 
-    private static final Material GOLDEN_APPLE = XMaterial.GOLDEN_APPLE.parseMaterial();
-    private static final Material ENCHANTED_GOLDEN_APPLE = XMaterial.ENCHANTED_GOLDEN_APPLE.parseMaterial();
-    private static final Material HONEY_BOTTLE = XMaterial.HONEY_BOTTLE.parseMaterial();
+    private static final Material GOLDEN_APPLE = ItemTypes.GOLDEN_APPLE;
+    private static final Material ENCHANTED_GOLDEN_APPLE = ItemTypes.ENCHANTED_GOLDEN_APPLE;
+    private static final Material HONEY_BOTTLE = ItemTypes.HONEY_BOTTLE;
 
     public PacketPlayerDigging() {
         super(PacketListenerPriority.LOW);
@@ -57,7 +56,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
-                if (XMaterial.supports(13)) {
+                if (ItemTypes.supports(13)) {
                     org.bukkit.inventory.ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
                     org.bukkit.inventory.ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
 
@@ -93,7 +92,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
-            if (XMaterial.supports(8) && player.gamemode == GameMode.SPECTATOR)
+            if (ItemTypes.supports(8) && player.gamemode == GameMode.SPECTATOR)
                 return;
 
             // This was an interaction with a block, not a use item

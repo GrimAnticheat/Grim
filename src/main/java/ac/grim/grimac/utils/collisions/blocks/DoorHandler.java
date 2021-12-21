@@ -9,7 +9,6 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -43,7 +42,7 @@ public class DoorHandler implements CollisionFactory {
         // 1.12 stores block data for the top door in the bottom block data
         // ViaVersion can't send 1.12 clients the 1.13 complete data
         // For 1.13, ViaVersion should just use the 1.12 block data
-        if (!XMaterial.isNewVersion() || version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+        if (!ItemTypes.isNewVersion() || version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
             if (door.isBottom()) {
                 BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y + 1, z);
 

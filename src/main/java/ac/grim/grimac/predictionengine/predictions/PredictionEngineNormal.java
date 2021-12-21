@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
 import org.bukkit.util.Vector;
@@ -15,10 +14,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PredictionEngineNormal extends PredictionEngine {
-    private static final Material SCAFFOLDING = XMaterial.SCAFFOLDING.parseMaterial();
-    private static final Material POWDER_SNOW = XMaterial.POWDER_SNOW.parseMaterial();
+    private static final Material SCAFFOLDING = ItemTypes.SCAFFOLDING;
+    private static final Material POWDER_SNOW = ItemTypes.POWDER_SNOW;
 
-    private static final Material LEATHER_BOOTS = XMaterial.LEATHER_BOOTS.parseMaterial();
+    private static final Material LEATHER_BOOTS = ItemTypes.LEATHER_BOOTS;
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();

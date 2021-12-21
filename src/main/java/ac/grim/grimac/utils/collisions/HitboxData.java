@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.Material;
@@ -46,7 +45,7 @@ public enum HitboxData {
         }
 
         return box;
-    }, XMaterial.SCAFFOLDING.parseMaterial()),
+    }, ItemTypes.SCAFFOLDING),
 
     DRIPLEAF((player, item, version, data, x, y, z) -> {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_16_4))
@@ -74,7 +73,7 @@ public enum HitboxData {
 
         return box;
 
-    }, XMaterial.BIG_DRIPLEAF.parseMaterial()),
+    }, ItemTypes.BIG_DRIPLEAF),
 
     FENCE_GATE((player, item, version, data, x, y, z) -> {
         WrappedFenceGate gate = (WrappedFenceGate) data;
@@ -124,19 +123,19 @@ public enum HitboxData {
             && !mat.name().contains("SIGN") && !mat.name().contains("HEAD") && !mat.name().contains("BANNER")
             && !mat.name().contains("FAN") && !mat.name().contains("SKULL") && !mat.name().contains("TORCH")).toArray(Material[]::new)),
 
-    HONEY_BLOCK(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), XMaterial.HONEY_BLOCK.parseMaterial()),
+    HONEY_BLOCK(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), ItemTypes.HONEY_BLOCK),
 
-    POWDER_SNOW(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), XMaterial.POWDER_SNOW.parseMaterial()),
+    POWDER_SNOW(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), ItemTypes.POWDER_SNOW),
 
-    SOUL_SAND(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), XMaterial.SOUL_SAND.parseMaterial()),
+    SOUL_SAND(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true), ItemTypes.SOUL_SAND),
 
-    CACTUS(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), XMaterial.CACTUS.parseMaterial()),
+    CACTUS(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), ItemTypes.CACTUS),
 
     SNOW((player, item, version, data, x, y, z) -> {
         WrappedSnow snow = (WrappedSnow) data;
 
         return new SimpleCollisionBox(0, 0, 0, 1, (snow.getLayers() + 1) * 0.125, 1);
-    }, XMaterial.SNOW.parseMaterial()),
+    }, ItemTypes.SNOW),
 
     LECTERN_BLOCK((player, item, version, data, x, y, z) -> {
         ComplexCollisionBox common = new ComplexCollisionBox(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D),
@@ -163,7 +162,7 @@ public enum HitboxData {
         }
 
         return common;
-    }, XMaterial.LECTERN.parseMaterial());
+    }, ItemTypes.LECTERN);
 
     private static final HitboxData[] lookup = new HitboxData[Material.values().length];
 

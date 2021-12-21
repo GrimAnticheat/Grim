@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.nmsutil.Materials;
-import ac.grim.grimac.utils.nmsutil.XMaterial;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.Bukkit;
@@ -28,8 +27,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class CompensatedWorldFlat extends CompensatedWorld {
-    private static final Material WATER = XMaterial.WATER.parseMaterial();
-    private static final Material CAULDRON = XMaterial.CAULDRON.parseMaterial();
+    private static final Material WATER = ItemTypes.WATER;
+    private static final Material CAULDRON = ItemTypes.CAULDRON;
     public static List<BlockData> globalPaletteToBlockData;
 
     public CompensatedWorldFlat(GrimPlayer player) {
@@ -38,7 +37,7 @@ public class CompensatedWorldFlat extends CompensatedWorld {
 
     public static void init() {
         // The global palette only exists in 1.13+, 1.12- uses magic values for everything
-        int version = XMaterial.getVersion();
+        int version = ItemTypes.getVersion();
         // 1.18 and 1.17 have the same palette... no need to duplicate it
         if (version == 18) version = 17;
 

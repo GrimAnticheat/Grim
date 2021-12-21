@@ -1,10 +1,10 @@
 package ac.grim.grimac.utils.inventory.slot;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import ac.grim.grimac.utils.inventory.EquipmentType;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.ItemStack;
+import com.github.retrooper.packetevents.protocol.enchantment.Enchantments;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import org.bukkit.GameMode;
 
 public class EquipmentSlot extends Slot {
@@ -27,6 +27,6 @@ public class EquipmentSlot extends Slot {
 
     public boolean mayPickup(GrimPlayer p_39744_) {
         ItemStack itemstack = this.getItem();
-        return (itemstack.isEmpty() || p_39744_.gamemode == GameMode.CREATIVE || !EnchantmentHelper.hasBindingCurse(itemstack)) && super.mayPickup(p_39744_);
+        return (itemstack.isEmpty() || p_39744_.gamemode == GameMode.CREATIVE || itemstack.getEnchantmentLevel(Enchantments.BINDING_CURSE) != 0) && super.mayPickup(p_39744_);
     }
 }

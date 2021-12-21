@@ -2,7 +2,7 @@ package ac.grim.grimac.utils.inventory.slot;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public class ResultSlot extends Slot {
 

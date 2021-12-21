@@ -12,19 +12,19 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
 public class FluidTypeFlowing {
-    private static final Material SOUL_SAND = XMaterial.SOUL_SAND.parseMaterial();
-    private static final Material ICE = XMaterial.ICE.parseMaterial();
-    private static final Material SNOW = XMaterial.SNOW.parseMaterial();
-    private static final Material COMPOSTER = XMaterial.COMPOSTER.parseMaterial();
-    private static final Material STICKY_PISTON = XMaterial.STICKY_PISTON.parseMaterial();
-    private static final Material PISTON = XMaterial.PISTON.parseMaterial();
-    private static final Material PISTON_HEAD = XMaterial.PISTON_HEAD.parseMaterial();
-    private static final Material LADDER = XMaterial.LADDER.parseMaterial();
+    private static final Material SOUL_SAND = ItemTypes.SOUL_SAND;
+    private static final Material ICE = ItemTypes.ICE;
+    private static final Material SNOW = ItemTypes.SNOW;
+    private static final Material COMPOSTER = ItemTypes.COMPOSTER;
+    private static final Material STICKY_PISTON = ItemTypes.STICKY_PISTON;
+    private static final Material PISTON = ItemTypes.PISTON;
+    private static final Material PISTON_HEAD = ItemTypes.PISTON_HEAD;
+    private static final Material LADDER = ItemTypes.LADDER;
 
-    private static final Material BEACON = XMaterial.BEACON.parseMaterial();
-    private static final Material GLOWSTONE = XMaterial.GLOWSTONE.parseMaterial();
-    private static final Material SEA_LANTERN = XMaterial.SEA_LANTERN.parseMaterial();
-    private static final Material CONDUIT = XMaterial.CONDUIT.parseMaterial();
+    private static final Material BEACON = ItemTypes.BEACON;
+    private static final Material GLOWSTONE = ItemTypes.GLOWSTONE;
+    private static final Material SEA_LANTERN = ItemTypes.SEA_LANTERN;
+    private static final Material CONDUIT = ItemTypes.CONDUIT;
 
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);

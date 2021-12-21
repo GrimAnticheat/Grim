@@ -3,9 +3,9 @@ package ac.grim.grimac.utils.inventory.inventory;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.ItemStack;
 import ac.grim.grimac.utils.inventory.slot.Slot;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 
 public class EnchantmentMenu extends AbstractContainerMenu{
     public EnchantmentMenu(GrimPlayer player, Inventory inventory) {
@@ -28,7 +28,7 @@ public class EnchantmentMenu extends AbstractContainerMenu{
         addSlot(new Slot(storage, 1) {
             @Override
             public boolean mayPlace(ItemStack p_39508_) {
-                return p_39508_.getItem() == Material.LAPIS_LAZULI;
+                return p_39508_.getType() == ItemTypes.LAPIS_LAZULI;
             }
         });
 
@@ -50,7 +50,7 @@ public class EnchantmentMenu extends AbstractContainerMenu{
                 if (!this.moveItemStackTo(itemstack1, 2, 38, true)) {
                     return ItemStack.EMPTY;
                 }
-            } else if (itemstack1.getItem() == Material.LAPIS_LAZULI) {
+            } else if (itemstack1.getType() == ItemTypes.LAPIS_LAZULI) {
                 if (!this.moveItemStackTo(itemstack1, 1, 2, true)) {
                     return ItemStack.EMPTY;
                 }

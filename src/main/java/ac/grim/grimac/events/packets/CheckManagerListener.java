@@ -268,7 +268,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.FINISHED_DIGGING) {
                 BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
                 // Not unbreakable
-                if (XMaterial.getHardness(XMaterial.fromMaterial(block.getMaterial())) != -1.0f) {
+                if (ItemTypes.getHardness(ItemTypes.fromMaterial(block.getMaterial())) != -1.0f) {
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
                 }
             }
@@ -327,36 +327,36 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
 
                 // Shears can mine some blocks faster
-                if (tool.getType() == XMaterial.SHEARS.parseMaterial()) {
-                    if (block.getMaterial() == XMaterial.COBWEB.parseMaterial() || Materials.checkFlag(block.getMaterial(), Materials.LEAVES)) {
+                if (tool.getType() == ItemTypes.SHEARS) {
+                    if (block.getMaterial() == ItemTypes.COBWEB || Materials.checkFlag(block.getMaterial(), Materials.LEAVES)) {
                         speedMultiplier = 15.0f;
                     } else if (block.getMaterial().name().contains("WOOL")) {
                         speedMultiplier = 5.0f;
-                    } else if (block.getMaterial() == XMaterial.VINE.parseMaterial() ||
-                            block.getMaterial() == XMaterial.GLOW_LICHEN.parseMaterial()) {
+                    } else if (block.getMaterial() == ItemTypes.VINE ||
+                            block.getMaterial() == ItemTypes.GLOW_LICHEN) {
                         speedMultiplier = 2.0f;
                     }
 
-                    isBestTool = block.getMaterial() == XMaterial.COBWEB.parseMaterial() ||
-                            block.getMaterial() == XMaterial.REDSTONE_WIRE.parseMaterial() ||
-                            block.getMaterial() == XMaterial.TRIPWIRE.parseMaterial();
+                    isBestTool = block.getMaterial() == ItemTypes.COBWEB ||
+                            block.getMaterial() == ItemTypes.REDSTONE_WIRE ||
+                            block.getMaterial() == ItemTypes.TRIPWIRE;
                 }
 
                 // Swords can also mine some blocks faster
                 if (tool.getType().name().contains("SWORD")) {
-                    if (block.getMaterial() == XMaterial.COBWEB.parseMaterial()) {
+                    if (block.getMaterial() == ItemTypes.COBWEB) {
                         speedMultiplier = 15.0f;
                     } else if (Materials.checkFlag(block.getMaterial(), Materials.PLANT) ||
                             Materials.checkFlag(block.getMaterial(), Materials.LEAVES) ||
-                            block.getMaterial() == XMaterial.PUMPKIN.parseMaterial() ||
-                            block.getMaterial() == XMaterial.MELON.parseMaterial()) {
+                            block.getMaterial() == ItemTypes.PUMPKIN ||
+                            block.getMaterial() == ItemTypes.MELON) {
                         speedMultiplier = 1.5f;
                     }
 
-                    isBestTool = block.getMaterial() == XMaterial.COBWEB.parseMaterial();
+                    isBestTool = block.getMaterial() == ItemTypes.COBWEB;
                 }
 
-                float blockHardness = XMaterial.getHardness(XMaterial.fromMaterial(block.getMaterial()));
+                float blockHardness = ItemTypes.getHardness(ItemTypes.fromMaterial(block.getMaterial()));
 
                 if (isBestTool) {
                     if (blockHardness == -1.0f) {
@@ -430,7 +430,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 float damage = speedMultiplier / blockHardness;
 
-                boolean canHarvest = !XMaterial.requiresCorrectTool(XMaterial.fromMaterial(block.getMaterial())) || isBestTool;
+                boolean canHarvest = !ItemTypes.requiresCorrectTool(ItemTypes.fromMaterial(block.getMaterial())) || isBestTool;
                 if (canHarvest) {
                     damage /= 30;
                 } else {
@@ -458,7 +458,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             boolean onlyAir = material == null || material == Material.AIR;
 
-            if (XMaterial.supports(9)) {
+            if (ItemTypes.supports(9)) {
                 org.bukkit.inventory.ItemStack offhand = player.bukkitPlayer.getInventory().getItemInOffHand();
                 onlyAir = onlyAir && offhand.getType() == Material.AIR;
             }
@@ -492,7 +492,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Material material = transformMaterial(placedWith);
 
             // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
-            if (material == XMaterial.LILY_PAD.parseMaterial()) {
+            if (material == ItemTypes.LILY_PAD) {
                 placeLilypad(player); // Pass a block place because lily pads have a hitbox
                 return;
             }
@@ -611,7 +611,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     // For example, placing seeds to place wheat
-    // TODO: Make this compatible with previous versions by using XMaterial
+    // TODO: Make this compatible with previous versions by using ItemTypes
     private Material transformMaterial(org.bukkit.inventory.ItemStack stack) {
         if (stack == null) return null;
         if (stack.getType() == Material.COCOA_BEANS) return Material.COCOA;

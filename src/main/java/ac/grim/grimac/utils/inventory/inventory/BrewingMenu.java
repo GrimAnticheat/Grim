@@ -4,8 +4,9 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.BrewingHelper;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.ItemStack;
 import ac.grim.grimac.utils.inventory.slot.Slot;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import org.bukkit.Material;
 
 public class BrewingMenu extends AbstractContainerMenu {
@@ -82,7 +83,7 @@ public class BrewingMenu extends AbstractContainerMenu {
         }
 
         public static boolean mayPlaceItem(ItemStack p_39113_) {
-            return p_39113_.getItem() == Material.BLAZE_POWDER;
+            return p_39113_.getType() == Material.BLAZE_POWDER;
         }
 
         public boolean mayPlace(ItemStack p_39111_) {
@@ -100,7 +101,7 @@ public class BrewingMenu extends AbstractContainerMenu {
         }
 
         public static boolean mayPlaceItem(ItemStack stack) {
-            return BrewingHelper.isBaseModifier(stack.getItem()) || BrewingHelper.isEffectIngredient(stack.getItem());
+            return BrewingHelper.isBaseModifier(stack.getType()) || BrewingHelper.isEffectIngredient(stack.getType());
         }
 
         public boolean mayPlace(ItemStack p_39121_) {
@@ -118,7 +119,7 @@ public class BrewingMenu extends AbstractContainerMenu {
         }
 
         public static boolean mayPlaceItem(ItemStack p_39134_) {
-            return p_39134_.getItem().name().endsWith("POTION") || p_39134_.getItem() == Material.GLASS_BOTTLE;
+            return p_39134_.getType().getIdentifier().getKey().endsWith("POTION") || p_39134_.getType() == ItemTypes.GLASS_BOTTLE;
         }
 
         public int getMaxStackSize() {

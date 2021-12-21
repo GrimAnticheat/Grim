@@ -6,7 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
 public class JumpPower {
-    private static final Material HONEY_BLOCK = XMaterial.HONEY_BLOCK.parseMaterial();
+    private static final Material HONEY_BLOCK = ItemTypes.HONEY_BLOCK;
 
     public static void jumpFromGround(GrimPlayer player, Vector vector) {
         float f = getJumpPower(player);
