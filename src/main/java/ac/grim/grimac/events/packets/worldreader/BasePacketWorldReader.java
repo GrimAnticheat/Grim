@@ -3,85 +3,70 @@ package ac.grim.grimac.events.packets.worldreader;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.impl.PacketPlaySendEvent;
-import com.github.retrooper.packetevents.packettype.PacketType;
-import com.github.retrooper.packetevents.packetwrappers.play.out.blockchange.WrappedPacketOutBlockChange;
-import com.github.retrooper.packetevents.packetwrappers.play.out.unloadchunk.WrappedPacketOutUnloadChunk;
-import com.github.retrooper.packetevents.utils.nms.NMSUtils;
-import com.github.retrooper.packetevents.utils.reflection.Reflection;
-import com.github.retrooper.packetevents.utils.vector.Vector3i;
+import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
+import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk;
 import org.apache.commons.lang.NotImplementedException;
-
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
+import org.bukkit.entity.Player;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
-    private static final Method getByCombinedID;
 
     public BasePacketWorldReader() {
         super(PacketListenerPriority.MONITOR);
     }
 
-    static {
-        if (ItemTypes.getVersion() >= 18) {
-            // The mapping is called i now for some reason.
-            getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "i", int.class);
-        } else {
-            getByCombinedID = Reflection.getMethod(NMSUtils.blockClass, "getCombinedId", int.class);
-        }
-    }
-
     @Override
-    public void onPacketPlaySend(PacketPlaySendEvent event) {
-        byte packetID = event.getPacketId();
-
-        if (packetID == PacketType.Play.Server.UNLOAD_CHUNK) {
-            WrappedPacketOutUnloadChunk unloadChunk = new WrappedPacketOutUnloadChunk(event.getNMSPacket());
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+    public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.UNLOAD_CHUNK) {
+            WrapperPlayServerUnloadChunk unloadChunk = new WrapperPlayServerUnloadChunk(event);
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             unloadChunk(player, unloadChunk.getChunkX(), unloadChunk.getChunkZ());
         }
 
         // 1.7 and 1.8 only
-        if (packetID == PacketType.Play.Server.MAP_CHUNK_BULK) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+        if (event.getPacketType() == PacketType.Play.Server.MAP_CHUNK_BULK) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             handleMapChunkBulk(player, event);
         }
 
-        if (packetID == PacketType.Play.Server.MAP_CHUNK) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+        if (event.getPacketType() == PacketType.Play.Server.CHUNK_DATA) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             handleMapChunk(player, event);
         }
 
-        if (packetID == PacketType.Play.Server.BLOCK_CHANGE) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+        if (event.getPacketType() == PacketType.Play.Server.BLOCK_CHANGE) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             handleBlockChange(player, event);
         }
 
-        if (packetID == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
+        if (event.getPacketType() == PacketType.Play.Server.MULTI_BLOCK_CHANGE) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
             handleMultiBlockChange(player, event);
         }
     }
 
-    public void handleMapChunkBulk(GrimPlayer player, PacketPlaySendEvent event) {
+    public void handleMapChunkBulk(GrimPlayer player, PacketSendEvent event) {
         // Only exists in 1.7 and 1.8
     }
 
-    public void handleMapChunk(GrimPlayer player, PacketPlaySendEvent event) {
+    public void handleMapChunk(GrimPlayer player, PacketSendEvent event) {
         throw new NotImplementedException();
     }
 
@@ -106,31 +91,21 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         player.compensatedWorld.removeChunkLater(x, z);
     }
 
-    public void handleBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
-        WrappedPacketOutBlockChange wrappedBlockChange = new WrappedPacketOutBlockChange(event.getNMSPacket());
-
-        Object blockObject = wrappedBlockChange.readAnyObject(1);
-        int combinedID = getByCombinedID(blockObject);
-
-        handleUpdateBlockChange(player, event, wrappedBlockChange, combinedID);
+    public void handleBlockChange(GrimPlayer player, PacketSendEvent event) {
+        WrapperPlayServerBlockChange blockChange = new WrapperPlayServerBlockChange(event);
+        handleUpdateBlockChange(player, event, blockChange.getBlockPosition(), blockChange.getBlockId());
     }
 
-    public int getByCombinedID(Object object) {
-        try {
-            return (int) getByCombinedID.invoke(null, object);
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
+    public void handleMultiBlockChange(GrimPlayer player, PacketSendEvent event) {
+        WrapperPlayServerMultiBlockChange multiBlockChange = new WrapperPlayServerMultiBlockChange(event);
+        for (WrapperPlayServerMultiBlockChange.EncodedBlock blockChange : multiBlockChange.getBlocks()) {
+            handleUpdateBlockChange(player, event,
+                    new Vector3i(blockChange.getX(), blockChange.getY(), blockChange.getZ()),
+                    blockChange.getBlockID());
         }
-        return 0;
     }
 
-    public void handleMultiBlockChange(GrimPlayer player, PacketPlaySendEvent event) {
-        throw new NotImplementedException();
-    }
-
-    public void handleUpdateBlockChange(GrimPlayer player, PacketPlaySendEvent event, WrappedPacketOutBlockChange wrappedBlockChange, int combinedID) {
-        Vector3i blockPosition = wrappedBlockChange.getBlockPosition();
-
+    public void handleUpdateBlockChange(GrimPlayer player, PacketSendEvent event, Vector3i blockPosition, int combinedID) {
         int range = (player.getTransactionPing() / 100) + 16;
         if (player.sendTrans && Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
             event.setPostTask(player::sendTransaction);

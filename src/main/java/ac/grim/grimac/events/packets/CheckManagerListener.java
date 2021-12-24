@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;

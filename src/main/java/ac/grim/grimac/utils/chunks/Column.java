@@ -1,13 +1,13 @@
 package ac.grim.grimac.utils.chunks;
 
 
-import ac.grim.grimac.utils.chunkdata.BaseChunk;
+import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 
 public class Column {
     public final int x;
     public final int z;
-    public BaseChunk[] chunks;
     public final int transaction;
+    public BaseChunk[] chunks;
     public boolean markedForRemoval = false;
 
     public Column(int x, int z, BaseChunk[] chunks, int transaction) {

@@ -1,8 +1,8 @@
 package ac.grim.grimac.utils.collisions.datatypes;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 
 import java.util.List;
 
@@ -11,10 +11,10 @@ public class DynamicCollisionBox implements CollisionBox {
     private final GrimPlayer player;
     private final CollisionFactory box;
     private ClientVersion version;
-    private WrappedBlockDataValue block;
+    private WrappedBlockState block;
     private int x, y, z;
 
-    public DynamicCollisionBox(GrimPlayer player, ClientVersion version, CollisionFactory box, WrappedBlockDataValue block) {
+    public DynamicCollisionBox(GrimPlayer player, ClientVersion version, CollisionFactory box, WrappedBlockState block) {
         this.player = player;
         this.version = version;
         this.box = box;
@@ -59,7 +59,7 @@ public class DynamicCollisionBox implements CollisionBox {
         return box.fetch(player, version, block, x, y, z).offset(x, y, z).isFullBlock();
     }
 
-    public void setBlock(WrappedBlockDataValue block) {
+    public void setBlock(WrappedBlockState block) {
         this.block = block;
     }
 

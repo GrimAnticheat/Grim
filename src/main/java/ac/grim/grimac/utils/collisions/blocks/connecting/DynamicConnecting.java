@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.WrappedFenceGate;
 import ac.grim.grimac.utils.blockdata.types.WrappedStairs;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -63,7 +62,7 @@ public class DynamicConnecting {
         if (!Materials.checkFlag(target, Materials.FENCE) && isBlacklisted(target))
             return false;
 
-        org.bukkit.block.BlockFace bukkitFace = BlockFaceHelper.toBukkitFace(direction);
+        BlockFace bukkitFace = BlockFaceHelper.toBukkitFace(direction);
 
         // 1.9-1.11 clients don't have BARRIER exemption
         // https://bugs.mojang.com/browse/MC-9565
@@ -85,8 +84,8 @@ public class DynamicConnecting {
             // https://bugs.mojang.com/browse/MC-94016
             if (v.isOlderThanOrEquals(ClientVersion.V_1_11_1)) return true;
 
-            org.bukkit.block.BlockFace f1 = gate.getDirection();
-            org.bukkit.block.BlockFace f2 = f1.getOppositeFace();
+            BlockFace f1 = gate.getDirection();
+            BlockFace f2 = f1.getOppositeFace();
             return bukkitFace != f1 && bukkitFace != f2;
         } else {
             if (fence == target) return true;

@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedFenceGate;
 import ac.grim.grimac.utils.blockdata.types.WrappedFlatBlock;
 import ac.grim.grimac.utils.blockdata.types.WrappedSnow;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -55,11 +54,11 @@ public enum HitboxData {
 
         ComplexCollisionBox box = new ComplexCollisionBox();
 
-        if (dripleaf.getFacing() == org.bukkit.block.BlockFace.NORTH) { // Stem
+        if (dripleaf.getFacing() == BlockFace.NORTH) { // Stem
             box.add(new HexCollisionBox(5.0D, 0.0D, 9.0D, 11.0D, 15.0D, 15.0D));
-        } else if (dripleaf.getFacing() == org.bukkit.block.BlockFace.SOUTH) {
+        } else if (dripleaf.getFacing() == BlockFace.SOUTH) {
             box.add(new HexCollisionBox(5.0D, 0.0D, 1.0D, 11.0D, 15.0D, 7.0D));
-        } else if (dripleaf.getFacing() == org.bukkit.block.BlockFace.EAST) {
+        } else if (dripleaf.getFacing() == BlockFace.EAST) {
             box.add(new HexCollisionBox(1.0D, 0.0D, 5.0D, 7.0D, 15.0D, 11.0D));
         } else {
             box.add(new HexCollisionBox(9.0D, 0.0D, 5.0D, 15.0D, 15.0D, 11.0D));
@@ -143,15 +142,15 @@ public enum HitboxData {
 
         Lectern lectern = (Lectern) ((WrappedFlatBlock) data).getBlockData();
 
-        if (lectern.getFacing() == org.bukkit.block.BlockFace.WEST) {
+        if (lectern.getFacing() == BlockFace.WEST) {
             common.add(new HexCollisionBox(1.0D, 10.0D, 0.0D, 5.333333D, 14.0D, 16.0D));
             common.add(new HexCollisionBox(5.333333D, 12.0D, 0.0D, 9.666667D, 16.0D, 16.0D));
             common.add(new HexCollisionBox(9.666667D, 14.0D, 0.0D, 14.0D, 18.0D, 16.0D));
-        } else if (lectern.getFacing() == org.bukkit.block.BlockFace.NORTH) {
+        } else if (lectern.getFacing() == BlockFace.NORTH) {
             common.add(new HexCollisionBox(0.0D, 10.0D, 1.0D, 16.0D, 14.0D, 5.333333D));
             common.add(new HexCollisionBox(0.0D, 12.0D, 5.333333D, 16.0D, 16.0D, 9.666667D));
             common.add(new HexCollisionBox(0.0D, 14.0D, 9.666667D, 16.0D, 18.0D, 14.0D));
-        } else if (lectern.getFacing() == org.bukkit.block.BlockFace.EAST) {
+        } else if (lectern.getFacing() == BlockFace.EAST) {
             common.add(new HexCollisionBox(10.666667D, 10.0D, 0.0D, 15.0D, 14.0D, 16.0D));
             common.add(new HexCollisionBox(6.333333D, 12.0D, 0.0D, 10.666667D, 16.0D, 16.0D));
             common.add(new HexCollisionBox(2.0D, 14.0D, 0.0D, 6.333333D, 18.0D, 16.0D));

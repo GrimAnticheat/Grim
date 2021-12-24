@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.data;
 
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;

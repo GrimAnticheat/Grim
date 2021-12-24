@@ -27,8 +27,8 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import org.bukkit.GameMode;
 import org.bukkit.util.Vector;
 
@@ -65,7 +65,7 @@ public class Reach extends PacketCheck {
             }
         }
 
-        if (WrapperPlayClientFlying.isInstanceOfFlying(event.getPacketType())) {
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
             if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
                 return;

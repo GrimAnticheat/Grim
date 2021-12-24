@@ -1,13 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.WrappedBlockData;
-import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.types.WrappedDirectional;
-import ac.grim.grimac.utils.blockdata.types.WrappedTrapdoor;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.blockstate.FlatBlockState;
-import ac.grim.grimac.utils.chunkdata.BaseChunk;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -16,8 +9,13 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldBorder;
@@ -31,31 +29,6 @@ import java.util.List;
 import java.util.function.Predicate;
 
 public class Collisions {
-    private static final Material HONEY_BLOCK = ItemTypes.HONEY_BLOCK;
-    private static final Material COBWEB = ItemTypes.COBWEB;
-    private static final Material BUBBLE_COLUMN = ItemTypes.BUBBLE_COLUMN;
-    private static final Material SWEET_BERRY_BUSH = ItemTypes.SWEET_BERRY_BUSH;
-    private static final Material SLIME_BLOCK = ItemTypes.SLIME_BLOCK;
-    private static final Material POWDER_SNOW = ItemTypes.POWDER_SNOW;
-
-    private static final Material LADDER = ItemTypes.LADDER;
-
-    private static final Material PISTON_HEAD = ItemTypes.PISTON_HEAD;
-
-    private static final Material OBSERVER = ItemTypes.OBSERVER;
-    private static final Material REDSTONE_BLOCK = ItemTypes.REDSTONE_BLOCK;
-
-    private static final Material ICE = ItemTypes.ICE;
-    private static final Material FROSTED_ICE = ItemTypes.FROSTED_ICE;
-
-    private static final Material TNT = ItemTypes.TNT;
-    private static final Material FARMLAND = ItemTypes.FARMLAND;
-    private static final Material DIRT_PATH = ItemTypes.DIRT_PATH;
-    private static final Material SOUL_SAND = ItemTypes.SOUL_SAND;
-    private static final Material PISTON_BASE = ItemTypes.PISTON;
-    private static final Material STICKY_PISTON_BASE = ItemTypes.STICKY_PISTON;
-    private static final Material BEACON = ItemTypes.BEACON;
-
     private static final double COLLISION_EPSILON = 1.0E-7;
     private static final int ABSOLUTE_MAX_SIZE = 29999984;
 
@@ -145,7 +118,7 @@ public class Collisions {
 
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
-        if (player.clientControlledHorizontalCollision && ItemTypes.supports(8) && player.playerWorld != null) {
+        if (player.clientControlledHorizontalCollision && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.playerWorld != null) {
             WorldBorder border = player.playerWorld.getWorldBorder();
             double centerX = border.getCenter().getX();
             double centerZ = border.getCenter().getZ();
@@ -236,21 +209,21 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            BaseBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
+                            WrappedBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
 
                             // Works on both legacy and modern!  Faster than checking for material types, most common case
-                            if (data.getCombinedId() == 0) continue;
+                            if (data.getGlobalId() == 0) continue;
 
                             int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
                                     ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
                                     ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
 
-                            if (edgeCount != 3 && (edgeCount != 1 || Materials.checkFlag(data.getMaterial(), Materials.SHAPE_EXCEEDS_CUBE))
-                                    && (edgeCount != 2 || data.getMaterial() == PISTON_HEAD)) {
+                            if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(data.getType()))
+                                    && (edgeCount != 2 || data.getType() == StateTypes.PISTON_HEAD)) {
                                 // Don't add to a list if we only care if the player intersects with the block
                                 if (!onlyCheckCollide) {
-                                    CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
-                                } else if (CollisionData.getData(data.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isCollided(wantedBB)) {
+                                    CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).downCast(listOfBlocks);
+                                } else if (CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isCollided(wantedBB)) {
                                     return true;
                                 }
                             }
@@ -609,7 +582,7 @@ public class Collisions {
     }
 
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<BaseBlockState> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<WrappedBlockState> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX);
         int maxBlockX = (int) Math.floor(checkBox.maxX);
         int minBlockY = (int) Math.floor(checkBox.minY);
@@ -662,7 +635,7 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            BaseBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
+                            WrappedBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
 
                             if (searchingFor.test(data)) return true;
                         }

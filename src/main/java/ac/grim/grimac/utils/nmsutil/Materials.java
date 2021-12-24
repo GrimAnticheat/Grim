@@ -1,10 +1,9 @@
 package ac.grim.grimac.utils.nmsutil;
 
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -16,52 +15,9 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Materials {
-    public static final int SOLID = 0b00000000000000000000000000001;
-    public static final int CLIMBABLE = 0b00000000000000000000000000010;
-
-    public static final int WALL = 0b00000000000000000000000000100;
-    public static final int STAIRS = 0b00000000000000000000000001000;
-    public static final int SLABS = 0b00000000000000000000000010000;
-
-    public static final int WATER = 0b00000000000000000000000100000;
-    public static final int LAVA = 0b00000000000000000000001000000;
-
-    public static final int BUTTON = 0b00000000000000000000010000000;
-
-    public static final int ICE_BLOCKS = 0b00000000000000000000100000000;
-
-    public static final int FENCE = 0b00000000000000000001000000000;
-    public static final int GATE = 0b00000000000000000010000000000;
-    public static final int BED = 0b00000000000000000100000000000;
-    public static final int AIR = 0b00000000000000001000000000000;
-
-    public static final int TRAPDOOR = 0b00000000000000010000000000000;
-
-    public static final int WATER_SOURCE = 0b00000000000000100000000000000;
-
-    public static final int LEAVES = 0b00000000000001000000000000000;
-    public static final int DOOR = 0b00000000000010000000000000000;
-    public static final int SHULKER = 0b00000000000100000000000000000;
-
-    public static final int GLASS_BLOCK = 0b00000000001000000000000000000;
-    public static final int GLASS_PANE = 0b00000000010000000000000000000;
-
-    public static final int WATER_LEGACY = 0b00000000100000000000000000000;
-    public static final int WATER_SOURCE_LEGACY = 0b00000001000000000000000000000;
-    public static final int CLIENT_SIDE_INTERACTABLE = 0b00000010000000000000000000000;
-    public static final int PLANT = 0b00000100000000000000000000000;
-    public static final int CAULDRON = 0b00001000000000000000000000000;
-    public static final int SHAPE_EXCEEDS_CUBE = 0b00010000000000000000000000000;
-
-    // Warning: This is not accurate for 1.13-1.15 clients, use the method for those clients
-    public static final int SOLID_BLACKLIST = 0b00100000000000000000000000000;
-    public static final int BANNER = 0b01000000000000000000000000000;
-    // What blocks can new blocks simply replace entirely when placing?
-    public static final int REPLACEABLE = 0b10000000000000000000000000000;
-
     private static final Set<StateType> NO_PLACE_LIQUIDS = new HashSet<>();
-    private static final Set<StateType> GLASS_BLOCKS = new HashSet<>();
-    private static final Set<StateType> GLASS_PANES = new HashSet<>();
+    // Includes iron panes in addition to glass panes
+    private static final Set<StateType> PANES = new HashSet<>();
     private static final Set<StateType> WATER_LIQUIDS = new HashSet<>();
     private static final Set<StateType> WATER_LIQUIDS_LEGACY = new HashSet<>();
     private static final Set<StateType> LAVA_LIQUIDS = new HashSet<>();
@@ -70,6 +26,7 @@ public class Materials {
 
     private static final Set<StateType> CLIENT_SIDE = new HashSet<>();
 
+    private static final Set<StateType> SHAPE_EXCEEDS_CUBE = new HashSet<>();
 
     static {
         // Lava hasn't changed, other than STATIONARY_LAVA material on 1.12- servers
@@ -127,129 +84,93 @@ public class Materials {
         CLIENT_SIDE.add(StateTypes.SMITHING_TABLE);
         CLIENT_SIDE.add(StateTypes.STONECUTTER);
 
-        for (Material mat : Material.values()) {
-            if (!mat.isBlock()) continue;
+        CLIENT_SIDE.addAll(BlockTags.FENCE_GATES.getStates());
+        CLIENT_SIDE.addAll(BlockTags.ANVIL.getStates());
+        CLIENT_SIDE.addAll(BlockTags.BEDS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.BUTTONS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.SHULKER_BOXES.getStates());
+        CLIENT_SIDE.addAll(BlockTags.SIGNS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.FLOWER_POTS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.TRAPDOORS.getStates());
 
-            if (mat.name().contains("FENCE") && !mat.name().equalsIgnoreCase("IRON_FENCE")) {
-                if (!mat.name().contains("GATE")) MATERIAL_FLAGS[mat.ordinal()] |= FENCE;
-                else {
-                    MATERIAL_FLAGS[mat.ordinal()] |= GATE;
-                    // Client side changes gate immediately
-                    MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-                }
-            }
+        PANES.addAll(BlockTags.GLASS_PANES.getStates());
+        PANES.add(StateTypes.IRON_BARS);
 
-            BlockTags.FLOWER_POTS
-
-            if (mat.name().contains("ANVIL")) {
-                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-            }
-            if (mat.name().contains("BED")) {
-                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-            }
-            if (mat.name().contains("BUTTON")) {
-                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-            }
-            if (mat.name().contains("SHULKER")) {
-                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-            }
-            if (mat.name().contains("SIGN")) {
-                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-            }
-            if (mat.name().contains("POTTED")) MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-
-            if (mat.name().contains("ICE")) MATERIAL_FLAGS[mat.ordinal()] |= ICE_BLOCKS;
-            if (mat.name().endsWith("_GATE")) MATERIAL_FLAGS[mat.ordinal()] |= GATE;
-
-            if (mat.name().contains("TRAPDOOR") || mat.name().contains("TRAP_DOOR")) {
-                if (!mat.name().contains("IRON"))
-                    MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-            }
-
-            if (mat.name().contains("_BANNER")) MATERIAL_FLAGS[mat.ordinal()] |= BANNER;
-            if (mat.name().contains("_DOOR") && !mat.name().contains("IRON"))
-                MATERIAL_FLAGS[mat.ordinal()] |= CLIENT_SIDE_INTERACTABLE;
-            if (mat.name().contains("GLASS") && !mat.name().contains("PANE") && !mat.name().contains("THIN_GLASS"))
-                MATERIAL_FLAGS[mat.ordinal()] |= GLASS_BLOCK;
-            // THIN_GLASS and IRON_FENCE are 1.8 names for these materials
-            if ((mat.name().contains("GLASS") && mat.name().contains("PANE")) || mat.name().contains("THIN_GLASS") || mat.name().contains("IRON_FENCE"))
-                MATERIAL_FLAGS[mat.ordinal()] |= GLASS_PANE;
-            if (mat.name().contains("_SIGN")) markAsNotSolid(mat);
-            // 1.17 separates the types of cauldrons
-            if (mat.name().contains("CAULDRON")) MATERIAL_FLAGS[mat.ordinal()] |= CAULDRON;
-        }
+        SHAPE_EXCEEDS_CUBE.addAll(BlockTags.FENCES.getStates());
+        SHAPE_EXCEEDS_CUBE.addAll(BlockTags.FENCE_GATES.getStates());
+        SHAPE_EXCEEDS_CUBE.addAll(BlockTags.WALLS.getStates());
     }
 
-    public static boolean checkStairs(StateType type) {
+    public static boolean isStairs(StateType type) {
         return BlockTags.STAIRS.contains(type);
     }
 
-    public static boolean checkSlabs(StateType type) {
+    public static boolean isSlab(StateType type) {
         return BlockTags.SLABS.contains(type);
     }
 
-    public static boolean checkWall(StateType type) {
+    public static boolean isWall(StateType type) {
         return BlockTags.WALLS.contains(type);
     }
 
-    public static boolean checkButton(StateType type) {
+    public static boolean isButton(StateType type) {
         return BlockTags.BUTTONS.contains(type);
     }
 
-    public static boolean checkFence(StateType type) {
+    public static boolean isFence(StateType type) {
         return BlockTags.FENCES.contains(type);
     }
 
-    public static boolean checkGate(StateType type) {
+    public static boolean isGate(StateType type) {
         return BlockTags.FENCE_GATES.contains(type);
     }
 
-    public static boolean checkBed(StateType type) {
+    public static boolean isBed(StateType type) {
         return BlockTags.BEDS.contains(type);
     }
 
-    public static boolean checkAir(StateType type) {
+    public static boolean isAir(StateType type) {
         return type.isAir();
     }
 
-    public static boolean checkLeaves(StateType type) {
+    public static boolean isLeaves(StateType type) {
         return BlockTags.LEAVES.contains(type);
     }
 
-    public static boolean checkDoor(StateType type) {
+    public static boolean isDoor(StateType type) {
         return BlockTags.DOORS.contains(type);
     }
 
-    public static boolean checkShulker(StateType type) {
+    public static boolean isShulker(StateType type) {
         return BlockTags.SHULKER_BOXES.contains(type);
     }
 
-    public static boolean checkGlassBlock(StateType type) {
-
+    public static boolean isGlassBlock(StateType type) {
+        return BlockTags.GLASS_BLOCKS.contains(type);
     }
 
-    public static boolean checkGlassPane(StateType type) {
-
+    public static boolean isGlassPane(StateType type) {
+        return PANES.contains(type);
     }
 
-    public static boolean checkClimable(StateType type) {
+    public static boolean isClimbable(StateType type) {
         return BlockTags.CLIMBABLE.contains(type);
     }
 
-    public static boolean checkCauldron(StateType type) {
+    public static boolean isCauldron(StateType type) {
         return BlockTags.CAULDRONS.contains(type);
     }
 
-    private static void markAsNotSolid(Material material) {
-        // Remove the least significant bit
-        MATERIAL_FLAGS[material.ordinal()] &= Integer.MAX_VALUE - 1;
+    public static boolean isWaterModern(StateType type) {
+        return WATER_LIQUIDS.contains(type);
     }
 
-    private static void markAs(StateTypes material, int flag) {
-        // Set the flag only if the version has the material
-        if (material != null) {
-            MATERIAL_FLAGS[material.ordinal()] |= flag;
-        }
+    public static boolean isWaterLegacy(StateType type) {
+        return WATER_LIQUIDS_LEGACY.contains(type);
+    }
+
+    public static boolean isShapeExceedsCube(StateType type) {
+        return SHAPE_EXCEEDS_CUBE.contains(type);
     }
 
     public static boolean isUsable(ItemType material) {
@@ -258,15 +179,15 @@ public class Materials {
                 || material == ItemTypes.TRIDENT || material == ItemTypes.SHIELD);
     }
 
-    public static boolean checkFlag(Material material, int flag) {
-        return (MATERIAL_FLAGS[material.ordinal()] & flag) == flag;
+    public static boolean isWater(ClientVersion clientVersion, WrappedBlockState state) {
+        if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+            return isWaterModern(state.getType());
+        }
+        return clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13) ? (WATER : WATER_LEGACY)
+                || isWaterlogged(clientVersion, state);
     }
 
-    public static boolean isWater(ClientVersion clientVersion, BaseBlockState state) {
-        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13) ? WATER : WATER_LEGACY) || isWaterlogged(clientVersion, state);
-    }
-
-    public static boolean isWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
+    public static boolean isWaterlogged(ClientVersion clientVersion, WrappedBlockState state) {
         if (clientVersion.isOlderThanOrEquals(ClientVersion.V_1_12_2)) return false;
         if (!ItemTypes.isNewVersion()) return false;
 

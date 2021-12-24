@@ -3,12 +3,11 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
+import BlockFace;
 import org.bukkit.util.Vector;
 
 public class FluidTypeFlowing {

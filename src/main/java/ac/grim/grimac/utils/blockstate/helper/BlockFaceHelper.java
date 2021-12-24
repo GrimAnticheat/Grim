@@ -12,36 +12,36 @@ public class BlockFaceHelper {
         return face == BlockFace.NORTH || face == BlockFace.EAST || face == BlockFace.SOUTH || face == BlockFace.WEST;
     }
 
-    public static org.bukkit.block.BlockFace toBukkitFace(BlockFace face) {
+    public static BlockFace toBukkitFace(BlockFace face) {
         switch (face) {
             case NORTH:
-                return org.bukkit.block.BlockFace.NORTH;
+                return BlockFace.NORTH;
             case SOUTH:
-                return org.bukkit.block.BlockFace.SOUTH;
+                return BlockFace.SOUTH;
             case WEST:
-                return org.bukkit.block.BlockFace.WEST;
+                return BlockFace.WEST;
             case EAST:
-                return org.bukkit.block.BlockFace.EAST;
+                return BlockFace.EAST;
             case UP:
-                return org.bukkit.block.BlockFace.UP;
+                return BlockFace.UP;
             case DOWN:
-                return org.bukkit.block.BlockFace.DOWN;
+                return BlockFace.DOWN;
             default:
-                return org.bukkit.block.BlockFace.SELF;
+                return BlockFace.SELF;
         }
     }
 
-    public static org.bukkit.block.BlockFace getClockWise(BlockFace face) {
+    public static BlockFace getClockWise(BlockFace face) {
         switch (face) {
             case NORTH:
-                return org.bukkit.block.BlockFace.EAST;
+                return BlockFace.EAST;
             case SOUTH:
-                return org.bukkit.block.BlockFace.WEST;
+                return BlockFace.WEST;
             case WEST:
-                return org.bukkit.block.BlockFace.NORTH;
+                return BlockFace.NORTH;
             case EAST:
             default:
-                return org.bukkit.block.BlockFace.SOUTH;
+                return BlockFace.SOUTH;
         }
     }
 

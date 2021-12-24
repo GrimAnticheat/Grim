@@ -11,6 +11,10 @@ import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPositionRotation;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPosition;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPositionRotation;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientRotation;
@@ -30,26 +34,26 @@ public class NoFallA extends PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (WrapperPlayClientFlying.isInstanceOfFlying(event.getPacketType())) {
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // We have the wrong world cached with chunks
             if (player.bukkitPlayer.getWorld() != player.playerWorld) return;
             // The player hasn't spawned yet
             if (player.getSetbackTeleportUtil().insideUnloadedChunk()) return;
 
-            WrapperPlayClientFlying wrapper = null;
+            WrapperPlayClientPlayerFlying wrapper = null;
             boolean hasPosition = false;
 
             // Flying packet types
             if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
-                wrapper = new WrapperPlayClientPosition(event);
+                wrapper = new WrapperPlayClientPlayerPosition(event);
                 hasPosition = true;
             } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-                wrapper = new WrapperPlayClientPositionRotation(event);
+                wrapper = new WrapperPlayClientPlayerPositionRotation(event);
                 hasPosition = true;
             } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
-                wrapper = new WrapperPlayClientRotation(event);
+                wrapper = new WrapperPlayClientPlayerRotation(event);
             } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING) {
-                wrapper = new WrapperPlayClientFlying(event);
+                wrapper = new WrapperPlayClientPlayerFlying(event);
             }
 
             assert wrapper != null;
@@ -88,7 +92,7 @@ public class NoFallA extends PacketCheck {
                     feetBB.expandToAbsoluteCoordinates(lastPos.getX(), lastPos.getY(), lastPos.getZ());
 
                 // Shulkers have weird BB's that the player might be standing on
-                if (Collisions.hasMaterial(player, feetBB, blockData -> Materials.checkFlag(blockData.getMaterial(), Materials.SHULKER)))
+                if (Collisions.hasMaterial(player, feetBB, blockData -> Materials.isShulker(blockData)))
                     return;
 
                 // This is to support stepping movement (Not blatant, we need to wait on prediction engine to flag this)

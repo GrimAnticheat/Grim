@@ -6,8 +6,6 @@ import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedDoor;
 import ac.grim.grimac.utils.blockdata.types.WrappedSlab;
 import ac.grim.grimac.utils.blockdata.types.WrappedSnow;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.collisions.CollisionData;
@@ -303,7 +301,7 @@ public enum BlockPlaceResult {
         BlockFace primaryDirection = place.getNearestVerticalDirection().getOppositeFace(); // The player clicked downwards, so use upwards
         BlockData typePlacingOn = place.getDirectionalFlatState(primaryDirection.getOppositeFace()).getBlockData(); // Block we are placing on
 
-        org.bukkit.block.BlockFace primaryDir = BlockFaceHelper.toBukkitFace(primaryDirection);
+        BlockFace primaryDir = BlockFaceHelper.toBukkitFace(primaryDirection);
 
         // Check to see if we can place on the block or there is dripstone on the block that we are placing on also pointing upwards
         boolean primarySameType = typePlacingOn instanceof PointedDripstone && ((PointedDripstone) typePlacingOn).getVerticalDirection() == primaryDir;
@@ -571,7 +569,7 @@ public enum BlockPlaceResult {
 
     GLOW_LICHEN((player, place) -> {
         BlockData lichen = place.getExistingBlockBlockData();
-        Set<org.bukkit.block.BlockFace> faces = lichen.getMaterial() == Material.GLOW_LICHEN ? ((GlowLichen) lichen).getFaces() : new HashSet<>();
+        Set<BlockFace> faces = lichen.getMaterial() == Material.GLOW_LICHEN ? ((GlowLichen) lichen).getFaces() : new HashSet<>();
 
         for (BlockFace face : place.getNearestPlacingDirections()) {
             // Face already exists.
@@ -587,7 +585,7 @@ public enum BlockPlaceResult {
         GlowLichen toSet = (GlowLichen) Material.GLOW_LICHEN.createBlockData();
 
         // Apply the new faces
-        for (org.bukkit.block.BlockFace face : faces) {
+        for (BlockFace face : faces) {
             toSet.setFace(face, faces.contains(face));
         }
 

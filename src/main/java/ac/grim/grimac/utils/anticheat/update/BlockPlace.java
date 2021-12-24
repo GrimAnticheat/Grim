@@ -3,8 +3,6 @@ package ac.grim.grimac.utils.anticheat.update;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.collisions.AxisSelect;
 import ac.grim.grimac.utils.collisions.AxisUtil;
@@ -233,7 +231,7 @@ public class BlockPlace {
     public boolean isFullFace(BlockFace relative) {
         BaseBlockState state = getDirectionalState(relative);
         BlockFace face = relative.getOppositeFace();
-        org.bukkit.block.BlockFace bukkitFace = org.bukkit.block.BlockFace.valueOf(face.name());
+        BlockFace bukkitFace = BlockFace.valueOf(face.name());
 
         WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(state);
         AxisSelect axis = AxisUtil.getAxis(face);
@@ -277,7 +275,7 @@ public class BlockPlace {
                 int x = getPlacedAgainstBlockLocation().getX();
                 int y = getPlacedAgainstBlockLocation().getY();
                 int z = getPlacedAgainstBlockLocation().getZ();
-                org.bukkit.block.BlockFace dir = ((DoorHandler) data.dynamic).fetchDirection(player, player.getClientVersion(), dataValue, x, y, z);
+                BlockFace dir = ((DoorHandler) data.dynamic).fetchDirection(player, player.getClientVersion(), dataValue, x, y, z);
                 return dir.getOppositeFace() == bukkitFace;
             }
         }

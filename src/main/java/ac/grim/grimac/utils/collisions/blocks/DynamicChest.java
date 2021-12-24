@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.collisions.blocks;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedChest;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;

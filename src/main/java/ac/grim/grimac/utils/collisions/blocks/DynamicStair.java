@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedStairs;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;

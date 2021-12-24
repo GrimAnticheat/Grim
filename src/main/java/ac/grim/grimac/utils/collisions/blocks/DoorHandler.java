@@ -4,14 +4,13 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedDoor;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.NoCollisionBox;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
+import BlockFace;
 
 public class DoorHandler implements CollisionFactory {
     protected static final CollisionBox SOUTH_AABB = new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 16.0D, 3.0D);

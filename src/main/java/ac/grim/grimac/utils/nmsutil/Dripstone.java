@@ -1,8 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockstate.FlatBlockState;
-import org.bukkit.block.BlockFace;
+import BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.PointedDripstone;
 

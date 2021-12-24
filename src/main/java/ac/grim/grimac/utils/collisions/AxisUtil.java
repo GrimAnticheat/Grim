@@ -71,9 +71,9 @@ public enum AxisUtil {
         }
     }
 
-    public static boolean isSameAxis(org.bukkit.block.BlockFace one, org.bukkit.block.BlockFace two) {
-        return (one == org.bukkit.block.BlockFace.WEST || one == org.bukkit.block.BlockFace.EAST) && (two == org.bukkit.block.BlockFace.WEST || two == org.bukkit.block.BlockFace.EAST) ||
-                (one == org.bukkit.block.BlockFace.NORTH || one == org.bukkit.block.BlockFace.SOUTH) && (two == org.bukkit.block.BlockFace.NORTH || two == org.bukkit.block.BlockFace.SOUTH) ||
-                (one == org.bukkit.block.BlockFace.UP || one == org.bukkit.block.BlockFace.DOWN) && (two == org.bukkit.block.BlockFace.UP || two == org.bukkit.block.BlockFace.DOWN);
+    public static boolean isSameAxis(BlockFace one, BlockFace two) {
+        return (one == BlockFace.WEST || one == BlockFace.EAST) && (two == BlockFace.WEST || two == BlockFace.EAST) ||
+                (one == BlockFace.NORTH || one == BlockFace.SOUTH) && (two == BlockFace.NORTH || two == BlockFace.SOUTH) ||
+                (one == BlockFace.UP || one == BlockFace.DOWN) && (two == BlockFace.UP || two == BlockFace.DOWN);
     }
 }

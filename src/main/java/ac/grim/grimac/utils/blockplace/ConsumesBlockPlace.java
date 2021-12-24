@@ -2,9 +2,6 @@ package ac.grim.grimac.utils.blockplace;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.blockstate.FlatBlockState;
-import ac.grim.grimac.utils.blockstate.MagicBlockState;
 import ac.grim.grimac.utils.collisions.AxisUtil;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.GameMode;
@@ -122,9 +119,9 @@ public class ConsumesBlockPlace {
 
     private static boolean isProperHit(Bell bell, BlockFace direction, double p_49742_) {
         if (direction != BlockFace.UP && direction != BlockFace.DOWN && !(p_49742_ > (double) 0.8124F)) {
-            org.bukkit.block.BlockFace dir = bell.getFacing();
+            BlockFace dir = bell.getFacing();
             Bell.Attachment attachment = bell.getAttachment();
-            org.bukkit.block.BlockFace dir2 = org.bukkit.block.BlockFace.valueOf(direction.name());
+            BlockFace dir2 = BlockFace.valueOf(direction.name());
 
             switch (attachment) {
                 case FLOOR:

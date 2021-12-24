@@ -3,8 +3,6 @@ package ac.grim.grimac.utils.collisions.blocks.connecting;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
 import ac.grim.grimac.utils.blockdata.types.WrappedMultipleFacing;
-import ac.grim.grimac.utils.blockstate.BaseBlockState;
-import ac.grim.grimac.utils.blockstate.FlatBlockState;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -30,27 +28,27 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
             if (ItemTypes.supports(16)) {
                 Wall wall = (Wall) data;
 
-                if (wall.getHeight(org.bukkit.block.BlockFace.NORTH) != Wall.Height.NONE)
-                    north += wall.getHeight(org.bukkit.block.BlockFace.NORTH) == Wall.Height.LOW ? 1 : 2;
+                if (wall.getHeight(BlockFace.NORTH) != Wall.Height.NONE)
+                    north += wall.getHeight(BlockFace.NORTH) == Wall.Height.LOW ? 1 : 2;
 
-                if (wall.getHeight(org.bukkit.block.BlockFace.EAST) != Wall.Height.NONE)
-                    east += wall.getHeight(org.bukkit.block.BlockFace.EAST) == Wall.Height.LOW ? 1 : 2;
+                if (wall.getHeight(BlockFace.EAST) != Wall.Height.NONE)
+                    east += wall.getHeight(BlockFace.EAST) == Wall.Height.LOW ? 1 : 2;
 
-                if (wall.getHeight(org.bukkit.block.BlockFace.SOUTH) != Wall.Height.NONE)
-                    south += wall.getHeight(org.bukkit.block.BlockFace.SOUTH) == Wall.Height.LOW ? 1 : 2;
+                if (wall.getHeight(BlockFace.SOUTH) != Wall.Height.NONE)
+                    south += wall.getHeight(BlockFace.SOUTH) == Wall.Height.LOW ? 1 : 2;
 
-                if (wall.getHeight(org.bukkit.block.BlockFace.WEST) != Wall.Height.NONE)
-                    west += wall.getHeight(org.bukkit.block.BlockFace.WEST) == Wall.Height.LOW ? 1 : 2;
+                if (wall.getHeight(BlockFace.WEST) != Wall.Height.NONE)
+                    west += wall.getHeight(BlockFace.WEST) == Wall.Height.LOW ? 1 : 2;
 
                 if (wall.isUp())
                     up = 1;
             } else {
                 MultipleFacing facing = (MultipleFacing) data;
-                north = facing.getFaces().contains(org.bukkit.block.BlockFace.NORTH) ? 1 : 0;
-                east = facing.getFaces().contains(org.bukkit.block.BlockFace.EAST) ? 1 : 0;
-                south = facing.getFaces().contains(org.bukkit.block.BlockFace.SOUTH) ? 1 : 0;
-                west = facing.getFaces().contains(org.bukkit.block.BlockFace.WEST) ? 1 : 0;
-                up = facing.getFaces().contains(org.bukkit.block.BlockFace.UP) ? 1 : 0;
+                north = facing.getFaces().contains(BlockFace.NORTH) ? 1 : 0;
+                east = facing.getFaces().contains(BlockFace.EAST) ? 1 : 0;
+                south = facing.getFaces().contains(BlockFace.SOUTH) ? 1 : 0;
+                west = facing.getFaces().contains(BlockFace.WEST) ? 1 : 0;
+                up = facing.getFaces().contains(BlockFace.UP) ? 1 : 0;
             }
         } else {
             north = connectsTo(player, version, x, y, z, BlockFace.NORTH) ? 1 : 0;
