@@ -35,7 +35,7 @@ public class JumpPower {
     }
 
     private static float getBlockJumpFactor(GrimPlayer player, Double x, Double y, Double z) {
-        Material jumpBlock = player.compensatedWorld.getBukkitMaterialAt(x, y, z);
+        Material jumpBlock = player.compensatedWorld.getStateTypeAt(x, y, z);
 
         if (jumpBlock == HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15))
             return 0.5F;

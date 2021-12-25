@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -7,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
@@ -20,7 +23,6 @@ public class Materials {
     private static final Set<StateType> PANES = new HashSet<>();
     private static final Set<StateType> WATER_LIQUIDS = new HashSet<>();
     private static final Set<StateType> WATER_LIQUIDS_LEGACY = new HashSet<>();
-    private static final Set<StateType> LAVA_LIQUIDS = new HashSet<>();
     private static final Set<StateType> WATER_SOURCES = new HashSet<>();
     private static final Set<StateType> WATER_SOURCES_LEGACY = new HashSet<>();
 
@@ -29,9 +31,6 @@ public class Materials {
     private static final Set<StateType> SHAPE_EXCEEDS_CUBE = new HashSet<>();
 
     static {
-        // Lava hasn't changed, other than STATIONARY_LAVA material on 1.12- servers
-        LAVA_LIQUIDS.add(StateTypes.LAVA);
-
         // Base water, flowing on 1.12- but not on 1.13+ servers
         WATER_LIQUIDS.add(StateTypes.WATER);
         WATER_LIQUIDS_LEGACY.add(StateTypes.WATER);
@@ -180,33 +179,44 @@ public class Materials {
     }
 
     public static boolean isWater(ClientVersion clientVersion, WrappedBlockState state) {
-        if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13)) {
-            return isWaterModern(state.getType());
+        boolean modern = clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13);
+
+        if (modern && isWaterModern(state.getType())) {
+            return true;
         }
-        return clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13) ? (WATER : WATER_LEGACY)
-                || isWaterlogged(clientVersion, state);
+
+        if (!modern && isWaterLegacy(state.getType())) {
+            return true;
+        }
+
+        return isWaterlogged(clientVersion, state);
+    }
+
+    public static boolean isWaterSource(ClientVersion clientVersion, WrappedBlockState state) {
+        if (isWaterlogged(clientVersion, state)) {
+            return true;
+        }
+        boolean modern = clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13);
+        return modern ? WATER_SOURCES.contains(state.getType()) : WATER_SOURCES_LEGACY.contains(state.getType());
     }
 
     public static boolean isWaterlogged(ClientVersion clientVersion, WrappedBlockState state) {
         if (clientVersion.isOlderThanOrEquals(ClientVersion.V_1_12_2)) return false;
-        if (!ItemTypes.isNewVersion()) return false;
+        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_13)) return false;
 
-        FlatBlockState flat = (FlatBlockState) state;
-        BlockData blockData = flat.getBlockData();
-        Material mat = blockData.getMaterial();
+        StateType type = state.getType();
 
         // Waterlogged lanterns were added in 1.16.2
-        if (clientVersion.isOlderThan(ClientVersion.V_1_16_2) && (mat == LANTERN || mat == SOUL_LANTERN))
+        if (clientVersion.isOlderThan(ClientVersion.V_1_16_2) && (type == StateTypes.LANTERN || type == StateTypes.SOUL_LANTERN))
             return false;
         // ViaVersion small dripleaf -> fern (not waterlogged)
-        if (clientVersion.isOlderThan(ClientVersion.V_1_17) && mat == SMALL_DRIPLEAF)
+        if (clientVersion.isOlderThan(ClientVersion.V_1_17) && type == StateTypes.SMALL_DRIPLEAF)
             return false;
         // Waterlogged rails were added in 1.17
-        if (clientVersion.isOlderThan(ClientVersion.V_1_17) &&
-                (mat == RAIL || mat == POWERED_RAIL || mat == ACTIVATOR_RAIL || mat == DETECTOR_RAIL))
+        if (clientVersion.isOlderThan(ClientVersion.V_1_17) && BlockTags.RAILS.contains(type))
             return false;
-
-        return blockData instanceof Waterlogged && ((Waterlogged) blockData).isWaterlogged();
+        // Nice check to see if waterlogged :)
+        return (boolean) state.getInternalData().getOrDefault(StateValue.WATERLOGGED, false);
     }
 
     public static boolean isPlaceableLiquidBucket(ItemType mat) {
@@ -214,9 +224,9 @@ public class Materials {
                 || mat == ItemTypes.SALMON_BUCKET || mat == ItemTypes.TROPICAL_FISH_BUCKET || mat == ItemTypes.WATER_BUCKET;
     }
 
-    public static Material transformBucketMaterial(ItemType mat) {
-        if (mat == Material.LAVA_BUCKET) return ItemTypes.LAVA;
-        if (isPlaceableLiquidBucket(mat)) return ItemTypes.WATER;
+    public static StateType transformBucketMaterial(ItemType mat) {
+        if (mat == ItemTypes.LAVA_BUCKET) return StateTypes.LAVA;
+        if (isPlaceableLiquidBucket(mat)) return StateTypes.WATER;
         return null;
     }
 
@@ -224,7 +234,7 @@ public class Materials {
     // As we have already assumed that the player does not have water at this block
     // We do not have to track all the version differences in terms of looking for water
     // For 1.7-1.12 clients, it is safe to check SOLID_BLACKLIST directly
-    public static boolean isSolidBlockingBlacklist(Material mat, ClientVersion ver) {
+    public static boolean isSolidBlockingBlacklist(StateType mat, ClientVersion ver) {
         // Thankfully Mojang has not changed this code much across versions
         // There very likely is a few lurking issues though, I've done my best but can't thoroughly compare 11 versions
         // but from a look, Mojang seems to keep this definition consistent throughout their game (thankfully)
@@ -232,10 +242,10 @@ public class Materials {
         // What I do is look at 1.8, 1.12, and 1.17 source code, and when I see a difference, I find the version
         // that added it.  I could have missed something if something was added to the blacklist in 1.9 but
         // was removed from it in 1.10 (although this is unlikely as the blacklist rarely changes)
-        if (Materials.checkFlag(mat, SOLID_BLACKLIST)) return true;
+        if (mat.isBlocking()) return true;
 
         // 1.13-1.15 had banners on the blacklist - removed in 1.16, not implemented in 1.12 and below
-        if (Materials.checkFlag(mat, BANNER))
+        if (BlockTags.BANNERS.contains(mat))
             return ver.isNewerThanOrEquals(ClientVersion.V_1_13) && ver.isOlderThan(ClientVersion.V_1_16);
 
         return false;
@@ -253,7 +263,8 @@ public class Materials {
         return NO_PLACE_LIQUIDS.contains(material);
     }
 
-    public static boolean isWaterIgnoringWaterlogged(ClientVersion clientVersion, BaseBlockState state) {
-        return checkFlag(state.getMaterial(), clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13) ? WATER : WATER_LEGACY);
+    public static boolean isWaterIgnoringWaterlogged(ClientVersion clientVersion, WrappedBlockState state) {
+        if (clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13)) return isWaterModern(state.getType());
+        return isWaterLegacy(state.getType());
     }
 }

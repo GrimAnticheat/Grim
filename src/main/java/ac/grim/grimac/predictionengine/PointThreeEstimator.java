@@ -11,9 +11,11 @@ import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Material;
 import org.bukkit.util.Vector;
 
 import java.util.Set;
@@ -116,8 +118,8 @@ public class PointThreeEstimator {
     }
 
     // Handle game events that occur between skipped ticks - thanks a lot mojang for removing the idle packet!
-    public void handleChangeBlock(int x, int y, int z, BaseBlockState state) {
-        CollisionBox data = CollisionData.getData(state.getMaterial()).getMovementCollisionBox(player, player.getClientVersion(), state, x, y, z);
+    public void handleChangeBlock(int x, int y, int z, WrappedBlockState state) {
+        CollisionBox data = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, x, y, z);
         SimpleCollisionBox normalBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8);
 
         // Calculate head hitters.  Take a shortcut by checking if the player doesn't intersect with this block, but does
@@ -127,10 +129,10 @@ public class PointThreeEstimator {
         }
 
         SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66, 1.86);
-        if ((Materials.isWater(player.getClientVersion(), state) || Materials.checkFlag(state.getMaterial(), Materials.LAVA)) &&
+        if (Materials.isWater(player.getClientVersion(), state) || state.getType() == StateTypes.LAVA &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
 
-            if (state.getMaterial() == Material.BUBBLE_COLUMN) {
+            if (state.getType() == StateTypes.BUBBLE_COLUMN) {
                 isNearBubbleColumn = true;
             }
 
@@ -152,7 +154,7 @@ public class PointThreeEstimator {
             sneakyPointThree = sneakyPointThree || isPushing || player.couldSkipTick;
         }
 
-        if ((state.getMaterial() == Material.POWDER_SNOW || Materials.checkFlag(state.getMaterial(), Materials.CLIMBABLE)) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+        if (state.getType() == StateTypes.POWDER_SNOW || Materials.isClimbable(state.getType()) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
     }
@@ -241,12 +243,12 @@ public class PointThreeEstimator {
                         isNearVerticalFlowingLiquid = true;
                     }
 
-                    Material mat = player.compensatedWorld.getBukkitMaterialAt(bbX, bbY, bbZ);
-                    if (Materials.checkFlag(player.compensatedWorld.getBukkitMaterialAt(bbX, bbY, bbZ), Materials.CLIMBABLE) || mat == Material.POWDER_SNOW) {
+                    StateType mat = player.compensatedWorld.getStateTypeAt(bbX, bbY, bbZ);
+                    if (Materials.isClimbable(player.compensatedWorld.getStateTypeAt(bbX, bbY, bbZ)) || mat == StateTypes.POWDER_SNOW) {
                         isNearClimbable = true;
                     }
 
-                    if (mat == Material.BUBBLE_COLUMN) {
+                    if (mat == StateTypes.BUBBLE_COLUMN) {
                         isNearBubbleColumn = true;
                     }
                 }

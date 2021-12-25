@@ -2,7 +2,6 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
-import ac.grim.grimac.manager.init.load.PaletteInit;
 import ac.grim.grimac.manager.init.start.*;
 import ac.grim.grimac.manager.init.stop.TerminatePacketEvents;
 import com.google.common.collect.ClassToInstanceMap;
@@ -15,7 +14,6 @@ public class InitManager {
 
     public InitManager() {
         initializersOnLoad = new ImmutableClassToInstanceMap.Builder<Initable>()
-                .put(PaletteInit.class, new PaletteInit())
                 .put(PacketEventsInit.class, new PacketEventsInit())
                 .put(DefaultConfigGenerator.class, new DefaultConfigGenerator())
                 .build();

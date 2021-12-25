@@ -15,7 +15,7 @@ public class AirLiquidPlace extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(final BlockPlace place) {
         Vector3i blockPos = place.getPlacedAgainstBlockLocation();
-        Material placeAgainst = player.compensatedWorld.getBukkitMaterialAt(blockPos.getX(), blockPos.getY(), blockPos.getZ());
+        Material placeAgainst = player.compensatedWorld.getStateTypeAt(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         if ((Materials.checkFlag(placeAgainst, Materials.AIR) || Materials.isNoPlaceLiquid(placeAgainst))) { // fail
             place.resync();

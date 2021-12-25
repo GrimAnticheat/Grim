@@ -41,7 +41,7 @@ public class FluidTypeFlowing {
                 float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
                 float f1 = 0.0F;
                 if (f == 0.0F) {
-                    Material mat = player.compensatedWorld.getBukkitMaterialAt(modifiedX, originalY, modifiedZ);
+                    Material mat = player.compensatedWorld.getStateTypeAt(modifiedX, originalY, modifiedZ);
 
                     // Grim's definition of solid is whether the block has a hitbox
                     // Minecraft is... it's whatever Mojang was feeling like, but it's very consistent

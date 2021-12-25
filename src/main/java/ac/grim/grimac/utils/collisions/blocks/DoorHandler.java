@@ -36,7 +36,7 @@ public class DoorHandler implements CollisionFactory {
 
     public BlockFace fetchDirection(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
         WrappedDoor door = (WrappedDoor) block;
-        Material doorMaterial = player.compensatedWorld.getBukkitMaterialAt(x, y, z);
+        Material doorMaterial = player.compensatedWorld.getStateTypeAt(x, y, z);
 
         // 1.12 stores block data for the top door in the bottom block data
         // ViaVersion can't send 1.12 clients the 1.13 complete data

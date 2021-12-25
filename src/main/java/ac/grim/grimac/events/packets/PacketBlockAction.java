@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
-import ac.grim.grimac.utils.latency.CompensatedWorldFlat;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;

@@ -42,7 +42,7 @@ public class BlockProperties {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15))
             searchBelowAmount = 1;
 
-        Material material = player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY - searchBelowAmount, player.lastZ);
+        Material material = player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY - searchBelowAmount, player.lastZ);
 
         return getMaterialFriction(player, material);
     }
@@ -91,10 +91,10 @@ public class BlockProperties {
     }
 
     public static Material getOnBlock(GrimPlayer player, double x, double y, double z) {
-        Material block1 = player.compensatedWorld.getBukkitMaterialAt(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
+        Material block1 = player.compensatedWorld.getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
 
         if (Materials.checkFlag(block1, Materials.AIR)) {
-            Material block2 = player.compensatedWorld.getBukkitMaterialAt(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
+            Material block2 = player.compensatedWorld.getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
 
             if (Materials.checkFlag(block2, Materials.FENCE) || Materials.checkFlag(block2, Materials.WALL) || Materials.checkFlag(block2, Materials.GATE)) {
                 return block2;
@@ -109,7 +109,7 @@ public class BlockProperties {
         // This system was introduces in 1.15 players to add support for honey blocks slowing players down
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return 1.0f;
 
-        Material block = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
+        Material block = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
 
         // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {
@@ -134,7 +134,7 @@ public class BlockProperties {
             return f;
         }
 
-        Material block2 = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y - 0.5000001, player.z);
+        Material block2 = player.compensatedWorld.getStateTypeAt(player.x, player.y - 0.5000001, player.z);
         if (block2 == HONEY_BLOCK) return 0.4f;
         if (block2 == SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment

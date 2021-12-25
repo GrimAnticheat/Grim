@@ -34,7 +34,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
         ((PacketEntityStrider) player.playerVehicle).isShaking = true;
 
-        Material posMaterial = player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z);
+        Material posMaterial = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
         Material belowMaterial = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
         ((PacketEntityStrider) player.playerVehicle).isShaking = !Tag.STRIDER_WARM_BLOCKS.isTagged(posMaterial) &&
                 !Tag.STRIDER_WARM_BLOCKS.isTagged(belowMaterial) && !player.wasTouchingLava;

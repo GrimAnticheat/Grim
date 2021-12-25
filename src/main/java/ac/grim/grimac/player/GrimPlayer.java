@@ -171,11 +171,11 @@ public class GrimPlayer {
     public PacketEntity playerVehicle;
     public PacketEntity lastVehicle;
     public GameMode gamemode;
+    public Vector3d bedPosition;
     PacketTracker packetTracker;
     private ClientVersion clientVersion;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
-    public Vector3d bedPosition;
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -210,12 +210,7 @@ public class GrimPlayer {
             packetTracker = connection != null ? connection.getPacketTracker() : null;
         }
 
-        if (ItemTypes.isNewVersion()) {
-            compensatedWorld = new CompensatedWorldFlat(this);
-        } else {
-            compensatedWorld = new CompensatedWorld(this);
-        }
-
+        compensatedWorld = new CompensatedWorld(this);
         compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedRiptide = new CompensatedRiptide(this);

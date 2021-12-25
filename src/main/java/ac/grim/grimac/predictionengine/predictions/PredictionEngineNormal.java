@@ -69,7 +69,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         boolean walkingOnPowderSnow = false;
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
-                player.compensatedWorld.getBukkitMaterialAt(player.x, player.y, player.z) == POWDER_SNOW) {
+                player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z) == POWDER_SNOW) {
             org.bukkit.inventory.ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
             walkingOnPowderSnow = boots != null && boots.getType() == LEATHER_BOOTS;
         }
@@ -122,7 +122,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setY(Math.max(vector.getY(), -0.15F));
 
             // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(player.compensatedWorld.getBukkitMaterialAt(player.lastX, player.lastY, player.lastZ) == SCAFFOLDING) && player.isSneaking && !player.specialFlying) {
+            if (vector.getY() < 0.0 && !(player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY, player.lastZ) == SCAFFOLDING) && player.isSneaking && !player.specialFlying) {
                 vector.setY(0.0);
             }
         }
