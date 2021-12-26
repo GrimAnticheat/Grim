@@ -21,36 +21,21 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.enchantment.Enchantments;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-// This class is how we manage to safely do everything async
-// AtomicInteger allows us to make decisions safely - we can get and set values in one processor instruction
-// This is the meaning of GrimPlayer.tasksNotFinished
-// Stage 0 - All work is done
-// Stage 1 - There is more work, number = number of jobs in the queue and running
-//
-// After finishing doing the predictions:
-// If stage 0 - Do nothing
-// If stage 1 - Subtract by 1, and add another to the queue
-//
-// When the player sends a packet and we have to add him to the queue:
-// If stage 0 - Add one and add the data to the workers
-// If stage 1 - Add the data to the queue and add one
 public class MovementCheckRunner extends PositionCheck {
-    private static final Material CARROT_ON_A_STICK = ItemTypes.CARROT_ON_A_STICK;
-    private static final Material WARPED_FUNGUS_ON_A_STICK = ItemTypes.WARPED_FUNGUS_ON_A_STICK;
-    private static final Material BUBBLE_COLUMN = ItemTypes.BUBBLE_COLUMN;
-
     public MovementCheckRunner(GrimPlayer player) {
         super(player);
     }
@@ -70,12 +55,7 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     public void runTransactionQueue(GrimPlayer player) {
-        // It is unsafe to modify the transaction world async if another check is running
-        // Adding 1 to the tasks blocks another check from running
-        //
-        // If there are no tasks queue'd, it is safe to modify these variables
-        //
-        // Additionally, we don't want to, and it isn't needed, to update the world
+        // Stop OOM
         int lastTransaction = player.lastTransactionReceived.get();
         player.compensatedFlying.canFlyLagCompensated(lastTransaction);
         player.compensatedFireworks.getMaxFireworksAppliedPossible();
@@ -246,12 +226,12 @@ public class MovementCheckRunner extends PositionCheck {
             if (player.playerVehicle instanceof PacketEntityRideable) {
                 EntityControl control = ((EntityControl) player.checkManager.getPostPredictionCheck(EntityControl.class));
 
-                Material requiredItem = player.playerVehicle.type == EntityTypes.PIG ? CARROT_ON_A_STICK : WARPED_FUNGUS_ON_A_STICK;
-                org.bukkit.inventory.ItemStack mainHand = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+                ItemType requiredItem = player.playerVehicle.type == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
+                ItemStack mainHand = player.getInventory().getHeldItem();
+                ItemStack offHand = player.getInventory().getOffHand();
 
-                boolean correctMainHand = mainHand != null && mainHand.getType() == requiredItem;
-                boolean correctOffhand = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) &&
-                        player.bukkitPlayer.getInventory().getItemInOffHand().getType() == requiredItem;
+                boolean correctMainHand = mainHand.getType() == requiredItem;
+                boolean correctOffhand = offHand.getType() == requiredItem;
 
                 if (!correctMainHand && !correctOffhand) {
                     // Entity control cheats!  Set the player back
@@ -317,12 +297,13 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.isGliding != player.wasGliding) player.uncertaintyHandler.lastGlidingChangeTicks = 0;
 
 
+        SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
         player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
-        player.uncertaintyHandler.isSteppingOnIce = Collisions.hasMaterial(player, Materials.ICE_BLOCKS);
-        player.uncertaintyHandler.isSteppingOnHoney = Collisions.hasMaterial(player, ItemTypes.HONEY_BLOCK, -0.03);
-        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Collisions.hasMaterial(player, BUBBLE_COLUMN, -1);
+        player.uncertaintyHandler.isSteppingOnIce = Collisions.hasMaterial(player, steppingOnBB, type -> BlockTags.ICE.contains(type.getType()));
+        player.uncertaintyHandler.isSteppingOnHoney = Collisions.hasMaterial(player, StateTypes.HONEY_BLOCK, -0.03);
+        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Collisions.hasMaterial(player, StateTypes.BUBBLE_COLUMN, -1);
 
         // Update firework end/start uncertainty
         player.uncertaintyHandler.lastFireworkStatusChange--;
@@ -344,7 +325,10 @@ public class MovementCheckRunner extends PositionCheck {
         // and they are intersecting with these glitched bounding boxes
         // give them a decent amount of uncertainty and don't ban them for mojang's stupid mistake
         boolean isGlitchy = player.uncertaintyHandler.isNearGlitchyBlock;
-        player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03), checkData -> Materials.isAnvil(checkData.getMaterial()) || Materials.isWoodenChest(checkData.getMaterial()));
+        player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
+                && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03),
+                checkData -> BlockTags.ANVIL.contains(checkData.getType())
+                        || checkData.getType() == StateTypes.CHEST || checkData.getType() == StateTypes.TRAPPED_CHEST);
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
 
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
@@ -391,9 +375,9 @@ public class MovementCheckRunner extends PositionCheck {
             wasChecked = true;
 
             // Depth strider was added in 1.8
-            ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
-            if (boots != null && ItemTypes.supports(8) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.depthStriderLevel = boots.getEnchantmentLevel(Enchantment.DEPTH_STRIDER);
+            ItemStack boots = player.getInventory().getBoots();
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                player.depthStriderLevel = boots.getEnchantmentLevel(Enchantments.DEPTH_STRIDER);
             } else {
                 player.depthStriderLevel = 0;
             }

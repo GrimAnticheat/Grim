@@ -5,7 +5,7 @@ import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import org.bukkit.Tag;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.ItemTags;
 
 // Complete!
 public class BeaconMenu extends AbstractContainerMenu{
@@ -17,7 +17,7 @@ public class BeaconMenu extends AbstractContainerMenu{
         addSlot(new Slot(containerStorage, 0) {
             @Override
             public boolean mayPlace(ItemStack itemstack) {
-                return Tag.ITEMS_BEACON_PAYMENT_ITEMS.isTagged(itemstack.getType());
+                return ItemTags.BEACON_PAYMENT_ITEMS.contains(itemstack.getType());
             }
 
             @Override

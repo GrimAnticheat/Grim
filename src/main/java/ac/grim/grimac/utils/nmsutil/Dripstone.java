@@ -1,8 +1,10 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.enums.VerticalDirection;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.PointedDripstone;
 
 public class Dripstone {
@@ -10,7 +12,7 @@ public class Dripstone {
         BlockFace primaryDirection = toPlace.getVerticalDirection();
         BlockFace opposite = toPlace.getVerticalDirection().getOppositeFace();
 
-        BlockData typePlacingOn = ((FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(x, y + primaryDirection.getModY(), z)).getBlockData();
+        WrappedBlockState typePlacingOn = player.compensatedWorld.getWrappedBlockStateAt(x, y + primaryDirection.getModY(), z);
 
         if (isPointedDripstoneWithDirection(typePlacingOn, opposite)) {
             // Use tip if the player is sneaking, or if it already is merged (somehow)
@@ -27,7 +29,7 @@ public class Dripstone {
                 PointedDripstone.Thickness dripThick = ((PointedDripstone) typePlacingOn).getThickness();
                 if (dripThick != PointedDripstone.Thickness.TIP && dripThick != PointedDripstone.Thickness.TIP_MERGE) {
                     // Look downwards
-                    BlockData oppositeData = ((FlatBlockState) player.compensatedWorld.getWrappedBlockStateAt(x, y + opposite.getModY(), z)).getBlockData();
+                    WrappedBlockState oppositeData = player.compensatedWorld.getWrappedBlockStateAt(x, y + opposite.getModY(), z);
                     PointedDripstone.Thickness toSetThick = !isPointedDripstoneWithDirection(oppositeData, primaryDirection)
                             ? PointedDripstone.Thickness.BASE : PointedDripstone.Thickness.MIDDLE;
                     toPlace.setThickness(toSetThick);
@@ -39,7 +41,12 @@ public class Dripstone {
         return toPlace;
     }
 
-    private static boolean isPointedDripstoneWithDirection(BlockData unknown, BlockFace direction) {
-        return unknown instanceof PointedDripstone && ((PointedDripstone) unknown).getVerticalDirection() == direction;
+    private static boolean isPointedDripstoneWithDirection(WrappedBlockState unknown, BlockFace direction) {
+        return unknown.getType() == StateTypes.POINTED_DRIPSTONE && equalsVerticalDirection(unknown.getVerticalDirection(), direction);
+    }
+
+    private static boolean equalsVerticalDirection(VerticalDirection direction, BlockFace blockFace) {
+        return (direction == VerticalDirection.UP && blockFace == BlockFace.UP)
+                || (direction == VerticalDirection.DOWN && blockFace == BlockFace.DOWN);
     }
 }

@@ -15,12 +15,11 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.WorldBorder;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.BubbleColumn;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -358,49 +357,47 @@ public class Collisions {
         for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
             for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
                 for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
-                    BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(i, j, k);
-                    Material blockType = block.getMaterial();
+                    WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(i, j, k);
+                    StateType blockType = block.getType();
 
-                    if (blockType == COBWEB) {
+                    if (blockType == StateTypes.COBWEB) {
                         player.stuckSpeedMultiplier = new Vector(0.25, 0.05000000074505806, 0.25);
                     }
 
-                    if (blockType == SWEET_BERRY_BUSH
+                    if (blockType == StateTypes.SWEET_BERRY_BUSH
                             && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
                         player.stuckSpeedMultiplier = new Vector(0.800000011920929, 0.75, 0.800000011920929);
                     }
 
-                    if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z)
+                    if (blockType == StateTypes.POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z)
                             && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
                         player.stuckSpeedMultiplier = new Vector(0.8999999761581421, 1.5, 0.8999999761581421);
                     }
 
-                    if (blockType == Material.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
+                    if (blockType == StateTypes.SOUL_SAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
                         player.clientVelocity.setX(player.clientVelocity.getX() * 0.4D);
                         player.clientVelocity.setZ(player.clientVelocity.getZ() * 0.4D);
                     }
 
-                    if (Materials.checkFlag(blockType, Materials.LAVA) && player.getClientVersion().isOlderThan(ClientVersion.V_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+                    if (blockType == StateTypes.LAVA && player.getClientVersion().isOlderThan(ClientVersion.V_1_16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
                         player.wasTouchingLava = true;
                     }
 
-                    if (blockType == BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
-                        BaseBlockState blockAbove = player.compensatedWorld.getWrappedBlockStateAt(i, j + 1, k);
-                        BlockData bubbleData = ((FlatBlockState) block).getBlockData();
-                        BubbleColumn bubbleColumn = (BubbleColumn) bubbleData;
+                    if (blockType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
+                        WrappedBlockState blockAbove = player.compensatedWorld.getWrappedBlockStateAt(i, j + 1, k);
 
                         if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT) {
-                            if (!Materials.checkFlag(blockAbove.getMaterial(), Materials.AIR)) {
-                                if (bubbleColumn.isDrag()) {
+                            if (!blockAbove.getType().isAir()) {
+                                if (block.isDrag()) {
                                     player.clientVelocity.setY(Math.max(-0.3D, player.clientVelocity.getY() - 0.03D));
                                 } else {
                                     player.clientVelocity.setY(Math.min(0.7D, player.clientVelocity.getY() + 0.06D));
                                 }
                             }
                         } else {
-                            if (Materials.checkFlag(blockAbove.getMaterial(), Materials.AIR)) {
+                            if (blockAbove.getType().isAir()) {
                                 for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-                                    if (bubbleColumn.isDrag()) {
+                                    if (block.isDrag()) {
                                         vector.vector.setY(Math.max(-0.9D, vector.vector.getY() - 0.03D));
                                     } else {
                                         vector.vector.setY(Math.min(1.8D, vector.vector.getY() + 0.1D));
@@ -408,7 +405,7 @@ public class Collisions {
                                 }
                             } else {
                                 for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-                                    if (bubbleColumn.isDrag()) {
+                                    if (block.isDrag()) {
                                         vector.vector.setY(Math.max(-0.3D, vector.vector.getY() - 0.03D));
                                     } else {
                                         vector.vector.setY(Math.min(0.7D, vector.vector.getY() + 0.06D));
@@ -421,7 +418,7 @@ public class Collisions {
                         player.fallDistance = 0;
                     }
 
-                    if (blockType == HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
+                    if (blockType == StateTypes.HONEY_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15)) {
                         if (isSlidingDown(player.clientVelocity, player, i, j, j)) {
                             if (player.clientVelocity.getY() < -0.13D) {
                                 double d0 = -0.05 / player.clientVelocity.getY();
@@ -472,18 +469,18 @@ public class Collisions {
         for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
             for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
                 for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
-                    BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(i, j, k);
-                    Material blockType = block.getMaterial();
+                    WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(i, j, k);
+                    StateType blockType = block.getType();
 
-                    if (blockType == COBWEB) {
+                    if (blockType == StateTypes.COBWEB) {
                         return true;
                     }
 
-                    if (blockType == SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+                    if (blockType == StateTypes.SWEET_BERRY_BUSH && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
                         return true;
                     }
 
-                    if (blockType == POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
+                    if (blockType == StateTypes.POWDER_SNOW && i == Math.floor(player.x) && j == Math.floor(player.y) && k == Math.floor(player.z) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) {
                         return true;
                     }
                 }
@@ -502,9 +499,8 @@ public class Collisions {
                         // Mojang re-added soul sand pushing by checking if the player is actually in the block
                         // (This is why from 1.14-1.15 soul sand didn't push)
                         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
-                            BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-                            Material mat = data.getMaterial();
-                            CollisionBox box = CollisionData.getData(mat).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
+                            WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+                            CollisionBox box = CollisionData.getData(data.getType()).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z);
 
                             if (!box.isIntersected(playerBB)) continue;
                         }
@@ -519,35 +515,35 @@ public class Collisions {
     }
 
     public static boolean doesBlockSuffocate(GrimPlayer player, int x, int y, int z) {
-        BaseBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-        Material mat = data.getMaterial();
+        WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        StateType mat = data.getType();
 
         // Optimization - all blocks that can suffocate must have a hitbox
-        if (!Materials.checkFlag(mat, Materials.SOLID)) return false;
+        if (!mat.isSolid()) return false;
 
         // 1.13- players can not be pushed by blocks that can emit power, for some reason, while 1.14+ players can
-        if (mat == OBSERVER || mat == REDSTONE_BLOCK)
+        if (mat == StateTypes.OBSERVER || mat == StateTypes.REDSTONE_BLOCK)
             return player.getClientVersion().isNewerThan(ClientVersion.V_1_13_2);
         // Tnt only pushes on 1.14+ clients
-        if (mat == TNT) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
+        if (mat == StateTypes.TNT) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
         // Farmland only pushes on 1.16+ clients
-        if (mat == FARMLAND) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
+        if (mat == StateTypes.FARMLAND) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
         // 1.14-1.15 doesn't push with soul sand, the rest of the versions do
-        if (mat == SOUL_SAND)
+        if (mat == StateTypes.SOUL_SAND)
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) || player.getClientVersion().isOlderThan(ClientVersion.V_1_14);
         // 1.13 and below exempt piston bases, while 1.14+ look to see if they are a full block or not
-        if ((mat == PISTON_BASE || mat == STICKY_PISTON_BASE) && player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
+        if ((mat == StateTypes.PISTON || mat == StateTypes.STICKY_PISTON) && player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
             return false;
         // 1.13 and below exempt ICE and FROSTED_ICE, 1.14 have them push
-        if (mat == ICE || mat == FROSTED_ICE)
+        if (mat == StateTypes.ICE || mat == StateTypes.FROSTED_ICE)
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
         // I believe leaves and glass are consistently exempted across all versions
-        if (Materials.checkFlag(mat, Materials.LEAVES) || Materials.checkFlag(mat, Materials.GLASS_BLOCK)) return false;
+        if (BlockTags.LEAVES.contains(mat) || BlockTags.GLASS_BLOCKS.contains(mat)) return false;
         // 1.16 players are pushed by dirt paths, 1.8 players don't have this block, so it gets converted to a full block
-        if (mat == DIRT_PATH)
+        if (mat == StateTypes.DIRT_PATH)
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) || player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
         // Only 1.14+ players are pushed by beacons
-        if (mat == BEACON) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
+        if (mat == StateTypes.BEACON) return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14);
 
         // Thank god I already have the solid blocking blacklist written, but all these are exempt
         if (Materials.isSolidBlockingBlacklist(mat, player.getClientVersion())) return false;
@@ -557,28 +553,26 @@ public class Collisions {
     }
 
     public static boolean hasBouncyBlock(GrimPlayer player) {
-        return hasSlimeBlock(player) || hasMaterial(player, Materials.BED);
+        SimpleCollisionBox playerBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
+        return hasSlimeBlock(player) || hasMaterial(player, playerBB, type -> BlockTags.BEDS.contains(type.getType()));
     }
 
     // Has slime block, or honey with the ViaVersion replacement block
     // This is terrible code lmao.  I need to refactor to add a new player bounding box, or somehow play with block mappings,
     // so I can automatically map honey -> slime and other important ViaVersion replacement blocks
     public static boolean hasSlimeBlock(GrimPlayer player) {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
-                && (hasMaterial(player, SLIME_BLOCK, -1) ||
+        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) // Only 1.8 players have slime blocks
+                && (hasMaterial(player, StateTypes.SLIME_BLOCK, -1) // Directly a slime block
+                ||
+                // ViaVersion mapped slime block from 1.8 to 1.14.4
                 (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)
                         && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
-                        && hasMaterial(player, HONEY_BLOCK, -1)));
+                        && hasMaterial(player, StateTypes.HONEY_BLOCK, -1)));
     }
 
-    public static boolean hasMaterial(GrimPlayer player, int materialType) {
-        SimpleCollisionBox playerBB = player.boundingBox.copy().expand(0.03).offset(0, -0.04, 0);
-        return hasMaterial(player, playerBB, material -> Materials.checkFlag(material.getMaterial(), materialType));
-    }
-
-    public static boolean hasMaterial(GrimPlayer player, Material searchMat, double offset) {
+    public static boolean hasMaterial(GrimPlayer player, StateType searchMat, double offset) {
         SimpleCollisionBox playerBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, offset, 0);
-        return hasMaterial(player, playerBB, material -> material.getMaterial() == searchMat);
+        return hasMaterial(player, playerBB, material -> material.getType() == searchMat);
     }
 
     // Thanks Tuinity
@@ -647,36 +641,29 @@ public class Collisions {
     }
 
     public static boolean onClimbable(GrimPlayer player, double x, double y, double z) {
-        BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-        Material blockMaterial = blockState.getMaterial();
+        WrappedBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        StateType blockMaterial = blockState.getType();
 
-        if (Materials.checkFlag(blockMaterial, Materials.CLIMBABLE)) {
+        if (BlockTags.CLIMBABLE.contains(blockMaterial)) {
             return true;
         }
 
         // ViaVersion replacement block -> sweet berry bush to vines
-        if (blockMaterial == SWEET_BERRY_BUSH && player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+        if (blockMaterial == StateTypes.SWEET_BERRY_BUSH && player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             return true;
         }
 
         return trapdoorUsableAsLadder(player, x, y, z, blockState);
     }
 
-    private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, BaseBlockState
-            blockData) {
-        if (!Materials.checkFlag(blockData.getMaterial(), Materials.TRAPDOOR)) return false;
+    private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, WrappedBlockState blockData) {
+        if (!BlockTags.TRAPDOORS.contains(blockData.getType())) return false;
 
-        WrappedBlockDataValue blockDataValue = WrappedBlockData.getMaterialData(blockData);
-        WrappedTrapdoor trapdoor = (WrappedTrapdoor) blockDataValue;
+        if (blockData.isOpen()) {
+            WrappedBlockState blockBelow = player.compensatedWorld.getWrappedBlockStateAt(x, y - 1, z);
 
-        if (trapdoor.isOpen()) {
-            BaseBlockState blockBelow = player.compensatedWorld.getWrappedBlockStateAt(x, y - 1, z);
-
-            if (blockBelow.getMaterial() == LADDER) {
-                WrappedBlockDataValue belowData = WrappedBlockData.getMaterialData(blockBelow);
-
-                WrappedDirectional ladder = (WrappedDirectional) belowData;
-                return ladder.getDirection() == trapdoor.getDirection();
+            if (blockBelow.getType() == StateTypes.LADDER) {
+                return blockData.getFacing() == blockBelow.getFacing();
             }
         }
 

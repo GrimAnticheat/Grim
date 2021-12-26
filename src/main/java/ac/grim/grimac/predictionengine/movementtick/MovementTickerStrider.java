@@ -3,8 +3,8 @@ package ac.grim.grimac.predictionengine.movementtick;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
-import org.bukkit.Material;
-import org.bukkit.Tag;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import org.bukkit.util.Vector;
 
 public class MovementTickerStrider extends MovementTickerRideable {
@@ -34,10 +34,13 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
         ((PacketEntityStrider) player.playerVehicle).isShaking = true;
 
-        Material posMaterial = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
-        Material belowMaterial = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
-        ((PacketEntityStrider) player.playerVehicle).isShaking = !Tag.STRIDER_WARM_BLOCKS.isTagged(posMaterial) &&
-                !Tag.STRIDER_WARM_BLOCKS.isTagged(belowMaterial) && !player.wasTouchingLava;
+        StateType posMaterial = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
+        StateType belowMaterial = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+
+        ((PacketEntityStrider) player.playerVehicle).isShaking =
+                !BlockTags.STRIDER_WARM_BLOCKS.contains(posMaterial) &&
+                !BlockTags.STRIDER_WARM_BLOCKS.contains(belowMaterial) &&
+                        !player.wasTouchingLava;
     }
 
     @Override

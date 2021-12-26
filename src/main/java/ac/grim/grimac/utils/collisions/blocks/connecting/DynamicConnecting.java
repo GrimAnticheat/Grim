@@ -1,32 +1,17 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.WrappedBlockData;
-import ac.grim.grimac.utils.blockdata.types.WrappedFenceGate;
-import ac.grim.grimac.utils.blockdata.types.WrappedStairs;
-import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.datatypes.*;
-import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 public class DynamicConnecting {
-    private static final Material BARRIER = ItemTypes.BARRIER;
-    private static final Material CARVED_PUMPKIN = ItemTypes.CARVED_PUMPKIN;
-    private static final Material JACK_O_LANTERN = ItemTypes.JACK_O_LANTERN;
-    private static final Material PUMPKIN = ItemTypes.PUMPKIN;
-    private static final Material MELON = ItemTypes.MELON;
-    private static final Material BEACON = ItemTypes.BEACON;
-    private static final Material GLOWSTONE = ItemTypes.GLOWSTONE;
-    private static final Material SEA_LANTERN = ItemTypes.SEA_LANTERN;
-    private static final Material ICE = ItemTypes.ICE;
-
-    private static final Material PISTON = ItemTypes.PISTON;
-    private static final Material STICKY_PISTON = ItemTypes.STICKY_PISTON;
-    private static final Material PISTON_HEAD = ItemTypes.PISTON_HEAD;
 
     public static CollisionBox[] makeShapes(float p_196408_1_, float p_196408_2_, float p_196408_3_, float p_196408_4_, float p_196408_5_, boolean includeCenter) {
         float middleMin = 8.0F - p_196408_1_;
@@ -54,39 +39,35 @@ public class DynamicConnecting {
     }
 
     public boolean connectsTo(GrimPlayer player, ClientVersion v, int currX, int currY, int currZ, BlockFace direction) {
-        BaseBlockState targetBlock = player.compensatedWorld.getWrappedBlockStateAt(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
-        BaseBlockState currBlock = player.compensatedWorld.getWrappedBlockStateAt(currX, currY, currZ);
-        Material target = targetBlock.getMaterial();
-        Material fence = currBlock.getMaterial();
+        WrappedBlockState targetBlock = player.compensatedWorld.getWrappedBlockStateAt(currX + direction.getModX(), currY + direction.getModY(), currZ + direction.getModZ());
+        WrappedBlockState currBlock = player.compensatedWorld.getWrappedBlockStateAt(currX, currY, currZ);
+        StateType target = targetBlock.getType();
+        StateType fence = currBlock.getType();
 
-        if (!Materials.checkFlag(target, Materials.FENCE) && isBlacklisted(target))
+        if (!BlockTags.FENCES.contains(target) && isBlacklisted(target))
             return false;
-
-        BlockFace bukkitFace = BlockFaceHelper.fromBukkitFace(direction);
 
         // 1.9-1.11 clients don't have BARRIER exemption
         // https://bugs.mojang.com/browse/MC-9565
-        if (target == BARRIER) return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) ||
-                player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
-                        player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_11_1);
+        if (target == StateTypes.BARRIER)
+            return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) ||
+                    player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
+                            player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_11_1);
 
-        if (Materials.checkFlag(target, Materials.STAIRS)) {
+        if (BlockTags.STAIRS.contains(target)) {
             // 1.12 clients generate their own data, 1.13 clients use the server's data
             // 1.11- versions don't allow fences to connect to the back sides of stairs
             if (v.isOlderThan(ClientVersion.V_1_12) || (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_11) && v.isNewerThanOrEquals(ClientVersion.V_1_13)))
                 return false;
-            WrappedStairs stairs = (WrappedStairs) WrappedBlockData.getMaterialData(targetBlock);
-
-            return stairs.getDirection().getOppositeFace() == bukkitFace;
-        } else if (canConnectToGate() && Materials.checkFlag(target, Materials.GATE)) {
-            WrappedFenceGate gate = (WrappedFenceGate) WrappedBlockData.getMaterialData(targetBlock);
+            return targetBlock.getFacing().getOppositeFace() == direction;
+        } else if (canConnectToGate() && BlockTags.FENCE_GATES.contains(target)) {
             // 1.4-1.11 clients don't check for fence gate direction
             // https://bugs.mojang.com/browse/MC-94016
             if (v.isOlderThanOrEquals(ClientVersion.V_1_11_1)) return true;
 
-            BlockFace f1 = gate.getDirection();
+            BlockFace f1 = targetBlock.getFacing();
             BlockFace f2 = f1.getOppositeFace();
-            return bukkitFace != f1 && bukkitFace != f2;
+            return direction != f1 && direction != f2;
         } else {
             if (fence == target) return true;
 
@@ -94,15 +75,15 @@ public class DynamicConnecting {
         }
     }
 
-    boolean isBlacklisted(Material m) {
-        if (Materials.checkFlag(m, Materials.LEAVES)) return true;
-        if (Materials.checkFlag(m, Materials.SHULKER)) return true;
-        if (Materials.checkFlag(m, Materials.TRAPDOOR)) return true;
+    boolean isBlacklisted(StateType m) {
+        if (BlockTags.LEAVES.contains(m)) return true;
+        if (BlockTags.SHULKER_BOXES.contains(m)) return true;
+        if (BlockTags.TRAPDOORS.contains(m)) return true;
 
-
-        return m == CARVED_PUMPKIN || m == JACK_O_LANTERN || m == PUMPKIN || m == MELON ||
-                m == BEACON || Materials.checkFlag(m, Materials.CAULDRON) || m == GLOWSTONE || m == SEA_LANTERN || m == ICE
-                || m == PISTON || m == STICKY_PISTON || m == PISTON_HEAD || !canConnectToGlassBlock() && Materials.checkFlag(m, Materials.GLASS_BLOCK);
+        return m == StateTypes.CARVED_PUMPKIN || m == StateTypes.JACK_O_LANTERN || m == StateTypes.PUMPKIN || m == StateTypes.MELON ||
+                m == StateTypes.BEACON || BlockTags.CAULDRONS.contains(m) || m == StateTypes.GLOWSTONE || m == StateTypes.SEA_LANTERN || m == StateTypes.ICE
+                || m == StateTypes.PISTON || m == StateTypes.STICKY_PISTON || m == StateTypes.PISTON_HEAD || !canConnectToGlassBlock()
+                && BlockTags.GLASS_PANES.contains(m);
     }
 
     protected int getAABBIndex(boolean north, boolean east, boolean south, boolean west) {
@@ -127,8 +108,7 @@ public class DynamicConnecting {
         return i;
     }
 
-
-    public boolean checkCanConnect(GrimPlayer player, BaseBlockState state, Material one, Material two) {
+    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two) {
         return false;
     }
 

@@ -6,10 +6,13 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Shape;
 
 import java.util.stream.IntStream;
@@ -114,17 +117,16 @@ public class DynamicStair implements CollisionFactory {
 
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+        int shapeOrdinal;
         // If server is 1.13+ and client is also 1.13+, we can read the block's data directly
-        if (block.getShapeOrdinal() != -1 && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
-            return (stairs.getUpsideDown() ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[getShapeIndex(stairs, stairs.getShapeOrdinal())]].copy();
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
+                && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+            shapeOrdinal = toEnumShape(block.getShape()).ordinal();
         } else {
-            // We need to read the world to determine the stair's block shape for:
-            // 1.13 clients on 1.12 servers
-            // 1.12 clients on 1.13 servers
-            // 1.12 clients on 1.12 servers
-            EnumShape shape = getStairsShape(player, stairs, x, y, z);
-            return (stairs.getUpsideDown() ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[getShapeIndex(stairs, shape.ordinal())]].copy();
+            EnumShape shape = getStairsShape(player, block, x, y, z);
+            shapeOrdinal = shape.ordinal();
         }
+        return (block.getHalf() == Half.BOTTOM ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[shapeOrdinal]].copy();
     }
 
     private int getShapeIndex(WrappedBlockState p_196511_1_, int shapeOrdinal) {

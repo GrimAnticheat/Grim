@@ -5,7 +5,7 @@ import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 
 public class GrindstoneMenu extends AbstractContainerMenu {
 
@@ -16,20 +16,16 @@ public class GrindstoneMenu extends AbstractContainerMenu {
 
         addSlot(new Slot(storage, 0) {
             @Override
-            public boolean mayPlace(ItemStack p_39607_) {
-                ItemStack stack = p_39607_.getStack();
+            public boolean mayPlace(ItemStack stack) {
                 // Is damageable, is enchanted book, or is enchanted
-                return (stack.getType().getMaxDurability() > 0 && stack.getItemMeta() != null && !stack.getItemMeta().isUnbreakable()
-                        || stack.getType() == Material.ENCHANTED_BOOK || !stack.getEnchantments().isEmpty());
+                return (stack.isDamageableItem() || stack.getType() == ItemTypes.ENCHANTED_BOOK || !stack.isEnchanted());
             }
         });
         addSlot(new Slot(storage, 1) {
             @Override
-            public boolean mayPlace(ItemStack p_39607_) {
-                ItemStack stack = p_39607_.getStack();
+            public boolean mayPlace(ItemStack stack) {
                 // Is damageable, is enchanted book, or is enchanted
-                return (stack.getType().getMaxDurability() > 0 && stack.getItemMeta() != null && !stack.getItemMeta().isUnbreakable()
-                        || stack.getType() == Material.ENCHANTED_BOOK || !stack.getEnchantments().isEmpty());
+                return (stack.isDamageableItem() || stack.getType() == ItemTypes.ENCHANTED_BOOK || !stack.isEnchanted());
             }
         });
         addSlot(new Slot(storage, 2) {

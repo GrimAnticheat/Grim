@@ -3,48 +3,42 @@ package ac.grim.grimac.utils.collisions.blocks.connecting;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.*;
-import ac.grim.grimac.utils.nmsutil.Materials;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
-import org.bukkit.Material;
-import org.bukkit.block.data.type.Wall;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.enums.East;
+import com.github.retrooper.packetevents.protocol.world.states.enums.North;
+import com.github.retrooper.packetevents.protocol.world.states.enums.South;
+import com.github.retrooper.packetevents.protocol.world.states.enums.West;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 
 public class DynamicWall extends DynamicConnecting implements CollisionFactory {
+    public static final CollisionBox[] BOXES = makeShapes(4.0F, 3.0F, 16.0F, 0.0F, 16.0F, false);
     // https://bugs.mojang.com/browse/MC-9565
     // https://bugs.mojang.com/browse/MC-94016
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(4.0F, 3.0F, 24.0F, 0.0F, 24.0F, false);
-    public static final CollisionBox[] BOXES = makeShapes(4.0F, 3.0F, 16.0F, 0.0F, 16.0F, false);
 
     public CollisionBox fetchRegularBox(GrimPlayer player, WrappedBlockState state, ClientVersion version, int x, int y, int z) {
         int north, south, west, east, up;
         north = south = west = east = up = 0;
 
         if (version.isNewerThan(ClientVersion.V_1_12_2)) {
-            if (ItemTypes.supports(16)) {
-                Wall wall = (Wall) data;
+            boolean sixteen = version.isNewerThan(ClientVersion.V_1_16);
 
-                if (wall.getHeight(BlockFace.NORTH) != Wall.Height.NONE)
-                    north += wall.getHeight(BlockFace.NORTH) == Wall.Height.LOW ? 1 : 2;
+            if (state.getNorth() != North.NONE)
+                north += state.getNorth() == North.LOW || sixteen ? 1 : 2;
+            if (state.getEast() != East.NONE)
+                east += state.getEast() == East.LOW || sixteen ? 1 : 2;
+            if (state.getSouth() != South.NONE)
+                south += state.getSouth() == South.LOW || sixteen ? 1 : 2;
+            if (state.getWest() != West.NONE)
+                west += state.getWest() == West.LOW || sixteen ? 1 : 2;
 
-                if (wall.getHeight(BlockFace.EAST) != Wall.Height.NONE)
-                    east += wall.getHeight(BlockFace.EAST) == Wall.Height.LOW ? 1 : 2;
-
-                if (wall.getHeight(BlockFace.SOUTH) != Wall.Height.NONE)
-                    south += wall.getHeight(BlockFace.SOUTH) == Wall.Height.LOW ? 1 : 2;
-
-                if (wall.getHeight(BlockFace.WEST) != Wall.Height.NONE)
-                    west += wall.getHeight(BlockFace.WEST) == Wall.Height.LOW ? 1 : 2;
-
-                if (wall.isUp())
-                    up = 1;
-            } else {
-                north = facing.getFaces().contains(BlockFace.NORTH) ? 1 : 0;
-                east = facing.getFaces().contains(BlockFace.EAST) ? 1 : 0;
-                south = facing.getFaces().contains(BlockFace.SOUTH) ? 1 : 0;
-                west = facing.getFaces().contains(BlockFace.WEST) ? 1 : 0;
-                up = facing.getFaces().contains(BlockFace.UP) ? 1 : 0;
-            }
+            if (state.isUp())
+                up = 1;
         } else {
             north = connectsTo(player, version, x, y, z, BlockFace.NORTH) ? 1 : 0;
             south = connectsTo(player, version, x, y, z, BlockFace.SOUTH) ? 1 : 0;
@@ -119,21 +113,20 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
         boolean north;
         boolean south;
         boolean west;
         boolean east;
         boolean up;
 
-        if (ItemTypes.isNewVersion() && version.isNewerThan(ClientVersion.V_1_12_2)) {
-            WrappedMultipleFacing pane = (WrappedMultipleFacing) block;
-
-            east = pane.getDirections().contains(BlockFace.EAST);
-            north = pane.getDirections().contains(BlockFace.NORTH);
-            south = pane.getDirections().contains(BlockFace.SOUTH);
-            west = pane.getDirections().contains(BlockFace.WEST);
-            up = pane.getDirections().contains(BlockFace.UP);
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
+                && version.isNewerThan(ClientVersion.V_1_12_2)) {
+            east = block.getEast() != East.NONE;
+            north = block.getNorth() != North.NONE;
+            south = block.getSouth() != South.NONE;
+            west = block.getWest() != West.NONE;
+            up = block.isUp();
         } else {
             north = connectsTo(player, version, x, y, z, BlockFace.NORTH);
             south = connectsTo(player, version, x, y, z, BlockFace.SOUTH);
@@ -188,7 +181,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
     }
 
     @Override
-    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, Material one, Material two) {
-        return Materials.checkFlag(one, Materials.WALL) || CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isFullBlock();
+    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two) {
+        return BlockTags.WALLS.contains(one) || CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isFullBlock();
     }
 }

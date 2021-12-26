@@ -6,18 +6,16 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.JumpPower;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class PredictionEngineNormal extends PredictionEngine {
-    private static final Material SCAFFOLDING = ItemTypes.SCAFFOLDING;
-    private static final Material POWDER_SNOW = ItemTypes.POWDER_SNOW;
-
-    private static final Material LEATHER_BOOTS = ItemTypes.LEATHER_BOOTS;
 
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector) {
         double d9 = vector.getY();
@@ -69,9 +67,9 @@ public class PredictionEngineNormal extends PredictionEngine {
         boolean walkingOnPowderSnow = false;
 
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
-                player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z) == POWDER_SNOW) {
-            org.bukkit.inventory.ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
-            walkingOnPowderSnow = boots != null && boots.getType() == LEATHER_BOOTS;
+                player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z) == StateTypes.POWDER_SNOW) {
+            ItemStack boots = player.getInventory().getBoots();
+            walkingOnPowderSnow = boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS;
         }
 
         // Force 1.13.2 and below players to have something to collide with horizontally to climb
@@ -122,7 +120,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setY(Math.max(vector.getY(), -0.15F));
 
             // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY, player.lastZ) == SCAFFOLDING) && player.isSneaking && !player.specialFlying) {
+            if (vector.getY() < 0.0 && !(player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY, player.lastZ) == StateTypes.SCAFFOLDING) && player.isSneaking && !player.specialFlying) {
                 vector.setY(0.0);
             }
         }

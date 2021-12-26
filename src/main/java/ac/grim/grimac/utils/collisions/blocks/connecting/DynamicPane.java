@@ -1,39 +1,42 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.types.WrappedMultipleFacing;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.enums.East;
+import com.github.retrooper.packetevents.protocol.world.states.enums.North;
+import com.github.retrooper.packetevents.protocol.world.states.enums.South;
+import com.github.retrooper.packetevents.protocol.world.states.enums.West;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 public class DynamicPane extends DynamicConnecting implements CollisionFactory {
 
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(1.0F, 1.0F, 16.0F, 0.0F, 16.0F, true);
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
         boolean east;
         boolean north;
         boolean south;
         boolean west;
 
         // 1.13+ servers on 1.13+ clients send the full fence data
-        if (ItemTypes.isNewVersion() && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
-            WrappedMultipleFacing pane = (WrappedMultipleFacing) block;
-
-            east = pane.getDirections().contains(BlockFace.EAST);
-            north = pane.getDirections().contains(BlockFace.NORTH);
-            south = pane.getDirections().contains(BlockFace.SOUTH);
-            west = pane.getDirections().contains(BlockFace.WEST);
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)
+                && version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
+            east = block.getEast() != East.FALSE;
+            north = block.getNorth() != North.FALSE;
+            south = block.getSouth() != South.FALSE;
+            west = block.getWest() != West.FALSE;
         } else {
             east = connectsTo(player, version, x, y, z, BlockFace.EAST);
             north = connectsTo(player, version, x, y, z, BlockFace.NORTH);
@@ -76,8 +79,8 @@ public class DynamicPane extends DynamicConnecting implements CollisionFactory {
 
 
     @Override
-    public boolean checkCanConnect(GrimPlayer player, BaseBlockState state, Material one, Material two) {
-        if (Materials.checkFlag(one, Materials.GLASS_PANE))
+    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two) {
+        if (BlockTags.GLASS_PANES.contains(one) || one == StateTypes.IRON_BARS)
             return true;
         else
             return CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isFullBlock();
