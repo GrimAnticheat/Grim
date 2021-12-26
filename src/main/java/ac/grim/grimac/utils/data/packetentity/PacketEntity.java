@@ -47,23 +47,23 @@ public class PacketEntity {
     }
 
     public boolean isLivingEntity() {
-        return EntityTypes.typeHasParent(type, EntityTypes.LIVINGENTITY);
+        return EntityTypes.isTypeInstanceOf(type, EntityTypes.LIVINGENTITY);
     }
 
     public boolean isMinecart() {
-        return EntityTypes.typeHasParent(type, EntityTypes.MINECART_ABSTRACT);
+        return EntityTypes.isTypeInstanceOf(type, EntityTypes.MINECART_ABSTRACT);
     }
 
     public boolean isHorse() {
-        return EntityTypes.typeHasParent(type, EntityTypes.ABSTRACT_HORSE);
+        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_HORSE);
     }
 
     public boolean isAgeable() {
-        return EntityTypes.typeHasParent(type, EntityTypes.ABSTRACT_AGEABLE);
+        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_AGEABLE);
     }
 
     public boolean isAnimal() {
-        return EntityTypes.typeHasParent(type, EntityTypes.ABSTRACT_ANIMAL);
+        return EntityTypes.isTypeInstanceOf(type, EntityTypes.ABSTRACT_ANIMAL);
     }
 
     public boolean isSize() {

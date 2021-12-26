@@ -6,7 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lists.HookedListWrapper;
 import com.github.retrooper.packetevents.util.reflection.Reflection;
-import io.github.retrooper.packetevents.utils.MinecraftReflectionUtil;
+import io.github.retrooper.packetevents.utils.SpigotReflectionUtil;
 import org.bukkit.Bukkit;
 import sun.misc.Unsafe;
 
@@ -29,7 +29,7 @@ public class TickEndEvent implements Initable {
     public void start() {
         // Inject so we can add the final transaction pre-flush event
         try {
-            Object connection = MinecraftReflectionUtil.getMinecraftServerConnectionInstance();
+            Object connection = SpigotReflectionUtil.getMinecraftServerConnectionInstance();
 
             Field connectionsList = Reflection.getField(connection.getClass(), List.class, 1);
             List<Object> endOfTickObject = (List<Object>) connectionsList.get(connection);
@@ -59,7 +59,8 @@ public class TickEndEvent implements Initable {
         // 1) Some stupid jar messed up our reflection
         // 2) Some stupid jar doesn't tick the list at the end for "optimization"
         // 3) Some stupid jar removed the list at the end because it wasn't needed
-        // 4) Someone else injected after our delayed injection (which tries to not overwrite Pledge)
+        // 4) Someone else injected after our delayed injectio (what the fuck, they copied my GPL code! Hope they give source!)
+        // (My injection point is different from Pledge or other more common methods!)
         //
         // Otherwise, this is just redundancy.  If the end of tick event isn't firing, this will
         // at the beginning of the next tick so relative moves are still sent.

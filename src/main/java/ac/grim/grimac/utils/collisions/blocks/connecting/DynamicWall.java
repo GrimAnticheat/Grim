@@ -1,16 +1,13 @@
 package ac.grim.grimac.utils.collisions.blocks.connecting;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.types.WrappedMultipleFacing;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Wall;
 
 public class DynamicWall extends DynamicConnecting implements CollisionFactory {
@@ -19,12 +16,11 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
     private static final CollisionBox[] COLLISION_BOXES = makeShapes(4.0F, 3.0F, 24.0F, 0.0F, 24.0F, false);
     public static final CollisionBox[] BOXES = makeShapes(4.0F, 3.0F, 16.0F, 0.0F, 16.0F, false);
 
-    public CollisionBox fetchRegularBox(GrimPlayer player, BaseBlockState state, ClientVersion version, int x, int y, int z) {
+    public CollisionBox fetchRegularBox(GrimPlayer player, WrappedBlockState state, ClientVersion version, int x, int y, int z) {
         int north, south, west, east, up;
         north = south = west = east = up = 0;
 
-        if (state instanceof FlatBlockState && version.isNewerThan(ClientVersion.V_1_12_2)) {
-            BlockData data = ((FlatBlockState) state).getBlockData();
+        if (version.isNewerThan(ClientVersion.V_1_12_2)) {
             if (ItemTypes.supports(16)) {
                 Wall wall = (Wall) data;
 
@@ -43,7 +39,6 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
                 if (wall.isUp())
                     up = 1;
             } else {
-                MultipleFacing facing = (MultipleFacing) data;
                 north = facing.getFaces().contains(BlockFace.NORTH) ? 1 : 0;
                 east = facing.getFaces().contains(BlockFace.EAST) ? 1 : 0;
                 south = facing.getFaces().contains(BlockFace.SOUTH) ? 1 : 0;
@@ -193,7 +188,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
     }
 
     @Override
-    public boolean checkCanConnect(GrimPlayer player, BaseBlockState state, Material one, Material two) {
+    public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, Material one, Material two) {
         return Materials.checkFlag(one, Materials.WALL) || CollisionData.getData(one).getMovementCollisionBox(player, player.getClientVersion(), state, 0, 0, 0).isFullBlock();
     }
 }

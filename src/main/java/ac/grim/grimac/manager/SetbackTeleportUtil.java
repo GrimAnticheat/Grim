@@ -125,7 +125,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         // Only let us full resync once every ten seconds to prevent unneeded bukkit load
         if (System.nanoTime() - lastWorldResync > 10e-9) {
-            ResyncWorldUtil.resyncPositions(player, player.boundingBox.copy().expand(1), false);
+            ResyncWorldUtil.resyncPositions(player, player.boundingBox.copy().expand(1));
             lastWorldResync = System.nanoTime();
         }
 

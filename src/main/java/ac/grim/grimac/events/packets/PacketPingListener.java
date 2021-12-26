@@ -25,7 +25,7 @@ public class PacketPingListener extends PacketListenerAbstract {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.WINDOW_CONFIRMATION) {
             WrapperPlayClientWindowConfirmation transaction = new WrapperPlayClientWindowConfirmation(event);
-            short id = transaction.getActionNumber();
+            short id = transaction.getActionId();
 
             // Vanilla always uses an ID starting from 1
             if (id <= 0) {

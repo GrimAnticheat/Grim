@@ -62,7 +62,7 @@ public class DynamicConnecting {
         if (!Materials.checkFlag(target, Materials.FENCE) && isBlacklisted(target))
             return false;
 
-        BlockFace bukkitFace = BlockFaceHelper.toBukkitFace(direction);
+        BlockFace bukkitFace = BlockFaceHelper.fromBukkitFace(direction);
 
         // 1.9-1.11 clients don't have BARRIER exemption
         // https://bugs.mojang.com/browse/MC-9565

@@ -1,15 +1,21 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.types.WrappedMultipleFacing;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.enums.East;
+import com.github.retrooper.packetevents.protocol.world.states.enums.North;
+import com.github.retrooper.packetevents.protocol.world.states.enums.South;
+import com.github.retrooper.packetevents.protocol.world.states.enums.West;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -20,9 +26,6 @@ import java.util.Set;
 public class DynamicChorusPlant implements CollisionFactory {
     private static final BlockFace[] directions = new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.UP, BlockFace.DOWN};
     private static final CollisionBox[] modernShapes = makeShapes();
-    private static final Material END_STONE = ItemTypes.END_STONE;
-    private static final Material CHORUS_FLOWER = ItemTypes.CHORUS_FLOWER;
-    private static final Material CHORUS_PLANT = ItemTypes.CHORUS_PLANT;
 
     private static CollisionBox[] makeShapes() {
         float f = 0.5F - (float) 0.3125;
@@ -53,7 +56,7 @@ public class DynamicChorusPlant implements CollisionFactory {
     }
 
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
+    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
         // ViaVersion replacement block (Purple wool)
         if (version.isOlderThanOrEquals(ClientVersion.V_1_8))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
@@ -66,9 +69,15 @@ public class DynamicChorusPlant implements CollisionFactory {
 
         Set<BlockFace> directions;
 
-        if (ItemTypes.isNewVersion()) {
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
             // Player is 1.13 on 1.13 server
-            directions = ((WrappedMultipleFacing) block).getDirections();
+            directions = new HashSet<>();
+            if (block.getWest() == West.TRUE) directions.add(BlockFace.WEST);
+            if (block.getEast() == East.TRUE) directions.add(BlockFace.EAST);
+            if (block.getNorth() == North.TRUE) directions.add(BlockFace.NORTH);
+            if (block.getSouth() == South.TRUE) directions.add(BlockFace.SOUTH);
+            if (block.isUp()) directions.add(BlockFace.UP);
+            if (block.isDown()) directions.add(BlockFace.DOWN);
         } else {
             // Player is 1.13 on 1.12 server
             directions = getLegacyStates(player, version, x, y, z);
@@ -95,32 +104,32 @@ public class DynamicChorusPlant implements CollisionFactory {
         Set<BlockFace> faces = new HashSet<>();
 
         // 1.13 clients on 1.12 servers don't see chorus flowers attached to chorus because of a ViaVersion bug
-        Material versionFlower = version.isOlderThanOrEquals(ClientVersion.V_1_12_2) ? CHORUS_FLOWER : null;
+        StateType versionFlower = version.isOlderThanOrEquals(ClientVersion.V_1_12_2) ? StateTypes.CHORUS_FLOWER : null;
 
-        Material downBlock = player.compensatedWorld.getStateTypeAt(x, y - 1, z);
-        Material upBlock = player.compensatedWorld.getStateTypeAt(x, y + 1, z);
-        Material northBlock = player.compensatedWorld.getStateTypeAt(x, y, z - 1);
-        Material eastBlock = player.compensatedWorld.getStateTypeAt(x + 1, y, z);
-        Material southBlock = player.compensatedWorld.getStateTypeAt(x, y, z + 1);
-        Material westBlock = player.compensatedWorld.getStateTypeAt(x - 1, y, z);
+        StateType downBlock = player.compensatedWorld.getStateTypeAt(x, y - 1, z);
+        StateType upBlock = player.compensatedWorld.getStateTypeAt(x, y + 1, z);
+        StateType northBlock = player.compensatedWorld.getStateTypeAt(x, y, z - 1);
+        StateType eastBlock = player.compensatedWorld.getStateTypeAt(x + 1, y, z);
+        StateType southBlock = player.compensatedWorld.getStateTypeAt(x, y, z + 1);
+        StateType westBlock = player.compensatedWorld.getStateTypeAt(x - 1, y, z);
 
-        if (downBlock == CHORUS_PLANT || downBlock == versionFlower || downBlock == END_STONE) {
+        if (downBlock == StateTypes.CHORUS_PLANT || downBlock == versionFlower || downBlock == StateTypes.END_STONE) {
             faces.add(BlockFace.DOWN);
         }
 
-        if (upBlock == CHORUS_PLANT || upBlock == versionFlower) {
+        if (upBlock == StateTypes.CHORUS_PLANT || upBlock == versionFlower) {
             faces.add(BlockFace.UP);
         }
-        if (northBlock == CHORUS_PLANT || northBlock == versionFlower) {
+        if (northBlock == StateTypes.CHORUS_PLANT || northBlock == versionFlower) {
             faces.add(BlockFace.EAST);
         }
-        if (eastBlock == CHORUS_PLANT || eastBlock == versionFlower) {
+        if (eastBlock == StateTypes.CHORUS_PLANT || eastBlock == versionFlower) {
             faces.add(BlockFace.EAST);
         }
-        if (southBlock == CHORUS_PLANT || southBlock == versionFlower) {
+        if (southBlock == StateTypes.CHORUS_PLANT || southBlock == versionFlower) {
             faces.add(BlockFace.NORTH);
         }
-        if (westBlock == CHORUS_PLANT || westBlock == versionFlower) {
+        if (westBlock == StateTypes.CHORUS_PLANT || westBlock == versionFlower) {
             faces.add(BlockFace.NORTH);
         }
 

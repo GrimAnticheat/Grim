@@ -4,35 +4,15 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
+import com.github.retrooper.packetevents.protocol.enchantment.Enchantments;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
-    private static final Material ICE = ItemTypes.ICE;
-    private static final Material SLIME = ItemTypes.SLIME_BLOCK;
-    private static final Material PACKED_ICE = ItemTypes.PACKED_ICE;
-    private static final Material FROSTED_ICE = ItemTypes.FROSTED_ICE;
-    private static final Material BLUE_ICE = ItemTypes.BLUE_ICE;
-
-    private static final Material SOUL_SAND = ItemTypes.SOUL_SAND;
-    private static final Material HONEY_BLOCK = ItemTypes.HONEY_BLOCK;
-
-    // WATER and STATIONARY_WATER on 1.12
-    // WATER and BUBBLE_COLUMN on 1.13
-    private static final Material water;
-    private static final Material alsoWater;
-
-    static {
-        if (ItemTypes.isNewVersion()) {
-            water = Material.WATER;
-            alsoWater = Material.BUBBLE_COLUMN;
-        } else {
-            water = Material.WATER;
-            alsoWater = Materials.matchLegacy("STATIONARY_WATER");
-        }
-    }
 
     public static float getBlockFrictionUnderPlayer(GrimPlayer player) {
         if (player.isGliding || player.specialFlying) return 1.0f;
@@ -42,22 +22,22 @@ public class BlockProperties {
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15))
             searchBelowAmount = 1;
 
-        Material material = player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY - searchBelowAmount, player.lastZ);
+        StateType material = player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY - searchBelowAmount, player.lastZ);
 
         return getMaterialFriction(player, material);
     }
 
-    public static float getMaterialFriction(GrimPlayer player, Material material) {
+    public static float getMaterialFriction(GrimPlayer player, StateType material) {
         float friction = 0.6f;
 
-        if (material == ICE) friction = 0.98f;
-        if (material == SLIME && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) friction = 0.8f;
+        if (material == StateTypes.ICE) friction = 0.98f;
+        if (material == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) friction = 0.8f;
         // ViaVersion honey block replacement
-        if (material == HONEY_BLOCK && player.getClientVersion().isOlderThan(ClientVersion.V_1_15))
+        if (material == StateTypes.HONEY_BLOCK && player.getClientVersion().isOlderThan(ClientVersion.V_1_15))
             friction = 0.8f;
-        if (material == PACKED_ICE) friction = 0.98f;
-        if (material == FROSTED_ICE) friction = 0.98f;
-        if (material == BLUE_ICE) {
+        if (material == StateTypes.PACKED_ICE) friction = 0.98f;
+        if (material == StateTypes.FROSTED_ICE) friction = 0.98f;
+        if (material == StateTypes.BLUE_ICE) {
             friction = 0.98f;
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) friction = 0.989f;
         }
@@ -90,13 +70,13 @@ public class BlockProperties {
         return player.lastSprinting ? 0.026f : 0.02f;
     }
 
-    public static Material getOnBlock(GrimPlayer player, double x, double y, double z) {
-        Material block1 = player.compensatedWorld.getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
+    public static StateType getOnBlock(GrimPlayer player, double x, double y, double z) {
+        StateType block1 = player.compensatedWorld.getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 0.2F), GrimMath.floor(z));
 
-        if (Materials.checkFlag(block1, Materials.AIR)) {
-            Material block2 = player.compensatedWorld.getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
+        if (block1.isAir()) {
+            StateType block2 = player.compensatedWorld.getStateTypeAt(GrimMath.floor(x), GrimMath.floor(y - 1.2F), GrimMath.floor(z));
 
-            if (Materials.checkFlag(block2, Materials.FENCE) || Materials.checkFlag(block2, Materials.WALL) || Materials.checkFlag(block2, Materials.GATE)) {
+            if (Materials.isFence(block2) || Materials.isWall(block2) || Materials.isGate(block2)) {
                 return block2;
             }
         }
@@ -109,37 +89,37 @@ public class BlockProperties {
         // This system was introduces in 1.15 players to add support for honey blocks slowing players down
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return 1.0f;
 
-        Material block = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
+        StateType block = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
 
         // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {
-            Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
-            if (onBlock == SOUL_SAND && player.bukkitPlayer.getInventory().getBoots() != null && ItemTypes.supports(16) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+            StateType onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+            if (onBlock == StateTypes.SOUL_SAND && player.bukkitPlayer.getInventory().getBoots() != null && player.getInventory().getBoots().getEnchantmentLevel(Enchantments.SOUL_SPEED) > 0)
                 return 1.0f;
         }
 
-        if (block == HONEY_BLOCK) return 0.4f;
-        if (block == SOUL_SAND) {
+        if (block == StateTypes.HONEY_BLOCK) return 0.4f;
+        if (block == StateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             // 1.15- players obviously do not get this boost
             // This new method for detecting soul speed was added in 1.16.2
-            if (player.bukkitPlayer.getInventory().getBoots() != null && ItemTypes.supports(16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+            if (player.bukkitPlayer.getInventory().getBoots() != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getBoots().getEnchantmentLevel(Enchantments.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
         }
 
         float f = 1.0f;
 
-        if (block == water || block == alsoWater) {
+        if (block == StateTypes.WATER) {
             return f;
         }
 
-        Material block2 = player.compensatedWorld.getStateTypeAt(player.x, player.y - 0.5000001, player.z);
-        if (block2 == HONEY_BLOCK) return 0.4f;
-        if (block2 == SOUL_SAND) {
+        StateType block2 = player.compensatedWorld.getStateTypeAt(player.x, player.y - 0.5000001, player.z);
+        if (block2 == StateTypes.HONEY_BLOCK) return 0.4f;
+        if (block2 == StateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             // This new method for detecting soul speed was added in 1.16.2
-            if (player.bukkitPlayer.getInventory().getBoots() != null && ItemTypes.supports(16) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.bukkitPlayer.getInventory().getBoots().getEnchantmentLevel(Enchantment.SOUL_SPEED) > 0)
+            if (player.bukkitPlayer.getInventory().getBoots() != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getBoots().getEnchantmentLevel(Enchantments.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
         }

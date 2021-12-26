@@ -12,10 +12,6 @@ public class EventManager implements Initable {
 
         Bukkit.getPluginManager().registerEvents(new PlayerJoinQuitListener(), GrimAPI.INSTANCE.getPlugin());
 
-        if (ItemTypes.supports(13)) {
-            Bukkit.getPluginManager().registerEvents(new RiptideEvent(), GrimAPI.INSTANCE.getPlugin());
-        }
-
         Bukkit.getPluginManager().registerEvents(new PistonEvent(), GrimAPI.INSTANCE.getPlugin());
         Bukkit.getPluginManager().registerEvents(new GamemodeChangeEvent(), GrimAPI.INSTANCE.getPlugin());
         Bukkit.getPluginManager().registerEvents(new BedEvent(), GrimAPI.INSTANCE.getPlugin());

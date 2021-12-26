@@ -6,9 +6,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-// Okay, this is meant to be a MODERN OOP class!
-// Normal grim spaghetti is not allowed here
-// Eventually, a ton more transaction related stuff will be transferred to this class
 public class LatencyUtils {
     private final ConcurrentLinkedQueue<Pair<Integer, Runnable>> nettySyncTransactionMap = new ConcurrentLinkedQueue<>();
 

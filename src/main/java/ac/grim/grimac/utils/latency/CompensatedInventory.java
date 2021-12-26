@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.inventory.inventory.MenuTypes;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
@@ -52,6 +53,30 @@ public class CompensatedInventory extends PacketCheck {
 
     public ItemStack getHeldItem() {
         return inventory.getHeldItem();
+    }
+
+    public ItemStack getOffHand() {
+        return inventory.getOffhand();
+    }
+
+    public ItemStack getHelmet() {
+        return inventory.getHelmet();
+    }
+
+    public ItemStack getChestplate() {
+        return inventory.getChestplate();
+    }
+
+    public ItemStack getLeggings() {
+        return inventory.getLeggings();
+    }
+
+    public ItemStack getBoots() {
+        return inventory.getBoots();
+    }
+
+    public boolean hasItemType(ItemType type) {
+        return inventory.hasItemType(type);
     }
 
     public void onPacketReceive(final PacketReceiveEvent event) {

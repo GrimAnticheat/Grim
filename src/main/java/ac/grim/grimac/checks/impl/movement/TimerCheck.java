@@ -6,7 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "Timer (Experimental)", configName = "TimerA", flagCooldown = 1000, maxBuffer = 5)
 public class TimerCheck extends PacketCheck {
@@ -98,7 +98,7 @@ public class TimerCheck extends PacketCheck {
 
     public boolean checkReturnPacketType(PacketTypeCommon packetType) {
         // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
-        return !WrapperPlayClientFlying.isInstanceOfFlying(packetType) ||
+        return !WrapperPlayClientPlayerFlying.isFlying(packetType) ||
                 player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate;
     }
 

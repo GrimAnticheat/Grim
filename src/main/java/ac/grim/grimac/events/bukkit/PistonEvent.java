@@ -2,6 +2,7 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.PistonData;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -17,8 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class PistonEvent implements Listener {
-    Material SLIME_BLOCK = ItemTypes.SLIME_BLOCK;
-    Material HONEY_BLOCK = ItemTypes.HONEY_BLOCK;
+    Material SLIME_BLOCK = Material.getMaterial("SLIME_BLOCK");
+    Material HONEY_BLOCK = Material.getMaterial("HONEY_BLOCK");
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPistonPushEvent(BlockPistonExtendEvent event) {
@@ -56,7 +57,7 @@ public class PistonEvent implements Listener {
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                PistonData data = new PistonData(event.getDirection(), boxes, player.lastTransactionSent.get(), true, hasSlimeBlock, hasHoneyBlock);
+                PistonData data = new PistonData(BlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, player.lastTransactionSent.get(), true, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.activePistons.add(data));
             }
         }
@@ -78,7 +79,7 @@ public class PistonEvent implements Listener {
         boolean hasHoneyBlock = false;
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
-        BlockFace face = event.getDirection();
+        BlockFace face = BlockFaceHelper.fromBukkitFace(event.getDirection());
 
         // The event was called without blocks and is therefore in the right direction
         if (event.getBlocks().isEmpty()) {
@@ -109,7 +110,7 @@ public class PistonEvent implements Listener {
 
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
             if (player.compensatedWorld.isChunkLoaded(event.getBlock().getX() >> 4, event.getBlock().getZ() >> 4)) {
-                PistonData data = new PistonData(event.getDirection(), boxes, player.lastTransactionSent.get(), false, hasSlimeBlock, hasHoneyBlock);
+                PistonData data = new PistonData(BlockFaceHelper.fromBukkitFace(event.getDirection()), boxes, player.lastTransactionSent.get(), false, hasSlimeBlock, hasHoneyBlock);
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.activePistons.add(data));
             }
         }

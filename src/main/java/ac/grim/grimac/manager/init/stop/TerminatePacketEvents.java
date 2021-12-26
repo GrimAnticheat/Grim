@@ -8,6 +8,6 @@ public class TerminatePacketEvents implements Initable {
     @Override
     public void start() {
         LogUtil.info("Terminating PacketEvents...");
-        PacketEvents.get().terminate();
+        PacketEvents.getAPI().terminate();
     }
 }

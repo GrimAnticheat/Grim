@@ -12,7 +12,12 @@ public class BlockFaceHelper {
         return face == BlockFace.NORTH || face == BlockFace.EAST || face == BlockFace.SOUTH || face == BlockFace.WEST;
     }
 
-    public static BlockFace toBukkitFace(BlockFace face) {
+    /**
+     * For use with bukkit events only
+     * Grim is not meant to be restrained by bukkit!
+     */
+    @Deprecated
+    public static BlockFace fromBukkitFace(org.bukkit.block.BlockFace face) {
         switch (face) {
             case NORTH:
                 return BlockFace.NORTH;
@@ -27,7 +32,7 @@ public class BlockFaceHelper {
             case DOWN:
                 return BlockFace.DOWN;
             default:
-                return BlockFace.SELF;
+                return BlockFace.OTHER;
         }
     }
 

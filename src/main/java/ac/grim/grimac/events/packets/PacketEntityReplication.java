@@ -17,7 +17,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.github.retrooper.packetevents.utils.dependencies.viaversion.ViaVersionUtil;
 import org.bukkit.entity.Entity;
@@ -39,7 +39,7 @@ public class PacketEntityReplication extends PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (WrapperPlayClientFlying.isInstanceOfFlying(event.getPacketType())) {
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
             if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
                 return;
@@ -66,8 +66,8 @@ public class PacketEntityReplication extends PacketCheck {
             WrapperPlayServerEntityRelativeMove move = new WrapperPlayServerEntityRelativeMove(event);
             handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
         }
-        if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_LOOK) {
-            WrapperPlayServerEntityRelativeMoveAndLook move = new WrapperPlayServerEntityRelativeMoveAndLook(event);
+        if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_ROTATION) {
+            WrapperPlayServerEntityRelativeMoveAndRotation move = new WrapperPlayServerEntityRelativeMoveAndRotation(event);
             handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT) {

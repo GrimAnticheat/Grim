@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
-import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -25,17 +24,23 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.enchantment.Enchantments;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.MaterialType;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
-import org.bukkit.Tag;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.enchantments.Enchantment;
@@ -59,7 +64,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     //
     // I do have to admit that I'm starting to like bifunctions/new java 8 things more than I originally did.
     // although I still don't understand Mojang's obsession with streams in some of the hottest methods... that kills performance
-    static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<BaseBlockState, Vector3i, HitData> predicate) {
+    static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<WrappedBlockState, Vector3i, HitData> predicate) {
         // I guess go back by the collision epsilon?
         double endX = GrimMath.lerp(-1.0E-7D, end.x, start.x);
         double endY = GrimMath.lerp(-1.0E-7D, end.y, start.y);
@@ -74,7 +79,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (start.equals(end)) return null;
 
-        BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(floorStartX, floorStartY, floorStartZ);
+        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(floorStartX, floorStartY, floorStartZ);
         HitData apply = predicate.apply(state, new Vector3i(floorStartX, floorStartY, floorStartZ));
 
         if (apply != null) {
@@ -225,18 +230,18 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // Flying packet types
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
-            WrapperPlayClientPosition wrapper = new WrapperPlayClientPosition(event);
+            WrapperPlayClientPlayerPosition wrapper = new WrapperPlayClientPlayerPosition(event);
             Vector3d pos = wrapper.getPosition();
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), 0, 0, true, false, wrapper.isOnGround(), event);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-            WrapperPlayClientPositionRotation wrapper = new WrapperPlayClientPositionRotation(event);
+            WrapperPlayClientPlayerPositionRotation wrapper = new WrapperPlayClientPlayerPositionRotation(event);
             Vector3d pos = wrapper.getPosition();
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), wrapper.getYaw(), wrapper.getPitch(), true, true, wrapper.isOnGround(), event);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
-            WrapperPlayClientRotation wrapper = new WrapperPlayClientRotation(event);
+            WrapperPlayClientPlayerRotation wrapper = new WrapperPlayClientPlayerRotation(event);
             handleFlying(player, 0, 0, 0, wrapper.getYaw(), wrapper.getPitch(), false, true, wrapper.isOnGround(), event);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING) {
-            WrapperPlayClientFlying wrapper = new WrapperPlayClientFlying(event);
+            WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
             handleFlying(player, 0, 0, 0, 0, 0, false, false, wrapper.isOnGround(), event);
         }
 
@@ -265,9 +270,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.FINISHED_DIGGING) {
-                BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
+                WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
                 // Not unbreakable
-                if (ItemTypes.getHardness(ItemTypes.fromMaterial(block.getMaterial())) != -1.0f) {
+                if (block.getType().getHardness() != -1.0f) {
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(), 0);
                 }
             }
@@ -275,93 +280,93 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.START_DIGGING) {
                 // GET destroy speed
                 // Starts with itemstack get destroy speed
-                org.bukkit.inventory.ItemStack tool = player.bukkitPlayer.getItemInHand();
+                ItemStack tool = player.getInventory().getHeldItem();
 
                 // A creative mode player cannot break things with a sword!
-                if (player.gamemode == GameMode.CREATIVE && tool.getType().name().contains("SWORD")) {
+                if (player.gamemode == GameMode.CREATIVE && tool.getType().toString().contains("SWORD")) {
                     return;
                 }
 
-                BaseBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
+                WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
 
                 boolean isBestTool = false;
                 float speedMultiplier = 1.0f;
 
                 // 1.13 and below need their own huge methods to support this...
-                if (tool.getType().name().endsWith("_AXE")) {
-                    isBestTool = Tag.MINEABLE_AXE.isTagged(block.getMaterial());
-                } else if (tool.getType().name().endsWith("_PICKAXE")) {
-                    isBestTool = Tag.MINEABLE_PICKAXE.isTagged(block.getMaterial());
-                } else if (tool.getType().name().endsWith("_SHOVEL")) {
-                    isBestTool = Tag.MINEABLE_SHOVEL.isTagged(block.getMaterial());
+                if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.AXE)) {
+                    isBestTool = BlockTags.MINEABLE_WITH_AXE.contains(block.getType());
+                } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.PICKAXE)) {
+                    isBestTool = BlockTags.MINEABLE_WITH_PICKAXE.contains(block.getType());
+                } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.SHOVEL)) {
+                    isBestTool = BlockTags.MINEABLE_WITH_SHOVEL.contains(block.getType());
                 }
 
                 if (isBestTool) {
                     int tier = 0;
-                    if (tool.getType().name().contains("WOOD")) { // Tier 0
+                    if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.WOOD_TIER)) { // Tier 0
                         speedMultiplier = 2.0f;
-                    } else if (tool.getType().name().contains("STONE")) { // Tier 1
+                    } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.STONE_TIER)) { // Tier 1
                         speedMultiplier = 4.0f;
                         tier = 1;
-                    } else if (tool.getType().name().contains("IRON")) { // Tier 2
+                    } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.IRON_TIER)) { // Tier 2
                         speedMultiplier = 6.0f;
                         tier = 2;
-                    } else if (tool.getType().name().contains("DIAMOND")) { // Tier 3
+                    } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.DIAMOND_TIER)) { // Tier 3
                         speedMultiplier = 8.0f;
                         tier = 3;
-                    } else if (tool.getType().name().contains("GOLD")) { // Tier 0
+                    } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.GOLD_TIER)) { // Tier 0
                         speedMultiplier = 12.0f;
-                    } else if (tool.getType().name().contains("NETHERITE")) { // Tier 4
+                    } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.NETHERITE_TIER)) { // Tier 4
                         speedMultiplier = 9.0f;
                         tier = 4;
                     }
 
-                    if (tier < 3 && Tag.NEEDS_DIAMOND_TOOL.isTagged(block.getMaterial())) {
+                    if (tier < 3 && BlockTags.NEEDS_DIAMOND_TOOL.contains(block.getType())) {
                         isBestTool = false;
-                    } else if (tier < 2 && Tag.NEEDS_IRON_TOOL.isTagged(block.getMaterial())) {
+                    } else if (tier < 2 && BlockTags.NEEDS_IRON_TOOL.contains(block.getType())) {
                         isBestTool = false;
-                    } else if (tier < 1 && Tag.NEEDS_STONE_TOOL.isTagged(block.getMaterial())) {
+                    } else if (tier < 1 && BlockTags.NEEDS_STONE_TOOL.contains(block.getType())) {
                         isBestTool = false;
                     }
                 }
 
                 // Shears can mine some blocks faster
                 if (tool.getType() == ItemTypes.SHEARS) {
-                    if (block.getMaterial() == ItemTypes.COBWEB || Materials.checkFlag(block.getMaterial(), Materials.LEAVES)) {
+                    if (block.getType() == StateTypes.COBWEB || Materials.isLeaves(block.getType())) {
                         speedMultiplier = 15.0f;
-                    } else if (block.getMaterial().name().contains("WOOL")) {
+                    } else if (BlockTags.WOOL.contains(block.getType())) {
                         speedMultiplier = 5.0f;
-                    } else if (block.getMaterial() == ItemTypes.VINE ||
-                            block.getMaterial() == ItemTypes.GLOW_LICHEN) {
+                    } else if (block.getType() == StateTypes.VINE ||
+                            block.getType() == StateTypes.GLOW_LICHEN) {
                         speedMultiplier = 2.0f;
                     }
 
-                    isBestTool = block.getMaterial() == ItemTypes.COBWEB ||
-                            block.getMaterial() == ItemTypes.REDSTONE_WIRE ||
-                            block.getMaterial() == ItemTypes.TRIPWIRE;
+                    isBestTool = block.getType() == StateTypes.COBWEB ||
+                            block.getType() == StateTypes.REDSTONE_WIRE ||
+                            block.getType() == StateTypes.TRIPWIRE;
                 }
 
                 // Swords can also mine some blocks faster
-                if (tool.getType().name().contains("SWORD")) {
-                    if (block.getMaterial() == ItemTypes.COBWEB) {
+                if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
+                    if (block.getType() == StateTypes.COBWEB) {
                         speedMultiplier = 15.0f;
-                    } else if (Materials.checkFlag(block.getMaterial(), Materials.PLANT) ||
-                            Materials.checkFlag(block.getMaterial(), Materials.LEAVES) ||
-                            block.getMaterial() == ItemTypes.PUMPKIN ||
-                            block.getMaterial() == ItemTypes.MELON) {
+                    } else if (block.getType().getMaterialType() == MaterialType.PLANT ||
+                            BlockTags.LEAVES.contains(block.getType()) ||
+                            block.getType() == StateTypes.PUMPKIN ||
+                            block.getType() == StateTypes.MELON) {
                         speedMultiplier = 1.5f;
                     }
 
-                    isBestTool = block.getMaterial() == ItemTypes.COBWEB;
+                    isBestTool = block.getType() == StateTypes.COBWEB;
                 }
 
-                float blockHardness = ItemTypes.getHardness(ItemTypes.fromMaterial(block.getMaterial()));
+                float blockHardness = block.getType().getHardness();
 
                 if (isBestTool) {
                     if (blockHardness == -1.0f) {
                         speedMultiplier = 0;
                     } else {
-                        int digSpeed = tool.getEnchantmentLevel(Enchantment.DIG_SPEED);
+                        int digSpeed = tool.getEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY);
                         if (digSpeed > 0) {
                             speedMultiplier += digSpeed * digSpeed + 1;
                         }
@@ -429,7 +434,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 float damage = speedMultiplier / blockHardness;
 
-                boolean canHarvest = !ItemTypes.requiresCorrectTool(ItemTypes.fromMaterial(block.getMaterial())) || isBestTool;
+                boolean canHarvest = !block.getType().isRequiresCorrectTool() || isBestTool;
                 if (canHarvest) {
                     damage /= 30;
                 } else {

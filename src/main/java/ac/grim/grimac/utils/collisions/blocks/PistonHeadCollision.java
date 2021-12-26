@@ -1,13 +1,12 @@
 package ac.grim.grimac.utils.collisions.blocks;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.types.WrappedBlockDataValue;
-import ac.grim.grimac.utils.blockdata.types.WrappedPiston;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionFactory;
 import ac.grim.grimac.utils.collisions.datatypes.ComplexCollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.HexCollisionBox;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 
 public class PistonHeadCollision implements CollisionFactory {
     // 1.12- servers are not capable of sending persistent (non-block event) piston move
@@ -15,11 +14,10 @@ public class PistonHeadCollision implements CollisionFactory {
     // 1.7 and 1.8 clients always have short pistons
     // 1.9 - 1.12 clients always have long pistons
     @Override
-    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockDataValue block, int x, int y, int z) {
-        WrappedPiston piston = (WrappedPiston) block;
+    public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
         // 1.13+ clients differentiate short and long, and the short vs long data is stored
         // This works correctly in 1.12-, as in the piston returns as always long
-        double longAmount = piston.isShort() ? 0 : 4;
+        double longAmount = block.isShort() ? 0 : 4;
 
         // And 1.9, 1.10 clients always have "long" piston collision boxes - even if the piston is "short"
         // 1.11 and 1.12 clients differentiate short and long piston collision boxes - but I can never get long heads in multiplayer
@@ -35,7 +33,7 @@ public class PistonHeadCollision implements CollisionFactory {
             longAmount = 0;
 
 
-        switch (piston.getDirection()) {
+        switch (block.getFacing()) {
             case DOWN:
             default:
                 return new ComplexCollisionBox(new HexCollisionBox(0, 0, 0, 16, 4, 16),

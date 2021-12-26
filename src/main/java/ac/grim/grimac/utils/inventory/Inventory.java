@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.inventory.slot.EquipmentSlot;
 import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import lombok.Getter;
 import org.bukkit.GameMode;
 
@@ -44,6 +45,35 @@ public class Inventory extends AbstractContainerMenu {
         }
         // Offhand
         addSlot(new Slot(playerInventory, 45));
+    }
+
+    public ItemStack getHelmet() {
+        return playerInventory.getItem(SLOT_HELMET);
+    }
+
+    public ItemStack getChestplate() {
+        return playerInventory.getItem(SLOT_CHESTPLATE);
+    }
+
+    public ItemStack getLeggings() {
+        return playerInventory.getItem(SLOT_LEGGINGS);
+    }
+
+    public ItemStack getBoots() {
+        return playerInventory.getItem(SLOT_BOOTS);
+    }
+
+    public ItemStack getOffhand() {
+        return playerInventory.getItem(SLOT_OFFHAND);
+    }
+
+    public boolean hasItemType(ItemType item) {
+        for (int i = 0; i < playerInventory.items.length; ++i) {
+            if (playerInventory.getItem(i).getType() == item) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public ItemStack getHeldItem() {

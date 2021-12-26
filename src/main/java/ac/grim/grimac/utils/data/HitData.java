@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
@@ -12,10 +13,10 @@ import org.bukkit.util.Vector;
 public class HitData {
     Vector3i position;
     Vector blockHitLocation;
-    BaseBlockState state;
+    WrappedBlockState state;
     BlockFace closestDirection;
 
-    public HitData(Vector3i position, Vector blockHitLocation, BlockFace closestDirection, BaseBlockState state) {
+    public HitData(Vector3i position, Vector blockHitLocation, BlockFace closestDirection, WrappedBlockState state) {
         this.position = position;
         this.blockHitLocation = blockHitLocation;
         this.closestDirection = closestDirection;

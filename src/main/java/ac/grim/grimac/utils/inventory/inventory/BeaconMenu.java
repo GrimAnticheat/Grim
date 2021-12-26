@@ -17,7 +17,7 @@ public class BeaconMenu extends AbstractContainerMenu{
         addSlot(new Slot(containerStorage, 0) {
             @Override
             public boolean mayPlace(ItemStack itemstack) {
-                return Tag.ITEMS_BEACON_PAYMENT_ITEMS.isTagged(itemstack.getItem());
+                return Tag.ITEMS_BEACON_PAYMENT_ITEMS.isTagged(itemstack.getType());
             }
 
             @Override

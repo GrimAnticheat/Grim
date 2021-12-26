@@ -10,7 +10,6 @@ import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockAction;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
 // If a player doesn't get this packet, then they don't know the shulker box is currently opened
@@ -34,10 +33,7 @@ public class PacketBlockAction extends PacketListenerAbstract {
             WrapperPlayServerBlockAction blockAction = new WrapperPlayServerBlockAction(event);
             Vector3i blockPos = blockAction.getBlockPosition();
 
-            // TODO: Legacy support
-            BlockData blockData = CompensatedWorldFlat.globalPaletteToBlockData.get(blockAction.getBlockTypeId());
-
-            if (Materials.checkFlag(blockData.getMaterial(), Materials.SHULKER)) {
+            if (Materials.isShulker(blockAction.getBlockType().getType())) {
                 // Param is the number of viewers of the shulker box.
                 // Hashset with .equals() set to be position
                 if (blockAction.getActionData() >= 1) {

@@ -2,12 +2,17 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.AlmostBoolean;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.enchantment.Enchantments;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
@@ -16,28 +21,9 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHe
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.meta.CrossbowMeta;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
-
-    private static final Material CROSSBOW = ItemTypes.CROSSBOW;
-    private static final Material BOW = ItemTypes.BOW;
-    private static final Material TRIDENT = ItemTypes.TRIDENT;
-    private static final Material SHIELD = ItemTypes.SHIELD;
-
-    private static final Material ARROW = ItemTypes.ARROW;
-    private static final Material TIPPED_ARROW = ItemTypes.TIPPED_ARROW;
-    private static final Material SPECTRAL_ARROW = ItemTypes.SPECTRAL_ARROW;
-
-    private static final Material POTION = ItemTypes.POTION;
-    private static final Material MILK_BUCKET = ItemTypes.MILK_BUCKET;
-
-    private static final Material GOLDEN_APPLE = ItemTypes.GOLDEN_APPLE;
-    private static final Material ENCHANTED_GOLDEN_APPLE = ItemTypes.ENCHANTED_GOLDEN_APPLE;
-    private static final Material HONEY_BOTTLE = ItemTypes.HONEY_BOTTLE;
 
     public PacketPlayerDigging() {
         super(PacketListenerPriority.LOW);
@@ -56,19 +42,20 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
-                if (ItemTypes.supports(13)) {
-                    org.bukkit.inventory.ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
-                    org.bukkit.inventory.ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+                    ItemStack main = player.getInventory().getHeldItem();
+                    ItemStack off = player.getInventory().getOffHand();
 
                     int j = 0;
-                    if (main.getType() == TRIDENT) {
-                        j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
-                    } else if (off.getType() == TRIDENT) {
-                        j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
+                    if (main.getType() == ItemTypes.TRIDENT) {
+                        j = main.getEnchantmentLevel(Enchantments.RIPTIDE);
+                    } else if (off.getType() == ItemTypes.TRIDENT) {
+                        j = off.getEnchantmentLevel(Enchantments.RIPTIDE);
                     }
 
                     if (j > 0) {
                         // TODO: Re-add riptide support
+                        LogUtil.error("Riptide support is not yet implemented (FUCKING MOJANG REMOVING IDLE PACKET!)");
                     }
                 }
             }
@@ -92,20 +79,22 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
-            if (ItemTypes.supports(8) && player.gamemode == GameMode.SPECTATOR)
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8)
+                    && player.gamemode == GameMode.SPECTATOR)
                 return;
 
             // This was an interaction with a block, not a use item
-            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) && place.getFace() != BlockFace.OTHER)
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)
+                    && place.getFace() != BlockFace.OTHER)
                 return;
 
             player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
-            // Design inspired by NoCheatPlus, but rewritten to be faster
-            // https://github.com/Updated-NoCheatPlus/NoCheatPlus/blob/master/NCPCompatProtocolLib/src/main/java/fr/neatmonster/nocheatplus/checks/net/protocollib/NoSlow.java
-            org.bukkit.inventory.ItemStack item = place.getHand() == InteractionHand.MAIN_HAND ? player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected) : player.bukkitPlayer.getInventory().getItemInOffHand();
+            ItemStack item = place.getHand() == InteractionHand.MAIN_HAND ?
+                    player.getInventory().getHeldItem() : player.getInventory().getOffHand();
+
             if (item != null) {
-                Material material = item.getType();
+                ItemType material = item.getType();
 
                 if (player.checkManager.getCompensatedCooldown().hasMaterial(material)) {
                     player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE; // resync, not required
@@ -114,15 +103,18 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                 // 1.14 and below players cannot eat in creative, exceptions are potions or milk
                 if ((player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_15) ||
-                        player.gamemode != GameMode.CREATIVE && material.isEdible())
-                        || material == POTION || material == MILK_BUCKET) {
-                    // pre1.9 splash potion
-                    if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) && item.getDurability() > 16384)
+                        player.gamemode != GameMode.CREATIVE && material.hasAttribute(ItemTypes.ItemAttribute.EDIBLE))
+                        || material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET) {
+
+                    // Pls have this mapped correctly retrooper
+                    // TODO: Check if PacketEvents maps this oddity correctly
+                    if (item.getType() == ItemTypes.SPLASH_POTION)
                         return;
 
                     // Eatable items that don't require any hunger to eat
-                    if (material == Material.POTION || material == Material.MILK_BUCKET
-                            || material == GOLDEN_APPLE || material == ENCHANTED_GOLDEN_APPLE || material == HONEY_BOTTLE) {
+                    if (material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET
+                            || material == ItemTypes.GOLDEN_APPLE || material == ItemTypes.ENCHANTED_GOLDEN_APPLE
+                            || material == ItemTypes.HONEY_BOTTLE) {
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
@@ -131,7 +123,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                     // The other items that do require it
                     // TODO: Food level lag compensation
-                    if (item.getType().isEdible() && (((Player) event.getPlayer()).getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE)) {
+                    if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) &&
+                            (((Player) event.getPlayer()).getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE)) {
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                         player.packetStateData.eatingHand = place.getHand();
 
@@ -142,7 +135,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 }
 
-                if (material == SHIELD) {
+                if (material == ItemTypes.SHIELD) {
                     player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
                     player.packetStateData.eatingHand = place.getHand();
 
@@ -150,15 +143,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 }
 
                 // Avoid releasing crossbow as being seen as slowing player
-                if (material == CROSSBOW) {
-                    CrossbowMeta crossbowMeta = (CrossbowMeta) item.getItemMeta();
-                    if (crossbowMeta != null && crossbowMeta.hasChargedProjectiles())
-                        return;
+                if (material == ItemTypes.CROSSBOW && item.getNBT().getBoolean("Charged")) {
+                    return;
                 }
 
                 // The client and server don't agree on trident status because mojang is incompetent at netcode.
-                if (material == TRIDENT) {
-                    if (item.getEnchantmentLevel(Enchantment.RIPTIDE) > 0)
+                if (material == ItemTypes.TRIDENT) {
+                    if (item.getEnchantmentLevel(Enchantments.RIPTIDE) > 0)
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
                     else
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
@@ -167,9 +158,11 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                 // Players in survival can't use a bow without an arrow
                 // Crossbow charge checked previously
-                if (material == BOW || material == CROSSBOW) {
-                    player.packetStateData.slowedByUsingItem = (player.gamemode == GameMode.CREATIVE ||
-                            hasItem(player, ARROW) || hasItem(player, TIPPED_ARROW) || hasItem(player, SPECTRAL_ARROW)) ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
+                if (material == ItemTypes.BOW || material == ItemTypes.CROSSBOW) {
+                    player.packetStateData.slowedByUsingItem = player.gamemode == GameMode.CREATIVE ||
+                            player.getInventory().hasItemType(ItemTypes.ARROW) ||
+                            player.getInventory().hasItemType(ItemTypes.TIPPED_ARROW) ||
+                            player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW) ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
                     player.packetStateData.eatingHand = place.getHand();
                 }
 
@@ -184,12 +177,5 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
             }
         }
-    }
-
-    private boolean hasItem(GrimPlayer player, Material material) {
-        return material != null && player.bukkitPlayer.getInventory().contains(material)
-                || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && (player.bukkitPlayer.getInventory().getItemInOffHand().getType() == ARROW
-                || player.bukkitPlayer.getInventory().getItemInOffHand().getType() == TIPPED_ARROW
-                || player.bukkitPlayer.getInventory().getItemInOffHand().getType() == SPECTRAL_ARROW));
     }
 }

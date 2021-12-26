@@ -5,15 +5,14 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEntityAction;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 
 public class PacketEntityAction extends PacketListenerAbstract {
-
-    Material elytra = ItemTypes.ELYTRA;
 
     public PacketEntityAction() {
         super(PacketListenerPriority.LOW);
@@ -41,14 +40,14 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     player.isSneaking = false;
                     break;
                 case START_FLYING_WITH_ELYTRA:
-                    // Starting fall flying is client sided on 1.14 and below
+                    // Starting fall flying is server sided on 1.14 and below
                     if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return;
-                    org.bukkit.inventory.ItemStack chestPlate = player.bukkitPlayer.getInventory().getChestplate();
+                    ItemStack chestPlate = player.getInventory().getChestplate();
 
-                    // I have a bad feeling that there might be a way to fly without durability using this
-                    // The server SHOULD resync by telling the client to stop using the elytra if they can't fly!
-                    // TODO: This needs to check elytra durability (How do I do this cross server version?)
-                    if (chestPlate != null && chestPlate.getType() == elytra) {
+                    // This shouldn't be needed with latency compensated inventories
+                    // TODO: Remove this?
+                    if (chestPlate != null && chestPlate.getType() == ItemTypes.ELYTRA
+                            && chestPlate.getDamageValue() < chestPlate.getMaxDamage()) {
                         player.isGliding = true;
                         player.pointThreeEstimator.updatePlayerGliding();
                     } else {

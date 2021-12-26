@@ -7,10 +7,7 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetCooldown;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
-
-import java.util.Locale;
 
 public class PacketPlayerCooldown extends PacketListenerAbstract {
 
@@ -30,11 +27,11 @@ public class PacketPlayerCooldown extends PacketListenerAbstract {
 
             if (cooldown.getCooldownTicks() == 0) { // for removing the cooldown
                 player.latencyUtils.addRealTimeTask(lastTransactionSent + 1, () -> {
-                    player.checkManager.getCompensatedCooldown().removeCooldown(Material.getMaterial(cooldown.getItem().getIdentifier().getKey().toUpperCase(Locale.ROOT)));
+                    player.checkManager.getCompensatedCooldown().removeCooldown(cooldown.getItem());
                 });
             } else { // Not for removing the cooldown
                 player.latencyUtils.addRealTimeTask(lastTransactionSent, () -> {
-                    player.checkManager.getCompensatedCooldown().addCooldown(Material.getMaterial(cooldown.getItem().getIdentifier().getKey().toUpperCase(Locale.ROOT)),
+                    player.checkManager.getCompensatedCooldown().addCooldown(cooldown.getItem(),
                             cooldown.getCooldownTicks(), lastTransactionSent);
                 });
             }

@@ -413,6 +413,10 @@ public class GrimPlayer {
         return clientVersion;
     }
 
+    public CompensatedInventory getInventory() {
+        return (CompensatedInventory) checkManager.getPacketCheck(CompensatedInventory.class);
+    }
+
     public void setVulnerable() {
         // Essentials gives players invulnerability after teleport, which is bad
         try {

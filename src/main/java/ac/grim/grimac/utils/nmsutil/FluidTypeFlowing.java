@@ -1,30 +1,17 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.blockdata.WrappedBlockData;
-import ac.grim.grimac.utils.blockdata.types.*;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.bukkit.Material;
-import BlockFace;
+import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.util.Vector;
 
 public class FluidTypeFlowing {
-    private static final Material SOUL_SAND = ItemTypes.SOUL_SAND;
-    private static final Material ICE = ItemTypes.ICE;
-    private static final Material SNOW = ItemTypes.SNOW;
-    private static final Material COMPOSTER = ItemTypes.COMPOSTER;
-    private static final Material STICKY_PISTON = ItemTypes.STICKY_PISTON;
-    private static final Material PISTON = ItemTypes.PISTON;
-    private static final Material PISTON_HEAD = ItemTypes.PISTON_HEAD;
-    private static final Material LADDER = ItemTypes.LADDER;
-
-    private static final Material BEACON = ItemTypes.BEACON;
-    private static final Material GLOWSTONE = ItemTypes.GLOWSTONE;
-    private static final Material SEA_LANTERN = ItemTypes.SEA_LANTERN;
-    private static final Material CONDUIT = ItemTypes.CONDUIT;
-
     public static Vector getFlow(GrimPlayer player, int originalX, int originalY, int originalZ) {
         float fluidLevel = (float) Math.min(player.compensatedWorld.getFluidLevelAt(originalX, originalY, originalZ), 8 / 9D);
         ClientVersion version = player.getClientVersion();
@@ -41,7 +28,7 @@ public class FluidTypeFlowing {
                 float f = (float) Math.min(player.compensatedWorld.getFluidLevelAt(modifiedX, originalY, modifiedZ), 8 / 9D);
                 float f1 = 0.0F;
                 if (f == 0.0F) {
-                    Material mat = player.compensatedWorld.getStateTypeAt(modifiedX, originalY, modifiedZ);
+                    StateType mat = player.compensatedWorld.getStateTypeAt(modifiedX, originalY, modifiedZ);
 
                     // Grim's definition of solid is whether the block has a hitbox
                     // Minecraft is... it's whatever Mojang was feeling like, but it's very consistent
@@ -89,22 +76,19 @@ public class FluidTypeFlowing {
         int x = originalX + direction.getModX();
         int z = originalZ + direction.getModZ();
 
-        BaseBlockState blockState = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
-        WrappedBlockDataValue dataValue = WrappedBlockData.getMaterialData(blockState);
-        Material blockMaterial = blockState.getMaterial();
+        WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+        StateType type = data.getType();
 
         if (isSame(player, x, y, z, originalX, y, originalZ)) return false;
-        if (blockMaterial == ICE) return false;
+        if (type == StateTypes.ICE) return false;
 
         // 1.11 and below clients use a different method to determine solid faces
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
-            if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON) {
-                WrappedPistonBase pistonBase = (WrappedPistonBase) dataValue;
-                return pistonBase.getDirection().getOppositeFace() == direction ||
-                        CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, 0, 0, 0).isFullBlock();
-            } else if (blockMaterial == PISTON_HEAD) {
-                WrappedPiston pistonHead = (WrappedPiston) dataValue;
-                return pistonHead.getDirection() == direction;
+            if (type == StateTypes.PISTON || type == StateTypes.STICKY_PISTON) {
+                return data.getFacing().getOppositeFace() == direction ||
+                        CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, 0, 0, 0).isFullBlock();
+            } else if (type == StateTypes.PISTON_HEAD) {
+                return data.getFacing() == direction;
             }
         }
 
@@ -115,57 +99,53 @@ public class FluidTypeFlowing {
             // No carpet
             // No snow
             // Otherwise, solid
-            return !Materials.checkFlag(blockMaterial, Materials.SOLID_BLACKLIST);
+            return !Materials.isSolidBlockingBlacklist(type, player.getClientVersion());
         } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
             // 1.12/1.13 exempts stairs, pistons, sticky pistons, and piston heads.
             // It also exempts shulker boxes, leaves, trapdoors, stained glass, beacons, cauldrons, glass, glowstone, ice, sea lanterns, and conduits.
             //
             // Everything is hardcoded, and I have attempted by best at figuring out things, although it's not perfect
             // Report bugs on GitHub, as always.  1.13 is an odd version and issues could be lurking here.
-            if (Materials.checkFlag(blockMaterial, Materials.STAIRS) || Materials.checkFlag(blockMaterial, Materials.LEAVES)
-                    || Materials.checkFlag(blockMaterial, Materials.SHULKER) || Materials.checkFlag(blockMaterial, Materials.GLASS_BLOCK)
-                    || Materials.checkFlag(blockMaterial, Materials.TRAPDOOR))
+            if (Materials.isStairs(type) || Materials.isLeaves(type)
+                    || Materials.isShulker(type) || Materials.isGlassBlock(type)
+                    || BlockTags.TRAPDOORS.contains(type))
                 return false;
 
-            if (blockMaterial == BEACON || Materials.checkFlag(blockMaterial, Materials.CAULDRON)
-                    || blockMaterial == GLOWSTONE || blockMaterial == SEA_LANTERN || blockMaterial == CONDUIT)
+            if (type == StateTypes.BEACON || BlockTags.CAULDRONS.contains(type)
+                    || type == StateTypes.GLOWSTONE || type == StateTypes.SEA_LANTERN || type == StateTypes.CONDUIT)
                 return false;
 
-            if (blockMaterial == PISTON || blockMaterial == STICKY_PISTON || blockMaterial == PISTON_HEAD)
+            if (type == StateTypes.PISTON || type == StateTypes.STICKY_PISTON || type == StateTypes.PISTON_HEAD)
                 return false;
 
-            return blockMaterial == SOUL_SAND || (CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, x, y, z).isFullBlock());
+            return type == StateTypes.SOUL_SAND || (CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isFullBlock());
         } else {
-            if (Materials.checkFlag(blockMaterial, Materials.LEAVES)) {
+            if (Materials.isLeaves(type)) {
                 // Leaves don't have solid faces in 1.13, they do in 1.14 and 1.15, and they don't in 1.16 and beyond
                 return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_15_2);
-            } else if (blockMaterial == SNOW) {
-                WrappedSnow snow = (WrappedSnow) dataValue;
-                return snow.getLayers() == 8;
-            } else if (Materials.checkFlag(blockMaterial, Materials.STAIRS)) {
-                WrappedStairs stairs = (WrappedStairs) dataValue;
-                return stairs.getDirection() == direction;
-            } else if (blockMaterial == COMPOSTER) {
+            } else if (type == StateTypes.SNOW) {
+                return data.getLayers() == 8;
+            } else if (Materials.isStairs(type)) {
+                return data.getFacing() == direction;
+            } else if (type == StateTypes.COMPOSTER) {
                 return true;
-            } else if (blockMaterial == SOUL_SAND) {
+            } else if (type == StateTypes.SOUL_SAND) {
                 return player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16);
-            } else if (blockMaterial == LADDER) {
-                WrappedDirectional ladder = (WrappedDirectional) dataValue;
-                return ladder.getDirection().getOppositeFace() == direction;
-            } else if (Materials.checkFlag(blockMaterial, Materials.TRAPDOOR)) {
-                WrappedTrapdoor trapdoor = (WrappedTrapdoor) dataValue;
-                return trapdoor.getDirection().getOppositeFace() == direction && trapdoor.isOpen();
-            } else if (Materials.checkFlag(blockMaterial, Materials.DOOR)) {
-                CollisionData data = CollisionData.getData(blockMaterial);
+            } else if (type == StateTypes.LADDER) {
+                return data.getFacing().getOppositeFace() == direction;
+            } else if (BlockTags.TRAPDOORS.contains(type)) {
+                return data.getFacing().getOppositeFace() == direction && data.isOpen();
+            } else if (BlockTags.DOORS.contains(type)) {
+                CollisionData collisionData = CollisionData.getData(type);
 
-                if (data.dynamic instanceof DoorHandler) {
-                    BlockFace dir = ((DoorHandler) data.dynamic).fetchDirection(player, player.getClientVersion(), dataValue, x, y, z);
+                if (collisionData.dynamic instanceof DoorHandler) {
+                    BlockFace dir = ((DoorHandler) collisionData.dynamic).fetchDirection(player, player.getClientVersion(), data, x, y, z);
                     return dir.getOppositeFace() == direction;
                 }
             }
 
             // Explicitly a full block, therefore it has a full face
-            return (CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockState, x, y, z).isFullBlock());
+            return (CollisionData.getData(type).getMovementCollisionBox(player, player.getClientVersion(), data, x, y, z).isFullBlock());
         }
     }
 

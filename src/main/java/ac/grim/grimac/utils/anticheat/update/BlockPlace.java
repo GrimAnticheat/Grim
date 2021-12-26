@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.anticheat.update;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.blockdata.WrappedBlockData;
 import ac.grim.grimac.utils.blockdata.types.*;
-import ac.grim.grimac.utils.blockstate.helper.BlockStateHelper;
 import ac.grim.grimac.utils.collisions.AxisSelect;
 import ac.grim.grimac.utils.collisions.AxisUtil;
 import ac.grim.grimac.utils.collisions.CollisionData;
@@ -33,23 +32,14 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BlockPlace {
+    protected static final BlockFace[] UPDATE_SHAPE_ORDER = new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP};
     private static final BlockFace[] BY_2D = new BlockFace[]{BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
     @Setter
     Vector3i blockPosition;
-    protected static final BlockFace[] UPDATE_SHAPE_ORDER = new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP};
     @Getter
     @Setter
     boolean replaceClicked;
-    private static final Material SOUL_SAND = ItemTypes.SOUL_SAND;
     boolean isCancelled = false;
-    private static final Material SNOW = ItemTypes.SNOW;
-    private static final Material COMPOSTER = ItemTypes.COMPOSTER;
-
-    public Vector3i getPlacedAgainstBlockLocation() {
-        return blockPosition;
-    }
-
-    private static final Material LADDER = ItemTypes.LADDER;
     GrimPlayer player;
     @Getter
     Material material;
@@ -57,7 +47,6 @@ public class BlockPlace {
     HitData hitData;
     @Setter
     BlockFace face;
-
     public BlockPlace(GrimPlayer player, Vector3i blockPosition, BlockFace face, Material material, HitData hitData) {
         this.player = player;
         this.blockPosition = blockPosition;
@@ -68,6 +57,10 @@ public class BlockPlace {
         BaseBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
         WrappedBlockDataValue placedAgainst = WrappedBlockData.getMaterialData(state).getData(state);
         this.replaceClicked = canBeReplaced(material, state, placedAgainst);
+    }
+
+    public Vector3i getPlacedAgainstBlockLocation() {
+        return blockPosition;
     }
 
     public WrappedBlockDataValue getExistingBlockData() {

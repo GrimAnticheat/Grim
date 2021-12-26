@@ -10,14 +10,10 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPositionRotation;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPosition;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPositionRotation;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientRotation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,7 +88,7 @@ public class NoFallA extends PacketCheck {
                     feetBB.expandToAbsoluteCoordinates(lastPos.getX(), lastPos.getY(), lastPos.getZ());
 
                 // Shulkers have weird BB's that the player might be standing on
-                if (Collisions.hasMaterial(player, feetBB, blockData -> Materials.isShulker(blockData)))
+                if (Collisions.hasMaterial(player, feetBB, blockData -> Materials.isShulker(blockData.getType())))
                     return;
 
                 // This is to support stepping movement (Not blatant, we need to wait on prediction engine to flag this)
