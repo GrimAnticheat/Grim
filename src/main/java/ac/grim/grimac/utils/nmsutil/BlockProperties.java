@@ -4,13 +4,11 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
-import com.github.retrooper.packetevents.protocol.enchantment.Enchantments;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
 
 public class BlockProperties {
 
@@ -31,7 +29,8 @@ public class BlockProperties {
         float friction = 0.6f;
 
         if (material == StateTypes.ICE) friction = 0.98f;
-        if (material == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) friction = 0.8f;
+        if (material == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8))
+            friction = 0.8f;
         // ViaVersion honey block replacement
         if (material == StateTypes.HONEY_BLOCK && player.getClientVersion().isOlderThan(ClientVersion.V_1_15))
             friction = 0.8f;
@@ -94,7 +93,7 @@ public class BlockProperties {
         // This is the 1.16.0 and 1.16.1 method for detecting if the player is on soul speed
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_1)) {
             StateType onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
-            if (onBlock == StateTypes.SOUL_SAND && player.bukkitPlayer.getInventory().getBoots() != null && player.getInventory().getBoots().getEnchantmentLevel(Enchantments.SOUL_SPEED) > 0)
+            if (onBlock == StateTypes.SOUL_SAND && player.bukkitPlayer.getInventory().getBoots() != null && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED) > 0)
                 return 1.0f;
         }
 
@@ -103,7 +102,7 @@ public class BlockProperties {
             // Soul speed is a 1.16+ enchantment
             // 1.15- players obviously do not get this boost
             // This new method for detecting soul speed was added in 1.16.2
-            if (player.bukkitPlayer.getInventory().getBoots() != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getBoots().getEnchantmentLevel(Enchantments.SOUL_SPEED) > 0)
+            if (player.bukkitPlayer.getInventory().getBoots() != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
         }
@@ -119,7 +118,7 @@ public class BlockProperties {
         if (block2 == StateTypes.SOUL_SAND) {
             // Soul speed is a 1.16+ enchantment
             // This new method for detecting soul speed was added in 1.16.2
-            if (player.bukkitPlayer.getInventory().getBoots() != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getBoots().getEnchantmentLevel(Enchantments.SOUL_SPEED) > 0)
+            if (player.bukkitPlayer.getInventory().getBoots() != null && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && player.getInventory().getBoots().getEnchantmentLevel(EnchantmentTypes.SOUL_SPEED) > 0)
                 return 1.0f;
             return 0.4f;
         }

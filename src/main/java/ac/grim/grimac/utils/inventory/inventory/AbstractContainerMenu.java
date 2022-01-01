@@ -44,18 +44,6 @@ public abstract class AbstractContainerMenu {
         this.carriedItem = ItemStack.EMPTY;
     }
 
-    public Slot addSlot(Slot slot) {
-        slot.slotListIndex = this.slots.size();
-        this.slots.add(slot);
-        return slot;
-    }
-
-    public void addFourRowPlayerInventory() {
-        for (int slot = Inventory.ITEMS_START; slot <= Inventory.ITEMS_END; slot++) {
-            addSlot(new Slot(playerInventory.getPlayerInventory(), slot));
-        }
-    }
-
     public static int getQuickcraftHeader(int p_38948_) {
         return p_38948_ & 3;
     }
@@ -86,10 +74,22 @@ public abstract class AbstractContainerMenu {
                 p_38925_.setAmount(1);
                 break;
             case 2:
-                p_38925_.setAmount(p_38925_.getStack().getType().getMaxStackSize());
+                p_38925_.setAmount(p_38925_.getType().getMaxAmount());
         }
 
         p_38925_.grow(p_38926_);
+    }
+
+    public Slot addSlot(Slot slot) {
+        slot.slotListIndex = this.slots.size();
+        this.slots.add(slot);
+        return slot;
+    }
+
+    public void addFourRowPlayerInventory() {
+        for (int slot = Inventory.ITEMS_START; slot <= Inventory.ITEMS_END; slot++) {
+            addSlot(new Slot(playerInventory.getPlayerInventory(), slot));
+        }
     }
 
     protected void resetQuickCraft() {
@@ -121,7 +121,7 @@ public abstract class AbstractContainerMenu {
     }
 
     public void setPlayerInventoryItem(int slot, ItemStack stack) {
-        playerInventory.getPlayerInventory().setItem(slot, new ItemStack(stack));
+        playerInventory.getPlayerInventory().setItem(slot, stack);
     }
 
     public void doClick(int button, int slotID, WrapperPlayClientClickWindow.WindowClickType clickType) {
@@ -202,7 +202,7 @@ public abstract class AbstractContainerMenu {
                     return;
                 }
 
-                for (ItemStack itemstack9 = this.quickMoveStack(slotID); !itemstack9.isEmpty() && ItemStack.isSame(stack.getItem(), itemstack9); itemstack9 = this.quickMoveStack(slotID)) {
+                for (ItemStack itemstack9 = this.quickMoveStack(slotID); !itemstack9.isEmpty() && ItemStack.isSameItemSameTags(stack.getItem(), itemstack9); itemstack9 = this.quickMoveStack(slotID)) {
                 }
             } else {
                 if (slotID < 0) return;
@@ -211,37 +211,38 @@ public abstract class AbstractContainerMenu {
                 ItemStack slotItem = slot.getItem();
                 ItemStack carriedItem = getCarried();
 
-                if (!carriedItem.overrideStackedOnOther(slotItem, clickAction) && !slotItem.overrideOtherStackedOnMe(slotItem, clickAction, carriedItem)) {
-                    if (slotItem.isEmpty()) {
-                        if (!carriedItem.isEmpty()) {
-                            int l2 = clickAction == ClickAction.PRIMARY ? carriedItem.getAmount() : 1;
-                            this.setCarried(slot.safeInsert(carriedItem, l2));
+                // TODO: Bundle support
+                //if (!carriedItem.overrideStackedOnOther(slotItem, clickAction) && !slotItem.overrideOtherStackedOnMe(slotItem, clickAction, carriedItem)) {
+                if (slotItem.isEmpty()) {
+                    if (!carriedItem.isEmpty()) {
+                        int l2 = clickAction == ClickAction.PRIMARY ? carriedItem.getAmount() : 1;
+                        this.setCarried(slot.safeInsert(carriedItem, l2));
+                    }
+                } else if (slot.mayPickup()) {
+                    if (carriedItem.isEmpty()) {
+                        int i3 = clickAction == ClickAction.PRIMARY ? slotItem.getAmount() : (slotItem.getAmount() + 1) / 2;
+                        Optional<ItemStack> optional1 = slot.tryRemove(i3, Integer.MAX_VALUE, player);
+                        optional1.ifPresent((p_150421_) -> {
+                            this.setCarried(p_150421_);
+                            slot.onTake(player, p_150421_);
+                        });
+                    } else if (slot.mayPlace(carriedItem)) {
+                        if (ItemStack.isSameItemSameTags(slotItem, carriedItem)) {
+                            int j3 = clickAction == ClickAction.PRIMARY ? carriedItem.getAmount() : 1;
+                            this.setCarried(slot.safeInsert(carriedItem, j3));
+                        } else if (carriedItem.getAmount() <= slot.getMaxStackSize(carriedItem)) {
+                            slot.set(carriedItem);
+                            this.setCarried(slotItem);
                         }
-                    } else if (slot.mayPickup()) {
-                        if (carriedItem.isEmpty()) {
-                            int i3 = clickAction == ClickAction.PRIMARY ? slotItem.getAmount() : (slotItem.getAmount() + 1) / 2;
-                            Optional<ItemStack> optional1 = slot.tryRemove(i3, Integer.MAX_VALUE, player);
-                            optional1.ifPresent((p_150421_) -> {
-                                this.setCarried(p_150421_);
-                                slot.onTake(player, p_150421_);
-                            });
-                        } else if (slotItem.mayPlace(carriedItem)) {
-                            if (slotItem.isSameItemSameTags(carriedItem)) {
-                                int j3 = clickAction == ClickAction.PRIMARY ? carriedItem.getAmount() : 1;
-                                this.setCarried(slot.safeInsert(carriedItem, j3));
-                            } else if (carriedItem.getAmount() <= slot.getMaxStackSize(carriedItem)) {
-                                slot.set(carriedItem);
-                                this.setCarried(slotItem);
-                            }
-                        } else if (slotItem.isSameItemSameTags(carriedItem)) {
-                            Optional<ItemStack> optional = slot.tryRemove(slotItem.getAmount(), carriedItem.getMaxStackSize() - carriedItem.getAmount(), player);
-                            optional.ifPresent((p_150428_) -> {
-                                carriedItem.grow(p_150428_.getAmount());
-                                slot.onTake(player, p_150428_);
-                            });
-                        }
+                    } else if (ItemStack.isSameItemSameTags(slotItem, carriedItem)) {
+                        Optional<ItemStack> optional = slot.tryRemove(slotItem.getAmount(), carriedItem.getMaxStackSize() - carriedItem.getAmount(), player);
+                        optional.ifPresent((p_150428_) -> {
+                            carriedItem.grow(p_150428_.getAmount());
+                            slot.onTake(player, p_150428_);
+                        });
                     }
                 }
+                //}
             }
         } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.SWAP) {
             Slot hoveringSlot = slots.get(slotID);
@@ -252,7 +253,7 @@ public abstract class AbstractContainerMenu {
             if (!hotbarKeyStack.isEmpty() || !hoveringItem2.isEmpty()) {
                 if (hotbarKeyStack.isEmpty()) {
                     if (hoveringSlot.mayPickup(player)) {
-                        setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, hoveringItem2.getStack());
+                        setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, hoveringItem2);
                         hoveringSlot.set(ItemStack.EMPTY);
                         hoveringSlot.onTake(player, hoveringItem2);
                     }
@@ -263,7 +264,7 @@ public abstract class AbstractContainerMenu {
                             hoveringSlot.set(hotbarKeyStack.split(l1));
                         } else {
                             hoveringSlot.set(hotbarKeyStack);
-                            setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, ItemStack.EMPTY.getStack());
+                            setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, ItemStack.EMPTY);
                         }
                     }
                 } else if (hoveringSlot.mayPickup(player) && hoveringSlot.mayPlace(hotbarKeyStack)) {
@@ -274,7 +275,7 @@ public abstract class AbstractContainerMenu {
                         playerInventory.add(hoveringItem2);
                     } else {
                         hoveringSlot.set(hotbarKeyStack);
-                        setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, hoveringItem2.getStack());
+                        setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, hoveringItem2);
                         hoveringSlot.onTake(player, hoveringItem2);
                     }
                 }
@@ -320,7 +321,7 @@ public abstract class AbstractContainerMenu {
             i = max - 1;
         }
 
-        if (toMove.getItem().getMaxStackSize() > 1) {
+        if (toMove.getType().getMaxAmount() > 1) {
             while (!toMove.isEmpty()) {
                 if (reverse) {
                     if (i < min) {

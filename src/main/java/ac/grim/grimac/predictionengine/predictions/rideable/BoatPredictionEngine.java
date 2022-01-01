@@ -9,7 +9,9 @@ import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -17,8 +19,6 @@ import java.util.List;
 import java.util.Set;
 
 public class BoatPredictionEngine extends PredictionEngine {
-    private static final Material LILY_PAD = ItemTypes.LILY_PAD;
-
     public BoatPredictionEngine(GrimPlayer player) {
         player.vehicleData.midTickY = 0;
 
@@ -120,10 +120,10 @@ public class BoatPredictionEngine extends PredictionEngine {
                 if (j2 != 2) {
                     for (int k2 = k; k2 < l; ++k2) {
                         if (j2 <= 0 || k2 != k && k2 != l - 1) {
-                            BaseBlockState blockData = player.compensatedWorld.getWrappedBlockStateAt(l1, k2, i2);
-                            Material blockMaterial = blockData.getMaterial();
+                            WrappedBlockState blockData = player.compensatedWorld.getWrappedBlockStateAt(l1, k2, i2);
+                            StateType blockMaterial = blockData.getType();
 
-                            if (blockMaterial != LILY_PAD && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockData, l1, k2, i2).isIntersected(axisalignedbb1)) {
+                            if (blockMaterial != StateTypes.LILY_PAD && CollisionData.getData(blockMaterial).getMovementCollisionBox(player, player.getClientVersion(), blockData, l1, k2, i2).isIntersected(axisalignedbb1)) {
                                 f += BlockProperties.getMaterialFriction(player, blockMaterial);
                                 ++k1;
                             }

@@ -24,8 +24,8 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.enchantment.Enchantments;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -35,14 +35,13 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.MaterialType;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Waterlogged;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -234,7 +233,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d pos = wrapper.getPosition();
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), 0, 0, true, false, wrapper.isOnGround(), event);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-            WrapperPlayClientPlayerPositionRotation wrapper = new WrapperPlayClientPlayerPositionRotation(event);
+            WrapperPlayClientPlayerPositionAndRotation wrapper = new WrapperPlayClientPlayerPositionAndRotation(event);
             Vector3d pos = wrapper.getPosition();
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), wrapper.getYaw(), wrapper.getPitch(), true, true, wrapper.isOnGround(), event);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
@@ -366,7 +365,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     if (blockHardness == -1.0f) {
                         speedMultiplier = 0;
                     } else {
-                        int digSpeed = tool.getEnchantmentLevel(Enchantments.BLOCK_EFFICIENCY);
+                        int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY);
                         if (digSpeed > 0) {
                             speedMultiplier += digSpeed * digSpeed + 1;
                         }
@@ -457,23 +456,18 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (isBlockPlace) {
             WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
 
-            org.bukkit.inventory.ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
-            Material material = transformMaterial(placedWith);
+            ItemStack placedWith = player.getInventory().getHeldItem();
+            ItemStack offhand = player.getInventory().getOffHand();
 
-            boolean onlyAir = material == null || material == Material.AIR;
-
-            if (ItemTypes.supports(9)) {
-                org.bukkit.inventory.ItemStack offhand = player.bukkitPlayer.getInventory().getItemInOffHand();
-                onlyAir = onlyAir && offhand.getType() == Material.AIR;
-            }
+            boolean onlyAir = placedWith.isEmpty() && offhand.isEmpty();
 
             // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
             if ((!player.isSneaking || onlyAir) && place.getHand() == InteractionHand.MAIN_HAND) {
                 Vector3i blockPosition = place.getBlockPosition();
-                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getFace(), material, getNearestHitResult(player, null, true));
+                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getFace(), placedWith.getType(), getNearestHitResult(player, null, true));
 
                 // Right-clicking a trapdoor/door/etc.
-                if (Materials.checkFlag(blockPlace.getPlacedAgainstMaterial(), Materials.CLIENT_SIDE_INTERACTABLE)) {
+                if (Materials.isClientSideInteractable(blockPlace.getPlacedAgainstMaterial())) {
                     Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
                     player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
                     return;
@@ -491,22 +485,23 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
 
-            // TODO: Support offhand!
-            org.bukkit.inventory.ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
-            Material material = transformMaterial(placedWith);
+            ItemStack placedWith = player.getInventory().getHeldItem();
+            if (place.getHand() == InteractionHand.OFF_HAND) {
+                placedWith = player.getInventory().getOffHand();
+            }
 
             // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
-            if (material == ItemTypes.LILY_PAD) {
+            if (placedWith.getType() == ItemTypes.LILY_PAD) {
                 placeLilypad(player); // Pass a block place because lily pads have a hitbox
                 return;
             }
 
-            Material toBucketMat = Materials.transformBucketMaterial(material);
+            StateType toBucketMat = Materials.transformBucketMaterial(placedWith.getType());
             if (toBucketMat != null) {
                 placeWaterLavaSnowBucket(player, toBucketMat);
             }
 
-            if (material == Material.BUCKET) {
+            if (placedWith.getType() == ItemTypes.BUCKET) {
                 placeBucket(player);
             }
         }
@@ -516,16 +511,18 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3i blockPosition = place.getBlockPosition();
             BlockFace face = place.getFace();
 
-            // TODO: Support offhand!
-            org.bukkit.inventory.ItemStack placedWith = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
-            Material material = transformMaterial(placedWith);
-            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, material, getNearestHitResult(player, null, true));
+            ItemStack placedWith = player.getInventory().getHeldItem();
+            if (place.getHand() == InteractionHand.OFF_HAND) {
+                placedWith = player.getInventory().getOffHand();
+            }
 
-            if (placedWith != null && material.isBlock()) {
+            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith.getType(), getNearestHitResult(player, null, true));
+
+            if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
                 player.checkManager.onBlockPlace(blockPlace);
 
                 if (!blockPlace.isCancelled()) {
-                    BlockPlaceResult.getMaterialData(material).applyBlockPlaceToWorld(player, blockPlace);
+                    BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
                 }
             }
         }
@@ -535,22 +532,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.checkManager.onPacketReceive(event);
     }
 
-    private void placeWaterLavaSnowBucket(GrimPlayer player, Material toPlace) {
-        HitData data = getNearestHitResult(player, toPlace, false);
+    private void placeWaterLavaSnowBucket(GrimPlayer player, StateType toPlace) {
+        HitData data = getNearestHitResult(player, StateTypes.AIR, false);
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), toPlace, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemTypes.AIR, data);
             // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
-
-
             // If we hit a waterloggable block, then the bucket is directly placed
             // Otherwise, use the face to determine where to place the bucket
-            if (Materials.isPlaceableLiquidBucket(blockPlace.getMaterial()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+            if (Materials.isPlaceableLiquidBucket(blockPlace.getItemType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 blockPlace.setReplaceClicked(true); // See what's in the existing place
-                BlockData existing = blockPlace.getExistingBlockBlockData();
-                if (existing instanceof Waterlogged) {
-                    Waterlogged waterlogged = (Waterlogged) existing.clone(); // Don't corrupt palette
-                    waterlogged.setWaterlogged(true);
-                    blockPlace.set(waterlogged);
+                WrappedBlockState existing = blockPlace.getExistingBlockData();
+                if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) {
+                    existing.setWaterlogged(true);
+                    blockPlace.set(existing);
                     return;
                 }
             }
@@ -565,11 +559,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
         HitData data = getNearestHitResult(player, null, true);
 
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), Material.BUCKET, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemTypes.BUCKET, data);
             blockPlace.setReplaceClicked(true); // Replace the block clicked, not the block in the direction
 
-            if (data.getState().getMaterial() == Material.POWDER_SNOW) {
-                blockPlace.set(Material.AIR);
+            if (data.getState().getType() == StateTypes.POWDER_SNOW) {
+                blockPlace.set(StateTypes.AIR);
                 return;
             }
 
@@ -578,17 +572,16 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 return;
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                BlockData existing = blockPlace.getExistingBlockBlockData();
-                if (existing instanceof Waterlogged) {
-                    Waterlogged waterlogged = (Waterlogged) existing.clone(); // Don't corrupt palette
-                    waterlogged.setWaterlogged(false);
-                    blockPlace.set(waterlogged);
+                WrappedBlockState existing = blockPlace.getExistingBlockData();
+                if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
+                    existing.setWaterlogged(false);
+                    blockPlace.set(existing);
                     return;
                 }
             }
 
             // Therefore, not waterlogged and is a fluid, and is therefore a source block
-            blockPlace.set(Material.AIR);
+            blockPlace.set(StateTypes.AIR);
         }
     }
 
@@ -600,41 +593,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
 
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), Material.LILY_PAD, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemTypes.LILY_PAD, data);
             blockPlace.setReplaceClicked(false); // Not possible with use item
 
             // We checked for a full fluid block below here.
             if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
-                    || data.getState().getMaterial() == Material.ICE || data.getState().getMaterial() == Material.FROSTED_ICE) {
+                    || data.getState().getType() == StateTypes.ICE || data.getState().getType() == StateTypes.FROSTED_ICE) {
                 Vector3i pos = data.getPosition().clone();
                 pos.setY(pos.getY() + 1);
 
-                blockPlace.set(pos, BlockStateHelper.create(blockPlace.getMaterial()));
+                blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState());
             }
         }
     }
 
-    // For example, placing seeds to place wheat
-    // TODO: Make this compatible with previous versions by using ItemTypes
-    private Material transformMaterial(org.bukkit.inventory.ItemStack stack) {
-        if (stack == null) return null;
-        if (stack.getType() == Material.COCOA_BEANS) return Material.COCOA;
-        if (stack.getType() == Material.INK_SAC && stack.getDurability() == 3) return Material.COCOA;
-        if (stack.getType() == Material.FIRE_CHARGE) return Material.FIRE;
-        if (stack.getType() == Material.POTATO) return Material.POTATOES;
-        if (stack.getType() == Material.BEETROOT_SEEDS) return Material.BEETROOTS;
-        if (stack.getType() == Material.CARROT) return Material.CARROTS;
-        if (stack.getType() == Material.PUMPKIN_SEEDS) return Material.PUMPKIN_STEM;
-        if (stack.getType() == Material.MELON_SEEDS) return Material.MELON_STEM;
-        if (stack.getType() == Material.WHEAT_SEEDS) return Material.WHEAT;
-        if (stack.getType() == Material.REDSTONE) return Material.REDSTONE_WIRE;
-        if (stack.getType() == Material.POWDER_SNOW_BUCKET) return Material.POWDER_SNOW;
-        if (stack.getType() == Material.SWEET_BERRIES) return Material.SWEET_BERRY_BUSH;
-
-        return stack.getType();
-    }
-
-    private HitData getNearestHitResult(GrimPlayer player, Material heldItem, boolean sourcesHaveHitbox) {
+    private HitData getNearestHitResult(GrimPlayer player, StateType heldItem, boolean sourcesHaveHitbox) {
         // TODO: When we do this post-tick (fix desync) switch to lastX
         Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());

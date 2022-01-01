@@ -6,9 +6,7 @@ import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
-import org.bukkit.Material;
 
 public class BrewingMenu extends AbstractContainerMenu {
     public BrewingMenu(GrimPlayer player, Inventory playerInventory) {
@@ -120,7 +118,7 @@ public class BrewingMenu extends AbstractContainerMenu {
         }
 
         public static boolean mayPlaceItem(ItemStack p_39134_) {
-            return p_39134_.getType().getIdentifier().getKey().endsWith("POTION") || p_39134_.getType() == ItemTypes.GLASS_BOTTLE;
+            return p_39134_.getType().getName().getKey().endsWith("POTION") || p_39134_.getType() == ItemTypes.GLASS_BOTTLE;
         }
 
         public int getMaxStackSize() {

@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.lists.EvictingList;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 
 import java.util.Collections;
@@ -282,7 +283,7 @@ public class UncertaintyHandler {
 
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.type == EntityType.BOAT || entity.type == EntityType.SHULKER) && entity != player.playerVehicle &&
+            if ((entity.type == EntityTypes.BOAT || entity.type == EntityTypes.SHULKER) && entity != player.playerVehicle &&
                     entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -296,7 +297,7 @@ public class UncertaintyHandler {
         if (player.playerVehicle instanceof PacketEntityStrider) {
             for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
-                if (entity.type == EntityType.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())
+                if (entity.type == EntityTypes.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())
                         && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }
@@ -308,7 +309,7 @@ public class UncertaintyHandler {
 
     private boolean boatCollision(SimpleCollisionBox expandedBB) {
         // Boats can collide with quite literally anything
-        if (player.playerVehicle != null && player.playerVehicle.type == EntityType.BOAT) {
+        if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT) {
             for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
                 if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey()) &&

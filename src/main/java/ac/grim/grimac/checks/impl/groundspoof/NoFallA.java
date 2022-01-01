@@ -12,7 +12,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPositionRotation;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPositionAndRotation;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
 
 import java.util.ArrayList;
@@ -44,7 +44,7 @@ public class NoFallA extends PacketCheck {
                 wrapper = new WrapperPlayClientPlayerPosition(event);
                 hasPosition = true;
             } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-                wrapper = new WrapperPlayClientPlayerPositionRotation(event);
+                wrapper = new WrapperPlayClientPlayerPositionAndRotation(event);
                 hasPosition = true;
             } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
                 wrapper = new WrapperPlayClientPlayerRotation(event);

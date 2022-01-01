@@ -11,8 +11,6 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.Material;
-import org.bukkit.block.data.type.BigDripleaf;
 
 import java.util.*;
 
@@ -20,7 +18,7 @@ import java.util.*;
 public enum HitboxData {
     SCAFFOLDING((player, item, version, data, x, y, z) -> {
         // If is holding scaffolding
-        if (item == Material.SCAFFOLDING) {
+        if (item == StateTypes.SCAFFOLDING) {
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
         }
 
@@ -119,9 +117,7 @@ public enum HitboxData {
     CACTUS(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), StateTypes.CACTUS),
 
     SNOW((player, item, version, data, x, y, z) -> {
-        WrappedSnow snow = (WrappedSnow) data;
-
-        return new SimpleCollisionBox(0, 0, 0, 1, (snow.getLayers() + 1) * 0.125, 1);
+        return new SimpleCollisionBox(0, 0, 0, 1, (data.getLayers() + 1) * 0.125, 1);
     }, StateTypes.SNOW),
 
     LECTERN_BLOCK((player, item, version, data, x, y, z) -> {
@@ -181,7 +177,7 @@ public enum HitboxData {
         return lookup.get(material);
     }
 
-    public static CollisionBox getBlockHitbox(GrimPlayer player, Material heldItem, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
+    public static CollisionBox getBlockHitbox(GrimPlayer player, StateType heldItem, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
         HitboxData data = getData(block.getType());
 
         if (data == null) {

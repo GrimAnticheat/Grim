@@ -5,6 +5,13 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 
+/**
+ * Yeah, I know this is a bad class
+ * I just can't figure out how to PR it to PacketEvents due to babies, slimes, and other irregularities
+ * <p>
+ * I could PR a ton of classes in order to accomplish it but then no one would use it
+ * (And even if they did they would likely be breaking my license...)
+ */
 public class BoundingBoxSize {
     public static double getWidth(PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
@@ -13,142 +20,100 @@ public class BoundingBoxSize {
     }
 
     private static double getWidthMinusBaby(PacketEntity packetEntity) {
-        switch (packetEntity.type) {
-            case AXOLOTL:
-            case PANDA:
-                return 1.3;
-            case BAT:
-            case PARROT:
-            case COD:
-            case EVOKER_FANGS:
-            case TROPICAL_FISH:
-                return 0.5;
-            case BEE:
-            case PUFFERFISH:
-            case SALMON:
-            case SNOWMAN:
-            case WITHER_SKELETON:
-            case CAVE_SPIDER:
-                return 0.7;
-            case WITHER_SKULL:
-            case SHULKER_BULLET:
-                return 0.3125;
-            case BLAZE:
-            case OCELOT:
-            case STRAY:
-            case HOGLIN:
-            case SKELETON_HORSE:
-            case MULE:
-            case ZOMBIE_HORSE:
-            case HORSE:
-            case ZOGLIN:
-                return 1.39648;
-            case BOAT:
-                return 1.375;
-            case CHICKEN:
-            case ENDERMITE:
-            case RABBIT:
-            case SILVERFISH:
-            case VEX:
-                return 0.4;
-            case STRIDER:
-            case COW:
-            case SHEEP:
-            case MUSHROOM_COW:
-            case PIG:
-            case LLAMA:
-            case DOLPHIN:
-            case WITHER:
-            case TRADER_LLAMA:
-                return 0.9;
-            case PHANTOM:
-                if (packetEntity instanceof PacketEntitySizeable) {
-                    return 0.9 + ((PacketEntitySizeable) packetEntity).size * 0.2;
-                }
-            case DONKEY:
-                return 1.5;
-            case ELDER_GUARDIAN:
-                return 1.9975;
-            case ENDER_CRYSTAL:
-                return 2.0;
-            case ENDER_DRAGON:
-                return 16.0;
-            case FIREBALL:
-                return 1;
-            case GHAST:
-                return 4.0;
-            case GIANT:
-                return 3.6;
-            case GUARDIAN:
-                return 0.85;
-            case IRON_GOLEM:
-                return 1.4;
-            case MAGMA_CUBE:
-                if (packetEntity instanceof PacketEntitySizeable) {
-                    return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
-                }
-            case MINECART:
-            case MINECART_CHEST:
-            case MINECART_COMMAND:
-            case MINECART_FURNACE:
-            case MINECART_HOPPER:
-            case MINECART_MOB_SPAWNER:
-            case MINECART_TNT:
-                return 0.98;
-            case PLAYER:
-                return 0.6;
-            case POLAR_BEAR:
-                return 1.4;
-            case RAVAGER:
-                return 1.95;
-            case SHULKER:
-                return 1.0;
-            case SLIME:
-                if (packetEntity instanceof PacketEntitySizeable) {
-                    return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
-                }
-            case SMALL_FIREBALL:
-                return 0.3125;
-            case SPIDER:
-                return 1.4;
-            case SQUID:
-                return 0.8;
-            case TURTLE:
-                return 1.2;
-            default:
-                return 0.6;
+        if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.PANDA.equals(packetEntity.type)) {
+            return 1.3;
+        } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.TROPICAL_FISH.equals(packetEntity.type)) {
+            return 0.5;
+        } else if (EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.PUFFERFISH.equals(packetEntity.type) || EntityTypes.SALMON.equals(packetEntity.type) || EntityTypes.SNOW_GOLEM.equals(packetEntity.type) || EntityTypes.WITHER_SKELETON.equals(packetEntity.type) || EntityTypes.CAVE_SPIDER.equals(packetEntity.type)) {
+            return 0.7;
+        } else if (EntityTypes.WITHER_SKULL.equals(packetEntity.type) || EntityTypes.SHULKER_BULLET.equals(packetEntity.type)) {
+            return 0.3125;
+        } else if (EntityTypes.BLAZE.equals(packetEntity.type) || EntityTypes.OCELOT.equals(packetEntity.type) || EntityTypes.STRAY.equals(packetEntity.type) || EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.SKELETON_HORSE.equals(packetEntity.type) || EntityTypes.MULE.equals(packetEntity.type) || EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type) || EntityTypes.HORSE.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
+            return 1.39648;
+        } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
+            return 1.375;
+        } else if (EntityTypes.CHICKEN.equals(packetEntity.type) || EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.RABBIT.equals(packetEntity.type) || EntityTypes.SILVERFISH.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
+            return 0.4;
+        } else if (EntityTypes.STRIDER.equals(packetEntity.type) || EntityTypes.COW.equals(packetEntity.type) || EntityTypes.SHEEP.equals(packetEntity.type) || EntityTypes.MOOSHROOM.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.LLAMA.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type) || EntityTypes.WITHER.equals(packetEntity.type) || EntityTypes.TRADER_LLAMA.equals(packetEntity.type)) {
+            return 0.9;
+        } else if (EntityTypes.PHANTOM.equals(packetEntity.type)) {
+            if (packetEntity instanceof PacketEntitySizeable) {
+                return 0.9 + ((PacketEntitySizeable) packetEntity).size * 0.2;
+            }
+
+            return 1.5;
+        } else if (EntityTypes.DONKEY.equals(packetEntity.type)) {
+            return 1.5;
+        } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) {
+            return 1.9975;
+        } else if (EntityTypes.END_CRYSTAL.equals(packetEntity.type)) {
+            return 2.0;
+        } else if (EntityTypes.ENDER_DRAGON.equals(packetEntity.type)) {
+            return 16.0;
+        } else if (EntityTypes.FIREBALL.equals(packetEntity.type)) {
+            return 1;
+        } else if (EntityTypes.GHAST.equals(packetEntity.type)) {
+            return 4.0;
+        } else if (EntityTypes.GIANT.equals(packetEntity.type)) {
+            return 3.6;
+        } else if (EntityTypes.GUARDIAN.equals(packetEntity.type)) {
+            return 0.85;
+        } else if (EntityTypes.IRON_GOLEM.equals(packetEntity.type)) {
+            return 1.4;
+        } else if (EntityTypes.MAGMA_CUBE.equals(packetEntity.type)) {
+            if (packetEntity instanceof PacketEntitySizeable) {
+                return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
+            }
+
+            return 0.98;
+        } else if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.MINECART_ABSTRACT)) {
+            return 0.98;
+        } else if (EntityTypes.PLAYER.equals(packetEntity.type)) {
+            return 0.6;
+        } else if (EntityTypes.POLAR_BEAR.equals(packetEntity.type)) {
+            return 1.4;
+        } else if (EntityTypes.RAVAGER.equals(packetEntity.type)) {
+            return 1.95;
+        } else if (EntityTypes.SHULKER.equals(packetEntity.type)) {
+            return 1.0;
+        } else if (EntityTypes.SLIME.equals(packetEntity.type)) {
+            if (packetEntity instanceof PacketEntitySizeable) {
+                return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
+            }
+
+            return 0.3125;
+        } else if (EntityTypes.SMALL_FIREBALL.equals(packetEntity.type)) {
+            return 0.3125;
+        } else if (EntityTypes.SPIDER.equals(packetEntity.type)) {
+            return 1.4;
+        } else if (EntityTypes.SQUID.equals(packetEntity.type)) {
+            return 0.8;
+        } else if (EntityTypes.TURTLE.equals(packetEntity.type)) {
+            return 1.2;
         }
+        return 0.6;
     }
 
     public static double getHeight(PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
-        if (packetEntity.type == EntityType.TURTLE && packetEntity.isBaby) return 0.12;
+        if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.12;
         return getHeightMinusBaby(packetEntity) * (packetEntity.isBaby ? 0.5 : 1);
     }
 
     public static double getMyRidingOffset(PacketEntity packetEntity) {
-        switch (packetEntity.type) {
-            case PIGLIN:
-            case ZOMBIFIED_PIGLIN:
-            case ZOMBIE:
-                return packetEntity.isBaby ? -0.05 : -0.45;
-            case SKELETON:
-                return -0.6;
-            case ENDERMITE:
-            case SILVERFISH:
-                return 0.1;
-            case EVOKER:
-            case ILLUSIONER:
-            case PILLAGER:
-            case RAVAGER:
-            case VINDICATOR:
-            case WITCH:
-                return -0.45;
-            case PLAYER:
-                return -0.35;
+        if (EntityTypes.PIGLIN.equals(packetEntity.type) || EntityTypes.ZOMBIFIED_PIGLIN.equals(packetEntity.type) || EntityTypes.ZOMBIE.equals(packetEntity.type)) {
+            return packetEntity.isBaby ? -0.05 : -0.45;
+        } else if (EntityTypes.SKELETON.equals(packetEntity.type)) {
+            return -0.6;
+        } else if (EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.SILVERFISH.equals(packetEntity.type)) {
+            return 0.1;
+        } else if (EntityTypes.EVOKER.equals(packetEntity.type) || EntityTypes.ILLUSIONER.equals(packetEntity.type) || EntityTypes.PILLAGER.equals(packetEntity.type) || EntityTypes.RAVAGER.equals(packetEntity.type) || EntityTypes.VINDICATOR.equals(packetEntity.type) || EntityTypes.WITCH.equals(packetEntity.type)) {
+            return -0.45;
+        } else if (EntityTypes.PLAYER.equals(packetEntity.type)) {
+            return -0.35;
         }
 
-        if (EntityType.isAnimal(packetEntity.bukkitEntityType)) {
+        if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.ABSTRACT_ANIMAL)) {
             return 0.14;
         }
 
@@ -160,175 +125,152 @@ public class BoundingBoxSize {
         if (packetEntity instanceof PacketEntityHorse)
             return (getHeight(packetEntity) * 0.75) - 0.25;
 
-        switch (packetEntity.type) {
-            case MINECART:
-            case MINECART_CHEST:
-            case MINECART_COMMAND:
-            case MINECART_FURNACE:
-            case MINECART_HOPPER:
-            case MINECART_MOB_SPAWNER:
-            case MINECART_TNT:
-                return 0;
-            case BOAT:
-                return -0.1;
-            case HOGLIN:
-            case ZOGLIN:
-                return getHeight(packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
-            case LLAMA:
-                return getHeight(packetEntity) * 0.67;
-            case PIGLIN:
-                return getHeight(packetEntity) * 0.92;
-            case RAVAGER:
-                return 2.1;
-            case SKELETON:
-                return (getHeight(packetEntity) * 0.75) - 0.1875;
-            case SPIDER:
-                return getHeight(packetEntity) * 0.5;
-            case STRIDER:
-                // depends on animation position, good luck getting it exactly, this is the best you can do though
-                return getHeight(packetEntity) - 0.19;
-            default:
-                return getHeight(packetEntity) * 0.75;
+        if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.MINECART_ABSTRACT)) {
+            return 0;
+        } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
+            return -0.1;
+        } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
+            return getHeight(packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
+        } else if (EntityTypes.LLAMA.equals(packetEntity.type)) {
+            return getHeight(packetEntity) * 0.67;
+        } else if (EntityTypes.PIGLIN.equals(packetEntity.type)) {
+            return getHeight(packetEntity) * 0.92;
+        } else if (EntityTypes.RAVAGER.equals(packetEntity.type)) {
+            return 2.1;
+        } else if (EntityTypes.SKELETON.equals(packetEntity.type)) {
+            return (getHeight(packetEntity) * 0.75) - 0.1875;
+        } else if (EntityTypes.SPIDER.equals(packetEntity.type)) {
+            return getHeight(packetEntity) * 0.5;
+        } else if (EntityTypes.STRIDER.equals(packetEntity.type)) {// depends on animation position, good luck getting it exactly, this is the best you can do though
+            return getHeight(packetEntity) - 0.19;
         }
+        return getHeight(packetEntity) * 0.75;
     }
 
     private static double getHeightMinusBaby(PacketEntity packetEntity) {
-        switch (packetEntity.type) {
-            case AXOLOTL:
-            case BEE:
-            case DOLPHIN:
-                return 0.6;
-            case BAT:
-            case PARROT:
-            case PIG:
-            case EVOKER_FANGS:
-            case SQUID:
-            case VEX:
-                return 0.8;
-            case SPIDER:
-                return 0.9;
-            case WITHER_SKULL:
-            case SHULKER_BULLET:
-                return 0.3125;
-            case BLAZE:
-                return 1.8;
-            case BOAT:
-                return 0.5625;
-            case CAT:
-                return 0.7;
-            case CAVE_SPIDER:
-                return 0.5;
-            case CHICKEN:
-                return 0.7;
-            case HOGLIN:
-            case ZOGLIN:
-            case COD:
-                return 1.4;
-            case COW:
-                return 1.7;
-            case STRIDER:
-                return 1.7;
-            case CREEPER:
-                return 1.7;
-            case DONKEY:
-                return 1.39648;
-            case ELDER_GUARDIAN:
-                return 1.9975;
-            case ENDERMAN:
-                return 2.9;
-            case ENDERMITE:
-                return 0.3;
-            case ENDER_CRYSTAL:
-                return 2.0;
-            case ENDER_DRAGON:
-                return 8.0;
-            case FIREBALL:
-                return 1;
-            case FOX:
-                return 0.7;
-            case GHAST:
-                return 4.0;
-            case GIANT:
-                return 12.0;
-            case GUARDIAN:
-                return 0.85;
-            case HORSE:
-                return 1.6;
-            case IRON_GOLEM:
-                return 2.7;
-            case LLAMA:
-            case TRADER_LLAMA:
-                return 1.87;
-            case TROPICAL_FISH:
-                return 0.4;
-            case MAGMA_CUBE:
-                if (packetEntity instanceof PacketEntitySizeable) {
-                    return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
-                }
-            case MINECART:
-            case MINECART_CHEST:
-            case MINECART_COMMAND:
-            case MINECART_FURNACE:
-            case MINECART_HOPPER:
-            case MINECART_MOB_SPAWNER:
-            case MINECART_TNT:
-                return 0.7;
-            case MULE:
-                return 1.6;
-            case MUSHROOM_COW:
-                return 1.4;
-            case OCELOT:
-                return 0.7;
-            case PANDA:
-                return 1.25;
-            case PHANTOM:
-                if (packetEntity instanceof PacketEntitySizeable) {
-                    return 0.5 + ((PacketEntitySizeable) packetEntity).size * 0.1;
-                }
-            case PLAYER:
-                return 1.8;
-            case POLAR_BEAR:
-                return 1.4;
-            case PUFFERFISH:
-                return 0.7;
-            case RABBIT:
-                return 0.5;
-            case RAVAGER:
-                return 2.2;
-            case SALMON:
-                return 0.4;
-            case SHEEP:
-                return 1.3;
-            case SHULKER: // Could maybe guess peek size, although seems useless
-                return 1.0;
-            case SILVERFISH:
-                return 0.3;
-            case SKELETON:
-                return 1.99;
-            case SKELETON_HORSE:
-                return 1.6;
-            case SLIME:
-                if (packetEntity instanceof PacketEntitySizeable) {
-                    return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
-                }
-            case SMALL_FIREBALL:
-                return 0.3125;
-            case SNOWMAN:
-                return 1.9;
-            case STRAY:
-                return 1.99;
-            case TURTLE:
-                return 0.4;
-            case WITHER:
-                return 3.5;
-            case WITHER_SKELETON:
-                return 2.4;
-            case WOLF:
-                return 0.85;
-            case ZOMBIE_HORSE:
-                return 1.6;
-            default:
-                return 1.95;
+        if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type)) {
+            return 0.6;
+        } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.SQUID.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
+            return 0.8;
+        } else if (EntityTypes.SPIDER.equals(packetEntity.type)) {
+            return 0.9;
+        } else if (EntityTypes.WITHER_SKULL.equals(packetEntity.type) || EntityTypes.SHULKER_BULLET.equals(packetEntity.type)) {
+            return 0.3125;
+        } else if (EntityTypes.BLAZE.equals(packetEntity.type)) {
+            return 1.8;
+        } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
+            return 0.5625;
+        } else if (EntityTypes.CAT.equals(packetEntity.type)) {
+            return 0.7;
+        } else if (EntityTypes.CAVE_SPIDER.equals(packetEntity.type)) {
+            return 0.5;
+        } else if (EntityTypes.CHICKEN.equals(packetEntity.type)) {
+            return 0.7;
+        } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type)) {
+            return 1.4;
+        } else if (EntityTypes.COW.equals(packetEntity.type)) {
+            return 1.7;
+        } else if (EntityTypes.STRIDER.equals(packetEntity.type)) {
+            return 1.7;
+        } else if (EntityTypes.CREEPER.equals(packetEntity.type)) {
+            return 1.7;
+        } else if (EntityTypes.DONKEY.equals(packetEntity.type)) {
+            return 1.39648;
+        } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) {
+            return 1.9975;
+        } else if (EntityTypes.ENDERMAN.equals(packetEntity.type)) {
+            return 2.9;
+        } else if (EntityTypes.ENDERMITE.equals(packetEntity.type)) {
+            return 0.3;
+        } else if (EntityTypes.END_CRYSTAL.equals(packetEntity.type)) {
+            return 2.0;
+        } else if (EntityTypes.ENDER_DRAGON.equals(packetEntity.type)) {
+            return 8.0;
+        } else if (EntityTypes.FIREBALL.equals(packetEntity.type)) {
+            return 1;
+        } else if (EntityTypes.FOX.equals(packetEntity.type)) {
+            return 0.7;
+        } else if (EntityTypes.GHAST.equals(packetEntity.type)) {
+            return 4.0;
+        } else if (EntityTypes.GIANT.equals(packetEntity.type)) {
+            return 12.0;
+        } else if (EntityTypes.GUARDIAN.equals(packetEntity.type)) {
+            return 0.85;
+        } else if (EntityTypes.HORSE.equals(packetEntity.type)) {
+            return 1.6;
+        } else if (EntityTypes.IRON_GOLEM.equals(packetEntity.type)) {
+            return 2.7;
+        } else if (EntityTypes.LLAMA.equals(packetEntity.type) || EntityTypes.TRADER_LLAMA.equals(packetEntity.type)) {
+            return 1.87;
+        } else if (EntityTypes.TROPICAL_FISH.equals(packetEntity.type)) {
+            return 0.4;
+        } else if (EntityTypes.MAGMA_CUBE.equals(packetEntity.type)) {
+            if (packetEntity instanceof PacketEntitySizeable) {
+                return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
+            }
+
+            return 0.7;
+        } else if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.MINECART_ABSTRACT)) {
+            return 0.7;
+        } else if (EntityTypes.MULE.equals(packetEntity.type)) {
+            return 1.6;
+        } else if (EntityTypes.MOOSHROOM.equals(packetEntity.type)) {
+            return 1.4;
+        } else if (EntityTypes.OCELOT.equals(packetEntity.type)) {
+            return 0.7;
+        } else if (EntityTypes.PANDA.equals(packetEntity.type)) {
+            return 1.25;
+        } else if (EntityTypes.PHANTOM.equals(packetEntity.type)) {
+            if (packetEntity instanceof PacketEntitySizeable) {
+                return 0.5 + ((PacketEntitySizeable) packetEntity).size * 0.1;
+            }
+
+            return 1.8;
+        } else if (EntityTypes.PLAYER.equals(packetEntity.type)) {
+            return 1.8;
+        } else if (EntityTypes.POLAR_BEAR.equals(packetEntity.type)) {
+            return 1.4;
+        } else if (EntityTypes.PUFFERFISH.equals(packetEntity.type)) {
+            return 0.7;
+        } else if (EntityTypes.RABBIT.equals(packetEntity.type)) {
+            return 0.5;
+        } else if (EntityTypes.RAVAGER.equals(packetEntity.type)) {
+            return 2.2;
+        } else if (EntityTypes.SALMON.equals(packetEntity.type)) {
+            return 0.4;
+        } else if (EntityTypes.SHEEP.equals(packetEntity.type)) {
+            return 1.3;
+        } else if (EntityTypes.SHULKER.equals(packetEntity.type)) { // Could maybe guess peek size, although seems useless
+            return 1.0;
+        } else if (EntityTypes.SILVERFISH.equals(packetEntity.type)) {
+            return 0.3;
+        } else if (EntityTypes.SKELETON.equals(packetEntity.type)) {
+            return 1.99;
+        } else if (EntityTypes.SKELETON_HORSE.equals(packetEntity.type)) {
+            return 1.6;
+        } else if (EntityTypes.SLIME.equals(packetEntity.type)) {
+            if (packetEntity instanceof PacketEntitySizeable) {
+                return 0.51000005 * ((PacketEntitySizeable) packetEntity).size;
+            }
+
+            return 0.3125;
+        } else if (EntityTypes.SMALL_FIREBALL.equals(packetEntity.type)) {
+            return 0.3125;
+        } else if (EntityTypes.SNOW_GOLEM.equals(packetEntity.type)) {
+            return 1.9;
+        } else if (EntityTypes.STRAY.equals(packetEntity.type)) {
+            return 1.99;
+        } else if (EntityTypes.TURTLE.equals(packetEntity.type)) {
+            return 0.4;
+        } else if (EntityTypes.WITHER.equals(packetEntity.type)) {
+            return 3.5;
+        } else if (EntityTypes.WITHER_SKELETON.equals(packetEntity.type)) {
+            return 2.4;
+        } else if (EntityTypes.WOLF.equals(packetEntity.type)) {
+            return 0.85;
+        } else if (EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type)) {
+            return 1.6;
         }
+        return 1.95;
     }
 }

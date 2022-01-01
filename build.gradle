@@ -51,7 +51,7 @@ dependencies {
     implementation "io.papermc:paperlib:1.0.6"
     implementation 'com.github.Steveice10:MCProtocolLib:6970991'
 
-    compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.0.0'
     compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
     compileOnly group: 'net.essentialsx', name: 'EssentialsX', version: '2.19.0'

@@ -9,17 +9,19 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.nmsutil.*;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
+import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.FluidFallingAdjustedMovement;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.bukkit.Material;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class MovementTicker {
-    private static final Material SLIME_BLOCK = ItemTypes.SLIME_BLOCK;
-    private static final Material HONEY_BLOCK = ItemTypes.HONEY_BLOCK;
-
     public final Player bukkitPlayer;
     public final GrimPlayer player;
 
@@ -33,7 +35,7 @@ public class MovementTicker {
             player.clientVelocity = new Vector();
         }
 
-        Material onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+        StateType onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
         if (inputVel.getX() != collide.getX()) {
             player.clientVelocity.setX(0);
@@ -90,7 +92,7 @@ public class MovementTicker {
             // And the block is a slime block
             // Or the block is honey and was replaced by viaversion
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
-                    && (onBlock == SLIME_BLOCK || (onBlock == HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)))) {
+                    && (onBlock == StateTypes.SLIME_BLOCK || (onBlock == StateTypes.HONEY_BLOCK && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)))) {
                 if (player.isSneaking) { // Slime blocks use shifting instead of sneaking
                     player.clientVelocity.setY(0);
                 } else {
@@ -99,7 +101,7 @@ public class MovementTicker {
                                 (player.playerVehicle != null && !player.playerVehicle.isLivingEntity() ? 0.8 : 1.0));
                     }
                 }
-            } else if (Materials.checkFlag(onBlock, Materials.BED) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
+            } else if (BlockTags.BEDS.contains(onBlock) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 if (player.clientVelocity.getY() < 0.0) {
                     player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 *
                             (player.playerVehicle != null && !player.playerVehicle.isLivingEntity() ? 0.8 : 1.0));
@@ -340,7 +342,7 @@ public class MovementTicker {
                 swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
-            if (ItemTypes.supports(13) && player.compensatedPotions.getDolphinsGraceAmplifier() != null) {
+            if (player.compensatedPotions.getDolphinsGraceAmplifier() != null) {
                 swimFriction = 0.96F;
             }
 

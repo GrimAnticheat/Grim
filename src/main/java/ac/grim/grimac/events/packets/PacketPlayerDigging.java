@@ -9,8 +9,8 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
-import com.github.retrooper.packetevents.protocol.enchantment.Enchantments;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -48,14 +48,14 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                     int j = 0;
                     if (main.getType() == ItemTypes.TRIDENT) {
-                        j = main.getEnchantmentLevel(Enchantments.RIPTIDE);
+                        j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE);
                     } else if (off.getType() == ItemTypes.TRIDENT) {
-                        j = off.getEnchantmentLevel(Enchantments.RIPTIDE);
+                        j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE);
                     }
 
                     if (j > 0) {
                         // TODO: Re-add riptide support
-                        LogUtil.error("Riptide support is not yet implemented (FUCKING MOJANG REMOVING IDLE PACKET!)");
+                        LogUtil.error("Riptide support is not yet implemented!");
                     }
                 }
             }
@@ -149,7 +149,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                 // The client and server don't agree on trident status because mojang is incompetent at netcode.
                 if (material == ItemTypes.TRIDENT) {
-                    if (item.getEnchantmentLevel(Enchantments.RIPTIDE) > 0)
+                    if (item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) > 0)
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
                     else
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;

@@ -29,7 +29,6 @@ public class PacketEntity {
     public Vector3d serverPos;
     public int lastTransactionHung;
     public EntityType type;
-    public org.bukkit.entity.EntityType bukkitEntityType;
 
     public PacketEntity riding;
     public int[] passengers = new int[0];
