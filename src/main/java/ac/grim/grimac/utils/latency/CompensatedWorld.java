@@ -35,7 +35,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
-    private static WrappedBlockState airData = WrappedBlockState.getByGlobalId(0);
+    private static final WrappedBlockState airData = WrappedBlockState.getByGlobalId(0);
     public final GrimPlayer player;
     private final Map<Long, Column> chunks;
     // Packet locations for blocks
@@ -392,17 +392,8 @@ public class CompensatedWorld {
         return getWrappedBlockStateAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
     }
 
-    public double getFluidLevelAt(double x, double y, double z) {
-        return getFluidLevelAt((int) Math.floor(x), (int) Math.floor(y), (int) Math.floor(z));
-    }
-
     public double getFluidLevelAt(int x, int y, int z) {
         return Math.max(getWaterFluidLevelAt(x, y, z), getLavaFluidLevelAt(x, y, z));
-    }
-
-    public boolean isFluidFalling(int x, int y, int z) {
-        WrappedBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
-        return bukkitBlock.getLevel() >= 8;
     }
 
     public boolean isWaterSourceBlock(int x, int y, int z) {
@@ -467,7 +458,9 @@ public class CompensatedWorld {
             return (8 - magicData) / 9f;
         }
 
-        return 0;
+        // The block is water, isn't water material directly, and doesn't have block above, so it is waterlogged
+        // or another source-like block such as kelp.
+        return 8 / 9F;
     }
 
     public void removeChunkLater(int chunkX, int chunkZ) {

@@ -57,7 +57,8 @@ public class FluidTypeFlowing {
 
         // Fluid level 1-7 is for regular fluid heights
         // Fluid level 8-15 is for falling fluids
-        if (player.compensatedWorld.isFluidFalling(originalX, originalY, originalZ)) {
+        WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(originalX, originalY, originalZ);
+        if ((state.getType() == StateTypes.WATER || state.getType() == StateTypes.LAVA) && state.getLevel() >= 8) {
             for (BlockFace enumdirection : new BlockFace[]{BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST}) {
                 if (isSolidFace(player, originalX, originalY, originalZ, enumdirection) || isSolidFace(player, originalX, originalY + 1, originalZ, enumdirection)) {
                     vec3d = normalizeVectorWithoutNaN(vec3d).add(new Vector(0.0D, -6.0D, 0.0D));

@@ -452,7 +452,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         boolean isBlockPlace = event.getPacketType() == (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) ?
-                PacketType.Play.Client.USE_ITEM : PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT);
+                PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT : PacketType.Play.Client.USE_ITEM);
 
         // Check for interactable first (door, etc)
         if (isBlockPlace) {

@@ -233,7 +233,7 @@ public class Materials {
         // What I do is look at 1.8, 1.12, and 1.17 source code, and when I see a difference, I find the version
         // that added it.  I could have missed something if something was added to the blacklist in 1.9 but
         // was removed from it in 1.10 (although this is unlikely as the blacklist rarely changes)
-        if (mat.isBlocking()) return true;
+        if (!mat.isBlocking()) return true;
 
         // 1.13-1.15 had banners on the blacklist - removed in 1.16, not implemented in 1.12 and below
         if (BlockTags.BANNERS.contains(mat))
