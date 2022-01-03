@@ -373,6 +373,11 @@ public class GrimPlayer {
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
                 PacketEvents.getAPI().getPlayerManager().sendPacket(bukkitPlayer, new WrapperPlayServerPing(transactionID));
+
+                // TODO: PacketEvents sending packet calling own listener is fucked so we need to manually call this for now...
+                transactionsSent.add(new Pair<>(transactionID, System.nanoTime()));
+                lastTransactionSent.getAndIncrement();
+
             } else {
                 PacketEvents.getAPI().getPlayerManager().sendPacket(bukkitPlayer, new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
             }

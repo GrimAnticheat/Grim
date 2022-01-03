@@ -126,11 +126,11 @@ public class DynamicStair implements CollisionFactory {
             EnumShape shape = getStairsShape(player, block, x, y, z);
             shapeOrdinal = shape.ordinal();
         }
-        return (block.getHalf() == Half.BOTTOM ? TOP_SHAPES : BOTTOM_SHAPES)[SHAPE_BY_STATE[shapeOrdinal]].copy();
+        return (block.getHalf() == Half.BOTTOM ? BOTTOM_SHAPES : TOP_SHAPES)[SHAPE_BY_STATE[getShapeIndex(block, shapeOrdinal)]].copy();
     }
 
-    private int getShapeIndex(WrappedBlockState p_196511_1_, int shapeOrdinal) {
-        return shapeOrdinal * 4 + directionToValue(p_196511_1_.getFacing());
+    private int getShapeIndex(WrappedBlockState state, int shapeOrdinal) {
+        return shapeOrdinal * 4 + directionToValue(state.getFacing());
     }
 
     private int directionToValue(BlockFace face) {

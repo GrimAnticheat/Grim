@@ -20,7 +20,6 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.Material;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 // Warning for major game updates!
 // Do not use an enum for stuff like Axis and other data types not in 1.7
@@ -166,12 +165,14 @@ public enum CollisionData {
         // 1.12 has double slabs as a separate block, no block data to differentiate it
     }, BlockTags.SLABS.getStates().toArray(new StateType[0])),
 
+    SKULL(new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false),
+            StateTypes.CREEPER_HEAD, StateTypes.ZOMBIE_HEAD, StateTypes.DRAGON_HEAD, StateTypes.PLAYER_HEAD,
+            StateTypes.SKELETON_SKULL, StateTypes.WITHER_SKELETON_SKULL),
+
     // Overwrite previous SKULL enum for legacy, where head and wall skull isn't separate
     WALL_SKULL((player, version, data, x, y, z) -> {
         switch (data.getFacing()) {
-            case DOWN:
-            default: // On the floor
-                return new SimpleCollisionBox(0.25F, 0.0F, 0.25F, 0.75F, 0.5F, 0.75F, false);
+            default:
             case NORTH:
                 return new SimpleCollisionBox(0.25F, 0.25F, 0.5F, 0.75F, 0.75F, 1.0F, false);
             case SOUTH:
@@ -181,10 +182,8 @@ public enum CollisionData {
             case EAST:
                 return new SimpleCollisionBox(0.0F, 0.25F, 0.25F, 0.5F, 0.75F, 0.75F, false);
         }
-    }, StateTypes.CREEPER_HEAD, StateTypes.CREEPER_WALL_HEAD, StateTypes.DRAGON_HEAD, StateTypes.DRAGON_WALL_HEAD,
-            StateTypes.PLAYER_HEAD, StateTypes.PLAYER_WALL_HEAD, StateTypes.ZOMBIE_HEAD, StateTypes.ZOMBIE_WALL_HEAD,
-            StateTypes.SKELETON_SKULL, StateTypes.SKELETON_WALL_SKULL, StateTypes.WITHER_SKELETON_SKULL,
-            StateTypes.WITHER_SKELETON_WALL_SKULL),
+    }, StateTypes.CREEPER_WALL_HEAD, StateTypes.DRAGON_WALL_HEAD, StateTypes.PLAYER_WALL_HEAD, StateTypes.ZOMBIE_WALL_HEAD,
+            StateTypes.SKELETON_WALL_SKULL, StateTypes.WITHER_SKELETON_WALL_SKULL),
 
     BANNER(new HexCollisionBox(4.0D, 0.0D, 4.0D, 12.0D, 16.0D, 12.0D),
             BlockTags.BANNERS.getStates().toArray(new StateType[0])),
@@ -1038,18 +1037,14 @@ public enum CollisionData {
             StateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
-    private static final Map<StateType, CollisionData> lookupMap = new HashMap<>();
-    private static final Map<StateType, CollisionData> rawLookupMap;
+    private static final Map<StateType, CollisionData> rawLookupMap = new HashMap<>();
 
     static {
         for (CollisionData data : values()) {
             for (StateType type : data.materials) {
-                lookupMap.put(type, data);
+                rawLookupMap.put(type, data);
             }
         }
-
-        rawLookupMap = lookupMap.entrySet().stream().filter(entry -> entry.getKey().isSolid())
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     public final StateType[] materials;
@@ -1176,10 +1171,12 @@ public enum CollisionData {
         }
     }
 
+    // Would pre-computing all states be worth the memory cost? I doubt it
     public static CollisionData getData(StateType state) {
-        return lookupMap.getOrDefault(state, DEFAULT);
+        return state.isSolid() ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
     }
 
+    // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?
     public static CollisionData getRawData(StateType state) {
         return rawLookupMap.getOrDefault(state, DEFAULT);
     }

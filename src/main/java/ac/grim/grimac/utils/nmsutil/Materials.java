@@ -25,8 +25,6 @@ public class Materials {
 
     private static final Set<StateType> CLIENT_SIDE = new HashSet<>();
 
-    private static final Set<StateType> SHAPE_EXCEEDS_CUBE = new HashSet<>();
-
     static {
         // Base water, flowing on 1.12- but not on 1.13+ servers
         WATER_LIQUIDS.add(StateTypes.WATER);
@@ -91,10 +89,6 @@ public class Materials {
 
         PANES.addAll(BlockTags.GLASS_PANES.getStates());
         PANES.add(StateTypes.IRON_BARS);
-
-        SHAPE_EXCEEDS_CUBE.addAll(BlockTags.FENCES.getStates());
-        SHAPE_EXCEEDS_CUBE.addAll(BlockTags.FENCE_GATES.getStates());
-        SHAPE_EXCEEDS_CUBE.addAll(BlockTags.WALLS.getStates());
     }
 
     public static boolean isStairs(StateType type) {
@@ -166,7 +160,7 @@ public class Materials {
     }
 
     public static boolean isShapeExceedsCube(StateType type) {
-        return SHAPE_EXCEEDS_CUBE.contains(type);
+        return type.exceedsCube();
     }
 
     public static boolean isUsable(ItemType material) {
