@@ -10,6 +10,8 @@ import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -1002,8 +1004,8 @@ public enum CollisionData {
             return new SimpleCollisionBox(0.0, 0.0, 0.0, 1.0, 0.8999999761581421, 1.0, false);
         }
 
-        org.bukkit.inventory.ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
-        if (player.lastY > y + 1 - 9.999999747378752E-6 && boots != null && boots.getType() == Material.LEATHER_BOOTS && !player.isSneaking)
+        ItemStack boots = player.getInventory().getBoots();
+        if (player.lastY > y + 1 - 9.999999747378752E-6 && boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS && !player.isSneaking)
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return NoCollisionBox.INSTANCE;

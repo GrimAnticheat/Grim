@@ -362,7 +362,7 @@ public enum BlockPlaceResult {
         if (place.isOnDirt() || below.getType() == StateTypes.FARMLAND || below.getType() == StateTypes.CLAY) {
             place.set(place.getMaterial());
         }
-    }, ItemTypes.AZALEA),
+    }, ItemTypes.AZALEA, ItemTypes.FLOWERING_AZALEA),
 
     CROP((player, place) -> {
         WrappedBlockState below = place.getBelowState();

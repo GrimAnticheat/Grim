@@ -543,12 +543,12 @@ public class BlockPlace {
         }
 
         // If a block already exists here, then we can't override it.
-        WrappedBlockState existingState = player.compensatedWorld.getWrappedBlockStateAt(getClickedLocation());
+        WrappedBlockState existingState = player.compensatedWorld.getWrappedBlockStateAt(getPlacedBlockPos());
         if (!replaceClicked && !canBeReplaced(material, existingState)) {
             return;
         }
 
-        Bukkit.broadcastMessage("Placed " + state);
+        Bukkit.broadcastMessage("Placed " + state + " at " + position);
 
         player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getGlobalId());
     }

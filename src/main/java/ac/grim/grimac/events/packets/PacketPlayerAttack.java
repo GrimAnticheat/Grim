@@ -8,10 +8,12 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 
@@ -30,19 +32,19 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
             if (player == null) return;
 
             if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
-                org.bukkit.inventory.ItemStack heldItem = player.bukkitPlayer.getInventory().getItem(player.packetStateData.lastSlotSelected);
+                ItemStack heldItem = player.getInventory().getHeldItem();
                 PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
 
                 // You don't get a release use item with block hitting with a sword?
                 if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
-                    if (heldItem.getType().toString().endsWith("_SWORD"))
+                    if (heldItem.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD))
                         player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 }
 
                 if (entity != null && (!(entity.type instanceof LivingEntity) || entity.type == EntityTypes.PLAYER)) {
-                    boolean hasKnockbackSword = heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) > 0;
+                    boolean hasKnockbackSword = heldItem != null && heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK) > 0;
                     boolean isLegacyPlayer = player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8);
-                    boolean hasNegativeKB = heldItem != null && heldItem.getEnchantmentLevel(Enchantment.KNOCKBACK) < 0;
+                    boolean hasNegativeKB = heldItem != null && heldItem.getEnchantmentLevel(EnchantmentTypes.KNOCKBACK) < 0;
 
                     // 1.8 players who are packet sprinting WILL get slowed
                     // 1.9+ players who are packet sprinting might not, based on attack cooldown

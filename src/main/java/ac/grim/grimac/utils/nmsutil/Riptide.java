@@ -1,20 +1,21 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
-import org.bukkit.Material;
-import org.bukkit.enchantments.Enchantment;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
+import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import org.bukkit.util.Vector;
 
 public class Riptide {
     public static Vector getRiptideVelocity(GrimPlayer player) {
-        org.bukkit.inventory.ItemStack main = player.bukkitPlayer.getInventory().getItemInMainHand();
-        org.bukkit.inventory.ItemStack off = player.bukkitPlayer.getInventory().getItemInOffHand();
+        ItemStack main = player.getInventory().getHeldItem();
+        ItemStack off = player.getInventory().getOffHand();
 
         int j;
-        if (main.getType() == Material.TRIDENT) {
-            j = main.getEnchantmentLevel(Enchantment.RIPTIDE);
-        } else if (off.getType() == Material.TRIDENT) {
-            j = off.getEnchantmentLevel(Enchantment.RIPTIDE);
+        if (main.getType() == ItemTypes.TRIDENT) {
+            j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE);
+        } else if (off.getType() == ItemTypes.TRIDENT) {
+            j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE);
         } else {
             return new Vector(); // Can't riptide
         }

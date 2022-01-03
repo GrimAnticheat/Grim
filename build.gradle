@@ -7,7 +7,7 @@ plugins {
 repositories {
     mavenLocal()
     maven {
-        url = uri('https://papermc.io/repo/repository/maven-public/')
+        url = uri('https://hub.spigotmc.org/nexus/content/repositories/snapshots/')
     }
 
     maven {
@@ -46,12 +46,12 @@ dependencies {
     implementation 'com.github.steveice10:packetlib:2.0'
     implementation 'co.aikar:acf-paper:0.5.0-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:2.2.1'
-    implementation 'club.minnced:discord-webhooks:0.7.2'
-    implementation 'it.unimi.dsi:fastutil:8.2.1'
+    implementation 'club.minnced:discord-webhooks:0.7.4'
+    implementation 'it.unimi.dsi:fastutil:8.5.6'
     implementation "io.papermc:paperlib:1.0.6"
     implementation 'com.github.Steveice10:MCProtocolLib:6970991'
 
-    compileOnly 'org.spigotmc:spigot-api:1.18.1-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.0.0'
     compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.14.1'
     compileOnly group: 'net.essentialsx', name: 'EssentialsX', version: '2.19.0'

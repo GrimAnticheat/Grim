@@ -413,15 +413,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 boolean hasAquaAffinity = false;
 
-                org.bukkit.inventory.ItemStack helmet = player.bukkitPlayer.getInventory().getHelmet();
-                org.bukkit.inventory.ItemStack chestplate = player.bukkitPlayer.getInventory().getChestplate();
-                org.bukkit.inventory.ItemStack leggings = player.bukkitPlayer.getInventory().getLeggings();
-                org.bukkit.inventory.ItemStack boots = player.bukkitPlayer.getInventory().getBoots();
+                ItemStack helmet = player.getInventory().getHelmet();
+                ItemStack chestplate = player.getInventory().getChestplate();
+                ItemStack leggings = player.getInventory().getLeggings();
+                ItemStack boots = player.getInventory().getBoots();
 
-                if ((helmet != null && helmet.containsEnchantment(Enchantment.WATER_WORKER)) ||
-                        (chestplate != null && chestplate.containsEnchantment(Enchantment.WATER_WORKER)) ||
-                        (leggings != null && leggings.containsEnchantment(Enchantment.WATER_WORKER)) ||
-                        (boots != null && boots.containsEnchantment(Enchantment.WATER_WORKER))) {
+                if ((helmet != null && helmet.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY) > 0) ||
+                        (chestplate != null && chestplate.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY) > 0) ||
+                        (leggings != null && leggings.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY) > 0) ||
+                        (boots != null && boots.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY) > 0)) {
                     hasAquaAffinity = true;
                 }
 
@@ -451,12 +451,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         }
 
-        boolean isBlockPlace = event.getPacketType() == (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) ?
-                PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT : PacketType.Play.Client.USE_ITEM);
+        boolean isBlockPlace = event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT;
 
         // Check for interactable first (door, etc)
         if (isBlockPlace) {
-            WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
+            WrapperPlayClientBlockPlacement place = new WrapperPlayClientBlockPlacement(event);
 
             ItemStack placedWith = player.getInventory().getHeldItem();
             ItemStack offhand = player.getInventory().getOffHand();
@@ -484,7 +483,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
 
             ItemStack placedWith = player.getInventory().getHeldItem();
@@ -509,7 +508,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (isBlockPlace) {
-            WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
+            WrapperPlayClientBlockPlacement place = new WrapperPlayClientBlockPlacement(event);
             Vector3i blockPosition = place.getBlockPosition();
             BlockFace face = place.getFace();
 

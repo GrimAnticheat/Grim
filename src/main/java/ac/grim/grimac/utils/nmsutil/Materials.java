@@ -187,6 +187,9 @@ public class Materials {
         if (isWaterlogged(clientVersion, state)) {
             return true;
         }
+        if (state.getType() == StateTypes.WATER && state.getLevel() == 0) {
+            return true;
+        }
         boolean modern = clientVersion.isNewerThanOrEquals(ClientVersion.V_1_13);
         return modern ? WATER_SOURCES.contains(state.getType()) : WATER_SOURCES_LEGACY.contains(state.getType());
     }

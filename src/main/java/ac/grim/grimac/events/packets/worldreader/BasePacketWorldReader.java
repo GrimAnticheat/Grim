@@ -93,23 +93,20 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
     public void handleBlockChange(GrimPlayer player, PacketSendEvent event) {
         WrapperPlayServerBlockChange blockChange = new WrapperPlayServerBlockChange(event);
-        handleUpdateBlockChange(player, event, blockChange.getBlockPosition(), blockChange.getBlockId());
+        int range = 16;
+
+        Vector3i blockPosition = blockChange.getBlockPosition();
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockChange.getBlockId()));
+
+        if (player.sendTrans && Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
+            player.sendTransaction();
     }
 
     public void handleMultiBlockChange(GrimPlayer player, PacketSendEvent event) {
         WrapperPlayServerMultiBlockChange multiBlockChange = new WrapperPlayServerMultiBlockChange(event);
         for (WrapperPlayServerMultiBlockChange.EncodedBlock blockChange : multiBlockChange.getBlocks()) {
-            handleUpdateBlockChange(player, event,
-                    new Vector3i(blockChange.getX(), blockChange.getY(), blockChange.getZ()),
-                    blockChange.getBlockID());
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(blockChange.getX(), blockChange.getY(), blockChange.getZ(), blockChange.getBlockID()));
         }
-    }
-
-    public void handleUpdateBlockChange(GrimPlayer player, PacketSendEvent event, Vector3i blockPosition, int combinedID) {
-        int range = (player.getTransactionPing() / 100) + 16;
-        if (player.sendTrans && Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
-            event.setPostTask(player::sendTransaction);
-
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), combinedID));
+        player.sendTransaction();
     }
 }
