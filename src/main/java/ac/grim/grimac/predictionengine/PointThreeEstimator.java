@@ -316,10 +316,12 @@ public class PointThreeEstimator {
             // A bit hacky... is there a better way?  I'm unsure...
             boolean likelyStepSkip = data.vector.getY() > -0.08 && data.vector.getY() < 0.03;
 
-            double minHorizLength = Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed;
-            double length = (couldStep && likelyStepSkip ? 0 : Math.abs(collisionResult.getY())) + Math.max(0, minHorizLength);
-
-            System.out.println(data.vector + " " + minHorizLength + " " + couldStep + " " + likelyStepSkip + " " + length);
+            // We need to do hypot calculations for all 3 axis
+            // sqrt(sqrt(x^2 + z^2)^2 + y^2) = hypot(x, z, y)
+            double minHorizLength = Math.max(0, Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed);
+            // If the player was last on the ground, then let's consider them to have not moved vertically
+            // The world could have changed since the last tick causing a false
+            double length = Math.hypot(player.lastOnGround || (couldStep && likelyStepSkip) ? 0 : Math.abs(collisionResult.getY()), minHorizLength);
 
             minimum = Math.min(minimum, length);
 

@@ -179,10 +179,6 @@ public class PredictionEngine {
             }
         }
 
-        if (player.actualMovement.distance(bestCollisionVel.vector) > 0.01) {
-            Bukkit.broadcastMessage("Bad prediction :(");
-        }
-
         assert beforeCollisionMovement != null;
 
         player.clientVelocity = beforeCollisionMovement.clone();
