@@ -113,21 +113,11 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
-        boolean has003 = data.isZeroPointZeroThree();
+        boolean special3 = data.isZeroPointZeroThree() || (player.couldSkipTick && data.isKnockback()) || data.isSwimHop() || data.isTrident();
+        boolean has003 = lastMovementWasZeroPointZeroThree || special3;
 
         // 0.91 * 0.6 * 0.06 = 0.03276 + 0.03 offset
         double pointThree = has003 ? 0.06276 : 0;
-
-        if (lastMovementWasZeroPointZeroThree)
-            pointThree = 0.03;
-
-        // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
-        if (player.couldSkipTick && data.isKnockback())
-            pointThree = 0.03;
-
-        // This swim hop could be 0.03-influenced movement
-        if (data.isSwimHop() || data.isTrident())
-            pointThree = 0.06;
 
         // 0.06 * 0.91 * 0.8 = max + 0.03 offset
         if (has003 && (influencedByBouncyBlock() || isSteppingOnHoney))
@@ -136,6 +126,10 @@ public class UncertaintyHandler {
         // 0.06 * 0.91 * 0.989 = max + 0.03 offset
         if (has003 && isSteppingOnIce)
             pointThree = 0.084;
+
+        // Reduce second tick uncertainty by minimum friction amount
+        if (!special3 && has003)
+            pointThree *= 0.91 * 0.989;
 
         // 0.06 * 0.91 = max + 0.03 offset
         if (has003 && (player.isGliding || player.lastOnGround || player.specialFlying))

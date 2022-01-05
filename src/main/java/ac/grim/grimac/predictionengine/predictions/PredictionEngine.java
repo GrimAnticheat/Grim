@@ -13,6 +13,7 @@ import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -176,6 +177,10 @@ public class PredictionEngine {
             if (player.skippedTickInActualMovement && bestInput < 1e-5 * 1e-5) {
                 break;
             }
+        }
+
+        if (player.actualMovement.distance(bestCollisionVel.vector) > 0.01) {
+            Bukkit.broadcastMessage("Bad prediction :(");
         }
 
         assert beforeCollisionMovement != null;

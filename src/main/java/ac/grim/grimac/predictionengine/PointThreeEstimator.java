@@ -319,6 +319,8 @@ public class PointThreeEstimator {
             double minHorizLength = Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed;
             double length = (couldStep && likelyStepSkip ? 0 : Math.abs(collisionResult.getY())) + Math.max(0, minHorizLength);
 
+            System.out.println(data.vector + " " + minHorizLength + " " + couldStep + " " + likelyStepSkip + " " + length);
+
             minimum = Math.min(minimum, length);
 
             if (minimum < 0.03) break;

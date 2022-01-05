@@ -78,7 +78,7 @@ public enum BlockPlaceResult {
             slabData.setTypeData(Type.DOUBLE);
             place.set(place.getPlacedAgainstBlockLocation(), slabData);
         } else {
-            slabData.setTypeData(clickedTop ? Type.TOP : Type.BOTTOM);
+            slabData.setTypeData(clickedTop ? Type.BOTTOM : Type.TOP);
             place.set(slabData);
         }
 
