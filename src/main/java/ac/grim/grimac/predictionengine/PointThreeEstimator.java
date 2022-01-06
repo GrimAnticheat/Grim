@@ -395,6 +395,14 @@ public class PointThreeEstimator {
             wasAlwaysCertain = false;
         }
 
+        // Handle skipping Y vertical tick within a knockback or explosion taken
+        // I believe this is correct, although I'm unsure.
+        if (player.firstBreadKB != null || player.likelyKB != null
+                || player.firstBreadExplosion != null || player.likelyExplosions != null) {
+            wasAlwaysCertain = false;
+            return Math.max(maxYTraveled, 0.1);
+        }
+
         // Negate the current vector and replace it with the one we just simulated
         return maxYTraveled;
     }

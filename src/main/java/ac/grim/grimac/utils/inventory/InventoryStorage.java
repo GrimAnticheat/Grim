@@ -4,13 +4,19 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
 public class InventoryStorage {
     ItemStack[] items;
+    int size;
 
     public InventoryStorage(int size) {
         this.items = new ItemStack[size];
+        this.size = size;
 
         for (int i = 0; i < size; i++) {
             items[i] = ItemStack.EMPTY;
         }
+    }
+
+    public int getSize() {
+        return size;
     }
 
     public void setItem(int item, ItemStack stack) {

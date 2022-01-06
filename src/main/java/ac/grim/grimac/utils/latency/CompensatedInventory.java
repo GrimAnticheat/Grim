@@ -2,9 +2,11 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
+import ac.grim.grimac.utils.inventory.inventory.HorseMenu;
 import ac.grim.grimac.utils.inventory.inventory.MenuTypes;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
@@ -15,6 +17,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenHorseWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
@@ -30,6 +33,10 @@ import java.util.List;
 //
 // for the first time... thanks mojang!
 public class CompensatedInventory extends PacketCheck {
+    // Temporarily public for debugging
+    public Inventory inventory;
+    // Temporarily public for debugging
+    public AbstractContainerMenu menu;
     // Here are the mappings from the geniuses at Mojang
     // 1, 2, 3, 4 and 0 are the crafting table
     // 5, 6, 7, 8 are the armor slots from helmet to boots
@@ -37,10 +44,6 @@ public class CompensatedInventory extends PacketCheck {
     // 36-44 is the hotbar
     // 9 is top left, through 35 being the bottom right.
     int openWindowID = 0;
-    // Temporarily public for debugging
-    public Inventory inventory;
-    // Temporarily public for debugging
-    public AbstractContainerMenu menu;
 
     public CompensatedInventory(GrimPlayer playerData) {
         super(playerData);
@@ -156,22 +159,18 @@ public class CompensatedInventory extends PacketCheck {
             });
         }
 
-        // 1:1 MCP - supports plugins sending stupid packets for stupid reasons that point to an invalid horse
+        // Supports plugins sending stupid packets for stupid reasons that point to an invalid horse
+        // Should be correct? Unsure. Not 1:1 MCP.
         if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
-            // TODO: Horse windows!  Need to write this wrapper for 1.14+
-            /*WrappedPacket packet = new WrappedPacket(event.getNMSPacket());
-            int windowID = packet.readInt(0);
-            int slotCount = packet.readInt(1);
-            int entityID = packet.readInt(2);
+            WrapperPlayServerOpenHorseWindow packet = new WrapperPlayServerOpenHorseWindow(event);
+            int windowID = packet.getWindowId();
+            int slotCount = packet.getSlotCount();
+            int entityID = packet.getEntityId();
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                PacketEntity hopefullyAHorse = player.compensatedEntities.getEntity(entityID);
-
-                if (hopefullyAHorse instanceof PacketEntityHorse) {
-                    openWindowID = windowID;
-                    //openedInventory = new ArrayList<>(offset);
-                }
-            });*/
+                openWindowID = windowID;
+                menu = new HorseMenu(player, inventory, slotCount, entityID);
+            });
         }
 
         // Is this mapped wrong?  Should it be ClientboundMerchantOffersPacket?  What is this packet?

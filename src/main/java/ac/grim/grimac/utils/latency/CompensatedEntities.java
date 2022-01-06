@@ -234,8 +234,17 @@ public class CompensatedEntities {
             if (horseByte != null) {
                 byte info = (byte) horseByte.getValue();
 
+                ((PacketEntityHorse) entity).isTame = (info & 0x02) != 0;
                 ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
                 ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
+            }
+            EntityData chestByte = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 19 : 18);
+            if (chestByte != null) {
+                ((PacketEntityHorse) entity).hasChest = (boolean) chestByte.getValue();
+            }
+            EntityData strength = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 20 : 19);
+            if (strength != null) {
+                ((PacketEntityHorse) entity).llamaStrength = (int) strength.getValue();
             }
         }
 
