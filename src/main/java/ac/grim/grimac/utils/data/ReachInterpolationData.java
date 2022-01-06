@@ -39,6 +39,16 @@ public class ReachInterpolationData {
         interpolationStepsHighBound = 3;
     }
 
+    public static SimpleCollisionBox combineCollisionBox(SimpleCollisionBox one, SimpleCollisionBox two) {
+        double minX = Math.min(one.minX, two.minX);
+        double maxX = Math.max(one.maxX, two.maxX);
+        double minY = Math.min(one.minY, two.minY);
+        double maxY = Math.max(one.maxY, two.maxY);
+        double minZ = Math.min(one.minZ, two.minZ);
+        double maxZ = Math.max(one.maxZ, two.maxZ);
+
+        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+    }
 
     // To avoid huge branching when bruteforcing interpolation -
     // we combine the collision boxes for the steps.
@@ -71,17 +81,6 @@ public class ReachInterpolationData {
         }
 
         return minimumInterpLocation;
-    }
-
-    public static SimpleCollisionBox combineCollisionBox(SimpleCollisionBox one, SimpleCollisionBox two) {
-        double minX = Math.min(one.minX, two.minX);
-        double maxX = Math.max(one.maxX, two.maxX);
-        double minY = Math.min(one.minY, two.minY);
-        double maxY = Math.max(one.maxY, two.maxY);
-        double minZ = Math.min(one.minZ, two.minZ);
-        double maxZ = Math.max(one.maxZ, two.maxZ);
-
-        return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     public void updatePossibleStartingLocation(SimpleCollisionBox possibleLocationCombined) {

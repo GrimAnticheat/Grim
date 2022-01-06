@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.inventory.slot.Slot;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 
-public class EnchantmentMenu extends AbstractContainerMenu{
+public class EnchantmentMenu extends AbstractContainerMenu {
     public EnchantmentMenu(GrimPlayer player, Inventory inventory) {
         super(player, inventory);
 

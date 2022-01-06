@@ -12,6 +12,6 @@ import lombok.Setter;
 public final class PositionUpdate {
     private final Vector3d from, to;
     private final boolean onGround;
-    private boolean isTeleport;
     private final SetBackData setback;
+    private boolean isTeleport;
 }

@@ -84,6 +84,14 @@ public class VectorData {
         }
     }
 
+    @Override
+    public String toString() {
+        return "VectorData{" +
+                "vectorType=" + vectorType +
+                ", vector=" + vector +
+                '}';
+    }
+
     // TODO: This is a stupid idea that slows everything down, remove it! There are easier ways to debug grim.
     // Would make false positives really easy to fix
     // But seriously, we could trace the code to find the mistake
@@ -116,13 +124,5 @@ public class VectorData {
         AttackSlow,
         Flip_Sneaking,
         Flip_Use_Item
-    }
-
-    @Override
-    public String toString() {
-        return "VectorData{" +
-                "vectorType=" + vectorType +
-                ", vector=" + vector +
-                '}';
     }
 }

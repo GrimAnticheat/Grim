@@ -12,6 +12,26 @@ public class TrigHandler {
         this.player = player;
     }
 
+    public static Vector getVanillaMathMovement(Vector wantedMovement, float f, float f2) {
+        float f3 = VanillaMath.sin(f2 * 0.017453292f);
+        float f4 = VanillaMath.cos(f2 * 0.017453292f);
+
+        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
+        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
+
+        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
+    }
+
+    public static Vector getShitMathMovement(Vector wantedMovement, float f, float f2) {
+        float f3 = OptifineShitMath.sin(f2 * 0.017453292f);
+        float f4 = OptifineShitMath.cos(f2 * 0.017453292f);
+
+        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
+        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
+
+        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
+    }
+
     public void setOffset(Vector oldVel, double offset) {
         // Offset too high, this is an outlier, ignore
         // We are checking in the range of 1e-3 to 5e-5, around what using the wrong trig system results in
@@ -62,26 +82,6 @@ public class TrigHandler {
                 this.isVanillaMath = !this.isVanillaMath;
             }
         }
-    }
-
-    public static Vector getVanillaMathMovement(Vector wantedMovement, float f, float f2) {
-        float f3 = VanillaMath.sin(f2 * 0.017453292f);
-        float f4 = VanillaMath.cos(f2 * 0.017453292f);
-
-        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
-        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
-
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
-    }
-
-    public static Vector getShitMathMovement(Vector wantedMovement, float f, float f2) {
-        float f3 = OptifineShitMath.sin(f2 * 0.017453292f);
-        float f4 = OptifineShitMath.cos(f2 * 0.017453292f);
-
-        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
-        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
-
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
     public float sin(float f) {

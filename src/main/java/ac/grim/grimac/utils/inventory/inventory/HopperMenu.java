@@ -6,7 +6,7 @@ import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 
-public class HopperMenu extends AbstractContainerMenu{
+public class HopperMenu extends AbstractContainerMenu {
     public HopperMenu(GrimPlayer player, Inventory playerInventory) {
         super(player, playerInventory);
 

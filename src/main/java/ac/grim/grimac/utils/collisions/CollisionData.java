@@ -19,7 +19,6 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.Material;
 
 import java.util.*;
 

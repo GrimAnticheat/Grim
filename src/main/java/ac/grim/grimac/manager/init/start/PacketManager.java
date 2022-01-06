@@ -1,7 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.events.packets.*;
-import ac.grim.grimac.events.packets.worldreader.*;
+import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEighteen;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;

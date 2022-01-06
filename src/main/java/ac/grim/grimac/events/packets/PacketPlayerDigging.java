@@ -20,7 +20,6 @@ import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientBlockPlacement;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 

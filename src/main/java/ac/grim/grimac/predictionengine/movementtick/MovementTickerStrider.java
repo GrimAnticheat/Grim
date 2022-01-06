@@ -39,7 +39,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
         ((PacketEntityStrider) player.playerVehicle).isShaking =
                 !BlockTags.STRIDER_WARM_BLOCKS.contains(posMaterial) &&
-                !BlockTags.STRIDER_WARM_BLOCKS.contains(belowMaterial) &&
+                        !BlockTags.STRIDER_WARM_BLOCKS.contains(belowMaterial) &&
                         !player.wasTouchingLava;
     }
 

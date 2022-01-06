@@ -19,56 +19,12 @@ public class PredictionEngineWater extends PredictionEngine {
     float swimmingFriction;
     double lastY;
 
-    public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
-        this.isFalling = isFalling;
-        this.playerGravity = playerGravity;
-        this.swimmingSpeed = swimmingSpeed;
-        this.swimmingFriction = swimmingFriction;
-        this.lastY = lastY;
-        super.guessBestMovement(swimmingSpeed, player);
-    }
-
     public static void staticVectorEndOfTick(GrimPlayer player, Vector vector, float swimmingFriction, double playerGravity, boolean isFalling) {
         vector.multiply(new Vector(swimmingFriction, 0.8F, swimmingFriction));
         Vector fluidVector = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, vector);
         vector.setX(fluidVector.getX());
         vector.setY(fluidVector.getY());
         vector.setZ(fluidVector.getZ());
-    }
-
-    @Override
-    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
-        for (VectorData vector : new HashSet<>(existingVelocities)) {
-            existingVelocities.add(vector.returnNewModified(vector.vector.clone().add(new Vector(0, 0.04, 0)), VectorData.VectorType.Jump));
-
-            if (player.slightlyTouchingWater && player.lastOnGround && !player.onGround) {
-                Vector withJump = vector.vector.clone();
-                super.doJump(player, withJump);
-                existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
-            }
-        }
-    }
-
-    @Override
-    public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
-        super.endOfTick(player, playerGravity, friction);
-
-        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
-            staticVectorEndOfTick(player, vector.vector, swimmingFriction, playerGravity, isFalling);
-        }
-    }
-
-    @Override
-    public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
-        // "hacky" climbing where player enters ladder within 0.03 movement (WHY THE FUCK DOES 0.03 EXIST???)
-        if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
-            player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
-        }
-
-        Set<VectorData> baseVelocities = super.fetchPossibleStartTickVectors(player);
-
-        return transformSwimmingVectors(player, baseVelocities);
     }
 
     public static Set<VectorData> transformSwimmingVectors(GrimPlayer player, Set<VectorData> base) {
@@ -118,5 +74,49 @@ public class PredictionEngineWater extends PredictionEngine {
         float f7 = player.trigHandler.cos(f3);
         float f8 = player.trigHandler.sin(f3);
         return new Vector(f6 * f7, -f8, f5 * f7);
+    }
+
+    public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
+        this.isFalling = isFalling;
+        this.playerGravity = playerGravity;
+        this.swimmingSpeed = swimmingSpeed;
+        this.swimmingFriction = swimmingFriction;
+        this.lastY = lastY;
+        super.guessBestMovement(swimmingSpeed, player);
+    }
+
+    @Override
+    public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        for (VectorData vector : new HashSet<>(existingVelocities)) {
+            existingVelocities.add(vector.returnNewModified(vector.vector.clone().add(new Vector(0, 0.04, 0)), VectorData.VectorType.Jump));
+
+            if (player.slightlyTouchingWater && player.lastOnGround && !player.onGround) {
+                Vector withJump = vector.vector.clone();
+                super.doJump(player, withJump);
+                existingVelocities.add(new VectorData(withJump, vector, VectorData.VectorType.Jump));
+            }
+        }
+    }
+
+    @Override
+    public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
+        super.endOfTick(player, playerGravity, friction);
+
+        for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
+            staticVectorEndOfTick(player, vector.vector, swimmingFriction, playerGravity, isFalling);
+        }
+    }
+
+    @Override
+    public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
+        // "hacky" climbing where player enters ladder within 0.03 movement (WHY THE FUCK DOES 0.03 EXIST???)
+        if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
+            player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();
+        }
+
+        Set<VectorData> baseVelocities = super.fetchPossibleStartTickVectors(player);
+
+        return transformSwimmingVectors(player, baseVelocities);
     }
 }

@@ -22,16 +22,16 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
+    // Sync to netty
+    final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
+    // Map of teleports that bukkit is about to send to the player on netty (fixes race condition)
+    final ConcurrentLinkedDeque<Location> pendingTeleports = new ConcurrentLinkedDeque<>();
     // Sync to NETTY (Why does the bukkit thread have to modify this, can we avoid it?)
     // I think it should be safe enough because the worst that can happen is we overwrite another plugin teleport
     //
     // This is required because the required setback position is not sync to bukkit, and we must avoid
     // setting the player back to a position where they were cheating
     public boolean hasAcceptedSetbackPosition = true;
-    // Sync to netty
-    final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
-    // Map of teleports that bukkit is about to send to the player on netty (fixes race condition)
-    final ConcurrentLinkedDeque<Location> pendingTeleports = new ConcurrentLinkedDeque<>();
     // Sync to netty, a player MUST accept a teleport to spawn into the world
     public boolean hasAcceptedSpawnTeleport = false;
     // Was there a ghost block that forces us to block offsets until the player accepts their teleport?

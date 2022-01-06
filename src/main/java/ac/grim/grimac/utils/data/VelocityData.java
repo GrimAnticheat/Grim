@@ -4,9 +4,9 @@ import org.bukkit.util.Vector;
 
 public class VelocityData {
     public final Vector vector;
-    public double offset = Integer.MAX_VALUE;
     public final int entityID;
     public final int transaction;
+    public double offset = Integer.MAX_VALUE;
 
     public VelocityData(int entityID, int transaction, Vector vector) {
         this.entityID = entityID;

@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.ItemTags;
 
 // Complete!
-public class BeaconMenu extends AbstractContainerMenu{
+public class BeaconMenu extends AbstractContainerMenu {
     public BeaconMenu(GrimPlayer player, Inventory playerInventory) {
         super(player, playerInventory);
 

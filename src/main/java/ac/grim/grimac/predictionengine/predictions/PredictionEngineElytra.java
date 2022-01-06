@@ -11,6 +11,16 @@ import java.util.Set;
 
 public class PredictionEngineElytra extends PredictionEngine {
 
+    public static Vector getVectorForRotation(GrimPlayer player, float pitch, float yaw) {
+        float f = pitch * ((float) Math.PI / 180F);
+        float f1 = -yaw * ((float) Math.PI / 180F);
+        float f2 = player.trigHandler.cos(f1);
+        float f3 = player.trigHandler.sin(f1);
+        float f4 = player.trigHandler.cos(f);
+        float f5 = player.trigHandler.sin(f);
+        return new Vector(f3 * f4, -f5, (double) (f2 * f4));
+    }
+
     // Inputs have no effect on movement
     @Override
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
@@ -44,16 +54,6 @@ public class PredictionEngineElytra extends PredictionEngine {
         }
 
         return results;
-    }
-
-    public static Vector getVectorForRotation(GrimPlayer player, float pitch, float yaw) {
-        float f = pitch * ((float) Math.PI / 180F);
-        float f1 = -yaw * ((float) Math.PI / 180F);
-        float f2 = player.trigHandler.cos(f1);
-        float f3 = player.trigHandler.sin(f1);
-        float f4 = player.trigHandler.cos(f);
-        float f5 = player.trigHandler.sin(f);
-        return new Vector(f3 * f4, -f5, (double) (f2 * f4));
     }
 
     public Vector getElytraMovement(GrimPlayer player, Vector vector, Vector lookVector) {

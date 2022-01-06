@@ -20,10 +20,8 @@ import java.util.List;
 import java.util.UUID;
 
 public class CompensatedEntities {
-    public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
-
     private static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
-
+    public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public double playerEntityMovementSpeed = 0.1f;
     public double playerEntityAttackSpeed = 4;
 

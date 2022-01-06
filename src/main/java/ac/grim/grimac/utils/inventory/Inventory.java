@@ -13,13 +13,13 @@ import org.bukkit.GameMode;
 public class Inventory extends AbstractContainerMenu {
     public static final int SLOT_OFFHAND = 45;
     public static final int HOTBAR_OFFSET = 36;
+    public static final int ITEMS_START = 9;
+    public static final int ITEMS_END = 45;
     private static final int SLOT_HELMET = 5;
     private static final int SLOT_CHESTPLATE = 6;
     private static final int SLOT_LEGGINGS = 7;
     private static final int SLOT_BOOTS = 8;
     private static final int TOTAL_SIZE = 46;
-    public static final int ITEMS_START = 9;
-    public static final int ITEMS_END = 45;
     public int selected = 0;
     @Getter
     InventoryStorage playerInventory;

@@ -46,8 +46,8 @@ public class HorseMenu extends AbstractContainerMenu {
         if (horse.hasChest) {
             int columns = horse.type == EntityTypes.LLAMA ? horse.llamaStrength : 5;
 
-            for(int k = 0; k < 3; ++k) {
-                for(int l = 0; l < columns; ++l) {
+            for (int k = 0; k < 3; ++k) {
+                for (int l = 0; l < columns; ++l) {
                     this.addSlot(new Slot(storage, 2 + l + k * columns));
                 }
             }

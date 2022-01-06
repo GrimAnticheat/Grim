@@ -2,7 +2,6 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;

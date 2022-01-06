@@ -5,7 +5,7 @@ import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 
-public class AnvilMenu extends AbstractContainerMenu{
+public class AnvilMenu extends AbstractContainerMenu {
     public AnvilMenu(GrimPlayer player, Inventory playerInventory) {
         super(player, playerInventory);
 
