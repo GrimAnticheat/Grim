@@ -204,7 +204,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.y = clampVector.getY();
             player.z = clampVector.getZ();
 
-            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.isTeleport(), teleportData.getSetback());
+            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround,  teleportData.getSetback(), teleportData.isTeleport());
             player.checkManager.onPositionUpdate(update);
         }
 
@@ -454,7 +454,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // Check for interactable first (door, etc)
         if (isBlockPlace) {
-            WrapperPlayClientBlockPlacement place = new WrapperPlayClientBlockPlacement(event);
+            WrapperPlayClientPlayerBlockPlacement place = new WrapperPlayClientPlayerBlockPlacement(event);
 
             ItemStack placedWith = player.getInventory().getHeldItem();
             ItemStack offhand = player.getInventory().getOffHand();
@@ -507,7 +507,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (isBlockPlace) {
-            WrapperPlayClientBlockPlacement place = new WrapperPlayClientBlockPlacement(event);
+            WrapperPlayClientPlayerBlockPlacement place = new WrapperPlayClientPlayerBlockPlacement(event);
             Vector3i blockPosition = place.getBlockPosition();
             BlockFace face = place.getFace();
 

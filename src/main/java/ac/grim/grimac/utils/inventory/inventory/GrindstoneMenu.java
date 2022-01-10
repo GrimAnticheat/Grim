@@ -1,11 +1,19 @@
 package ac.grim.grimac.utils.inventory.inventory;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.item.enchantment.Enchantment;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTInt;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class GrindstoneMenu extends AbstractContainerMenu {
 
@@ -42,5 +50,159 @@ public class GrindstoneMenu extends AbstractContainerMenu {
         });
 
         addFourRowPlayerInventory();
+    }
+
+    private static int calculateIncreasedRepairCost(int p_39026_) {
+        return p_39026_ * 2 + 1;
+    }
+
+    private void createResult() {
+        ItemStack itemstack = getSlot(0).getItem();
+        ItemStack itemstack1 = getSlot(1).getItem();
+        boolean flag = !itemstack.isEmpty() || !itemstack1.isEmpty();
+        boolean flag1 = !itemstack.isEmpty() && !itemstack1.isEmpty();
+        if (!flag) {
+            getSlot(0).set(ItemStack.EMPTY);
+        } else {
+            boolean flag2 = !itemstack.isEmpty() && !itemstack.is(ItemTypes.ENCHANTED_BOOK) && !itemstack.isEnchanted() || !itemstack1.isEmpty() && !itemstack1.is(ItemTypes.ENCHANTED_BOOK) && !itemstack1.isEnchanted();
+            if (itemstack.getAmount() > 1 || itemstack1.getAmount() > 1 || !flag1 && flag2) {
+                getSlot(2).set(ItemStack.EMPTY);
+                return;
+            }
+
+            int j = 1;
+            int i;
+            ItemStack itemstack2;
+            if (flag1) {
+                if (!itemstack.is(itemstack1.getType())) {
+                    getSlot(2).set(ItemStack.EMPTY);
+                    return;
+                }
+
+                ItemType item = itemstack.getType();
+                int k = item.getMaxDurability() - itemstack.getDamageValue();
+                int l = item.getMaxDurability() - itemstack1.getDamageValue();
+                int i1 = k + l + item.getMaxDurability() * 5 / 100;
+                i = Math.max(item.getMaxDurability() - i1, 0);
+                itemstack2 = this.mergeEnchants(itemstack, itemstack1);
+                if (!itemstack2.isDamageableItem()) {
+                    if (!ItemStack.isSameItemSameTags(itemstack, itemstack1)) {
+                        getSlot(2).set(ItemStack.EMPTY);
+                        return;
+                    }
+
+                    j = 2;
+                }
+            } else {
+                boolean flag3 = !itemstack.isEmpty();
+                i = flag3 ? itemstack.getDamageValue() : itemstack1.getDamageValue();
+                itemstack2 = flag3 ? itemstack : itemstack1;
+            }
+
+            getSlot(2).set(this.removeNonCurses(itemstack2, i, j));
+        }
+    }
+
+    private ItemStack mergeEnchants(ItemStack first, ItemStack second) {
+        ItemStack copyFirst = first.copy();
+        List<Enchantment> enchants = second.getEnchantments();
+
+        for (Enchantment entry : enchants) {
+            if (!EnchantmentHelper.isCurse(entry.getType()) || copyFirst.getEnchantmentLevel(entry.getType()) == 0) {
+                Enchantment enchant = Enchantment.builder().type(entry.getType()).level(entry.getLevel()).build();
+                List<Enchantment> enchantmentList = copyFirst.getEnchantments();
+                enchantmentList.add(enchant);
+                copyFirst.setEnchantments(enchantmentList);
+            }
+        }
+
+        return copyFirst;
+    }
+
+    private ItemStack removeNonCurses(ItemStack itemOne, int p_39581_, int p_39582_) {
+        ItemStack itemstack = itemOne.copy();
+        itemstack.getNBT().removeTag("Enchantments");
+        itemstack.getNBT().removeTag("StoredEnchantments");
+        if (p_39581_ > 0) {
+            itemstack.setDamageValue(p_39581_);
+        } else {
+            itemstack.getNBT().removeTag("Damage");
+        }
+
+        itemstack.setAmount(p_39582_);
+
+        List<Enchantment> filteredCurses = itemOne.getEnchantments().stream().filter(enchantment -> !EnchantmentHelper.isCurse(enchantment.getType())).collect(Collectors.toList());
+
+        itemstack.setEnchantments(filteredCurses);
+
+        if (itemstack.is(ItemTypes.ENCHANTED_BOOK) && filteredCurses.size() == 0) {
+            itemstack = new ItemStack.Builder().type(ItemTypes.BOOK).amount(1).build();
+
+            // Set display name
+            if (itemOne.getNBT().getCompoundTagOrNull("display") != null
+                    && itemOne.getNBT().getCompoundTagOrNull("display").getTagOrNull("Name") != null) {
+
+                NBTCompound compoundTag = itemstack.getOrCreateTag().getCompoundTagOrNull("display");
+                if (compoundTag == null) {
+                    itemstack.getNBT().setTag("display", new NBTCompound());
+                    compoundTag = itemstack.getNBT().getCompoundTagOrNull("display");
+                }
+
+                compoundTag.setTag("Name", itemOne.getNBT().getCompoundTagOrNull("display").getTagOrNull("Name"));
+            }
+        }
+
+        itemstack.getNBT().setTag("RepairCost", new NBTInt(0));
+
+        for (int i = 0; i < filteredCurses.size(); ++i) {
+            itemstack.getNBT().setTag("RepairCost", new NBTInt(calculateIncreasedRepairCost(itemstack.getNBT().getNumberTagOrNull("RepairCost").getAsInt())));
+        }
+
+        return itemstack;
+    }
+
+    @Override
+    public ItemStack quickMoveStack(int p_39589_) {
+        ItemStack itemstack = ItemStack.EMPTY;
+        Slot slot = this.slots.get(p_39589_);
+        if (slot != null && slot.hasItem()) {
+            ItemStack itemstack1 = slot.getItem();
+            itemstack = itemstack1.copy();
+            ItemStack itemstack2 = getSlot(0).getItem();
+            ItemStack itemstack3 = getSlot(1).getItem();
+            if (p_39589_ == 2) {
+                if (!this.moveItemStackTo(itemstack1, 3, 39, true)) {
+                    return ItemStack.EMPTY;
+                }
+
+                //slot.onQuickCraft(itemstack1, itemstack);
+            } else if (p_39589_ != 0 && p_39589_ != 1) {
+                if (!itemstack2.isEmpty() && !itemstack3.isEmpty()) {
+                    if (p_39589_ >= 3 && p_39589_ < 30) {
+                        if (!this.moveItemStackTo(itemstack1, 30, 39, false)) {
+                            return ItemStack.EMPTY;
+                        }
+                    } else if (p_39589_ >= 30 && p_39589_ < 39 && !this.moveItemStackTo(itemstack1, 3, 30, false)) {
+                        return ItemStack.EMPTY;
+                    }
+                } else if (!this.moveItemStackTo(itemstack1, 0, 2, false)) {
+                    return ItemStack.EMPTY;
+                }
+            } else if (!this.moveItemStackTo(itemstack1, 3, 39, false)) {
+                return ItemStack.EMPTY;
+            }
+
+            if (itemstack1.isEmpty()) {
+                slot.set(ItemStack.EMPTY);
+            }
+
+            if (itemstack1.getAmount() == itemstack.getAmount()) {
+                return ItemStack.EMPTY;
+            }
+
+            //slot.onTake(p_39588_, itemstack1);
+        }
+
+        return itemstack;
     }
 }

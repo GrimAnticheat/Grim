@@ -15,7 +15,7 @@ public class VehiclePredictionRunner extends VehicleCheck {
         // Vehicle onGround = false always
         // We don't do vehicle setbacks because vehicle netcode sucks.
         if (player.inVehicle) {
-            player.movementCheckRunner.processAndCheckMovementPacket(new PositionUpdate(vehicleUpdate.getFrom(), vehicleUpdate.getTo(), false, vehicleUpdate.isTeleport(), null));
+            player.movementCheckRunner.processAndCheckMovementPacket(new PositionUpdate(vehicleUpdate.getFrom(), vehicleUpdate.getTo(), false, null, vehicleUpdate.isTeleport()));
         }
     }
 }

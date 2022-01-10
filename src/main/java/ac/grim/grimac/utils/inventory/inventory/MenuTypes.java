@@ -17,8 +17,6 @@ public class MenuTypes {
                 return new BasicInventoryMenu(player, playerInventory, id + 1); // don't repeat yourself :)
             case 6: // 3x3 (SimpleContainer)
                 return new DispenserMenu(player, playerInventory);
-            case 7: // anvil - Painful // TODO: Not complete!
-                return new AnvilMenu(player, playerInventory);
             case 8: // beacon - Not too painful - COMPLETE!
                 return new BeaconMenu(player, playerInventory);
             case 9: // blast furnace
@@ -27,26 +25,24 @@ public class MenuTypes {
                 return new FurnaceMenu(player, playerInventory); // don't repeat yourself, furnaces act the same without server sided logic
             case 10: // brewing stand
                 return new BrewingMenu(player, playerInventory);
-            case 11: // crafting table - somewhat annoying // TODO: Not complete!
-                return new CraftingMenu(player, playerInventory);
             case 12: // enchantment table
                 return new EnchantmentMenu(player, playerInventory);
-            case 14: // grindstone // TODO: Not complete!
-                return new GrindstoneMenu(player, playerInventory);
             case 15: // hopper - SimpleContainer
                 return new HopperMenu(player, playerInventory);
             case 16: // lectern
                 return new LecternMenu(player, playerInventory);
+            case 11: // crafting table - somewhat annoying // TODO: Not complete!
+                return new CraftingMenu(player, playerInventory);
+            case 14: // grindstone // TODO: createResult() not hooked into anything
+                //return new GrindstoneMenu(player, playerInventory);
+            case 7: // anvil - Painful // TODO: Not complete!
+                //return new AnvilMenu(player, playerInventory);
             case 17: // loom // TODO: This requires a LOT of NBT modification
-
             case 18: // merchant // TODO: Somewhat complicated due to client sided buttons
-
             case 19: // smithing // TODO: Annoying similar to anvils with crafting recipes
-
             case 21: // cartographer - // TODO: onCraftedThing, which requires tags
-
             case 22: // stonecutter - // TODO: Not complete, more annoying recipes
-
+                return new NotImplementedMenu();
         }
 
         return null;

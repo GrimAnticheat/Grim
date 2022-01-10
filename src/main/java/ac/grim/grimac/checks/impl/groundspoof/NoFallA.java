@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPositionAndRotation;
@@ -36,7 +37,7 @@ public class NoFallA extends PacketCheck {
             // The player hasn't spawned yet
             if (player.getSetbackTeleportUtil().insideUnloadedChunk()) return;
 
-            WrapperPlayClientPlayerFlying wrapper = null;
+            PacketWrapper wrapper = null;
             boolean hasPosition = false;
 
             // Flying packet types
@@ -56,7 +57,7 @@ public class NoFallA extends PacketCheck {
 
             // Force teleports to have onGround set to false, might patch NoFall on some version.
             if (player.packetStateData.lastPacketWasTeleport) {
-                wrapper.setOnGround(false);
+                setOnGround(wrapper, false);
                 return;
             }
 
@@ -65,14 +66,14 @@ public class NoFallA extends PacketCheck {
             // So we make the player touch the ground, and therefore they take fall damage
             if (playerUsingNoGround) {
                 playerUsingNoGround = false;
-                wrapper.setOnGround(true);
+                setOnGround(wrapper, true);
                 return;
             }
 
             // If the player claims to be on the ground
-            if (wrapper.isOnGround()) {
+            if (onGround(wrapper)) {
                 if (!hasPosition) {
-                    if (!is003OnGround(wrapper.isOnGround())) wrapper.setOnGround(false);
+                    if (!is003OnGround(onGround(wrapper))) setOnGround(wrapper, false);
                     return;
                 }
 
@@ -97,9 +98,34 @@ public class NoFallA extends PacketCheck {
 
                 if (checkForBoxes(feetBB)) return;
 
-                wrapper.setOnGround(false);
+                setOnGround(wrapper, false);
             }
         }
+    }
+
+    private void setOnGround(PacketWrapper wrapper, boolean onGround) {
+        if (wrapper instanceof WrapperPlayClientPlayerPosition) {
+            ((WrapperPlayClientPlayerPosition) wrapper).setOnGround(onGround);
+        } else if (wrapper instanceof WrapperPlayClientPlayerPositionAndRotation) {
+            ((WrapperPlayClientPlayerPositionAndRotation) wrapper).setOnGround(onGround);
+        } else if (wrapper instanceof WrapperPlayClientPlayerRotation) {
+            ((WrapperPlayClientPlayerRotation) wrapper).setOnGround(onGround);
+        } else if (wrapper instanceof WrapperPlayClientPlayerFlying) {
+            ((WrapperPlayClientPlayerFlying) wrapper).setOnGround(onGround);
+        }
+    }
+
+    private boolean onGround(PacketWrapper wrapper) {
+        if (wrapper instanceof WrapperPlayClientPlayerPosition) {
+            return ((WrapperPlayClientPlayerPosition) wrapper).isOnGround();
+        } else if (wrapper instanceof WrapperPlayClientPlayerPositionAndRotation) {
+            return ((WrapperPlayClientPlayerPositionAndRotation) wrapper).isOnGround();
+        } else if (wrapper instanceof WrapperPlayClientPlayerRotation) {
+            return ((WrapperPlayClientPlayerRotation) wrapper).isOnGround();
+        } else if (wrapper instanceof WrapperPlayClientPlayerFlying) {
+            return ((WrapperPlayClientPlayerFlying) wrapper).isOnGround();
+        }
+        return false;
     }
 
     public boolean is003OnGround(boolean onGround) {

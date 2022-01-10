@@ -52,6 +52,8 @@ public class HorseMenu extends AbstractContainerMenu {
                 }
             }
         }
+
+        addFourRowPlayerInventory();
     }
 
     @Override

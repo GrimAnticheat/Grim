@@ -43,6 +43,7 @@ public class CompensatedInventory extends PacketCheck {
     // 36-44 is the hotbar
     // 9 is top left, through 35 being the bottom right.
     int openWindowID = 0;
+    int resyncCount = 0;
 
     public CompensatedInventory(GrimPlayer playerData) {
         super(playerData);
@@ -122,8 +123,6 @@ public class CompensatedInventory extends PacketCheck {
             // Self-explanatory, look at the enum's values
             WrapperPlayClientClickWindow.WindowClickType clickType = click.getWindowClickType();
 
-            Bukkit.broadcastMessage("Clicked " + button + " " + slot + " " + clickType);
-
             menu.doClick(button, slot, clickType);
         }
 
@@ -194,8 +193,10 @@ public class CompensatedInventory extends PacketCheck {
 
             // State ID is how the game tries to handle latency compensation.
             // Unsure if we need to know about this.
+            int count = resyncCount;
             if (items.getWindowId() == 0) { // Player inventory
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                    if (count != resyncCount) return;
                     List<ItemStack> slots = items.getItems();
                     for (int i = 0; i < slots.size(); i++) {
                         inventory.getSlot(i).set(slots.get(i));
@@ -203,6 +204,7 @@ public class CompensatedInventory extends PacketCheck {
                 });
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                    if (count != resyncCount) return;
                     if (items.getWindowId() == openWindowID) {
                         List<ItemStack> slots = items.getItems();
                         for (int i = 0; i < slots.size(); i++) {
@@ -220,7 +222,9 @@ public class CompensatedInventory extends PacketCheck {
             // Window ID -2 means any slot can be used
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
 
+            int count = resyncCount;
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                if (count != resyncCount) return;
                 if (slot.getWindowId() == -1) { // Carried item
                     inventory.setCarried(slot.getItem());
                 } else if (slot.getWindowId() == -2) { // Any slot is allowed to change in inventory

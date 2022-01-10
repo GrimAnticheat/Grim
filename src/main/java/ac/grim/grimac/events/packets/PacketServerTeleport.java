@@ -9,7 +9,7 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.protocol.teleport.RelativeFlags;
+import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
@@ -44,19 +44,19 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // The added complexity isn't worth a feature that I have never seen used
             //
             // If you do actually need this make an issue on GitHub with an explanation for why
-            if (teleport.isRelativeFlag(RelativeFlags.X))
+            if (teleport.isRelativeFlag(RelativeFlag.X))
                 pos = pos.add(new Vector3d(player.x, 0, 0));
 
-            if (teleport.isRelativeFlag(RelativeFlags.Y))
+            if (teleport.isRelativeFlag(RelativeFlag.Y))
                 pos = pos.add(new Vector3d(0, player.y, 0));
 
-            if (teleport.isRelativeFlag(RelativeFlags.Z))
+            if (teleport.isRelativeFlag(RelativeFlag.Z))
                 pos = pos.add(new Vector3d(0, 0, player.z));
 
             teleport.setX(pos.getX());
             teleport.setY(pos.getY());
             teleport.setZ(pos.getZ());
-            teleport.setFlags(0);
+            teleport.setRelativeMask((byte) 0);
 
             player.sendTransaction();
             final int lastTransactionSent = player.lastTransactionSent.get();
