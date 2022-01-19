@@ -548,7 +548,7 @@ public class BlockPlace {
             return;
         }
 
-        player.getInventory().onBlockPlace();
+        player.getInventory().onBlockPlace(this);
 
         player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getGlobalId());
     }

@@ -43,6 +43,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
@@ -50,11 +51,14 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiFunction;
 
 public class CheckManagerListener extends PacketListenerAbstract {
 
-    long lastPosLook = 0;
+    long lastBlockPlaceUseItem = 0;
+    Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
@@ -132,6 +136,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
     }
 
     private void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, PacketReceiveEvent event) {
+        long now = System.currentTimeMillis();
+
         player.packetStateData.lastPacketWasTeleport = false;
         TeleportAcceptData teleportData = null;
         if (hasPosition) {
@@ -160,7 +166,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
             player.checkManager.onRotationUpdate(update);
 
-            lastPosLook = System.currentTimeMillis();
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
             // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
@@ -170,8 +175,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
             return;
         }
-
-        lastPosLook = System.currentTimeMillis();
 
         SimpleCollisionBox oldBB = player.boundingBox;
         player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.66, 1.8);
@@ -192,6 +195,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.lastYRot = player.yRot;
 
         player.packetStateData.packetPlayerOnGround = onGround;
+
+        // Handle queue'd block places
+        PacketWrapper packet;
+        while ((packet = placeUseItemPackets.poll()) != null) {
+            // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
+            // Or mojang wasn't so fucking stupid GOD DAMN IT and had the idle packet... for the 1.7/1.8 clients
+            // Fucking mojang removing idle packet.... why???
+            if ((now - lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
+                player.xRot = yaw;
+                player.yRot = pitch;
+            }
+            handleBlockPlaceOrUseItem(packet, player);
+        }
 
         if (hasLook) {
             player.xRot = yaw;
@@ -449,14 +465,29 @@ public class CheckManagerListener extends PacketListenerAbstract {
                             0);
                 }
             }
-
         }
 
-        boolean isBlockPlace = event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT;
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
+            WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
+            placeUseItemPackets.add(packet);
+            lastBlockPlaceUseItem = System.currentTimeMillis();
+        }
 
+        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
+            WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
+            placeUseItemPackets.add(packet);
+            lastBlockPlaceUseItem = System.currentTimeMillis();
+        }
+
+        // Call the packet checks last as they can modify the contents of the packet
+        // Such as the NoFall check setting the player to not be on the ground
+        player.checkManager.onPacketReceive(event);
+    }
+
+    private void handleBlockPlaceOrUseItem(PacketWrapper packet, GrimPlayer player) {
         // Check for interactable first (door, etc)
-        if (isBlockPlace) {
-            WrapperPlayClientPlayerBlockPlacement place = new WrapperPlayClientPlayerBlockPlacement(event);
+        if (packet instanceof WrapperPlayClientPlayerBlockPlacement) {
+            WrapperPlayClientPlayerBlockPlacement place = (WrapperPlayClientPlayerBlockPlacement) packet;
 
             ItemStack placedWith = player.getInventory().getHeldItem();
             ItemStack offhand = player.getInventory().getOffHand();
@@ -484,8 +515,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
-            WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
+        if (packet instanceof WrapperPlayClientUseItem) {
+            WrapperPlayClientUseItem place = (WrapperPlayClientUseItem) packet;
 
             ItemStack placedWith = player.getInventory().getHeldItem();
             if (place.getHand() == InteractionHand.OFF_HAND) {
@@ -508,8 +539,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
         }
 
-        if (isBlockPlace) {
-            WrapperPlayClientPlayerBlockPlacement place = new WrapperPlayClientPlayerBlockPlacement(event);
+        if (packet instanceof WrapperPlayClientPlayerBlockPlacement) {
+            WrapperPlayClientPlayerBlockPlacement place = (WrapperPlayClientPlayerBlockPlacement) packet;
             Vector3i blockPosition = place.getBlockPosition();
             BlockFace face = place.getFace();
 
@@ -528,10 +559,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
         }
-
-        // Call the packet checks last as they can modify the contents of the packet
-        // Such as the NoFall check setting the player to not be on the ground
-        player.checkManager.onPacketReceive(event);
     }
 
     private void placeWaterLavaSnowBucket(GrimPlayer player, StateType toPlace, InteractionHand hand) {
