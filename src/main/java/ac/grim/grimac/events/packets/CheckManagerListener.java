@@ -15,6 +15,7 @@ import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.enums.FluidTag;
+import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
@@ -27,6 +28,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
+import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -204,7 +206,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.y = clampVector.getY();
             player.z = clampVector.getZ();
 
-            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround,  teleportData.getSetback(), teleportData.isTeleport());
+            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.isTeleport());
             player.checkManager.onPositionUpdate(update);
         }
 
@@ -464,7 +466,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
             if ((!player.isSneaking || onlyAir) && place.getHand() == InteractionHand.MAIN_HAND) {
                 Vector3i blockPosition = place.getBlockPosition();
-                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getFace(), placedWith.getType(), getNearestHitResult(player, null, true));
+                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getFace(), placedWith, getNearestHitResult(player, null, true));
 
                 // Right-clicking a trapdoor/door/etc.
                 if (Materials.isClientSideInteractable(blockPlace.getPlacedAgainstMaterial())) {
@@ -492,17 +494,17 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
             if (placedWith.getType() == ItemTypes.LILY_PAD) {
-                placeLilypad(player); // Pass a block place because lily pads have a hitbox
+                placeLilypad(player, place.getHand()); // Pass a block place because lily pads have a hitbox
                 return;
             }
 
             StateType toBucketMat = Materials.transformBucketMaterial(placedWith.getType());
             if (toBucketMat != null) {
-                placeWaterLavaSnowBucket(player, toBucketMat);
+                placeWaterLavaSnowBucket(player, toBucketMat, place.getHand());
             }
 
             if (placedWith.getType() == ItemTypes.BUCKET) {
-                placeBucket(player);
+                placeBucket(player, place.getHand());
             }
         }
 
@@ -516,7 +518,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 placedWith = player.getInventory().getOffHand();
             }
 
-            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith.getType(), getNearestHitResult(player, null, true));
+            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith, getNearestHitResult(player, null, true));
 
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
                 player.checkManager.onBlockPlace(blockPlace);
@@ -532,60 +534,110 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.checkManager.onPacketReceive(event);
     }
 
-    private void placeWaterLavaSnowBucket(GrimPlayer player, StateType toPlace) {
+    private void placeWaterLavaSnowBucket(GrimPlayer player, StateType toPlace, InteractionHand hand) {
         HitData data = getNearestHitResult(player, StateTypes.AIR, false);
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemTypes.AIR, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemStack.AIR, data);
+
+            boolean didPlace = false;
+
             // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
             // If we hit a waterloggable block, then the bucket is directly placed
             // Otherwise, use the face to determine where to place the bucket
-            if (Materials.isPlaceableLiquidBucket(blockPlace.getItemType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+            if (Materials.isPlaceableLiquidBucket(blockPlace.getItemStack().getType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 blockPlace.setReplaceClicked(true); // See what's in the existing place
                 WrappedBlockState existing = blockPlace.getExistingBlockData();
                 if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) {
                     existing.setWaterlogged(true);
                     blockPlace.set(existing);
-                    return;
+                    didPlace = true;
                 }
             }
 
-            // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
-            blockPlace.setReplaceClicked(false);
-            blockPlace.set(toPlace);
+            if (!didPlace) {
+                // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
+                blockPlace.setReplaceClicked(false);
+                blockPlace.set(toPlace);
+            }
+
+            if (didPlace && player.gamemode != GameMode.CREATIVE) {
+                if (hand == InteractionHand.MAIN_HAND) {
+                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
+                } else {
+                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
+                }
+            }
         }
     }
 
-    private void placeBucket(GrimPlayer player) {
+    private void placeBucket(GrimPlayer player, InteractionHand hand) {
         HitData data = getNearestHitResult(player, null, true);
 
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemTypes.BUCKET, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemStack.EMPTY, data);
             blockPlace.setReplaceClicked(true); // Replace the block clicked, not the block in the direction
+
+            boolean placed = false;
+            ItemType type = null;
 
             if (data.getState().getType() == StateTypes.POWDER_SNOW) {
                 blockPlace.set(StateTypes.AIR);
-                return;
+                type = ItemTypes.POWDER_SNOW_BUCKET;
+                placed = true;
+            }
+
+            if (data.getState().getType() == StateTypes.LAVA) {
+                blockPlace.set(StateTypes.AIR);
+                type = ItemTypes.LAVA_BUCKET;
+                placed = true;
             }
 
             // We didn't hit fluid source
-            if (!player.compensatedWorld.isWaterSourceBlock(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()))
+            if (!placed && !player.compensatedWorld.isWaterSourceBlock(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()))
                 return;
+
+            if (!placed) {
+                type = ItemTypes.WATER_BUCKET;
+            }
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 WrappedBlockState existing = blockPlace.getExistingBlockData();
                 if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
                     existing.setWaterlogged(false);
                     blockPlace.set(existing);
-                    return;
+                    placed = true;
                 }
             }
 
             // Therefore, not waterlogged and is a fluid, and is therefore a source block
-            blockPlace.set(StateTypes.AIR);
+            if (!placed) {
+                blockPlace.set(StateTypes.AIR);
+            }
+
+            // Give the player a water bucket
+            if (placed && player.gamemode != GameMode.CREATIVE) {
+                if (hand == InteractionHand.MAIN_HAND) {
+                    if (player.getInventory().getHeldItem().getAmount() == 1) {
+                        player.getInventory().inventory.setHeldItem(ItemStack.builder().type(type).amount(1).build());
+                    } else { // Give the player a water bucket
+                        player.getInventory().inventory.add(ItemStack.builder().type(type).amount(1).build());
+                        // and reduce the held item
+                        player.getInventory().getHeldItem().setAmount(player.getInventory().getHeldItem().getAmount() - 1);
+                    }
+                } else {
+                    if (player.getInventory().getOffHand().getAmount() == 1) {
+                        player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
+                    } else { // Give the player a water bucket
+                        player.getInventory().inventory.add(Inventory.SLOT_OFFHAND, ItemStack.builder().type(type).amount(1).build());
+                        // and reduce the held item
+                        player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
+                    }
+                }
+            }
         }
     }
 
-    private void placeLilypad(GrimPlayer player) {
+    private void placeLilypad(GrimPlayer player, InteractionHand hand) {
         HitData data = getNearestHitResult(player, null, true);
 
         if (data != null) {
@@ -593,7 +645,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.compensatedWorld.getFluidLevelAt(data.getPosition().getX(), data.getPosition().getY() + 1, data.getPosition().getZ()) > 0)
                 return;
 
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemTypes.LILY_PAD, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemStack.EMPTY, data);
             blockPlace.setReplaceClicked(false); // Not possible with use item
 
             // We checked for a full fluid block below here.
@@ -603,6 +655,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 pos.setY(pos.getY() + 1);
 
                 blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState());
+
+                if (player.gamemode != GameMode.CREATIVE) {
+                    if (hand == InteractionHand.MAIN_HAND) {
+                        player.getInventory().inventory.getHeldItem().setAmount(player.getInventory().inventory.getHeldItem().getAmount() - 1);
+                    } else {
+                        player.getInventory().getOffHand().setAmount(player.getInventory().getOffHand().getAmount() - 1);
+                    }
+                }
             }
         }
     }

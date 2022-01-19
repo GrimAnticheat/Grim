@@ -2,13 +2,16 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.inventory.AbstractContainerMenu;
 import ac.grim.grimac.utils.inventory.inventory.HorseMenu;
 import ac.grim.grimac.utils.inventory.inventory.MenuTypes;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
@@ -16,11 +19,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenHorseWindow;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
-import org.bukkit.Bukkit;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
+import io.github.retrooper.packetevents.utils.SpigotDataHelper;
+import org.bukkit.GameMode;
 
 import java.util.List;
 
@@ -36,6 +37,12 @@ public class CompensatedInventory extends PacketCheck {
     public Inventory inventory;
     // Temporarily public for debugging
     public AbstractContainerMenu menu;
+    // Packet based inventories aren't done yet.  Both Grim and PacketEvents need more work for this.
+    // Therefore, we switch to bukkit based inventories for things like anvils and looms.
+    // Eventually, for proxy support, all inventories will be supported...
+    // ViaBackwards needs this code too, so maybe we can copy them if they ever implement it.
+    // Although right now it looks like they will just copy us - which I wouldn't mind.
+    public boolean isPacketInventoryActive = true;
     // Here are the mappings from the geniuses at Mojang
     // 1, 2, 3, 4 and 0 are the crafting table
     // 5, 6, 7, 8 are the armor slots from helmet to boots
@@ -43,7 +50,6 @@ public class CompensatedInventory extends PacketCheck {
     // 36-44 is the hotbar
     // 9 is top left, through 35 being the bottom right.
     int openWindowID = 0;
-    int resyncCount = 0;
 
     public CompensatedInventory(GrimPlayer playerData) {
         super(playerData);
@@ -55,31 +61,45 @@ public class CompensatedInventory extends PacketCheck {
     }
 
     public ItemStack getHeldItem() {
-        return inventory.getHeldItem();
+        return isPacketInventoryActive ? inventory.getHeldItem() :
+                SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInHand());
     }
 
     public ItemStack getOffHand() {
-        return inventory.getOffhand();
+        if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
+            return ItemStack.EMPTY;
+        return isPacketInventoryActive ? inventory.getOffhand() :
+                SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInOffHand());
     }
 
     public ItemStack getHelmet() {
-        return inventory.getHelmet();
+        return isPacketInventoryActive ? inventory.getHelmet() :
+                SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getHelmet());
     }
 
     public ItemStack getChestplate() {
-        return inventory.getChestplate();
+        return isPacketInventoryActive ? inventory.getChestplate() :
+                SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getChestplate());
     }
 
     public ItemStack getLeggings() {
-        return inventory.getLeggings();
+        return isPacketInventoryActive ? inventory.getLeggings() :
+                SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getLeggings());
     }
 
     public ItemStack getBoots() {
-        return inventory.getBoots();
+        return isPacketInventoryActive ? inventory.getBoots() :
+                SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getBoots());
     }
 
     public boolean hasItemType(ItemType type) {
-        return inventory.hasItemType(type);
+        if (isPacketInventoryActive) return inventory.hasItemType(type);
+
+        // Fall back to bukkit inventories
+        for (org.bukkit.inventory.ItemStack item : player.bukkitPlayer.getInventory().getContents()) {
+            if (SpigotDataHelper.fromBukkitItemStack(item).getType() == type) return true;
+        }
+        return false;
     }
 
     public void onPacketReceive(final PacketReceiveEvent event) {
@@ -87,7 +107,7 @@ public class CompensatedInventory extends PacketCheck {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.DROP_ITEM) {
-                ItemStack heldItem = inventory.getHeldItem();
+                ItemStack heldItem = getHeldItem();
                 if (heldItem != null) {
                     heldItem.setAmount(heldItem.getAmount() - 1);
                     if (heldItem.getAmount() <= 0) {
@@ -128,6 +148,7 @@ public class CompensatedInventory extends PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             menu = inventory;
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerCloseWindow((byte) 0));
             menu.setCarried(ItemStack.EMPTY); // Reset carried item
         }
     }
@@ -136,6 +157,12 @@ public class CompensatedInventory extends PacketCheck {
         if (stack == null) return true;
         if (stack.getType() == ItemTypes.AIR) return true;
         return stack.getAmount() <= 0;
+    }
+
+    public void onBlockPlace(BlockPlace place) {
+        if (player.gamemode != GameMode.CREATIVE) {
+            place.getItemStack().setAmount(place.getItemStack().getAmount() - 1);
+        }
     }
 
     public void onPacketSend(final PacketSendEvent event) {
@@ -178,12 +205,19 @@ public class CompensatedInventory extends PacketCheck {
 
         // 1:1 MCP
         if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
+            if (!isPacketInventoryActive) {
+                event.setPostTask(player.bukkitPlayer::updateInventory);
+            }
+
             // Disregard provided window ID, client doesn't care...
             // We need to do this because the client doesn't send a packet when closing the window
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 openWindowID = 0;
                 menu = inventory;
                 menu.setCarried(ItemStack.EMPTY); // Reset carried item
+
+                // Is this async safe to send? I actually don't know, but it likely is.
+                isPacketInventoryActive = true;
             });
         }
 
@@ -193,10 +227,9 @@ public class CompensatedInventory extends PacketCheck {
 
             // State ID is how the game tries to handle latency compensation.
             // Unsure if we need to know about this.
-            int count = resyncCount;
             if (items.getWindowId() == 0) { // Player inventory
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    if (count != resyncCount) return;
+                    if (!isPacketInventoryActive) return;
                     List<ItemStack> slots = items.getItems();
                     for (int i = 0; i < slots.size(); i++) {
                         inventory.getSlot(i).set(slots.get(i));
@@ -204,7 +237,7 @@ public class CompensatedInventory extends PacketCheck {
                 });
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                    if (count != resyncCount) return;
+                    if (!isPacketInventoryActive) return;
                     if (items.getWindowId() == openWindowID) {
                         List<ItemStack> slots = items.getItems();
                         for (int i = 0; i < slots.size(); i++) {
@@ -222,9 +255,8 @@ public class CompensatedInventory extends PacketCheck {
             // Window ID -2 means any slot can be used
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
 
-            int count = resyncCount;
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                if (count != resyncCount) return;
+                if (!isPacketInventoryActive) return;
                 if (slot.getWindowId() == -1) { // Carried item
                     inventory.setCarried(slot.getItem());
                 } else if (slot.getWindowId() == -2) { // Any slot is allowed to change in inventory

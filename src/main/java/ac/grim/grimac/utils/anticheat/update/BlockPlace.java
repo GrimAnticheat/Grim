@@ -12,6 +12,7 @@ import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -23,7 +24,6 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -41,7 +41,7 @@ public class BlockPlace {
     boolean isCancelled = false;
     GrimPlayer player;
     @Getter
-    ItemType itemType;
+    ItemStack itemStack;
     @Getter
     StateType material;
     @Getter
@@ -49,12 +49,12 @@ public class BlockPlace {
     @Setter
     BlockFace face;
 
-    public BlockPlace(GrimPlayer player, Vector3i blockPosition, BlockFace face, ItemType itemType, HitData hitData) {
+    public BlockPlace(GrimPlayer player, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
         this.player = player;
         this.blockPosition = blockPosition;
         this.face = face;
-        this.itemType = itemType;
-        this.material = itemType.getPlacedType() == null ? StateTypes.FIRE : itemType.getPlacedType();
+        this.itemStack = itemStack;
+        this.material = itemStack.getType().getPlacedType() == null ? StateTypes.FIRE : itemStack.getType().getPlacedType();
         this.hitData = hitData;
 
         WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(getPlacedAgainstBlockLocation());
@@ -548,7 +548,7 @@ public class BlockPlace {
             return;
         }
 
-        Bukkit.broadcastMessage("Placed " + state + " at " + position);
+        player.getInventory().onBlockPlace();
 
         player.compensatedWorld.updateBlock(position.getX(), position.getY(), position.getZ(), state.getGlobalId());
     }

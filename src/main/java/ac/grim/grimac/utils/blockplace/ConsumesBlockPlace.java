@@ -55,7 +55,7 @@ public class ConsumesBlockPlace {
             return false;
         }
         if (state.getType() == StateTypes.SWEET_BERRY_BUSH) {
-            if (state.getAge() != 3 && place.getItemType() == ItemTypes.BONE_MEAL) {
+            if (state.getAge() != 3 && place.getItemStack().getType() == ItemTypes.BONE_MEAL) {
                 return false;
             } else if (state.getAge() > 1) {
                 state.setAge(1);
@@ -66,10 +66,10 @@ public class ConsumesBlockPlace {
             }
         }
         if (state.getType() == StateTypes.TNT) {
-            return place.getItemType() == ItemTypes.FIRE_CHARGE || place.getItemType() == ItemTypes.FLINT_AND_STEEL;
+            return place.getItemStack().getType() == ItemTypes.FIRE_CHARGE || place.getItemStack().getType() == ItemTypes.FLINT_AND_STEEL;
         }
         if (state.getType() == StateTypes.RESPAWN_ANCHOR) {
-            if (place.getItemType() == ItemTypes.GLOWSTONE) {
+            if (place.getItemStack().getType() == ItemTypes.GLOWSTONE) {
                 return true;
             }
             return player.getInventory().getOffHand().getType() != ItemTypes.GLOWSTONE;
@@ -82,7 +82,7 @@ public class ConsumesBlockPlace {
             return player.bukkitPlayer.isOp() && player.gamemode == GameMode.CREATIVE;
         }
         if (state.getType() == StateTypes.COMPOSTER) {
-            if (Materials.isCompostable(place.getItemType()) && state.getLevel() < 8) {
+            if (Materials.isCompostable(place.getItemStack().getType()) && state.getLevel() < 8) {
                 return true;
             }
             return state.getLevel() == 8;
@@ -92,7 +92,7 @@ public class ConsumesBlockPlace {
         }
         if (state.getType() == StateTypes.LECTERN) {
             if (state.isHasBook()) return true;
-            return ItemTags.LECTERN_BOOKS.contains(place.getItemType());
+            return ItemTags.LECTERN_BOOKS.contains(place.getItemStack().getType());
         }
 
         return false;

@@ -1,9 +1,10 @@
 package ac.grim.grimac.utils.inventory.slot;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
-import ac.grim.grimac.utils.inventory.inventory.NotImplementedMenu;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import org.bukkit.Bukkit;
 
 public class ResultSlot extends Slot {
 
@@ -18,6 +19,7 @@ public class ResultSlot extends Slot {
 
     @Override
     public void onTake(GrimPlayer p_150638_, ItemStack p_150639_) {
-        NotImplementedMenu.resync(p_150638_);
+        // Resync the player's inventory
+        Bukkit.getServer().getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), p_150638_.bukkitPlayer::updateInventory);
     }
 }
