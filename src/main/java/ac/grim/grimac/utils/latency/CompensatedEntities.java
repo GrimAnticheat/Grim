@@ -17,6 +17,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEn
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public class CompensatedEntities {
@@ -257,6 +258,18 @@ public class CompensatedEntities {
                     // hasGravity > hasNoGravity
                     entity.hasGravity = !((Boolean) gravityObject);
                 }
+            }
+        }
+
+        if (entity.type == EntityTypes.FIREWORK_ROCKET) {
+            EntityData fireworkWatchableObject = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 9 : 8);
+
+            if (fireworkWatchableObject == null) return;
+
+            Optional<Integer> attachedEntityID = (Optional<Integer>) fireworkWatchableObject.getValue();
+
+            if (attachedEntityID.isPresent() && attachedEntityID.get().equals(player.entityID)) {
+                player.compensatedFireworks.addNewFirework(entityID);
             }
         }
     }

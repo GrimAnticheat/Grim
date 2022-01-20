@@ -234,9 +234,13 @@ public class PacketEntityReplication extends PacketCheck {
 
             int[] destroyEntityIds = destroy.getEntityIds();
 
-            for (int integer : destroyEntityIds) {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.entityMap.remove(integer));
-            }
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                for (int integer : destroyEntityIds) {
+                    player.compensatedEntities.entityMap.remove(integer);
+                    player.compensatedFireworks.removeFirework(integer);
+                    player.compensatedPotions.removeEntity(integer);
+                }
+            });
         }
     }
 
