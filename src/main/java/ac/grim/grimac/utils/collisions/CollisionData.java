@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
@@ -566,13 +567,13 @@ public enum CollisionData {
 
     FENCE(new DynamicFence(), BlockTags.FENCES.getStates().toArray(new StateType[0])),
 
-    PANE(new DynamicPane(), BlockTags.GLASS_PANES.getStates().toArray(new StateType[0])),
+    PANE(new DynamicPane(), Materials.getPanes().toArray(new StateType[0])),
 
     SNOW((player, version, data, x, y, z) -> {
-        if (data.getLayers() == 0 && version.isNewerThanOrEquals(ClientVersion.V_1_13))
+        if (data.getLayers() == 1 && version.isNewerThanOrEquals(ClientVersion.V_1_13))
             return NoCollisionBox.INSTANCE;
 
-        return new SimpleCollisionBox(0, 0, 0, 1, data.getLayers() * 0.125, 1);
+        return new SimpleCollisionBox(0, 0, 0, 1, (data.getLayers() - 1) * 0.125, 1);
     }, StateTypes.SNOW),
 
     STAIR(new DynamicStair(), BlockTags.STAIRS.getStates().toArray(new StateType[0])),

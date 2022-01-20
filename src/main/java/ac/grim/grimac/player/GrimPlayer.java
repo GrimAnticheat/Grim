@@ -1,6 +1,7 @@
 package ac.grim.grimac.player;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.CheckManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
@@ -24,6 +25,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 import com.viaversion.viaversion.api.Via;
@@ -39,6 +41,7 @@ import org.bukkit.util.Vector;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 // Everything in this class should be sync'd to the anticheat thread.
@@ -176,6 +179,8 @@ public class GrimPlayer {
     private ClientVersion clientVersion;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
+    public long lastBlockPlaceUseItem = 0;
+    public Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
 
     public GrimPlayer(Player player) {
         this.bukkitPlayer = player;
@@ -337,6 +342,8 @@ public class GrimPlayer {
                 transactionPing = (int) (System.nanoTime() - data.getSecond());
                 playerClockAtLeast = data.getSecond();
 
+                // A transaction means a new tick, so apply any block places
+                CheckManagerListener.handleQueuedPlaces(this, false, 0, 0, System.currentTimeMillis());
                 latencyUtils.handleNettySyncTransaction(incrementingID);
             } while (data.getFirst() != id);
         }

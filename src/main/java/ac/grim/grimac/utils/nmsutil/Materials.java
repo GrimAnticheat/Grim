@@ -139,6 +139,10 @@ public class Materials {
         return BlockTags.GLASS_BLOCKS.contains(type);
     }
 
+    public static Set<StateType> getPanes() {
+        return new HashSet<>(PANES);
+    }
+
     public static boolean isGlassPane(StateType type) {
         return PANES.contains(type);
     }

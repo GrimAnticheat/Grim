@@ -51,14 +51,9 @@ import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiFunction;
 
 public class CheckManagerListener extends PacketListenerAbstract {
-
-    long lastBlockPlaceUseItem = 0;
-    Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
 
     public CheckManagerListener() {
         super(PacketListenerPriority.LOW);
@@ -176,18 +171,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
-        // Handle queue'd block places
-        PacketWrapper packet;
-        while ((packet = placeUseItemPackets.poll()) != null) {
-            // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
-            // Or mojang wasn't so fucking stupid GOD DAMN IT and had the idle packet... for the 1.7/1.8 clients
-            // Fucking mojang removing idle packet.... why???
-            if ((now - lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
-                player.xRot = yaw;
-                player.yRot = pitch;
-            }
-            handleBlockPlaceOrUseItem(packet, player);
-        }
+        handleQueuedPlaces(player, hasLook, pitch, yaw, now);
 
         SimpleCollisionBox oldBB = player.boundingBox;
         player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.66, 1.8);
@@ -238,6 +222,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
         player.packetStateData.didLastMovementIncludePosition = hasPosition;
+    }
+
+    public static void handleQueuedPlaces(GrimPlayer player, boolean hasLook, float pitch, float yaw, long now) {
+        // Handle queue'd block places
+        PacketWrapper packet;
+        while ((packet = player.placeUseItemPackets.poll()) != null) {
+            // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
+            // Or mojang wasn't so fucking stupid GOD DAMN IT and had the idle packet... for the 1.7/1.8 clients
+            // Fucking mojang removing idle packet.... why???
+            if ((now - player.lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
+                player.xRot = yaw;
+                player.yRot = pitch;
+            }
+            handleBlockPlaceOrUseItem(packet, player);
+        }
     }
 
     @Override
@@ -469,14 +468,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
-            placeUseItemPackets.add(packet);
-            lastBlockPlaceUseItem = System.currentTimeMillis();
+            player.placeUseItemPackets.add(packet);
+            player.lastBlockPlaceUseItem = System.currentTimeMillis();
         }
 
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem packet = new WrapperPlayClientUseItem(event);
-            placeUseItemPackets.add(packet);
-            lastBlockPlaceUseItem = System.currentTimeMillis();
+            player.placeUseItemPackets.add(packet);
+            player.lastBlockPlaceUseItem = System.currentTimeMillis();
         }
 
         // Call the packet checks last as they can modify the contents of the packet
@@ -484,7 +483,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.checkManager.onPacketReceive(event);
     }
 
-    private void handleBlockPlaceOrUseItem(PacketWrapper packet, GrimPlayer player) {
+    private static void handleBlockPlaceOrUseItem(PacketWrapper packet, GrimPlayer player) {
         // Check for interactable first (door, etc)
         if (packet instanceof WrapperPlayClientPlayerBlockPlacement) {
             WrapperPlayClientPlayerBlockPlacement place = (WrapperPlayClientPlayerBlockPlacement) packet;
@@ -561,7 +560,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private void placeWaterLavaSnowBucket(GrimPlayer player, StateType toPlace, InteractionHand hand) {
+    private static void placeWaterLavaSnowBucket(GrimPlayer player, StateType toPlace, InteractionHand hand) {
         HitData data = getNearestHitResult(player, StateTypes.AIR, false);
         if (data != null) {
             BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemStack.AIR, data);
@@ -597,7 +596,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private void placeBucket(GrimPlayer player, InteractionHand hand) {
+    private static void placeBucket(GrimPlayer player, InteractionHand hand) {
         HitData data = getNearestHitResult(player, null, true);
 
         if (data != null) {
@@ -664,7 +663,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private void placeLilypad(GrimPlayer player, InteractionHand hand) {
+    private static void placeLilypad(GrimPlayer player, InteractionHand hand) {
         HitData data = getNearestHitResult(player, null, true);
 
         if (data != null) {
@@ -694,8 +693,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private HitData getNearestHitResult(GrimPlayer player, StateType heldItem, boolean sourcesHaveHitbox) {
-        // TODO: When we do this post-tick (fix desync) switch to lastX
+    private static HitData getNearestHitResult(GrimPlayer player, StateType heldItem, boolean sourcesHaveHitbox) {
         Vector3d startingPos = new Vector3d(player.x, player.y + player.getEyeHeight(), player.z);
         Vector startingVec = new Vector(startingPos.getX(), startingPos.getY(), startingPos.getZ());
         Ray trace = new Ray(player, startingPos.getX(), startingPos.getY(), startingPos.getZ(), player.xRot, player.yRot);

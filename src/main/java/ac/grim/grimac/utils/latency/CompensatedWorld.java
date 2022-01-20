@@ -411,7 +411,7 @@ public class CompensatedWorld {
 
     public double getLavaFluidLevelAt(int x, int y, int z) {
         WrappedBlockState magicBlockState = getWrappedBlockStateAt(x, y, z);
-        WrappedBlockState magicBlockStateAbove = getWrappedBlockStateAt(x, y, z);
+        WrappedBlockState magicBlockStateAbove = getWrappedBlockStateAt(x, y + 1, z);
 
         if (magicBlockState.getType() != StateTypes.LAVA) return 0;
         if (magicBlockStateAbove.getType() == StateTypes.LAVA) return 1;
@@ -419,14 +419,12 @@ public class CompensatedWorld {
         int level = magicBlockState.getLevel();
 
         // If it is lava or flowing lava
-        if (magicBlockState.getLevel() >= 8) {
+        if (level >= 8) {
             // Falling lava has a level of 8
-            if (level >= 8) return 8 / 9f;
-
-            return (8 - level) / 9f;
+            return 8 / 9f;
         }
 
-        return 0;
+        return (8 - level) / 9f;
     }
 
     public boolean containsLava(SimpleCollisionBox var0) {
