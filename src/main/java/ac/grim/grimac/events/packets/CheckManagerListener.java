@@ -176,6 +176,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
+        // Handle queue'd block places
+        PacketWrapper packet;
+        while ((packet = placeUseItemPackets.poll()) != null) {
+            // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
+            // Or mojang wasn't so fucking stupid GOD DAMN IT and had the idle packet... for the 1.7/1.8 clients
+            // Fucking mojang removing idle packet.... why???
+            if ((now - lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
+                player.xRot = yaw;
+                player.yRot = pitch;
+            }
+            handleBlockPlaceOrUseItem(packet, player);
+        }
+
         SimpleCollisionBox oldBB = player.boundingBox;
         player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.66, 1.8);
         // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
@@ -195,19 +208,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.lastYRot = player.yRot;
 
         player.packetStateData.packetPlayerOnGround = onGround;
-
-        // Handle queue'd block places
-        PacketWrapper packet;
-        while ((packet = placeUseItemPackets.poll()) != null) {
-            // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
-            // Or mojang wasn't so fucking stupid GOD DAMN IT and had the idle packet... for the 1.7/1.8 clients
-            // Fucking mojang removing idle packet.... why???
-            if ((now - lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
-                player.xRot = yaw;
-                player.yRot = pitch;
-            }
-            handleBlockPlaceOrUseItem(packet, player);
-        }
 
         if (hasLook) {
             player.xRot = yaw;
