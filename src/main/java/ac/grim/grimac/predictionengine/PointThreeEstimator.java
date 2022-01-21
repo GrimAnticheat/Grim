@@ -314,7 +314,7 @@ public class PointThreeEstimator {
 
             // If this tick is the tick after y velocity was by 0, a stepping movement is POSSIBLE to have been hidden
             // A bit hacky... is there a better way?  I'm unsure...
-            boolean likelyStepSkip = data.vector.getY() > -0.08 && data.vector.getY() < 0.03;
+            boolean likelyStepSkip = (data.vector.getY() > -0.08 && data.vector.getY() < 0.03) || player.uncertaintyHandler.isSteppingOnSlime;
 
             // We need to do hypot calculations for all 3 axis
             // sqrt(sqrt(x^2 + z^2)^2 + y^2) = hypot(x, z, y)
