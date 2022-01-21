@@ -561,30 +561,37 @@ public class PredictionEngine {
 
         AlmostBoolean usingItem = player.isUsingItem;
 
-        // Loop twice for the using item status if the player is using a trident
-        // (Or in the future mojang desync's with another item and we can't be sure)
-        //
-        // I tried using delays, vertical collision detection, and other methods for sneaking
-        // But nothing works as well as brute force
-        for (int loopUsingItem = 0; loopUsingItem <= 1; loopUsingItem++) {
-            for (VectorData possibleLastTickOutput : possibleVectors) {
-                for (int x = -1; x <= 1; x++) {
-                    for (int z = zMin; z <= 1; z++) {
-                        VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-                        result = result.returnNewModified(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
-                        result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
-                        result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
-                        // Signal that we need to flip sneaking bounding box
-                        if (loopUsingItem == 1)
-                            result = result.returnNewModified(result.vector, VectorData.VectorType.Flip_Use_Item);
-                        returnVectors.add(result);
+        for (int loopSlowed = 0; loopSlowed <= 1; loopSlowed++) {
+            // Loop twice for the using item status if the player is using a trident
+            // (Or in the future mojang desync's with another item and we can't be sure)
+            //
+            // I tried using delays, vertical collision detection, and other methods for sneaking
+            // But nothing works as well as brute force
+            for (int loopUsingItem = 0; loopUsingItem <= 1; loopUsingItem++) {
+                for (VectorData possibleLastTickOutput : possibleVectors) {
+                    // Only do this when there is tick skipping
+                    if (loopSlowed == 1 && !possibleLastTickOutput.isZeroPointZeroThree()) continue;
+                    for (int x = -1; x <= 1; x++) {
+                        for (int z = zMin; z <= 1; z++) {
+                            VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
+                            result = result.returnNewModified(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
+                            result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
+                            result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
+                            // Signal that we need to flip sneaking bounding box
+                            if (loopUsingItem == 1)
+                                result = result.returnNewModified(result.vector, VectorData.VectorType.Flip_Use_Item);
+                            returnVectors.add(result);
+                        }
                     }
                 }
-            }
 
-            player.isUsingItem = AlmostBoolean.FALSE;
+                player.isUsingItem = AlmostBoolean.FALSE;
+            }
+            // TODO: Secure this (maybe timer for 0.03 movement where each skip is 100 ms?)
+            player.isSlowMovement = !player.isSlowMovement;
         }
 
+        player.isSlowMovement = !player.isSlowMovement;
         player.isUsingItem = usingItem;
     }
 

@@ -12,7 +12,7 @@ public class PistonBaseCollision implements CollisionFactory {
 
     @Override
     public CollisionBox fetch(GrimPlayer player, ClientVersion version, WrappedBlockState block, int x, int y, int z) {
-        if (!block.isPowered()) return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
+        if (!block.isExtended()) return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         switch (block.getFacing()) {
             default:
