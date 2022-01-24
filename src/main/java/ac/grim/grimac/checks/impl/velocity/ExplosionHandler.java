@@ -41,7 +41,7 @@ public class ExplosionHandler extends PacketCheck {
             if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
                 player.sendTransaction();
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
-                event.setPostTask(player::sendTransaction);
+                event.getPostTasks().add(player::sendTransaction);
             }
         }
     }

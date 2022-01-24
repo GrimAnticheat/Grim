@@ -60,7 +60,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
             player.compensatedFlying.setCanPlayerFly(abilities.isFlightAllowed());
             player.compensatedFlying.lagCompensatedIsFlyingMap.put(player.lastTransactionSent.get() + 1, abilities.isFlying());
 
-            event.setPostTask(player::sendTransaction);
+            event.getPostTasks().add(player::sendTransaction);
         }
     }
 }

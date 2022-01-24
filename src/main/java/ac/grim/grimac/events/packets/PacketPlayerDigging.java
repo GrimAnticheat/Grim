@@ -15,6 +15,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
@@ -38,7 +39,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
-            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.RELEASE_USE_ITEM) {
+            if (dig.getAction() == DiggingAction.RELEASE_USE_ITEM) {
                 player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 

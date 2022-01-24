@@ -32,6 +32,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -286,7 +287,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
-            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.FINISHED_DIGGING) {
+            if (dig.getAction() == DiggingAction.FINISHED_DIGGING) {
                 WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(dig.getBlockPosition());
                 // Not unbreakable
                 if (block.getType().getHardness() != -1.0f) {
@@ -294,7 +295,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.START_DIGGING) {
+            if (dig.getAction() == DiggingAction.START_DIGGING) {
                 // GET destroy speed
                 // Starts with itemstack get destroy speed
                 ItemStack tool = player.getInventory().getHeldItem();

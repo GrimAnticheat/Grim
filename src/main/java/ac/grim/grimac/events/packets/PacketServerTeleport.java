@@ -60,7 +60,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             player.sendTransaction();
             final int lastTransactionSent = player.lastTransactionSent.get();
-            event.setPostTask(player::sendTransaction);
+            event.getPostTasks().add(player::sendTransaction);
 
             // For some reason teleports on 1.7 servers are offset by 1.62?
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_8))
@@ -80,7 +80,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             int lastTransactionSent = player.lastTransactionSent.get();
             Vector3d finalPos = vehicleMove.getPosition();
 
-            event.setPostTask(player::sendTransaction);
+            event.getPostTasks().add(player::sendTransaction);
             player.vehicleData.vehicleTeleports.add(new Pair<>(lastTransactionSent, finalPos));
         }
     }

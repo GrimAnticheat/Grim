@@ -141,7 +141,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             });
 
                             // Yes, we do have to use a transaction for eating as otherwise it can desync much easier
-                            event.setPostTask(player::sendTransaction);
+                            event.getPostTasks().add(player::sendTransaction);
                         }
                     }
                 }

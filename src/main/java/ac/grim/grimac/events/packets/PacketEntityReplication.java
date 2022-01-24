@@ -106,7 +106,8 @@ public class PacketEntityReplication extends PacketCheck {
                 return;
             }
 
-            if (isDirectlyAffectingPlayer(player, effect.getEntityId())) event.setPostTask(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, effect.getEntityId()))
+                event.getPostTasks().add(player::sendTransaction);
 
             player.compensatedPotions.addPotionEffect(type, effect.getEffectAmplifier(), effect.getEntityId());
         }
@@ -117,7 +118,8 @@ public class PacketEntityReplication extends PacketCheck {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
 
-            if (isDirectlyAffectingPlayer(player, effect.getEntityId())) event.setPostTask(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, effect.getEntityId()))
+                event.getPostTasks().add(player::sendTransaction);
 
             player.compensatedPotions.removePotionEffect(effect.getPotionType(), effect.getEntityId());
         }
@@ -133,7 +135,7 @@ public class PacketEntityReplication extends PacketCheck {
             PacketEntity entity = player.compensatedEntities.getEntity(attributes.getEntityId());
 
             // The attributes for this entity is active, currently
-            if (isDirectlyAffectingPlayer(player, entityID)) event.setPostTask(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, entityID)) event.getPostTasks().add(player::sendTransaction);
 
             if (player.entityID == entityID || entity instanceof PacketEntityHorse || entity instanceof PacketEntityRideable) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1,

@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
@@ -106,7 +107,8 @@ public class CompensatedInventory extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
-            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.DROP_ITEM) {
+            if (dig.getAction() != DiggingAction.DROP_ITEM) {
+            } else {
                 ItemStack heldItem = getHeldItem();
                 if (heldItem != null) {
                     heldItem.setAmount(heldItem.getAmount() - 1);
@@ -117,7 +119,7 @@ public class CompensatedInventory extends PacketCheck {
                 inventory.setHeldItem(heldItem);
             }
 
-            if (dig.getAction() == WrapperPlayClientPlayerDigging.Action.DROP_ITEM_STACK) {
+            if (dig.getAction() == DiggingAction.DROP_ITEM_STACK) {
                 inventory.setHeldItem(null);
             }
         }
@@ -206,7 +208,7 @@ public class CompensatedInventory extends PacketCheck {
         // 1:1 MCP
         if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
             if (!isPacketInventoryActive) {
-                event.setPostTask(player.bukkitPlayer::updateInventory);
+                event.getPostTasks().add(player.bukkitPlayer::updateInventory);
             }
 
             // Disregard provided window ID, client doesn't care...
