@@ -42,7 +42,7 @@ public class MenuTypes {
             case 19: // smithing // TODO: Annoying similar to anvils with crafting recipes
             case 21: // cartographer - // TODO: onCraftedThing, which requires tags
             case 22: // stonecutter - // TODO: Not complete, more annoying recipes
-                return new NotImplementedMenu();
+                return new NotImplementedMenu(player, playerInventory);
         }
 
         return null;

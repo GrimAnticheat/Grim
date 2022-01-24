@@ -216,7 +216,6 @@ public class CompensatedInventory extends PacketCheck {
                 menu = inventory;
                 menu.setCarried(ItemStack.EMPTY); // Reset carried item
 
-                // Is this async safe to send? I actually don't know, but it likely is.
                 isPacketInventoryActive = true;
             });
         }
