@@ -255,6 +255,13 @@ public class PacketEntityReplication extends PacketCheck {
                 for (int entityID : vehicle.passengers) {
                     PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
 
+                    // Player was ejected from vehicle
+                    if (entityID == player.entityID) {
+                        player.vehicle = null;
+                        player.playerVehicle = null;
+                        player.inVehicle = false;
+                    }
+
                     if (passenger == null)
                         continue;
 
@@ -265,6 +272,14 @@ public class PacketEntityReplication extends PacketCheck {
             // Add the entities as vehicles
             for (int entityID : passengers) {
                 PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
+
+                // Player was added to vehicle
+                if (entityID == player.entityID) {
+                    player.vehicle = vehicleID;
+                    player.playerVehicle = vehicle;
+                    player.inVehicle = true;
+                }
+
                 if (passenger == null)
                     continue;
 
@@ -305,7 +320,7 @@ public class PacketEntityReplication extends PacketCheck {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(bukkitPlayer);
         if (player == null) return;
 
-        player.compensatedEntities.addEntity(entityID, type, position);
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.addEntity(entityID, type, position));
     }
 
     private boolean isDirectlyAffectingPlayer(GrimPlayer player, int entityID) {

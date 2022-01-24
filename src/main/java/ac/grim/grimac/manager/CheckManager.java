@@ -43,9 +43,6 @@ public class CheckManager {
                 .put(NoFallA.class, new NoFallA(player))
                 .put(TimerCheck.class, new TimerCheck(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
-                // This desync class causes too many desync's to be used in production, blocks missing on client side
-                // This has to be fixed with packet based block placing instead of spamming blocks to the player
-                //.put(AntiUseItemDesync.class, new AntiUseItemDesync(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()

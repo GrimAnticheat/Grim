@@ -91,6 +91,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void executeSetback() {
+        if (true) return;
         Vector setbackVel = new Vector();
 
         if (player.firstBreadKB != null) {
@@ -120,6 +121,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     private void blockMovementsUntilResync(Location position, float xRot, float yRot, Vector velocity, Integer vehicle) {
+        if (true) return;
         // Don't teleport cross world, it will break more than it fixes.
         if (position.getWorld() != player.bukkitPlayer.getWorld()) return;
 

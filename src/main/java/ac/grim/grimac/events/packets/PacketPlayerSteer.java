@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
@@ -37,14 +36,6 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 // Note for the movement check
                 player.vehicleData.lastDummy = true;
 
-                // Keep a reference of this just in case the next like sets this to null
-                PacketEntity vehicle = player.playerVehicle;
-
-                // Tick player vehicle after we update the packet entity state
-                player.lastVehicle = player.playerVehicle;
-                player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
-                player.inVehicle = player.playerVehicle != null;
-
                 // Update knockback and explosions after getting the vehicle
                 player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
                 player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
@@ -64,7 +55,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.lastY = player.y;
                 player.lastZ = player.z;
 
-                SimpleCollisionBox vehiclePos = vehicle.getPossibleCollisionBoxes();
+                SimpleCollisionBox vehiclePos = player.playerVehicle.getPossibleCollisionBoxes();
 
                 player.x = (vehiclePos.minX + vehiclePos.maxX) / 2;
                 player.y = (vehiclePos.minY + vehiclePos.maxY) / 2;

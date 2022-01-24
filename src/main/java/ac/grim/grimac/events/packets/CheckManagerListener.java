@@ -149,12 +149,15 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
                 (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         new Vector3d(player.x, player.y, player.z).equals(new Vector3d(x, y, z))) || player.inVehicle) {
-            // We will take the rotation though
-            player.lastXRot = player.xRot;
-            player.lastYRot = player.yRot;
 
-            player.xRot = yaw;
-            player.yRot = pitch;
+            if (!player.inVehicle) {
+                // We will take the rotation though
+                player.lastXRot = player.xRot;
+                player.lastYRot = player.yRot;
+
+                player.xRot = yaw;
+                player.yRot = pitch;
+            }
 
             float deltaXRot = player.xRot - player.lastXRot;
             float deltaYRot = player.yRot - player.lastYRot;
@@ -275,6 +278,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.x = clamp.getX();
             player.y = clamp.getY();
             player.z = clamp.getZ();
+
+            player.xRot = move.getYaw();
+            player.yRot = move.getPitch();
 
             final boolean isTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
             player.packetStateData.lastPacketWasTeleport = isTeleport;

@@ -293,6 +293,12 @@ public class PointThreeEstimator {
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
 
+        // Thankfully vehicles don't have 0.03
+        if (player.inVehicle) {
+            player.couldSkipTick = false;
+            return;
+        }
+
         if (isNearClimbable() || sneakyPointThree || isPushing) {
             player.couldSkipTick = true;
             return;

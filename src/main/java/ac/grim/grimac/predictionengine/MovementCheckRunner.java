@@ -137,10 +137,6 @@ public class MovementCheckRunner extends PositionCheck {
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickPlayerInPistonPushingArea();
 
-        // Tick player vehicle after we update the packet entity state
-        player.playerVehicle = player.vehicle == null ? null : player.compensatedEntities.getEntity(player.vehicle);
-        player.inVehicle = player.playerVehicle != null;
-
         // Update knockback and explosions after getting the vehicle
         player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
         player.likelyKB = player.checkManager.getKnockbackHandler().getRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
@@ -149,22 +145,27 @@ public class MovementCheckRunner extends PositionCheck {
         player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
 
         // The game's movement is glitchy when switching between vehicles
+        // This is due to mojang not telling us where the new vehicle's location is
+        // meaning the first move gets hidden... fucking beautiful
+        //
+        // Exiting vehicles does not suffer the same issue
+        // GOD DAMN IT MOJANG WHY DID YOU MAKE VEHICLES CLIENT SIDED IN 1.9?
+        // THIS IS MODERN CODE WHY IS IT SO BUGGY
         player.vehicleData.lastVehicleSwitch++;
-        if (player.lastVehicle != player.playerVehicle) {
+        if (player.lastVehicle != player.playerVehicle && player.playerVehicle != null) {
             player.vehicleData.lastVehicleSwitch = 0;
         }
         // It is also glitchy when switching between client vs server vehicle control
         if (player.vehicleData.lastDummy) {
             player.vehicleData.lastVehicleSwitch = 0;
         }
-        player.vehicleData.lastDummy = false;
 
         if (player.vehicleData.lastVehicleSwitch < 5) {
             player.checkManager.getExplosionHandler().forceExempt();
             player.checkManager.getKnockbackHandler().forceExempt();
         }
 
-        if (player.playerVehicle != player.lastVehicle) {
+        if (player.lastVehicle != player.playerVehicle || player.vehicleData.lastDummy) {
             update.setTeleport(true);
 
             if (player.playerVehicle != null) {
@@ -178,7 +179,13 @@ public class MovementCheckRunner extends PositionCheck {
                     player.getSetbackTeleportUtil().executeForceResync();
                 }
             }
+
+            player.lastX = player.x;
+            player.lastY = player.y;
+            player.lastZ = player.z;
+            player.clientVelocity = new Vector();
         }
+        player.vehicleData.lastDummy = false;
 
         player.lastVehicle = player.playerVehicle;
 
@@ -240,11 +247,6 @@ public class MovementCheckRunner extends PositionCheck {
                     }
                 } else {
                     control.rewardPlayer();
-                }
-
-                if (player.playerVehicle != player.lastVehicle) {
-                    // Hack with boostable ticking without us (why does it do this?)
-                    ((PacketEntityRideable) player.playerVehicle).currentBoostTime += 4;
                 }
             }
         }
@@ -365,7 +367,7 @@ public class MovementCheckRunner extends PositionCheck {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
             //
-            // TODO: Re-implement flying support
+            // TODO: Re-implement flying support, although LUNAR HAS FLYING CHEATS!!! HOW CAN I CHECK WHEN HALF THE PLAYER BASE IS USING CHEATS???
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Spectator);
             player.clientVelocity = player.actualMovement.clone();
             player.gravity = 0;
@@ -429,7 +431,7 @@ public class MovementCheckRunner extends PositionCheck {
             if (player.playerVehicle.type == EntityTypes.BOAT) {
                 new PlayerBaseTick(player).doBaseTick();
                 // Speed doesn't affect anything with boat movement
-                new BoatPredictionEngine(player).guessBestMovement(0, player);
+                new BoatPredictionEngine(player).guessBestMovement(0.1f, player);
             } else if (player.playerVehicle instanceof PacketEntityHorse) {
                 new PlayerBaseTick(player).doBaseTick();
                 new MovementTickerHorse(player).livingEntityAIStep();

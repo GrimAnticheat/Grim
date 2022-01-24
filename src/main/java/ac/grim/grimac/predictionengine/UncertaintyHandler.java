@@ -135,14 +135,14 @@ public class UncertaintyHandler {
         if (has003 && (player.isGliding || player.lastOnGround || player.specialFlying))
             pointThree = 0.0846;
 
-        if (player.vehicleData.lastVehicleSwitch < 6)
-            pointThree = 0.1;
-
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             pointThree = 0.15;
 
         if (lastThirtyMillionHardBorder > -3)
             pointThree = 0.15;
+
+        if (player.vehicleData.lastVehicleSwitch < 5)
+            pointThree = Math.max(pointThree, player.speed * 2);
 
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
             pointThree = Math.max(pointThree, player.speed * 1.6);
@@ -168,8 +168,8 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             return 0.06;
 
-        if (player.vehicleData.lastVehicleSwitch < 8)
-            return 0.06;
+        if (player.vehicleData.lastVehicleSwitch < 2)
+            return 0.1;
 
         // We don't know if the player was pressing jump or not
         if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))

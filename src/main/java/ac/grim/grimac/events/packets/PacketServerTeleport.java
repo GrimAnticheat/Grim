@@ -62,6 +62,16 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             final int lastTransactionSent = player.lastTransactionSent.get();
             event.getPostTasks().add(player::sendTransaction);
 
+            if (teleport.isDismountVehicle()) {
+                GrimPlayer finalPlayer = player;
+                // Remove player from vehicle
+                event.getPostTasks().add(() -> {
+                    finalPlayer.playerVehicle = null;
+                    finalPlayer.vehicle = null;
+                    finalPlayer.inVehicle = false;
+                });
+            }
+
             // For some reason teleports on 1.7 servers are offset by 1.62?
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_8))
                 pos.setY(pos.getY() - 1.62);
