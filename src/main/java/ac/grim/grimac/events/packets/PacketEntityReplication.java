@@ -241,6 +241,12 @@ public class PacketEntityReplication extends PacketCheck {
                     player.compensatedEntities.entityMap.remove(integer);
                     player.compensatedFireworks.removeFirework(integer);
                     player.compensatedPotions.removeEntity(integer);
+                    // Remove player vehicle if it despawns
+                    if (player.vehicle != null && player.vehicle == integer) {
+                        player.vehicle = null;
+                        player.playerVehicle = null;
+                        player.inVehicle = false;
+                    }
                 }
             });
         }

@@ -136,6 +136,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickPlayerInPistonPushingArea();
+        player.compensatedEntities.tick();
 
         // Update knockback and explosions after getting the vehicle
         player.firstBreadKB = player.checkManager.getKnockbackHandler().getFirstBreadOnlyKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());

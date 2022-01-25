@@ -32,6 +32,15 @@ public class CompensatedEntities {
         this.player = player;
     }
 
+    public void tick() {
+        for (PacketEntity vehicle : entityMap.values()) {
+            for (int passengerID : vehicle.passengers) {
+                PacketEntity passenger = player.compensatedEntities.getEntity(passengerID);
+                tickPassenger(vehicle, passenger);
+            }
+        }
+    }
+
     public void updateAttributes(int entityID, List<WrapperPlayServerEntityProperties.Property> objects) {
         if (entityID == player.entityID) {
             for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
