@@ -118,9 +118,9 @@ public class PredictionEngine {
         player.skippedTickInActualMovement = false;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
-            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
-            Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
+            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, player.actualMovement);
+            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, additionalPushMovement);
+            Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(backOff, player, false);
 
             Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
             // Check if this vector could ever possible beat the last vector in terms of accuracy
@@ -549,23 +549,23 @@ public class PredictionEngine {
         // Hack around pistons resetting player velocity
         if (player.uncertaintyHandler.pistonX != 0) {
             if (player.actualMovement.getX() > 0) {
-                max.setX(Math.min(min.getX(), 0));
+                max.setX(Math.max(max.getX(), 0));
             } else {
-                min.setX(Math.max(max.getX(), 0));
+                min.setX(Math.min(min.getX(), 0));
             }
         }
         if (player.uncertaintyHandler.pistonY != 0) {
             if (player.actualMovement.getY() > 0) {
-                max.setY(Math.min(min.getY(), 0));
+                max.setY(Math.max(max.getY(), 0));
             } else {
-                min.setY(Math.max(max.getY(), 0));
+                min.setY(Math.min(min.getY(), 0));
             }
         }
         if (player.uncertaintyHandler.pistonZ != 0) {
             if (player.actualMovement.getZ() > 0) {
-                max.setZ(Math.min(min.getZ(), 0));
+                max.setZ(Math.max(max.getZ(), 0));
             } else {
-                min.setZ(Math.max(max.getZ(), 0));
+                min.setZ(Math.min(min.getZ(), 0));
             }
         }
 
