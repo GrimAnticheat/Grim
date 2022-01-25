@@ -168,7 +168,7 @@ public class PointThreeEstimator {
     }
 
     public boolean controlsVerticalMovement() {
-        return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding;
+        return isNearFluid || isNearClimbable || isNearHorizontalFlowingLiquid || isNearVerticalFlowingLiquid || isNearBubbleColumn || isGliding || player.uncertaintyHandler.influencedByBouncyBlock();
     }
 
     public void updatePlayerPotions(PotionType potion, Integer level) {
@@ -320,14 +320,14 @@ public class PointThreeEstimator {
 
             // If this tick is the tick after y velocity was by 0, a stepping movement is POSSIBLE to have been hidden
             // A bit hacky... is there a better way?  I'm unsure...
-            boolean likelyStepSkip = (data.vector.getY() > -0.08 && data.vector.getY() < 0.03) || player.uncertaintyHandler.isSteppingOnSlime;
+            boolean likelyStepSkip = (data.vector.getY() > -0.08 && data.vector.getY() < 0.03) && couldStep;
 
             // We need to do hypot calculations for all 3 axis
             // sqrt(sqrt(x^2 + z^2)^2 + y^2) = hypot(x, z, y)
             double minHorizLength = Math.max(0, Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed);
             // If the player was last on the ground, then let's consider them to have not moved vertically
             // The world could have changed since the last tick causing a false
-            double length = Math.hypot(player.lastOnGround || (couldStep && likelyStepSkip) ? 0 : Math.abs(collisionResult.getY()), minHorizLength);
+            double length = Math.hypot(player.lastOnGround || (likelyStepSkip || controlsVerticalMovement()) ? 0 : Math.abs(collisionResult.getY()), minHorizLength);
 
             minimum = Math.min(minimum, length);
 

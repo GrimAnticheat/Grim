@@ -119,6 +119,10 @@ public class UncertaintyHandler {
         // 0.91 * 0.6 * 0.06 = 0.03276 + 0.03 offset
         double pointThree = has003 ? 0.06276 : 0;
 
+        if (special3 && !lastLastPacketWasGroundPacket && !lastPacketWasGroundPacket) {
+            pointThree = 0.03; // Pure offset position
+        }
+
         // 0.06 * 0.91 * 0.8 = max + 0.03 offset
         if (has003 && (influencedByBouncyBlock() || isSteppingOnHoney))
             pointThree = 0.07368;

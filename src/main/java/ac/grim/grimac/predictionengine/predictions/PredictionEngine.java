@@ -623,10 +623,13 @@ public class PredictionEngine {
 
         if (!player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1))) return false;
 
-        boolean canCollideHorizontally = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8).expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
+        SimpleCollisionBox oldBB = player.boundingBox;
+        player.boundingBox = player.boundingBox.copy().expand(-0.03, 0, -0.03);
+        double pointThreeToGround = Collisions.collide(player, 0, -0.01, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
+        player.boundingBox = oldBB;
 
-        return canCollideHorizontally;
+        return !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8).expand(
+                player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1

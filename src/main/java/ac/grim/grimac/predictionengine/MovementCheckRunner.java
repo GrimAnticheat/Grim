@@ -499,7 +499,11 @@ public class MovementCheckRunner extends PositionCheck {
             player.riptideSpinAttackTicks = 20;
 
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.skippedTickInActualMovement;
-        player.uncertaintyHandler.wasZeroPointThreeVertically = (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement()) || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain();
+        // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03
+        // Or some state of the player changed, so we can no longer predict this vertical movement
+        // Or gravity made the player enter 0.03 movement
+        player.uncertaintyHandler.wasZeroPointThreeVertically = (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement())
+                || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain();
 
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;
