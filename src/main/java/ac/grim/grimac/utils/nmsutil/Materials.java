@@ -217,14 +217,14 @@ public class Materials {
         return (boolean) state.getInternalData().getOrDefault(StateValue.WATERLOGGED, false);
     }
 
-    public static boolean isPlaceableLiquidBucket(ItemType mat) {
+    public static boolean isPlaceableWaterBucket(ItemType mat) {
         return mat == ItemTypes.AXOLOTL_BUCKET || mat == ItemTypes.COD_BUCKET || mat == ItemTypes.PUFFERFISH_BUCKET
                 || mat == ItemTypes.SALMON_BUCKET || mat == ItemTypes.TROPICAL_FISH_BUCKET || mat == ItemTypes.WATER_BUCKET;
     }
 
     public static StateType transformBucketMaterial(ItemType mat) {
         if (mat == ItemTypes.LAVA_BUCKET) return StateTypes.LAVA;
-        if (isPlaceableLiquidBucket(mat)) return StateTypes.WATER;
+        if (isPlaceableWaterBucket(mat)) return StateTypes.WATER;
         return null;
     }
 

@@ -537,7 +537,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             StateType toBucketMat = Materials.transformBucketMaterial(placedWith.getType());
             if (toBucketMat != null) {
-                placeWaterLavaSnowBucket(player, toBucketMat, place.getHand());
+                placeWaterLavaSnowBucket(player, placedWith, toBucketMat, place.getHand());
             }
 
             if (placedWith.getType() == ItemTypes.BUCKET) {
@@ -567,22 +567,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private static void placeWaterLavaSnowBucket(GrimPlayer player, StateType toPlace, InteractionHand hand) {
+    private static void placeWaterLavaSnowBucket(GrimPlayer player, ItemStack held, StateType toPlace, InteractionHand hand) {
         HitData data = getNearestHitResult(player, StateTypes.AIR, false);
         if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), ItemStack.AIR, data);
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), held, data);
 
             boolean didPlace = false;
 
             // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
             // If we hit a waterloggable block, then the bucket is directly placed
             // Otherwise, use the face to determine where to place the bucket
-            if (Materials.isPlaceableLiquidBucket(blockPlace.getItemStack().getType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+            if (Materials.isPlaceableWaterBucket(blockPlace.getItemStack().getType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 blockPlace.setReplaceClicked(true); // See what's in the existing place
                 WrappedBlockState existing = blockPlace.getExistingBlockData();
                 if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) {
-                    existing.setWaterlogged(true);
-                    blockPlace.set(existing);
+                    // Strangely, the client does not predict waterlogged placements
                     didPlace = true;
                 }
             }
