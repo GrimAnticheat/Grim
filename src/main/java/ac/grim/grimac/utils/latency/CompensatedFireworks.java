@@ -22,7 +22,10 @@ public class CompensatedFireworks extends PostPredictionCheck {
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // Remove all the fireworks that were removed in the last tick
-        activeFireworks.removeAll(fireworksToRemoveNextTick);
+        // Remember to remove with an int not an Integer
+        for (int i : fireworksToRemoveNextTick) {
+            activeFireworks.remove(i);
+        }
         fireworksToRemoveNextTick.clear();
     }
 
