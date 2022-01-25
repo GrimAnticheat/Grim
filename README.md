@@ -1,9 +1,9 @@
 # GrimAC
 
-**Currently too unstable to use in production.  Work is being done on a partial rewrite to simplify the code, run block place/break/interact logic at the packet level, and to rewrite handling core netcode issues such as tick skipping and 0.03.  No ETA on completion for this partial rewrite, it will be pushed when the partial rewrite is complete.**
+**Currently too unstable to use in production.  Work is being done on a partial rewrite to simplify the code, run block place/break/interact logic at the packet level, and to rewrite handling core netcode issues such as tick skipping and 0.03.  No ETA on completion for this partial rewrite, it will be pushed when the partial rewrite is complete. The rewrite also only supports 1.18 currently.**
 
 
-GrimAC is an open source anticheat designed for 1.17 and supporting 1.7-1.17. It will be sold for $15 on SpigotMC and
+GrimAC is an open source anticheat designed for 1.17 and supporting 1.7-1.18. It will be sold for $15 on SpigotMC and
 other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats.
 
 **Discord:** https://discord.gg/FNRrcGAybJ
