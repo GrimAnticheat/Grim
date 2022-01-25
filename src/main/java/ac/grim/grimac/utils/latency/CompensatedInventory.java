@@ -62,35 +62,41 @@ public class CompensatedInventory extends PacketCheck {
     }
 
     public ItemStack getHeldItem() {
-        return isPacketInventoryActive ? inventory.getHeldItem() :
+        ItemStack item = isPacketInventoryActive ? inventory.getHeldItem() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInHand());
+        return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getOffHand() {
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
             return ItemStack.EMPTY;
-        return isPacketInventoryActive ? inventory.getOffhand() :
+        ItemStack item = isPacketInventoryActive ? inventory.getOffhand() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInOffHand());
+        return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getHelmet() {
-        return isPacketInventoryActive ? inventory.getHelmet() :
+        ItemStack item = isPacketInventoryActive ? inventory.getHelmet() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getHelmet());
+        return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getChestplate() {
-        return isPacketInventoryActive ? inventory.getChestplate() :
+        ItemStack item = isPacketInventoryActive ? inventory.getChestplate() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getChestplate());
+        return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getLeggings() {
-        return isPacketInventoryActive ? inventory.getLeggings() :
+        ItemStack item = isPacketInventoryActive ? inventory.getLeggings() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getLeggings());
+        return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getBoots() {
-        return isPacketInventoryActive ? inventory.getBoots() :
+        ItemStack item = isPacketInventoryActive ? inventory.getBoots() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getBoots());
+        return item == null ? ItemStack.EMPTY : item;
     }
 
     public boolean hasItemType(ItemType type) {
@@ -98,7 +104,8 @@ public class CompensatedInventory extends PacketCheck {
 
         // Fall back to bukkit inventories
         for (org.bukkit.inventory.ItemStack item : player.bukkitPlayer.getInventory().getContents()) {
-            if (SpigotDataHelper.fromBukkitItemStack(item).getType() == type) return true;
+            ItemStack itemStack = SpigotDataHelper.fromBukkitItemStack(item);
+            if (itemStack != null && itemStack.getType() == type) return true;
         }
         return false;
     }
