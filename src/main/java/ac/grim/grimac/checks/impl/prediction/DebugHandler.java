@@ -30,22 +30,17 @@ public class DebugHandler extends PostPredictionCheck {
         // No one is listening to this debug
         if (listeners.isEmpty() && !outputToConsole) return;
 
-        ChatColor color;
-        if (offset <= 0) {
-            color = ChatColor.GRAY;
-        } else if (offset < 0.0001) {
-            color = ChatColor.GREEN;
-        } else if (offset < 0.01) {
-            color = ChatColor.YELLOW;
-        } else {
-            color = ChatColor.RED;
-        }
+        ChatColor color = pickColor(offset);
 
         Vector predicted = player.predictedVelocity.vector;
         Vector actually = player.actualMovement;
 
-        String p = color + "P: " + predicted.getX() + " " + predicted.getY() + " " + predicted.getZ();
-        String a = color + "A: " + actually.getX() + " " + actually.getY() + " " + actually.getZ();
+        ChatColor xColor = pickColor(Math.abs(predicted.getX() - actually.getX()));
+        ChatColor yColor = pickColor(Math.abs(predicted.getY() - actually.getY()));
+        ChatColor zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()));
+
+        String p = color + "P: " + xColor + predicted.getX() + " " + yColor + predicted.getY() + " " + zColor + predicted.getZ();
+        String a = color + "A: " + xColor + actually.getX() + " " + yColor + actually.getY() + " " + zColor + actually.getZ();
         String canSkipTick = (player.couldSkipTick + " ").substring(0, 1);
         String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
         String o = ChatColor.GRAY + "" + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
@@ -67,6 +62,18 @@ public class DebugHandler extends PostPredictionCheck {
             LogUtil.info(prefix + a);
             LogUtil.info(prefix + o);
             LogUtil.info(prefix + player.vehicleData.lastVehicleSwitch);
+        }
+    }
+
+    private ChatColor pickColor(double offset) {
+        if (offset <= 0) {
+            return ChatColor.GRAY;
+        } else if (offset < 0.0001) {
+            return ChatColor.GREEN;
+        } else if (offset < 0.01) {
+            return ChatColor.YELLOW;
+        } else {
+            return ChatColor.RED;
         }
     }
 
