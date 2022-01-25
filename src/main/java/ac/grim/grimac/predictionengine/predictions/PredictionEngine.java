@@ -542,9 +542,37 @@ public class PredictionEngine {
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX + avgColliding * 0.075, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ + avgColliding * 0.075);
-        return VectorUtils.cutBoxToVector(player.actualMovement,
-                vector.clone().add(uncertainty.clone().multiply(-1)).add(new Vector(0, player.uncertaintyHandler.onGroundUncertain ? -0.03 : 0, 0)),
-                vector.clone().add(uncertainty));
+
+        Vector min = vector.clone().add(new Vector(0, player.uncertaintyHandler.onGroundUncertain ? -0.03 : 0, 0));
+        Vector max = vector.clone();
+
+        // Hack around pistons resetting player velocity
+        if (player.uncertaintyHandler.pistonX != 0) {
+            if (player.actualMovement.getX() > 0) {
+                max.setX(Math.min(min.getX(), 0));
+            } else {
+                min.setX(Math.max(max.getX(), 0));
+            }
+        }
+        if (player.uncertaintyHandler.pistonY != 0) {
+            if (player.actualMovement.getY() > 0) {
+                max.setY(Math.min(min.getY(), 0));
+            } else {
+                min.setY(Math.max(max.getY(), 0));
+            }
+        }
+        if (player.uncertaintyHandler.pistonZ != 0) {
+            if (player.actualMovement.getZ() > 0) {
+                max.setZ(Math.min(min.getZ(), 0));
+            } else {
+                min.setZ(Math.max(max.getZ(), 0));
+            }
+        }
+
+        min.subtract(uncertainty);
+        max.add(uncertainty);
+
+        return VectorUtils.cutBoxToVector(player.actualMovement, min, max);
     }
 
     public void endOfTick(GrimPlayer player, double d, float friction) {
