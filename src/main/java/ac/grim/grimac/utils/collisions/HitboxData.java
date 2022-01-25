@@ -91,16 +91,14 @@ public enum HitboxData {
     FENCE((player, item, version, data, x, y, z) -> {
         WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
 
-        ComplexCollisionBox collisionData = (ComplexCollisionBox) CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state, x, y, z);
-
         List<SimpleCollisionBox> boxes = new ArrayList<>();
-        collisionData.downCast(boxes);
+        CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state, x, y, z).downCast(boxes);
 
         for (SimpleCollisionBox box : boxes) {
             box.maxY = 1;
         }
 
-        return collisionData;
+        return new ComplexCollisionBox(boxes.toArray(new SimpleCollisionBox[0]));
     }, BlockTags.FENCES.getStates().toArray(new StateType[0])),
 
     WALL((player, item, version, data, x, y, z) -> {
