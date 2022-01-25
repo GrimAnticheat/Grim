@@ -90,7 +90,6 @@ public class GrimPlayer {
     public boolean isCrouching;
     public boolean isSprinting;
     public boolean lastSprinting;
-    public AlmostBoolean isUsingItem;
     public boolean isFlying;
     public boolean wasFlying;
     // If a player collides with the ground, their flying will be set false after their movement

@@ -50,7 +50,7 @@ public class PredictionEngine {
             bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
         }
 
-        if (player.isUsingItem == AlmostBoolean.TRUE || player.isUsingItem == AlmostBoolean.MAYBE) {
+        if (player.packetStateData.slowedByUsingItem == AlmostBoolean.TRUE || player.packetStateData.slowedByUsingItem == AlmostBoolean.MAYBE) {
             bestPossibleX *= 0.2F;
             bestPossibleZ *= 0.2F;
         }
@@ -189,7 +189,7 @@ public class PredictionEngine {
             // Whatever, if someone uses phase or something they will get caught by everything else...
             // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
             // As not flipping item is preferred... it gets ran before any other options
-            if (player.isUsingItem == AlmostBoolean.TRUE && !clientVelAfterInput.isFlipItem()) {
+            if (player.packetStateData.slowedByUsingItem == AlmostBoolean.TRUE && !clientVelAfterInput.isFlipItem()) {
                 player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
             }
 
@@ -559,7 +559,7 @@ public class PredictionEngine {
         // Probably as a way to tell the server it is swimming
         int zMin = player.isSprinting && !player.isSwimming ? 1 : -1;
 
-        AlmostBoolean usingItem = player.isUsingItem;
+        AlmostBoolean usingItem = player.packetStateData.slowedByUsingItem;
 
         for (int loopSlowed = 0; loopSlowed <= 1; loopSlowed++) {
             // Loop twice for the using item status if the player is using a trident
@@ -585,14 +585,14 @@ public class PredictionEngine {
                     }
                 }
 
-                player.isUsingItem = AlmostBoolean.FALSE;
+                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
             }
             // TODO: Secure this (maybe timer for 0.03 movement where each skip is 100 ms?)
             player.isSlowMovement = !player.isSlowMovement;
         }
 
         player.isSlowMovement = !player.isSlowMovement;
-        player.isUsingItem = usingItem;
+        player.packetStateData.slowedByUsingItem = usingItem;
     }
 
     public boolean canSwimHop(GrimPlayer player) {

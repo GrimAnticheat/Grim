@@ -17,10 +17,9 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
-import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 
@@ -74,8 +73,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             player.packetStateData.lastSlotSelected = slot.getSlot();
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
-            WrapperPlayClientPlayerBlockPlacement place = new WrapperPlayClientPlayerBlockPlacement(event);
+        if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
+            WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
             if (player == null) return;
@@ -85,8 +84,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 return;
 
             // This was an interaction with a block, not a use item
-            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)
-                    && place.getFace() != BlockFace.OTHER)
+            // TODO: What is 1.8 doing with packets?  I think it's BLOCK_PLACE not USE_ITEM
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
                 return;
 
             player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
