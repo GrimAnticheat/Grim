@@ -16,7 +16,10 @@
 package ac.grim.grimac.utils.data;
 
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 
 // You may not copy the check unless you are licensed under GPL
 public class ReachInterpolationData {
@@ -24,19 +27,25 @@ public class ReachInterpolationData {
     private SimpleCollisionBox startingLocation;
     private int interpolationStepsLowBound = 0;
     private int interpolationStepsHighBound = 0;
+    private boolean isBoat;
 
-    public ReachInterpolationData(SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine) {
+    public ReachInterpolationData(SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine, PacketEntity entity) {
         this.startingLocation = startingLocation;
-        this.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8);
-        if (isPointNine) interpolationStepsHighBound = 3;
+        this.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, BoundingBoxSize.getWidth(entity), BoundingBoxSize.getHeight(entity));
+        this.isBoat = entity.type == EntityTypes.BOAT;
+        if (isPointNine) interpolationStepsHighBound = getInterpolationSteps();
     }
 
     // While riding entities, there is no interpolation.
     public ReachInterpolationData(SimpleCollisionBox finishedLoc) {
         this.startingLocation = finishedLoc;
         this.targetLocation = finishedLoc;
-        interpolationStepsLowBound = 3;
-        interpolationStepsHighBound = 3;
+        interpolationStepsLowBound = getInterpolationSteps();
+        interpolationStepsHighBound = getInterpolationSteps();
+    }
+
+    private int getInterpolationSteps() {
+        return isBoat ? 10 : 3;
     }
 
     public static SimpleCollisionBox combineCollisionBox(SimpleCollisionBox one, SimpleCollisionBox two) {
@@ -55,12 +64,14 @@ public class ReachInterpolationData {
     //
     // Designed around being unsure of minimum interp, maximum interp, and target location on 1.9 clients
     public SimpleCollisionBox getPossibleLocationCombined() {
-        double stepMinX = (targetLocation.minX - startingLocation.minX) / 3;
-        double stepMaxX = (targetLocation.maxX - startingLocation.maxX) / 3;
-        double stepMinY = (targetLocation.minY - startingLocation.minY) / 3;
-        double stepMaxY = (targetLocation.maxY - startingLocation.maxY) / 3;
-        double stepMinZ = (targetLocation.minZ - startingLocation.minZ) / 3;
-        double stepMaxZ = (targetLocation.maxZ - startingLocation.maxZ) / 3;
+        int interpSteps = getInterpolationSteps();
+
+        double stepMinX = (targetLocation.minX - startingLocation.minX) / interpSteps;
+        double stepMaxX = (targetLocation.maxX - startingLocation.maxX) / interpSteps;
+        double stepMinY = (targetLocation.minY - startingLocation.minY) / interpSteps;
+        double stepMaxY = (targetLocation.maxY - startingLocation.maxY) / interpSteps;
+        double stepMinZ = (targetLocation.minZ - startingLocation.minZ) / interpSteps;
+        double stepMaxZ = (targetLocation.maxZ - startingLocation.maxZ) / interpSteps;
 
         SimpleCollisionBox minimumInterpLocation = new SimpleCollisionBox(
                 startingLocation.minX + (interpolationStepsLowBound * stepMinX),
@@ -91,8 +102,8 @@ public class ReachInterpolationData {
 
     public void tickMovement(boolean incrementLowBound) {
         if (incrementLowBound)
-            this.interpolationStepsLowBound = Math.min(interpolationStepsLowBound + 1, 3);
-        this.interpolationStepsHighBound = Math.min(interpolationStepsHighBound + 1, 3);
+            this.interpolationStepsLowBound = Math.min(interpolationStepsLowBound + 1, getInterpolationSteps());
+        this.interpolationStepsHighBound = Math.min(interpolationStepsHighBound + 1, getInterpolationSteps());
     }
 
     @Override

@@ -24,6 +24,7 @@ import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -111,6 +112,9 @@ public class Reach extends PacketCheck {
         Integer attackQueue = playerAttackQueue.poll();
         while (attackQueue != null) {
             PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attackQueue);
+
+            if (reachEntity == null) return;
+
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
             // 1.9 -> 1.8 precision loss in packets
@@ -175,14 +179,16 @@ public class Reach extends PacketCheck {
                 }
             }
 
-            if (minDistance == Double.MAX_VALUE) {
-                increaseViolations();
-                alert("Missed hitbox", "Reach", formatViolations());
-            } else if (minDistance > maxReach) {
-                increaseViolations();
-                alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
-            } else {
-                reward();
+            if (reachEntity.type != EntityTypes.BOAT) { // boats are too glitchy to consider
+                if (minDistance == Double.MAX_VALUE) {
+                    increaseViolations();
+                    alert("Missed hitbox", "Reach", formatViolations());
+                } else if (minDistance > maxReach) {
+                    increaseViolations();
+                    alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
+                } else {
+                    reward();
+                }
             }
 
             attackQueue = playerAttackQueue.poll();

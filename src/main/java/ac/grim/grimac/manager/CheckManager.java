@@ -63,7 +63,7 @@ public class CheckManager {
                 .put(EntityControl.class, new EntityControl(player))
                 .put(NoSlow.class, new NoSlow(player))
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
-                .put(CompensatedFireworks.class, new CompensatedFireworks(player))
+                .put(CompensatedFireworks.class, player.compensatedFireworks)
                 .build();
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
