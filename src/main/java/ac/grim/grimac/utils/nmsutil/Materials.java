@@ -86,6 +86,7 @@ public class Materials {
         CLIENT_SIDE.addAll(BlockTags.SIGNS.getStates());
         CLIENT_SIDE.addAll(BlockTags.FLOWER_POTS.getStates());
         CLIENT_SIDE.addAll(BlockTags.TRAPDOORS.getStates());
+        CLIENT_SIDE.addAll(BlockTags.DOORS.getStates());
 
         PANES.addAll(BlockTags.GLASS_PANES.getStates());
         PANES.add(StateTypes.IRON_BARS);
