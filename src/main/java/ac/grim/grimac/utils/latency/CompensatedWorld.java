@@ -113,6 +113,8 @@ public class CompensatedWorld {
                     otherDoor.setOpen(!otherDoor.isOpen());
                     player.compensatedWorld.updateBlock(blockX, blockY + (data.getHalf() == Half.BOTTOM ? 1 : -1), blockZ, otherDoor.getGlobalId());
                 }
+                data.setOpen(!data.isOpen());
+                player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
             } else {
                 // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
                 if (otherDoor.getType() == data.getType()) {
