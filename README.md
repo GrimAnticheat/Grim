@@ -1,9 +1,10 @@
 # GrimAC
 
-**Currently too unstable to use in production.  Work is being done on a partial rewrite to simplify the code, run block place/break/interact logic at the packet level, and to rewrite handling core netcode issues such as tick skipping and 0.03.  No ETA on completion for this partial rewrite, it will be pushed when the partial rewrite is complete.**
+**Currently too unstable to use in production.  A partial rewrite has been completed and pushed as of Jan 24 2022.  Frequent commits will attempt to make this anticheat stable.  1.18.1 only for now, will be backported back to 1.7 eventually.**
 
+**Test server with bufferless alerts: 140.238.146.134**
 
-GrimAC is an open source anticheat designed for 1.17 and supporting 1.7-1.17. It will be sold for $15 on SpigotMC and
+GrimAC is an open source anticheat designed for 1.18 and supporting 1.7-1.18. It will be sold for somewhere between $15 and $25 on SpigotMC and
 other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats.
 
 **Discord:** https://discord.gg/FNRrcGAybJ
@@ -12,7 +13,7 @@ other various websites, without obfuscation, DRM, subscriptions, or other nonsen
 
 Here are the main cores that make grim stand out against other anticheats
 
-### Prediction Engine
+### Movement Simulation Engine
 
 * We have a 1:1 replication of the player's possible movements
 * This covers everything from basic walking, swimming, knockback, cobwebs, to bubble columns
@@ -32,7 +33,7 @@ Here are the main cores that make grim stand out against other anticheats
 
 ### Fully asynchronous and multithreaded design
 
-* All movement checks are run off the main thread and netty thread
+* All movement checks and the overwhelming majority of listeners are run on the netty thread
 * The anticheat can scale to many hundreds of players, if not more
 * Thread safety is carefully thought out
 * The next core allows for this design
@@ -40,18 +41,23 @@ Here are the main cores that make grim stand out against other anticheats
 ### Full world replication
 
 * The anticheat keeps a replica of the world for each player
-* The replica is created by listening to chunk data packets and block changes
+* The replica is created by listening to chunk data packets, block places, and block changes
 * On all versions, chunks are compressed to 16-64 kb per chunk using palettes
 * Using this cache, the anticheat can safety access the world state
 * Per player cache allows for multithreaded design
 * Sending players fake blocks with packets is safe and does not lead to falses
 * The world is recreated for each player to allow lag compensation
+* Client sided blocks cause no issues with packet based blocks.  Block glitching does not false the anticheat.
 
 ### Latency compensation
 
 * World changes are queue'd until they reach the player
 * This means breaking blocks under a player does not false the anticheat
 * Everything from flying status to movement speed will be latency compensated
+
+### Inventory compensation
+
+* The player's inventory is tracked to prevent ghost blocks at high latency, and other errors
 
 ### Secure by design, not obscurity
 
