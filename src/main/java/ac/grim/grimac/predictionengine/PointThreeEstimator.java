@@ -128,6 +128,11 @@ public class PointThreeEstimator {
             headHitter = true;
         }
 
+        // Calculate for stuck speed
+        if (state.getType() == StateTypes.COBWEB && normalBox.copy().expand(0.03).isIntersected(data)) {
+            player.uncertaintyHandler.lastStuckEast = 0; // Activate stuck speed hack
+        }
+
         SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66, 1.86);
         if (Materials.isWater(player.getClientVersion(), state) || state.getType() == StateTypes.LAVA &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
@@ -310,7 +315,7 @@ public class PointThreeEstimator {
             return;
         }
 
-        if (isNearClimbable() || sneakyPointThree || isPushing) {
+        if (isNearClimbable() || sneakyPointThree || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
             player.couldSkipTick = true;
             return;
         }
