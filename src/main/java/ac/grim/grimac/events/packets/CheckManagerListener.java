@@ -255,10 +255,24 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
             WrapperPlayClientPlayerPosition wrapper = new WrapperPlayClientPlayerPosition(event);
             Vector3d pos = wrapper.getPosition();
+
+            // Usually we would ban here but FastMath causes NaN's to be sent, thanks Optifine
+            if (Double.isNaN(pos.getX()) || Double.isNaN(pos.getY()) || Double.isNaN(pos.getZ())) {
+                event.setCancelled(true);
+                return;
+            }
+
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), 0, 0, true, false, wrapper.isOnGround(), event);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
             WrapperPlayClientPlayerPositionAndRotation wrapper = new WrapperPlayClientPlayerPositionAndRotation(event);
             Vector3d pos = wrapper.getPosition();
+
+            // Usually we would ban here but FastMath causes NaN's to be sent, thanks Optifine
+            if (Double.isNaN(pos.getX()) || Double.isNaN(pos.getY()) || Double.isNaN(pos.getZ())) {
+                event.setCancelled(true);
+                return;
+            }
+
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), wrapper.getYaw(), wrapper.getPitch(), true, true, wrapper.isOnGround(), event);
         } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
             WrapperPlayClientPlayerRotation wrapper = new WrapperPlayClientPlayerRotation(event);
