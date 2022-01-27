@@ -113,22 +113,20 @@ public class PredictionEngine {
 
         VectorData bestCollisionVel = null;
         Vector beforeCollisionMovement = null;
-        Vector originalClientVel = player.clientVelocity;
+        Vector originalClientVel = player.clientVelocity.clone();
 
         player.skippedTickInActualMovement = false;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, player.actualMovement);
-            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, additionalPushMovement);
-            Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(backOff, player, false);
+            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
+            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
+            Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
 
             Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
             // Check if this vector could ever possible beat the last vector in terms of accuracy
+            // This is quite a good optimization :)
             if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
                 continue;
-
-            // We already found a good input.
-            if (bestInput < 0.00001 * 0.00001) continue;
 
             // TODO: Remove this expansion
             double xAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
@@ -205,7 +203,7 @@ public class PredictionEngine {
             }
 
             // Close enough, there's no reason to continue our predictions.
-            if (player.skippedTickInActualMovement && bestInput < 1e-5 * 1e-5) {
+            if (bestInput < 1e-5 * 1e-5) {
                 break;
             }
         }
@@ -214,6 +212,11 @@ public class PredictionEngine {
 
         player.clientVelocity = beforeCollisionMovement.clone();
         player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
+
+        // If the closest vector is 0.03, consider it 0.03.
+        if (player.predictedVelocity.isZeroPointZeroThree()) {
+            player.skippedTickInActualMovement = true;
+        }
     }
 
     // 0.03 has some quite bad interactions with velocity + explosions (one extremely stupid line of code... thanks mojang)
@@ -523,13 +526,18 @@ public class PredictionEngine {
         if (player.actualMovement.getY() >= 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
             double slimeBlockBounce = Math.max(Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(0)), Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(1)));
             if (slimeBlockBounce != 0) {
-                slimeBlockBounce = Math.min(0.0125, slimeBlockBounce);
                 if (slimeBlockBounce > maxVector.getY()) maxVector.setY(slimeBlockBounce);
                 if (minVector.getY() > 0) minVector.setY(0);
             }
         }
 
-        return VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
+        Vector cut = VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
+
+        if (player.clientControlledVerticalCollision && player.actualMovement.getY() > 0 && !vector.isZeroPointZeroThree()) {
+            cut.setY(vector.vector.getY()); // Likely stepping movement, avoid changing 0.03 related movement
+        }
+
+        return cut;
     }
 
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {

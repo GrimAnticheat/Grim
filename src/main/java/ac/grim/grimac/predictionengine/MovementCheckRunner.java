@@ -449,6 +449,11 @@ public class MovementCheckRunner extends PositionCheck {
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
+        double off = player.predictedVelocity.vector.distance(player.actualMovement);
+        if (off > 0.001) {
+            System.out.println("Uncertain!");
+        }
+
         player.lastOnGround = player.onGround;
         player.lastSprinting = player.isSprinting;
         player.wasFlying = player.isFlying;
@@ -500,6 +505,7 @@ public class MovementCheckRunner extends PositionCheck {
             player.riptideSpinAttackTicks = 20;
 
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.skippedTickInActualMovement;
+        player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = (player.couldSkipTick && player.predictedVelocity.isKnockback()) || player.predictedVelocity.isSwimHop() || player.predictedVelocity.isTrident();
         // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03
         // Or some state of the player changed, so we can no longer predict this vertical movement
         // Or gravity made the player enter 0.03 movement

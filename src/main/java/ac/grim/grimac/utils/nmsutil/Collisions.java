@@ -63,7 +63,7 @@ public class Collisions {
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
             // 0.03 movement must compensate for stepping elsewhere.  Too much of a hack to include in this method.
-            boolean movingIntoGround = (player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0))) || player.pointThreeEstimator.closeEnoughToGroundToStepWithPointThree(data);
+            boolean movingIntoGround = (player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0))) || player.pointThreeEstimator.closeEnoughToGroundToStepWithPointThree(data, clientVelY);
             double stepUpHeight = player.getMaxUpStep();
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up

@@ -61,7 +61,7 @@ public class DebugHandler extends PostPredictionCheck {
             LogUtil.info(prefix + p);
             LogUtil.info(prefix + a);
             LogUtil.info(prefix + o);
-            LogUtil.info(prefix + player.packetStateData.slowedByUsingItem);
+            LogUtil.info(prefix + player.xRot);
         }
     }
 

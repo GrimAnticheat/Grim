@@ -39,7 +39,7 @@ public class UncertaintyHandler {
     public double yPositiveUncertainty = 0;
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasZeroPointThreeVertically = false;
-    public EvictingList<Double> slimeBlockUpwardsUncertainty = new EvictingList<>(2);
+    public EvictingList<Double> slimeBlockUpwardsUncertainty = new EvictingList<>(3);
     // The player landed while jumping but without new position information because of 0.03
     public boolean onGroundUncertain = false;
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
@@ -68,6 +68,8 @@ public class UncertaintyHandler {
     public boolean lastTickWasNearGroundZeroPointZeroThree = false;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = false;
+    // Give horizontal lenience if the last movement reset velocity because 0.03 becomes unknown then
+    public boolean lastMovementWasUnknown003VectorReset = false;
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
@@ -113,30 +115,31 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
-        boolean special3 = data.isZeroPointZeroThree() || (player.couldSkipTick && data.isKnockback()) || data.isSwimHop() || data.isTrident();
-        boolean has003 = lastMovementWasZeroPointZeroThree || special3;
+        boolean newVectorPointThree = (player.couldSkipTick && data.isKnockback()) || data.isSwimHop() || data.isTrident();
+        boolean explicit003 = data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree;
+        boolean either003 = newVectorPointThree || explicit003;
+
+        double pointThree = newVectorPointThree || lastMovementWasUnknown003VectorReset ? 0.03 : 0;
 
         // 0.91 * 0.6 * 0.06 = 0.03276 + 0.03 offset
-        double pointThree = has003 ? 0.06276 : 0;
-
-        if (special3 && !lastLastPacketWasGroundPacket && !lastPacketWasGroundPacket) {
-            pointThree = 0.03; // Pure offset position
+        if (explicit003) {
+            pointThree = 0.06276;
         }
 
         // 0.06 * 0.91 * 0.8 = max + 0.03 offset
-        if (has003 && (influencedByBouncyBlock() || isSteppingOnHoney))
+        if (either003 && (influencedByBouncyBlock() || isSteppingOnHoney))
             pointThree = 0.07368;
 
         // 0.06 * 0.91 * 0.989 = max + 0.03 offset
-        if (has003 && isSteppingOnIce)
+        if (either003 && isSteppingOnIce)
             pointThree = 0.084;
 
         // Reduce second tick uncertainty by minimum friction amount
-        if (!special3 && has003)
+        if (!newVectorPointThree && either003)
             pointThree *= 0.91 * 0.989;
 
         // 0.06 * 0.91 = max + 0.03 offset
-        if (has003 && (player.isGliding || player.lastOnGround || player.specialFlying))
+        if (either003 && (player.isGliding || player.lastOnGround || player.specialFlying))
             pointThree = 0.0846;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)

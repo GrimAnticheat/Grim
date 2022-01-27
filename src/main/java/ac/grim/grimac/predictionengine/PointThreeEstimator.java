@@ -256,7 +256,7 @@ public class PointThreeEstimator {
         }
     }
 
-    public boolean closeEnoughToGroundToStepWithPointThree(VectorData data) {
+    public boolean closeEnoughToGroundToStepWithPointThree(VectorData data, double originalY) {
         // This is intensive, only run it if we need it... compensate for stepping with 0.03
         //
         // This is technically wrong
@@ -273,25 +273,36 @@ public class PointThreeEstimator {
         //
         // I give up.
         if (player.clientControlledVerticalCollision && data != null && data.isZeroPointZeroThree()) {
-            return checkForGround();
+            return checkForGround(originalY);
         }
 
         return false;
     }
 
-    private boolean checkForGround() {
+    private boolean checkForGround(double y) {
         SimpleCollisionBox playerBox = player.boundingBox;
         player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, 0.03, 0);
         // 0.16 magic value -> 0.03 plus gravity, plus some additional lenience
-        Vector collisionResult = Collisions.collide(player, 0, -0.2, 0);
+        double searchDistance = -0.2 + Math.min(0, y);
+        Vector collisionResult = Collisions.collide(player, 0, searchDistance, 0);
         player.boundingBox = playerBox;
-        return collisionResult.getY() != -0.2;
+        return collisionResult.getY() != searchDistance;
     }
 
     // This method can be improved by using the actual movement to see if 0.03 was feasible...
     public void determineCanSkipTick(float speed, Set<VectorData> init) {
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
+
+        if (player.uncertaintyHandler.influencedByBouncyBlock()) {
+            for (VectorData data : init) {
+                // Try to get the vector as close to zero as possible to give the best chance at 0.03...
+                Vector toZeroVec = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(0, -1000000000, 0)); // Downwards without overflow risk
+                double minVel = Math.min(toZeroVec.getY(), player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(0));
+
+                player.uncertaintyHandler.slimeBlockUpwardsUncertainty.set(0, minVel);
+            }
+        }
 
         // Thankfully vehicles don't have 0.03
         if (player.inVehicle) {
@@ -309,7 +320,7 @@ public class PointThreeEstimator {
         SimpleCollisionBox oldPlayerBox = player.boundingBox;
         player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03);
 
-        boolean couldStep = checkForGround();
+        boolean couldStep = checkForGround(player.clientVelocity.getY());
 
         // Takes 0.01 millis, on average, to compute... this should be improved eventually
         for (VectorData data : init) {

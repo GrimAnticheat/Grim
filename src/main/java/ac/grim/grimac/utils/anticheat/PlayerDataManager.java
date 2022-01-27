@@ -12,6 +12,10 @@ public class PlayerDataManager {
 
     @Nullable
     public GrimPlayer getPlayer(final Player player) {
+        if (player == null) {
+            LogUtil.warn("PacketEvents returned null for an event's player");
+            return null;
+        }
         return playerDataMap.get(player);
     }
 

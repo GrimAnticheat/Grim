@@ -149,6 +149,66 @@ public class MovementTicker {
     }
 
     public void livingEntityAIStep() {
+        // 1.7 and 1.8 do not have player collision
+        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
+            int possibleCollidingEntities = 0;
+
+            // Players in vehicles do not have collisions
+            if (!player.inVehicle) {
+                // Calculate the offset of the player to colliding other stuff
+                SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+                SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
+
+                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                    // Players can only push living entities
+                    // Players can also push boats or minecarts
+                    // The one exemption to a living entity is an armor stand
+                    if (!entity.isLivingEntity() && entity.type != EntityTypes.BOAT && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
+                        continue;
+
+                    SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
+
+                    if (expandedPlayerBox.isCollided(entityBox))
+                        possibleCollidingEntities++;
+
+                    if (!playerBox.isCollided(entityBox))
+                        continue;
+
+                    double xDist = player.x - (entityBox.minX + entityBox.maxX) / 2;
+                    double zDist = player.z - (entityBox.minZ + entityBox.maxZ) / 2;
+                    double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
+
+                    if (maxLength >= 0.01) {
+                        maxLength = Math.sqrt(maxLength);
+                        xDist /= maxLength;
+                        zDist /= maxLength;
+
+                        double d3 = 1.0D / maxLength;
+                        d3 = Math.min(d3, 1.0);
+
+                        xDist *= d3;
+                        zDist *= d3;
+                        xDist *= -0.05F;
+                        zDist *= -0.05F;
+
+                        if (xDist > 0) {
+                            player.uncertaintyHandler.xNegativeUncertainty += xDist;
+                        } else {
+                            player.uncertaintyHandler.zNegativeUncertainty += xDist;
+                        }
+
+                        if (zDist > 0) {
+                            player.uncertaintyHandler.xPositiveUncertainty += zDist;
+                        } else {
+                            player.uncertaintyHandler.zPositiveUncertainty += zDist;
+                        }
+                    }
+                }
+            }
+
+            player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
+        }
+
         if (player.playerVehicle == null) {
             playerEntityTravel();
         } else {
@@ -172,67 +232,6 @@ public class MovementTicker {
                 player.uncertaintyHandler.yNegativeUncertainty = player.flySpeed * -5;
             }
         }
-
-        // 1.7 and 1.8 do not have player collision
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
-            return;
-
-        int possibleCollidingEntities = 0;
-
-        // Players in vehicles do not have collisions
-        if (!player.inVehicle) {
-            // Calculate the offset of the player to colliding other stuff
-            SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-            SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
-
-            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                // Players can only push living entities
-                // Players can also push boats or minecarts
-                // The one exemption to a living entity is an armor stand
-                if (!entity.isLivingEntity() && entity.type != EntityTypes.BOAT && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
-                    continue;
-
-                SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
-
-                if (expandedPlayerBox.isCollided(entityBox))
-                    possibleCollidingEntities++;
-
-                if (!playerBox.isCollided(entityBox))
-                    continue;
-
-                double xDist = player.x - (entityBox.minX + entityBox.maxX) / 2;
-                double zDist = player.z - (entityBox.minZ + entityBox.maxZ) / 2;
-                double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
-
-                if (maxLength >= 0.01) {
-                    maxLength = Math.sqrt(maxLength);
-                    xDist /= maxLength;
-                    zDist /= maxLength;
-
-                    double d3 = 1.0D / maxLength;
-                    d3 = Math.min(d3, 1.0);
-
-                    xDist *= d3;
-                    zDist *= d3;
-                    xDist *= -0.05F;
-                    zDist *= -0.05F;
-
-                    if (xDist > 0) {
-                        player.uncertaintyHandler.xNegativeUncertainty += xDist;
-                    } else {
-                        player.uncertaintyHandler.zNegativeUncertainty += xDist;
-                    }
-
-                    if (zDist > 0) {
-                        player.uncertaintyHandler.xPositiveUncertainty += zDist;
-                    } else {
-                        player.uncertaintyHandler.zPositiveUncertainty += zDist;
-                    }
-                }
-            }
-        }
-
-        player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
 
         // Work around a bug introduced in 1.14 where a player colliding with an X and Z wall maintains X momentum
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
