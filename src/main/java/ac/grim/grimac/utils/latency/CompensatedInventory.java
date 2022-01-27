@@ -51,6 +51,7 @@ public class CompensatedInventory extends PacketCheck {
     // 36-44 is the hotbar
     // 9 is top left, through 35 being the bottom right.
     int openWindowID = 0;
+    public int stateID = 0; // Don't mess up the last sent state ID by changing it
 
     public CompensatedInventory(GrimPlayer playerData) {
         super(playerData);
@@ -232,6 +233,7 @@ public class CompensatedInventory extends PacketCheck {
         // Should be 1:1 MCP
         if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
             WrapperPlayServerWindowItems items = new WrapperPlayServerWindowItems(event);
+            stateID = items.getStateId();
 
             // State ID is how the game tries to handle latency compensation.
             // Unsure if we need to know about this.
@@ -262,6 +264,8 @@ public class CompensatedInventory extends PacketCheck {
             // Set cursor by putting -1 as window ID and as slot
             // Window ID -2 means any slot can be used
             WrapperPlayServerSetSlot slot = new WrapperPlayServerSetSlot(event);
+
+            stateID = slot.getStateId();
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 if (!isPacketInventoryActive) return;

@@ -46,6 +46,8 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -475,8 +477,37 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT) {
             WrapperPlayClientPlayerBlockPlacement packet = new WrapperPlayClientPlayerBlockPlacement(event);
-            player.placeUseItemPackets.add(packet);
             player.lastBlockPlaceUseItem = System.currentTimeMillis();
+
+            ItemStack placedWith = player.getInventory().getHeldItem();
+            if (packet.getHand() == InteractionHand.OFF_HAND) {
+                placedWith = player.getInventory().getOffHand();
+            }
+
+            // Anti-air place
+            BlockPlace blockPlace = new BlockPlace(player, packet.getBlockPosition(), packet.getFace(), placedWith, getNearestHitResult(player, null, true));
+            if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
+                player.checkManager.onBlockPlace(blockPlace);
+
+            if (blockPlace.isCancelled()) { // The player tried placing blocks in air/water
+                event.setCancelled(true);
+
+                Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
+                int placed = player.compensatedWorld.getWrappedBlockStateAt(packet.getBlockPosition()).getGlobalId();
+                int face = player.compensatedWorld.getWrappedBlockStateAt(facePos).getGlobalId();
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerBlockChange(facePos, face));
+
+                // Stop inventory desync from cancelling place
+                if (packet.getHand() == InteractionHand.MAIN_HAND) {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, player.getInventory().getHeldItem()));
+                } else {
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, player.getInventory().getOffHand()));
+                }
+
+            } else { // Legit place
+                player.placeUseItemPackets.add(packet);
+            }
         }
 
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {

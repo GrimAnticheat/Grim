@@ -82,6 +82,14 @@ GroundSpoof:
   dont-alert-until: 5
   alert-interval: 1
 
+# Checks LOOK and GROUND packets for NoFall
+# Mostly stable, this cheat results in no advantage as we correct it before it touches the server
+NoFall:
+  setbackvl: 10 # This doesn't give any advantage
+  decay: 0.05 # This packet is rarer than other packets
+  dont-alert-until: 10
+  alert-interval: 5
+
 # Prediction-based no slow check
 # Grim accounts for shitty netcode here... hard to false even when spamming right click and offhand button
 # Much more stable than other anticheats, but please report any falses... I have fixed a ton of netcode issues here.

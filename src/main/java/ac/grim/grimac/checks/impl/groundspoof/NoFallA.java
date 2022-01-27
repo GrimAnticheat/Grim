@@ -6,10 +6,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
@@ -19,11 +17,12 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import java.util.ArrayList;
 import java.util.List;
 
-// Catches NoFalls that obey the (1 / 64) rule
-@CheckData(name = "NoFall A")
+// Catches NoFalls for LOOK and GROUND packets
+// This check runs AFTER the predictions
+@CheckData(name = "NoFall", configName = "nofall", setback = 10)
 public class NoFallA extends PacketCheck {
 
-    public boolean playerUsingNoGround = false;
+    public boolean flipPlayerGroundStatus = false;
 
     public NoFallA(GrimPlayer player) {
         super(player);
@@ -36,6 +35,8 @@ public class NoFallA extends PacketCheck {
             if (player.bukkitPlayer.getWorld() != player.playerWorld) return;
             // The player hasn't spawned yet
             if (player.getSetbackTeleportUtil().insideUnloadedChunk()) return;
+            // The player has already been flagged, and
+            if (player.getSetbackTeleportUtil().blockOffsets) return;
 
             PacketWrapper wrapper = null;
             boolean hasPosition = false;
@@ -55,50 +56,26 @@ public class NoFallA extends PacketCheck {
 
             assert wrapper != null;
 
-            // Force teleports to have onGround set to false, might patch NoFall on some version.
-            if (player.packetStateData.lastPacketWasTeleport) {
-                setOnGround(wrapper, false);
-                return;
-            }
-
-            // The prediction based NoFall check wants us to make the player take fall damage - patches NoGround NoFall
-            // NoGround works because if you never touch the ground, you never take fall damage
-            // So we make the player touch the ground, and therefore they take fall damage
-            if (playerUsingNoGround) {
-                playerUsingNoGround = false;
-                setOnGround(wrapper, true);
+            // The prediction based NoFall check (that runs before us without the packet)
+            // has asked us to flip the player's onGround status
+            // This happens to make both checks use the same logic... and
+            // since we don't have access to modify the packet with prediction based checks
+            // I could add that feature but ehh... this works and is better anyway.
+            if (flipPlayerGroundStatus) {
+                flipPlayerGroundStatus = false;
+                setOnGround(wrapper, !onGround(wrapper));
                 return;
             }
 
             // If the player claims to be on the ground
-            if (onGround(wrapper)) {
-                if (!hasPosition) {
-                    if (!is003OnGround(onGround(wrapper))) setOnGround(wrapper, false);
-                    return;
+            // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
+            if (onGround(wrapper) && !hasPosition) {
+                if (!is003OnGround(onGround(wrapper))) { // If player isn't near ground
+                    increaseViolations();
+                    setOnGround(wrapper, false);
+                } else {
+                    reward();
                 }
-
-                SimpleCollisionBox feetBB;
-
-                Vector3d position = new Vector3d(player.x, player.y, player.z);
-                Vector3d lastPos = new Vector3d(player.lastX, player.lastY, player.lastZ);
-
-                feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(position.getX(), position.getY(), position.getZ(), 0.6, 0.001);
-
-                // Don't expand if the player moved more than 50 blocks this tick (stop netty crash exploit)
-                if (position.distanceSquared(lastPos) < 2500)
-                    feetBB.expandToAbsoluteCoordinates(lastPos.getX(), lastPos.getY(), lastPos.getZ());
-
-                // Shulkers have weird BB's that the player might be standing on
-                if (Collisions.hasMaterial(player, feetBB, blockData -> Materials.isShulker(blockData.getType())))
-                    return;
-
-                // This is to support stepping movement (Not blatant, we need to wait on prediction engine to flag this)
-                // This check mainly serves to correct blatant onGround cheats
-                feetBB.expandMin(0, -4, 0);
-
-                if (checkForBoxes(feetBB)) return;
-
-                setOnGround(wrapper, false);
             }
         }
     }

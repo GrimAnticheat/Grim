@@ -41,7 +41,7 @@ public class Check<T> {
             this.flagCooldown = checkData.flagCooldown();
             this.buffer = checkData.buffer();
             this.maxBuffer = checkData.maxBuffer();
-            this.vlMultiplier = checkData.vlMultiplier();
+            this.vlMultiplier = checkData.decay();
             this.reset = checkData.reset();
             this.setback = checkData.setback();
         }
