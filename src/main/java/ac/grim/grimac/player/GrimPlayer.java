@@ -229,24 +229,24 @@ public class GrimPlayer {
         checkManager = new CheckManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
-        playerWorld = bukkitPlayer.getLocation().getWorld();
+        playerWorld = loginLocation.getWorld();
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
             compensatedWorld.setMinHeight(bukkitPlayer.getWorld().getMinHeight());
             compensatedWorld.setMaxWorldHeight(bukkitPlayer.getWorld().getMaxHeight());
         }
 
-        x = bukkitPlayer.getLocation().getX();
-        y = bukkitPlayer.getLocation().getY();
-        z = bukkitPlayer.getLocation().getZ();
-        xRot = bukkitPlayer.getLocation().getYaw();
-        yRot = bukkitPlayer.getLocation().getPitch();
+        x = loginLocation.getX();
+        y = loginLocation.getY();
+        z = loginLocation.getZ();
+        xRot = loginLocation.getYaw();
+        yRot = loginLocation.getPitch();
         isDead = bukkitPlayer.isDead();
 
-        lastX = bukkitPlayer.getLocation().getX();
-        lastY = bukkitPlayer.getLocation().getY();
-        lastZ = bukkitPlayer.getLocation().getZ();
-        lastXRot = bukkitPlayer.getLocation().getYaw();
-        lastYRot = bukkitPlayer.getLocation().getPitch();
+        lastX = loginLocation.getX();
+        lastY = loginLocation.getY();
+        lastZ = loginLocation.getZ();
+        lastXRot = loginLocation.getYaw();
+        lastYRot = loginLocation.getPitch();
 
         gamemode = bukkitPlayer.getGameMode();
 

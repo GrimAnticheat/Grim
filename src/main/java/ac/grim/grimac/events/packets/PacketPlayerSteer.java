@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
@@ -64,9 +65,10 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 // Use bukkit location, not packet location, to stop ping spoof attacks on entity position
                 Entity playerVehicle = player.bukkitPlayer.getVehicle();
                 if (playerVehicle != null) {
-                    double x = playerVehicle.getLocation().getX();
-                    double y = playerVehicle.getLocation().getY();
-                    double z = playerVehicle.getLocation().getZ();
+                    Location location = playerVehicle.getLocation();
+                    double x = location.getX();
+                    double y = location.getY();
+                    double z = location.getZ();
                     player.getSetbackTeleportUtil().setSafeSetbackLocation(player.bukkitPlayer.getWorld(), new Vector3d(x, y, z));
                 }
 
