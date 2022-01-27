@@ -47,6 +47,10 @@ public class DynamicConnecting {
         if (!BlockTags.FENCES.contains(target) && isBlacklisted(target))
             return false;
 
+        // 1.12+ clients can connect to TnT while previous versions can't
+        if (target == StateTypes.TNT)
+            return v.isNewerThanOrEquals(ClientVersion.V_1_12);
+
         // 1.9-1.11 clients don't have BARRIER exemption
         // https://bugs.mojang.com/browse/MC-9565
         if (target == StateTypes.BARRIER)
