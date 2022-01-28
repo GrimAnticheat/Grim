@@ -86,30 +86,6 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
-        Set<VectorData> regularInputs = super.fetchPossibleStartTickVectors(player);
-
-        // This is WRONG! Vanilla has this system at the end
-        // However, due to 1.9 reduced movement precision, we aren't informed that the player could have this velocity
-        // We still do climbing at the end, as it uses a different client velocity
-        //
-        // Force 1.13.2 and below players to have something to collide with horizontally to climb
-        if (player.isClimbing && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
-                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
-
-            // Calculate the Y velocity after friction
-            Vector hackyClimbVector = player.clientVelocity.clone().setY(0.2);
-            staticVectorEndOfTick(player, hackyClimbVector);
-            hackyClimbVector.setX(player.clientVelocity.getX());
-            hackyClimbVector.setZ(player.clientVelocity.getZ());
-
-            regularInputs.add(new VectorData(hackyClimbVector, VectorData.VectorType.HackyClimbable));
-        }
-
-        return regularInputs;
-    }
-
-    @Override
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {
         if (player.isClimbing) {
             // Reset fall distance when climbing

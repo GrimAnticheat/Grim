@@ -70,19 +70,19 @@ public class CompensatedWorld {
         Column column = getChunk(x >> 4, z >> 4);
 
         // Apply 1.17 expanded world offset
-        y -= minHeight;
+        int offsetY = y - minHeight;
 
         try {
             if (column != null) {
-                BaseChunk chunk = column.getChunks()[y >> 4];
+                BaseChunk chunk = column.getChunks()[offsetY >> 4];
 
                 if (chunk == null) {
                     // TODO: Pre-1.18 support
                     if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
-                        column.getChunks()[y >> 4] = new Chunk_v1_18();
+                        column.getChunks()[offsetY >> 4] = new Chunk_v1_18();
                     }
 
-                    chunk = column.getChunks()[y >> 4];
+                    chunk = column.getChunks()[offsetY >> 4];
 
                     // Sets entire chunk to air
                     // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
@@ -90,7 +90,7 @@ public class CompensatedWorld {
                     chunk.set(0, 0, 0, 0);
                 }
 
-                chunk.set(x & 0xF, y & 0xF, z & 0xF, combinedID);
+                chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
                 // Handle stupidity such as fluids changing in idle ticks.
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {

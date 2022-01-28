@@ -245,6 +245,22 @@ public class PredictionEngine {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && player.isSwimming) {
             pointThreePossibilities = PredictionEngineWater.transformSwimmingVectors(player, pointThreePossibilities);
         }
+
+        // This is WRONG! Vanilla has this system at the end
+        // However, due to 1.9 reduced movement precision, we aren't informed that the player could have this velocity
+        // We still do climbing at the end, as it uses a different client velocity
+        //
+        // Force 1.13.2 and below players to have something to collide with horizontally to climb
+        if (player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+                player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
+
+            // Calculate the Y velocity after friction
+            Vector hackyClimbVector = new Vector(0, 0.2, 0);
+            PredictionEngineNormal.staticVectorEndOfTick(player, hackyClimbVector);
+
+            pointThreePossibilities.add(new VectorData(hackyClimbVector, VectorData.VectorType.ZeroPointZeroThree));
+        }
+
         // This is a secure method to add jumping vectors to this list
         addJumpsToPossibilities(player, pointThreePossibilities);
         addExplosionRiptideToPossibilities(player, pointThreePossibilities);
