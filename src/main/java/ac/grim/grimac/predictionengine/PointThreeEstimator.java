@@ -315,7 +315,7 @@ public class PointThreeEstimator {
             return;
         }
 
-        if (isNearClimbable() || sneakyPointThree || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
+        if (isNearClimbable() || sneakyPointThree || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
             player.couldSkipTick = true;
             return;
         }
