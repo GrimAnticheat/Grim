@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -38,7 +37,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                 // You don't get a release use item with block hitting with a sword?
                 if (heldItem != null && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
                     if (heldItem.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD))
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                        player.packetStateData.slowedByUsingItem = false;
                 }
 
                 if (entity != null && (!(entity.type instanceof LivingEntity) || entity.type == EntityTypes.PLAYER)) {

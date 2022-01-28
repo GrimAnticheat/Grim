@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.data.AlmostBoolean;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -39,7 +38,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
 
             if (dig.getAction() == DiggingAction.RELEASE_USE_ITEM) {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                player.packetStateData.slowedByUsingItem = false;
                 player.packetStateData.slowedByUsingItemTransaction = player.lastTransactionReceived.get();
 
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
@@ -97,7 +96,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 ItemType material = item.getType();
 
                 if (player.checkManager.getCompensatedCooldown().hasMaterial(material)) {
-                    player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE; // resync, not required
+                    player.packetStateData.slowedByUsingItem = false; // resync, not required
                     return; // The player has a cooldown, and therefore cannot use this item!
                 }
 
@@ -115,7 +114,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     if (material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET
                             || material == ItemTypes.GOLDEN_APPLE || material == ItemTypes.ENCHANTED_GOLDEN_APPLE
                             || material == ItemTypes.HONEY_BOTTLE) {
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                        player.packetStateData.slowedByUsingItem = true;
                         player.packetStateData.eatingHand = place.getHand();
 
                         return;
@@ -125,18 +124,18 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     // TODO: Food level lag compensation
                     if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) &&
                             (((Player) event.getPlayer()).getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE)) {
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                        player.packetStateData.slowedByUsingItem = true;
                         player.packetStateData.eatingHand = place.getHand();
 
                         return;
                     }
 
                     // The player cannot eat this item, resync use status
-                    player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                    player.packetStateData.slowedByUsingItem = false;
                 }
 
                 if (material == ItemTypes.SHIELD) {
-                    player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                    player.packetStateData.slowedByUsingItem = true;
                     player.packetStateData.eatingHand = place.getHand();
 
                     return;
@@ -149,10 +148,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                 // The client and server don't agree on trident status because mojang is incompetent at netcode.
                 if (material == ItemTypes.TRIDENT) {
-                    if (item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) > 0)
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
-                    else
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                    player.packetStateData.slowedByUsingItem = item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) <= 0;
                     player.packetStateData.eatingHand = place.getHand();
                 }
 
@@ -162,19 +158,19 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     player.packetStateData.slowedByUsingItem = player.gamemode == GameMode.CREATIVE ||
                             player.getInventory().hasItemType(ItemTypes.ARROW) ||
                             player.getInventory().hasItemType(ItemTypes.TIPPED_ARROW) ||
-                            player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW) ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
+                            player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW);
                     player.packetStateData.eatingHand = place.getHand();
                 }
 
                 // Only 1.8 and below players can block with swords
                 if (material.toString().endsWith("_SWORD")) {
                     if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.TRUE;
+                        player.packetStateData.slowedByUsingItem = true;
                     else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) // ViaVersion stuff
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE;
+                        player.packetStateData.slowedByUsingItem = false;
                 }
             } else {
-                player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                player.packetStateData.slowedByUsingItem = false;
             }
         }
     }

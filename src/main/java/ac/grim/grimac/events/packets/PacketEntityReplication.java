@@ -3,7 +3,6 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
@@ -163,8 +162,8 @@ public class PacketEntityReplication extends PacketCheck {
 
                 if (status.getEntityId() != player.entityID) return;
 
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
             }
         }
 
@@ -177,13 +176,13 @@ public class PacketEntityReplication extends PacketCheck {
             if (slot.getWindowId() == 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                        player.packetStateData.slowedByUsingItem = false;
                     }
                 });
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                     if (slot.getSlot() - 36 == player.packetStateData.lastSlotSelected) {
-                        player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE;
+                        player.packetStateData.slowedByUsingItem = false;
                     }
                 });
             }
@@ -196,8 +195,8 @@ public class PacketEntityReplication extends PacketCheck {
             if (player == null) return;
 
             if (items.getWindowId() == 0) { // Player inventory
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.FALSE);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
             }
         }
 

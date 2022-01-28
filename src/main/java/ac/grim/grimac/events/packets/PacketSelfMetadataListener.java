@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.AlmostBoolean;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
@@ -122,7 +121,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                             // Player might have gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
-                                    () -> player.packetStateData.slowedByUsingItem = AlmostBoolean.MAYBE);
+                                    () -> player.packetStateData.slowedByUsingItem = false);
 
                             int markedTransaction = player.lastTransactionSent.get();
 
@@ -132,7 +131,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                                 // Vanilla update order: Receive this -> process new interacts
                                 // Grim update order: Process new interacts -> receive this
                                 if (player.packetStateData.slowedByUsingItemTransaction < markedTransaction) {
-                                    player.packetStateData.slowedByUsingItem = isActive ? AlmostBoolean.TRUE : AlmostBoolean.FALSE;
+                                    player.packetStateData.slowedByUsingItem = isActive;
 
                                     if (isActive) {
                                         player.packetStateData.eatingHand = hand ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
