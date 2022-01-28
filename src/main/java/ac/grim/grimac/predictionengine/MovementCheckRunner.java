@@ -60,8 +60,6 @@ public class MovementCheckRunner extends PositionCheck {
         check(data);
         long length = System.nanoTime() - start;
 
-        System.out.println("Prediction time: " + length);
-
         predictionNanos = (predictionNanos * 499 / 500d) + (length / 500d);
         longPredictionNanos = (longPredictionNanos * 19999 / 20000d) + (length / 20000d);
     }
@@ -460,11 +458,6 @@ public class MovementCheckRunner extends PositionCheck {
                 wasChecked = false;
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
-
-        double off = player.predictedVelocity.vector.distance(player.actualMovement);
-        if (off > 0.001) {
-            System.out.println("Uncertain!");
-        }
 
         player.lastOnGround = player.onGround;
         player.lastSprinting = player.isSprinting;

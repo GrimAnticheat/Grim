@@ -548,7 +548,7 @@ public class PredictionEngine {
 
         Vector cut = VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
 
-        if (player.clientControlledVerticalCollision && player.actualMovement.getY() > 0 && !vector.isZeroPointZeroThree()) {
+        if (player.clientControlledVerticalCollision && player.actualMovement.getY() > 0 && vector.vector.getY() < 0) {
             cut.setY(vector.vector.getY()); // Likely stepping movement, avoid changing 0.03 related movement
         }
 
