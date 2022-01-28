@@ -309,6 +309,11 @@ public class PointThreeEstimator {
             }
         }
 
+        if ((player.isGliding || player.wasGliding) && player.uncertaintyHandler.claimedLookChangedBetweenTick) {
+            player.couldSkipTick = true;
+            return;
+        }
+
         // Thankfully vehicles don't have 0.03
         if (player.inVehicle) {
             player.couldSkipTick = false;

@@ -202,6 +202,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (hasLook) {
             player.xRot = yaw;
             player.yRot = pitch;
+
+            player.uncertaintyHandler.claimedLookChangedBetweenTick = !hasPosition;
         }
 
         if (hasPosition) {

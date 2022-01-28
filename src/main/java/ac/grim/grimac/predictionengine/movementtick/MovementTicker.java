@@ -269,6 +269,10 @@ public class MovementTicker {
                 playerSpeed = 0.02F;
             } else if (player.isGliding) {
                 playerSpeed = 0.4;
+                // Horizontal movement affects vertical movement with elytra, hack around this.
+                // This can likely be reduced but whatever, I don't see this as too much of a problem
+                player.uncertaintyHandler.yNegativeUncertainty -= 0.05;
+                player.uncertaintyHandler.yPositiveUncertainty += 0.05;
             }
 
             player.uncertaintyHandler.xNegativeUncertainty -= playerSpeed * 4;
