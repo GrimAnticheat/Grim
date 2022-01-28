@@ -36,6 +36,11 @@ import org.bukkit.GameMode;
 import org.bukkit.util.Vector;
 
 public class MovementCheckRunner extends PositionCheck {
+    // Averaged over 500 predictions (Defaults set slightly above my 3600x results)
+    public static double predictionNanos = 0.3 * 1e6;
+    // Averaged over 20000 predictions
+    public static double longPredictionNanos = 0.3 * 1e6;
+
     public MovementCheckRunner(GrimPlayer player) {
         super(player);
     }
@@ -51,7 +56,14 @@ public class MovementCheckRunner extends PositionCheck {
             return;
         }
 
+        long start = System.nanoTime();
         check(data);
+        long length = System.nanoTime() - start;
+
+        System.out.println("Prediction time: " + length);
+
+        predictionNanos = (predictionNanos * 499 / 500d) + (length / 500d);
+        longPredictionNanos = (longPredictionNanos * 19999 / 20000d) + (length / 20000d);
     }
 
     public void runTransactionQueue(GrimPlayer player) {
