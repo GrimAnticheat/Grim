@@ -109,7 +109,7 @@ public class BlockProperties {
 
         float f = 1.0f;
 
-        if (block == StateTypes.WATER) {
+        if (block == StateTypes.WATER || block == StateTypes.BUBBLE_COLUMN) {
             return f;
         }
 
