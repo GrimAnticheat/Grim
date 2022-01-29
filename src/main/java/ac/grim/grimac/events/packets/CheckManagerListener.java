@@ -179,11 +179,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         handleQueuedPlaces(player, hasLook, pitch, yaw, now);
 
-        SimpleCollisionBox oldBB = player.boundingBox;
-        player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.66, 1.8);
         // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
-        boolean nearGround = Collisions.collide(player, 0, -0.03, 0).getY() != -0.03;
-        player.boundingBox = oldBB;
+        // TODO: This should likely be secured some more
+        // Cannot use collisions like normal because stepping messes it up :(
+        boolean nearGround = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66, 0.06));
+
         if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && nearGround && player.clientVelocity.getY() < 0.03) {
             player.lastOnGround = true;
             player.uncertaintyHandler.onGroundUncertain = true;
