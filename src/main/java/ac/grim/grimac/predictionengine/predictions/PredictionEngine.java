@@ -518,6 +518,7 @@ public class PredictionEngine {
         // Handle vertical bubble column stupidity within 0.03
         double bubbleFluid = player.pointThreeEstimator.getVerticalBubbleUncertainty(vector);
         maxVector.setY(maxVector.getY() + bubbleFluid);
+        minVector.setY(minVector.getY() - bubbleFluid);
 
         // We can't simulate the player's Y velocity, unknown number of ticks with a gravity change
         // Feel free to simulate all 104857600000000000000000000 possibilities!

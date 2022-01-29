@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.retrooper.packetevents:spigot:f0128e0f5d'
+    implementation 'com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT'
     implementation 'com.github.steveice10:packetlib:2.1'
     implementation 'co.aikar:acf-paper:0.5.1-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:2.2.1'

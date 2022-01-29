@@ -360,7 +360,13 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastUnderwaterFlyingHack = 0;
         }
 
-        player.uncertaintyHandler.claimingLeftStuckSpeed = player.stuckSpeedMultiplier.getX() < 1 && !Collisions.checkStuckSpeed(player);
+        boolean couldBeStuckSpeed = Collisions.checkStuckSpeed(player, 0.03);
+        boolean couldLeaveStuckSpeed = Collisions.checkStuckSpeed(player, -0.03);
+        player.uncertaintyHandler.claimingLeftStuckSpeed = player.stuckSpeedMultiplier.getX() < 1 && !couldLeaveStuckSpeed;
+
+        if (couldBeStuckSpeed) {
+            player.uncertaintyHandler.lastStuckSpeedMultiplier = 0;
+        }
 
         Vector backOff = Collisions.maybeBackOffFromEdge(player.clientVelocity, player, true);
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = player.clientVelocity.getX() != 0 && player.clientVelocity.getZ() != 0 && backOff.getX() == 0 && backOff.getZ() == 0;

@@ -456,9 +456,9 @@ public class Collisions {
     }
 
     // 0.03 hack
-    public static boolean checkStuckSpeed(GrimPlayer player) {
+    public static boolean checkStuckSpeed(GrimPlayer player, double expand) {
         // Use the bounding box for after the player's movement is applied
-        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03);
+        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(expand);
 
         Location blockPos = new Location(player.playerWorld, aABB.minX, aABB.minY, aABB.minZ);
         Location blockPos2 = new Location(player.playerWorld, aABB.maxX, aABB.maxY, aABB.maxZ);
