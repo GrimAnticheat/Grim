@@ -72,12 +72,12 @@ public enum BlockPlaceResult {
         WrappedBlockState slabData = place.getMaterial().createBlockState();
         WrappedBlockState existing = place.getExistingBlockData();
 
-        boolean clickedTop = clickedPos.getY() > 0.5;
-
-        if (BlockTags.SLABS.contains(existing.getType()) && place.isFaceVertical()) {
+        if (BlockTags.SLABS.contains(existing.getType())) {
             slabData.setTypeData(Type.DOUBLE);
             place.set(place.getPlacedAgainstBlockLocation(), slabData);
         } else {
+            BlockFace direction = place.getDirection();
+            boolean clickedTop = direction != BlockFace.DOWN && (direction == BlockFace.UP || !(clickedPos.getY() > 0.5D));
             slabData.setTypeData(clickedTop ? Type.BOTTOM : Type.TOP);
             place.set(slabData);
         }
