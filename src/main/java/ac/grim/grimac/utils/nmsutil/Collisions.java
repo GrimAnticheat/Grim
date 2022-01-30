@@ -134,18 +134,27 @@ public class Collisions {
                 double maxZ = Math.ceil(GrimMath.clamp(centerZ + size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
 
                 // If the player is fully within the worldborder
-                if (player.boundingBox.minX > minX - 1.0E-7D && player.boundingBox.maxX < maxX + 1.0E-7D
-                        && player.boundingBox.minZ > minZ - 1.0E-7D && player.boundingBox.maxZ < maxZ + 1.0E-7D) {
+                double maxMax = Math.max(Math.max(maxX - minX, maxZ - minZ), 1.0D);
+
+                double d0 = player.lastZ - minZ;
+                double d1 = maxZ - player.lastZ;
+                double d2 = player.lastX - minX;
+                double d3 = maxX - player.lastX;
+                double d4 = Math.min(d2, d3);
+                d4 = Math.min(d4, d0);
+                double distanceToBorder = Math.min(d4, d1);
+
+                if (distanceToBorder < maxMax * 2.0D && player.lastX > minX - maxMax && player.lastX < maxX + maxMax && player.lastZ > minZ - maxMax && player.lastZ < maxZ + maxMax) {
                     if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
 
                     // South border
-                    listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, maxZ, maxX, Double.POSITIVE_INFINITY, maxZ, false));
+                    listOfBlocks.add(new SimpleCollisionBox(minX - 10, Double.NEGATIVE_INFINITY, maxZ, maxX + 10, Double.POSITIVE_INFINITY, maxZ, false));
                     // North border
-                    listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, minZ, maxX, Double.POSITIVE_INFINITY, minZ, false));
+                    listOfBlocks.add(new SimpleCollisionBox(minX - 10, Double.NEGATIVE_INFINITY, minZ, maxX + 10, Double.POSITIVE_INFINITY, minZ, false));
                     // East border
-                    listOfBlocks.add(new SimpleCollisionBox(maxX, Double.NEGATIVE_INFINITY, minZ, maxX, Double.POSITIVE_INFINITY, maxZ, false));
+                    listOfBlocks.add(new SimpleCollisionBox(maxX, Double.NEGATIVE_INFINITY, minZ - 10, maxX, Double.POSITIVE_INFINITY, maxZ + 10, false));
                     // West border
-                    listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, minZ, minX, Double.POSITIVE_INFINITY, maxZ, false));
+                    listOfBlocks.add(new SimpleCollisionBox(minX, Double.NEGATIVE_INFINITY, minZ - 10, minX, Double.POSITIVE_INFINITY, maxZ + 10, false));
 
                     if (onlyCheckCollide) {
                         for (SimpleCollisionBox box : listOfBlocks) {
