@@ -14,10 +14,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class PredictionEngine {
 
@@ -71,7 +68,7 @@ public class PredictionEngine {
     public void guessBestMovement(float speed, GrimPlayer player) {
         Set<VectorData> init = fetchPossibleStartTickVectors(player);
 
-        player.pointThreeEstimator.determineCanSkipTick(speed, init);
+        player.couldSkipTick = player.pointThreeEstimator.determineCanSkipTick(speed, init);
 
         // Remember, we must always try to predict explosions or knockback
         // If the player didn't skip their tick... then we can do predictions
@@ -174,12 +171,12 @@ public class PredictionEngine {
 
                 if (clientVelAfterInput.isKnockback()) {
                     player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
-                    player.checkManager.getKnockbackHandler().setPointThree(player.couldSkipTick);
+                    player.checkManager.getKnockbackHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
                 }
 
                 if (clientVelAfterInput.isExplosion()) {
                     player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
-                    player.checkManager.getExplosionHandler().setPointThree(player.couldSkipTick);
+                    player.checkManager.getExplosionHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
                 }
             }
 

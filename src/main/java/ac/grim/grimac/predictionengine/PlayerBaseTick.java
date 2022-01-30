@@ -54,9 +54,9 @@ public class PlayerBaseTick {
         // Tick order is entityBaseTick and then the aiStep stuff
         // This code is in the wrong place, I'll fix it later
 
-        player.isCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
-                && ((player.isCrouching || player.getClientVersion().isNewerThan(ClientVersion.V_1_14_4) ? player.wasSneaking : player.isSneaking)
-                || player.isInBed || !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
+        player.isCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ?
+                !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
+                        && (player.wasSneaking || !player.isInBed && !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
                 : player.isSneaking; // Sneaking on 1.7-1.13 is just the status the player sends us.  Nothing complicated.
         player.isSlowMovement = player.isCrouching || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) &&
                 // If the player is in the swimming pose
@@ -137,7 +137,7 @@ public class PlayerBaseTick {
                 pose = Pose.SPIN_ATTACK;
             } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && player.getClientVersion().isOlderThan(ClientVersion.V_1_14) && player.isSneaking) {
                 pose = Pose.NINE_CROUCHING;
-            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.isCrouching && !player.specialFlying) {
+            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.isSneaking && !player.specialFlying) {
                 pose = Pose.CROUCHING;
             } else {
                 pose = Pose.STANDING;
@@ -155,7 +155,7 @@ public class PlayerBaseTick {
             }
 
             player.pose = pose;
-            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+            player.boundingBox = getBoundingBoxForPose(player.pose, player.x, player.y, player.z);
         }
     }
 

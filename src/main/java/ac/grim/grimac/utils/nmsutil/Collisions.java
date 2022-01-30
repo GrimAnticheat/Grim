@@ -355,7 +355,7 @@ public class Collisions {
 
     public static void handleInsideBlocks(GrimPlayer player) {
         // Use the bounding box for after the player's movement is applied
-        SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-0.001);
+        SimpleCollisionBox aABB = player.inVehicle ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-0.001) : player.boundingBox.copy().expand(-0.001);
 
         Location blockPos = new Location(player.playerWorld, aABB.minX, aABB.minY, aABB.minZ);
         Location blockPos2 = new Location(player.playerWorld, aABB.maxX, aABB.maxY, aABB.maxZ);

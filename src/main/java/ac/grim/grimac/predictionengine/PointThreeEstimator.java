@@ -108,7 +108,7 @@ public class PointThreeEstimator {
 
     @Setter
     @Getter
-    private boolean isPushing = true;
+    private boolean isPushing = false;
 
     @Getter
     private boolean wasAlwaysCertain = true;
@@ -154,7 +154,7 @@ public class PointThreeEstimator {
 
         if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             if (!sneakyPointThree && !player.couldSkipTick && !isPushing) {
-                determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
+                player.couldSkipTick = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
             }
             sneakyPointThree = sneakyPointThree || isPushing || player.couldSkipTick;
         }
@@ -295,7 +295,7 @@ public class PointThreeEstimator {
     }
 
     // This method can be improved by using the actual movement to see if 0.03 was feasible...
-    public void determineCanSkipTick(float speed, Set<VectorData> init) {
+    public boolean determineCanSkipTick(float speed, Set<VectorData> init) {
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
 
@@ -310,19 +310,16 @@ public class PointThreeEstimator {
         }
 
         if ((player.isGliding || player.wasGliding) && player.uncertaintyHandler.claimedLookChangedBetweenTick) {
-            player.couldSkipTick = true;
-            return;
+            return true;
         }
 
         // Thankfully vehicles don't have 0.03
         if (player.inVehicle) {
-            player.couldSkipTick = false;
-            return;
+            return false;
         }
 
         if (isNearClimbable() || sneakyPointThree || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
-            player.couldSkipTick = true;
-            return;
+            return true;
         }
 
         // Fixes an issue where 0.03 causes an issue with 0.03 mitigation because slightly moving the player
@@ -358,7 +355,7 @@ public class PointThreeEstimator {
         player.boundingBox = oldPlayerBox;
 
         // As long as we are mathematically correct here, this should be perfectly accurate
-        player.couldSkipTick = minimum < 0.03;
+        return minimum < 0.03;
     }
 
     public double getHorizontalFluidPushingUncertainty(VectorData vector) {
