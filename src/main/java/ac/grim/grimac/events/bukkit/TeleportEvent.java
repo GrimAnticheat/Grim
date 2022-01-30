@@ -49,12 +49,12 @@ public class TeleportEvent implements Listener {
         if (player == null) return;
 
         player.sendTransaction();
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.isSneaking = false);
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.playerWorld = newWorld);
 
         // Force the player to accept a teleport before respawning
         player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;
 
+        // TODO: No join game packet?
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) && newWorld != null) {
             player.compensatedWorld.setMinHeight(newWorld.getMinHeight());
             player.compensatedWorld.setMaxWorldHeight(newWorld.getMaxHeight());
