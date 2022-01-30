@@ -117,7 +117,7 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
-        boolean newVectorPointThree = (player.couldSkipTick && data.isKnockback()) || data.isSwimHop() || data.isTrident();
+        boolean newVectorPointThree = (player.couldSkipTick && data.isKnockback()) || data.isTrident();
         boolean explicit003 = data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree;
         boolean either003 = newVectorPointThree || explicit003;
 
@@ -189,7 +189,7 @@ public class UncertaintyHandler {
             return 0.06;
 
         // This swim hop could be 0.03-influenced movement
-        if (data.isSwimHop() || data.isTrident())
+        if (data.isTrident())
             return 0.06;
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
