@@ -20,7 +20,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHe
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import org.bukkit.GameMode;
-import org.bukkit.entity.Player;
 
 public class PacketPlayerDigging extends PacketListenerAbstract {
 
@@ -32,7 +31,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
@@ -61,7 +60,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         }
 
         if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             WrapperPlayClientHeldItemChange slot = new WrapperPlayClientHeldItemChange(event);
@@ -75,7 +74,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
             WrapperPlayClientUseItem place = new WrapperPlayClientUseItem(event);
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8)
@@ -122,8 +121,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                     // The other items that do require it
                     // TODO: Food level lag compensation
-                    if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) &&
-                            (((Player) event.getPlayer()).getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE)) {
+                    if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && player.bukkitPlayer.getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE) {
                         player.packetStateData.slowedByUsingItem = true;
                         player.packetStateData.eatingHand = place.getHand();
 

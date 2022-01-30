@@ -12,7 +12,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPo
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientWindowConfirmation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
-import org.bukkit.entity.Player;
 
 public class PacketPingListener extends PacketListenerAbstract {
 
@@ -29,7 +28,7 @@ public class PacketPingListener extends PacketListenerAbstract {
 
             // Vanilla always uses an ID starting from 1
             if (id <= 0) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
 
                 // Check if we sent this packet before cancelling it
@@ -46,7 +45,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             // If it wasn't below 0, it wasn't us
             // If it wasn't in short range, it wasn't us either
             if (id == (short) id) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
                 if (player.addTransactionResponse((short) id)) {
                     // Not needed for vanilla as vanilla ignores this packet, needed for packet limiters
@@ -57,7 +56,7 @@ public class PacketPingListener extends PacketListenerAbstract {
 
         // Prevent players from OOM'ing the server by running through queue's on keepalive
         if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
             player.movementCheckRunner.runTransactionQueue(player);
         }
@@ -71,7 +70,7 @@ public class PacketPingListener extends PacketListenerAbstract {
 
             // Vanilla always uses an ID starting from 1
             if (id <= 0) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
 
                 if (player.didWeSendThatTrans.remove((Short) id)) {
@@ -87,7 +86,7 @@ public class PacketPingListener extends PacketListenerAbstract {
             int id = pong.getId();
             // Check if in the short range, we only use short range
             if (id == (short) id) {
-                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
                 // Cast ID twice so we can use the list
                 Short shortID = ((short) id);

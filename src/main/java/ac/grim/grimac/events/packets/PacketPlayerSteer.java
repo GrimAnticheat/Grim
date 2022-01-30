@@ -11,7 +11,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
 import org.bukkit.Location;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 
 public class PacketPlayerSteer extends PacketListenerAbstract {
 
@@ -24,7 +23,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
         if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
             WrapperPlayClientSteerVehicle steer = new WrapperPlayClientSteerVehicle(event);
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             // Multiple steer vehicles in a row, the player is not in control of their vehicle

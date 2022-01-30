@@ -8,7 +8,7 @@ public class ClientVersionSetter implements Tickable {
     @Override
     public void tick() {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            if (player.getClientVersion().getProtocolVersion() == -1) player.pollClientVersion();
+            player.pollData();
         }
     }
 }

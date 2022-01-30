@@ -7,7 +7,6 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetCooldown;
-import org.bukkit.entity.Player;
 
 public class PacketPlayerCooldown extends PacketListenerAbstract {
 
@@ -20,7 +19,7 @@ public class PacketPlayerCooldown extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Server.SET_COOLDOWN) {
             WrapperPlayServerSetCooldown cooldown = new WrapperPlayServerSetCooldown(event);
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             int lastTransactionSent = player.lastTransactionSent.get();

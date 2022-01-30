@@ -9,7 +9,6 @@ import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerAbilities;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerAbilities;
-import org.bukkit.entity.Player;
 
 public class PacketPlayerAbilities extends PacketListenerAbstract {
 
@@ -21,7 +20,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_ABILITIES) {
             WrapperPlayClientPlayerAbilities abilities = new WrapperPlayClientPlayerAbilities(event);
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             // In one tick you can do the following
@@ -52,7 +51,7 @@ public class PacketPlayerAbilities extends PacketListenerAbstract {
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_ABILITIES) {
             WrapperPlayServerPlayerAbilities abilities = new WrapperPlayServerPlayerAbilities(event);
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
 
             // Occurs on login - we set if the player can fly on PlayerJoinEvent
             if (player == null) return;

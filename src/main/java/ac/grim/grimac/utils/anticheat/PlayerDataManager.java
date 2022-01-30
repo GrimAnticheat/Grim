@@ -1,6 +1,8 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.protocol.player.User;
 import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
@@ -8,22 +10,32 @@ import java.util.Collection;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerDataManager {
-    private final ConcurrentHashMap<Player, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
+
+    public GrimPlayer getPlayer(final Player player) {
+        // Is it safe to interact with this, or is this internal PacketEvents code?
+        User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
+        if (user == null) {
+            LogUtil.warn("PacketEvents not injected for player " + player.getName() + " " + player.getUniqueId());
+            return null;
+        }
+        return playerDataMap.get(user);
+    }
 
     @Nullable
-    public GrimPlayer getPlayer(final Player player) {
+    public GrimPlayer getPlayer(final User player) {
         if (player == null) {
-            LogUtil.warn("PacketEvents returned null for an event's player");
+            new IllegalStateException("PacketEvents returned null for an event's user.  This is NEVER possible!").printStackTrace();
             return null;
         }
         return playerDataMap.get(player);
     }
 
-    public void addPlayer(final GrimPlayer player) {
-        playerDataMap.put(player.bukkitPlayer, player);
+    public void addPlayer(final User user, final GrimPlayer player) {
+        playerDataMap.put(user, player);
     }
 
-    public void remove(final Player player) {
+    public void remove(final User player) {
         playerDataMap.remove(player);
     }
 

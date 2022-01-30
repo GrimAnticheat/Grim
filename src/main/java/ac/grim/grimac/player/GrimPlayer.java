@@ -23,6 +23,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
@@ -33,7 +34,10 @@ import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.utils.GeyserUtil;
 import io.github.retrooper.packetevents.utils.dependencies.viaversion.ViaVersionUtil;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
@@ -50,8 +54,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer {
     public final UUID playerUUID;
-    public final int entityID;
-    public final Player bukkitPlayer;
+    public int entityID;
+    public Player bukkitPlayer;
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
     public final Queue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
@@ -181,13 +185,15 @@ public class GrimPlayer {
     public long lastBlockPlaceUseItem = 0;
     public Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
 
-    public GrimPlayer(Player player) {
-        this.bukkitPlayer = player;
-        this.playerUUID = player.getUniqueId();
-        this.entityID = player.getEntityId();
-        this.playerWorld = player.getWorld();
+    public GrimPlayer(User user) {
+        this.playerUUID = user.getProfile().getUUID();
 
-        clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
+        pollData();
+        clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(user.getChannel());
+
+        if (bukkitPlayer == null) {
+            new Exception("Bukkit player is null! This may cause future errors").printStackTrace();
+        }
 
         // We can't send transaction packets to this player, disable the anticheat for them
         if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
@@ -201,13 +207,7 @@ public class GrimPlayer {
         // Geyser players don't have Java movement
         if (GeyserUtil.isGeyserPlayer(playerUUID)) return;
 
-        Location loginLocation = player.getLocation();
-        lastX = loginLocation.getX();
-        lastY = loginLocation.getY();
-        lastZ = loginLocation.getZ();
-
-        isFlying = bukkitPlayer.isFlying();
-        wasFlying = bukkitPlayer.isFlying();
+        boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8);
 
         if (ViaVersionUtil.isAvailable()) {
             UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
@@ -229,35 +229,15 @@ public class GrimPlayer {
         checkManager = new CheckManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
-        playerWorld = loginLocation.getWorld();
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
             compensatedWorld.setMinHeight(bukkitPlayer.getWorld().getMinHeight());
             compensatedWorld.setMaxWorldHeight(bukkitPlayer.getWorld().getMaxHeight());
         }
 
-        x = loginLocation.getX();
-        y = loginLocation.getY();
-        z = loginLocation.getZ();
-        xRot = loginLocation.getYaw();
-        yRot = loginLocation.getPitch();
-        isDead = bukkitPlayer.isDead();
-
-        lastX = loginLocation.getX();
-        lastY = loginLocation.getY();
-        lastZ = loginLocation.getZ();
-        lastXRot = loginLocation.getYaw();
-        lastYRot = loginLocation.getPitch();
-
-        gamemode = bukkitPlayer.getGameMode();
-
         uncertaintyHandler.pistonPushing.add(0d);
         uncertaintyHandler.collidingEntities.add(0);
 
-        getSetbackTeleportUtil().setSafeSetbackLocation(playerWorld, new Vector3d(x, y, z));
-
-        boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8);
-
-        GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(this);
+        GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(user, this);
     }
 
     public Set<VectorData> getPossibleVelocities() {
@@ -410,8 +390,27 @@ public class GrimPlayer {
         return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
     }
 
-    public void pollClientVersion() {
-        this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
+    public void pollData() {
+        if (this.bukkitPlayer == null) {
+            this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
+
+            if (this.bukkitPlayer == null) return;
+
+            this.entityID = bukkitPlayer.getEntityId();
+            this.entityID = bukkitPlayer.getEntityId();
+            this.playerWorld = bukkitPlayer.getWorld();
+
+            // Resolve player version with support for protocol hacks
+            this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
+        }
+
+        if (this.clientVersion == null || this.clientVersion.getProtocolVersion() <= 0) {
+            this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
+
+            if (this.clientVersion.getProtocolVersion() <= 0) {
+                this.clientVersion = ClientVersion.getClientVersionByProtocolVersion(PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion());
+            }
+        }
     }
 
     public ClientVersion getClientVersion() {

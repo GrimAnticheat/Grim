@@ -14,7 +14,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
@@ -27,15 +26,37 @@ public class PacketServerTeleport extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
             WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
 
             Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
 
+            // This is the first packet sent to the client which we need to track
             if (player == null) {
                 // Player teleport event gets called AFTER player join event
-                new GrimPlayer((Player) event.getPlayer());
-                player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+                new GrimPlayer(event.getUser());
+                player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+
                 if (player == null) return; // This player is exempt from all checks
+
+                player.lastX = teleport.getX();
+                player.lastY = teleport.getY();
+                player.lastZ = teleport.getZ();
+                player.x = teleport.getX();
+                player.y = teleport.getY();
+                player.z = teleport.getZ();
+                player.xRot = teleport.getYaw();
+                player.yRot = teleport.getPitch();
+
+                player.lastX = teleport.getX();
+                player.lastY = teleport.getY();
+                player.lastZ = teleport.getZ();
+                player.lastXRot = teleport.getYaw();
+                player.lastYRot = teleport.getPitch();
+
+                player.playerWorld = player.bukkitPlayer.getWorld();
+
+                player.getSetbackTeleportUtil().setTargetTeleport(new Location(player.playerWorld, player.x, player.y, player.z));
+                player.getSetbackTeleportUtil().setSafeSetbackLocation(player.playerWorld, new Vector3d(player.x, player.y, player.z));
             }
 
             // Convert relative teleports to normal teleports
@@ -83,7 +104,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
             WrapperPlayServerVehicleMove vehicleMove = new WrapperPlayServerVehicleMove(event);
 
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getPlayer());
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
             player.sendTransaction();
