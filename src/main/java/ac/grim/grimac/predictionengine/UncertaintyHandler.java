@@ -117,7 +117,7 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
-        boolean newVectorPointThree = (player.couldSkipTick && data.isKnockback()) || data.isTrident();
+        boolean newVectorPointThree = player.couldSkipTick && data.isKnockback();
         boolean explicit003 = data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree;
         boolean either003 = newVectorPointThree || explicit003;
 
