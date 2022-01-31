@@ -55,6 +55,8 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
                 player.playerWorld = player.bukkitPlayer.getWorld();
                 player.gamemode = player.bukkitPlayer.getGameMode();
+                player.compensatedWorld.setMinHeight(player.playerWorld.getMinHeight());
+                player.compensatedWorld.setMaxWorldHeight(player.playerWorld.getMaxHeight());
 
                 player.getSetbackTeleportUtil().setTargetTeleport(new Location(player.playerWorld, player.x, player.y, player.z));
                 player.getSetbackTeleportUtil().setSafeSetbackLocation(player.playerWorld, new Vector3d(player.x, player.y, player.z));
