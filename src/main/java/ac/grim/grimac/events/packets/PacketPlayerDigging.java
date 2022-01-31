@@ -121,7 +121,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                     // The other items that do require it
                     // TODO: Food level lag compensation
-                    if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && player.bukkitPlayer.getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE) {
+                    if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && (player.bukkitPlayer.getFoodLevel() < 20 || player.gamemode == GameMode.CREATIVE)) {
                         player.packetStateData.slowedByUsingItem = true;
                         player.packetStateData.eatingHand = place.getHand();
 

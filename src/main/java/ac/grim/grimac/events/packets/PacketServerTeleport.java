@@ -54,6 +54,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.lastYRot = teleport.getPitch();
 
                 player.playerWorld = player.bukkitPlayer.getWorld();
+                player.gamemode = player.bukkitPlayer.getGameMode();
 
                 player.getSetbackTeleportUtil().setTargetTeleport(new Location(player.playerWorld, player.x, player.y, player.z));
                 player.getSetbackTeleportUtil().setSafeSetbackLocation(player.playerWorld, new Vector3d(player.x, player.y, player.z));
