@@ -351,6 +351,8 @@ public class MovementTicker {
 
             doWaterMove(swimSpeed, isFalling, swimFriction);
 
+            player.isClimbing = Collisions.onClimbable(player, player.x, player.y, player.z);
+
             // 1.13 and below players can't climb ladders while touching water
             // yes, 1.13 players cannot climb ladders underwater
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.isClimbing) {

@@ -72,8 +72,11 @@ public class PredictionEngineNormal extends PredictionEngine {
             walkingOnPowderSnow = boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS;
         }
 
+        player.isClimbing = Collisions.onClimbable(player, player.x, player.y, player.z);
+
         // Force 1.13.2 and below players to have something to collide with horizontally to climb
-        if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
+        if (player.lastWasClimbing == 0 && (player.pointThreeEstimator.isNearClimbable() || player.isClimbing) && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)
+                || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5))) || walkingOnPowderSnow) {
             Vector ladder = player.clientVelocity.clone().setY(0.2);
             staticVectorEndOfTick(player, ladder);

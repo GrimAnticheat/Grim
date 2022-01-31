@@ -12,6 +12,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import lombok.Getter;
@@ -248,9 +249,14 @@ public class PointThreeEstimator {
                         isNearVerticalFlowingLiquid = true;
                     }
 
-                    StateType mat = player.compensatedWorld.getStateTypeAt(bbX, bbY, bbZ);
+                    WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(bbX, bbY, bbZ);
+                    StateType mat = state.getType();
                     if (Materials.isClimbable(player.compensatedWorld.getStateTypeAt(bbX, bbY, bbZ)) || mat == StateTypes.POWDER_SNOW) {
                         isNearClimbable = true;
+                    }
+
+                    if (BlockTags.TRAPDOORS.contains(mat)) {
+                        isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, bbX, bbY, bbZ, state);
                     }
 
                     if (mat == StateTypes.BUBBLE_COLUMN) {

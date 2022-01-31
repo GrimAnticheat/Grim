@@ -8,8 +8,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.lists.EvictingList;
-import ac.grim.grimac.utils.nmsutil.Collisions;
-import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.util.Vector;
@@ -261,21 +259,6 @@ public class UncertaintyHandler {
         // Exempt flying status change
         if (player.uncertaintyHandler.lastFlyingStatusChange > -20) {
             offset = 0;
-        }
-
-        // Errors are caused by a combination of client/server desync while climbing
-        // desync caused by 0.03 and the lack of an idle packet
-        //
-        // I can't solve this.  This is on Mojang to fix.
-        //
-        // Don't even attempt to fix the poses code... garbage in garbage out - I did the best I could
-        // you can likely look at timings of packets to extrapolate better... but I refuse to use packet timings for stuff like this
-        // Does anyone at mojang understand netcode??? (the answer is no)
-        //
-        // Don't give me the excuse that it was originally a singleplayer game so the netcode is terrible...
-        // the desync's and netcode has progressively gotten worse starting with 1.9!
-        if (!Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f).expand(-SimpleCollisionBox.COLLISION_EPSILON).offset(0, 0.03, 0)) && player.isClimbing) {
-            offset -= 0.12;
         }
 
         // I can't figure out how the client exactly tracks boost time

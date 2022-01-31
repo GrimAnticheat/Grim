@@ -672,7 +672,7 @@ public class Collisions {
         return trapdoorUsableAsLadder(player, x, y, z, blockState);
     }
 
-    private static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, WrappedBlockState blockData) {
+    public static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, WrappedBlockState blockData) {
         if (!BlockTags.TRAPDOORS.contains(blockData.getType())) return false;
 
         if (blockData.isOpen()) {

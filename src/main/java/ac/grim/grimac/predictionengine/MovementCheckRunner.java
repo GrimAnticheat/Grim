@@ -12,7 +12,6 @@ import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
@@ -488,13 +487,8 @@ public class MovementCheckRunner extends PositionCheck {
             player.getSetbackTeleportUtil().executeForceResync();
         }
 
-        // This status gets reset on teleports
-        //
-        // Prevent desync by only removing offset when we are both blocking offsets AND
-        // we have a pending setback with a transaction greater than ours
-        SetBackData setbackData = player.getSetbackTeleportUtil().getRequiredSetBack();
-
-        if (player.getSetbackTeleportUtil().blockOffsets && setbackData != null && setbackData.getTrans() + 1 > player.lastTransactionReceived.get())
+        // Let's hope this doesn't desync :)
+        if (player.getSetbackTeleportUtil().blockOffsets)
             offset = 0;
 
         // Don't check players who are offline
