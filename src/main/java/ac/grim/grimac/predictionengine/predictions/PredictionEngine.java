@@ -124,14 +124,13 @@ public class PredictionEngine {
             if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
                 continue;
 
-            // TODO: Remove this expansion
-            double xAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
-            double yAdditional = (player.hasGravity ? SimpleCollisionBox.COLLISION_EPSILON : 0);
-            double zAdditional = (Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON);
+            double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
+            double yAdditional = (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON;
+            double zAdditional = Math.signum(primaryPushMovement.getZ()) * SimpleCollisionBox.COLLISION_EPSILON;
 
             // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
             double testX = primaryPushMovement.getX() + xAdditional;
-            double testY = primaryPushMovement.getY() - yAdditional;
+            double testY = primaryPushMovement.getY() + yAdditional;
             double testZ = primaryPushMovement.getZ() + zAdditional;
             primaryPushMovement = new Vector(testX, testY, testZ);
 
@@ -143,8 +142,8 @@ public class PredictionEngine {
             }
 
             if (testY == outputVel.getY()) { // the player didn't have Y collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setY(primaryPushMovement.getY() + yAdditional);
-                outputVel.setY(outputVel.getY() + yAdditional);
+                primaryPushMovement.setY(primaryPushMovement.getY() - yAdditional);
+                outputVel.setY(outputVel.getY() - yAdditional);
             }
 
             if (testZ == outputVel.getZ()) { // the player didn't have Z collision, don't ruin offset by collision epsilon
