@@ -203,6 +203,12 @@ public class Collisions {
                 BaseChunk[] sections = chunk.getChunks();
 
                 for (int y = minYIterate; y <= maxYIterate; ++y) {
+                    // Don't look for a section if it's too high
+                    if (sections.length <= (y >> 4) - minSection) {
+                        y = (y & ~(15)) + 15; // increment by 15: iterator loop increments by the extra one
+                        continue;
+                    }
+
                     BaseChunk section = sections[(y >> 4) - minSection];
 
                     if (section == null || section.isKnownEmpty()) { // Check for empty on 1.13+ servers
