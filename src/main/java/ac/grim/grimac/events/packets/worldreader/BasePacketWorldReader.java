@@ -6,7 +6,7 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunks.Column;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.util.Vector3i;

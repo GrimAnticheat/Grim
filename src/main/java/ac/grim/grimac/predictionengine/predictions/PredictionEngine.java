@@ -433,6 +433,11 @@ public class PredictionEngine {
         additionHorizontal += player.uncertaintyHandler.lastHorizontalOffset;
         additionVertical += player.uncertaintyHandler.lastVerticalOffset;
 
+        VectorData originalVec = vector;
+        while (originalVec.lastVector != null) {
+            originalVec = originalVec.lastVector;
+        }
+
         double uncertainPiston = 0;
         for (int x = 0; x < player.uncertaintyHandler.pistonPushing.size(); x++) {
             double value = player.uncertaintyHandler.pistonPushing.get(x);
@@ -484,15 +489,6 @@ public class PredictionEngine {
             } else {
                 maxVector.multiply(new Vector(1, 1, 0.4));
             }
-
-            // If the player is using fireworks on slime
-            // Their Y velocity gets hidden once by fireworks applying push movement
-            // Then again by bouncing on the slime itself
-            // Then again by 0.03
-            // Give up, what cheat could exploit slime and fireworks?
-            if (player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
-                minVector.setY(0);
-            }
         }
 
         // Handle the player landing within 0.03 movement
@@ -542,6 +538,15 @@ public class PredictionEngine {
                 if (slimeBlockBounce > maxVector.getY()) maxVector.setY(slimeBlockBounce);
                 if (minVector.getY() > 0) minVector.setY(0);
             }
+        }
+
+        if (player.uncertaintyHandler.fireworksBox != null) {
+            SimpleCollisionBox box = new SimpleCollisionBox(minVector, maxVector);
+            box.expandToAbsoluteCoordinates(player.uncertaintyHandler.fireworksBox.maxX, player.uncertaintyHandler.fireworksBox.maxY, player.uncertaintyHandler.fireworksBox.maxZ);
+            box.expandToAbsoluteCoordinates(player.uncertaintyHandler.fireworksBox.minX, player.uncertaintyHandler.fireworksBox.minY, player.uncertaintyHandler.fireworksBox.minZ);
+            box.sort();
+            minVector = box.min();
+            maxVector = box.max();
         }
 
         Vector cut = VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
@@ -621,7 +626,6 @@ public class PredictionEngine {
                     for (int x = -1; x <= 1; x++) {
                         for (int z = zMin; z <= 1; z++) {
                             VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-                            result = result.returnNewModified(handleFireworkMovementLenience(player, result.vector.clone()), VectorData.VectorType.Lenience);
                             result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
                             result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
                             // Signal that we need to flip sneaking bounding box
@@ -686,29 +690,6 @@ public class PredictionEngine {
         double zResult = inputVector.getZ() * f4 + inputVector.getX() * f3;
 
         return new Vector(xResult * f, 0, zResult * f);
-    }
-
-    public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
-        int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
-
-        if (maxFireworks <= 0) return vector;
-        if (!player.isGliding && !player.wasGliding) return vector;
-
-        Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
-        Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
-
-        Vector boostOne = vector.clone();
-        Vector boostTwo = vector.clone();
-
-        for (int i = 0; i < maxFireworks; i++) {
-            boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
-            boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
-        }
-
-        Vector cutOne = VectorUtils.cutBoxToVector(player.actualMovement, boostOne, vector);
-        Vector cutTwo = VectorUtils.cutBoxToVector(player.actualMovement, boostTwo, vector);
-
-        return VectorUtils.cutBoxToVector(player.actualMovement, cutOne, cutTwo);
     }
 
     public Vector handleOnClimbable(Vector vector, GrimPlayer player) {

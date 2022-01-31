@@ -6,7 +6,7 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;

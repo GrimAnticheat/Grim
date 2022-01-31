@@ -17,8 +17,8 @@ import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.latency.CompensatedCooldown;
 import ac.grim.grimac.utils.latency.CompensatedFireworks;
 import ac.grim.grimac.utils.latency.CompensatedInventory;
-import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 

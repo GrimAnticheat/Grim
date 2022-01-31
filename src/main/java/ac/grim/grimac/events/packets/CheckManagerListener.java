@@ -22,8 +22,8 @@ import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
-import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
@@ -252,6 +252,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (event.getConnectionState() != ConnectionState.PLAY) return;
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
+
+        System.out.println("Type " + event.getPacketType());
 
         // Flying packet types
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {

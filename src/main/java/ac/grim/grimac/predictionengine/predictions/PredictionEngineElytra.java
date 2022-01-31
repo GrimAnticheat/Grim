@@ -2,7 +2,6 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.math.VectorUtils;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -26,31 +25,10 @@ public class PredictionEngineElytra extends PredictionEngine {
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> results = new ArrayList<>();
         Vector currentLook = getVectorForRotation(player, player.yRot, player.xRot);
-        Vector lastLook = getVectorForRotation(player, player.lastYRot, player.lastXRot);
-
-        int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
 
         for (VectorData data : possibleVectors) {
-            Vector boostOne = data.vector.clone();
-            Vector boostTwo = data.vector.clone();
-
-            Vector fireworksResult = getElytraMovement(player, boostOne.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-
-            if (maxFireworks > 0) {
-                for (int i = 0; i < maxFireworks; i++) {
-                    boostOne.add(new Vector(currentLook.getX() * 0.1 + (currentLook.getX() * 1.5 - boostOne.getX()) * 0.5, currentLook.getY() * 0.1 + (currentLook.getY() * 1.5 - boostOne.getY()) * 0.5, (currentLook.getZ() * 0.1 + (currentLook.getZ() * 1.5 - boostOne.getZ()) * 0.5)));
-                    boostTwo.add(new Vector(lastLook.getX() * 0.1 + (lastLook.getX() * 1.5 - boostTwo.getX()) * 0.5, lastLook.getY() * 0.1 + (lastLook.getY() * 1.5 - boostTwo.getY()) * 0.5, (lastLook.getZ() * 0.1 + (lastLook.getZ() * 1.5 - boostTwo.getZ()) * 0.5)));
-                }
-
-                getElytraMovement(player, boostOne, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-                getElytraMovement(player, boostTwo, currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
-
-                Vector cutOne = VectorUtils.cutBoxToVector(player.actualMovement, boostOne, fireworksResult);
-                Vector cutTwo = VectorUtils.cutBoxToVector(player.actualMovement, boostTwo, fireworksResult);
-                fireworksResult = VectorUtils.cutBoxToVector(player.actualMovement, cutOne, cutTwo);
-            }
-
-            results.add(data.returnNewModified(fireworksResult, VectorData.VectorType.Elytra));
+            Vector elytraResult = getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+            results.add(data.returnNewModified(elytraResult, VectorData.VectorType.Elytra));
         }
 
         return results;
@@ -90,10 +68,5 @@ public class PredictionEngineElytra extends PredictionEngine {
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         new PredictionEngineNormal().addJumpsToPossibilities(player, existingVelocities);
-    }
-
-    @Override
-    public Vector handleFireworkMovementLenience(GrimPlayer player, Vector vector) {
-        return vector;
     }
 }

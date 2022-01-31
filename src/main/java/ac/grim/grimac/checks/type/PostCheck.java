@@ -1,7 +1,7 @@
 package ac.grim.grimac.checks.type;
 
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.event.impl.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 public class PostCheck extends PacketCheck {

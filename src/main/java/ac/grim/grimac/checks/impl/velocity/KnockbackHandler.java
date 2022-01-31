@@ -6,7 +6,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VelocityData;
 import ac.grim.grimac.utils.math.GrimMath;
-import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;

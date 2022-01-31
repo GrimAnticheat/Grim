@@ -5,7 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.enums.Pose;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
-import com.github.retrooper.packetevents.event.impl.PacketSendEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
@@ -28,9 +28,8 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            List<Runnable> tasks = event.getPostTasks();
+            List<Runnable> tasks = event.getPromisedTasks();
             tasks.add(player::sendTransaction);
-            event.setPostTasks(tasks);
 
             if (health.getHealth() <= 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.isDead = true);
@@ -45,9 +44,8 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            List<Runnable> tasks = event.getPostTasks();
+            List<Runnable> tasks = event.getPromisedTasks();
             tasks.add(player::sendTransaction);
-            event.setPostTasks(tasks);
 
             // Force the player to accept a teleport before respawning
             player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;

@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngineElytra;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -11,6 +12,7 @@ import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import org.bukkit.util.Vector;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -75,6 +77,7 @@ public class UncertaintyHandler {
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
+    public SimpleCollisionBox fireworksBox = null;
 
     // Fireworks are pure uncertainty and cause issues (Their implementation is terrible)
     public boolean lastUsingFirework = false;
@@ -110,10 +113,28 @@ public class UncertaintyHandler {
         pistonZ = 0;
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
+        tickFireworksBox();
     }
 
     public boolean wasAffectedByStuckSpeed() {
         return lastStuckSpeedMultiplier > -5;
+    }
+
+    public void tickFireworksBox() {
+        int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
+
+        if (maxFireworks <= 0 || (!player.isGliding && !player.wasGliding)) {
+            fireworksBox = null;
+            return;
+        }
+
+        Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
+        Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
+
+        // The maximum movement impact a firework can have is 1.7 blocks/tick
+        // This scales with the look vector linearly
+        SimpleCollisionBox box = new SimpleCollisionBox(currentLook, lastLook).sort();
+        fireworksBox = new SimpleCollisionBox(box.minX * 1.7, box.minY * 1.7, box.minZ * 1.7, box.maxX * 1.7, box.maxY * 1.7, box.maxZ * 1.7);
     }
 
     public double getOffsetHorizontal(VectorData data) {
