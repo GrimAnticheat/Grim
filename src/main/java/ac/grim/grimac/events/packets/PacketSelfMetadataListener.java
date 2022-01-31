@@ -70,6 +70,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         byte field = (byte) zeroBitField;
                         boolean isGliding = (field & 0x80) == 0x80 && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
                         boolean isSwimming = (field & 0x10) == 0x10;
+                        boolean isSprinting = (field & 0x8) == 0x8;
 
                         player.sendTransaction();
 
@@ -84,6 +85,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         player.latencyUtils.addRealTimeTask(transactionSent, () -> {
                             player.uncertaintyHandler.lastMetadataDesync = 0;
                             player.isSwimming = isSwimming;
+                            player.lastSprinting = isSprinting;
                         });
                     }
                 }
