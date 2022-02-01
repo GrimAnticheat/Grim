@@ -37,12 +37,17 @@ public class MovementTicker {
 
         StateType onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
+        double mojangIsStupid = player.clientVelocity.getX();
         if (inputVel.getX() != collide.getX()) {
             player.clientVelocity.setX(0);
         }
 
         if (inputVel.getZ() != collide.getZ()) {
             player.clientVelocity.setZ(0);
+            // Simulate being as stupid as is - XZ collision bug
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
+                player.clientVelocity.setX(mojangIsStupid);
+            }
         }
 
         player.horizontalCollision = !GrimMath.isCloseEnoughEquals(inputVel.getX(), collide.getX()) || !GrimMath.isCloseEnoughEquals(inputVel.getZ(), collide.getZ());
