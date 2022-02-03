@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import org.bukkit.util.Vector;
 
 @CheckData(buffer = 3, maxBuffer = 3)
 public class GhostBlockDetector extends PostPredictionCheck {
@@ -21,30 +22,31 @@ public class GhostBlockDetector extends PostPredictionCheck {
     // Must process data first to get rid of false positives from ghost blocks
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // If the offset is low, there probably isn't ghost blocks
-        if (predictionComplete.getOffset() < 0.001) return;
+        // However, if we would flag nofall, check for ghost blocks
+        if (predictionComplete.getOffset() < 0.001 && (player.clientClaimsLastOnGround == player.onGround)) return;
 
         boolean shouldResync = isGhostBlock();
 
         if (shouldResync) {
-            // GHOST BLOCK DETECTED!  What now?
-            // 0.01 - 0.001 = 6 vl to resync
-            // 0.1 - 0.01 = 3 vl to resync
-            // 0.1+ = 1 vl to resync
-            if (predictionComplete.getOffset() < 0.01) decreaseBuffer(0.5);
-            else if (predictionComplete.getOffset() < 0.1) decreaseBuffer(1);
-            else decreaseBuffer(3);
-
-            if (getBuffer() <= 0) {
-                predictionComplete.setOffset(0);
-                player.getSetbackTeleportUtil().executeForceResync();
+            // I once used a buffer for this, but it should be very accurate now.
+            if (player.clientClaimsLastOnGround != player.onGround) {
+                // Rethink this.  Is there a better way to force the player's ground for the next tick?
+                // No packet for it, so I think this is sadly the best way.
+                player.onGround = player.clientClaimsLastOnGround;
             }
-        } else {
-            increaseBuffer(0.025);
+
+            predictionComplete.setOffset(0);
+            player.getSetbackTeleportUtil().executeForceResync();
         }
     }
 
     private boolean isGhostBlock() {
-        if (true) return false;
+        if (player.actualMovement.length() < 50) { // anti-crash
+            Vector phase = Collisions.collide(player, player.actualMovement.getX(), player.actualMovement.getY(), player.actualMovement.getZ());
+            if (phase.getX() != player.actualMovement.getX() || phase.getY() != player.actualMovement.getY() || phase.getZ() != player.actualMovement.getZ()) {
+                return true;
+            }
+        }
 
         // Player is on glitchy block (1.8 client on anvil/wooden chest)
         if (player.uncertaintyHandler.isOrWasNearGlitchyBlock) {
@@ -52,7 +54,7 @@ public class GhostBlockDetector extends PostPredictionCheck {
         }
 
         // Reliable way to check if the player is colliding vertically with a block that doesn't exist
-        if (player.clientClaimsLastOnGround && player.clientControlledVerticalCollision && Collisions.collide(player, 0, -SimpleCollisionBox.COLLISION_EPSILON, 0).getY() == -SimpleCollisionBox.COLLISION_EPSILON) {
+        if (player.clientClaimsLastOnGround && player.clientControlledVerticalCollision && !player.onGround) {
             return true;
         }
 

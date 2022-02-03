@@ -66,6 +66,7 @@ public class DebugHandler extends PostPredictionCheck {
     }
 
     private ChatColor pickColor(double offset) {
+        if (player.getSetbackTeleportUtil().blockOffsets) return ChatColor.GRAY;
         if (offset <= 0) {
             return ChatColor.GRAY;
         } else if (offset < 0.0001) {

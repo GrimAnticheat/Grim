@@ -59,7 +59,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // Desync is fixed
-        if (predictionComplete.getData().isTeleport()) blockOffsets = false;
+        if (predictionComplete.getData().isTeleport()) {
+            blockOffsets = false;
+        }
 
         // We must first check if the player has accepted their setback
         // If the setback isn't complete, then this position is illegitimate

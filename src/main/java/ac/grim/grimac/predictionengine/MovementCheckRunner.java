@@ -479,14 +479,6 @@ public class MovementCheckRunner extends PositionCheck {
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
-        player.lastOnGround = player.onGround;
-        player.lastSprinting = player.isSprinting;
-        player.lastSprintingForSpeed = player.isSprinting;
-        player.wasFlying = player.isFlying;
-        player.wasGliding = player.isGliding;
-        player.wasSwimming = player.isSwimming;
-        player.wasSneaking = player.isSneaking;
-
         // No, don't comment about the sqrt call.  It doesn't matter at all on modern CPU's.
         double offset = player.predictedVelocity.vector.distance(player.actualMovement);
         offset = player.uncertaintyHandler.reduceOffset(offset);
@@ -520,6 +512,14 @@ public class MovementCheckRunner extends PositionCheck {
             player.checkManager.getExplosionHandler().forceExempt();
             player.checkManager.getKnockbackHandler().forceExempt();
         }
+
+        player.lastOnGround = player.onGround;
+        player.lastSprinting = player.isSprinting;
+        player.lastSprintingForSpeed = player.isSprinting;
+        player.wasFlying = player.isFlying;
+        player.wasGliding = player.isGliding;
+        player.wasSwimming = player.isSwimming;
+        player.wasSneaking = player.isSneaking;
 
         player.riptideSpinAttackTicks--;
         if (player.predictedVelocity.isTrident())
