@@ -129,10 +129,30 @@ public class UncertaintyHandler {
         Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
         Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
 
+        double minX = Math.min(0, currentLook.getX()) + Math.min(0, lastLook.getX());
+        double minY = Math.min(0, currentLook.getY()) + Math.min(0, lastLook.getY());
+        double minZ = Math.min(0, currentLook.getZ()) + Math.min(0, lastLook.getZ());
+        double maxX = Math.max(0, currentLook.getX()) + Math.max(0, lastLook.getX());
+        double maxY = Math.max(0, currentLook.getY()) + Math.max(0, lastLook.getY());
+        double maxZ = Math.max(0, currentLook.getZ()) + Math.max(0, lastLook.getZ());
+
+        minX *= 1.7;
+        minY *= 1.7;
+        minZ *= 1.7;
+        maxX *= 1.7;
+        maxY *= 1.7;
+        maxZ *= 1.7;
+
+        minX = Math.max(-1.7, minX);
+        minY = Math.max(-1.7, minY);
+        minZ = Math.max(-1.7, minZ);
+        maxX = Math.min(1.7, maxX);
+        maxY = Math.min(1.7, maxY);
+        maxZ = Math.min(1.7, maxZ);
+
         // The maximum movement impact a firework can have is 1.7 blocks/tick
         // This scales with the look vector linearly
-        SimpleCollisionBox box = new SimpleCollisionBox(currentLook, lastLook).sort();
-        fireworksBox = new SimpleCollisionBox(box.minX * 1.7, box.minY * 1.7, box.minZ * 1.7, box.maxX * 1.7, box.maxY * 1.7, box.maxZ * 1.7);
+        fireworksBox = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     public double getOffsetHorizontal(VectorData data) {

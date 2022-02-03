@@ -150,22 +150,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
                 (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         new Vector3d(player.x, player.y, player.z).equals(new Vector3d(x, y, z))) || player.inVehicle) {
-
-            if (!player.inVehicle) {
-                // We will take the rotation though
-                player.lastXRot = player.xRot;
-                player.lastYRot = player.yRot;
-
-                player.xRot = yaw;
-                player.yRot = pitch;
-            }
-
-            float deltaXRot = player.xRot - player.lastXRot;
-            float deltaYRot = player.yRot - player.lastYRot;
-
-            final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
-            player.checkManager.onRotationUpdate(update);
-
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
             // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
@@ -175,6 +159,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
             return;
         }
+
+        player.lastXRot = player.xRot;
+        player.lastYRot = player.yRot;
 
         handleQueuedPlaces(player, hasLook, pitch, yaw, now);
 
@@ -194,8 +181,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.lastX = player.x;
         player.lastY = player.y;
         player.lastZ = player.z;
-        player.lastXRot = player.xRot;
-        player.lastYRot = player.yRot;
 
         player.packetStateData.packetPlayerOnGround = onGround;
 
@@ -218,7 +203,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.checkManager.onPositionUpdate(update);
         }
 
-        if (hasLook && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+        if (hasLook) {
             float deltaXRot = player.xRot - player.lastXRot;
             float deltaYRot = player.yRot - player.lastYRot;
 
