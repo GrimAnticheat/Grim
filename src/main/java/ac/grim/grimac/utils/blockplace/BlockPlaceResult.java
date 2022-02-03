@@ -51,17 +51,25 @@ public enum BlockPlaceResult {
         }
 
         WrappedBlockState below = place.getBelowState();
+
         if (!BlockTags.ICE.contains(below.getType()) && below.getType() != StateTypes.BARRIER) {
+            boolean set = false;
             if (below.getType() != StateTypes.HONEY_BLOCK && below.getType() != StateTypes.SOUL_SAND) {
                 if (place.isFullFace(BlockFace.DOWN)) { // Vanilla also checks for 8 layers of snow but that's redundant...
-                    WrappedBlockState snow = StateTypes.SNOW.createBlockState();
-                    snow.setLayers(layers + 1);
-                    place.set(against, snow);
+                    set = true;
                 }
             } else { // Honey and soul sand are exempt from this full face check
-                WrappedBlockState snow = StateTypes.SNOW.createBlockState();
-                snow.setLayers(layers + 1);
-                place.set(against, snow);
+                set = true;
+            }
+
+            if (set) {
+                if (blockState.getType() == StateTypes.SNOW) {
+                    WrappedBlockState snow = StateTypes.SNOW.createBlockState();
+                    snow.setLayers(Math.min(8, layers + 1));
+                    place.set(against, snow);
+                } else {
+                    place.set();
+                }
             }
         }
 

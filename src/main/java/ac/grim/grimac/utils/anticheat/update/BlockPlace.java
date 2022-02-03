@@ -228,7 +228,7 @@ public class BlockPlace {
             // Leaves can't support blocks
             return false;
         } else if (blockMaterial == StateTypes.SNOW) {
-            return state.getLayers() == 7;
+            return state.getLayers() == 8 || face == BlockFace.DOWN;
         } else if (BlockTags.STAIRS.contains(blockMaterial)) {
             if (face == BlockFace.UP) {
                 return state.getHalf() == Half.TOP;
