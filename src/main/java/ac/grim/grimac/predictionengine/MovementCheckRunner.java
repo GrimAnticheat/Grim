@@ -113,10 +113,12 @@ public class MovementCheckRunner extends PositionCheck {
         if (!player.specialFlying && player.isSneaking && Collisions.isAboveGround(player)) {
             // Before we do player block placements, determine if the shifting glitch occurred
             // The 0.03 and maintaining velocity is just brutal
-            double posX = Math.max(0.1, player.actualMovement.getX() + 0.3);
-            double posZ = Math.max(0.1, player.actualMovement.getZ() + 0.3);
-            double negX = Math.min(-0.1, player.actualMovement.getX() - 0.3);
-            double negZ = Math.min(-0.1, player.actualMovement.getZ() - 0.3);
+            //
+            // 16 - Magic number to stop people from crashing the server
+            double posX = Math.max(0.1, Math.max(player.actualMovement.getX(), 16) + 0.1);
+            double posZ = Math.max(0.1, Math.max(player.actualMovement.getZ(), 16) + 0.1);
+            double negX = Math.min(-0.1, Math.max(player.actualMovement.getX(), 16) - 0.1);
+            double negZ = Math.min(-0.1, Math.max(player.actualMovement.getZ(), 16) - 0.1);
 
             Vector NE = Collisions.maybeBackOffFromEdge(new Vector(posX, 0, posZ), player, true);
             Vector NW = Collisions.maybeBackOffFromEdge(new Vector(negX, 0, negZ), player, true);

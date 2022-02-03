@@ -542,12 +542,20 @@ public class PredictionEngine {
         box.sort();
 
         if (player.uncertaintyHandler.fireworksBox != null) {
-            box.expandToAbsoluteCoordinates(player.uncertaintyHandler.fireworksBox.maxX, player.uncertaintyHandler.fireworksBox.maxY, player.uncertaintyHandler.fireworksBox.maxZ);
-            box.expandToAbsoluteCoordinates(player.uncertaintyHandler.fireworksBox.minX, player.uncertaintyHandler.fireworksBox.minY, player.uncertaintyHandler.fireworksBox.minZ);
+            double minXdiff = Math.min(0, player.uncertaintyHandler.fireworksBox.minX - originalVec.vector.getX());
+            double minYdiff = Math.min(0, player.uncertaintyHandler.fireworksBox.minY - originalVec.vector.getY());
+            double minZdiff = Math.min(0, player.uncertaintyHandler.fireworksBox.minZ - originalVec.vector.getZ());
+            double maxXdiff = Math.max(0, player.uncertaintyHandler.fireworksBox.maxX - originalVec.vector.getX());
+            double maxYdiff = Math.max(0, player.uncertaintyHandler.fireworksBox.maxY - originalVec.vector.getY());
+            double maxZdiff = Math.max(0, player.uncertaintyHandler.fireworksBox.maxZ - originalVec.vector.getZ());
+
+            box.expandMin(minXdiff, minYdiff, minZdiff);
+            box.expandMax(maxXdiff, maxYdiff, maxZdiff);
         }
 
         if (player.uncertaintyHandler.stuckOnEdge > -3) {
-            box.expandToAbsoluteCoordinates(0, 0, 0);
+            // Avoid changing Y axis
+            box.expandToAbsoluteCoordinates(0, box.maxY, 0);
         }
 
         minVector = box.min();
