@@ -252,10 +252,6 @@ public class UncertaintyHandler {
             offset -= 0.25;
         }
 
-        if (player.uncertaintyHandler.stuckOnEdge > -3) {
-            offset -= 0.05;
-        }
-
         // Exempt flying status change
         if (player.uncertaintyHandler.lastFlyingStatusChange > -20) {
             offset = 0;
@@ -267,12 +263,6 @@ public class UncertaintyHandler {
             if (vehicle.currentBoostTime < vehicle.boostTimeMax + 20)
                 offset -= 0.01;
         }
-
-        // Sneaking near edge cases a ton of issues
-        // Don't give this bonus if the Y axis is wrong though.
-        // Another temporary permanent hack.
-        if (player.uncertaintyHandler.stuckOnEdge == -2 && player.clientVelocity.getY() > 0 && Math.abs(player.clientVelocity.getY() - player.actualMovement.getY()) < 1e-6)
-            offset -= 0.1;
 
         return Math.max(0, offset);
     }

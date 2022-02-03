@@ -115,8 +115,7 @@ public class PredictionEngine {
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
             Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
-            Vector additionalPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
-            Vector primaryPushMovement = Collisions.maybeBackOffFromEdge(additionalPushMovement, player, false);
+            Vector primaryPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
 
             Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
             // Check if this vector could ever possible beat the last vector in terms of accuracy
@@ -539,14 +538,20 @@ public class PredictionEngine {
             }
         }
 
+        SimpleCollisionBox box = new SimpleCollisionBox(minVector, maxVector);
+        box.sort();
+
         if (player.uncertaintyHandler.fireworksBox != null) {
-            SimpleCollisionBox box = new SimpleCollisionBox(minVector, maxVector);
             box.expandToAbsoluteCoordinates(player.uncertaintyHandler.fireworksBox.maxX, player.uncertaintyHandler.fireworksBox.maxY, player.uncertaintyHandler.fireworksBox.maxZ);
             box.expandToAbsoluteCoordinates(player.uncertaintyHandler.fireworksBox.minX, player.uncertaintyHandler.fireworksBox.minY, player.uncertaintyHandler.fireworksBox.minZ);
-            box.sort();
-            minVector = box.min();
-            maxVector = box.max();
         }
+
+        if (player.uncertaintyHandler.stuckOnEdge > -3) {
+            box.expandToAbsoluteCoordinates(0, 0, 0);
+        }
+
+        minVector = box.min();
+        maxVector = box.max();
 
         Vector cut = VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
 

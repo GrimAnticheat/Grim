@@ -351,10 +351,11 @@ public class Collisions {
             }
             vec3 = new Vector(x, vec3.getY(), z);
         }
+
         return vec3;
     }
 
-    private static boolean isAboveGround(GrimPlayer player) {
+    public static boolean isAboveGround(GrimPlayer player) {
         // https://bugs.mojang.com/browse/MC-2404
         return player.lastOnGround || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16_2) && (player.fallDistance < player.getMaxUpStep() &&
                 !isEmpty(player, player.boundingBox.copy().offset(0.0, player.fallDistance - player.getMaxUpStep(), 0.0))));
