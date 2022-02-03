@@ -66,7 +66,7 @@ public class BlockProperties {
             return player.flySpeed * 20 * (player.isSprinting ? 0.1f : 0.05f);
         }
 
-        return player.lastSprinting ? 0.026f : 0.02f;
+        return player.lastSprintingForSpeed ? 0.026f : 0.02f;
     }
 
     public static StateType getOnBlock(GrimPlayer player, double x, double y, double z) {

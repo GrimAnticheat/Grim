@@ -466,6 +466,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.lastOnGround = player.onGround;
         player.lastSprinting = player.isSprinting;
+        player.lastSprintingForSpeed = player.isSprinting;
         player.wasFlying = player.isFlying;
         player.wasGliding = player.isGliding;
         player.wasSwimming = player.isSwimming;

@@ -94,6 +94,9 @@ public class GrimPlayer {
     public boolean isCrouching;
     public boolean isSprinting;
     public boolean lastSprinting;
+    // The client updates sprinting attribute at end of each tick
+    // Don't false if the server update's the player's sprinting status
+    public boolean lastSprintingForSpeed;
     public boolean isFlying;
     public boolean wasFlying;
     // If a player collides with the ground, their flying will be set false after their movement
