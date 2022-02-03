@@ -12,8 +12,9 @@ import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
-import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -21,6 +22,7 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
@@ -440,15 +442,19 @@ public class BlockPlace {
         BlockFace direction2 = flag2 ? BlockFace.SOUTH : BlockFace.NORTH;
         if (f6 > f8) {
             if (f7 > f9) {
-                return Arrays.asList(direction1, direction, direction2);
+                return makeDirList(direction1, direction, direction2);
             } else {
-                return f10 > f7 ? Arrays.asList(direction, direction2, direction1) : Arrays.asList(direction, direction1, direction2);
+                return f10 > f7 ? makeDirList(direction, direction2, direction1) : makeDirList(direction, direction1, direction2);
             }
         } else if (f7 > f10) {
-            return Arrays.asList(direction1, direction2, direction);
+            return makeDirList(direction1, direction2, direction);
         } else {
-            return f9 > f7 ? Arrays.asList(direction2, direction, direction1) : Arrays.asList(direction2, direction1, direction);
+            return f9 > f7 ? makeDirList(direction2, direction, direction1) : makeDirList(direction2, direction1, direction);
         }
+    }
+
+    private List<BlockFace> makeDirList(BlockFace one, BlockFace two, BlockFace three) {
+        return Arrays.asList(one, two, three, three.getOppositeFace(), two.getOppositeFace(), one.getOppositeFace());
     }
 
     public BlockFace getNearestVerticalDirection() {
@@ -546,6 +552,15 @@ public class BlockPlace {
         WrappedBlockState existingState = player.compensatedWorld.getWrappedBlockStateAt(getPlacedBlockPos());
         if (!replaceClicked && !canBeReplaced(material, existingState)) {
             return;
+        }
+
+        // Check for waterlogged
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+            if (state.getInternalData().containsKey(StateValue.WATERLOGGED)) { // waterloggable
+                if (existingState.getType() == StateTypes.WATER && existingState.getLevel() == 0) {
+                    state.setWaterlogged(true);
+                }
+            }
         }
 
         player.getInventory().onBlockPlace(this);

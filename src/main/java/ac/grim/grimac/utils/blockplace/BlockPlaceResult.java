@@ -1,6 +1,5 @@
 package ac.grim.grimac.utils.blockplace;
 
-import ac.grim.grimac.utils.anticheat.Version;
 import ac.grim.grimac.utils.blockstate.helper.BlockFaceHelper;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
@@ -27,11 +26,9 @@ public enum BlockPlaceResult {
 
     // If the block only has directional data
     ANVIL((player, place) -> {
-        if (Version.isFlat()) {
-            WrappedBlockState data = place.getMaterial().createBlockState();
-            data.setFacing(BlockFaceHelper.getClockWise(place.getPlayerFacing()));
-            place.set(data);
-        }
+        WrappedBlockState data = place.getMaterial().createBlockState();
+        data.setFacing(BlockFaceHelper.getClockWise(place.getPlayerFacing()));
+        place.set(data);
     }, ItemTags.ANVIL),
 
     // The client only predicts one of the individual bed blocks, interestingly
@@ -109,13 +106,25 @@ public enum BlockPlaceResult {
     }, ItemTypes.END_ROD, ItemTypes.LIGHTNING_ROD),
 
     LADDER((player, place) -> {
-        // Horizontal ladders aren't a thing
-        if (place.isFaceVertical()) return;
-        if (!place.isFullFace(place.getDirection().getOppositeFace())) return;
+        //  No placing a ladder against another ladder
+        if (!place.isReplaceClicked()) {
+            WrappedBlockState existing = player.compensatedWorld.getWrappedBlockStateAt(place.getPlacedAgainstBlockLocation());
+            if (existing.getType() == StateTypes.LADDER && existing.getFacing() == place.getDirection()) {
+                return;
+            }
+        }
 
-        WrappedBlockState ladder = place.getMaterial().createBlockState();
-        ladder.setFacing(place.getDirection());
-        place.set(ladder);
+        for (BlockFace face : place.getNearestPlacingDirections()) {
+            // Torches need solid faces
+            // Heads have no special preferences - place them anywhere
+            // Signs need solid - exempts chorus flowers and a few other strange cases
+            if (BlockFaceHelper.isFaceHorizontal(face) && place.isFullFace(face)) {
+                WrappedBlockState ladder = place.getMaterial().createBlockState();
+                ladder.setFacing(face.getOppositeFace());
+                place.set(ladder);
+                return;
+            }
+        }
     }, ItemTypes.LADDER),
 
     FARM_BLOCK((player, place) -> {
