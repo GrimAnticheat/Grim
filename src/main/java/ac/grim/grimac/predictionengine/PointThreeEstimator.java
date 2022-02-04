@@ -305,16 +305,6 @@ public class PointThreeEstimator {
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
 
-        if (player.uncertaintyHandler.influencedByBouncyBlock()) {
-            for (VectorData data : init) {
-                // Try to get the vector as close to zero as possible to give the best chance at 0.03...
-                Vector toZeroVec = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(0, -1000000000, 0)); // Downwards without overflow risk
-                double minVel = Math.min(toZeroVec.getY(), player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(0));
-
-                player.uncertaintyHandler.slimeBlockUpwardsUncertainty.set(0, minVel);
-            }
-        }
-
         if ((player.isGliding || player.wasGliding) && player.uncertaintyHandler.claimedLookChangedBetweenTick) {
             return true;
         }

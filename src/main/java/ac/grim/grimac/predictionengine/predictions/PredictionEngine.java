@@ -68,6 +68,16 @@ public class PredictionEngine {
     public void guessBestMovement(float speed, GrimPlayer player) {
         Set<VectorData> init = fetchPossibleStartTickVectors(player);
 
+        if (player.uncertaintyHandler.influencedByBouncyBlock()) {
+            for (VectorData data : init) {
+                // Try to get the vector as close to zero as possible to give the best chance at 0.03...
+                Vector toZeroVec = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(0, -1000000000, 0)); // Downwards without overflow risk
+
+                player.uncertaintyHandler.nextTickSlimeBlockUncertainty = Math.max(Math.abs(toZeroVec.getY()), player.uncertaintyHandler.nextTickSlimeBlockUncertainty);
+            }
+        }
+
+
         player.couldSkipTick = player.pointThreeEstimator.determineCanSkipTick(speed, init);
 
         // Remember, we must always try to predict explosions or knockback
@@ -537,9 +547,10 @@ public class PredictionEngine {
 
         // Hidden slime block bounces by missing idle tick and 0.03
         if (player.actualMovement.getY() >= 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
-            double slimeBlockBounce = Math.max(Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(0)), Math.abs(player.uncertaintyHandler.slimeBlockUpwardsUncertainty.get(1)));
-            if (slimeBlockBounce != 0) {
-                if (slimeBlockBounce > maxVector.getY()) maxVector.setY(slimeBlockBounce);
+            if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty != 0) {
+                if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty > maxVector.getY()) {
+                    maxVector.setY(player.uncertaintyHandler.thisTickSlimeBlockUncertainty);
+                }
                 if (minVector.getY() > 0) minVector.setY(0);
             }
         }

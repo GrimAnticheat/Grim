@@ -322,6 +322,9 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.isSteppingOnHoney = Collisions.hasMaterial(player, StateTypes.HONEY_BLOCK, -0.03);
         player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Collisions.hasMaterial(player, StateTypes.BUBBLE_COLUMN, -1);
 
+        player.uncertaintyHandler.thisTickSlimeBlockUncertainty = player.uncertaintyHandler.nextTickSlimeBlockUncertainty;
+        player.uncertaintyHandler.nextTickSlimeBlockUncertainty = 0;
+
         // Update firework end/start uncertainty
         player.uncertaintyHandler.lastFireworkStatusChange--;
         boolean hasFirework = (player.isGliding || player.wasGliding) && player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0;
@@ -410,13 +413,16 @@ public class MovementCheckRunner extends PositionCheck {
             // This is wrong and the engine was not designed around stuff like this
             player.verticalCollision = false;
 
+
             // Riptiding while on the ground moves the hitbox upwards before any movement code runs
             // It's a pain to support and this is my best attempt
             if (player.lastOnGround && player.tryingToRiptide && !player.inVehicle) {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
                 double currentY = player.clientVelocity.getY();
-                player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(Math.abs(Riptide.getRiptideVelocity(player).getY()) + (currentY > 0 ? currentY : 0));
+
+                player.uncertaintyHandler.thisTickSlimeBlockUncertainty = Math.abs(Riptide.getRiptideVelocity(player).getY()) + (currentY > 0 ? currentY : 0);
+                player.uncertaintyHandler.nextTickSlimeBlockUncertainty = Math.abs(Riptide.getRiptideVelocity(player).getY()) + (currentY > 0 ? currentY : 0);
 
                 // If the player was very likely to have used riptide on the ground
                 // (Patches issues with slime and other desync's)
@@ -427,12 +433,6 @@ public class MovementCheckRunner extends PositionCheck {
                     player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
                     Collisions.handleInsideBlocks(player);
-                }
-            } else {
-                if (player.uncertaintyHandler.influencedByBouncyBlock()) { // Slime
-                    player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(player.clientVelocity.getY());
-                } else {
-                    player.uncertaintyHandler.slimeBlockUpwardsUncertainty.add(0d);
                 }
             }
 

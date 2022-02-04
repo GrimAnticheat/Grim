@@ -40,6 +40,8 @@ public class UncertaintyHandler {
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasZeroPointThreeVertically = false;
     public EvictingList<Double> slimeBlockUpwardsUncertainty = new EvictingList<>(3);
+    public double thisTickSlimeBlockUncertainty = 0;
+    public double nextTickSlimeBlockUncertainty = 0;
     // The player landed while jumping but without new position information because of 0.03
     public boolean onGroundUncertain = false;
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
@@ -97,11 +99,6 @@ public class UncertaintyHandler {
 
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
-
-        // Add stuff to evicting list to avoid issues later on
-        slimeBlockUpwardsUncertainty.add(0d);
-        slimeBlockUpwardsUncertainty.add(0d);
-
         tick();
     }
 
