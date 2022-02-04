@@ -17,7 +17,7 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
         // Skip past heightmaps
         wrapper.readNBT();
 
-        BaseChunk[] chunks = new ChunkReader_v1_18().read(null, null, true, false, false, (player.playerWorld.getMaxHeight() - player.playerWorld.getMinHeight()) >> 4, wrapper.readByteArray());
+        BaseChunk[] chunks = new ChunkReader_v1_18().read(null, null, true, false, false, (player.compensatedWorld.clientboundMaxHeight - player.compensatedWorld.clientboundMinHeight) >> 4, wrapper.readByteArray());
 
         addChunkToCache(player, chunks, true, x, z);
 

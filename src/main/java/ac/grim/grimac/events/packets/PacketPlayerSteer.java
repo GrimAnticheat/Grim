@@ -30,8 +30,9 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             // We must do this SYNC! to netty, as to get the packet location of the vehicle
             // Otherwise other checks may false because the player's position is unknown.
             if (player.packetStateData.receivedSteerVehicle && player.playerVehicle != null) {
-                // Tick updates AFTER updating bounding box and actual movement
+                // Tick update
                 player.compensatedWorld.tickPlayerInPistonPushingArea();
+                player.compensatedEntities.tick();
 
                 // Note for the movement check
                 player.vehicleData.lastDummy = true;
@@ -72,9 +73,6 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 }
 
                 return;
-            } else {
-                // Try and get the player's vehicle to the queue for next time
-                player.movementCheckRunner.runTransactionQueue(player);
             }
 
             player.packetStateData.receivedSteerVehicle = true;

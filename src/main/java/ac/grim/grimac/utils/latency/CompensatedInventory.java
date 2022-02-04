@@ -158,7 +158,7 @@ public class CompensatedInventory extends PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             menu = inventory;
-            PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerCloseWindow((byte) 0));
+            PacketEvents.getAPI().getPlayerManager().sendPacket(player.user.getChannel(), new WrapperPlayServerCloseWindow((byte) 0));
             menu.setCarried(ItemStack.EMPTY); // Reset carried item
         }
     }

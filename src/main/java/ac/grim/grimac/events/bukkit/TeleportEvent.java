@@ -2,8 +2,6 @@ package ac.grim.grimac.events.bukkit;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import com.github.retrooper.packetevents.PacketEvents;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.event.EventHandler;
@@ -53,11 +51,5 @@ public class TeleportEvent implements Listener {
 
         // Force the player to accept a teleport before respawning
         player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;
-
-        // TODO: No join game packet?
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) && newWorld != null) {
-            player.compensatedWorld.setMinHeight(newWorld.getMinHeight());
-            player.compensatedWorld.setMaxWorldHeight(newWorld.getMaxHeight());
-        }
     }
 }

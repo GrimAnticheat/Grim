@@ -28,7 +28,16 @@ public class PlayerDataManager {
             new IllegalStateException("PacketEvents returned null for an event's user.  This is NEVER possible!").printStackTrace();
             return null;
         }
-        return playerDataMap.get(player);
+
+        GrimPlayer grimPlayer = playerDataMap.get(player);
+
+        if (grimPlayer == null) {
+            // Player teleport event gets called AFTER player join event
+            new GrimPlayer(player);
+            return playerDataMap.get(player);
+        }
+
+        return grimPlayer;
     }
 
     public void addPlayer(final User user, final GrimPlayer player) {

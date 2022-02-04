@@ -87,6 +87,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void executeSetback() {
+        if (safeTeleportPosition == null) return; // Player hasn't spawned yet
         blockMovementsUntilResync(safeTeleportPosition.position);
     }
 

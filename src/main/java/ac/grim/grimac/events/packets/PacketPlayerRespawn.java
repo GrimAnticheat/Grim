@@ -6,7 +6,10 @@ import ac.grim.grimac.utils.enums.Pose;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
+import com.github.retrooper.packetevents.protocol.nbt.NBTList;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
 import org.bukkit.GameMode;
@@ -38,6 +41,20 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             }
         }
 
+        if (event.getPacketType() == PacketType.Play.Server.JOIN_GAME) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            WrapperPlayServerJoinGame joinGame = new WrapperPlayServerJoinGame(event);
+
+            // Does anyone know how to write NBT?
+            NBTList<NBTCompound> list = (NBTList<NBTCompound>) ((NBTCompound) joinGame.getDimensionCodec().getTags().values().toArray()[0]).getTags().values().toArray()[1];
+
+            player.compensatedWorld.dimensions = list;
+            player.compensatedWorld.setDimension(joinGame.getDimension().getType().getName(), true);
+            player.compensatedWorld.setDimension(joinGame.getDimension().getType().getName(), false);
+        }
+
         if (event.getPacketType() == PacketType.Play.Server.RESPAWN) {
             WrapperPlayServerRespawn respawn = new WrapperPlayServerRespawn(event);
 
@@ -56,7 +73,9 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
                 player.gamemode = GameMode.valueOf(respawn.getGameMode().name());
+                player.compensatedWorld.setDimension(respawn.getDimension().getType().getName(), false);
             });
+            player.compensatedWorld.setDimension(respawn.getDimension().getType().getName(), true);
         }
     }
 }

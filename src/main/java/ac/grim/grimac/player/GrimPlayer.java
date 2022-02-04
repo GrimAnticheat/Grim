@@ -54,6 +54,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer {
     public final UUID playerUUID;
+    public final User user;
     public int entityID;
     public Player bukkitPlayer;
     // Determining player ping
@@ -98,6 +99,7 @@ public class GrimPlayer {
     // Don't false if the server update's the player's sprinting status
     public boolean lastSprintingForSpeed;
     public boolean isFlying;
+    public boolean canFly;
     public boolean wasFlying;
     // If a player collides with the ground, their flying will be set false after their movement
     // But we need to know if they were flying DURING the movement
@@ -149,7 +151,6 @@ public class GrimPlayer {
     public boolean skippedTickInActualMovement = false;
     public boolean canGroundRiptide = false;
     // You cannot initialize everything here for some reason
-    public CompensatedFlying compensatedFlying;
     public CompensatedFireworks compensatedFireworks;
     public CompensatedRiptide compensatedRiptide;
     public CompensatedWorld compensatedWorld;
@@ -190,13 +191,13 @@ public class GrimPlayer {
 
     public GrimPlayer(User user) {
         this.playerUUID = user.getProfile().getUUID();
+        this.user = user;
+
+        // Geyser players don't have Java movement
+        if (GeyserUtil.isGeyserPlayer(playerUUID)) return;
 
         pollData();
         clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(user.getChannel());
-
-        if (bukkitPlayer == null) {
-            new Exception("Bukkit player is null! This may cause future errors").printStackTrace();
-        }
 
         // We can't send transaction packets to this player, disable the anticheat for them
         if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
@@ -207,9 +208,6 @@ public class GrimPlayer {
             return;
         }
 
-        // Geyser players don't have Java movement
-        if (GeyserUtil.isGeyserPlayer(playerUUID)) return;
-
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6, 1.8);
 
         if (ViaVersionUtil.isAvailable()) {
@@ -218,7 +216,6 @@ public class GrimPlayer {
         }
 
         compensatedWorld = new CompensatedWorld(this);
-        compensatedFlying = new CompensatedFlying(this);
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedRiptide = new CompensatedRiptide(this);
         compensatedEntities = new CompensatedEntities(this);
@@ -231,11 +228,6 @@ public class GrimPlayer {
 
         checkManager = new CheckManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
-
-        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
-            compensatedWorld.setMinHeight(bukkitPlayer.getWorld().getMinHeight());
-            compensatedWorld.setMaxWorldHeight(bukkitPlayer.getWorld().getMaxHeight());
-        }
 
         uncertaintyHandler.pistonPushing.add(0d);
         uncertaintyHandler.collidingEntities.add(0);
@@ -360,9 +352,9 @@ public class GrimPlayer {
             addTransactionSend(transactionID);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
-                PacketEvents.getAPI().getPlayerManager().sendPacket(bukkitPlayer, new WrapperPlayServerPing(transactionID));
+                PacketEvents.getAPI().getPlayerManager().sendPacket(user.getChannel(), new WrapperPlayServerPing(transactionID));
             } else {
-                PacketEvents.getAPI().getPlayerManager().sendPacket(bukkitPlayer, new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
+                PacketEvents.getAPI().getPlayerManager().sendPacket(user.getChannel(), new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
             }
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -402,6 +394,7 @@ public class GrimPlayer {
             this.entityID = bukkitPlayer.getEntityId();
             this.entityID = bukkitPlayer.getEntityId();
             this.playerWorld = bukkitPlayer.getWorld();
+            this.gamemode = bukkitPlayer.getGameMode();
 
             // Resolve player version with support for protocol hacks
             this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);

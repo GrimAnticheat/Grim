@@ -63,14 +63,6 @@ public class MovementCheckRunner extends PositionCheck {
         longPredictionNanos = (longPredictionNanos * 19999 / 20000d) + (length / 20000d);
     }
 
-    public void runTransactionQueue(GrimPlayer player) {
-        // Stop OOM
-        int lastTransaction = player.lastTransactionReceived.get();
-        player.compensatedFlying.canFlyLagCompensated(lastTransaction);
-        player.compensatedFireworks.getMaxFireworksAppliedPossible();
-        player.compensatedRiptide.getCanRiptide();
-    }
-
     private void check(PositionUpdate update) {
         player.uncertaintyHandler.stuckOnEdge--;
         player.uncertaintyHandler.lastStuckEast--;
@@ -284,7 +276,6 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
-        player.isFlying = player.compensatedFlying.canFlyLagCompensated(player.lastTransactionReceived.get());
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
         player.isRiptidePose = player.compensatedRiptide.getPose(player.lastTransactionReceived.get());
 

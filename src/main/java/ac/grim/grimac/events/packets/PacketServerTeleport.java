@@ -30,14 +30,11 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
 
+            if (player == null) return;
+
             // This is the first packet sent to the client which we need to track
-            if (player == null) {
+            if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) {
                 // Player teleport event gets called AFTER player join event
-                new GrimPlayer(event.getUser());
-                player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-
-                if (player == null) return; // This player is exempt from all checks
-
                 player.lastX = teleport.getX();
                 player.lastY = teleport.getY();
                 player.lastZ = teleport.getZ();
@@ -53,10 +50,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.lastXRot = teleport.getYaw();
                 player.lastYRot = teleport.getPitch();
 
-                player.playerWorld = player.bukkitPlayer.getWorld();
-                player.gamemode = player.bukkitPlayer.getGameMode();
-                player.compensatedWorld.setMinHeight(player.playerWorld.getMinHeight());
-                player.compensatedWorld.setMaxWorldHeight(player.playerWorld.getMaxHeight());
+                player.pollData();
 
                 player.getSetbackTeleportUtil().setTargetTeleport(new Location(player.playerWorld, player.x, player.y, player.z));
                 player.getSetbackTeleportUtil().setSafeSetbackLocation(player.playerWorld, new Vector3d(player.x, player.y, player.z));

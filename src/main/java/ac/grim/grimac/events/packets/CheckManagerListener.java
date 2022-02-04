@@ -449,14 +449,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
                 int placed = player.compensatedWorld.getWrappedBlockStateAt(packet.getBlockPosition()).getGlobalId();
                 int face = player.compensatedWorld.getWrappedBlockStateAt(facePos).getGlobalId();
-                PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
-                PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerBlockChange(facePos, face));
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player.user.getChannel(), new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player.user.getChannel(), new WrapperPlayServerBlockChange(facePos, face));
 
                 // Stop inventory desync from cancelling place
                 if (packet.getHand() == InteractionHand.MAIN_HAND) {
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, player.getInventory().getHeldItem()));
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player.user.getChannel(), new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, player.getInventory().getHeldItem()));
                 } else {
-                    PacketEvents.getAPI().getPlayerManager().sendPacket(player.bukkitPlayer, new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, player.getInventory().getOffHand()));
+                    PacketEvents.getAPI().getPlayerManager().sendPacket(player.user.getChannel(), new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, player.getInventory().getOffHand()));
                 }
 
             } else { // Legit place

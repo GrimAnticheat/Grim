@@ -53,13 +53,6 @@ public class PacketPingListener extends PacketListenerAbstract {
                 }
             }
         }
-
-        // Prevent players from OOM'ing the server by running through queue's on keepalive
-        if (event.getPacketType() == PacketType.Play.Client.KEEP_ALIVE) {
-            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
-            if (player == null) return;
-            player.movementCheckRunner.runTransactionQueue(player);
-        }
     }
 
     @Override
