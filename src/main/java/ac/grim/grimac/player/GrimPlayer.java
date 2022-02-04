@@ -149,10 +149,8 @@ public class GrimPlayer {
     public boolean couldSkipTick = false;
     // This determines if the
     public boolean skippedTickInActualMovement = false;
-    public boolean canGroundRiptide = false;
     // You cannot initialize everything here for some reason
     public CompensatedFireworks compensatedFireworks;
-    public CompensatedRiptide compensatedRiptide;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
     public CompensatedPotions compensatedPotions;
@@ -217,7 +215,6 @@ public class GrimPlayer {
 
         compensatedWorld = new CompensatedWorld(this);
         compensatedFireworks = new CompensatedFireworks(this);
-        compensatedRiptide = new CompensatedRiptide(this);
         compensatedEntities = new CompensatedEntities(this);
         compensatedPotions = new CompensatedPotions(this);
         trigHandler = new TrigHandler(this);

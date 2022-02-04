@@ -257,7 +257,13 @@ public class PredictionEngine {
 
         // This is a secure method to add jumping vectors to this list
         addJumpsToPossibilities(player, pointThreePossibilities);
-        addExplosionRiptideToPossibilities(player, pointThreePossibilities);
+        addExplosionToPossibilities(player, pointThreePossibilities);
+
+        if (player.tryingToRiptide) {
+            Vector riptideAddition = Riptide.getRiptideVelocity(player);
+            pointThreePossibilities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), new VectorData(new Vector(), VectorData.VectorType.ZeroPointZeroThree), VectorData.VectorType.Trident));
+        }
+
         possibleVelocities.addAll(applyInputsToVelocityPossibilities(player, pointThreePossibilities, speed));
     }
 
@@ -306,7 +312,13 @@ public class PredictionEngine {
         // Swim hop, riptide bounce, climbing, slime block bounces, knockback
         Set<VectorData> velocities = player.getPossibleVelocities();
         // Packet stuff is done first
-        addExplosionRiptideToPossibilities(player, velocities);
+        addExplosionToPossibilities(player, velocities);
+
+        if (player.tryingToRiptide) {
+            Vector riptideAddition = Riptide.getRiptideVelocity(player);
+            velocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
+        }
+
         // Inputs are done before player ticking
         addAttackSlowToPossibilities(player, velocities);
         // Fluid pushing is done BEFORE 0.003
@@ -351,7 +363,7 @@ public class PredictionEngine {
         }
     }
 
-    public void addExplosionRiptideToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+    public void addExplosionToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             if (player.likelyExplosions != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.likelyExplosions.vector), vector, VectorData.VectorType.Explosion));
@@ -360,12 +372,6 @@ public class PredictionEngine {
             if (player.firstBreadExplosion != null) {
                 existingVelocities.add(new VectorData(vector.vector.clone().add(player.firstBreadExplosion.vector), vector, VectorData.VectorType.Explosion));
             }
-        }
-
-        if (player.tryingToRiptide) {
-            Vector riptideAddition = Riptide.getRiptideVelocity(player);
-
-            existingVelocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
         }
     }
 

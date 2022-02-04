@@ -2,7 +2,6 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -52,8 +51,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     if (j > 0) {
-                        // TODO: Re-add riptide support
-                        LogUtil.error("Riptide support is not yet implemented!");
+                        // TODO: Check if player has fast use item
+                        player.tryingToRiptide = true;
                     }
                 }
             }

@@ -277,7 +277,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
-        player.isRiptidePose = player.compensatedRiptide.getPose(player.lastTransactionReceived.get());
 
         player.clientControlledVerticalCollision = Math.abs(player.y % (1 / 64D)) < 0.00001;
         // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
@@ -375,7 +374,6 @@ public class MovementCheckRunner extends PositionCheck {
 
         Vector backOff = Collisions.maybeBackOffFromEdge(player.clientVelocity, player, true);
         player.uncertaintyHandler.nextTickScaffoldingOnEdge = player.clientVelocity.getX() != 0 && player.clientVelocity.getZ() != 0 && backOff.getX() == 0 && backOff.getZ() == 0;
-        player.canGroundRiptide = false;
         Vector oldClientVel = player.clientVelocity;
 
         boolean wasChecked = false;
@@ -410,14 +408,11 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.03, 0, 0.03).offset(0, -0.03, 0));
 
             // This is wrong and the engine was not designed around stuff like this
-            player.canGroundRiptide = ((player.clientClaimsLastOnGround && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree)
-                    || (player.uncertaintyHandler.isSteppingOnSlime && player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree))
-                    && player.tryingToRiptide && player.compensatedRiptide.getCanRiptide() && !player.inVehicle;
             player.verticalCollision = false;
 
             // Riptiding while on the ground moves the hitbox upwards before any movement code runs
             // It's a pain to support and this is my best attempt
-            if (player.canGroundRiptide) {
+            if (player.lastOnGround && player.tryingToRiptide && !player.inVehicle) {
                 Vector pushingMovement = Collisions.collide(player, 0, 1.1999999F, 0);
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
                 double currentY = player.clientVelocity.getY();
@@ -474,18 +469,6 @@ public class MovementCheckRunner extends PositionCheck {
         double offset = player.predictedVelocity.vector.distance(player.actualMovement);
         offset = player.uncertaintyHandler.reduceOffset(offset);
 
-        // If the player is trying to riptide
-        // But the server has rejected this movement
-        // And there isn't water nearby (tries to solve most vanilla issues with this desync)
-        //
-        // Set back the player to disallow them to use riptide anywhere, even outside rain or water
-        if (player.tryingToRiptide != player.compensatedRiptide.getCanRiptide() &&
-                player.predictedVelocity.isTrident() &&
-                // Don't let player do this too often as otherwise it could allow players to spam riptide
-                (player.riptideSpinAttackTicks < 0 && !player.compensatedWorld.containsWater(GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ).expand(0.3, 0.3, 0.3)))) {
-            player.getSetbackTeleportUtil().executeForceResync();
-        }
-
         // Let's hope this doesn't desync :)
         if (player.getSetbackTeleportUtil().blockOffsets)
             offset = 0;
@@ -511,6 +494,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.wasGliding = player.isGliding;
         player.wasSwimming = player.isSwimming;
         player.wasSneaking = player.isSneaking;
+        player.tryingToRiptide = false;
 
         player.riptideSpinAttackTicks--;
         if (player.predictedVelocity.isTrident())
@@ -537,7 +521,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.checkManager.getKnockbackHandler().handlePlayerKb(offset);
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset);
         player.trigHandler.setOffset(oldClientVel, offset);
-        player.compensatedRiptide.handleRemoveRiptide();
         player.pointThreeEstimator.endOfTickTick();
     }
 

@@ -98,7 +98,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     if (riptide != null && riptide.getValue() instanceof Byte) {
                         boolean isRiptiding = (((byte) riptide.getValue()) & 0x04) == 0x04;
 
-                        player.compensatedRiptide.setPose(isRiptiding);
+                        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                            player.isRiptidePose = isRiptiding;
+                        });
 
                         // 1.9 eating:
                         // - Client: I am starting to eat
