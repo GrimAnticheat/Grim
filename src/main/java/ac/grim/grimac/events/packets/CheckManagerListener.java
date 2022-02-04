@@ -61,6 +61,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW);
     }
 
+    // 0.03 on 1.17 duplicate packet
+    public Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
+
     // Copied from MCP...
     // Returns null if there isn't anything.
     //
@@ -132,94 +135,39 @@ public class CheckManagerListener extends PacketListenerAbstract {
         return null;
     }
 
-    private void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, PacketReceiveEvent event) {
-        long now = System.currentTimeMillis();
+    private static void placeWaterLavaSnowBucket(GrimPlayer player, ItemStack held, StateType toPlace, InteractionHand hand) {
+        HitData data = getNearestHitResult(player, StateTypes.AIR, false);
+        if (data != null) {
+            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), held, data);
 
-        player.packetStateData.lastPacketWasTeleport = false;
-        TeleportAcceptData teleportData = null;
-        if (hasPosition) {
-            Vector3d position = VectorUtils.clampVector(new Vector3d(x, y, z));
-            teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
-            player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
-        }
+            boolean didPlace = false;
 
-        // Don't check duplicate 1.17 packets (Why would you do this mojang?)
-        // Don't check rotation since it changes between these packets, with the second being irrelevant.
-        //
-        // If a player sends a POS LOOK in a vehicle... then it was this stupid fucking mechanic
-        if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
-                (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
-                        new Vector3d(player.x, player.y, player.z).equals(new Vector3d(x, y, z))) || player.inVehicle) {
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
-
-            // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
-            // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
-            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
-                event.setCancelled(true);
+            // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
+            // If we hit a waterloggable block, then the bucket is directly placed
+            // Otherwise, use the face to determine where to place the bucket
+            if (Materials.isPlaceableWaterBucket(blockPlace.getItemStack().getType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+                blockPlace.setReplaceClicked(true); // See what's in the existing place
+                WrappedBlockState existing = blockPlace.getExistingBlockData();
+                if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) {
+                    // Strangely, the client does not predict waterlogged placements
+                    didPlace = true;
+                }
             }
-            return;
-        }
 
-        player.lastXRot = player.xRot;
-        player.lastYRot = player.yRot;
+            if (!didPlace) {
+                // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
+                blockPlace.setReplaceClicked(false);
+                blockPlace.set(toPlace);
+            }
 
-        handleQueuedPlaces(player, hasLook, pitch, yaw, now);
-
-        // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
-        // TODO: This should likely be secured some more
-        // Cannot use collisions like normal because stepping messes it up :(
-        boolean nearGround = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66, 0.06));
-
-        // This fucking stupid mechanic has been measured with 0.03403409022229198 y velocity... GOD DAMN IT MOJANG, use 0.06 to be safe...
-        if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround) {
-            player.lastOnGround = true;
-            player.uncertaintyHandler.onGroundUncertain = true;
-            player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
-            player.clientClaimsLastOnGround = true;
-
-            // Ghost block/0.03 abuse
-            if (!nearGround || player.clientVelocity.getY() > 0.06) {
-                player.getSetbackTeleportUtil().executeForceResync();
+            if (player.gamemode != GameMode.CREATIVE) {
+                if (hand == InteractionHand.MAIN_HAND) {
+                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
+                } else {
+                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
+                }
             }
         }
-
-        player.lastX = player.x;
-        player.lastY = player.y;
-        player.lastZ = player.z;
-
-        player.packetStateData.packetPlayerOnGround = onGround;
-
-        if (hasLook) {
-            player.xRot = yaw;
-            player.yRot = pitch;
-
-            player.uncertaintyHandler.claimedLookChangedBetweenTick = !hasPosition;
-        }
-
-        if (hasPosition) {
-            Vector3d position = new Vector3d(x, y, z);
-            Vector3d clampVector = VectorUtils.clampVector(position);
-
-            player.x = clampVector.getX();
-            player.y = clampVector.getY();
-            player.z = clampVector.getZ();
-
-            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.isTeleport());
-            player.checkManager.onPositionUpdate(update);
-        }
-
-        if (hasLook) {
-            float deltaXRot = player.xRot - player.lastXRot;
-            float deltaYRot = player.yRot - player.lastYRot;
-
-            final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
-            player.checkManager.onRotationUpdate(update);
-        }
-
-        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
-
-        player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
-        player.packetStateData.didLastMovementIncludePosition = hasPosition;
     }
 
     public static void handleQueuedPlaces(GrimPlayer player, boolean hasLook, float pitch, float yaw, long now) {
@@ -604,41 +552,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private static void placeWaterLavaSnowBucket(GrimPlayer player, ItemStack held, StateType toPlace, InteractionHand hand) {
-        HitData data = getNearestHitResult(player, StateTypes.AIR, false);
-        if (data != null) {
-            BlockPlace blockPlace = new BlockPlace(player, data.getPosition(), data.getClosestDirection(), held, data);
-
-            boolean didPlace = false;
-
-            // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
-            // If we hit a waterloggable block, then the bucket is directly placed
-            // Otherwise, use the face to determine where to place the bucket
-            if (Materials.isPlaceableWaterBucket(blockPlace.getItemStack().getType()) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                blockPlace.setReplaceClicked(true); // See what's in the existing place
-                WrappedBlockState existing = blockPlace.getExistingBlockData();
-                if (existing.getInternalData().containsKey(StateValue.WATERLOGGED)) {
-                    // Strangely, the client does not predict waterlogged placements
-                    didPlace = true;
-                }
-            }
-
-            if (!didPlace) {
-                // Powder snow, lava, and water all behave like placing normal blocks after checking for waterlogging (replace clicked always false though)
-                blockPlace.setReplaceClicked(false);
-                blockPlace.set(toPlace);
-            }
-
-            if (didPlace && player.gamemode != GameMode.CREATIVE) {
-                if (hand == InteractionHand.MAIN_HAND) {
-                    player.getInventory().inventory.setHeldItem(ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
-                } else {
-                    player.getInventory().inventory.setPlayerInventoryItem(Inventory.SLOT_OFFHAND, ItemStack.builder().type(ItemTypes.BUCKET).amount(1).build());
-                }
-            }
-        }
-    }
-
     private static void placeBucket(GrimPlayer player, InteractionHand hand) {
         HitData data = getNearestHitResult(player, null, true);
 
@@ -684,7 +597,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             // Give the player a water bucket
-            if (placed && player.gamemode != GameMode.CREATIVE) {
+            if (player.gamemode != GameMode.CREATIVE) {
                 if (hand == InteractionHand.MAIN_HAND) {
                     if (player.getInventory().getHeldItem().getAmount() == 1) {
                         player.getInventory().inventory.setHeldItem(ItemStack.builder().type(type).amount(1).build());
@@ -704,6 +617,120 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
         }
+    }
+
+    private void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, PacketReceiveEvent event) {
+        long now = System.currentTimeMillis();
+
+        player.packetStateData.lastPacketWasTeleport = false;
+        TeleportAcceptData teleportData = null;
+        if (hasPosition) {
+            Vector3d position = VectorUtils.clampVector(new Vector3d(x, y, z));
+            teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
+            player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
+        }
+
+        // Don't check duplicate 1.17 packets (Why would you do this mojang?)
+        // Don't check rotation since it changes between these packets, with the second being irrelevant.
+        //
+        // If a player sends a POS LOOK in a vehicle... then it was this stupid fucking mechanic
+        //
+        // Alright 0.03 is messing this up
+        // WHAT THE FUCK MOJANG FIX YOU FUCKING BUGS THIS IS COMPLETELY UNACCEPTABLE AND YOU SHOULD FUCKING FIX IT
+        // HOLY SHIT ITS A SINGLE LINE TO FIX 0.03
+        //
+        // AND WHY IS THIS YOUR SOLUTION TO THE BUCKET DESYNC????
+        // IT ANGERS THE VANILLA ANTICHEAT SENDING THESE ADDITIONAL PACKETS
+        // IT BREAKS MY ANTICHEAT SENDING THESE ADDITIONAL PACKETS
+        // IT DOESNT FIX THE DAMN ISSUE
+        // ADD BLOCK CLICKED AND FACE TO THE USE ITEM ON PACKET TO ACTUALLY FIX IT!
+        // AND ALSO REPLACE CLICKED TO THE USE ITEM PACKET
+        // OR SEND THE PLAYER LOOK IN THE PACKET, NOT THE CURRENT SOLUTION
+        //
+        // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
+        if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
+                (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+                        filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4) || player.inVehicle) {
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+
+            player.x = x;
+            player.y = y;
+            player.z = z;
+
+            player.xRot = yaw;
+            player.yRot = pitch;
+
+            // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
+            // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) &&
+                    new Vector(player.x, player.y, player.z).equals(new Vector(x, y, z))) {
+                event.setCancelled(true);
+            }
+            return;
+        }
+
+        player.lastXRot = player.xRot;
+        player.lastYRot = player.yRot;
+
+        handleQueuedPlaces(player, hasLook, pitch, yaw, now);
+
+        // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
+        // TODO: This should likely be secured some more
+        // Cannot use collisions like normal because stepping messes it up :(
+        boolean nearGround = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66, 0.06));
+
+        // This fucking stupid mechanic has been measured with 0.03403409022229198 y velocity... GOD DAMN IT MOJANG, use 0.06 to be safe...
+        if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround) {
+            player.lastOnGround = true;
+            player.uncertaintyHandler.onGroundUncertain = true;
+            player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
+            player.clientClaimsLastOnGround = true;
+
+            // Ghost block/0.03 abuse
+            if (!nearGround || player.clientVelocity.getY() > 0.06) {
+                player.getSetbackTeleportUtil().executeForceResync();
+            }
+        }
+
+        player.lastX = player.x;
+        player.lastY = player.y;
+        player.lastZ = player.z;
+
+        player.packetStateData.packetPlayerOnGround = onGround;
+
+        if (hasLook) {
+            player.xRot = yaw;
+            player.yRot = pitch;
+
+            player.uncertaintyHandler.claimedLookChangedBetweenTick = !hasPosition;
+        }
+
+        if (hasPosition) {
+            Vector3d position = new Vector3d(x, y, z);
+            Vector3d clampVector = VectorUtils.clampVector(position);
+
+            player.x = clampVector.getX();
+            player.y = clampVector.getY();
+            player.z = clampVector.getZ();
+
+            filterMojangStupidityOnMojangStupidity = new Vector3d(player.x, player.y, player.z);
+
+            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.isTeleport());
+            player.checkManager.onPositionUpdate(update);
+        }
+
+        if (hasLook) {
+            float deltaXRot = player.xRot - player.lastXRot;
+            float deltaYRot = player.yRot - player.lastYRot;
+
+            final RotationUpdate update = new RotationUpdate(player.lastXRot, player.lastYRot, player.xRot, player.yRot, deltaXRot, deltaYRot);
+            player.checkManager.onRotationUpdate(update);
+        }
+
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
+
+        player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
+        player.packetStateData.didLastMovementIncludePosition = hasPosition;
     }
 
     private static void placeLilypad(GrimPlayer player, InteractionHand hand) {

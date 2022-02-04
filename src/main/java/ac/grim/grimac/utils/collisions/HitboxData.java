@@ -115,7 +115,7 @@ public enum HitboxData {
     CACTUS(new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 16.0D, 15.0D), StateTypes.CACTUS),
 
     SNOW((player, item, version, data, x, y, z) -> {
-        return new SimpleCollisionBox(0, 0, 0, 1, (data.getLayers() + 1) * 0.125, 1);
+        return new SimpleCollisionBox(0, 0, 0, 1, data.getLayers() * 0.125, 1);
     }, StateTypes.SNOW),
 
     LECTERN_BLOCK((player, item, version, data, x, y, z) -> {

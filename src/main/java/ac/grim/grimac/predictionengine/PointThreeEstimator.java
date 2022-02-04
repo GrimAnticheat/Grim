@@ -86,7 +86,7 @@ public class PointThreeEstimator {
     // This results in what appears to be too great of gravity
     private boolean headHitter = false;
     // If the player was within 0.03 of water between now and the last movement
-    private boolean isNearFluid = false;
+    public boolean isNearFluid = false;
     // If a player places a ladder in a worldguard region etc.
     @Getter
     private boolean isNearClimbable = false;

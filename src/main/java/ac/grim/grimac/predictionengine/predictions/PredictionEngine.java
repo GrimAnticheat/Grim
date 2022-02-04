@@ -231,7 +231,7 @@ public class PredictionEngine {
         pointThreePossibilities.add(new VectorData(pointThreeVector, VectorData.VectorType.ZeroPointZeroThree));
 
         // Swim hop
-        if (player.canSwimHop && !player.onGround) { // onGround can still be used here, else generic 0.03
+        if (player.pointThreeEstimator.isNearFluid && !Collisions.isEmpty(player, player.boundingBox.copy().expand(0.4, 0, 0.4)) && !player.onGround) { // onGround can still be used here, else generic 0.03
             pointThreePossibilities.add(new VectorData(new Vector(0, 0.3, 0), VectorData.VectorType.ZeroPointZeroThree));
         }
 
@@ -685,11 +685,11 @@ public class PredictionEngine {
 
         SimpleCollisionBox oldBB = player.boundingBox;
         player.boundingBox = player.boundingBox.copy().expand(-0.03, 0, -0.03);
-        double pointThreeToGround = Collisions.collide(player, 0, -0.01, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
+        double pointThreeToGround = Collisions.collide(player, 0, -0.03, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
         player.boundingBox = oldBB;
 
-        return !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8).expand(
-                player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
+        return !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8)
+                .expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
