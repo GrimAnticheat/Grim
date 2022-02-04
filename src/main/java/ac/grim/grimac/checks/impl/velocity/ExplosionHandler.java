@@ -8,6 +8,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3f;
+import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
 import org.bukkit.util.Vector;
 
@@ -38,8 +39,19 @@ public class ExplosionHandler extends PacketCheck {
 
             Vector3f velocity = explosion.getPlayerMotion();
 
-            if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
+            if (!explosion.getRecords().isEmpty()) {
                 player.sendTransaction();
+
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                    for (Vector3i records : explosion.getRecords()) {
+                        player.compensatedWorld.updateBlock(records.x, records.y, records.z, 0);
+                    }
+                });
+            }
+
+            if (velocity.x != 0 || velocity.y != 0 || velocity.z != 0) {
+                // No need to spam transactions
+                if (explosion.getRecords().isEmpty()) player.sendTransaction();
                 addPlayerExplosion(player.lastTransactionSent.get(), velocity);
                 event.getPostTasks().add(player::sendTransaction);
             }
