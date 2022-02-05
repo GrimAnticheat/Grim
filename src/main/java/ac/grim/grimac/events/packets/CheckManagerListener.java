@@ -681,10 +681,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // This fucking stupid mechanic has been measured with 0.03403409022229198 y velocity... GOD DAMN IT MOJANG, use 0.06 to be safe...
         if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround) {
-            player.lastOnGround = true;
+            player.lastOnGround = onGround;
+            player.clientClaimsLastOnGround = onGround;
             player.uncertaintyHandler.onGroundUncertain = true;
-            player.uncertaintyHandler.lastTickWasNearGroundZeroPointZeroThree = true;
-            player.clientClaimsLastOnGround = true;
 
             // Ghost block/0.03 abuse
             if (!nearGround || player.clientVelocity.getY() > 0.06) {

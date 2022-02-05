@@ -37,9 +37,7 @@ public class UncertaintyHandler {
     public double zPositiveUncertainty = 0;
     public double yNegativeUncertainty = 0;
     public double yPositiveUncertainty = 0;
-    // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
-    public boolean wasZeroPointThreeVertically = false;
-    public EvictingList<Double> slimeBlockUpwardsUncertainty = new EvictingList<>(3);
+    // Slime block bouncing
     public double thisTickSlimeBlockUncertainty = 0;
     public double nextTickSlimeBlockUncertainty = 0;
     // The player landed while jumping but without new position information because of 0.03
@@ -66,12 +64,12 @@ public class UncertaintyHandler {
     public int lastStuckEast = -100;
     public boolean nextTickScaffoldingOnEdge = false;
     public boolean scaffoldingOnEdge = false;
-    // Marks whether the player could have landed but without position packet because 0.03
-    public boolean lastTickWasNearGroundZeroPointZeroThree = false;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = false;
     // Give horizontal lenience if the last movement reset velocity because 0.03 becomes unknown then
     public boolean lastMovementWasUnknown003VectorReset = false;
+    // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
+    public boolean wasZeroPointThreeVertically = false;
     // Did the player change their look with elytra between tick (we can't calculate 0.03 here)
     public boolean claimedLookChangedBetweenTick = false;
     // How many entities are within 0.5 blocks of the player's bounding box?
