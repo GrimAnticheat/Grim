@@ -44,15 +44,15 @@ public abstract class AbstractContainerMenu {
         this.carriedItem = ItemStack.EMPTY;
     }
 
-    public static int getQuickcraftHeader(int p_38948_) {
+    public static int calculateQuickcraftHeader(int p_38948_) {
         return p_38948_ & 3;
     }
 
-    public static int getQuickcraftMask(int p_38931_, int p_38932_) {
+    public static int calculateQuickcraftMask(int p_38931_, int p_38932_) {
         return p_38931_ & 3 | (p_38932_ & 3) << 2;
     }
 
-    public static int getQuickcraftType(int p_38929_) {
+    public static int calculateQuickcraftType(int p_38929_) {
         return p_38929_ >> 2 & 3;
     }
 
@@ -88,7 +88,7 @@ public abstract class AbstractContainerMenu {
 
     public void addFourRowPlayerInventory() {
         for (int slot = Inventory.ITEMS_START; slot <= Inventory.ITEMS_END; slot++) {
-            addSlot(new Slot(playerInventory.getPlayerInventory(), slot));
+            addSlot(new Slot(playerInventory.getInventoryStorage(), slot));
         }
     }
 
@@ -117,23 +117,23 @@ public abstract class AbstractContainerMenu {
     }
 
     public ItemStack getPlayerInventoryItem(int slot) {
-        return playerInventory.getPlayerInventory().getItem(slot);
+        return playerInventory.getInventoryStorage().getItem(slot);
     }
 
     public void setPlayerInventoryItem(int slot, ItemStack stack) {
-        playerInventory.getPlayerInventory().setItem(slot, stack);
+        playerInventory.getInventoryStorage().setItem(slot, stack);
     }
 
     public void doClick(int button, int slotID, WrapperPlayClientClickWindow.WindowClickType clickType) {
         if (clickType == WrapperPlayClientClickWindow.WindowClickType.QUICK_CRAFT) {
             int i = this.quickcraftStatus;
-            this.quickcraftStatus = getQuickcraftHeader(button);
+            this.quickcraftStatus = calculateQuickcraftHeader(button);
             if ((i != 1 || this.quickcraftStatus != 2) && i != this.quickcraftStatus) {
                 this.resetQuickCraft();
             } else if (this.getCarried().isEmpty()) {
                 this.resetQuickCraft();
             } else if (this.quickcraftStatus == 0) {
-                this.quickcraftType = getQuickcraftType(button);
+                this.quickcraftType = calculateQuickcraftType(button);
                 if (isValidQuickcraftType(this.quickcraftType)) {
                     this.quickcraftStatus = 1;
                     this.quickcraftSlots.clear();

@@ -335,7 +335,7 @@ public class SimpleCollisionBox implements CollisionBox {
     // Copied from hawk lol
     // I would like to point out that this is magic to me and I have not attempted to understand this code
     public Vector intersectsRay(Ray ray, float minDist, float maxDist) {
-        Vector invDir = new Vector(1f / ray.getDirection().getX(), 1f / ray.getDirection().getY(), 1f / ray.getDirection().getZ());
+        Vector invDir = new Vector(1f / ray.calculateDirection().getX(), 1f / ray.calculateDirection().getY(), 1f / ray.calculateDirection().getZ());
 
         boolean signDirX = invDir.getX() < 0;
         boolean signDirY = invDir.getY() < 0;

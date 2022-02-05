@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 @CheckData(name = "AntiExplosion", configName = "Explosion")
 public class ExplosionHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
-    GrimPlayer player;
 
     VelocityData lastExplosionsKnownTaken = null;
     VelocityData firstBreadAddedExplosion = null;
@@ -29,7 +28,6 @@ public class ExplosionHandler extends PacketCheck {
 
     public ExplosionHandler(GrimPlayer player) {
         super(player);
-        this.player = player;
     }
 
     @Override

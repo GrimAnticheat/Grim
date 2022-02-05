@@ -66,7 +66,7 @@ public class GrimMath {
 
     public static double calculateAverage(List<Integer> marks) {
         long sum = 0;
-        for (Integer mark : marks) {
+        for (int mark : marks) {
             sum += mark;
         }
         return marks.isEmpty() ? 0 : 1.0 * sum / marks.size();
@@ -74,7 +74,7 @@ public class GrimMath {
 
     public static double calculateAverageLong(List<Long> marks) {
         long sum = 0;
-        for (Long mark : marks) {
+        for (long mark : marks) {
             sum += mark;
         }
         return marks.isEmpty() ? 0 : 1.0 * sum / marks.size();

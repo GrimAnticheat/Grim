@@ -17,12 +17,12 @@ public class Ray implements Cloneable {
 
     public Ray(GrimPlayer player, double x, double y, double z, float xRot, float yRot) {
         this.origin = new Vector(x, y, z);
-        this.direction = getDirection(player, xRot, yRot);
+        this.direction = calculateDirection(player, xRot, yRot);
     }
 
     // Account for ShitMath by using player's trig handler
     // Copied from hawk which probably copied it from NMS
-    public static Vector getDirection(GrimPlayer player, float xRot, float yRot) {
+    public static Vector calculateDirection(GrimPlayer player, float xRot, float yRot) {
         Vector vector = new Vector();
         float rotX = (float) Math.toRadians(xRot);
         float rotY = (float) Math.toRadians(yRot);
@@ -71,7 +71,7 @@ public class Ray implements Cloneable {
         return origin;
     }
 
-    public Vector getDirection() {
+    public Vector calculateDirection() {
         return direction;
     }
 }

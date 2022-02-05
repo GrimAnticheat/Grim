@@ -63,7 +63,7 @@ public class KnockbackHandler extends PacketCheck {
         firstBreadMap.add(new VelocityData(entityID, breadOne, knockback));
     }
 
-    public VelocityData getRequiredKB(int entityID, int transaction) {
+    public VelocityData calculateRequiredKB(int entityID, int transaction) {
         tickKnockback(transaction);
 
         VelocityData returnLastKB = null;
@@ -167,7 +167,7 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public VelocityData getFirstBreadOnlyKnockback(int entityID, int transaction) {
+    public VelocityData calculateFirstBreadKnockback(int entityID, int transaction) {
         tickKnockback(transaction);
         if (firstBreadOnlyKnockback != null && firstBreadOnlyKnockback.entityID == entityID)
             return firstBreadOnlyKnockback;

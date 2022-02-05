@@ -11,7 +11,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 @CheckData(name = "Timer (Experimental)", configName = "TimerA", flagCooldown = 1000, maxBuffer = 5)
 public class TimerCheck extends PacketCheck {
     public int exempt = 200; // Exempt for 10 seconds on login
-    GrimPlayer player;
 
     long timerBalanceRealTime = 0;
 
@@ -54,7 +53,6 @@ public class TimerCheck extends PacketCheck {
     // to guarantee that we are at least 50 ms back before adding the time
     public TimerCheck(GrimPlayer player) {
         super(player);
-        this.player = player;
     }
 
     @Override

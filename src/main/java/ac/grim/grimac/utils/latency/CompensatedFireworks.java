@@ -11,11 +11,8 @@ public class CompensatedFireworks extends PostPredictionCheck {
     IntList activeFireworks = new IntArrayList();
     IntList fireworksToRemoveNextTick = new IntArrayList();
 
-    GrimPlayer player;
-
     public CompensatedFireworks(GrimPlayer player) {
         super(player);
-        this.player = player;
     }
 
     @Override
