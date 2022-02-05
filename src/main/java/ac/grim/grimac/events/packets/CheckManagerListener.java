@@ -648,7 +648,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // OR SEND THE PLAYER LOOK IN THE PACKET, NOT THE CURRENT SOLUTION
         //
         // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
-        if (hasPosition && hasLook && !player.packetStateData.lastPacketWasTeleport &&
+        //
+        // If the ground status changed, also let this packet through
+        if (onGround == player.packetStateData.packetPlayerOnGround && hasPosition && hasLook &&
+                !player.packetStateData.lastPacketWasTeleport &&
                 (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4) || player.inVehicle) {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
