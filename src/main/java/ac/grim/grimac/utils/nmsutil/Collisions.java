@@ -31,6 +31,12 @@ public class Collisions {
     private static final double COLLISION_EPSILON = 1.0E-7;
     private static final int ABSOLUTE_MAX_SIZE = 29999984;
 
+    private static final boolean IS_FOURTEEN; // Optimization for chunks with empty block count
+
+    static {
+        IS_FOURTEEN = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14);
+    }
+
     private static final List<List<Axis>> allAxisCombinations = Arrays.asList(
             Arrays.asList(Axis.Y, Axis.X, Axis.Z),
             Arrays.asList(Axis.Y, Axis.Z, Axis.X),
@@ -212,7 +218,7 @@ public class Collisions {
 
                     BaseChunk section = sections[sectionIndex];
 
-                    if (section == null || section.isKnownEmpty()) { // Check for empty on 1.13+ servers
+                    if (section == null || (IS_FOURTEEN && section.isEmpty())) { // Check for empty on 1.13+ servers
                         // empty
                         // skip to next section
                         y = (y & ~(15)) + 15; // increment by 15: iterator loop increments by the extra one
@@ -634,7 +640,7 @@ public class Collisions {
                 for (int y = minYIterate; y <= maxYIterate; ++y) {
                     BaseChunk section = sections[(y >> 4) - minSection];
 
-                    if (section == null || section.isKnownEmpty()) { // Check for empty on 1.13+ servers
+                    if (section == null || (IS_FOURTEEN && section.isEmpty())) { // Check for empty on 1.13+ servers
                         // empty
                         // skip to next section
                         y = (y & ~(15)) + 15; // increment by 15: iterator loop increments by the extra one

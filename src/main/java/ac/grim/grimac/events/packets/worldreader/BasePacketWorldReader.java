@@ -10,15 +10,12 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.util.Vector3i;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUnloadChunk;
-import org.apache.commons.lang.NotImplementedException;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
 
     public BasePacketWorldReader() {
-        super(PacketListenerPriority.MONITOR);
+        super(PacketListenerPriority.MONITOR, true);
     }
 
     @Override
@@ -63,10 +60,16 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
     public void handleMapChunkBulk(GrimPlayer player, PacketSendEvent event) {
         // Only exists in 1.7 and 1.8
+        WrapperPlayServerChunkDataBulk chunkData = new WrapperPlayServerChunkDataBulk(event);
+        for (int i = 0; i < chunkData.getChunks().length; i++) {
+            addChunkToCache(player, chunkData.getChunks()[i], true, chunkData.getX()[i], chunkData.getZ()[i]);
+        }
     }
 
     public void handleMapChunk(GrimPlayer player, PacketSendEvent event) {
-        throw new NotImplementedException();
+        WrapperPlayServerChunkData chunkData = new WrapperPlayServerChunkData(event);
+        addChunkToCache(player, chunkData.getColumn().getChunks(), true, chunkData.getColumn().getX(), chunkData.getColumn().getZ());
+        event.setLastUsedWrapper(null);
     }
 
     public void addChunkToCache(GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {

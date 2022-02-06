@@ -3,9 +3,11 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.enums.Pose;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.nbt.NBTList;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -20,7 +22,7 @@ import java.util.List;
 public class PacketPlayerRespawn extends PacketListenerAbstract {
 
     public PacketPlayerRespawn() {
-        super(PacketListenerPriority.MONITOR);
+        super(PacketListenerPriority.MONITOR, true);
     }
 
     @Override
@@ -44,6 +46,8 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Server.JOIN_GAME) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
 
             WrapperPlayServerJoinGame joinGame = new WrapperPlayServerJoinGame(event);
 

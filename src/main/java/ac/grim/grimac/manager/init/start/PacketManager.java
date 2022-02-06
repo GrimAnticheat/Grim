@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.events.packets.*;
+import ac.grim.grimac.events.packets.worldreader.BasePacketWorldReader;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEighteen;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -29,6 +30,8 @@ public class PacketManager implements Initable {
         // TODO: Fix pre-1.18 support
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
             PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderEighteen());
+        } else {
+            PacketEvents.getAPI().getEventManager().registerListener(new BasePacketWorldReader());
         }
 
         PacketEvents.getAPI().init();

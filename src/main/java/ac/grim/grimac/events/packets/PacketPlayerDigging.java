@@ -23,7 +23,7 @@ import org.bukkit.GameMode;
 public class PacketPlayerDigging extends PacketListenerAbstract {
 
     public PacketPlayerDigging() {
-        super(PacketListenerPriority.LOW);
+        super(PacketListenerPriority.LOW, true);
     }
 
     @Override

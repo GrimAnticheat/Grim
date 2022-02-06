@@ -4,8 +4,11 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 
 public class ResyncWorldUtil {
     public static void resyncPositions(GrimPlayer player, SimpleCollisionBox box) {
@@ -16,13 +19,22 @@ public class ResyncWorldUtil {
     public static void resyncPositions(GrimPlayer player, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
             player.sendTrans = false;
+            boolean flat = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
+
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     for (int z = minZ; z <= maxZ; z++) {
-                        player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), player.bukkitPlayer.getWorld().getBlockData(x, y, z));
+                        Block block = player.bukkitPlayer.getWorld().getBlockAt(x, y, z);
+
+                        if (flat) {
+                            player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), block.getBlockData());
+                        } else {
+                            player.bukkitPlayer.sendBlockChange(new Location(player.bukkitPlayer.getWorld(), x, y, z), block.getType(), block.getData());
+                        }
                     }
                 }
             }
+
             player.sendTrans = true;
         });
     }

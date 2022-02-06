@@ -329,6 +329,7 @@ public class PacketEntityReplication extends PacketCheck {
     }
 
     private boolean isDirectlyAffectingPlayer(GrimPlayer player, int entityID) {
+        if (player.bukkitPlayer == null) return false;
         Entity playerVehicle = player.bukkitPlayer.getVehicle();
 
         // The attributes for this entity is active, currently

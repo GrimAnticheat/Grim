@@ -58,7 +58,7 @@ import java.util.function.BiFunction;
 public class CheckManagerListener extends PacketListenerAbstract {
 
     public CheckManagerListener() {
-        super(PacketListenerPriority.LOW);
+        super(PacketListenerPriority.LOW, false);
     }
 
     // 0.03 on 1.17 duplicate packet
