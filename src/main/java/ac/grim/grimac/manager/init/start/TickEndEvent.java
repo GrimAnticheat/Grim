@@ -13,16 +13,21 @@ import sun.misc.Unsafe;
 import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 // Copied from: https://github.com/ThomasOM/Pledge/blob/master/src/main/java/dev/thomazz/pledge/inject/ServerInjector.java
 @SuppressWarnings(value = {"unchecked", "deprecated"})
 public class TickEndEvent implements Initable {
     boolean hasTicked = true;
+    private static final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     private static void tickRelMove() {
-        for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            player.checkManager.getEntityReplication().onEndOfTickEvent();
-        }
+        executor.submit(() -> {
+            for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+                player.checkManager.getEntityReplication().onEndOfTickEvent();
+            }
+        });
     }
 
     @Override
