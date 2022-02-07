@@ -655,11 +655,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d position = VectorUtils.clampVector(new Vector3d(x, y, z));
             teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
+            player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
         }
 
-        player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
-        player.packetStateData.lastClaimedYaw = yaw;
-        player.packetStateData.lastClaimedPitch = pitch;
+        if (hasLook) {
+            player.packetStateData.lastClaimedYaw = yaw;
+            player.packetStateData.lastClaimedPitch = pitch;
+        }
 
         // Don't check duplicate 1.17 packets (Why would you do this mojang?)
         // Don't check rotation since it changes between these packets, with the second being irrelevant.

@@ -188,6 +188,6 @@ public enum HitboxData {
             return data.box.copy().offset(x, y, z);
 
         // Allow this class to override collision boxes when they aren't the same as regular boxes
-        return HitboxData.getData(block.getType()).dynamic.fetch(player, heldItem, version, block, x, y, z);
+        return HitboxData.getData(block.getType()).dynamic.fetch(player, heldItem, version, block, x, y, z).offset(x, y, z);
     }
 }

@@ -324,6 +324,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.thisTickSlimeBlockUncertainty = player.uncertaintyHandler.nextTickSlimeBlockUncertainty;
         player.uncertaintyHandler.nextTickSlimeBlockUncertainty = 0;
+        player.couldSkipTick = false;
 
         // Update firework end/start uncertainty
         player.uncertaintyHandler.lastFireworkStatusChange--;
@@ -425,6 +426,8 @@ public class MovementCheckRunner extends PositionCheck {
                 new PlayerBaseTick(player).updatePlayerPose();
                 player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
                 player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+
+                player.couldSkipTick = true;
 
                 Collisions.handleInsideBlocks(player);
             }

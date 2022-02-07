@@ -77,8 +77,7 @@ public class PredictionEngine {
             }
         }
 
-
-        player.couldSkipTick = player.pointThreeEstimator.determineCanSkipTick(speed, init);
+        player.couldSkipTick = player.couldSkipTick || player.pointThreeEstimator.determineCanSkipTick(speed, init);
 
         // Remember, we must always try to predict explosions or knockback
         // If the player didn't skip their tick... then we can do predictions
@@ -388,16 +387,6 @@ public class PredictionEngine {
     public int sortVectorData(VectorData a, VectorData b, GrimPlayer player) {
         int aScore = 0;
         int bScore = 0;
-
-        // Fixes false using riptide under 2 blocks of water
-        boolean aTridentJump = a.isTrident() && !a.isJump();
-        boolean bTridentJump = b.isTrident() && !b.isJump();
-
-        if (aTridentJump && !bTridentJump)
-            return -1;
-
-        if (bTridentJump && !aTridentJump)
-            return 1;
 
         // Put explosions and knockback first so they are applied to the player
         // Otherwise the anticheat can't handle minor knockback and explosions without knowing if the player took the kb
