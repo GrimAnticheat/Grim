@@ -180,8 +180,35 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if ((now - player.lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
                 player.xRot = yaw;
                 player.yRot = pitch;
+
+                handleBlockPlaceOrUseItem(packet, player);
+            } else {
+                // Store the prediction positions/look
+                float lastXRot = player.xRot;
+                float lastYRot = player.yRot;
+                double lastX = player.x;
+                double lastY = player.y;
+                double lastZ = player.z;
+
+                // We must set positions and stuff because 0.03 and stupidity packet combine
+                // into an ultra-stupid behavior that only mojang can accomplish, where we have no fucking
+                // clue what the movement is... is it a movement or a shitty use item packet????
+                // How is a multi-billion dollar company so incompetent at their job?
+                player.xRot = player.packetStateData.lastClaimedYaw;
+                player.yRot = player.packetStateData.lastClaimedPitch;
+                player.x = player.packetStateData.lastClaimedPosition.getX();
+                player.y = player.packetStateData.lastClaimedPosition.getY();
+                player.z = player.packetStateData.lastClaimedPosition.getZ();
+
+                handleBlockPlaceOrUseItem(packet, player);
+
+                // Reset positions/look to prediction
+                player.xRot = lastXRot;
+                player.yRot = lastYRot;
+                player.x = lastX;
+                player.y = lastY;
+                player.z = lastZ;
             }
-            handleBlockPlaceOrUseItem(packet, player);
         }
     }
 
@@ -630,6 +657,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
         }
 
+        player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
+        player.packetStateData.lastClaimedYaw = yaw;
+        player.packetStateData.lastClaimedPitch = pitch;
+
         // Don't check duplicate 1.17 packets (Why would you do this mojang?)
         // Don't check rotation since it changes between these packets, with the second being irrelevant.
         //
@@ -650,18 +681,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
         //
         // If the ground status changed, also let this packet through
-        if (onGround == player.packetStateData.packetPlayerOnGround && hasPosition && hasLook &&
+        if ((onGround == player.packetStateData.packetPlayerOnGround && hasPosition && hasLook &&
                 !player.packetStateData.lastPacketWasTeleport &&
                 (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
-                        filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4) || player.inVehicle) {
+                        filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4)) || player.inVehicle) {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
-
-            player.x = x;
-            player.y = y;
-            player.z = z;
-
-            player.xRot = yaw;
-            player.yRot = pitch;
 
             // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
             // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.

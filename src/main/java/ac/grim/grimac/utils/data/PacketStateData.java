@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.data;
 
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.util.Vector3d;
 
 // This is to keep all the packet data out of the main player class
 // Helps clean up the player class and makes devs aware they are sync'd to the netty thread
@@ -16,4 +17,7 @@ public class PacketStateData {
     // This works on 1.8 only
     public boolean didLastLastMovementIncludePosition = false;
     public boolean didLastMovementIncludePosition = false;
+    public Vector3d lastClaimedPosition = new Vector3d(0, 0, 0);
+    public float lastClaimedYaw;
+    public float lastClaimedPitch;
 }
