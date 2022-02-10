@@ -65,6 +65,34 @@ public class MovementCheckRunner extends PositionCheck {
         longPredictionNanos = (longPredictionNanos * 19999 / 20000d) + (length / 20000d);
     }
 
+    private void handleTeleport(PositionUpdate update) {
+        player.lastX = player.x;
+        player.lastY = player.y;
+        player.lastZ = player.z;
+        player.uncertaintyHandler.lastTeleportTicks = 0;
+
+        // Reset velocities
+        // Teleporting a vehicle does not reset its velocity
+        if (!player.inVehicle) {
+            player.clientVelocity = new Vector();
+        }
+
+        player.lastWasClimbing = 0;
+        player.canSwimHop = false;
+
+        // Teleports OVERRIDE explosions and knockback
+        player.checkManager.getExplosionHandler().forceExempt();
+        player.checkManager.getExplosionHandler().handlePlayerExplosion(0);
+        player.checkManager.getKnockbackHandler().forceExempt();
+        player.checkManager.getKnockbackHandler().handlePlayerKb(0);
+
+        // Manually call prediction complete to handle teleport
+        player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
+
+        player.uncertaintyHandler.lastHorizontalOffset = 0;
+        player.uncertaintyHandler.lastVerticalOffset = 0;
+    }
+
     private void check(PositionUpdate update) {
         player.uncertaintyHandler.stuckOnEdge--;
         player.uncertaintyHandler.lastStuckEast--;
@@ -73,32 +101,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastStuckNorth--;
 
         if (update.isTeleport()) {
-            player.lastX = player.x;
-            player.lastY = player.y;
-            player.lastZ = player.z;
-            player.uncertaintyHandler.lastTeleportTicks = 0;
-
-            // Reset velocities
-            // Teleporting a vehicle does not reset its velocity
-            if (!player.inVehicle) {
-                player.clientVelocity = new Vector();
-            }
-
-            player.lastWasClimbing = 0;
-            player.canSwimHop = false;
-
-            // Teleports OVERRIDE explosions and knockback
-            player.checkManager.getExplosionHandler().forceExempt();
-            player.checkManager.getExplosionHandler().handlePlayerExplosion(0);
-            player.checkManager.getKnockbackHandler().forceExempt();
-            player.checkManager.getKnockbackHandler().handlePlayerKb(0);
-
-            // Manually call prediction complete to handle teleport
-            player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
-
-            player.uncertaintyHandler.lastHorizontalOffset = 0;
-            player.uncertaintyHandler.lastVerticalOffset = 0;
-
+            handleTeleport(update);
             return;
         }
 
@@ -170,12 +173,10 @@ public class MovementCheckRunner extends PositionCheck {
         // Exiting vehicles does not suffer the same issue
         // GOD DAMN IT MOJANG WHY DID YOU MAKE VEHICLES CLIENT SIDED IN 1.9?
         // THIS IS MODERN CODE WHY IS IT SO BUGGY
-        player.vehicleData.lastVehicleSwitch++;
-        if (player.lastVehicle != player.playerVehicle && player.playerVehicle != null) {
-            player.vehicleData.lastVehicleSwitch = 0;
-        }
+        //
         // It is also glitchy when switching between client vs server vehicle control
-        if (player.vehicleData.lastDummy) {
+        player.vehicleData.lastVehicleSwitch++;
+        if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
             player.vehicleData.lastVehicleSwitch = 0;
         }
 
@@ -184,7 +185,7 @@ public class MovementCheckRunner extends PositionCheck {
             player.checkManager.getKnockbackHandler().forceExempt();
         }
 
-        if (player.lastVehicle != player.playerVehicle || player.vehicleData.lastDummy) {
+        if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
             update.setTeleport(true);
 
             if (player.playerVehicle != null) {
@@ -199,16 +200,15 @@ public class MovementCheckRunner extends PositionCheck {
                 }
             }
 
-            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+            player.clientVelocity = new Vector(); // always when switching vehicle
 
-            player.lastX = player.x;
-            player.lastY = player.y;
-            player.lastZ = player.z;
-            player.clientVelocity = new Vector();
+            player.vehicleData.lastDummy = false;
+            player.vehicleData.wasVehicleSwitch = false;
+
+            handleTeleport(update);
+            return;
         }
-        player.vehicleData.lastDummy = false;
-
-        player.lastVehicle = player.playerVehicle;
 
         if (player.isInBed != player.lastInBed) {
             update.setTeleport(true);
@@ -504,13 +504,14 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.predictedVelocity.isTrident())
             player.riptideSpinAttackTicks = 20;
 
-        player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = player.skippedTickInActualMovement;
-        player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = player.couldSkipTick && player.predictedVelocity.isKnockback();
+        player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = !player.inVehicle && player.skippedTickInActualMovement;
+        player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.inVehicle && player.couldSkipTick && player.predictedVelocity.isKnockback();
         // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03
         // Or some state of the player changed, so we can no longer predict this vertical movement
         // Or gravity made the player enter 0.03 movement
-        player.uncertaintyHandler.wasZeroPointThreeVertically = (player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement())
-                || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain();
+        player.uncertaintyHandler.wasZeroPointThreeVertically = !player.inVehicle &&
+                ((player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement())
+                        || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain());
 
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;

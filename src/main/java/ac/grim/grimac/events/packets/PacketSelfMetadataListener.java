@@ -72,20 +72,19 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         boolean isSwimming = (field & 0x10) == 0x10;
                         boolean isSprinting = (field & 0x8) == 0x8;
 
-                        player.sendTransaction();
-
                         // Send transaction BEFORE gliding so that any transition stuff will get removed
                         // by the uncertainty from switching with an elytra
-                        int transactionSent = player.lastTransactionSent.get();
-                        player.latencyUtils.addRealTimeTask(transactionSent, () -> {
-                            player.isGliding = isGliding;
-                            player.pointThreeEstimator.updatePlayerGliding();
-                        });
+                        player.sendTransaction();
 
-                        player.latencyUtils.addRealTimeTask(transactionSent, () -> {
+                        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                             player.uncertaintyHandler.lastMetadataDesync = 0;
                             player.isSwimming = isSwimming;
                             player.lastSprinting = isSprinting;
+                            // Protect this due to players being able to get the server to spam this packet a lot
+                            if (player.isGliding != isGliding) {
+                                player.pointThreeEstimator.updatePlayerGliding();
+                            }
+                            player.isGliding = isGliding;
                         });
                     }
                 }

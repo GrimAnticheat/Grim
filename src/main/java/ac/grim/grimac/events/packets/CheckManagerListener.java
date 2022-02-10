@@ -726,7 +726,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.uncertaintyHandler.claimedLookChangedBetweenTick = !hasPosition;
         }
 
-        if (hasPosition) {
+        if (hasPosition && !player.inVehicle) {
             Vector3d position = new Vector3d(x, y, z);
             Vector3d clampVector = VectorUtils.clampVector(position);
 

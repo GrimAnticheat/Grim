@@ -245,6 +245,7 @@ public class PacketEntityReplication extends PacketCheck {
                         player.vehicle = null;
                         player.playerVehicle = null;
                         player.inVehicle = false;
+                        player.vehicleData.wasVehicleSwitch = true;
                     }
                 }
             });
@@ -265,6 +266,7 @@ public class PacketEntityReplication extends PacketCheck {
                         player.vehicle = null;
                         player.playerVehicle = null;
                         player.inVehicle = false;
+                        player.vehicleData.wasVehicleSwitch = true;
                     }
 
                     if (passenger == null)
@@ -283,6 +285,7 @@ public class PacketEntityReplication extends PacketCheck {
                     player.vehicle = vehicleID;
                     player.playerVehicle = vehicle;
                     player.inVehicle = true;
+                    player.vehicleData.wasVehicleSwitch = true;
                 }
 
                 if (passenger == null)

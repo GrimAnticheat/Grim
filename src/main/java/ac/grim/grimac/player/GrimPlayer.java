@@ -178,7 +178,6 @@ public class GrimPlayer {
     public boolean inVehicle;
     public Integer vehicle = null;
     public PacketEntity playerVehicle;
-    public PacketEntity lastVehicle;
     public GameMode gamemode;
     public Vector3d bedPosition;
     PacketTracker packetTracker;

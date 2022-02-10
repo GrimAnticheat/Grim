@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
@@ -167,9 +168,9 @@ public class BoatPredictionEngine extends PredictionEngine {
     @Override
     public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
         vector = super.handlePushMovementThatDoesntAffectNextTickVel(player, vector);
-        vector = vector.clone().add(new Vector(0, player.vehicleData.midTickY, 0));
-
-        return vector;
+        SimpleCollisionBox box = new SimpleCollisionBox(vector, vector);
+        box.expandToAbsoluteCoordinates(box.minX, player.vehicleData.midTickY, box.minZ);
+        return VectorUtils.cutBoxToVector(player.actualMovement, box);
     }
 
     @Override

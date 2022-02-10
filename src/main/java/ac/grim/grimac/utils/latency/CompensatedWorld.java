@@ -61,7 +61,7 @@ public class CompensatedWorld {
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.type == EntityTypes.BOAT || entity.type == EntityTypes.SHULKER) {
+            if ((entity.type == EntityTypes.BOAT || entity.type == EntityTypes.SHULKER) && player.playerVehicle != entity) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(playerBox)) {
                     return true;

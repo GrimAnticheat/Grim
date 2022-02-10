@@ -255,7 +255,7 @@ public class Collisions {
         }
 
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.type == EntityTypes.BOAT) {
+            if (entity.type == EntityTypes.BOAT && player.playerVehicle != entity) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(expandedBB)) {
                     if (listOfBlocks == null) listOfBlocks = new ArrayList<>();

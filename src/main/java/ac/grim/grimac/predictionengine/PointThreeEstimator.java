@@ -204,8 +204,13 @@ public class PointThreeEstimator {
 
         // Determine the head hitter using the current Y position
         SimpleCollisionBox oldBB = player.boundingBox;
-        player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 1.8);
-        headHitter = Collisions.collide(player, 0, 0.03, 0).getY() != 0.03;
+
+        // Can we trust the pose height?
+        for (double sizes : (player.skippedTickInActualMovement ? new double[]{0.6, 1.5, 1.8} : new double[]{player.pose.height})) {
+            player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, sizes);
+            headHitter = headHitter || Collisions.collide(player, 0, 0.03, 0).getY() != 0.03;
+        }
+
         player.boundingBox = oldBB;
 
         // The last tick determines whether the player is swimming for the next tick

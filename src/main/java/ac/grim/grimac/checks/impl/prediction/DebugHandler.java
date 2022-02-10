@@ -6,7 +6,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.lists.EvictingList;
-import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -94,7 +93,7 @@ public class DebugHandler extends PostPredictionCheck {
             LogUtil.info(prefix + p);
             LogUtil.info(prefix + a);
             LogUtil.info(prefix + o);
-            LogUtil.info(prefix + BlockProperties.getFrictionInfluencedSpeed(BlockProperties.getBlockFrictionUnderPlayer(player), player) + " " + player.clientVelocity + " BLOCK FRICTION: " + BlockProperties.getBlockFrictionUnderPlayer(player));
+            LogUtil.info(prefix + " switch " + player.vehicleData.lastVehicleSwitch);
         }
     }
 
