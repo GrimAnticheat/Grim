@@ -175,8 +175,14 @@ public class UncertaintyHandler {
             pointThree *= 0.91 * 0.989;
 
         // 0.06 * 0.91 = max + 0.03 offset
-        if (either003 && (player.isGliding || player.lastOnGround || player.specialFlying))
+        if (either003 && (player.lastOnGround || player.specialFlying))
             pointThree = 0.0846;
+
+
+        // Friction while gliding is 0.99 horizontally
+        if (either003 && (player.isGliding || player.wasGliding)) {
+            pointThree = (0.99 * 0.06) + 0.03;
+        }
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             pointThree = 0.15;
