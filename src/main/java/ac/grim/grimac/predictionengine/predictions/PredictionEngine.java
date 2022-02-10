@@ -551,6 +551,11 @@ public class PredictionEngine {
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
         }
 
+        // :( how the hell do I fix this?  Poses cause issues as they aren't synced to the server correctly
+        if (vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY + 0.6, player.lastZ, 0.6, 1.26))) {
+            box.expandToAbsoluteCoordinates(0, 0, 0);
+        }
+
         minVector = box.min();
         maxVector = box.max();
 
