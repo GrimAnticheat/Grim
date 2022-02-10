@@ -31,6 +31,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.GameMode;
 import org.bukkit.util.Vector;
 
@@ -51,6 +52,7 @@ public class MovementCheckRunner extends PositionCheck {
         // Keep re-teleporting until they load the chunk!
         if (player.getSetbackTeleportUtil().insideUnloadedChunk()) {
             // Teleport the player back to avoid players being able to simply ignore transactions
+            player.lastOnGround = player.clientClaimsLastOnGround; // Stop a false on join
             player.getSetbackTeleportUtil().executeForceResync();
             return;
         }
@@ -197,6 +199,8 @@ public class MovementCheckRunner extends PositionCheck {
                 }
             }
 
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
+
             player.lastX = player.x;
             player.lastY = player.y;
             player.lastZ = player.z;
@@ -274,7 +278,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastFlyingTicks = 0;
         }
 
-        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
         player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
 
@@ -288,6 +291,11 @@ public class MovementCheckRunner extends PositionCheck {
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+
+        if (player.actualMovement.length() < 50) { // anti-crash
+            Vector phase = Collisions.collide(player, player.actualMovement.getX(), player.actualMovement.getY(), player.actualMovement.getZ());
+            player.calculatedCollision = new Vector3d(phase.getX(), phase.getY(), phase.getZ());
+        }
 
         // ViaVersion messes up flight speed for 1.7 players
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && player.isFlying)

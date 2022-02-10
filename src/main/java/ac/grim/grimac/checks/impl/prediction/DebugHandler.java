@@ -5,6 +5,8 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -18,6 +20,13 @@ public class DebugHandler extends PostPredictionCheck {
 
     List<Player> listeners = Collections.synchronizedList(new ArrayList<>());
     boolean outputToConsole = false;
+
+    boolean enabledFlags = false;
+    boolean lastMovementIsFlag = false;
+
+    List<String> predicted = new EvictingList<>(5);
+    List<String> actually = new EvictingList<>(5);
+    List<String> offset = new EvictingList<>(5);
 
     public DebugHandler(GrimPlayer player) {
         super(player);
@@ -47,6 +56,30 @@ public class DebugHandler extends PostPredictionCheck {
 
         String prefix = getPlayer().bukkitPlayer.getName() + " ";
 
+        boolean thisFlag = color != ChatColor.GRAY && color != ChatColor.GREEN;
+        if (enabledFlags) {
+            // If the last movement was a flag, don't duplicate messages to the player
+            if (lastMovementIsFlag) {
+                this.predicted.clear();
+                this.actually.clear();
+                this.offset.clear();
+            }
+            // Even if last was a flag, we must send the new message if the player flagged
+            this.predicted.add(p);
+            this.actually.add(a);
+            this.offset.add(o);
+
+            lastMovementIsFlag = thisFlag;
+        }
+
+        if (thisFlag) {
+            for (int i = 0; i < this.predicted.size(); i++) {
+                player.bukkitPlayer.sendMessage(this.predicted.get(i));
+                player.bukkitPlayer.sendMessage(this.actually.get(i));
+                player.bukkitPlayer.sendMessage(this.offset.get(i));
+            }
+        }
+
         for (Player player : listeners) {
             // Don't add prefix if the player is listening to oneself
             player.sendMessage((player == getPlayer().bukkitPlayer ? "" : prefix) + p);
@@ -61,7 +94,7 @@ public class DebugHandler extends PostPredictionCheck {
             LogUtil.info(prefix + p);
             LogUtil.info(prefix + a);
             LogUtil.info(prefix + o);
-            LogUtil.info(prefix + player.isSwimming + " " + player.pose);
+            LogUtil.info(prefix + BlockProperties.getFrictionInfluencedSpeed(BlockProperties.getBlockFrictionUnderPlayer(player), player) + " " + player.clientVelocity + " BLOCK FRICTION: " + BlockProperties.getBlockFrictionUnderPlayer(player));
         }
     }
 
@@ -81,6 +114,10 @@ public class DebugHandler extends PostPredictionCheck {
     public void toggleListener(Player player) {
         // Toggle, if already added, remove.  If not added, then add
         if (!listeners.remove(player)) listeners.add(player);
+    }
+
+    public void toggleFlags() {
+        enabledFlags = !enabledFlags;
     }
 
     public boolean toggleConsoleOutput() {

@@ -666,27 +666,20 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Don't check duplicate 1.17 packets (Why would you do this mojang?)
         // Don't check rotation since it changes between these packets, with the second being irrelevant.
         //
-        // If a player sends a POS LOOK in a vehicle... then it was this stupid fucking mechanic
-        //
-        // Alright 0.03 is messing this up
-        // WHAT THE FUCK MOJANG FIX YOU FUCKING BUGS THIS IS COMPLETELY UNACCEPTABLE AND YOU SHOULD FUCKING FIX IT
-        // HOLY SHIT ITS A SINGLE LINE TO FIX 0.03
-        //
-        // AND WHY IS THIS YOUR SOLUTION TO THE BUCKET DESYNC????
-        // IT ANGERS THE VANILLA ANTICHEAT SENDING THESE ADDITIONAL PACKETS
-        // IT BREAKS MY ANTICHEAT SENDING THESE ADDITIONAL PACKETS
-        // IT DOESNT FIX THE DAMN ISSUE
-        // ADD BLOCK CLICKED AND FACE TO THE USE ITEM ON PACKET TO ACTUALLY FIX IT!
-        // AND ALSO REPLACE CLICKED TO THE USE ITEM PACKET
-        // OR SEND THE PLAYER LOOK IN THE PACKET, NOT THE CURRENT SOLUTION
-        //
+        // removed a large rant, but I'm keeping this out of context insult below
         // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
-        //
-        // If the ground status changed, also let this packet through
-        if ((onGround == player.packetStateData.packetPlayerOnGround && hasPosition && hasLook &&
-                !player.packetStateData.lastPacketWasTeleport &&
-                (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
-                        filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4)) || player.inVehicle) {
+        if (!player.packetStateData.lastPacketWasTeleport &&
+                // Ground status will never change in this stupidity packet
+                (onGround == player.packetStateData.packetPlayerOnGround
+                        // Always is a position look packet, no matter what
+                        && hasPosition && hasLook
+                        // Mojang added this fucking stupid mechanic in 1.17
+                        && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+                        // Due to 0.03, we can't check exact position, only within 0.03
+                        // (Due to wrong look and timing, this would otherwise flag timer being 50 ms late)
+                        filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4)
+                        // If the player was in a vehicle and wasn't a teleport, then it was this stupid packet
+                        || player.inVehicle)) {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
             // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking

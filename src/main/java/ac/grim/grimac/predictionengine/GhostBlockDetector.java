@@ -10,7 +10,6 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.bukkit.util.Vector;
 
 @CheckData(buffer = 3, maxBuffer = 3)
 public class GhostBlockDetector extends PostPredictionCheck {
@@ -41,11 +40,11 @@ public class GhostBlockDetector extends PostPredictionCheck {
     }
 
     private boolean isGhostBlock() {
-        if (player.actualMovement.length() < 50) { // anti-crash
-            Vector phase = Collisions.collide(player, player.actualMovement.getX(), player.actualMovement.getY(), player.actualMovement.getZ());
-            if (phase.getX() != player.actualMovement.getX() || phase.getY() != player.actualMovement.getY() || phase.getZ() != player.actualMovement.getZ()) {
-                return true;
-            }
+        if (player.actualMovement.length() < 50 &&
+                (player.calculatedCollision.getX() != player.actualMovement.getX() ||
+                        player.calculatedCollision.getY() != player.actualMovement.getY() ||
+                        player.calculatedCollision.getZ() != player.actualMovement.getZ())) {
+            return true;
         }
 
         // Player is on glitchy block (1.8 client on anvil/wooden chest)

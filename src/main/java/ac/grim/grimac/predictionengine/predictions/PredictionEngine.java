@@ -120,6 +120,10 @@ public class PredictionEngine {
         Vector beforeCollisionMovement = null;
         Vector originalClientVel = player.clientVelocity.clone();
 
+        SimpleCollisionBox originalBB = player.boundingBox;
+        // 0.03 doesn't exist with vehicles, thank god
+        SimpleCollisionBox pointThreeThanksMojang = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6, 0.6);
+
         player.skippedTickInActualMovement = false;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
@@ -131,6 +135,12 @@ public class PredictionEngine {
             // This is quite a good optimization :)
             if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
                 continue;
+
+            if (clientVelAfterInput.isZeroPointZeroThree()) {
+                player.boundingBox = pointThreeThanksMojang;
+            } else {
+                player.boundingBox = originalBB;
+            }
 
             double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
             double yAdditional = (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON;
@@ -215,6 +225,7 @@ public class PredictionEngine {
 
         player.clientVelocity = beforeCollisionMovement.clone();
         player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
+        player.boundingBox = originalBB;
 
         // If the closest vector is 0.03, consider it 0.03.
         if (player.predictedVelocity.isZeroPointZeroThree()) {
@@ -478,22 +489,6 @@ public class PredictionEngine {
         Vector minVector = vector.vector.clone().add(min.subtract(uncertainty));
         Vector maxVector = vector.vector.clone().add(max.add(uncertainty));
 
-        // Player velocity can multiply 0.4-0.45 (guess on max) when the player is on slime with
-        // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
-        if (player.uncertaintyHandler.isSteppingOnSlime) {
-            if (vector.vector.getX() > 0) {
-                minVector.multiply(new Vector(0.4, 1, 1));
-            } else {
-                maxVector.multiply(new Vector(0.4, 1, 1));
-            }
-
-            if (vector.vector.getZ() > 0) {
-                minVector.multiply(new Vector(1, 1, 0.4));
-            } else {
-                maxVector.multiply(new Vector(1, 1, 0.4));
-            }
-        }
-
         // Handle the player landing within 0.03 movement
         if ((player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.vector.getY() < 0) {
             maxVector.setY(0);
@@ -519,19 +514,7 @@ public class PredictionEngine {
         // We can't simulate the player's Y velocity, unknown number of ticks with a gravity change
         // Feel free to simulate all 104857600000000000000000000 possibilities!
         if (!player.pointThreeEstimator.canPredictNextVerticalMovement()) {
-            if (player.compensatedPotions.getLevitationAmplifier() != null) {
-                // Initial end of tick levitation gets hidden by missing idle packet
-                if (player.compensatedPotions.getLevitationAmplifier() >= 0) {
-                    maxVector.setY(((0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1)) * 0.2) + 0.1);
-                }
-
-                // Initial end of tick levitation gets hidden by missing idle packet
-                if (player.compensatedPotions.getLevitationAmplifier() < 0) {
-                    minVector.setY(((0.05 * (player.compensatedPotions.getLevitationAmplifier() + 1)) * 0.2) - 0.1);
-                }
-            } else {
-                minVector.setY(minVector.getY() - 0.08);
-            }
+            minVector.setY(minVector.getY() - 0.08);
         }
 
         // Hidden slime block bounces by missing idle tick and 0.03
@@ -559,7 +542,11 @@ public class PredictionEngine {
             box.expandMax(maxXdiff, maxYdiff, maxZdiff);
         }
 
-        if (player.uncertaintyHandler.stuckOnEdge > -3) {
+        // Player velocity can multiply 0.4-0.45 (guess on max) when the player is on slime with
+        // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
+        //
+        // Stuck on edge also reduces the player's movement.  It's wrong by 0.05 so hard to implement.
+        if (player.uncertaintyHandler.stuckOnEdge > -3 || player.uncertaintyHandler.isSteppingOnSlime) {
             // Avoid changing Y axis
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
         }

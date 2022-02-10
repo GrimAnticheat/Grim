@@ -78,6 +78,7 @@ public class GrimPlayer {
     public double gravity;
     public float friction;
     public double speed;
+    public Vector3d calculatedCollision = new Vector3d();
     public double x;
     public double y;
     public double z;
@@ -475,9 +476,8 @@ public class GrimPlayer {
     public boolean exemptOnGround() {
         return inVehicle
                 || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
-                || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isSteppingOnSlime
-                || isFlying || uncertaintyHandler.isStepMovement || isDead
-                || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
+                || uncertaintyHandler.pistonZ != 0
+                || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
                 || uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || uncertaintyHandler.isOrWasNearGlitchyBlock;
     }
 }

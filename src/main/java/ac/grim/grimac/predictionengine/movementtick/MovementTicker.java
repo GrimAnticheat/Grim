@@ -92,7 +92,8 @@ public class MovementTicker {
             Collisions.handleInsideBlocks(player);
         }
 
-        if (inputVel.getY() != collide.getY()) {
+        // Hack with 1.14+ poses issue
+        if (inputVel.getY() != collide.getY() || (player.actualMovement.getY() > 0 && player.predictedVelocity.isZeroPointZeroThree() && player.clientControlledVerticalCollision)) {
             // If the client supports slime blocks
             // And the block is a slime block
             // Or the block is honey and was replaced by viaversion
