@@ -18,7 +18,7 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT'
+    implementation 'com.github.retrooper.packetevents:spigot:2.0.0'
     implementation 'com.github.steveice10:packetlib:2.1'
     implementation 'co.aikar:acf-paper:0.5.1-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:3.0.0'
@@ -40,7 +40,7 @@ dependencies {
 }
 
 group = 'ac.grim.grimac'
-version = '2.0.2'
+version = '2.0.3'
 description = 'GrimAC'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -51,6 +51,11 @@ tasks.withType(JavaCompile) {
 
 shadowJar {
     minimize()
+    relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.packetevents'
+    relocate 'com.github.steveice10.packetlib', 'ac.grim.grimac.shaded.packetlib'
+    relocate 'co.aikar.acf', 'ac.grim.grimac.shaded.acf'
+    relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
+    relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
 }
 
 compileJava {

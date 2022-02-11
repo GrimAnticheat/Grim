@@ -118,10 +118,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             if (playerVehicle != null) {
                 // Stop the player from being able to teleport vehicles and simply re-enter them to continue
                 Location vehicleLocation = playerVehicle.getLocation();
-                playerVehicle.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), vehicleLocation.getYaw(), vehicleLocation.getPitch()));
+                playerVehicle.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), vehicleLocation.getYaw() % 360, vehicleLocation.getPitch() % 360));
             }
 
-            player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), player.xRot, player.yRot));
+            player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), player.xRot % 360, player.yRot % 360));
 
             // Override essentials giving player invulnerability on teleport
             player.setVulnerable();
