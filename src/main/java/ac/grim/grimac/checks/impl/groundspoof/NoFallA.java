@@ -32,7 +32,7 @@ public class NoFallA extends PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // We have the wrong world cached with chunks
-            if (player.bukkitPlayer.getWorld() != player.playerWorld) return;
+            if (player.bukkitPlayer != null && player.bukkitPlayer.getWorld() != player.playerWorld) return;
             // The player hasn't spawned yet
             if (player.getSetbackTeleportUtil().insideUnloadedChunk()) return;
             // The player has already been flagged, and
