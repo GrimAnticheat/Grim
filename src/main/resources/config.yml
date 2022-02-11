@@ -28,50 +28,50 @@ Prediction:
     threshold: 0.0001
     # Setback vl: How many times should the player have to go over this threshold to set them back?
     # Set to -1 to disable setbacks
-    setbackvl: 40
+    setbackvl: 140
     # Decay: How many violations should be reduced from the player for being below this threshold
-    decay: 0.125
+    decay: 0.05
     # Alert vl: How many violations does the player need before they trigger alerts?
     # Set to -1 to disable alerts
-    dont-alert-until: 20
-    # Alert interval: Instead of sending 10 alerts for 10 flags, we send 1 alert every 10 flags
-    alert-interval: 10
+    dont-alert-until: 300
+    # Alert interval: Instead of sending 20 alerts for 20 flags, we send 1 alert every 20 flags
+    alert-interval: 80
   # The vast majority of cheats flag in this offset range, 0.01-0.6
   Medium:
     threshold: 0.01
-    setbackvl: 15
-    decay: 0.05
-    dont-alert-until: 10
-    alert-interval: 10
+    setbackvl: 80
+    decay: 0.02
+    dont-alert-until: 120
+    alert-interval: 60
   # This is to stop players from launching themselves extremely far in one tick
   Large:
-    threshold: 0.6
+    threshold: 0.1
     setbackvl: 1
     decay: 0.001
-    dont-alert-until: 3
-    alert-interval: 1
+    dont-alert-until: 10
+    alert-interval: 40
 
 # Vehicles are client sided in 1.9+, and server sided in 1.8 and below. This section only applies to 1.9+ servers
 # Vehicles are less stable than regular predictions as netcode for vehicles is significantly flawed
 Vehicle:
   Small:
     threshold: 0.005
-    setbackvl: 40
-    decay: 0.125
-    dont-alert-until: 40
-    alert-interval: 30
+    setbackvl: 280
+    decay: 0.05
+    dont-alert-until: 400
+    alert-interval: 80
   Medium:
     threshold: 0.05
-    setbackvl: 20
-    decay: 0.05
-    dont-alert-until: 30
-    alert-interval: 20
+    setbackvl: 80
+    decay: 0.02
+    dont-alert-until: 120
+    alert-interval: 60
   Large:
     threshold: 1
     setbackvl: 1
     decay: 0.001
-    dont-alert-until: 5
-    alert-interval: 10
+    dont-alert-until: 10
+    alert-interval: 40
 
 
 # Prediction-based ground spoof check

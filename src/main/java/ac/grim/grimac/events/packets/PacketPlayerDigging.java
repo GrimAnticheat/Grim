@@ -140,6 +140,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                 // Avoid releasing crossbow as being seen as slowing player
                 if (material == ItemTypes.CROSSBOW && item.getNBT().getBoolean("Charged")) {
+                    player.packetStateData.slowedByUsingItem = false; // TODO: Fix this
                     return;
                 }
 
@@ -152,11 +153,13 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 // Players in survival can't use a bow without an arrow
                 // Crossbow charge checked previously
                 if (material == ItemTypes.BOW || material == ItemTypes.CROSSBOW) {
-                    player.packetStateData.slowedByUsingItem = player.gamemode == GameMode.CREATIVE ||
+                    /*player.packetStateData.slowedByUsingItem = player.gamemode == GameMode.CREATIVE ||
                             player.getInventory().hasItemType(ItemTypes.ARROW) ||
                             player.getInventory().hasItemType(ItemTypes.TIPPED_ARROW) ||
                             player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW);
-                    player.packetStateData.eatingHand = place.getHand();
+                    player.packetStateData.eatingHand = place.getHand();*/
+                    // TODO: How do we lag compensate arrows? Mojang removed idle packet.
+                    player.packetStateData.slowedByUsingItem = false;
                 }
 
                 // Only 1.8 and below players can block with swords

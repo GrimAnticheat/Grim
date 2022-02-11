@@ -154,7 +154,7 @@ public class MovementTicker {
         }
     }
 
-    public void livingEntityAIStep() {
+    public static void handleEntityCollisions(GrimPlayer player) {
         // 1.7 and 1.8 do not have player collision
         if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
             int possibleCollidingEntities = 0;
@@ -214,6 +214,10 @@ public class MovementTicker {
 
             player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
         }
+    }
+
+    public void livingEntityAIStep() {
+        handleEntityCollisions(player);
 
         if (player.playerVehicle == null) {
             playerEntityTravel();

@@ -101,7 +101,7 @@ public class Collisions {
 
             double resultAccuracy = collisionResult.distanceSquared(bestTheoreticalCollisionResult);
 
-            // Step movement doesn't care about ground (due to uncertainty fucking it up)
+            // Step movement doesn't care about ground (due to 0.03 fucking it up)
             if (player.wouldCollisionResultFlagGroundSpoof(desiredY, collisionResult.getY())) {
                 resultAccuracy += 1;
             }

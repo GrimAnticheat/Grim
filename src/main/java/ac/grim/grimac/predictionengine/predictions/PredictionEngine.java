@@ -66,6 +66,8 @@ public class PredictionEngine {
     }
 
     public void guessBestMovement(float speed, GrimPlayer player) {
+        player.uncertaintyHandler.collidingEntities.add(0); // We don't do collisions like living entities
+
         Set<VectorData> init = fetchPossibleStartTickVectors(player);
 
         if (player.uncertaintyHandler.influencedByBouncyBlock()) {

@@ -475,7 +475,7 @@ public class GrimPlayer {
     public boolean exemptOnGround() {
         return inVehicle
                 || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
-                || uncertaintyHandler.pistonZ != 0
+                || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isStepMovement
                 || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
                 || uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || uncertaintyHandler.isOrWasNearGlitchyBlock;
     }
