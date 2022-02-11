@@ -205,6 +205,7 @@ public class PointThreeEstimator {
         // Determine the head hitter using the current Y position
         SimpleCollisionBox oldBB = player.boundingBox;
 
+        headHitter = false;
         // Can we trust the pose height?
         for (double sizes : (player.skippedTickInActualMovement ? new double[]{0.6, 1.5, 1.8} : new double[]{player.pose.height})) {
             player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, sizes);
