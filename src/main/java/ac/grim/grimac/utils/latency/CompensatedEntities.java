@@ -171,7 +171,21 @@ public class CompensatedEntities {
         if (entity == null) return;
 
         if (entity.isAgeable()) {
-            EntityData ageableObject = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 16 : 15);
+            int id = 17;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8)) {
+                id = 12;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+                id = 11;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_13_2)) {
+                id = 12;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                id = 14;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                id = 16;
+            }
+
+            // 1.14 good
+            EntityData ageableObject = WatchableIndexUtil.getIndex(watchableObjects, id);
             if (ageableObject != null) {
                 Object value = ageableObject.getValue();
                 // Required because bukkit Ageable doesn't align with minecraft's ageable
@@ -182,7 +196,20 @@ public class CompensatedEntities {
         }
 
         if (entity.isSize()) {
-            EntityData sizeObject = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 16 : 15);
+            int id = 16;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8)) {
+                id = 16;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+                id = 11;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_13_2)) {
+                id = 12;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                id = 14;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                id = 15;
+            }
+
+            EntityData sizeObject = WatchableIndexUtil.getIndex(watchableObjects, id);
             if (sizeObject != null) {
                 Object value = sizeObject.getValue();
                 if (value instanceof Integer) {
@@ -192,14 +219,26 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityShulker) {
-            EntityData shulkerAttached = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 16 : 15);
+            int id = 16;
+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+                id = 11;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_13_2)) {
+                id = 12;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                id = 14;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                id = 15;
+            }
+
+            EntityData shulkerAttached = WatchableIndexUtil.getIndex(watchableObjects, id);
 
             if (shulkerAttached != null) {
                 // This NMS -> Bukkit conversion is great and works in all 11 versions.
                 ((PacketEntityShulker) entity).facing = BlockFace.valueOf(shulkerAttached.getValue().toString().toUpperCase());
             }
 
-            EntityData height = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 18 : 17);
+            EntityData height = WatchableIndexUtil.getIndex(watchableObjects, id + 2);
             if (height != null) {
                 if ((byte) height.getValue() == 0) {
                     ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), true);
@@ -212,25 +251,38 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityRideable) {
+            int offset = 0;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8)) {
+                offset = 1;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+                offset = 5;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_13_2)) {
+                offset = 4;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                offset = 2;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                offset = 1;
+            }
+
             if (entity.type == EntityTypes.PIG) {
-                EntityData pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 17 : 16);
+                EntityData pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
                 if (pigSaddle != null) {
                     ((PacketEntityRideable) entity).hasSaddle = (boolean) pigSaddle.getValue();
                 }
 
-                EntityData pigBoost = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 18 : 17);
-                if (pigBoost != null) {
+                EntityData pigBoost = WatchableIndexUtil.getIndex(watchableObjects, 18 - offset);
+                if (pigBoost != null) { // What does 1.9-1.10 do here? Is this feature even here?
                     ((PacketEntityRideable) entity).boostTimeMax = (int) pigBoost.getValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 0;
                 }
             } else if (entity instanceof PacketEntityStrider) {
-                EntityData striderBoost = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 17 : 16);
+                EntityData striderBoost = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
                 if (striderBoost != null) {
                     ((PacketEntityRideable) entity).boostTimeMax = (int) striderBoost.getValue();
                     ((PacketEntityRideable) entity).currentBoostTime = 0;
                 }
 
-                EntityData striderSaddle = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 19 : 18);
+                EntityData striderSaddle = WatchableIndexUtil.getIndex(watchableObjects, 19 - offset);
                 if (striderSaddle != null) {
                     ((PacketEntityRideable) entity).hasSaddle = (boolean) striderSaddle.getValue();
                 }
@@ -238,21 +290,45 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityHorse) {
-            EntityData horseByte = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 17 : 16);
-            if (horseByte != null) {
-                byte info = (byte) horseByte.getValue();
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                int offset = 0;
 
-                ((PacketEntityHorse) entity).isTame = (info & 0x02) != 0;
-                ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
-                ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
-            }
-            EntityData chestByte = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 19 : 18);
-            if (chestByte != null && chestByte.getValue() instanceof Boolean) {
-                ((PacketEntityHorse) entity).hasChest = (boolean) chestByte.getValue();
-            }
-            EntityData strength = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 20 : 19);
-            if (strength != null && strength.getValue() instanceof Integer) {
-                ((PacketEntityHorse) entity).llamaStrength = (int) strength.getValue();
+                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9)) {
+                    offset = 5;
+                } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_13_2)) {
+                    offset = 4;
+                } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                    offset = 2;
+                } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                    offset = 1;
+                }
+
+                EntityData horseByte = WatchableIndexUtil.getIndex(watchableObjects, 17 - offset);
+                if (horseByte != null) {
+                    byte info = (byte) horseByte.getValue();
+
+                    ((PacketEntityHorse) entity).isTame = (info & 0x02) != 0;
+                    ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
+                    ((PacketEntityHorse) entity).isRearing = (info & 0x20) != 0;
+                }
+                EntityData chestByte = WatchableIndexUtil.getIndex(watchableObjects, 19 - offset);
+                if (chestByte != null && chestByte.getValue() instanceof Boolean) {
+                    ((PacketEntityHorse) entity).hasChest = (boolean) chestByte.getValue();
+                }
+                EntityData strength = WatchableIndexUtil.getIndex(watchableObjects, 20 - offset);
+                if (strength != null && strength.getValue() instanceof Integer) {
+                    ((PacketEntityHorse) entity).llamaStrength = (int) strength.getValue();
+                }
+            } else {
+                EntityData horseByte = WatchableIndexUtil.getIndex(watchableObjects, 16);
+                if (horseByte != null) {
+                    byte info = (byte) horseByte.getValue();
+
+                    ((PacketEntityHorse) entity).isTame = (info & 0x02) != 0;
+                    ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;
+                    ((PacketEntityHorse) entity).hasSaddle = (info & 0x08) != 0;
+                    ((PacketEntityHorse) entity).isRearing = (info & 0x40) != 0;
+                }
             }
         }
 
@@ -271,7 +347,14 @@ public class CompensatedEntities {
         }
 
         if (entity.type == EntityTypes.FIREWORK_ROCKET) {
-            EntityData fireworkWatchableObject = WatchableIndexUtil.getIndex(watchableObjects, PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 9 : 8);
+            int offset = 0;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)) {
+                offset = 2;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                offset = 1;
+            }
+
+            EntityData fireworkWatchableObject = WatchableIndexUtil.getIndex(watchableObjects, 9 - offset);
 
             if (fireworkWatchableObject == null) return;
 
