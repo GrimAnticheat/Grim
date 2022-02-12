@@ -256,6 +256,9 @@ public class PacketEntityReplication extends PacketCheck {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             PacketEntity vehicle = player.compensatedEntities.getEntity(vehicleID);
 
+            // Vanilla likes sending null vehicles, so we must ignore those like the client ignores them
+            if (vehicle == null) return;
+
             // Eject existing passengers for this vehicle
             if (vehicle.passengers != null) {
                 for (int entityID : vehicle.passengers) {
