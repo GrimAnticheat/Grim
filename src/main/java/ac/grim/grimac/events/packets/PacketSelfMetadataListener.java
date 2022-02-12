@@ -31,6 +31,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                 return;
 
             if (entityMetadata.getEntityId() == player.entityID) {
+                // If we send multiple transactions, we are very likely to split them
+                boolean hasSendTransaction = false;
+
                 // 1.14+ poses:
                 // - Client: I am sneaking
                 // - Client: I am no longer sneaking
@@ -75,6 +78,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // Send transaction BEFORE gliding so that any transition stuff will get removed
                         // by the uncertainty from switching with an elytra
                         player.sendTransaction();
+                        hasSendTransaction = true;
 
                         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                             player.uncertaintyHandler.lastMetadataDesync = 0;
@@ -119,7 +123,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             boolean isActive = (((byte) riptide.getValue()) & 0x01) == 0x01;
                             boolean hand = (((byte) riptide.getValue()) & 0x01) == 0x01;
 
-                            player.sendTransaction();
+                            if (!hasSendTransaction) player.sendTransaction();
 
                             // Player might have gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
