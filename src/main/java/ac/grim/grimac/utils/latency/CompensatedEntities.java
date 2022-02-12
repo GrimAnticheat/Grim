@@ -191,6 +191,8 @@ public class CompensatedEntities {
                 // Required because bukkit Ageable doesn't align with minecraft's ageable
                 if (value instanceof Boolean) {
                     entity.isBaby = (boolean) value;
+                } else if (value instanceof Byte) {
+                    entity.isBaby = ((Byte) value) < 0;
                 }
             }
         }
@@ -214,6 +216,8 @@ public class CompensatedEntities {
                 Object value = sizeObject.getValue();
                 if (value instanceof Integer) {
                     ((PacketEntitySizeable) entity).size = (int) value;
+                } else if (value instanceof Byte) {
+                    ((PacketEntitySizeable) entity).size = (byte) value;
                 }
             }
         }
@@ -253,7 +257,12 @@ public class CompensatedEntities {
         if (entity instanceof PacketEntityRideable) {
             int offset = 0;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
-                offset = 1;
+                if (entity.type == EntityTypes.PIG) {
+                    EntityData pigSaddle = WatchableIndexUtil.getIndex(watchableObjects, 16);
+                    if (pigSaddle != null) {
+                        ((PacketEntityRideable) entity).hasSaddle = ((byte) pigSaddle.getValue()) != 0;
+                    }
+                }
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9_4)) {
                 offset = 5;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_13_2)) {
@@ -322,7 +331,7 @@ public class CompensatedEntities {
             } else {
                 EntityData horseByte = WatchableIndexUtil.getIndex(watchableObjects, 16);
                 if (horseByte != null) {
-                    byte info = (byte) horseByte.getValue();
+                    int info = (int) horseByte.getValue();
 
                     ((PacketEntityHorse) entity).isTame = (info & 0x02) != 0;
                     ((PacketEntityHorse) entity).hasSaddle = (info & 0x04) != 0;

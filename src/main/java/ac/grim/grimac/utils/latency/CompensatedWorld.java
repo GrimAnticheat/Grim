@@ -14,8 +14,8 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
-import com.github.retrooper.packetevents.protocol.nbt.NBTList;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
@@ -44,11 +44,8 @@ public class CompensatedWorld {
     public List<PistonData> activePistons = new ArrayList<>();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
     // 1.17 with datapacks, and 1.18, have negative world offset values
-    public NBTList<NBTCompound> dimensions;
     private int minHeight = 0;
     private int maxHeight = 255;
-    public int clientboundMaxHeight = 255;
-    public int clientboundMinHeight = 0;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -477,22 +474,13 @@ public class CompensatedWorld {
         return minHeight;
     }
 
-    public void setDimension(String dimension, boolean useAltVars) {
+    public void setDimension(String dimension, User user) {
         // No world height NBT
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
 
-        for (NBTCompound dimensionNBT : player.compensatedWorld.dimensions.getTags()) {
-            if (dimensionNBT.getStringTagOrThrow("name").getValue().equals(dimension)) {
-                NBTCompound compound = dimensionNBT.getCompoundTagOrThrow("element");
-                if (useAltVars) {
-                    clientboundMinHeight = compound.getNumberTagOrThrow("min_y").getAsInt();
-                    clientboundMaxHeight = clientboundMinHeight + compound.getNumberTagOrThrow("height").getAsInt();
-                } else {
-                    minHeight = compound.getNumberTagOrThrow("min_y").getAsInt();
-                    maxHeight = minHeight + compound.getNumberTagOrThrow("height").getAsInt();
-                }
-            }
-        }
+        NBTCompound dimensionNBT = user.getWorldNBT(dimension).getCompoundTagOrNull("element");
+        minHeight = dimensionNBT.getNumberTagOrThrow("min_y").getAsInt();
+        maxHeight = minHeight + dimensionNBT.getNumberTagOrThrow("height").getAsInt();
     }
 
     public int getMaxHeight() {

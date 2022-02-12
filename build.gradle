@@ -6,19 +6,21 @@ plugins {
 
 repositories {
     mavenLocal()
-    maven { url = uri('https://hub.spigotmc.org/nexus/content/repositories/snapshots/') }
-    maven { url = uri('https://jitpack.io/') }
-    maven { url = uri('https://repo.dmulloy2.net/repository/public/') }
-    maven { url = uri('https://repo.opencollab.dev/maven-snapshots/') }
-    maven { url = uri('https://repo.maven.apache.org/maven2/') }
-    maven { url = uri('https://repo.viaversion.com') }
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/central' }
+    maven { url = 'https://jitpack.io/' }
+    maven { url = 'https://repo.dmulloy2.net/repository/public/' }
+    maven { url = 'https://repo.opencollab.dev/maven-snapshots/' }
+    maven { url = 'https://repo.maven.apache.org/maven2/' }
+    maven { url = 'https://repo.viaversion.com' }
     maven { url = "https://repo.aikar.co/content/groups/aikar/" }
     maven { url = "https://repo.essentialsx.net/releases/" }
     mavenCentral()
 }
 
 dependencies {
-    implementation 'com.github.retrooper:packetevents:e5212aa687'
+    implementation 'com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT'
     implementation 'co.aikar:acf-paper:0.5.1-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'club.minnced:discord-webhooks:0.7.5'
@@ -29,7 +31,6 @@ dependencies {
     compileOnly 'com.viaversion:viaversion-api:4.1.1'
     compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.17.1'
     compileOnly group: 'net.essentialsx', name: 'EssentialsX', version: '2.19.2'
-
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
@@ -38,7 +39,7 @@ dependencies {
 }
 
 group = 'ac.grim.grimac'
-version = '2.0.4'
+version = '2.0.5'
 description = 'GrimAC'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8

@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import java.io.ByteArrayInputStream;
 
 public class PacketWorldReaderEighteen extends BasePacketWorldReader {
+    // Mojang decided to include lighting in this packet.  It's inefficient to read it, so we replace PacketEvents logic.
     @Override
     public void handleMapChunk(GrimPlayer player, PacketSendEvent event) {
         PacketWrapper wrapper = new PacketWrapper(event);
@@ -20,10 +21,10 @@ public class PacketWorldReaderEighteen extends BasePacketWorldReader {
         // Skip past heightmaps
         wrapper.readNBT();
 
-        BaseChunk[] chunks = new ChunkReader_v1_18().read(null, null, true, false, false, (player.compensatedWorld.clientboundMaxHeight - player.compensatedWorld.clientboundMinHeight) >> 4, null, new NetStreamInput(new ByteArrayInputStream(wrapper.readByteArray())));
+        BaseChunk[] chunks = new ChunkReader_v1_18().read(null, null, true, false, false, event.getUser().getTotalWorldHeight() >> 4, null, new NetStreamInput(new ByteArrayInputStream(wrapper.readByteArray())));
 
         addChunkToCache(player, chunks, true, x, z);
 
-        event.setLastUsedWrapper(null);
+        event.setLastUsedWrapper(null); // Prevent PacketEvents from using this incomplete wrapper later
     }
 }
