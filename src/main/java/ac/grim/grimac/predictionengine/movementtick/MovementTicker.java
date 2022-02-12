@@ -159,7 +159,7 @@ public class MovementTicker {
             // Players in vehicles do not have collisions
             if (!player.inVehicle) {
                 // Calculate the offset of the player to colliding other stuff
-                SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+                SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6, 1.8);
                 SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
 
                 for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
@@ -171,42 +171,19 @@ public class MovementTicker {
 
                     SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
 
-                    if (expandedPlayerBox.isCollided(entityBox))
-                        possibleCollidingEntities++;
-
                     if (!playerBox.isCollided(entityBox))
                         continue;
 
-                    double xDist = player.x - (entityBox.minX + entityBox.maxX) / 2;
-                    double zDist = player.z - (entityBox.minZ + entityBox.maxZ) / 2;
-                    double maxLength = Math.max(Math.abs(xDist), Math.abs(zDist));
-
-                    if (maxLength >= 0.01) {
-                        maxLength = Math.sqrt(maxLength);
-                        xDist /= maxLength;
-                        zDist /= maxLength;
-
-                        double d3 = 1.0D / maxLength;
-                        d3 = Math.min(d3, 1.0);
-
-                        xDist *= d3;
-                        zDist *= d3;
-                        xDist *= -0.05F;
-                        zDist *= -0.05F;
-
-                        if (xDist > 0) {
-                            player.uncertaintyHandler.xNegativeUncertainty += xDist;
-                        } else {
-                            player.uncertaintyHandler.zNegativeUncertainty += xDist;
-                        }
-
-                        if (zDist > 0) {
-                            player.uncertaintyHandler.xPositiveUncertainty += zDist;
-                        } else {
-                            player.uncertaintyHandler.zPositiveUncertainty += zDist;
-                        }
-                    }
+                    if (expandedPlayerBox.isCollided(entityBox))
+                        possibleCollidingEntities++;
                 }
+            }
+
+            if (player.isGliding && possibleCollidingEntities > 0) {
+                // Horizontal starting movement affects vertical movement with elytra, hack around this.
+                // This can likely be reduced but whatever, I don't see this as too much of a problem
+                player.uncertaintyHandler.yNegativeUncertainty -= 0.05;
+                player.uncertaintyHandler.yPositiveUncertainty += 0.05;
             }
 
             player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);

@@ -93,7 +93,6 @@ public class DebugHandler extends PostPredictionCheck {
             LogUtil.info(prefix + p);
             LogUtil.info(prefix + a);
             LogUtil.info(prefix + o);
-            LogUtil.info(prefix + " switch " + player.vehicleData.lastVehicleSwitch);
         }
     }
 
