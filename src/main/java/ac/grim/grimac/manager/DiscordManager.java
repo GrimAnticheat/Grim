@@ -42,7 +42,7 @@ public class DiscordManager implements Initable {
             ver = ver.replace("_", ".");
             String formattedVer = ver;
 
-            String content = "**Player**\n" + player.bukkitPlayer.getName()
+            String content = "**Player**\n" + (player.bukkitPlayer != null ? player.bukkitPlayer.getName() : player.user.getProfile().getName())
                     + "\n**Check**\n" + checkName
                     + "\n**Violations**\n " + violations
                     + "\n**Client Version**\n" + formattedVer
@@ -53,7 +53,7 @@ public class DiscordManager implements Initable {
                     .setImageUrl("https://i.stack.imgur.com/Fzh0w.png") // Constant width
                     .setColor(Color.CYAN.getRGB())
                     // Discord caches this for around 24 hours, this is abuse of neither CraftHead nor discord
-                    .setThumbnailUrl("https://crafthead.net/avatar/" + player.bukkitPlayer.getUniqueId())
+                    .setThumbnailUrl("https://crafthead.net/avatar/" + player.user.getProfile().getUUID())
                     .setTitle(new WebhookEmbed.EmbedTitle("**Grim Alert**", null))
                     .setDescription(content)
                     .setFooter(new WebhookEmbed.EmbedFooter(time, "https://grim.ac/images/grim.png"));

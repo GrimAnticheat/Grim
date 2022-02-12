@@ -80,7 +80,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                 Column existingColumn = player.compensatedWorld.getChunk(chunkX, chunkZ);
                 if (existingColumn == null) {
-                    LogUtil.warn("Invalid non-ground up continuous sent for empty chunk " + chunkX + " " + chunkZ + " for " + player.bukkitPlayer.getName() + "! This corrupts the player's empty chunk!");
+                    LogUtil.warn("Invalid non-ground up continuous sent for empty chunk " + chunkX + " " + chunkZ + " for " + player.user.getProfile().getName() + "! This corrupts the player's empty chunk!");
                     return;
                 }
                 existingColumn.mergeChunks(chunks);

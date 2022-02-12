@@ -63,7 +63,7 @@ public class CompensatedInventory extends PacketCheck {
     }
 
     public ItemStack getHeldItem() {
-        ItemStack item = isPacketInventoryActive ? inventory.getHeldItem() :
+        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getHeldItem() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInHand());
         return item == null ? ItemStack.EMPTY : item;
     }
@@ -71,37 +71,37 @@ public class CompensatedInventory extends PacketCheck {
     public ItemStack getOffHand() {
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9))
             return ItemStack.EMPTY;
-        ItemStack item = isPacketInventoryActive ? inventory.getOffhand() :
+        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getOffhand() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getItemInOffHand());
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getHelmet() {
-        ItemStack item = isPacketInventoryActive ? inventory.getHelmet() :
+        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getHelmet() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getHelmet());
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getChestplate() {
-        ItemStack item = isPacketInventoryActive ? inventory.getChestplate() :
+        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getChestplate() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getChestplate());
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getLeggings() {
-        ItemStack item = isPacketInventoryActive ? inventory.getLeggings() :
+        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getLeggings() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getLeggings());
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getBoots() {
-        ItemStack item = isPacketInventoryActive ? inventory.getBoots() :
+        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getBoots() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getBoots());
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public boolean hasItemType(ItemType type) {
-        if (isPacketInventoryActive) return inventory.hasItemType(type);
+        if (isPacketInventoryActive || player.bukkitPlayer == null) return inventory.hasItemType(type);
 
         // Fall back to bukkit inventories
         for (org.bukkit.inventory.ItemStack item : player.bukkitPlayer.getInventory().getContents()) {
@@ -216,7 +216,9 @@ public class CompensatedInventory extends PacketCheck {
         // 1:1 MCP
         if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
             if (!isPacketInventoryActive) {
-                event.getPostTasks().add(player.bukkitPlayer::updateInventory);
+                if (player.bukkitPlayer != null) {
+                    event.getPostTasks().add(player.bukkitPlayer::updateInventory);
+                }
             }
 
             // Disregard provided window ID, client doesn't care...

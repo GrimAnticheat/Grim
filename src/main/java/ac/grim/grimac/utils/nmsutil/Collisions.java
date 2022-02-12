@@ -179,9 +179,8 @@ public class Collisions {
         int maxBlockZ = (int) Math.floor(expandedBB.maxZ + COLLISION_EPSILON) + 1;
 
         final int minSection = player.compensatedWorld.getMinHeight() >> 4;
-        final int maxSection = player.compensatedWorld.getMaxHeight() >> 4;
         final int minBlock = minSection << 4;
-        final int maxBlock = (maxSection << 4) | 15;
+        final int maxBlock = player.compensatedWorld.getMaxHeight() - 1;
 
         int minChunkX = minBlockX >> 4;
         int maxChunkX = maxBlockX >> 4;
@@ -210,11 +209,6 @@ public class Collisions {
 
                 for (int y = minYIterate; y <= maxYIterate; ++y) {
                     int sectionIndex = (y >> 4) - minSection;
-                    // Don't look for a section if it's too high
-                    if (sections.length <= sectionIndex || sectionIndex < 0) {
-                        y = (y & ~(15)) + 15; // increment by 15: iterator loop increments by the extra one
-                        continue;
-                    }
 
                     BaseChunk section = sections[sectionIndex];
 
@@ -608,9 +602,8 @@ public class Collisions {
         int maxBlockZ = (int) Math.floor(checkBox.maxZ);
 
         final int minSection = player.compensatedWorld.getMinHeight() >> 4;
-        final int maxSection = player.compensatedWorld.getMaxHeight() >> 4;
         final int minBlock = minSection << 4;
-        final int maxBlock = (maxSection << 4) | 15;
+        final int maxBlock = player.compensatedWorld.getMaxHeight() - 1;
 
         int minChunkX = minBlockX >> 4;
         int maxChunkX = maxBlockX >> 4;

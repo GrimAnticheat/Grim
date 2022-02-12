@@ -42,6 +42,8 @@ public class KnockbackHandler extends PacketCheck {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
+            if (entityId != player.entityID && player.bukkitPlayer == null) return;
+
             // Detect whether this knockback packet affects the player or if it is useless
             Entity playerVehicle = player.bukkitPlayer.getVehicle();
             if ((playerVehicle == null && entityId != player.entityID) || (playerVehicle != null && entityId != playerVehicle.getEntityId())) {

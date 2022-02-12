@@ -478,9 +478,9 @@ public class MovementCheckRunner extends PositionCheck {
             offset = 0;
 
         // Don't check players who are offline
-        if (!player.bukkitPlayer.isOnline()) return;
+        if (player.bukkitPlayer != null && !player.bukkitPlayer.isOnline()) return;
         // Don't check players who just switched worlds
-        if (player.playerWorld != player.bukkitPlayer.getWorld()) return;
+        if (player.bukkitPlayer != null && player.playerWorld != player.bukkitPlayer.getWorld()) return;
 
         if (wasChecked) {
             // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything

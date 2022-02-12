@@ -41,6 +41,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -56,6 +57,7 @@ public class GrimPlayer {
     public final UUID playerUUID;
     public final User user;
     public int entityID;
+    @Nullable
     public Player bukkitPlayer;
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
@@ -397,7 +399,7 @@ public class GrimPlayer {
             this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
         }
 
-        if (this.clientVersion == null || this.clientVersion.getProtocolVersion() <= 0) {
+        if (this.bukkitPlayer != null && (this.clientVersion == null || this.clientVersion.getProtocolVersion() <= 0)) {
             this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
 
             if (this.clientVersion.getProtocolVersion() <= 0) {
@@ -419,6 +421,7 @@ public class GrimPlayer {
         try {
             Plugin essentials = Bukkit.getServer().getPluginManager().getPlugin("Essentials");
             if (essentials == null) return;
+            if (bukkitPlayer == null) return;
 
             Object user = ((Essentials) essentials).getUser(bukkitPlayer);
             if (user == null) return;
@@ -440,10 +443,6 @@ public class GrimPlayer {
         } else { // Only sneaking or standing
             return Arrays.asList(1.54, 1.62);
         }
-    }
-
-    public int getKeepAlivePing() {
-        return PacketEvents.getAPI().getPlayerManager().getPing(bukkitPlayer);
     }
 
     public int getTransactionPing() {

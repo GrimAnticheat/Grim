@@ -34,7 +34,7 @@ public class ConsumesBlockPlace {
                 return true;
             }
 
-            if (player.gamemode == GameMode.CREATIVE || player.bukkitPlayer.getFoodLevel() < 20) {
+            if (player.gamemode == GameMode.CREATIVE || (player.bukkitPlayer != null && player.bukkitPlayer.getFoodLevel() < 20)) {
                 if (state.getBites() + 1 != 8) {
                     state.setBites(state.getBites() + 1);
                     place.set(state);
@@ -79,7 +79,7 @@ public class ConsumesBlockPlace {
                 || state.getType() == StateTypes.JIGSAW) {
             // Where is the permission level???? Check for >= 2 level eventually... no API for this.
             // Only affects OP players, will fix eventually (also few desyncs from no minecraft lag compensation)
-            return player.bukkitPlayer.isOp() && player.gamemode == GameMode.CREATIVE;
+            return player.bukkitPlayer != null && player.bukkitPlayer.isOp() && player.gamemode == GameMode.CREATIVE;
         }
         if (state.getType() == StateTypes.COMPOSTER) {
             if (Materials.isCompostable(place.getItemStack().getType()) && state.getLevel() < 8) {

@@ -53,7 +53,7 @@ public class DebugHandler extends PostPredictionCheck {
         String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
         String o = ChatColor.GRAY + "" + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
 
-        String prefix = getPlayer().bukkitPlayer.getName() + " ";
+        String prefix = player.bukkitPlayer == null ? "null" : player.bukkitPlayer.getName() + " ";
 
         boolean thisFlag = color != ChatColor.GRAY && color != ChatColor.GREEN;
         if (enabledFlags) {
@@ -73,9 +73,9 @@ public class DebugHandler extends PostPredictionCheck {
 
         if (thisFlag) {
             for (int i = 0; i < this.predicted.size(); i++) {
-                player.bukkitPlayer.sendMessage(this.predicted.get(i));
-                player.bukkitPlayer.sendMessage(this.actually.get(i));
-                player.bukkitPlayer.sendMessage(this.offset.get(i));
+                player.user.sendMessage(this.predicted.get(i));
+                player.user.sendMessage(this.actually.get(i));
+                player.user.sendMessage(this.offset.get(i));
             }
         }
 

@@ -83,7 +83,7 @@ public class Check<T> {
     }
 
     public final void debug(final Object object) {
-        player.bukkitPlayer.sendMessage(ChatColor.AQUA + "[Debug] " + ChatColor.GREEN + object);
+        player.user.sendMessage(ChatColor.AQUA + "[Debug] " + ChatColor.GREEN + object);
     }
 
     public final void broadcast(final Object object) {
@@ -110,7 +110,9 @@ public class Check<T> {
 
         String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrim &8»"));
-        alertString = alertString.replace("%player%", player.bukkitPlayer.getName());
+        if (player.bukkitPlayer != null) {
+            alertString = alertString.replace("%player%", player.bukkitPlayer.getName());
+        }
         alertString = alertString.replace("%check_name%", checkName);
         alertString = alertString.replace("%vl%", violations);
         alertString = alertString.replace("%verbose%", verbose);
@@ -118,7 +120,7 @@ public class Check<T> {
         if (!secretTestServerVLStyle) { // Production
             Bukkit.broadcast(ColorUtil.format(alertString), "grim.alerts");
         } else { // Test server
-            player.bukkitPlayer.sendMessage(ColorUtil.format(alertString));
+            player.user.sendMessage(ColorUtil.format(alertString));
         }
 
         GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, checkName, violations, verbose);

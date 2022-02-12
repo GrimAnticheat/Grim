@@ -93,7 +93,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
     private void blockMovementsUntilResync(Location position) {
         // Don't teleport cross world, it will break more than it fixes.
-        if (position.getWorld() != player.bukkitPlayer.getWorld()) return;
+        if (player.bukkitPlayer != null && position.getWorld() != player.bukkitPlayer.getWorld()) return;
 
         // Only let us full resync once every ten seconds to prevent unneeded bukkit load
         if (System.nanoTime() - lastWorldResync > 10e-9) {
@@ -108,7 +108,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // (Fixes race condition at 0 latency conditions with teleports being immediately accepted)
             // Second one - if there is a pending teleport, don't override it
             // (Fixes race condition between bukkit and netty, we are sync to bukkit here)
-            if (bukkitTeleportsProcessed > bukkitTeleports || isPendingTeleport())
+            if (bukkitTeleportsProcessed > bukkitTeleports || isPendingTeleport() || player.bukkitPlayer == null)
                 return;
 
             // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
@@ -293,7 +293,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * it would allow the player to bypass our own setbacks
      */
     public void addSentTeleport(Location position, int transaction) {
-        teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer.getWorld(), position.getX(), position.getY(), position.getZ())));
+        teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer != null ? player.bukkitPlayer.getWorld() : null, position.getX(), position.getY(), position.getZ())));
     }
 }
 

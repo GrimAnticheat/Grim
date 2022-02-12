@@ -62,6 +62,8 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.y = (vehiclePos.minY + vehiclePos.maxY) / 2;
                 player.z = (vehiclePos.minZ + vehiclePos.maxZ) / 2;
 
+                if (player.bukkitPlayer == null) return;
+
                 // Use bukkit location, not packet location, to stop ping spoof attacks on entity position
                 Entity playerVehicle = player.bukkitPlayer.getVehicle();
                 if (playerVehicle != null) {

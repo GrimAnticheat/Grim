@@ -20,6 +20,7 @@ public class ResultSlot extends Slot {
     @Override
     public void onTake(GrimPlayer p_150638_, ItemStack p_150639_) {
         // Resync the player's inventory
+        if (p_150638_.bukkitPlayer == null) return;
         Bukkit.getServer().getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), p_150638_.bukkitPlayer::updateInventory);
     }
 }

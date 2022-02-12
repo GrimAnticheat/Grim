@@ -21,6 +21,8 @@ public class ResyncWorldUtil {
             player.sendTrans = false;
             boolean flat = PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13);
 
+            if (player.bukkitPlayer == null) return;
+
             for (int x = minX; x <= maxX; x++) {
                 for (int y = minY; y <= maxY; y++) {
                     for (int z = minZ; z <= maxZ; z++) {

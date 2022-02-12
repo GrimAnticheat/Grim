@@ -18,16 +18,13 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public class MovementTicker {
-    public final Player bukkitPlayer;
     public final GrimPlayer player;
 
     public MovementTicker(GrimPlayer player) {
         this.player = player;
-        this.bukkitPlayer = player.bukkitPlayer;
     }
 
     public void move(Vector inputVel, Vector collide) {
