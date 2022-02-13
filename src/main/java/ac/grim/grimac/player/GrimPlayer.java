@@ -183,6 +183,7 @@ public class GrimPlayer {
     public GameMode gamemode;
     public Vector3d bedPosition;
     PacketTracker packetTracker;
+    private boolean validClientVersion = false;
     private ClientVersion clientVersion;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
@@ -197,7 +198,6 @@ public class GrimPlayer {
         if (GeyserUtil.isGeyserPlayer(playerUUID)) return;
 
         pollData();
-        clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(user.getChannel());
 
         // We can't send transaction packets to this player, disable the anticheat for them
         if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
@@ -394,16 +394,16 @@ public class GrimPlayer {
             this.entityID = bukkitPlayer.getEntityId();
             this.playerWorld = bukkitPlayer.getWorld();
             this.gamemode = bukkitPlayer.getGameMode();
-
-            // Resolve player version with support for protocol hacks
-            this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
         }
 
-        if (this.bukkitPlayer != null && (this.clientVersion == null || this.clientVersion.getProtocolVersion() <= 0)) {
-            this.clientVersion = PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
+        if (!validClientVersion || clientVersion == null || clientVersion.getProtocolVersion() <= 0) {
+            ClientVersion ver = PacketEvents.getAPI().getProtocolManager().getClientVersion(user.getChannel());
 
-            if (this.clientVersion.getProtocolVersion() <= 0) {
-                this.clientVersion = ClientVersion.getClientVersionByProtocolVersion(PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion());
+            if (ver.getProtocolVersion() <= 0) { // Assume server protocol version
+                clientVersion = ClientVersion.getById(PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion());
+            } else {
+                clientVersion = ver;
+                validClientVersion = true;
             }
         }
     }
