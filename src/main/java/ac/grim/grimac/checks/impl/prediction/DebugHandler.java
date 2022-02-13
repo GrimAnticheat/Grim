@@ -38,14 +38,14 @@ public class DebugHandler extends PostPredictionCheck {
         // No one is listening to this debug
         if (listeners.isEmpty() && !outputToConsole) return;
 
-        ChatColor color = pickColor(offset);
+        ChatColor color = pickColor(offset, offset);
 
         Vector predicted = player.predictedVelocity.vector;
         Vector actually = player.actualMovement;
 
-        ChatColor xColor = pickColor(Math.abs(predicted.getX() - actually.getX()));
-        ChatColor yColor = pickColor(Math.abs(predicted.getY() - actually.getY()));
-        ChatColor zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()));
+        ChatColor xColor = pickColor(Math.abs(predicted.getX() - actually.getX()), offset);
+        ChatColor yColor = pickColor(Math.abs(predicted.getY() - actually.getY()), offset);
+        ChatColor zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()), offset);
 
         String p = color + "P: " + xColor + predicted.getX() + " " + yColor + predicted.getY() + " " + zColor + predicted.getZ();
         String a = color + "A: " + xColor + actually.getX() + " " + yColor + actually.getY() + " " + zColor + actually.getZ();
@@ -96,9 +96,9 @@ public class DebugHandler extends PostPredictionCheck {
         }
     }
 
-    private ChatColor pickColor(double offset) {
+    private ChatColor pickColor(double offset, double totalOffset) {
         if (player.getSetbackTeleportUtil().blockOffsets) return ChatColor.GRAY;
-        if (offset <= 0) {
+        if (offset <= 0 || totalOffset <= 0) { // If exempt don't bother coloring, so I stop getting false false reports
             return ChatColor.GRAY;
         } else if (offset < 0.0001) {
             return ChatColor.GREEN;
