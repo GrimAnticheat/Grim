@@ -47,6 +47,10 @@ public class Collisions {
             Arrays.asList(Axis.Z, Axis.X, Axis.Y),
             Arrays.asList(Axis.Z, Axis.Y, Axis.X));
 
+    private static final List<List<Axis>> nonStupidityCombinations = Arrays.asList(
+            Arrays.asList(Axis.Y, Axis.X, Axis.Z),
+            Arrays.asList(Axis.Y, Axis.Z, Axis.X));
+
     // Call this when there isn't uncertainty on the Y axis
     public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ) {
         return collide(player, desiredX, desiredY, desiredZ, desiredY, null);
@@ -64,11 +68,11 @@ public class Collisions {
         Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, desiredY), 0, desiredX, Math.max(0.6, desiredY), desiredZ).sort());
         int zeroCount = (desiredX == 0 ? 1 : 0) + (desiredY == 0 ? 1 : 0) + (desiredZ == 0 ? 1 : 0);
 
-        for (List<Axis> order : allAxisCombinations) {
+        for (List<Axis> order : (data != null && data.isZeroPointZeroThree() ? allAxisCombinations : nonStupidityCombinations)) {
             Vector collisionResult = collideBoundingBoxLegacy(new Vector(desiredX, desiredY, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
-            // 0.03 movement must compensate for stepping elsewhere.  Too much of a hack to include in this method.
+            // 0.03 movement must compensate for stepping elsewhere.  Too much of a hack to include in this met5hod.
             boolean movingIntoGround = (player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0))) || player.pointThreeEstimator.closeEnoughToGroundToStepWithPointThree(data, clientVelY);
             double stepUpHeight = player.getMaxUpStep();
 
