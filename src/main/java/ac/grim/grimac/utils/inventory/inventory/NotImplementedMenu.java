@@ -8,6 +8,7 @@ public class NotImplementedMenu extends AbstractContainerMenu {
     public NotImplementedMenu(GrimPlayer player, Inventory playerInventory) {
         super(player, playerInventory);
         player.getInventory().isPacketInventoryActive = false;
+        player.getInventory().needResend = true;
     }
 
     @Override

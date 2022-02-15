@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
@@ -14,14 +15,17 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
-import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
-import com.github.retrooper.packetevents.wrapper.play.server.*;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenHorseWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import io.github.retrooper.packetevents.utils.SpigotDataHelper;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 
 import java.util.List;
@@ -44,6 +48,7 @@ public class CompensatedInventory extends PacketCheck {
     // ViaBackwards needs this code too, so maybe we can copy them if they ever implement it.
     // Although right now it looks like they will just copy us - which I wouldn't mind.
     public boolean isPacketInventoryActive = true;
+    public boolean needResend = false;
     // Here are the mappings from the geniuses at Mojang
     // 1, 2, 3, 4 and 0 are the crafting table
     // 5, 6, 7, 8 are the armor slots from helmet to boots
@@ -158,15 +163,8 @@ public class CompensatedInventory extends PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             menu = inventory;
-            PacketEvents.getAPI().getPlayerManager().sendPacket(player.user.getChannel(), new WrapperPlayServerCloseWindow((byte) 0));
             menu.setCarried(ItemStack.EMPTY); // Reset carried item
         }
-    }
-
-    public boolean isEmpty(ItemStack stack) {
-        if (stack == null) return true;
-        if (stack.getType() == ItemTypes.AIR) return true;
-        return stack.getAmount() <= 0;
     }
 
     public void onBlockPlace(BlockPlace place) {
@@ -209,15 +207,20 @@ public class CompensatedInventory extends PacketCheck {
         }
 
         // Is this mapped wrong?  Should it be ClientboundMerchantOffersPacket?  What is this packet?
+        // I don't think this matters actually. We need it for tracking trading... which we don't do yet.
         if (event.getPacketType() == PacketType.Play.Server.TRADE_LIST) {
 
         }
 
         // 1:1 MCP
         if (event.getPacketType() == PacketType.Play.Server.CLOSE_WINDOW) {
-            if (!isPacketInventoryActive) {
+            if (needResend) {
                 if (player.bukkitPlayer != null) {
-                    event.getPostTasks().add(player.bukkitPlayer::updateInventory);
+                    needResend = false;
+                    Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                        player.bukkitPlayer.closeInventory();
+                        player.bukkitPlayer.updateInventory();
+                    });
                 }
             }
 
