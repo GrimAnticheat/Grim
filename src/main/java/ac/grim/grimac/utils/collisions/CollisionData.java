@@ -609,6 +609,13 @@ public enum CollisionData {
         return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
     }, BlockTags.CARPETS.getStates().toArray(new StateType[0])),
 
+    MOSS_CARPET((player, version, data, x, y, z) -> {
+        if (version.isOlderThanOrEquals(ClientVersion.V_1_7_10))
+            return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, false);
+
+        return new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.0625F, 1.0F, false);
+    }, StateTypes.MOSS_CARPET),
+
     DAYLIGHT(new SimpleCollisionBox(0.0F, 0.0F, 0.0F, 1.0F, 0.375, 1.0F, false),
             StateTypes.DAYLIGHT_DETECTOR),
 

@@ -421,6 +421,13 @@ public enum BlockPlaceResult {
         }
     }, ItemTypes.SUGAR_CANE),
 
+    // Moss carpet is a carpet not under the carpets tag
+    MOSS_CARPET((player, place) -> {
+        if (!place.getBelowMaterial().isAir()) {
+            place.set();
+        }
+    }, ItemTypes.MOSS_CARPET),
+
     CARPET((player, place) -> {
         if (!place.getBelowMaterial().isAir()) {
             place.set();
