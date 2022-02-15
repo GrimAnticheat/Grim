@@ -1,5 +1,5 @@
 name: GrimAC
-version: 2.0.7
+version: 2.0.8
 main: ac.grim.grimac.GrimAC
 softdepend:
   - ProtocolLib
