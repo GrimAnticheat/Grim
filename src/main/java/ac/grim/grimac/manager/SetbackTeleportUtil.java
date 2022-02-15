@@ -113,9 +113,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
             Entity playerVehicle = player.bukkitPlayer.getVehicle();
-            player.bukkitPlayer.eject();
 
             if (playerVehicle != null) {
+                playerVehicle.eject();
                 // Stop the player from being able to teleport vehicles and simply re-enter them to continue
                 Location vehicleLocation = playerVehicle.getLocation();
                 playerVehicle.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), vehicleLocation.getYaw() % 360, vehicleLocation.getPitch() % 360));

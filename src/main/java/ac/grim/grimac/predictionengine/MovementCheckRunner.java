@@ -522,6 +522,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));
         player.vehicleData.horseJump = player.vehicleData.nextHorseJump;
+        player.vehicleData.nextHorseJump = 0;
 
         player.checkManager.getKnockbackHandler().handlePlayerKb(offset);
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset);

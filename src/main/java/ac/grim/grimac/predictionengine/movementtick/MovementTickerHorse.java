@@ -31,6 +31,12 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
         if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
             // Safe to use attributes as entity riding is server sided on 1.8
             // Not using bukkit API getJumpStrength() because the API changes around 1.11
+            if (player.vehicleData.horseJump >= 90) {
+                player.vehicleData.horseJump = 1;
+            } else {
+                player.vehicleData.horseJump = 0.4F + 0.4F * player.vehicleData.horseJump / 90.0F;
+            }
+
             double d0 = horsePacket.jumpStrength * player.vehicleData.horseJump * JumpPower.getPlayerJumpFactor(player);
             double d1;
 

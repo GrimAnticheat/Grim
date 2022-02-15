@@ -4,12 +4,11 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
-import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -21,6 +20,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.github.retrooper.packetevents.utils.dependencies.viaversion.ViaVersionUtil;
 import org.bukkit.entity.Entity;
+
+import java.util.List;
 
 public class PacketEntityReplication extends PacketCheck {
 
@@ -50,15 +51,15 @@ public class PacketEntityReplication extends PacketCheck {
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_LIVING_ENTITY) {
             WrapperPlayServerSpawnLivingEntity packetOutEntity = new WrapperPlayServerSpawnLivingEntity(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getEntityMetadata());
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY) {
             WrapperPlayServerSpawnEntity packetOutEntity = new WrapperPlayServerSpawnEntity(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), null);
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_PLAYER) {
             WrapperPlayServerSpawnPlayer packetOutEntity = new WrapperPlayServerSpawnPlayer(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getEntityMetadata());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
@@ -131,15 +132,11 @@ public class PacketEntityReplication extends PacketCheck {
 
             int entityID = attributes.getEntityId();
 
-            PacketEntity entity = player.compensatedEntities.getEntity(attributes.getEntityId());
-
             // The attributes for this entity is active, currently
             if (isDirectlyAffectingPlayer(player, entityID)) event.getPostTasks().add(player::sendTransaction);
 
-            if (player.entityID == entityID || entity instanceof PacketEntityHorse || entity instanceof PacketEntityRideable) {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1,
-                        () -> player.compensatedEntities.updateAttributes(entityID, attributes.getProperties()));
-            }
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1,
+                    () -> player.compensatedEntities.updateAttributes(entityID, attributes.getProperties()));
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_STATUS) {
@@ -327,11 +324,16 @@ public class PacketEntityReplication extends PacketCheck {
         }
     }
 
-    public void addEntity(User user, int entityID, EntityType type, Vector3d position) {
+    public void addEntity(User user, int entityID, EntityType type, Vector3d position, List<EntityData> entityMetadata) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         if (player == null) return;
 
-        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.addEntity(entityID, type, position));
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            player.compensatedEntities.addEntity(entityID, type, position);
+            if (entityMetadata != null) {
+                player.compensatedEntities.updateEntityMetadata(entityID, entityMetadata);
+            }
+        });
     }
 
     private boolean isDirectlyAffectingPlayer(GrimPlayer player, int entityID) {
