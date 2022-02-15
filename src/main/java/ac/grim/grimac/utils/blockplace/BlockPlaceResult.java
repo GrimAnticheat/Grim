@@ -5,6 +5,8 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.nmsutil.Dripstone;
 import ac.grim.grimac.utils.nmsutil.Materials;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
@@ -901,7 +903,11 @@ public enum BlockPlaceResult {
             } else {
                 hinge = Hinge.RIGHT;
             }
-            door.setHinge(hinge);
+
+            // Only works on 1.13+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+                door.setHinge(hinge);
+            }
 
             // Check for redstone signal!
             if (place.isBlockPlacedPowered()) {
