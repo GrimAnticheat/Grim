@@ -12,10 +12,6 @@ import java.util.Set;
 
 public class PredictionEngineRideableUtils {
     public static Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player, Set<VectorData> vectorData) {
-        for (VectorData data : vectorData) {
-            data.vector.multiply(0.98);
-        }
-
         // The player's velocity MIGHT be 0 if they sent a dummy input, or it might not be
         // It's a glitchy system
         if (player.vehicleData.lastVehicleSwitch < 2)

@@ -469,10 +469,10 @@ public class PlayerBaseTick {
 
             // If the player is using 1.16+ - 1.15 and below don't have lava pushing
             if (tag != FluidTag.LAVA || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_16)) {
-                // Store the vector before handling 0.003, so knockback can use it
-                player.baseTickAddWaterPushing(vec3);
-
                 vec3 = vec3.multiply(multiplier);
+                // Store the vector before handling 0.003, so knockback can use it
+                // However, do this after the multiplier, so that we don't have to recompute it
+                player.baseTickAddWaterPushing(vec3);
                 if (Math.abs(player.clientVelocity.getX()) < 0.003 && Math.abs(player.clientVelocity.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
                     vec3 = vec3.normalize().multiply(0.0045000000000000005);
                 }

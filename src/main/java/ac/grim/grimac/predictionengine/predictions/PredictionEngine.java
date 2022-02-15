@@ -316,9 +316,8 @@ public class PredictionEngine {
         for (VectorData vectorData : data) {
             if (vectorData.isKnockback() && player.baseTickWaterPushing.lengthSquared() != 0) {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
-                    Vector vec33 = vectorData.vector.clone();
-                    Vector vec3 = player.baseTickWaterPushing.clone().multiply(0.014);
-                    if (Math.abs(vec33.getX()) < 0.003 && Math.abs(vec33.getZ()) < 0.003 && vec3.length() < 0.0045000000000000005D) {
+                    Vector vec3 = player.baseTickWaterPushing.clone();
+                    if (Math.abs(vectorData.vector.getX()) < 0.003 && Math.abs(vectorData.vector.getZ()) < 0.003 && player.baseTickWaterPushing.length() < 0.0045000000000000005D) {
                         vec3 = vec3.normalize().multiply(0.0045000000000000005);
                     }
 
@@ -345,11 +344,21 @@ public class PredictionEngine {
         addAttackSlowToPossibilities(player, velocities);
         // Fluid pushing is done BEFORE 0.003
         addFluidPushingToStartingVectors(player, velocities);
+        // Non-effective AI for vehicles is done AFTER fluid pushing but BEFORE 0.003
+        addNonEffectiveAI(player, velocities);
         // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
         applyMovementThreshold(player, velocities);
         addJumpsToPossibilities(player, velocities);
 
         return velocities;
+    }
+
+    private void addNonEffectiveAI(GrimPlayer player, Set<VectorData> data) {
+        if (!player.inVehicle) return;
+
+        for (VectorData vectorData : data) {
+            vectorData.vector = vectorData.vector.clone().multiply(0.98);
+        }
     }
 
     private void addAttackSlowToPossibilities(GrimPlayer player, Set<VectorData> velocities) {

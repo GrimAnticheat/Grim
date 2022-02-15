@@ -171,7 +171,7 @@ public class CompensatedEntities {
         if (entity == null) return;
 
         if (entity.isAgeable()) {
-            int id = 17;
+            int id = 16;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
                 id = 12;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9_4)) {
@@ -181,7 +181,7 @@ public class CompensatedEntities {
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
                 id = 14;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
-                id = 16;
+                id = 15;
             }
 
             // 1.14 good

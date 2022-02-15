@@ -35,7 +35,7 @@ public class ConsumesBlockPlace {
             }
 
             if (player.gamemode == GameMode.CREATIVE || (player.bukkitPlayer != null && player.bukkitPlayer.getFoodLevel() < 20)) {
-                if (state.getBites() + 1 != 8) {
+                if (state.getBites() != 6) {
                     state.setBites(state.getBites() + 1);
                     place.set(state);
                 } else {

@@ -183,7 +183,6 @@ public class GrimPlayer {
     public GameMode gamemode;
     public Vector3d bedPosition;
     PacketTracker packetTracker;
-    private boolean validClientVersion = false;
     private ClientVersion clientVersion;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
@@ -197,8 +196,6 @@ public class GrimPlayer {
         // Geyser players don't have Java movement
         if (GeyserUtil.isGeyserPlayer(playerUUID)) return;
 
-        // Default client version to server version
-        clientVersion = ClientVersion.getById(PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion());
         pollData();
 
         // We can't send transaction packets to this player, disable the anticheat for them
@@ -397,23 +394,10 @@ public class GrimPlayer {
             this.playerWorld = bukkitPlayer.getWorld();
             this.gamemode = bukkitPlayer.getGameMode();
         }
-
-        //System.out.println("Held item " + getInventory().getHeldItem());
-
-        if (!validClientVersion) {
-            ClientVersion ver = PacketEvents.getAPI().getProtocolManager().getClientVersion(user.getChannel());
-
-            if (ver.getProtocolVersion() <= 0) { // Assume server protocol version
-                clientVersion = ClientVersion.getById(PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion());
-            } else { // Poll PacketEvents until it returns a valid client version
-                clientVersion = ver;
-                validClientVersion = true;
-            }
-        }
     }
 
     public ClientVersion getClientVersion() {
-        return clientVersion;
+        return user.getClientVersion(); // It's a variable that will get inlined, no map calls.
     }
 
     public CompensatedInventory getInventory() {

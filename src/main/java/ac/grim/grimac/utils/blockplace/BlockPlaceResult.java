@@ -874,10 +874,10 @@ public enum BlockPlaceResult {
             int i = (ccwBox.isFullBlock() ? -1 : 0) + (aboveCCWBox.isFullBlock() ? -1 : 0) + (cwBox.isFullBlock() ? 1 : 0) + (aboveCWBox.isFullBlock() ? 1 : 0);
 
             boolean isCCWLower = false;
-            if (BlockTags.DOORS.contains(ccwState.getType())) isCCWLower = ccwState.isBottom();
+            if (BlockTags.DOORS.contains(ccwState.getType())) isCCWLower = ccwState.getHalf() == Half.LOWER;
 
             boolean isCWLower = false;
-            if (BlockTags.DOORS.contains(cwState.getType())) isCWLower = cwState.isBottom();
+            if (BlockTags.DOORS.contains(cwState.getType())) isCWLower = ccwState.getHalf() == Half.LOWER;
 
             Hinge hinge;
             if ((!isCCWLower || isCWLower) && i <= 0) {
@@ -903,7 +903,7 @@ public enum BlockPlaceResult {
 
             place.set(door);
 
-            door.setHalf(Half.TOP);
+            door.setHalf(Half.LOWER);
             place.setAbove(door);
         }
     }, ItemTags.DOORS),

@@ -121,7 +121,7 @@ public class CompensatedWorld {
                 // The doors seem connected (Remember this is 1.12- where doors are dependent on one another for data
                 if (otherDoor.getType() == data.getType()) {
                     // The doors are probably connected
-                    boolean isBottom = data.isBottom();
+                    boolean isBottom = data.getHalf() == Half.LOWER;
                     // 1.12- stores door data in the bottom door
                     if (!isBottom)
                         data = otherDoor;

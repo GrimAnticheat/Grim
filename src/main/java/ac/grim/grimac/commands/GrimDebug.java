@@ -54,6 +54,6 @@ public class GrimDebug extends BaseCommand {
 
         boolean isOutput = grimPlayer.checkManager.getDebugHandler().toggleConsoleOutput();
 
-        sender.sendMessage("Console output for " + target.getPlayer().getName() + " is now " + isOutput);
+        sender.sendMessage("Console output for " + (grimPlayer.bukkitPlayer == null ? grimPlayer.user.getProfile().getName() : grimPlayer.bukkitPlayer.getName()) + " is now " + isOutput);
     }
 }

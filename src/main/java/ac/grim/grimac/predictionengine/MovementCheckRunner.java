@@ -206,6 +206,15 @@ public class MovementCheckRunner extends PositionCheck {
             player.vehicleData.lastDummy = false;
             player.vehicleData.wasVehicleSwitch = false;
 
+            // Mojang is dumb and combines two movements when starting vehicle movement
+            if (player.playerVehicle instanceof PacketEntityRideable) {
+                if (((PacketEntityRideable) player.playerVehicle).currentBoostTime < ((PacketEntityRideable) player.playerVehicle).boostTimeMax) {
+                    // This is not a value hack, please do not change this.
+                    // Any other value will false.
+                    ((PacketEntityRideable) player.playerVehicle).currentBoostTime++;
+                }
+            }
+
             handleTeleport(update);
             return;
         }
@@ -301,11 +310,16 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && player.isFlying)
             player.isSprinting = true;
 
+
+        boolean oldFlying = player.isFlying;
+        boolean oldGliding = player.isGliding;
+        boolean oldSpecialFlying = player.specialFlying;
+
         // Stop stuff like clients using elytra in a vehicle...
         // Interesting, on a pig or strider, a player can climb a ladder
         if (player.inVehicle) {
             // Reset fall distance when riding
-            player.fallDistance = 0;
+            //player.fallDistance = 0;
             player.isFlying = false;
             player.isGliding = false;
             player.specialFlying = false;
@@ -499,6 +513,13 @@ public class MovementCheckRunner extends PositionCheck {
         player.wasSwimming = player.isSwimming;
         player.wasSneaking = player.isSneaking;
         player.tryingToRiptide = false;
+
+        // Don't overwrite packet values
+        if (player.inVehicle) {
+            player.isFlying = oldFlying;
+            player.isGliding = oldGliding;
+            player.specialFlying = oldSpecialFlying;
+        }
 
         player.riptideSpinAttackTicks--;
         if (player.predictedVelocity.isTrident())

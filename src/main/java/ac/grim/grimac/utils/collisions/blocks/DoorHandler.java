@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
 import com.github.retrooper.packetevents.protocol.world.states.enums.Hinge;
 
 public class DoorHandler implements CollisionFactory {
@@ -45,7 +46,7 @@ public class DoorHandler implements CollisionFactory {
         // I hate legacy versions... this is so messy
         if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)
                 || version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
-            if (door.isBottom()) {
+            if (door.getHalf() == Half.LOWER) {
                 WrappedBlockState above = player.compensatedWorld.getWrappedBlockStateAt(x, y + 1, z);
 
                 facingDirection = door.getFacing();
