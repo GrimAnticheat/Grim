@@ -24,7 +24,6 @@ public class HorseMenu extends AbstractContainerMenu {
         PacketEntityHorse horse = (PacketEntityHorse) hopefullyAHorse;
 
         storage = new InventoryStorage(size);
-        addSlot(new Slot(storage, 0));
 
         this.addSlot(new Slot(storage, 0) {
             public boolean mayPlace(ItemStack p_39677_) {

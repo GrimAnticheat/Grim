@@ -185,7 +185,12 @@ public class CompensatedInventory extends PacketCheck {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 openWindowID = open.getContainerId();
 
-                AbstractContainerMenu newMenu = MenuTypes.getMenuFromID(player, inventory, open.getType());
+                AbstractContainerMenu newMenu;
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
+                    newMenu = MenuTypes.getMenuFromID(player, inventory, open.getType());
+                } else {
+                    newMenu = MenuTypes.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
+                }
                 if (newMenu != null) {
                     menu = newMenu;
                 }

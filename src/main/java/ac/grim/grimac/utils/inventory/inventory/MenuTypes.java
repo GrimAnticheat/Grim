@@ -47,4 +47,31 @@ public class MenuTypes {
 
         return null;
     }
+
+    public static AbstractContainerMenu getMenuFromString(GrimPlayer player, Inventory inventory, String legacyType, int slots, int horse) {
+        switch (legacyType) {
+            case "minecraft:chest":
+            case "minecraft:container":
+                return new BasicInventoryMenu(player, inventory, slots / 9);
+            case "minecraft:crafting_table":
+                return new CraftingMenu(player, inventory);
+            case "minecraft:dispenser":
+            case "minecraft:dropper":
+                return new DispenserMenu(player, inventory);
+            case "minecraft:enchanting_table":
+                return new EnchantmentMenu(player, inventory);
+            case "minecraft:brewing_stand":
+                return new BrewingMenu(player, inventory);
+            case "minecraft:beacon":
+                return new BeaconMenu(player, inventory);
+            case "minecraft:hopper":
+                return new HopperMenu(player, inventory);
+            case "minecraft:shulker_box":
+                return new BasicInventoryMenu(player, inventory, 3);
+            case "EntityHorse":
+                return new HorseMenu(player, inventory, slots, horse);
+            default: // Villager menu
+                return new NotImplementedMenu(player, inventory);
+        }
+    }
 }
