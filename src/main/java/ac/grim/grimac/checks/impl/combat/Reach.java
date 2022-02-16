@@ -53,6 +53,7 @@ public class Reach extends PacketCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
+        if (player.disableGrim) return;
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
 

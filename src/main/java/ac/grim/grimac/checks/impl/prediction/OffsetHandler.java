@@ -4,9 +4,11 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
+import ac.grim.grimac.utils.events.OffsetAlertEvent;
 import ac.grim.grimac.utils.math.GrimMath;
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -30,6 +32,12 @@ public class OffsetHandler extends PostPredictionCheck {
 
         for (OffsetData offsetHandler : (vehicle ? vehicleOffsets : regularOffsets)) {
             if (offset > offsetHandler.getThreshold()) {
+                String name = (vehicle ? "Vehicle Prediction" : "Prediction") + "-" + offsetHandler.getName();
+
+                OffsetAlertEvent event = new OffsetAlertEvent(player, name, offset, offsetHandler.getViolations(), vehicle);
+                Bukkit.getPluginManager().callEvent(event);
+                if (event.isCancelled()) return;
+
                 offsetHandler.flag();
                 double violations = offsetHandler.getViolations();
                 giveOffsetLenienceNextTick(offset);
@@ -48,7 +56,7 @@ public class OffsetHandler extends PostPredictionCheck {
                     if (diff % offsetHandler.getAlertInterval() == 0) {
                         String formatOffset = formatOffset(offset);
 
-                        alert("o: " + formatOffset, (vehicle ? "Vehicle Prediction" : "Prediction") + "-" + offsetHandler.getName(), GrimMath.floor(violations) + "");
+                        alert("o: " + formatOffset, name, GrimMath.floor(violations) + "");
                     }
                 }
 

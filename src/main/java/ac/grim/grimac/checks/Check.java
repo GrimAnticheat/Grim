@@ -3,6 +3,7 @@ package ac.grim.grimac.checks;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.ColorUtil;
+import ac.grim.grimac.utils.events.FlagEvent;
 import ac.grim.grimac.utils.math.GrimMath;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -50,6 +51,10 @@ public class Check<T> {
     }
 
     public final void increaseViolations() {
+        FlagEvent event = new FlagEvent(player, getCheckName(), getViolations());
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return;
+
         violations++;
         setbackIfAboveSetbackVL();
     }

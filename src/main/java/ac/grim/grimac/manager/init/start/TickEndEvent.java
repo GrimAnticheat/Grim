@@ -21,6 +21,7 @@ public class TickEndEvent implements Initable {
 
     private static void tickRelMove() {
         for (GrimPlayer player : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+            if (player.disableGrim) continue; // If we aren't active don't spam extra transactions
             player.checkManager.getEntityReplication().onEndOfTickEvent();
         }
     }

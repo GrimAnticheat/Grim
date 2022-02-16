@@ -188,6 +188,9 @@ public class GrimPlayer {
     private long playerClockAtLeast = 0;
     public long lastBlockPlaceUseItem = 0;
     public Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
+    // This variable is for support with test servers that want to be able to disable grim
+    // Grim disabler 2022 still working!
+    public boolean disableGrim = false;
 
     public GrimPlayer(User user) {
         this.playerUUID = user.getProfile().getUUID();
