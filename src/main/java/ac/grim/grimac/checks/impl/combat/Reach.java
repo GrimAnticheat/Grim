@@ -44,8 +44,8 @@ public class Reach extends PacketCheck {
     // Concurrent to support weird entity trackers
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
 
-    private boolean cancelImpossibleHits = true;
-    private double threshold = 0.0005;
+    private boolean cancelImpossibleHits;
+    private double threshold;
 
     public Reach(GrimPlayer player) {
         super(player);
@@ -181,10 +181,10 @@ public class Reach extends PacketCheck {
 
             if (reachEntity.type != EntityTypes.BOAT) { // boats are too glitchy to consider
                 if (minDistance == Double.MAX_VALUE) {
-                    increaseViolations();
+                    increaseViolationNoSetback();
                     alert("Missed hitbox", "Reach", formatViolations());
                 } else if (minDistance > maxReach) {
-                    increaseViolations();
+                    increaseViolationNoSetback();
                     alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
                 } else {
                     reward();

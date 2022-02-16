@@ -50,13 +50,19 @@ public class Check<T> {
         reload();
     }
 
-    public final void increaseViolations() {
+    public final boolean increaseViolationNoSetback() {
         FlagEvent event = new FlagEvent(player, getCheckName(), getViolations());
         Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return;
+        if (event.isCancelled()) return false;
 
         violations++;
-        setbackIfAboveSetbackVL();
+        return true;
+    }
+
+    public final void increaseViolations() {
+        if (increaseViolationNoSetback()) {
+            setbackIfAboveSetbackVL();
+        }
     }
 
     public final void reward() {
