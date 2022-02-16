@@ -61,8 +61,10 @@ public class MovementCheckRunner extends PositionCheck {
         check(data);
         long length = System.nanoTime() - start;
 
-        predictionNanos = (predictionNanos * 499 / 500d) + (length / 500d);
-        longPredictionNanos = (longPredictionNanos * 19999 / 20000d) + (length / 20000d);
+        if (!player.disableGrim) {
+            predictionNanos = (predictionNanos * 499 / 500d) + (length / 500d);
+            longPredictionNanos = (longPredictionNanos * 19999 / 20000d) + (length / 20000d);
+        }
     }
 
     private void handleTeleport(PositionUpdate update) {
