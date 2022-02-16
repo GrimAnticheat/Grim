@@ -121,6 +121,9 @@ public class OffsetHandler extends PostPredictionCheck {
                 double alertMin = getConfig().getDouble(configName + "." + key + ".dont-alert-until");
                 double alertInterval = getConfig().getDouble(configName + "." + key + ".alert-interval");
 
+                if (alertMin == -1) alertMin = Double.MAX_VALUE;
+                if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
+
                 offsets.add(new OffsetData(key, threshold, setbackVL, reward, alertMin, alertInterval));
             }
         } catch (Exception e) {

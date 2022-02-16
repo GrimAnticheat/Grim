@@ -181,5 +181,7 @@ public class KnockbackHandler extends PacketCheck {
         super.reload();
         offsetToFlag = getConfig().getDouble("Knockback.threshold", 0.00001);
         setbackVL = getConfig().getDouble("Knockback.setbackvl", 10);
+
+        if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
 }
