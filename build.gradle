@@ -6,17 +6,12 @@ plugins {
 
 repositories {
     mavenLocal()
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
-    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
-    maven { url = 'https://oss.sonatype.org/content/repositories/central' }
-    maven { url = 'https://jitpack.io/' }
-    maven { url = 'https://repo.dmulloy2.net/repository/public/' }
-    maven { url = 'https://repo.opencollab.dev/maven-snapshots/' }
-    maven { url = 'https://repo.maven.apache.org/maven2/' }
-    maven { url = 'https://repo.viaversion.com' }
-    maven { url = "https://repo.aikar.co/content/groups/aikar/" }
-    maven { url = "https://repo.essentialsx.net/releases/" }
-    mavenCentral()
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } // Bstats, Spigot
+    maven { url = 'https://jitpack.io/' } // PacketEvents
+    maven { url = 'https://repo.viaversion.com' } // ViaVersion
+    maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF, PaperLib
+    maven { url = "https://repo.essentialsx.net/releases/" } // Essentials
+    mavenCentral() // FastUtil, Discord-Webhooks, Log4J, Lombok
 }
 
 dependencies {
@@ -50,11 +45,6 @@ tasks.withType(JavaCompile) {
 
 shadowJar {
     minimize()
-    relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.io.github.retrooper.packetevents'
-    relocate 'com.github.retrooper.packetevents', 'ac.grim.grimac.shaded.com.github.retrooper.packetevents'
-    relocate 'co.aikar.acf', 'ac.grim.grimac.shaded.acf'
-    relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
-    relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
 }
 
 compileJava {
