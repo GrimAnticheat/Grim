@@ -60,6 +60,13 @@ public class MovementTicker {
             calculatedOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
+        // Fix step movement inside of water
+        // Swim hop into step is very unlikely, as step requires y < 0, while swim hop forces y = 0.3
+        if (player.inVehicle && player.clientControlledVerticalCollision && player.uncertaintyHandler.isStepMovement &&
+                (inputVel.getY() <= 0 || player.predictedVelocity.isSwimHop())) {
+            calculatedOnGround = true;
+        }
+
         // We can't tell the difference between stepping and swim hopping, so just let the player's onGround status be the truth
         // Pistons/shulkers are a bit glitchy so just trust the client when they are affected by them
         // The player's onGround status isn't given when riding a vehicle, so we don't have a choice in whether we calculate or not
