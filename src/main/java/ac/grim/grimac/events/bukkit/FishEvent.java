@@ -19,7 +19,7 @@ import java.util.ArrayList;
 // impossible to compute on 1.9+ because of the lack of the idle packet.
 // Why the hell did mojang decide to do this? The explosion packet exists for a reason.
 public class FishEvent implements Listener {
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onFishEvent(PlayerFishEvent event) {
         if (event.getCaught() instanceof Player && event.getState() == PlayerFishEvent.State.CAUGHT_ENTITY) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getCaught());
