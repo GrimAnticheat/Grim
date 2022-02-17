@@ -41,6 +41,14 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
                 player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
 
+                // The player still applies kb even if they aren't in control of the vehicle, for some reason
+                if (player.firstBreadKB != null) {
+                    player.clientVelocity = player.firstBreadKB.vector;
+                }
+                if (player.likelyKB != null) {
+                    player.clientVelocity = player.likelyKB.vector;
+                }
+
                 player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
                 player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
 

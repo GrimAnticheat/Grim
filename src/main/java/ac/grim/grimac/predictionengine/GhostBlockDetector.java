@@ -22,7 +22,8 @@ public class GhostBlockDetector extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // If the offset is low, there probably isn't ghost blocks
         // However, if we would flag nofall, check for ghost blocks
-        if (predictionComplete.getOffset() < 0.001 && (player.clientClaimsLastOnGround == player.onGround)) return;
+        if (predictionComplete.getOffset() < 0.001 && (player.clientClaimsLastOnGround == player.onGround || player.inVehicle))
+            return;
 
         boolean shouldResync = isGhostBlock();
 
@@ -40,10 +41,11 @@ public class GhostBlockDetector extends PostPredictionCheck {
     }
 
     private boolean isGhostBlock() {
+        // Collisions are considered "close enough" within this epsilon
         if (player.actualMovement.length() < 50 &&
-                (player.calculatedCollision.getX() != player.actualMovement.getX() ||
-                        player.calculatedCollision.getY() != player.actualMovement.getY() ||
-                        player.calculatedCollision.getZ() != player.actualMovement.getZ())) {
+                (Math.abs(player.calculatedCollision.getX() - player.actualMovement.getX()) > SimpleCollisionBox.COLLISION_EPSILON ||
+                        Math.abs(player.calculatedCollision.getY() - player.actualMovement.getY()) > SimpleCollisionBox.COLLISION_EPSILON ||
+                        Math.abs(player.calculatedCollision.getZ() - player.actualMovement.getZ()) > SimpleCollisionBox.COLLISION_EPSILON)) {
             return true;
         }
 
@@ -53,7 +55,8 @@ public class GhostBlockDetector extends PostPredictionCheck {
         }
 
         // Reliable way to check if the player is colliding vertically with a block that doesn't exist
-        if (player.clientClaimsLastOnGround && player.clientControlledVerticalCollision && !player.onGround) {
+        // Vehicles don't send on ground
+        if ((player.inVehicle || player.clientClaimsLastOnGround) && player.clientControlledVerticalCollision && !player.onGround) {
             return true;
         }
 

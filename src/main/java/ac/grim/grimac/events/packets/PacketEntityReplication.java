@@ -213,6 +213,16 @@ public class PacketEntityReplication extends PacketCheck {
             int vehicleID = mount.getEntityId();
             int[] passengers = mount.getPassengers();
 
+            for (int passenger : passengers) {
+                if (passenger == player.entityID) {
+                    // Stop the vehicle from launching forwards when the player mounts it
+                    // If this was intentional, please send a velocity packet AFTER mount
+                    // However, I know of no plugins that launch the mount with this unintentional behavior
+                    // This is a hack to save memory and to fix a vanilla netcode glitch
+                    player.user.sendPacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+                }
+            }
+
             handleMountVehicle(vehicleID, passengers);
         }
 

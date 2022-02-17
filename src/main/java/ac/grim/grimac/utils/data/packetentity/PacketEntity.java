@@ -103,7 +103,7 @@ public class PacketEntity {
     public void setPositionRaw(SimpleCollisionBox box) {
         // I'm disappointed in you mojang.  Please don't set the packet position as it desyncs it...
         // But let's follow this flawed client-sided logic!
-        this.serverPos = new Vector3d((box.maxX - box.minX) / 2 + box.minX, (box.maxY - box.minY) / 2 + box.minY, (box.maxZ - box.minZ) / 2 + box.minZ);
+        this.serverPos = new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ);
         // This disables interpolation
         this.newPacketLocation = new ReachInterpolationData(box);
     }

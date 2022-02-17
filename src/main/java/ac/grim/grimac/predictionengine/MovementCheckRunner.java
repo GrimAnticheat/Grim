@@ -187,6 +187,14 @@ public class MovementCheckRunner extends PositionCheck {
             player.checkManager.getKnockbackHandler().forceExempt();
         }
 
+        if (player.vehicleData.lastDummy) {
+            player.clientVelocity.multiply(0.98); // This is vanilla, do not touch
+        }
+
+        if (player.vehicleData.wasVehicleSwitch) {
+            player.clientVelocity = new Vector(); // We force this when switching/entering vehicles
+        }
+
         if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
             update.setTeleport(true);
 
@@ -203,7 +211,6 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
             player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-            player.clientVelocity = new Vector(); // always when switching vehicle
 
             player.vehicleData.lastDummy = false;
             player.vehicleData.wasVehicleSwitch = false;
