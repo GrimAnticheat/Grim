@@ -26,8 +26,6 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
             f1 *= 0.25F;
         }
 
-        System.out.println(player.vehicleData.horseJump);
-
         // If the player wants to jump on a horse
         // Listen to Entity Action -> start jump with horse, stop jump with horse
         if (player.vehicleData.horseJump > 0.0F && !player.vehicleData.horseJumping && player.lastOnGround) {
