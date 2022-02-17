@@ -190,7 +190,7 @@ public class UncertaintyHandler {
         if (lastThirtyMillionHardBorder > -3)
             pointThree = 0.15;
 
-        if (player.vehicleData.lastVehicleSwitch < 5)
+        if (player.vehicleData.lastVehicleSwitch < 3)
             pointThree = Math.max(pointThree, player.speed * 2);
 
         if (player.uncertaintyHandler.scaffoldingOnEdge) {
@@ -217,7 +217,7 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             return 0.06;
 
-        if (player.vehicleData.lastVehicleSwitch < 2)
+        if (player.vehicleData.lastVehicleSwitch < 3)
             return 0.1;
 
         // We don't know if the player was pressing jump or not

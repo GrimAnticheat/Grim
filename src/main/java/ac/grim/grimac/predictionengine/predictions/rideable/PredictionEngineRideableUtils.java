@@ -14,7 +14,7 @@ public class PredictionEngineRideableUtils {
     public static Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player, Set<VectorData> vectorData) {
         // The player's velocity MIGHT be 0 if they sent a dummy input, or it might not be
         // It's a glitchy system
-        if (player.vehicleData.lastVehicleSwitch < 2)
+        if (player.vehicleData.lastVehicleSwitch < 3)
             vectorData.add(new VectorData(new Vector(), VectorData.VectorType.InputResult));
 
         return vectorData;
