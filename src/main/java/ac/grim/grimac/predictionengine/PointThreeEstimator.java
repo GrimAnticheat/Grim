@@ -135,7 +135,7 @@ public class PointThreeEstimator {
         }
 
         SimpleCollisionBox pointThreeBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66, 1.86);
-        if (Materials.isWater(player.getClientVersion(), state) || state.getType() == StateTypes.LAVA &&
+        if ((Materials.isWater(player.getClientVersion(), state) || state.getType() == StateTypes.LAVA) &&
                 pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
 
             if (state.getType() == StateTypes.BUBBLE_COLUMN) {
@@ -345,9 +345,12 @@ public class PointThreeEstimator {
             // We need to do hypot calculations for all 3 axis
             // sqrt(sqrt(x^2 + z^2)^2 + y^2) = hypot(x, z, y)
             double minHorizLength = Math.max(0, Math.hypot(collisionResult.getX(), collisionResult.getZ()) - speed);
+            // Detection > 100% falseless for explosions and knockback... disappearing blocks below player is rare
+            // plus we should be able to detect 0.03 with the other vectors anyways
+            boolean forcedNo003 = data.isExplosion() || data.isKnockback();
             // If the player was last on the ground, then let's consider them to have not moved vertically
             // The world could have changed since the last tick causing a false
-            double length = Math.hypot(player.lastOnGround || (likelyStepSkip || controlsVerticalMovement()) ? 0 : Math.abs(collisionResult.getY()), minHorizLength);
+            double length = Math.hypot((!forcedNo003 && player.lastOnGround) || (likelyStepSkip || controlsVerticalMovement()) ? 0 : Math.abs(collisionResult.getY()), minHorizLength);
 
             minimum = Math.min(minimum, length);
 
