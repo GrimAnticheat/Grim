@@ -91,19 +91,18 @@ public class Reach extends PacketCheck {
         PacketEntity reachEntity = player.compensatedEntities.entityMap.get(entityID);
         boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
-        if (reachEntity != null) {
-            double lowest = 6;
-            for (double eyes : player.getPossibleEyeHeights()) {
-                SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-                Vector from = new Vector(player.x, player.y + eyes, player.z);
-                Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
-                lowest = Math.min(lowest, closestPoint.distance(from));
-            }
+        if (reachEntity == null || reachEntity.type == EntityTypes.BOAT || reachEntity.type == EntityTypes.SHULKER)
+            return false; // exempt
 
-            return lowest > 3 + (zeroThree ? 0.03 : 0);
+        double lowest = 6;
+        for (double eyes : player.getPossibleEyeHeights()) {
+            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+            Vector from = new Vector(player.x, player.y + eyes, player.z);
+            Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
+            lowest = Math.min(lowest, closestPoint.distance(from));
         }
 
-        return false;
+        return lowest > 3 + (zeroThree ? 0.03 : 0);
     }
 
     private void tickFlying() {
@@ -179,7 +178,7 @@ public class Reach extends PacketCheck {
                 }
             }
 
-            if (reachEntity.type != EntityTypes.BOAT) { // boats are too glitchy to consider
+            if (reachEntity.type != EntityTypes.BOAT && reachEntity.type != EntityTypes.SHULKER) { // boats are too glitchy to consider
                 if (minDistance == Double.MAX_VALUE) {
                     increaseViolationNoSetback();
                     alert("Missed hitbox", "Reach", formatViolations());

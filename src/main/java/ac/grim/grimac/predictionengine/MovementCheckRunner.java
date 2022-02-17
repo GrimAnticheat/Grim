@@ -211,6 +211,7 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
             player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+            player.isClimbing = Collisions.onClimbable(player, player.x, player.y, player.z);
 
             player.vehicleData.lastDummy = false;
             player.vehicleData.wasVehicleSwitch = false;
@@ -225,6 +226,13 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
             handleTeleport(update);
+
+            if (player.isClimbing) {
+                Vector ladder = player.clientVelocity.clone().setY(0.2);
+                PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
+                player.lastWasClimbing = ladder.getY();
+            }
+
             return;
         }
 

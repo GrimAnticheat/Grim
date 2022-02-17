@@ -28,7 +28,7 @@ public class BoundingBoxSize {
             return 0.7;
         } else if (EntityTypes.WITHER_SKULL.equals(packetEntity.type) || EntityTypes.SHULKER_BULLET.equals(packetEntity.type)) {
             return 0.3125;
-        } else if (EntityTypes.BLAZE.equals(packetEntity.type) || EntityTypes.OCELOT.equals(packetEntity.type) || EntityTypes.STRAY.equals(packetEntity.type) || EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.SKELETON_HORSE.equals(packetEntity.type) || EntityTypes.MULE.equals(packetEntity.type) || EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type) || EntityTypes.HORSE.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
+        } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.SKELETON_HORSE.equals(packetEntity.type) || EntityTypes.MULE.equals(packetEntity.type) || EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type) || EntityTypes.HORSE.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
             return 1.39648;
         } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
             return 1.375;
@@ -44,7 +44,7 @@ public class BoundingBoxSize {
             return 1.5;
         } else if (EntityTypes.DONKEY.equals(packetEntity.type)) {
             return 1.5;
-        } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) {
+        } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) { // TODO: 2.35 * guardian?
             return 1.9975;
         } else if (EntityTypes.END_CRYSTAL.equals(packetEntity.type)) {
             return 2.0;
@@ -150,9 +150,9 @@ public class BoundingBoxSize {
     private static double getHeightMinusBaby(PacketEntity packetEntity) {
         if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type)) {
             return 0.6;
-        } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.SQUID.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
+        } else if (EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.SQUID.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
             return 0.8;
-        } else if (EntityTypes.SPIDER.equals(packetEntity.type)) {
+        } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.SPIDER.equals(packetEntity.type)) {
             return 0.9;
         } else if (EntityTypes.WITHER_SKULL.equals(packetEntity.type) || EntityTypes.SHULKER_BULLET.equals(packetEntity.type)) {
             return 0.3125;
@@ -166,21 +166,21 @@ public class BoundingBoxSize {
             return 0.5;
         } else if (EntityTypes.CHICKEN.equals(packetEntity.type)) {
             return 0.7;
-        } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type)) {
+        } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
             return 1.4;
         } else if (EntityTypes.COW.equals(packetEntity.type)) {
-            return 1.7;
+            return 1.4;
         } else if (EntityTypes.STRIDER.equals(packetEntity.type)) {
             return 1.7;
         } else if (EntityTypes.CREEPER.equals(packetEntity.type)) {
             return 1.7;
         } else if (EntityTypes.DONKEY.equals(packetEntity.type)) {
             return 1.39648;
-        } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) {
+        } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) { // TODO: WTF is * guardian?
             return 1.9975;
         } else if (EntityTypes.ENDERMAN.equals(packetEntity.type)) {
             return 2.9;
-        } else if (EntityTypes.ENDERMITE.equals(packetEntity.type)) {
+        } else if (EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type)) {
             return 0.3;
         } else if (EntityTypes.END_CRYSTAL.equals(packetEntity.type)) {
             return 2.0;
@@ -241,7 +241,7 @@ public class BoundingBoxSize {
         } else if (EntityTypes.SHEEP.equals(packetEntity.type)) {
             return 1.3;
         } else if (EntityTypes.SHULKER.equals(packetEntity.type)) { // Could maybe guess peek size, although seems useless
-            return 1.0;
+            return 2.0;
         } else if (EntityTypes.SILVERFISH.equals(packetEntity.type)) {
             return 0.3;
         } else if (EntityTypes.SKELETON.equals(packetEntity.type)) {
