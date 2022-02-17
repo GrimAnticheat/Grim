@@ -162,6 +162,13 @@ public class PacketEntityReplication extends PacketCheck {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
             }
+
+            if (status.getStatus() == 31) {
+                GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+                if (player == null) return;
+
+                event.setCancelled(true); // We replace this packet with an explosion packet
+            }
         }
 
         if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
