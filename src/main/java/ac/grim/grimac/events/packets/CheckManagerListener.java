@@ -212,6 +212,103 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
+    private static void handleUseItem(GrimPlayer player, ItemStack placedWith, InteractionHand hand) {
+        // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
+        if (placedWith.getType() == ItemTypes.LILY_PAD) {
+            placeLilypad(player, hand); // Pass a block place because lily pads have a hitbox
+            return;
+        }
+
+        StateType toBucketMat = Materials.transformBucketMaterial(placedWith.getType());
+        if (toBucketMat != null) {
+            placeWaterLavaSnowBucket(player, placedWith, toBucketMat, hand);
+        }
+
+        if (placedWith.getType() == ItemTypes.BUCKET) {
+            placeBucket(player, hand);
+        }
+    }
+
+    private static void handleBlockPlaceOrUseItem(PacketWrapper packet, GrimPlayer player) {
+        // Legacy "use item" packet
+        if (packet instanceof WrapperPlayClientPlayerBlockPlacement &&
+                PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
+            WrapperPlayClientPlayerBlockPlacement place = (WrapperPlayClientPlayerBlockPlacement) packet;
+
+            if (place.getFace() == BlockFace.OTHER) {
+                ItemStack placedWith = player.getInventory().getHeldItem();
+                if (place.getHand() == InteractionHand.OFF_HAND) {
+                    placedWith = player.getInventory().getOffHand();
+                }
+
+                handleUseItem(player, placedWith, place.getHand());
+                return;
+            }
+        }
+
+        if (packet instanceof WrapperPlayClientUseItem) {
+            WrapperPlayClientUseItem place = (WrapperPlayClientUseItem) packet;
+
+            ItemStack placedWith = player.getInventory().getHeldItem();
+            if (place.getHand() == InteractionHand.OFF_HAND) {
+                placedWith = player.getInventory().getOffHand();
+            }
+
+            handleUseItem(player, placedWith, place.getHand());
+        }
+
+        // Check for interactable first (door, etc)
+        if (packet instanceof WrapperPlayClientPlayerBlockPlacement) {
+            WrapperPlayClientPlayerBlockPlacement place = (WrapperPlayClientPlayerBlockPlacement) packet;
+
+            ItemStack placedWith = player.getInventory().getHeldItem();
+            ItemStack offhand = player.getInventory().getOffHand();
+
+            boolean onlyAir = placedWith.isEmpty() && offhand.isEmpty();
+
+            // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
+            if ((!player.isSneaking || onlyAir) && place.getHand() == InteractionHand.MAIN_HAND) {
+                Vector3i blockPosition = place.getBlockPosition();
+                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getFace(), placedWith, getNearestHitResult(player, null, true));
+
+                // Right-clicking a trapdoor/door/etc.
+                if (Materials.isClientSideInteractable(blockPlace.getPlacedAgainstMaterial())) {
+                    Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
+                    player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
+                    return;
+                }
+
+                // This also has side effects
+                // This method is for when the block doesn't always consume the click
+                // This causes a ton of desync's but mojang doesn't seem to care...
+                if (ConsumesBlockPlace.consumesPlace(player, player.compensatedWorld.getWrappedBlockStateAt(blockPlace.getPlacedAgainstBlockLocation()), blockPlace)) {
+                    return;
+                }
+            }
+        }
+
+        if (packet instanceof WrapperPlayClientPlayerBlockPlacement) {
+            WrapperPlayClientPlayerBlockPlacement place = (WrapperPlayClientPlayerBlockPlacement) packet;
+            Vector3i blockPosition = place.getBlockPosition();
+            BlockFace face = place.getFace();
+
+            ItemStack placedWith = player.getInventory().getHeldItem();
+            if (place.getHand() == InteractionHand.OFF_HAND) {
+                placedWith = player.getInventory().getOffHand();
+            }
+
+            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith, getNearestHitResult(player, null, true));
+
+            if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
+                player.checkManager.onBlockPlace(blockPlace);
+
+                if (!blockPlace.isCancelled()) {
+                    BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
+                }
+            }
+        }
+    }
+
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getConnectionState() != ConnectionState.PLAY) return;
@@ -465,6 +562,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 placedWith = player.getInventory().getOffHand();
             }
 
+            // This is the use item packet
+            if (packet.getFace() == BlockFace.OTHER && PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) {
+                player.placeUseItemPackets.add(packet);
+                return;
+            }
+
             // Anti-air place
             BlockPlace blockPlace = new BlockPlace(player, packet.getBlockPosition(), packet.getFace(), placedWith, getNearestHitResult(player, null, true));
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
@@ -500,83 +603,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Call the packet checks last as they can modify the contents of the packet
         // Such as the NoFall check setting the player to not be on the ground
         player.checkManager.onPacketReceive(event);
-    }
-
-    private static void handleBlockPlaceOrUseItem(PacketWrapper packet, GrimPlayer player) {
-        // Check for interactable first (door, etc)
-        if (packet instanceof WrapperPlayClientPlayerBlockPlacement) {
-            WrapperPlayClientPlayerBlockPlacement place = (WrapperPlayClientPlayerBlockPlacement) packet;
-
-            ItemStack placedWith = player.getInventory().getHeldItem();
-            ItemStack offhand = player.getInventory().getOffHand();
-
-            boolean onlyAir = placedWith.isEmpty() && offhand.isEmpty();
-
-            // The offhand is unable to interact with blocks like this... try to stop some desync points before they happen
-            if ((!player.isSneaking || onlyAir) && place.getHand() == InteractionHand.MAIN_HAND) {
-                Vector3i blockPosition = place.getBlockPosition();
-                BlockPlace blockPlace = new BlockPlace(player, blockPosition, place.getFace(), placedWith, getNearestHitResult(player, null, true));
-
-                // Right-clicking a trapdoor/door/etc.
-                if (Materials.isClientSideInteractable(blockPlace.getPlacedAgainstMaterial())) {
-                    Vector3i location = blockPlace.getPlacedAgainstBlockLocation();
-                    player.compensatedWorld.tickOpenable(location.getX(), location.getY(), location.getZ());
-                    return;
-                }
-
-                // This also has side effects
-                // This method is for when the block doesn't always consume the click
-                // This causes a ton of desync's but mojang doesn't seem to care...
-                if (ConsumesBlockPlace.consumesPlace(player, player.compensatedWorld.getWrappedBlockStateAt(blockPlace.getPlacedAgainstBlockLocation()), blockPlace)) {
-                    return;
-                }
-            }
-        }
-
-        if (packet instanceof WrapperPlayClientUseItem) {
-            WrapperPlayClientUseItem place = (WrapperPlayClientUseItem) packet;
-
-            ItemStack placedWith = player.getInventory().getHeldItem();
-            if (place.getHand() == InteractionHand.OFF_HAND) {
-                placedWith = player.getInventory().getOffHand();
-            }
-
-            // Lilypads are USE_ITEM (THIS CAN DESYNC, WTF MOJANG)
-            if (placedWith.getType() == ItemTypes.LILY_PAD) {
-                placeLilypad(player, place.getHand()); // Pass a block place because lily pads have a hitbox
-                return;
-            }
-
-            StateType toBucketMat = Materials.transformBucketMaterial(placedWith.getType());
-            if (toBucketMat != null) {
-                placeWaterLavaSnowBucket(player, placedWith, toBucketMat, place.getHand());
-            }
-
-            if (placedWith.getType() == ItemTypes.BUCKET) {
-                placeBucket(player, place.getHand());
-            }
-        }
-
-        if (packet instanceof WrapperPlayClientPlayerBlockPlacement) {
-            WrapperPlayClientPlayerBlockPlacement place = (WrapperPlayClientPlayerBlockPlacement) packet;
-            Vector3i blockPosition = place.getBlockPosition();
-            BlockFace face = place.getFace();
-
-            ItemStack placedWith = player.getInventory().getHeldItem();
-            if (place.getHand() == InteractionHand.OFF_HAND) {
-                placedWith = player.getInventory().getOffHand();
-            }
-
-            BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith, getNearestHitResult(player, null, true));
-
-            if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
-                player.checkManager.onBlockPlace(blockPlace);
-
-                if (!blockPlace.isCancelled()) {
-                    BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
-                }
-            }
-        }
     }
 
     private static void placeBucket(GrimPlayer player, InteractionHand hand) {
