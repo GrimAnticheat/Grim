@@ -2,10 +2,7 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.update.BlockPlace;
-import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
-import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
-import ac.grim.grimac.utils.anticheat.update.VehiclePositionUpdate;
+import ac.grim.grimac.utils.anticheat.update.*;
 import ac.grim.grimac.utils.blockplace.BlockPlaceResult;
 import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
 import ac.grim.grimac.utils.collisions.HitboxData;
@@ -752,18 +749,22 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.uncertaintyHandler.claimedLookChangedBetweenTick = !hasPosition;
         }
 
-        if (hasPosition && !player.inVehicle) {
+        if (hasPosition) {
             Vector3d position = new Vector3d(x, y, z);
             Vector3d clampVector = VectorUtils.clampVector(position);
-
-            player.x = clampVector.getX();
-            player.y = clampVector.getY();
-            player.z = clampVector.getZ();
-
-            filterMojangStupidityOnMojangStupidity = new Vector3d(player.x, player.y, player.z);
-
             final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.isTeleport());
-            player.checkManager.onPositionUpdate(update);
+
+            filterMojangStupidityOnMojangStupidity = clampVector;
+
+            if (!player.inVehicle) {
+                player.x = clampVector.getX();
+                player.y = clampVector.getY();
+                player.z = clampVector.getZ();
+
+                player.checkManager.onPositionUpdate(update);
+            } else if (update.isTeleport()) { // Mojang doesn't use their own exit vehicle field to leave vehicles, manually call the setback handler
+                player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
+            }
         }
 
         if (hasLook) {
