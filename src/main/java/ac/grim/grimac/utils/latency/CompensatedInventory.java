@@ -163,6 +163,7 @@ public class CompensatedInventory extends PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
             menu = inventory;
+            openWindowID = 0;
             menu.setCarried(ItemStack.EMPTY); // Reset carried item
         }
     }
