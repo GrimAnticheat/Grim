@@ -27,7 +27,7 @@ public class PredictionEngineElytra extends PredictionEngine {
         Vector currentLook = getVectorForRotation(player, player.yRot, player.xRot);
 
         for (VectorData data : possibleVectors) {
-            Vector elytraResult = getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99, 0.98, 0.99));
+            Vector elytraResult = getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99F, 0.98F, 0.99F));
             results.add(data.returnNewModified(elytraResult, VectorData.VectorType.Elytra));
         }
 
