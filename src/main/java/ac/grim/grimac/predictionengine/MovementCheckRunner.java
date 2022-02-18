@@ -375,7 +375,7 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastFireworkStatusChange = 0;
         player.uncertaintyHandler.lastUsingFirework = hasFirework;
 
-        SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001, 0.001);
+        SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001f, 0.001f);
 
         // Don't expand if the player moved more than 50 blocks this tick (stop netty crash exploit)
         if (player.actualMovement.lengthSquared() < 2500)

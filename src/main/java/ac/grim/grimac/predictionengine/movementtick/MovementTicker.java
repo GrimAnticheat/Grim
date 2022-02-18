@@ -27,6 +27,45 @@ public class MovementTicker {
         this.player = player;
     }
 
+    public static void handleEntityCollisions(GrimPlayer player) {
+        // 1.7 and 1.8 do not have player collision
+        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
+            int possibleCollidingEntities = 0;
+
+            // Players in vehicles do not have collisions
+            if (!player.inVehicle) {
+                // Calculate the offset of the player to colliding other stuff
+                SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
+                SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
+
+                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                    // Players can only push living entities
+                    // Players can also push boats or minecarts
+                    // The one exemption to a living entity is an armor stand
+                    if (!entity.isLivingEntity() && entity.type != EntityTypes.BOAT && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
+                        continue;
+
+                    SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
+
+                    if (!playerBox.isCollided(entityBox))
+                        continue;
+
+                    if (expandedPlayerBox.isCollided(entityBox))
+                        possibleCollidingEntities++;
+                }
+            }
+
+            if (player.isGliding && possibleCollidingEntities > 0) {
+                // Horizontal starting movement affects vertical movement with elytra, hack around this.
+                // This can likely be reduced but whatever, I don't see this as too much of a problem
+                player.uncertaintyHandler.yNegativeUncertainty -= 0.05;
+                player.uncertaintyHandler.yPositiveUncertainty += 0.05;
+            }
+
+            player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
+        }
+    }
+
     public void move(Vector inputVel, Vector collide) {
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
             player.clientVelocity = new Vector();
@@ -57,7 +96,7 @@ public class MovementTicker {
         boolean calculatedOnGround = (player.verticalCollision && inputVel.getY() < 0.0D);
 
         // If the player is on the ground with a y velocity of 0, let the player decide (too close to call)
-        if (inputVel.getY() == (-SimpleCollisionBox.COLLISION_EPSILON * 2.5) && collide.getY() > (-SimpleCollisionBox.COLLISION_EPSILON * 2.5) && collide.getY() <= 0 && !player.inVehicle)
+        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() > -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() <= 0 && !player.inVehicle)
             calculatedOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
@@ -155,45 +194,6 @@ public class MovementTicker {
         // Flying players are not affected by cobwebs/sweet berry bushes
         if (player.specialFlying) {
             player.stuckSpeedMultiplier = new Vector(1, 1, 1);
-        }
-    }
-
-    public static void handleEntityCollisions(GrimPlayer player) {
-        // 1.7 and 1.8 do not have player collision
-        if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
-            int possibleCollidingEntities = 0;
-
-            // Players in vehicles do not have collisions
-            if (!player.inVehicle) {
-                // Calculate the offset of the player to colliding other stuff
-                SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6, 1.8);
-                SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
-
-                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                    // Players can only push living entities
-                    // Players can also push boats or minecarts
-                    // The one exemption to a living entity is an armor stand
-                    if (!entity.isLivingEntity() && entity.type != EntityTypes.BOAT && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
-                        continue;
-
-                    SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
-
-                    if (!playerBox.isCollided(entityBox))
-                        continue;
-
-                    if (expandedPlayerBox.isCollided(entityBox))
-                        possibleCollidingEntities++;
-                }
-            }
-
-            if (player.isGliding && possibleCollidingEntities > 0) {
-                // Horizontal starting movement affects vertical movement with elytra, hack around this.
-                // This can likely be reduced but whatever, I don't see this as too much of a problem
-                player.uncertaintyHandler.yNegativeUncertainty -= 0.05;
-                player.uncertaintyHandler.yPositiveUncertainty += 0.05;
-            }
-
-            player.uncertaintyHandler.collidingEntities.add(possibleCollidingEntities);
         }
     }
 

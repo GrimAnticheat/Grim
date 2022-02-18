@@ -107,7 +107,7 @@ public class NoFallA extends PacketCheck {
 
     public boolean is003OnGround(boolean onGround) {
         if (onGround) {
-            SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6, 0.001);
+            SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 0.001f);
             feetBB.expand(0.03); // 0.03 can be in any direction
 
             return checkForBoxes(feetBB);

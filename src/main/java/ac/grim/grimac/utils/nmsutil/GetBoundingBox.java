@@ -15,8 +15,8 @@ public class GetBoundingBox {
     }
 
     public static SimpleCollisionBox getPacketEntityBoundingBox(double centerX, double minY, double centerZ, PacketEntity entity) {
-        double width = BoundingBoxSize.getWidth(entity);
-        double height = BoundingBoxSize.getHeight(entity);
+        float width = BoundingBoxSize.getWidth(entity);
+        float height = BoundingBoxSize.getHeight(entity);
 
         return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
     }
@@ -26,33 +26,33 @@ public class GetBoundingBox {
     // Size while gliding/swimming: 0.6 width 0.6 height
     // Size while sleeping: 0.2 width 0.2 height
     public static SimpleCollisionBox getPlayerBoundingBox(GrimPlayer player, double centerX, double minY, double centerZ) {
-        double width = player.pose.width;
-        double height = player.pose.height;
+        float width = player.pose.width;
+        float height = player.pose.height;
 
         return getBoundingBoxFromPosAndSize(centerX, minY, centerZ, width, height);
     }
 
-    public static SimpleCollisionBox getBoundingBoxFromPosAndSize(double centerX, double minY, double centerZ, double width, double height) {
-        double minX = centerX - (width / 2);
-        double maxX = centerX + (width / 2);
+    public static SimpleCollisionBox getBoundingBoxFromPosAndSize(double centerX, double minY, double centerZ, float width, float height) {
+        double minX = centerX - (width / 2f);
+        double maxX = centerX + (width / 2f);
         double maxY = minY + height;
-        double minZ = centerZ - (width / 2);
-        double maxZ = centerZ + (width / 2);
+        double minZ = centerZ - (width / 2f);
+        double maxZ = centerZ + (width / 2f);
 
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, false);
     }
 
-    public static double getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isRiptiding, boolean isSleeping, ClientVersion clientVersion) {
+    public static float getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isRiptiding, boolean isSleeping, ClientVersion clientVersion) {
         if (isGliding || isSwimming || isRiptiding) {
-            return 0.4;
+            return 0.4f;
         } else if (isSleeping) {
-            return 0.2;
+            return 0.2f;
         } else if (isShifting && clientVersion.isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            return 1.27;
+            return 1.27f;
         } else if (isShifting) {
-            return 1.54;
+            return 1.54f;
         } else {
-            return 1.62;
+            return 1.62f;
         }
     }
 }

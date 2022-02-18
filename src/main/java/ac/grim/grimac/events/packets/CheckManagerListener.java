@@ -728,7 +728,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
         // TODO: This should likely be secured some more
         // Cannot use collisions like normal because stepping messes it up :(
-        boolean nearGround = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66, 0.06));
+        boolean nearGround = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 0.06f));
 
         // This fucking stupid mechanic has been measured with 0.03403409022229198 y velocity... GOD DAMN IT MOJANG, use 0.06 to be safe...
         if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround) {
