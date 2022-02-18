@@ -47,7 +47,7 @@ public class PlayerBaseTick {
 
         // You cannot crouch while flying, only shift - could be specific to 1.14?
         if (player.wasTouchingWater && player.isSneaking && !player.specialFlying && !player.inVehicle) {
-            player.baseTickAddVector(new Vector(0, -0.04, 0));
+            player.baseTickAddVector(new Vector(0, -0.04f, 0));
         }
 
         // LocalPlayer:aiStep determining crouching
