@@ -13,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -162,6 +163,27 @@ public class CompensatedEntities {
                         // Vanilla uses hasNoGravity, which is a bad name IMO
                         // hasGravity > hasNoGravity
                         player.playerEntityHasGravity = !((Boolean) gravityObject);
+                    }
+                }
+            }
+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_12)) {
+                int id = 14;
+                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                    id = 13;
+                } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                    id = 12;
+                }
+
+                EntityData bedObject = WatchableIndexUtil.getIndex(watchableObjects, id);
+                if (bedObject != null) {
+                    Optional<Vector3i> bed = (Optional<Vector3i>) bedObject.getValue();
+                    if (bed.isPresent()) {
+                        player.isInBed = true;
+                        Vector3i bedPos = bed.get();
+                        player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
+                    } else { // Run when we know the player is not in bed 100%
+                        player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get() + 1, () -> player.isInBed = false);
                     }
                 }
             }

@@ -12,7 +12,10 @@ import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
+import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUseBed;
 
 import java.util.List;
 
@@ -150,6 +153,31 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         }
                     }
                 }
+            }
+        }
+
+        if (event.getPacketType() == PacketType.Play.Server.USE_BED) {
+            WrapperPlayServerUseBed bed = new WrapperPlayServerUseBed(event);
+
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player != null && player.entityID == bed.getEntityId()) {
+                // Split so packet received after transaction
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                    player.isInBed = true;
+                    player.bedPosition = new Vector3d(bed.getPosition().getX() + 0.5, bed.getPosition().getY(), bed.getPosition().getZ() + 0.5);
+                });
+            }
+        }
+
+        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ANIMATION) {
+            WrapperPlayServerEntityAnimation animation = new WrapperPlayServerEntityAnimation(event);
+
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player != null && player.entityID == animation.getEntityId()
+                    && animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.LEAVE_BED) {
+                // Split so packet received before transaction
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.isInBed = false);
+                event.getPostTasks().add(player::sendTransaction);
             }
         }
     }
