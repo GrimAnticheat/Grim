@@ -51,12 +51,13 @@ public class MovementCheckRunner extends PositionCheck {
         // This teleport wasn't valid as the player STILL hasn't loaded this damn chunk.
         // Keep re-teleporting until they load the chunk!
         if (player.getSetbackTeleportUtil().insideUnloadedChunk()) {
-            if (!player.inVehicle && !player.getSetbackTeleportUtil().isPendingTeleport() && !data.isTeleport()) {
+            if (player.inVehicle) return;
+            if (!player.getSetbackTeleportUtil().isPendingTeleport() && !data.isTeleport()) {
                 // Teleport the player back to avoid players being able to simply ignore transactions
                 player.lastOnGround = player.clientClaimsLastOnGround; // Stop a false on join
                 player.getSetbackTeleportUtil().executeForceResync();
+                return;
             }
-            return;
         }
 
         long start = System.nanoTime();
@@ -527,6 +528,14 @@ public class MovementCheckRunner extends PositionCheck {
             player.checkManager.getKnockbackHandler().forceExempt();
         }
 
+        // If the player is abusing a setback in order to gain the onGround status of true.
+        // and the player then jumps from this position in the air.
+        // Fixes theoretically bypass.
+        if (player.getSetbackTeleportUtil().safeMovementTicks == 0 && player.predictedVelocity.isJump()
+                && Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY - 0.03, player.lastZ, 0.66f, 0.06f))) {
+            player.getSetbackTeleportUtil().executeForceResync();
+        }
+
         player.lastOnGround = player.onGround;
         player.lastSprinting = player.isSprinting;
         player.lastSprintingForSpeed = player.isSprinting;
@@ -554,6 +563,7 @@ public class MovementCheckRunner extends PositionCheck {
         // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03
         // Or some state of the player changed, so we can no longer predict this vertical movement
         // Or gravity made the player enter 0.03 movement
+        // TODO: This needs to be secured better.  isWasAlwaysCertain() seems like a bit of a hack.
         player.uncertaintyHandler.wasZeroPointThreeVertically = !player.inVehicle &&
                 ((player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement())
                         || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain());

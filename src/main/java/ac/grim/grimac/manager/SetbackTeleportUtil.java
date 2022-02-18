@@ -40,6 +40,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // The anticheat thread MUST be the only thread that controls these safe setback position variables
     // This one prevents us from pulling positions the tick before a setback
     boolean wasLastMovementSafe = true;
+    public int safeMovementTicks = 0;
     // Sync to anything, worst that can happen is sending an extra world update (which won't be noticed)
     long lastWorldResync = 0;
     // Generally safe teleport position (ANTICHEAT THREAD!)
@@ -68,16 +69,23 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (predictionComplete.getData().getSetback() != null) {
             // The player did indeed accept the setback, and there are no new setbacks past now!
             hasAcceptedSetbackPosition = true;
+            safeMovementTicks = 0;
             safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
         } else if (hasAcceptedSetbackPosition) {
-            safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ));
+            if (safeMovementTicks++ > 10) { // You must be legit for at least 500 ms before getting a new setback pos...
+                safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ));
+            }
 
             // We checked for a new pending setback above
             if (predictionComplete.getData().isTeleport()) {
                 // Avoid setting the player back to positions before this teleport
                 safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
             }
+        } else {
+            safeMovementTicks = 0;
         }
+
+        // This can be simplified, but I'm afraid of bypasses and don't want to change the code as I know this works.
         wasLastMovementSafe = hasAcceptedSetbackPosition;
     }
 
@@ -169,6 +177,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 if (setBack != null && requiredSetBack.getPosition().getX() == teleportPos.getSecond().getX()
                         && Math.abs(requiredSetBack.getPosition().getY() - teleportPos.getSecond().getY()) < 1e-7
                         && requiredSetBack.getPosition().getZ() == teleportPos.getSecond().getZ()) {
+                    player.lastOnGround = player.packetStateData.packetPlayerOnGround;
                     teleportData.setSetback(requiredSetBack);
                     setBack.setComplete(true);
                 }
@@ -275,7 +284,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         hasAcceptedSetbackPosition = false;
         requiredSetBack = new SetBackData(position, player.xRot, player.yRot, new Vector(), null, player.lastTransactionSent.get(), true);
-        safeTeleportPosition = new SetbackLocationVelocity(position);
+        safeTeleportPosition = new SetbackLocationVelocity(position.getWorld(), new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
 
     /**
@@ -299,18 +308,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
 class SetbackLocationVelocity {
     Location position;
-    Vector velocity = new Vector();
-
-    public SetbackLocationVelocity(Location location) {
-        this.position = location;
-    }
 
     public SetbackLocationVelocity(World world, Vector3d vector3d) {
         this.position = new Location(world, vector3d.getX(), vector3d.getY(), vector3d.getZ());
-    }
-
-    public SetbackLocationVelocity(World world, Vector3d position, Vector velocity) {
-        this.position = new Location(world, position.getX(), position.getY(), position.getZ());
-        this.velocity = velocity;
     }
 }

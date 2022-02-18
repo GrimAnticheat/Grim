@@ -26,7 +26,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity {
-    public Vector3d serverPos;
     public Vector3d desyncClientPos;
     public int lastTransactionHung;
     public EntityType type;
@@ -40,7 +39,6 @@ public class PacketEntity {
     private ReachInterpolationData newPacketLocation;
 
     public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
-        this.serverPos = new Vector3d(x, y, z);
         this.desyncClientPos = new Vector3d(x, y, z);
         this.type = type;
         this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getPacketEntityBoundingBox(x, y, z, this),
@@ -121,14 +119,5 @@ public class PacketEntity {
         }
 
         return ReachInterpolationData.combineCollisionBox(oldPacketLocation.getPossibleLocationCombined(), newPacketLocation.getPossibleLocationCombined());
-    }
-
-    @Override
-    public String toString() {
-        return "PlayerReachEntity{" +
-                "serverPos=" + serverPos +
-                ", oldPacketLocation=" + oldPacketLocation +
-                ", newPacketLocation=" + newPacketLocation +
-                '}';
     }
 }

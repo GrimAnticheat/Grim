@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.earth2me.essentials.Essentials;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -27,6 +28,8 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
 import com.viaversion.viaversion.api.Via;
@@ -469,5 +472,39 @@ public class GrimPlayer {
                 || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isStepMovement
                 || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
                 || uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || uncertaintyHandler.isOrWasNearGlitchyBlock;
+    }
+
+    public void handleMountVehicle(int vehicleID) {
+        compensatedEntities.serverPlayerVehicle = vehicleID;
+        user.sendPacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+
+        latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
+            PacketEntity packetVehicle = compensatedEntities.getEntity(vehicleID);
+            if (packetVehicle == null) return; // Vanilla behavior for invalid vehicles
+
+            this.vehicle = vehicleID;
+            this.playerVehicle = packetVehicle;
+            this.inVehicle = true;
+            this.vehicleData.wasVehicleSwitch = true;
+        });
+    }
+
+    public void handleDismountVehicle(PacketSendEvent event) {
+        compensatedEntities.serverPlayerVehicle = null;
+        event.getPostTasks().add(() -> {
+            if (vehicle != null) {
+                TrackerData data = compensatedEntities.serverPositionsMap.get(vehicle);
+                if (data != null) {
+                    user.sendPacket(new WrapperPlayServerEntityTeleport(vehicle, new Vector3d(data.getX(), data.getY() + 10, data.getZ()), data.getXRot(), data.getYRot(), false));
+                }
+            }
+        });
+
+        latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
+            this.playerVehicle = null;
+            this.vehicle = null;
+            this.inVehicle = false;
+            this.vehicleData.wasVehicleSwitch = true;
+        });
     }
 }

@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -51,29 +52,29 @@ public class PacketEntityReplication extends PacketCheck {
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_LIVING_ENTITY) {
             WrapperPlayServerSpawnLivingEntity packetOutEntity = new WrapperPlayServerSpawnLivingEntity(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getEntityMetadata());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata());
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY) {
             WrapperPlayServerSpawnEntity packetOutEntity = new WrapperPlayServerSpawnEntity(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), null);
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), null);
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_PLAYER) {
             WrapperPlayServerSpawnPlayer packetOutEntity = new WrapperPlayServerSpawnPlayer(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getEntityMetadata());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
             WrapperPlayServerEntityRelativeMove move = new WrapperPlayServerEntityRelativeMove(event);
-            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
+            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), null, null, true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_ROTATION) {
             WrapperPlayServerEntityRelativeMoveAndRotation move = new WrapperPlayServerEntityRelativeMoveAndRotation(event);
-            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), true);
+            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT) {
             WrapperPlayServerEntityTeleport move = new WrapperPlayServerEntityTeleport(event);
             Vector3d pos = move.getPosition();
-            handleMoveEntity(move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), false);
+            handleMoveEntity(move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
@@ -213,17 +214,7 @@ public class PacketEntityReplication extends PacketCheck {
             int vehicleID = mount.getEntityId();
             int[] passengers = mount.getPassengers();
 
-            for (int passenger : passengers) {
-                if (passenger == player.entityID) {
-                    // Stop the vehicle from launching forwards when the player mounts it
-                    // If this was intentional, please send a velocity packet AFTER mount
-                    // However, I know of no plugins that launch the mount with this unintentional behavior
-                    // This is a hack to save memory and to fix a vanilla netcode glitch
-                    player.user.sendPacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
-                }
-            }
-
-            handleMountVehicle(vehicleID, passengers);
+            handleMountVehicle(event, vehicleID, passengers);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ATTACH_ENTITY) {
@@ -237,7 +228,7 @@ public class PacketEntityReplication extends PacketCheck {
 
             // If this is mounting rather than leashing
             if (!attach.isLeash()) {
-                handleMountVehicle(attach.getHoldingId(), new int[]{attach.getAttachedId()});
+                handleMountVehicle(event, attach.getHoldingId(), new int[]{attach.getAttachedId()});
             }
         }
 
@@ -248,6 +239,10 @@ public class PacketEntityReplication extends PacketCheck {
             if (player == null) return;
 
             int[] destroyEntityIds = destroy.getEntityIds();
+
+            for (int entityID : destroyEntityIds) {
+                player.compensatedEntities.serverPositionsMap.remove(entityID);
+            }
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 for (int integer : destroyEntityIds) {
@@ -266,7 +261,23 @@ public class PacketEntityReplication extends PacketCheck {
         }
     }
 
-    private void handleMountVehicle(int vehicleID, int[] passengers) {
+    private void handleMountVehicle(PacketSendEvent event, int vehicleID, int[] passengers) {
+        boolean wasInVehicle = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == vehicleID;
+        boolean inThisVehicle = false;
+
+        for (int passenger : passengers) {
+            inThisVehicle = passenger == player.entityID;
+            if (inThisVehicle) break;
+        }
+
+        if (inThisVehicle && !wasInVehicle) {
+            player.handleMountVehicle(vehicleID);
+        }
+
+        if (!inThisVehicle && wasInVehicle) {
+            player.handleDismountVehicle(event);
+        }
+
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             PacketEntity vehicle = player.compensatedEntities.getEntity(vehicleID);
 
@@ -277,17 +288,7 @@ public class PacketEntityReplication extends PacketCheck {
             if (vehicle.passengers != null) {
                 for (int entityID : vehicle.passengers) {
                     PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
-
-                    // Player was ejected from vehicle
-                    if (entityID == player.entityID) {
-                        player.vehicle = null;
-                        player.playerVehicle = null;
-                        player.inVehicle = false;
-                        player.vehicleData.wasVehicleSwitch = true;
-                    }
-
-                    if (passenger == null)
-                        continue;
+                    if (passenger == null) continue;
 
                     passenger.riding = null;
                 }
@@ -296,17 +297,7 @@ public class PacketEntityReplication extends PacketCheck {
             // Add the entities as vehicles
             for (int entityID : passengers) {
                 PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
-
-                // Player was added to vehicle
-                if (entityID == player.entityID) {
-                    player.vehicle = vehicleID;
-                    player.playerVehicle = vehicle;
-                    player.inVehicle = true;
-                    player.vehicleData.wasVehicleSwitch = true;
-                }
-
-                if (passenger == null)
-                    continue;
+                if (passenger == null) continue;
 
                 passenger.riding = vehicle;
             }
@@ -315,7 +306,7 @@ public class PacketEntityReplication extends PacketCheck {
         });
     }
 
-    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, boolean isRelative) {
+    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative) {
         PacketEntity reachEntity = player.compensatedEntities.getEntity(entityId);
 
         if (reachEntity != null) {
@@ -327,11 +318,24 @@ public class PacketEntityReplication extends PacketCheck {
             if (!hasSentPreWavePacket) player.sendTransaction();
             hasSentPreWavePacket = true; // Also functions to mark we need a post wave transaction
 
-            // Update the tracked server's entity position
-            if (isRelative)
-                reachEntity.serverPos = reachEntity.serverPos.add(new Vector3d(deltaX, deltaY, deltaZ));
-            else
-                reachEntity.serverPos = new Vector3d(deltaX, deltaY, deltaZ);
+            TrackerData data = player.compensatedEntities.serverPositionsMap.get(entityId);
+
+            if (data != null) {
+                // Update the tracked server's entity position
+                if (isRelative) {
+                    data.setX(data.getX() + deltaX);
+                    data.setY(data.getY() + deltaY);
+                    data.setZ(data.getZ() + deltaZ);
+                } else {
+                    data.setX(deltaX);
+                    data.setY(deltaY);
+                    data.setZ(deltaZ);
+                }
+                if (yaw != null) {
+                    data.setXRot(yaw);
+                    data.setYRot(pitch);
+                }
+            }
 
             int lastTrans = player.lastTransactionSent.get();
 
@@ -340,9 +344,11 @@ public class PacketEntityReplication extends PacketCheck {
         }
     }
 
-    public void addEntity(User user, int entityID, EntityType type, Vector3d position, List<EntityData> entityMetadata) {
+    public void addEntity(User user, int entityID, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData> entityMetadata) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         if (player == null) return;
+
+        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getX(), position.getX(), xRot, yRot));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             player.compensatedEntities.addEntity(entityID, type, position);

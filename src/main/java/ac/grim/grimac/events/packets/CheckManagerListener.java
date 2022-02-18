@@ -725,10 +725,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         handleQueuedPlaces(player, hasLook, pitch, yaw, now);
 
-        // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
-        // TODO: This should likely be secured some more
-        // Cannot use collisions like normal because stepping messes it up :(
-        boolean nearGround = !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 0.06f));
+
 
         // This fucking stupid mechanic has been measured with 0.03403409022229198 y velocity... GOD DAMN IT MOJANG, use 0.06 to be safe...
         if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround) {
@@ -737,7 +734,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.uncertaintyHandler.onGroundUncertain = true;
 
             // Ghost block/0.03 abuse
-            if (!nearGround || player.clientVelocity.getY() > 0.06) {
+            // Check for blocks within 0.03 of the player's position before allowing ground to be true - if 0.03
+            // Cannot use collisions like normal because stepping messes it up :(
+            //
+            // This may need to be secured better, but limiting the new setback positions seems good enough for now...
+            if (Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 0.06f)) || player.clientVelocity.getY() > 0.06) {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
         }
@@ -746,7 +747,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         player.lastY = player.y;
         player.lastZ = player.z;
 
-        player.packetStateData.packetPlayerOnGround = onGround;
+        if (!player.packetStateData.lastPacketWasTeleport) {
+            player.packetStateData.packetPlayerOnGround = onGround;
+        }
 
         if (hasLook) {
             player.xRot = yaw;
