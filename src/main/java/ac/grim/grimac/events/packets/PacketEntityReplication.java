@@ -334,9 +334,8 @@ public class PacketEntityReplication extends PacketCheck {
                 reachEntity.serverPos = new Vector3d(deltaX, deltaY, deltaZ);
 
             int lastTrans = player.lastTransactionSent.get();
-            Vector3d newPos = reachEntity.serverPos;
 
-            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(newPos.getX(), newPos.getY(), newPos.getZ(), player));
+            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(isRelative, deltaX, deltaY, deltaZ, player));
             player.latencyUtils.addRealTimeTask(lastTrans + 1, reachEntity::onSecondTransaction);
         }
     }

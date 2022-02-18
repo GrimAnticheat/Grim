@@ -27,6 +27,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity {
     public Vector3d serverPos;
+    public Vector3d desyncClientPos;
     public int lastTransactionHung;
     public EntityType type;
 
@@ -40,9 +41,10 @@ public class PacketEntity {
 
     public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
         this.serverPos = new Vector3d(x, y, z);
+        this.desyncClientPos = new Vector3d(x, y, z);
         this.type = type;
         this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getPacketEntityBoundingBox(x, y, z, this),
-                serverPos.getX(), serverPos.getY(), serverPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
+                desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
     }
 
     public boolean isLivingEntity() {
@@ -71,9 +73,14 @@ public class PacketEntity {
 
     // Set the old packet location to the new one
     // Set the new packet location to the updated packet location
-    public void onFirstTransaction(double x, double y, double z, GrimPlayer player) {
+    public void onFirstTransaction(boolean relative, double relX, double relY, double relZ, GrimPlayer player) {
+        if (relative)
+            desyncClientPos = desyncClientPos.add(new Vector3d(relX, relY, relZ));
+        else
+            desyncClientPos = new Vector3d(relX, relY, relZ);
+
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), x, y, z, player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
+        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
     }
 
     // Remove the possibility of the old packet location
@@ -103,7 +110,7 @@ public class PacketEntity {
     public void setPositionRaw(SimpleCollisionBox box) {
         // I'm disappointed in you mojang.  Please don't set the packet position as it desyncs it...
         // But let's follow this flawed client-sided logic!
-        this.serverPos = new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ);
+        this.desyncClientPos = new Vector3d((box.maxX - box.minX) / 2 + box.minX, box.minY, (box.maxZ - box.minZ) / 2 + box.minZ);
         // This disables interpolation
         this.newPacketLocation = new ReachInterpolationData(box);
     }
