@@ -266,7 +266,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.inVehicle) {
             // Players are unable to take explosions in vehicles
             player.checkManager.getExplosionHandler().forceExempt();
-            player.isSprinting = false;
 
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.setPositionRaw(GetBoundingBox.getPacketEntityBoundingBox(player.x, player.y, player.z, player.playerVehicle));
@@ -331,6 +330,8 @@ public class MovementCheckRunner extends PositionCheck {
         boolean oldFlying = player.isFlying;
         boolean oldGliding = player.isGliding;
         boolean oldSpecialFlying = player.specialFlying;
+        boolean oldSprinting = player.isSprinting;
+        boolean oldSneaking = player.isSneaking;
 
         // Stop stuff like clients using elytra in a vehicle...
         // Interesting, on a pig or strider, a player can climb a ladder
@@ -340,6 +341,8 @@ public class MovementCheckRunner extends PositionCheck {
             player.isFlying = false;
             player.isGliding = false;
             player.specialFlying = false;
+            player.isSprinting = false;
+            player.isSneaking = false;
 
             if (player.playerVehicle.type != EntityTypes.PIG && player.playerVehicle.type != EntityTypes.STRIDER) {
                 player.isClimbing = false;
@@ -536,6 +539,8 @@ public class MovementCheckRunner extends PositionCheck {
             player.isFlying = oldFlying;
             player.isGliding = oldGliding;
             player.specialFlying = oldSpecialFlying;
+            player.isSprinting = oldSprinting;
+            player.isSneaking = oldSneaking;
         }
 
         player.riptideSpinAttackTicks--;
