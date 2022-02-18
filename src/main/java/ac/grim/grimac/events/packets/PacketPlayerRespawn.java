@@ -34,6 +34,12 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             List<Runnable> tasks = event.getPromisedTasks();
             tasks.add(player::sendTransaction);
 
+            if (health.getFood() == 20) { // Split so transaction before packet
+                player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get(), () -> player.food = 20);
+            } else { // Split so transaction after packet
+                player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get() + 1, () -> player.food = health.getFood());
+            }
+
             if (health.getHealth() <= 0) {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.isDead = true);
             } else {

@@ -104,7 +104,6 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                         || material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET) {
 
                     // Pls have this mapped correctly retrooper
-                    // TODO: Check if PacketEvents maps this oddity correctly
                     if (item.getType() == ItemTypes.SPLASH_POTION)
                         return;
 
@@ -119,8 +118,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                     }
 
                     // The other items that do require it
-                    // TODO: Food level lag compensation
-                    if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && ((player.bukkitPlayer != null && player.bukkitPlayer.getFoodLevel() < 20) || player.gamemode == GameMode.CREATIVE)) {
+                    if (item.getType().hasAttribute(ItemTypes.ItemAttribute.EDIBLE) && ((player.bukkitPlayer != null && player.food < 20) || player.gamemode == GameMode.CREATIVE)) {
                         player.packetStateData.slowedByUsingItem = true;
                         player.packetStateData.eatingHand = place.getHand();
 
@@ -159,6 +157,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                             player.getInventory().hasItemType(ItemTypes.SPECTRAL_ARROW);
                     player.packetStateData.eatingHand = place.getHand();*/
                     // TODO: How do we lag compensate arrows? Mojang removed idle packet.
+                    // I think we may have to cancel the bukkit event if the player isn't slowed
+                    // On 1.8, it wouldn't be too bad to handle bows correctly
+                    // But on 1.9+, no idle packet and clients/servers don't agree on bow status
+                    // Mojang pls fix
                     player.packetStateData.slowedByUsingItem = false;
                 }
 

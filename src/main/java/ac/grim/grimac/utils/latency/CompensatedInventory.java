@@ -149,6 +149,11 @@ public class CompensatedInventory extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.CLICK_WINDOW) {
             WrapperPlayClientClickWindow click = new WrapperPlayClientClickWindow(event);
 
+            // How is this possible? Maybe transaction splitting.
+            if (click.getWindowId() != openWindowID) {
+                return;
+            }
+
             // 0 for left click
             // 1 for right click
             int button = click.getButton();
@@ -184,17 +189,15 @@ public class CompensatedInventory extends PacketCheck {
             // There doesn't seem to be a check against using 0 as the window ID - let's consider that an invalid packet
             // It will probably mess up a TON of logic both client and server sided, so don't do that!
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                openWindowID = open.getContainerId();
-
                 AbstractContainerMenu newMenu;
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
                     newMenu = MenuTypes.getMenuFromID(player, inventory, open.getType());
                 } else {
                     newMenu = MenuTypes.getMenuFromString(player, inventory, open.getLegacyType(), open.getLegacySlots(), open.getHorseId());
                 }
-                if (newMenu != null) {
-                    menu = newMenu;
-                }
+
+                openWindowID = open.getContainerId();
+                menu = newMenu;
             });
         }
 

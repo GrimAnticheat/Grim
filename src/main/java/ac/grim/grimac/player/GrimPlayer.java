@@ -125,6 +125,7 @@ public class GrimPlayer {
     public boolean isInBed = false;
     public boolean lastInBed = false;
     public boolean isDead = false;
+    public int food = 20;
     public float depthStriderLevel;
     public float flySpeed;
     public VehicleData vehicleData = new VehicleData();
