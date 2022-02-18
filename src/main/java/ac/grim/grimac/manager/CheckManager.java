@@ -7,6 +7,7 @@ import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
 import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
+import ac.grim.grimac.checks.impl.scaffolding.FarPlace;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
 import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
 import ac.grim.grimac.checks.type.*;
@@ -70,6 +71,7 @@ public class CheckManager {
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
+                .put(FarPlace.class, new FarPlace(player))
                 .build();
     }
 
