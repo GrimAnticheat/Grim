@@ -66,8 +66,6 @@ public class PredictionEngine {
     }
 
     public void guessBestMovement(float speed, GrimPlayer player) {
-        player.uncertaintyHandler.collidingEntities.add(0); // We don't do collisions like living entities
-
         Set<VectorData> init = fetchPossibleStartTickVectors(player);
 
         if (player.uncertaintyHandler.influencedByBouncyBlock()) {
@@ -145,10 +143,11 @@ public class PredictionEngine {
             }
 
             boolean vehicleKB = player.inVehicle && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
+            // Extra collision epsilon required for vehicles to be accurate
             double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
             // The server likes sending y=0 kb "lifting" the player off the ground.
             // The client doesn't send the vehicles onGround status, so we can't check for ground like normal.
-            double yAdditional = vehicleKB ? 0 : (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON;
+            double yAdditional = vehicleKB ? 0 : (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON * 2.5;
             double zAdditional = Math.signum(primaryPushMovement.getZ()) * SimpleCollisionBox.COLLISION_EPSILON;
 
             // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
@@ -440,10 +439,10 @@ public class PredictionEngine {
             bScore -= 1;
 
         // If the player is on the ground but the vector leads the player off the ground
-        if (player.onGround && a.vector.getY() >= 0)
+        if ((player.inVehicle ? player.clientControlledVerticalCollision : player.onGround) && a.vector.getY() >= 0)
             aScore += 2;
 
-        if (player.onGround && b.vector.getY() >= 0)
+        if ((player.inVehicle ? player.clientControlledVerticalCollision : player.onGround) && b.vector.getY() >= 0)
             bScore += 2;
 
         if (aScore != bScore)

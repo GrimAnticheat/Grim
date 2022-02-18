@@ -274,6 +274,8 @@ public class PointThreeEstimator {
     }
 
     public boolean closeEnoughToGroundToStepWithPointThree(VectorData data, double originalY) {
+        if (player.inVehicle) return false; // No 0.03
+
         // This is intensive, only run it if we need it... compensate for stepping with 0.03
         //
         // This is technically wrong
@@ -381,6 +383,8 @@ public class PointThreeEstimator {
 
     public double getAdditionalVerticalUncertainty(VectorData vector) {
         double fluidAddition = vector.isZeroPointZeroThree() ? 0.014 : 0;
+
+        if (player.inVehicle) return 0; // No 0.03
 
         if (headHitter) {
             wasAlwaysCertain = false;

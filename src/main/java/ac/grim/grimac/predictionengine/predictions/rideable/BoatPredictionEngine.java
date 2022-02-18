@@ -21,6 +21,7 @@ import java.util.Set;
 
 public class BoatPredictionEngine extends PredictionEngine {
     public BoatPredictionEngine(GrimPlayer player) {
+        player.uncertaintyHandler.collidingEntities.add(0); // We don't do collisions like living entities
         player.vehicleData.midTickY = 0;
 
         // This does stuff like getting the boat's movement on the water
