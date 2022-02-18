@@ -55,8 +55,9 @@ public class MovementTicker {
         // Can be wrong with swim hopping into step, but this is rare and difficult to pull off
         // and would require a huge rewrite to support this rare edge case
         boolean calculatedOnGround = (player.verticalCollision && inputVel.getY() < 0.0D);
+
         // If the player is on the ground with a y velocity of 0, let the player decide (too close to call)
-        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() > -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() <= 0 && !player.inVehicle)
+        if (inputVel.getY() == (-SimpleCollisionBox.COLLISION_EPSILON * 2.5) && collide.getY() > (-SimpleCollisionBox.COLLISION_EPSILON * 2.5) && collide.getY() <= 0 && !player.inVehicle)
             calculatedOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
