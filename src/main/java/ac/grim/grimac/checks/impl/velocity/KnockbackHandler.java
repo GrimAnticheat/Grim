@@ -10,7 +10,6 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
-import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -42,11 +41,12 @@ public class KnockbackHandler extends PacketCheck {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            if (entityId != player.entityID && player.bukkitPlayer == null) return;
-
             // Detect whether this knockback packet affects the player or if it is useless
-            Entity playerVehicle = player.bukkitPlayer.getVehicle();
-            if ((playerVehicle == null && entityId != player.entityID) || (playerVehicle != null && entityId != playerVehicle.getEntityId())) {
+            // Mojang sends extra useless knockback packets for no apparent reason
+            if (player.compensatedEntities.serverPlayerVehicle != null && entityId != player.compensatedEntities.serverPlayerVehicle) {
+                return;
+            }
+            if (player.compensatedEntities.serverPlayerVehicle == null && entityId != player.entityID) {
                 return;
             }
 

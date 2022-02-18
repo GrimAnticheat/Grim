@@ -20,7 +20,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.github.retrooper.packetevents.utils.dependencies.viaversion.ViaVersionUtil;
-import org.bukkit.entity.Entity;
 
 import java.util.List;
 
@@ -359,12 +358,9 @@ public class PacketEntityReplication extends PacketCheck {
     }
 
     private boolean isDirectlyAffectingPlayer(GrimPlayer player, int entityID) {
-        if (player.bukkitPlayer == null) return false;
-        Entity playerVehicle = player.bukkitPlayer.getVehicle();
-
         // The attributes for this entity is active, currently
-        return (playerVehicle == null && entityID == player.entityID) ||
-                (playerVehicle != null && entityID == playerVehicle.getEntityId());
+        return (player.compensatedEntities.serverPlayerVehicle == null && entityID == player.entityID) ||
+                (player.compensatedEntities.serverPlayerVehicle != null && entityID == player.compensatedEntities.serverPlayerVehicle);
     }
 
     public void onEndOfTickEvent() {
