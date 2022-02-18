@@ -20,7 +20,7 @@ public class Ray implements Cloneable {
         this.direction = calculateDirection(player, xRot, yRot);
     }
 
-    // Account for ShitMath by using player's trig handler
+    // Account for FastMath by using player's trig handler
     // Copied from hawk which probably copied it from NMS
     public static Vector calculateDirection(GrimPlayer player, float xRot, float yRot) {
         Vector vector = new Vector();

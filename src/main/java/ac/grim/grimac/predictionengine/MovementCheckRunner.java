@@ -173,11 +173,9 @@ public class MovementCheckRunner extends PositionCheck {
 
         // The game's movement is glitchy when switching between vehicles
         // This is due to mojang not telling us where the new vehicle's location is
-        // meaning the first move gets hidden... fucking beautiful
+        // meaning the first move gets hidden... beautiful
         //
         // Exiting vehicles does not suffer the same issue
-        // GOD DAMN IT MOJANG WHY DID YOU MAKE VEHICLES CLIENT SIDED IN 1.9?
-        // THIS IS MODERN CODE WHY IS IT SO BUGGY
         //
         // It is also glitchy when switching between client vs server vehicle control
         player.vehicleData.lastVehicleSwitch++;

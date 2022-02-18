@@ -172,8 +172,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         PacketWrapper packet;
         while ((packet = player.placeUseItemPackets.poll()) != null) {
             // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
-            // Or mojang wasn't so fucking stupid GOD DAMN IT and had the idle packet... for the 1.7/1.8 clients
-            // Fucking mojang removing idle packet.... why???
+            // Or mojang had the idle packet... for the 1.7/1.8 clients
+            // No idle packet on 1.9+
             if ((now - player.lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
                 player.xRot = yaw;
                 player.yRot = pitch;
@@ -188,9 +188,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 double lastZ = player.z;
 
                 // We must set positions and stuff because 0.03 and stupidity packet combine
-                // into an ultra-stupid behavior that only mojang can accomplish, where we have no fucking
-                // clue what the movement is... is it a movement or a shitty use item packet????
-                // How is a multi-billion dollar company so incompetent at their job?
+                // into an ultra-stupid behavior that only mojang can accomplish
+                //
+                // We don't know which packets are the true movement
                 player.xRot = player.packetStateData.lastClaimedYaw;
                 player.yRot = player.packetStateData.lastClaimedPitch;
                 player.x = player.packetStateData.lastClaimedPosition.getX();
@@ -702,7 +702,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 (onGround == player.packetStateData.packetPlayerOnGround
                         // Always is a position look packet, no matter what
                         && hasLook
-                        // Mojang added this fucking stupid mechanic in 1.17
+                        // Mojang added this stupid mechanic in 1.17
                         && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         // Due to 0.03, we can't check exact position, only within 0.03
                         // (Due to wrong look and timing, this would otherwise flag timer being 50 ms late)
@@ -726,8 +726,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         handleQueuedPlaces(player, hasLook, pitch, yaw, now);
 
 
-
-        // This fucking stupid mechanic has been measured with 0.03403409022229198 y velocity... GOD DAMN IT MOJANG, use 0.06 to be safe...
+        // This stupid mechanic has been measured with 0.03403409022229198 y velocity... DAMN IT MOJANG, use 0.06 to be safe...
         if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround) {
             player.lastOnGround = onGround;
             player.clientClaimsLastOnGround = onGround;

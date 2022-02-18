@@ -237,8 +237,8 @@ public class UncertaintyHandler {
             return 0.03;
 
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
-            // Yeah, the second 0.06 isn't mathematically correct but fucking 0.03 fucks everything up...
-            // Water pushing, elytras, EVERYTHING vertical movement gets messed up by this shit.  What the fuck mojang.  Why the fuck did you do this.
+            // Yeah, the second 0.06 isn't mathematically correct but 0.03 messes everything up...
+            // Water pushing, elytras, EVERYTHING vertical movement gets messed up.
             if (data.isZeroPointZeroThree()) return 0.06;
             if (lastMovementWasZeroPointZeroThree) return 0.06;
             if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)

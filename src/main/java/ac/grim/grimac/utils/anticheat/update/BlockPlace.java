@@ -542,8 +542,8 @@ public class BlockPlace {
     public void set(Vector3i position, WrappedBlockState state) {
         CollisionBox box = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, position.getX(), position.getY(), position.getZ());
 
-        // A player cannot place a block in themselves.  THANKS MOJANG THIS CAN DESYNC BECAUSE OF ZERO POINT ZERO FUCKING THREE!
-        // Great job!  It's only been an issue for years!  One fucking second to fix but you are too incompetent to change a single value.
+        // A player cannot place a block in themselves.  THANKS MOJANG THIS CAN DESYNC BECAUSE OF 0.03
+        // Great job!  It's only been an issue for years!  One second to fix but you are too incompetent to change a single value.
         if (box.isIntersected(player.boundingBox)) {
             return;
         }
@@ -621,9 +621,7 @@ public class BlockPlace {
         return intercept;
     }
 
-    // This is wrong, we need next tick's look vector because mojang is shit at netcode...
-    // FOR FUCKS SAKE MOJANG WHY DIDN'T YOU FIX THIS WHEN YOU "FIXED" THE BUCKET DESYNC!
-    // Are you that incompetent???  Fix the root cause!
+    // Remember to use the next tick's look, which we handle elsewhere
     public BlockFace getPlayerFacing() {
         return BY_2D[GrimMath.floor(player.xRot / 90.0D + 0.5D) & 3];
     }

@@ -13,8 +13,6 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.Attachment;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.GameMode;
 
-// Holy shit mojang stop reusing packets like this
-// for fucks sake there are several desyncs AGAIN???
 // HOW DIFFICULT CAN IT BE TO TELL THE SERVER THAT YOU RANG A BELL, AND NOT CREATE A GHOST BLOCK???
 public class ConsumesBlockPlace {
     public static boolean consumesPlace(GrimPlayer player, WrappedBlockState state, BlockPlace place) {

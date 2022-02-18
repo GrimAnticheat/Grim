@@ -50,7 +50,7 @@ public class PredictionEngineWater extends PredictionEngine {
                 // This scenario will occur if the player does not press jump and the other conditions are met
                 // Theoretically we should check this BEFORE allowing no look, but there isn't a cheat that takes advantage of this yet
                 // The cheat would allow the player to move LESS than they would otherwise... which... why would you want to do that?
-                // Anyways, netcode here with swimming is shitty, so, just allow this unfair disadvantage that doesn't exist
+                // Anyways, netcode here with swimming is bad, so, just allow this unfair disadvantage that doesn't exist
                 // If you feel adventurous, re-add the following line to eliminate this unfair disadvantage
 
                 //if (d > 0.0 && player.compensatedWorld.getFluidLevelAt(player.lastX, player.lastY + 1.0 - 0.1, player.lastZ) == 0) {
@@ -109,7 +109,7 @@ public class PredictionEngineWater extends PredictionEngine {
 
     @Override
     public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
-        // "hacky" climbing where player enters ladder within 0.03 movement (WHY THE FUCK DOES 0.03 EXIST???)
+        // "hacky" climbing where player enters ladder within 0.03 movement (WHY DOES 0.03 EXIST???)
         if (player.lastWasClimbing == 0 && player.pointThreeEstimator.isNearClimbable() && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) || !Collisions.isEmpty(player, player.boundingBox.copy().expand(
                 player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0.5, -SimpleCollisionBox.COLLISION_EPSILON, 0.5)))) {
             player.lastWasClimbing = FluidFallingAdjustedMovement.getFluidFallingAdjustedMovement(player, playerGravity, isFalling, player.clientVelocity.clone().setY(0.2D * 0.8F)).getY();

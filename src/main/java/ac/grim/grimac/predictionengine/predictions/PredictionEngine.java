@@ -87,7 +87,6 @@ public class PredictionEngine {
         // Nothing in the air can really be skipped, so that's off the table (flight, actual knockback, etc)
         //
         // Remember, we don't have to detect 100% of cheats, if the cheats we don't detect are a disadvantage
-        // Fuck you Mojang for this shitty netcode!
         // We didn't apply inputs yet because it would mess up the 0.03 detection!
         List<VectorData> possibleVelocities = applyInputsToVelocityPossibilities(player, init, speed);
 

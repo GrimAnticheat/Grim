@@ -22,9 +22,9 @@ public class TrigHandler {
         return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
-    public static Vector getShitMathMovement(Vector wantedMovement, float f, float f2) {
-        float f3 = OptifineShitMath.sin(f2 * 0.017453292f);
-        float f4 = OptifineShitMath.cos(f2 * 0.017453292f);
+    public static Vector getFastMathMovement(Vector wantedMovement, float f, float f2) {
+        float f3 = OptifineFastMath.sin(f2 * 0.017453292f);
+        float f4 = OptifineFastMath.cos(f2 * 0.017453292f);
 
         float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
         float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
@@ -60,20 +60,20 @@ public class TrigHandler {
         if (player.checkManager.getOffsetHandler().doesOffsetFlag(offset)) {
             Vector trueMovement = player.actualMovement.clone().subtract(oldVel);
             Vector correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.xRot);
-            Vector shitMath = getShitMathMovement(trueMovement, 0.1f, player.xRot);
+            Vector fastMath = getFastMathMovement(trueMovement, 0.1f, player.xRot);
 
             correctMath = new Vector(Math.abs(correctMath.getX()), 0, Math.abs(correctMath.getZ()));
-            shitMath = new Vector(Math.abs(shitMath.getX()), 0, Math.abs(shitMath.getZ()));
+            fastMath = new Vector(Math.abs(fastMath.getX()), 0, Math.abs(fastMath.getZ()));
 
             double minCorrectHorizontal = Math.min(correctMath.getX(), correctMath.getZ());
             // Support diagonal inputs
             minCorrectHorizontal = Math.min(minCorrectHorizontal, Math.abs(correctMath.getX() - correctMath.getZ()));
 
-            double minShitHorizontal = Math.min(shitMath.getX(), shitMath.getZ());
+            double minFastMathHorizontal = Math.min(fastMath.getX(), fastMath.getZ());
             // Support diagonal inputs
-            minShitHorizontal = Math.min(minShitHorizontal, Math.abs(shitMath.getX() - shitMath.getZ()));
+            minFastMathHorizontal = Math.min(minFastMathHorizontal, Math.abs(fastMath.getX() - fastMath.getZ()));
 
-            boolean newVanilla = minCorrectHorizontal < minShitHorizontal;
+            boolean newVanilla = minCorrectHorizontal < minFastMathHorizontal;
 
             buffer += newVanilla != this.isVanillaMath ? 1 : -0.25;
 
@@ -85,10 +85,10 @@ public class TrigHandler {
     }
 
     public float sin(float f) {
-        return isVanillaMath ? VanillaMath.sin(f) : OptifineShitMath.sin(f);
+        return isVanillaMath ? VanillaMath.sin(f) : OptifineFastMath.sin(f);
     }
 
     public float cos(float f) {
-        return isVanillaMath ? VanillaMath.cos(f) : OptifineShitMath.cos(f);
+        return isVanillaMath ? VanillaMath.cos(f) : OptifineFastMath.cos(f);
     }
 }

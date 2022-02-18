@@ -24,8 +24,7 @@ package ac.grim.grimac.utils.math;
 // Update a few months later
 
 // WHY DID THEY CHANGE FASTMATH
-// WHAT THE FUCK OPTIFINE - HOW DO I SUPPORT TWO VERSIONS OF BROKEN TRIG TABLES!
-// This is impossible and I give up!  Go fuck yourself sp614x.
+// This is impossible, and I give up! 
 //
 // Instead of fixing the damn issue of changing vanilla mechanics, the new version patches some
 // issues with half angles.  Yes, it was wrong, so they made it more accurate, but this makes our
@@ -37,7 +36,7 @@ package ac.grim.grimac.utils.math;
 // I'm seriously considering allowing a warning for FastMath users that it may lead to false bans
 // his arrogance is impossible to patch.
 //
-public class OptifineShitMath {
+public class OptifineFastMath {
     private static final float[] SIN_TABLE_FAST = new float[4096];
     private static final float radToIndex = roundToFloat(651.8986469044033D);
 

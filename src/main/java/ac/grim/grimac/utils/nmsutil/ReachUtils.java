@@ -150,7 +150,7 @@ public class ReachUtils {
         return vec != null && vec.getX() >= self.minX && vec.getX() <= self.maxX && vec.getY() >= self.minY && vec.getY() <= self.maxY;
     }
 
-    // Look vector accounting for optifine shitmath
+    // Look vector accounting for optifine FastMath
     public static Vector getLook(GrimPlayer player, float xRot, float yRot) {
         float f = player.trigHandler.cos(-xRot * 0.017453292F - (float) Math.PI);
         float f1 = player.trigHandler.sin(-xRot * 0.017453292F - (float) Math.PI);

@@ -91,7 +91,7 @@ NoFall:
   alert-interval: 5
 
 # Prediction-based no slow check
-# Grim accounts for shitty netcode here... hard to false even when spamming right click and offhand button
+# Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
 # Much more stable than other anticheats, but please report any falses... I have fixed a ton of netcode issues here.
 NoSlow:
   # How much of an offset is "cheating"

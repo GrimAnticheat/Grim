@@ -60,7 +60,7 @@ public class TickEndEvent implements Initable {
         // 1) Some stupid jar messed up our reflection
         // 2) Some stupid jar doesn't tick the list at the end for "optimization"
         // 3) Some stupid jar removed the list at the end because it wasn't needed
-        // 4) Someone else injected after our delayed injectio (what the fuck, they copied my GPL code! Hope they give source!)
+        // 4) Someone else injected after our delayed injection (they copied my GPL code! Hope they give source!)
         // (My injection point is different from Pledge or other more common methods!)
         //
         // Otherwise, this is just redundancy.  If the end of tick event isn't firing, this will

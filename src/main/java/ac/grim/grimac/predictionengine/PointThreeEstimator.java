@@ -50,7 +50,7 @@ import java.util.Set;
  * or in lava at any point within the skipped tick
  * <p>
  * We must also check for a player starting gliding, stopping gliding, all within 0.03, which might
- * be possible due to mojang's shitty implementation of gliding and netcode
+ * be possible due to mojang's implementation of gliding and netcode
  * <p>
  * We must also check for the user placing ladders, which gives them control of vertical movement
  * once again also between world changes
@@ -66,20 +66,20 @@ import java.util.Set;
  * We also must be aware of bubble columns
  * <p>
  * Additionally, because poses are done AFTER the previous tick, we must know the minimum height the player's
- * bounding box can be, to avoid noclip falses.  Funnily enough, vanilla falses due to this... fucking mojang.
+ * bounding box can be, to avoid noclip falses.  Funnily enough, vanilla falses due to this...
  * This is done because when the player can't have changed their pose for one tick, the second we know their god
- * damn pose.  The third fucking tick fixes the slow movement desync.  Thanks a lot, mojang - for falsing
+ * damn pose.  The third tick fixes the slow movement desync.  Thanks a lot, mojang - for falsing
  * your own anticheat and not caring enough to fix it.  Causing this giant mess that we all know you won't
  * fix for another decade... and if you do fix it... you will only make it worse (remember the bucket desync?)
  * <p>
- * Call me out for shitty code (in this class) - but please put the blame on Mojang instead.  None of this would be needed
+ * Call me out for the code (in this class) - but please put the blame on Mojang instead.  None of this would be needed
  * if Minecraft's netcode wasn't so terrible.
  */
 public class PointThreeEstimator {
     private final GrimPlayer player;
 
     // The one thing we don't need to store is if the player 0.03'd to the ground, as this sends a packet
-    // seriously, what the fuck mojang.  You send the player touched the ground but not their pos.
+    // seriously, why mojang.  You send the player touched the ground but not their pos.
     // Is the position not important to you?  Why do you throw this data out??? God-damn it Mojang!
     //
     // If a player is moving upwards and a block is within 0.03 of their head, then they can hit this block
@@ -104,7 +104,7 @@ public class PointThreeEstimator {
     private boolean didLevitationChange = false; // We can't predict with an unknown amount of ticks between a levitation change
 
     // If the world changed in a way that allowed the player to skip a tick between ticks
-    // Just pillar upwards with high latency to see this happen... it happens a lot due to shitty netcode
+    // Just pillar upwards with high latency to see this happen... it happens a lot due to netcode
     private boolean sneakyPointThree = false;
 
     @Setter
@@ -282,7 +282,7 @@ public class PointThreeEstimator {
         // A player can 0.03 while stepping while slightly going off of the block, in order to not
         // be vertically colliding (for 1.14+ clients only)
         //
-        // To that I say... how the fuck do you even do that?
+        // To that I say... how the do you even do that?
         // Yes, it's possible, but slightly going off mainly occurs when going at high speeds
         // and 0.03 when the player is barely moving
         //
@@ -366,13 +366,13 @@ public class PointThreeEstimator {
     }
 
     public double getHorizontalFluidPushingUncertainty(VectorData vector) {
-        // We don't know if the player was in the water because of zero point fucking three
+        // We don't know if the player was in the water because of 0.03
         // End of tick and start of tick can double this fluid motion, so we need to double it
         return isNearHorizontalFlowingLiquid && vector.isZeroPointZeroThree() ? 0.014 * 2 : 0;
     }
 
     public double getVerticalFluidPushingUncertainty(VectorData vector) {
-        // We don't know if the player was in the water because of zero point fucking three
+        // We don't know if the player was in the water because of 0.03
         // End of tick and start of tick can double this fluid motion, so we need to double it
         return (isNearBubbleColumn || isNearVerticalFlowingLiquid) && vector.isZeroPointZeroThree() ? 0.014 * 2 : 0;
     }
