@@ -584,14 +584,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
                 int placed = player.compensatedWorld.getWrappedBlockStateAt(packet.getBlockPosition()).getGlobalId();
                 int face = player.compensatedWorld.getWrappedBlockStateAt(facePos).getGlobalId();
-                player.user.sendPacket(new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
-                player.user.sendPacket(new WrapperPlayServerBlockChange(facePos, face));
+                player.user.writePacket(new WrapperPlayServerBlockChange(blockPlace.getPlacedBlockPos(), placed));
+                player.user.writePacket(new WrapperPlayServerBlockChange(facePos, face));
 
                 // Stop inventory desync from cancelling place
                 if (packet.getHand() == InteractionHand.MAIN_HAND) {
-                    player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, player.getInventory().getHeldItem()));
+                    player.user.writePacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 36 + player.packetStateData.lastSlotSelected, player.getInventory().getHeldItem()));
                 } else {
-                    player.user.sendPacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, player.getInventory().getOffHand()));
+                    player.user.writePacket(new WrapperPlayServerSetSlot(0, player.getInventory().stateID, 45, player.getInventory().getOffHand()));
                 }
 
             } else { // Legit place

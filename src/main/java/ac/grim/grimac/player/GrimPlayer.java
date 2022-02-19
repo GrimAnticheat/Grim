@@ -357,9 +357,9 @@ public class GrimPlayer {
             addTransactionSend(transactionID);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
-                user.sendPacket(new WrapperPlayServerPing(transactionID));
+                user.writePacket(new WrapperPlayServerPing(transactionID));
             } else {
-                user.sendPacket(new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
+                user.writePacket(new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
             }
         } catch (Exception exception) {
             exception.printStackTrace();
