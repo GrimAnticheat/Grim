@@ -76,7 +76,14 @@ public class TimerCheck extends PacketCheck {
         timerBalanceRealTime += 50e6;
 
         if (timerBalanceRealTime > System.nanoTime()) {
-            increaseViolations();
+            if (increaseViolationNoSetback()) {
+                setbackIfAboveSetbackVL();
+                if (getViolations() > setbackVL) {
+                    player.getSetbackTeleportUtil().executeSetback();
+                    player.getSetbackTeleportUtil().blockPredictions = true;
+                }
+            }
+
             alert("", getCheckName(), formatViolations());
 
             // Reset the violation by 1 movement

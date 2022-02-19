@@ -110,6 +110,9 @@ public class MovementCheckRunner extends PositionCheck {
             return;
         }
 
+        // Stop people from crashing predictions with timer
+        if (player.getSetbackTeleportUtil().blockPredictions) return;
+
         player.onGround = update.isOnGround();
 
         if (!player.specialFlying && player.isSneaking && Collisions.isAboveGround(player)) {

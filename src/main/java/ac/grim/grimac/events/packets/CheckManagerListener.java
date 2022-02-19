@@ -318,6 +318,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
 
+        player.checkManager.onPrePredictionReceivePacket(event);
+
         // Flying packet types
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
             WrapperPlayClientPlayerPosition wrapper = new WrapperPlayClientPlayerPosition(event);

@@ -29,6 +29,7 @@ public class CheckManager {
     ClassToInstanceMap<PositionCheck> positionCheck;
     ClassToInstanceMap<RotationCheck> rotationCheck;
     ClassToInstanceMap<VehicleCheck> vehicleCheck;
+    ClassToInstanceMap<PacketCheck> timerCheck;
 
     ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
 
@@ -44,8 +45,6 @@ public class CheckManager {
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(CompensatedInventory.class, new CompensatedInventory(player))
                 .put(NoFallA.class, new NoFallA(player))
-                .put(TimerCheck.class, new TimerCheck(player))
-                .put(VehicleTimer.class, new VehicleTimer(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
@@ -73,6 +72,11 @@ public class CheckManager {
                 .put(AirLiquidPlace.class, new AirLiquidPlace(player))
                 .put(FarPlace.class, new FarPlace(player))
                 .build();
+
+        timerCheck = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
+                .put(TimerCheck.class, new TimerCheck(player))
+                .put(VehicleTimer.class, new VehicleTimer(player))
+                .build();
     }
 
     public PositionCheck getPositionCheck(Class<? extends PositionCheck> check) {
@@ -87,11 +91,16 @@ public class CheckManager {
         return vehicleCheck.get(check);
     }
 
+    public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
+        timerCheck.values().forEach(check -> check.onPacketReceive(packet));
+    }
+
     public void onPacketReceive(final PacketReceiveEvent packet) {
         packetChecks.values().forEach(packetCheck -> packetCheck.onPacketReceive(packet));
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
+        timerCheck.values().forEach(check -> check.onPacketSend(packet));
         packetChecks.values().forEach(packetCheck -> packetCheck.onPacketSend(packet));
     }
 

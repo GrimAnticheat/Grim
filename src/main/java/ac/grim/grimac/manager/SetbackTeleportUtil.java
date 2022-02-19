@@ -34,6 +34,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean hasAcceptedSpawnTeleport = false;
     // Was there a ghost block that forces us to block offsets until the player accepts their teleport?
     public boolean blockOffsets = false;
+    public boolean blockPredictions = false;
     // This required setback data is sync to the BUKKIT MAIN THREAD (!)
     SetBackData requiredSetBack = null;
     // Sync to the anticheat thread
@@ -62,6 +63,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // Desync is fixed
         if (predictionComplete.getData().isTeleport()) {
             blockOffsets = false;
+            blockPredictions = false;
         }
 
         // We must first check if the player has accepted their setback
