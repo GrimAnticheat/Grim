@@ -330,7 +330,7 @@ public class UncertaintyHandler {
         if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT) {
             for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
-                if (entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey()) &&
+                if (entity != player.playerVehicle && (player.playerVehicle == null || !player.playerVehicle.hasPassenger(entityPair.getKey())) &&
                         entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }

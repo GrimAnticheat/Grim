@@ -64,6 +64,7 @@ public class PlayerBaseTick {
                 // and the player is not touching water (yes, this also can override the gliding slowness)
                 (player.pose == Pose.SWIMMING || (!player.isGliding && player.pose == Pose.FALL_FLYING)) && !player.wasTouchingWater);
 
+        if (player.inVehicle) player.isSlowMovement = false;
 
         // Players in boats don't care about being in blocks
         if (!player.inVehicle) {

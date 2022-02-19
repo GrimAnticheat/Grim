@@ -66,7 +66,7 @@ public class PredictionEngineNormal extends PredictionEngine {
 
         boolean walkingOnPowderSnow = false;
 
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+        if (!player.inVehicle && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                 player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z) == StateTypes.POWDER_SNOW) {
             ItemStack boots = player.getInventory().getBoots();
             walkingOnPowderSnow = boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS;

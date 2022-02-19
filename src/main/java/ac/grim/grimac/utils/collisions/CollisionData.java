@@ -1012,7 +1012,7 @@ public enum CollisionData {
         }
 
         ItemStack boots = player.getInventory().getBoots();
-        if (player.lastY > y + 1 - 9.999999747378752E-6 && boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS && !player.isSneaking)
+        if (player.lastY > y + 1 - 9.999999747378752E-6 && boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS && !player.isSneaking && !player.inVehicle)
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return NoCollisionBox.INSTANCE;

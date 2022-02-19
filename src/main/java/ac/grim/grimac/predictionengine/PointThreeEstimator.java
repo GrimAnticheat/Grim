@@ -160,7 +160,7 @@ public class PointThreeEstimator {
             sneakyPointThree = sneakyPointThree || isPushing || player.couldSkipTick;
         }
 
-        if (state.getType() == StateTypes.POWDER_SNOW || Materials.isClimbable(state.getType()) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+        if (!player.inVehicle && (state.getType() == StateTypes.POWDER_SNOW || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
             isNearClimbable = true;
         }
     }
@@ -257,7 +257,7 @@ public class PointThreeEstimator {
 
                     WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(bbX, bbY, bbZ);
                     StateType mat = state.getType();
-                    if (Materials.isClimbable(player.compensatedWorld.getStateTypeAt(bbX, bbY, bbZ)) || mat == StateTypes.POWDER_SNOW) {
+                    if (Materials.isClimbable(player.compensatedWorld.getStateTypeAt(bbX, bbY, bbZ)) || (mat == StateTypes.POWDER_SNOW && !player.inVehicle)) {
                         isNearClimbable = true;
                     }
 

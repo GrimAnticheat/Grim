@@ -83,6 +83,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         player.lastWasClimbing = 0;
+        player.fallDistance = 0;
         player.canSwimHop = false;
 
         // Teleports OVERRIDE explosions and knockback
@@ -416,7 +417,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         boolean couldBeStuckSpeed = Collisions.checkStuckSpeed(player, 0.03);
         boolean couldLeaveStuckSpeed = Collisions.checkStuckSpeed(player, -0.03);
-        player.uncertaintyHandler.claimingLeftStuckSpeed = player.stuckSpeedMultiplier.getX() < 1 && !couldLeaveStuckSpeed;
+        player.uncertaintyHandler.claimingLeftStuckSpeed = !player.inVehicle && player.stuckSpeedMultiplier.getX() < 1 && !couldLeaveStuckSpeed;
 
         if (couldBeStuckSpeed) {
             player.uncertaintyHandler.lastStuckSpeedMultiplier = 0;

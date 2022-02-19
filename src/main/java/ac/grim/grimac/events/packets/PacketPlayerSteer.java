@@ -87,8 +87,11 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
 
             player.packetStateData.receivedSteerVehicle = true;
 
-            player.vehicleData.nextVehicleForward = steer.getForward();
-            player.vehicleData.nextVehicleHorizontal = steer.getSideways();
+            float forwards = steer.getForward();
+            float sideways = steer.getSideways();
+
+            player.vehicleData.nextVehicleForward = forwards;
+            player.vehicleData.nextVehicleHorizontal = sideways;
         }
     }
 }

@@ -687,7 +687,10 @@ public class PredictionEngine {
         // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
         // Just give a high lenience to this... not worth the risk of falses
 
-        SimpleCollisionBox oldBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
+        // Don't play with poses issues. just assume full bounding box
+        // Except on vehicles which don't have poses, thankfully.
+        SimpleCollisionBox oldBox = player.inVehicle ? GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ) :
+                GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
 
         if (!player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1))) return false;
 
@@ -696,8 +699,10 @@ public class PredictionEngine {
         double pointThreeToGround = Collisions.collide(player, 0, -0.03, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
         player.boundingBox = oldBB;
 
-        return !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f)
-                .expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
+        SimpleCollisionBox newBox = player.inVehicle ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :
+                GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f);
+
+        return !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1
