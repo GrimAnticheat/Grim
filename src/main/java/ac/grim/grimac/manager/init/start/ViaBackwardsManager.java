@@ -39,7 +39,7 @@ public class ViaBackwardsManager implements Initable {
                             logger.warning(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
                             logger.warning(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
                             logger.warning(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
-                            logger.warning(ChatColor.RED + "Supported  version: " + ChatColor.WHITE + "https://github.com/ViaVersion/ViaBackwards/actions/runs/1039987269");
+                            logger.warning(ChatColor.RED + "Supported  version: " + ChatColor.WHITE + "https://www.spigotmc.org/resources/viabackwards.27448/");
 
                             isViaLegacyUpdated = false;
                         }

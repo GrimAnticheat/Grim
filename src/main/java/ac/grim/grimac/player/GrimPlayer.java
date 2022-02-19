@@ -210,7 +210,7 @@ public class GrimPlayer {
             LogUtil.warn(ChatColor.RED + "Please update ViaBackwards to 4.0.2 or newer");
             LogUtil.warn(ChatColor.RED + "An important packet is broken for 1.16 and below clients on this ViaBackwards version");
             LogUtil.warn(ChatColor.RED + "Disabling all checks for 1.16 and below players as otherwise they WILL be falsely banned");
-            LogUtil.warn(ChatColor.RED + "Supported version: " + ChatColor.WHITE + "https://github.com/ViaVersion/ViaBackwards/actions/runs/1039987269");
+            LogUtil.warn(ChatColor.RED + "Supported version: " + ChatColor.WHITE + "https://www.spigotmc.org/resources/viabackwards.27448/");
             return;
         }
 
