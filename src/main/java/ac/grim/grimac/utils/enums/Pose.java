@@ -1,45 +1,25 @@
 package ac.grim.grimac.utils.enums;
 
-import ac.grim.grimac.player.GrimPlayer;
-
 public enum Pose {
-    STANDING(0.6f, 1.8f),
-    FALL_FLYING(0.6f, 0.6f),
-    SLEEPING(0.2f, 0.2f),
-    SWIMMING(0.6f, 0.6f),
-    SPIN_ATTACK(0.6f, 0.6f),
-    CROUCHING(0.6f, 1.5f),
-    DYING(0.2f, 0.2f),
+    STANDING(0.6f, 1.8f, 1.62f),
+    FALL_FLYING(0.6f, 0.6f, 0.4f),
+    SLEEPING(0.2f, 0.2f, 0.2f),
+    SWIMMING(0.6f, 0.6f, 0.4f),
+    SPIN_ATTACK(0.6f, 0.6f, 0.4f),
+    CROUCHING(0.6f, 1.5f, 1.27f),
+    DYING(0.2f, 0.2f, 0.2f),
 
     // Non-player poses
-    NINE_CROUCHING(0.6f, 1.65f), // 1.9-1.13 clients have a slightly different crouching hitbox
-    LONG_JUMPING(0.6f, 1.8f); // DUMMY (players can't have this pose)
+    NINE_CROUCHING(0.6f, 1.65f, 1.54f), // 1.9-1.13 clients have a slightly different crouching hitbox
+    LONG_JUMPING(0.6f, 1.8f, 1.54f); // DUMMY (players can't have this pose)
 
-    public float width;
-    public float height;
+    public final float width;
+    public final float height;
+    public final float eyeHeight;
 
-    Pose(float width, float height) {
+    Pose(float width, float height, float eyeHeight) {
         this.width = width;
         this.height = height;
-    }
-
-    public static Pose getFromIndex(GrimPlayer player, int index) {
-        switch (index) {
-            case 0:
-                return STANDING;
-            case 1:
-                return FALL_FLYING;
-            case 2:
-                return SLEEPING;
-            case 3:
-                return SWIMMING;
-            case 4:
-                return SPIN_ATTACK;
-            case 5:
-                return player.getSneakingPose();
-            case 6:
-                return DYING;
-        }
-        return STANDING;
+        this.eyeHeight = eyeHeight;
     }
 }

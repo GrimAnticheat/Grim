@@ -383,11 +383,7 @@ public class GrimPlayer {
     }
 
     public double getEyeHeight() {
-        return GetBoundingBox.getEyeHeight(isCrouching, isGliding, isSwimming, isRiptidePose, isInBed, getClientVersion());
-    }
-
-    public Pose getSneakingPose() {
-        return getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? Pose.CROUCHING : Pose.NINE_CROUCHING;
+        return pose.eyeHeight;
     }
 
     public void pollData() {
