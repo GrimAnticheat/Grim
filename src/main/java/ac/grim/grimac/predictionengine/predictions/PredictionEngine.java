@@ -349,6 +349,7 @@ public class PredictionEngine {
         addNonEffectiveAI(player, velocities);
         // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
         applyMovementThreshold(player, velocities);
+        // Jumps are done after 0.003, for sure.
         addJumpsToPossibilities(player, velocities);
 
         return velocities;

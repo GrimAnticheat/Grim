@@ -9,7 +9,7 @@ public class PacketEntityHorse extends PacketEntity {
     public boolean hasSaddle = false;
     public boolean isTame = false;
     public boolean hasChest = false;
-    public float jumpStrength = 0.7f;
+    public double jumpStrength = 0.7;
     public float movementSpeedAttribute = 0.1f;
     public int llamaStrength;
 

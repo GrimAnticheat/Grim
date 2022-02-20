@@ -68,7 +68,7 @@ public class CompensatedEntities {
                 }
 
                 if (snapshotWrapper.getKey().toUpperCase().contains("JUMP")) {
-                    ((PacketEntityHorse) entity).jumpStrength = (float) calculateAttribute(snapshotWrapper, 0.0, 2.0);
+                    ((PacketEntityHorse) entity).jumpStrength = calculateAttribute(snapshotWrapper, 0.0, 2.0);
                 }
             }
         }

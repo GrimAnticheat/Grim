@@ -18,6 +18,7 @@ public class PredictionEngineRideableNormal extends PredictionEngineNormal {
 
     @Override
     public void addJumpsToPossibilities(GrimPlayer player, Set<VectorData> existingVelocities) {
+        PredictionEngineRideableUtils.handleJumps(player, existingVelocities);
     }
 
     @Override
