@@ -196,10 +196,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.clientVelocity.multiply(0.98); // This is vanilla, do not touch
         }
 
-        if (player.vehicleData.wasVehicleSwitch) {
-            player.clientVelocity = new Vector(); // We force this when switching/entering vehicles
-        }
-
         if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
             update.setTeleport(true);
 
@@ -228,6 +224,19 @@ public class MovementCheckRunner extends PositionCheck {
                     // Any other value will false.
                     ((PacketEntityRideable) player.playerVehicle).currentBoostTime++;
                 }
+            }
+
+            // The server sets vehicle velocity when entering
+            // Grim also does this, although the server
+            // overrides Grim due to packet order.
+            // This is intentional!  We don't want to modify
+            // vanilla behavior if it's not a bug.
+            if (player.likelyKB != null) {
+                player.clientVelocity = player.likelyKB.vector;
+            }
+
+            if (player.firstBreadKB != null) {
+                player.clientVelocity = player.firstBreadKB.vector;
             }
 
             handleTeleport(update);

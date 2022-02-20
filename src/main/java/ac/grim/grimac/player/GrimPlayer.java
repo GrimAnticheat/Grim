@@ -476,7 +476,11 @@ public class GrimPlayer {
 
     public void handleMountVehicle(int vehicleID) {
         compensatedEntities.serverPlayerVehicle = vehicleID;
+        // The server does override this with some vehicles. This is intentional.
         user.sendPacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+
+        // Help prevent transaction split
+        sendTransaction();
 
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
             PacketEntity packetVehicle = compensatedEntities.getEntity(vehicleID);
@@ -490,6 +494,9 @@ public class GrimPlayer {
     }
 
     public void handleDismountVehicle(PacketSendEvent event) {
+        // Help prevent transaction split
+        sendTransaction();
+
         compensatedEntities.serverPlayerVehicle = null;
         event.getPostTasks().add(() -> {
             if (vehicle != null) {
