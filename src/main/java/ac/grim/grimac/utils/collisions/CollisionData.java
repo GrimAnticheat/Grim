@@ -344,7 +344,7 @@ public enum CollisionData {
                     new HexCollisionBox(14.0D, 0.0D, 14.0D, 16.0D, 16.0D, 16.0D));
         }
 
-        return data.getDistance() != 0 && data.getHalf() == Half.LOWER && player.lastY > y - (double) 1.0E-5F ?
+        return data.getDistance() != 0 && data.isBottom() && player.lastY > y - (double) 1.0E-5F ?
                 new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D) :
                 NoCollisionBox.INSTANCE;
     }, StateTypes.SCAFFOLDING),
@@ -1040,7 +1040,7 @@ public enum CollisionData {
         return getAmethystBox(version, data.getFacing(), 5, 3);
     }, StateTypes.LARGE_AMETHYST_BUD),
 
-    NONE(NoCollisionBox.INSTANCE, StateTypes.AIR),
+    NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.LIGHT),
 
     DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true),
             StateTypes.STONE);
@@ -1181,8 +1181,8 @@ public enum CollisionData {
     }
 
     // Would pre-computing all states be worth the memory cost? I doubt it
-    public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava
-        return state.isSolid() || state == StateTypes.LAVA ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
+    public static CollisionData getData(StateType state) { // TODO: Find a better hack for lava and scaffolding
+        return state.isSolid() || state == StateTypes.LAVA || state == StateTypes.SCAFFOLDING ? rawLookupMap.getOrDefault(state, DEFAULT) : NONE;
     }
 
     // TODO: This is wrong if a block doesn't have any hitbox and isn't specified, light block?
