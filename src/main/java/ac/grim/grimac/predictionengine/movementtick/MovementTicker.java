@@ -73,17 +73,12 @@ public class MovementTicker {
 
         StateType onBlock = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
-        double mojangIsStupid = player.clientVelocity.getX();
         if (inputVel.getX() != collide.getX()) {
             player.clientVelocity.setX(0);
         }
 
         if (inputVel.getZ() != collide.getZ()) {
             player.clientVelocity.setZ(0);
-            // Simulate being as stupid as is - XZ collision bug
-            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14)) {
-                player.clientVelocity.setX(mojangIsStupid);
-            }
         }
 
         player.horizontalCollision = !GrimMath.isCloseEnoughEquals(inputVel.getX(), collide.getX()) || !GrimMath.isCloseEnoughEquals(inputVel.getZ(), collide.getZ());
@@ -137,7 +132,7 @@ public class MovementTicker {
         }
 
         // Hack with 1.14+ poses issue
-        if (inputVel.getY() != collide.getY() || (player.actualMovement.getY() > 0 && player.predictedVelocity.isZeroPointZeroThree() && !player.predictedVelocity.isSwimHop() && player.clientControlledVerticalCollision)) {
+        if (inputVel.getY() != collide.getY()) {
             // If the client supports slime blocks
             // And the block is a slime block
             // Or the block is honey and was replaced by viaversion
@@ -201,6 +196,8 @@ public class MovementTicker {
     public void livingEntityAIStep() {
         handleEntityCollisions(player);
 
+        SimpleCollisionBox oldBB = player.boundingBox.copy();
+
         if (player.playerVehicle == null) {
             playerEntityTravel();
         } else {
@@ -226,12 +223,21 @@ public class MovementTicker {
         }
 
         // Work around a bug introduced in 1.14 where a player colliding with an X and Z wall maintains X momentum
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14))
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14) || player.getClientVersion().isNewerThan(ClientVersion.V_1_18)) // 1.18.2 fixes this.
             return;
 
-        boolean xAxisPositiveCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMax(player.speed, 0, 0));
-        boolean xAxisNegativeCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(0, -0.01, -0.01).expandMin(-player.speed, 0, 0));
-        boolean zAxisCollision = !Collisions.isEmpty(player, player.boundingBox.copy().expand(player.clientVelocity.getX(), 0, player.clientVelocity.getZ()).expand(-0.01, -0.01, player.speed));
+        // YXZ or YZX collision order
+        // Except 0.03 causing apparent XZY or ZXY collision order
+        // Meaning we should scan upwards!
+        oldBB.expand(-SimpleCollisionBox.COLLISION_EPSILON);
+
+        double posX = Math.max(0, player.predictedVelocity.vector.getX()) + SimpleCollisionBox.COLLISION_EPSILON;
+        double negX = Math.min(0, player.predictedVelocity.vector.getX()) - SimpleCollisionBox.COLLISION_EPSILON;
+        double posZ = Math.max(0, player.predictedVelocity.vector.getZ()) + SimpleCollisionBox.COLLISION_EPSILON;
+        double negZ = Math.min(0, player.predictedVelocity.vector.getZ()) - SimpleCollisionBox.COLLISION_EPSILON;
+
+        boolean xAxisCollision = !Collisions.isEmpty(player, oldBB.expandMin(negX, 0, 0).expandMax(posX, 0, 0));
+        boolean zAxisCollision = !Collisions.isEmpty(player, oldBB.expandMin(0, 0, negZ).expandMax(0, 0, posZ));
 
         // Stupid game!  It thinks you are colliding on the Z axis when your Z movement is below 1e-7
         // (This code is rounding the small movements causing this bug)
@@ -248,7 +254,7 @@ public class MovementTicker {
         // Unfortunately, for some reason, riding entities break this.
         //
         // Also use magic value for gliding, as gliding isn't typical player movement
-        if (zAxisCollision && (xAxisPositiveCollision || xAxisNegativeCollision)) {
+        if (zAxisCollision && xAxisCollision) {
             double playerSpeed = player.speed;
 
             if (player.wasTouchingWater) {
@@ -267,8 +273,8 @@ public class MovementTicker {
                 player.uncertaintyHandler.yPositiveUncertainty += 0.05;
             }
 
-            player.uncertaintyHandler.xNegativeUncertainty -= playerSpeed * 4;
-            player.uncertaintyHandler.xPositiveUncertainty += playerSpeed * 4;
+            player.uncertaintyHandler.xNegativeUncertainty -= playerSpeed * 2;
+            player.uncertaintyHandler.xPositiveUncertainty += playerSpeed * 2;
         }
     }
 
