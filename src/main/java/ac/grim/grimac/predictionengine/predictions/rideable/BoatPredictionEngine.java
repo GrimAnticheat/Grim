@@ -183,7 +183,7 @@ public class BoatPredictionEngine extends PredictionEngine {
             player.vehicleData.waterLevel = player.lastY + player.boundingBox.maxY - player.boundingBox.minY;
 
             player.lastY = getWaterLevelAbove(player) - 0.5625F + 0.101D;
-            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
             vector.setY(0);
 
