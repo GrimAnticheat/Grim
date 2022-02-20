@@ -7,9 +7,9 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.BoatEntityStatus;
 import ac.grim.grimac.utils.math.GrimMath;
-import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.BlockProperties;
 import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
@@ -163,17 +163,6 @@ public class BoatPredictionEngine extends PredictionEngine {
         return vectors;
     }
 
-    // Technically should be per vector but shouldn't matter as it's a boat
-    // Only times there are two vectors is when the player's boat takes knockback, such as in bubble columns
-    // It's push-like movement because it doesn't affect subsequent client velocity
-    @Override
-    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
-        vector = super.handlePushMovementThatDoesntAffectNextTickVel(player, vector);
-        SimpleCollisionBox box = new SimpleCollisionBox(vector, vector);
-        box.expandToAbsoluteCoordinates(box.minX, player.vehicleData.midTickY, box.minZ);
-        return VectorUtils.cutBoxToVector(player.actualMovement, box);
-    }
-
     @Override
     public void endOfTick(GrimPlayer player, double d, float friction) {
         super.endOfTick(player, d, friction);
@@ -193,9 +182,9 @@ public class BoatPredictionEngine extends PredictionEngine {
         if (player.vehicleData.oldStatus == BoatEntityStatus.IN_AIR && player.vehicleData.status != BoatEntityStatus.IN_AIR && player.vehicleData.status != BoatEntityStatus.ON_LAND) {
             player.vehicleData.waterLevel = player.lastY + player.boundingBox.maxY - player.boundingBox.minY;
 
-            player.vehicleData.midTickY = getWaterLevelAbove(player) - player.boundingBox.maxY - player.boundingBox.minY + 0.101D + player.boundingBox.minY;
-            player.boundingBox.offset(0, player.vehicleData.midTickY, 0);
-
+            player.lastY = getWaterLevelAbove(player) - 0.5625F + 0.101D;
+            player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
             vector.setY(0);
 
             player.vehicleData.lastYd = 0.0D;

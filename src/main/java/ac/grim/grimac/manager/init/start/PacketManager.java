@@ -27,7 +27,6 @@ public class PacketManager implements Initable {
         PacketEvents.getAPI().getEventManager().registerListener(new CheckManagerListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerSteer());
 
-        // TODO: Fix pre-1.18 support
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
             PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderEighteen());
         } else {

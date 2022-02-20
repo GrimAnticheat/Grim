@@ -128,6 +128,7 @@ public class MovementTicker {
             player.fallDistance = 0;
         } else if (collide.getY() < 0) {
             player.fallDistance = (player.fallDistance) - collide.getY();
+            player.vehicleData.lastYd = collide.getY();
         }
 
         // Striders call the method for inside blocks AGAIN!
