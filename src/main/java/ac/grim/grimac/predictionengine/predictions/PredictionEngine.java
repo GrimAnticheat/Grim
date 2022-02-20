@@ -546,6 +546,10 @@ public class PredictionEngine {
             }
         }
 
+        if (vector.isZeroPointZeroThree() && vector.isSwimHop()) {
+            minVector.setY(minVector.getY() - 0.06); // Fluid pushing downwards hidden by 0.03
+        }
+
         SimpleCollisionBox box = new SimpleCollisionBox(minVector, maxVector);
         box.sort();
 
