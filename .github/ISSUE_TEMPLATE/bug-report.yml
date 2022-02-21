@@ -1,6 +1,6 @@
 name: Bug Report
 description: Create a report to help us improve
-title: ''
+title: 'My bug report'
 labels: ['bug', 'unconfirmed']
 assignees:
 - MWHunter
