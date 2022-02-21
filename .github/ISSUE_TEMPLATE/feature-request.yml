@@ -1,0 +1,21 @@
+name: "Feature Request"
+description: "Suggest a new/improved feature"
+title: "My Feature Request"
+labels: ["enhancement", "unconfirmed"]
+assignees: ["MWHunter"]
+body:
+- type: dropdown
+  id: type
+  attributes:
+    label: "Are you requesting a new feature, or improved feature?"
+    options:
+    - "New Feature"
+    - "Improved Feature"
+- type: textarea
+  id: description
+  attributes:
+    label: "Feature Description"
+    description: "Write a clear and concise description of the feature you desire."
+    placeholder: "I would like to order pizza using GrimAC."
+  validations:
+    required: true
