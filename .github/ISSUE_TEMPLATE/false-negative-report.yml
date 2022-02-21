@@ -1,0 +1,54 @@
+name: "False-Negative Report"
+description: "Report a check that fails to detect a cheater."
+title: "My False-Negative Report"
+labels: ["false negative", "unconfirmed"]
+assignees: ["MWHunter"]
+body:
+- type: textarea
+  id: check
+  attributes:
+    label: "Cheat Type"
+    description: "What is the name/type of the cheat that isn't being detected?"
+    placeholder: "NoSlowDown"
+  validations:
+    required: true
+- type: textarea
+  id: description
+  attributes:
+    label: "Description"
+    description: "Describe the false-negative here."
+    placeholder: "The Fly checks seem to be bypassed when in a vehicle..."
+  validations:
+    required: true
+- type: textarea
+  id: reproduce
+  attributes:
+    label: "Steps to Reproduce"
+    description: "What are the steps to reproduce the false negative?"
+    placeholder: "Step 1 - enter a portal..."
+  validations:
+    required: true
+- type: textarea
+  id: server
+  attributes:
+    label: "Server Software"
+    description: "What is the name and version of your server software?"
+    placeholder: "Put the name of the software and the output of `/version` here."
+  validations:
+    required: true
+- type: textarea
+  id: plugin
+  attributes:
+    label: "Plugin List"
+    description: "What plugins are you running?"
+    placeholder: "Put the output of `/plugins` here."
+  validations:
+    required: true
+- type: textarea
+  id: grimac
+  attributes:
+    label: "GrimAC Version"
+    description: "What version of GrimAC are you running?"
+    placeholder: "Put the output of `/version GrimAC` here."
+  validations:
+    required: true
