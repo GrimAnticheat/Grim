@@ -1,5 +1,6 @@
 package ac.grim.grimac.checks.impl.prediction;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
@@ -20,9 +21,6 @@ public class DebugHandler extends PostPredictionCheck {
     List<Player> listeners = Collections.synchronizedList(new ArrayList<>());
     boolean outputToConsole = false;
 
-    boolean enabledFlags = false;
-    boolean lastMovementIsFlag = false;
-
     List<String> predicted = new EvictingList<>(5);
     List<String> actually = new EvictingList<>(5);
     List<String> offset = new EvictingList<>(5);
@@ -35,48 +33,55 @@ public class DebugHandler extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         double offset = predictionComplete.getOffset();
 
-        // No one is listening to this debug
-        if (listeners.isEmpty() && !outputToConsole) return;
-
         ChatColor color = pickColor(offset, offset);
 
         Vector predicted = player.predictedVelocity.vector;
         Vector actually = player.actualMovement;
 
-        ChatColor xColor = pickColor(Math.abs(predicted.getX() - actually.getX()), offset);
-        ChatColor yColor = pickColor(Math.abs(predicted.getY() - actually.getY()), offset);
-        ChatColor zColor = pickColor(Math.abs(predicted.getZ() - actually.getZ()), offset);
-
-        String p = color + "P: " + xColor + predicted.getX() + " " + yColor + predicted.getY() + " " + zColor + predicted.getZ();
-        String a = color + "A: " + xColor + actually.getX() + " " + yColor + actually.getY() + " " + zColor + actually.getZ();
+        String p = "P: " + String.format("%.5f", predicted.getX()) + " " + String.format("%.5f", predicted.getY()) + " " + String.format("%.5f", predicted.getZ());
+        String a = "A: " + String.format("%.5f", actually.getX()) + " " + String.format("%.5f", actually.getY()) + " " + String.format("%.5f", actually.getZ());
         String canSkipTick = (player.couldSkipTick + " ").substring(0, 1);
         String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
-        String o = ChatColor.GRAY + "" + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset + " " + player.inVehicle;
+        String o = ChatColor.GRAY + "" + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
 
         String prefix = player.bukkitPlayer == null ? "null" : player.bukkitPlayer.getName() + " ";
 
-        boolean thisFlag = color != ChatColor.GRAY && color != ChatColor.GREEN;
-        if (enabledFlags) {
-            // If the last movement was a flag, don't duplicate messages to the player
-            if (lastMovementIsFlag) {
-                this.predicted.clear();
-                this.actually.clear();
-                this.offset.clear();
-            }
-            // Even if last was a flag, we must send the new message if the player flagged
-            this.predicted.add(p);
-            this.actually.add(a);
-            this.offset.add(o);
+        boolean thisFlag = offset > 0.0001;
 
-            lastMovementIsFlag = thisFlag;
-        }
+        // Even if last was a flag, we must send the new message if the player flagged
+        this.predicted.add(p);
+        this.actually.add(a);
+        this.offset.add(o);
 
         if (thisFlag) {
+            StringBuilder sb = new StringBuilder();
             for (int i = 0; i < this.predicted.size(); i++) {
-                player.user.sendMessage(this.predicted.get(i));
-                player.user.sendMessage(this.actually.get(i));
-                player.user.sendMessage(this.offset.get(i));
+                sb.append(this.predicted.get(i)).append("\n");
+                sb.append(this.actually.get(i)).append("\n");
+                sb.append(this.offset.get(i)).append("\n");
             }
+
+            sb.append("\n\nGliding ");
+            sb.append(player.isGliding);
+            sb.append(" Swimming ");
+            sb.append(player.isSwimming);
+            sb.append(" Pose ");
+            sb.append(player.pose);
+            sb.append(" In vehicle ");
+            sb.append(player.inVehicle);
+            sb.append(" Fireworks ");
+            sb.append(player.compensatedFireworks.getMaxFireworksAppliedPossible());
+            sb.append(" Movement num ");
+            sb.append(player.movementPackets);
+            sb.append(" Player position ");
+            sb.append(" X ");
+            sb.append(player.x);
+            sb.append(" Y ");
+            sb.append(player.y);
+            sb.append(" Z ");
+            sb.append(player.z);
+
+            GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, "Alerts", "debug", sb.toString());
         }
 
         for (Player player : listeners) {
@@ -112,10 +117,6 @@ public class DebugHandler extends PostPredictionCheck {
     public void toggleListener(Player player) {
         // Toggle, if already added, remove.  If not added, then add
         if (!listeners.remove(player)) listeners.add(player);
-    }
-
-    public void toggleFlags() {
-        enabledFlags = !enabledFlags;
     }
 
     public boolean toggleConsoleOutput() {
