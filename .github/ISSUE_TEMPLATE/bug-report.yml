@@ -1,9 +1,8 @@
-name: Bug Report
-description: Create a report to help us improve
-title: 'My bug report'
-labels: ['bug', 'unconfirmed']
-assignees:
-- MWHunter
+name: "Bug Report"
+description: "Report an error with the plugin"
+title: "My Bug Report"
+labels: ["bug", "unconfirmed"]
+assignees: ["MWHunter"]
 body:
 - type: textarea
   id: description
