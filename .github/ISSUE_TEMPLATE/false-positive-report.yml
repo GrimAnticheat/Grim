@@ -1,0 +1,54 @@
+name: "False-Positive Report"
+description: "Report a check that believes a legitemate user is cheating."
+title: "My False-Positive Report"
+labels: ["false positive", "unconfirmed"]
+assignees: ["MWHunter"]
+body:
+- type: textarea
+  id: check
+  attributes:
+    label: "Check Name"
+    description: "What check is causing the false-positive?"
+    placeholder: "...name of the check..."
+  validations:
+    required: true
+- type: textarea
+  id: description
+  attributes:
+    label: "Description"
+    description: "Describe the false-positive here."
+    placeholder: "The speed checks seem to FP when..."
+  validations:
+    required: true
+- type: textarea
+  id: reproduce
+  attributes:
+    label: "Steps to Reproduce"
+    description: "What are the steps to reproduce the false positive?"
+    placeholder: "Step 1 - enter a boat..."
+  validations:
+    required: true
+- type: textarea
+  id: server
+  attributes:
+    label: "Server Software"
+    description: "What is the name and version of your server software?"
+    placeholder: "Put the name of the software and the output of `/version` here."
+  validations:
+    required: true
+- type: textarea
+  id: plugin
+  attributes:
+    label: "Plugin List"
+    description: "What plugins are you running?"
+    placeholder: "Put the output of `/plugins` here."
+  validations:
+    required: true
+- type: textarea
+  id: grimac
+  attributes:
+    label: "GrimAC Version"
+    description: "What version of GrimAC are you running?"
+    placeholder: "Put the output of `/version GrimAC` here."
+  validations:
+    required: true
