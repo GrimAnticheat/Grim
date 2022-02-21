@@ -5,10 +5,8 @@ labels: ["question"]
 assignees: ["MWHunter"]
 body:
 - type: markdown
-  id: read-the-wiki
   attributes:
-    label: "Have you read the Wiki first?"
-    description: "Most questions are likely already answered on our Wiki. Please view the Wiki before asking here."
+    value: "Have you read the Wiki first? Most questions are likely already answered on our Wiki. Please view the Wiki before asking here."
 - type: textarea
   id: question
   attributes:
