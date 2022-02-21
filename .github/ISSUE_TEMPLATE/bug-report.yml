@@ -1,0 +1,63 @@
+name: Bug Report
+description: Create a report to help us improve
+title: ''
+labels: ['bug', 'unconfirmed']
+assignees:
+- MWHunter
+body:
+- type: textarea
+  id: description
+  attributes:
+    label: "Bug Description"
+    description: "Write a clear and concise description of the bug."
+    placeholder: "Grim fails to generate its configuration files on startup."
+  validations:
+    required: true
+- type: textarea
+  id: reproduce
+  attributes:
+    label: "Steps to Reproduce"
+    description: "Write the steps one needs to take to experience this bug."
+    placeholder: "Step 1 - edit the configuration so that..."
+  validations:
+    required: true
+- type: textarea
+  id: console-logs
+  attributes:
+    label: "Console Logs"
+    description: "If applicable, attach any console logs here."
+    placeholder: "Here is my entire console log, and here is a snippet of the stack trace."
+  validations:
+    required: false
+- type: textarea
+  id: screenshots
+  attributes:
+    label: "Screenshots"
+    description: "If applicable, attach some screenshots here."
+    placeholder: "This is a screenshot of the error in-game."
+  validations:
+    required: false
+- type: textarea
+  id: server
+  attributes:
+    label: "Server Software"
+    description: "What is the name and version of your server software?"
+    placeholder: "Write the name of your server software, and put the output of `/version` here."
+  validations:
+    required: true
+- type: textarea
+  id: plugins
+  attributes:
+    label: "Plugins List"
+    description: "What plugins are you running?"
+    placeholder: "Put the output of `/plugins` here."
+  validations:
+    required: true
+- type: textarea
+  id: grim
+  attributes:
+    label: "GrimAC Version"
+    description: "What version of Grim are you running?"
+    placeholder: "Put the output of `/version GrimAC` here."
+  validations:
+    required: true
