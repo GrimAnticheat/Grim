@@ -31,7 +31,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            List<Runnable> tasks = event.getPromisedTasks();
+            List<Runnable> tasks = event.getPostTasks();
             tasks.add(player::sendTransaction);
 
             if (health.getFood() == 20) { // Split so transaction before packet
@@ -63,7 +63,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            List<Runnable> tasks = event.getPromisedTasks();
+            List<Runnable> tasks = event.getPostTasks();
             tasks.add(player::sendTransaction);
 
             // Force the player to accept a teleport before respawning
