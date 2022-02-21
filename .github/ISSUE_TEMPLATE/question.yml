@@ -1,0 +1,22 @@
+name: "Question"
+description: "Ask us a question"
+title: "My Question"
+labels: ["question"]
+assignees: ["MWHunter"]
+body:
+- type: checkboxes
+  id: read-wiki
+  attributes:
+    label: "Have you read the Wiki before asking this question?"
+    description: "If you haven't, please read the Wiki before asking questions."
+    options:
+      - label: "I have read the Wiki, it does not answer my question."
+        required: true
+- type: textarea
+  id: question
+  attributes:
+    label: "Question"
+    description: "Write your question, clearly and concisely."
+    placeholder: "How do I accomplish XYZ? I've tried A, B and C, to no avail."
+  validations:
+    required: true
