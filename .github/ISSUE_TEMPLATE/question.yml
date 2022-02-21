@@ -4,14 +4,11 @@ title: "My Question"
 labels: ["question"]
 assignees: ["MWHunter"]
 body:
-- type: checkboxes
-  id: read-wiki
+- type: markdown
+  id: read-the-wiki
   attributes:
-    label: "Have you read the Wiki before asking this question?"
-    description: "If you haven't, please read the Wiki before asking questions."
-    options:
-      - label: "I have read the Wiki, it does not answer my question."
-        required: true
+    label: "Have you read the Wiki first?"
+    description: "Most questions are likely already answered on our Wiki. Please view the Wiki before asking here."
 - type: textarea
   id: question
   attributes:
