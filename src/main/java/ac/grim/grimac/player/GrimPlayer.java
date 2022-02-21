@@ -357,9 +357,9 @@ public class GrimPlayer {
             addTransactionSend(transactionID);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
-                user.writePacket(new WrapperPlayServerPing(transactionID));
+                user.sendPacket(new WrapperPlayServerPing(transactionID));
             } else {
-                user.writePacket(new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
+                user.sendPacket(new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
             }
         } catch (Exception exception) {
             exception.printStackTrace();
@@ -387,6 +387,11 @@ public class GrimPlayer {
     }
 
     public void pollData() {
+        // Force PacketEvents to resolve version...
+        if (!getClientVersion().isResolved() && bukkitPlayer != null) {
+            LogUtil.warn("Player " + bukkitPlayer.getName() + " has not resolved version yet... forcing manual resolve");
+            PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
+        }
         if (this.bukkitPlayer == null) {
             this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
 
