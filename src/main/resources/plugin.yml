@@ -6,6 +6,9 @@ softdepend:
   - ProtocolSupport
   - ViaVersion
   - Essentials
+  - ViaBackwards
+  - ViaRewind
+  - Geyser-Spigot
 api-version: 1.13
 load: POSTWORLD
 permissions:
