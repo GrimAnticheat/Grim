@@ -133,8 +133,8 @@ public class OffsetHandler extends PostPredictionCheck {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            offsets.add(new OffsetData("small", 0.0001, 100, 0.05, 200, 80));
-            offsets.add(new OffsetData("medium", 0.01, 15, 0.02, 100, 40));
+            offsets.add(new OffsetData("small", 0.0001, 100, 0.05, 80, 40));
+            offsets.add(new OffsetData("medium", 0.01, 30, 0.02, 40, 20));
             offsets.add(new OffsetData("large", 0.1, 1, 0.001, 10, 10));
         }
 

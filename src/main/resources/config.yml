@@ -33,16 +33,16 @@ Prediction:
     decay: 0.05
     # Alert vl: How many violations does the player need before they trigger alerts?
     # Set to -1 to disable alerts
-    dont-alert-until: 200
+    dont-alert-until: 80
     # Alert interval: Instead of sending 20 alerts for 20 flags, we send 1 alert every 20 flags
-    alert-interval: 80
+    alert-interval: 40
   # The vast majority of cheats flag in this offset range, 0.01-0.6
   Medium:
     threshold: 0.01
-    setbackvl: 80
+    setbackvl: 30
     decay: 0.02
-    dont-alert-until: 100
-    alert-interval: 40
+    dont-alert-until: 40
+    alert-interval: 20
   # This is to stop players from launching themselves extremely far in one tick
   Large:
     threshold: 0.1
@@ -79,8 +79,8 @@ Vehicle:
 GroundSpoof:
   setbackvl: 10
   decay: 0.01
-  dont-alert-until: 5
-  alert-interval: 5
+  dont-alert-until: 20
+  alert-interval: 20
 
 # Checks LOOK and GROUND packets for NoFall
 # Mostly stable, this cheat results in no advantage as we correct it before it touches the server
