@@ -58,9 +58,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
         super(PacketListenerPriority.LOW, false);
     }
 
-    // 0.03 on 1.17 duplicate packet
-    public Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
-
     // Copied from MCP...
     // Returns null if there isn't anything.
     //
@@ -711,7 +708,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         // Due to 0.03, we can't check exact position, only within 0.03
                         // (Due to wrong look and timing, this would otherwise flag timer being 50 ms late)
-                        filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4)
+                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4)
                         // If the player was in a vehicle and wasn't a teleport, then it was this stupid packet
                         || player.inVehicle)) {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
@@ -767,7 +764,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d clampVector = VectorUtils.clampVector(position);
             final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.isTeleport());
 
-            filterMojangStupidityOnMojangStupidity = clampVector;
+            player.filterMojangStupidityOnMojangStupidity = clampVector;
 
             if (!player.inVehicle) {
                 player.x = clampVector.getX();
