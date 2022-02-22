@@ -34,7 +34,16 @@ public class OffsetHandler extends PostPredictionCheck {
             if (offset > offsetHandler.getThreshold()) {
                 String name = (vehicle ? "Vehicle Prediction" : "Prediction") + "-" + offsetHandler.getName();
 
-                OffsetAlertEvent event = new OffsetAlertEvent(player, name, offset, offsetHandler.getViolations(), vehicle);
+                boolean isAlert = false;
+                if (violations + 1 > offsetHandler.getAlertMin()) {
+                    int diff = GrimMath.ceil(violations) - GrimMath.floor(offsetHandler.getAlertMin());
+                    if (diff % offsetHandler.getAlertInterval() == 0) {
+                        isAlert = true;
+                    }
+                }
+
+                // Check check, String checkName, double offset, double violations, boolean vehicle, boolean isAlert, boolean isSetback
+                OffsetAlertEvent event = new OffsetAlertEvent(this, name, offset, offsetHandler.getViolations(), vehicle, isAlert, violations > offsetHandler.getSetbackVL());
                 Bukkit.getPluginManager().callEvent(event);
                 if (event.isCancelled()) return;
 
@@ -51,13 +60,9 @@ public class OffsetHandler extends PostPredictionCheck {
                     player.getSetbackTeleportUtil().executeSetback();
                 }
 
-                if (violations > offsetHandler.getAlertMin()) {
-                    int diff = GrimMath.floor(violations) - GrimMath.floor(offsetHandler.getAlertMin());
-                    if (diff % offsetHandler.getAlertInterval() == 0) {
-                        String formatOffset = formatOffset(offset);
-
-                        alert("o: " + formatOffset, name, GrimMath.floor(violations) + "");
-                    }
+                if (isAlert) {
+                    String formatOffset = formatOffset(offset);
+                    alert("o: " + formatOffset, name, GrimMath.floor(violations) + "");
                 }
 
                 // Don't flag lower offset checks

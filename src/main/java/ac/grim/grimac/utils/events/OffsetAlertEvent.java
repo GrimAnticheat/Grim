@@ -1,18 +1,24 @@
 package ac.grim.grimac.utils.events;
 
-import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.checks.Check;
 
 public class OffsetAlertEvent extends FlagEvent {
     private final double offset;
+    private final String checkName;
     private final boolean vehicle;
     private final double violations;
+    private final boolean isAlert;
+    private final boolean isSetback;
     private boolean cancelled;
 
-    public OffsetAlertEvent(GrimPlayer player, String checkName, double offset, double violations, boolean vehicle) {
-        super(player, checkName, violations);
+    public OffsetAlertEvent(Check check, String checkName, double offset, double violations, boolean vehicle, boolean isAlert, boolean isSetback) {
+        super(check);
+        this.checkName = checkName;
         this.offset = offset;
         this.vehicle = vehicle;
         this.violations = violations;
+        this.isAlert = isAlert;
+        this.isSetback = isSetback;
     }
 
     public boolean isCancelled() {
@@ -27,11 +33,27 @@ public class OffsetAlertEvent extends FlagEvent {
         return offset;
     }
 
+    @Override
     public double getViolations() {
         return violations;
     }
 
     public boolean isVehicle() {
         return vehicle;
+    }
+
+    @Override
+    public String getCheckName() {
+        return checkName;
+    }
+
+    @Override
+    public boolean isAlert() {
+        return isAlert;
+    }
+
+    @Override
+    public boolean isSetback() {
+        return isSetback;
     }
 }

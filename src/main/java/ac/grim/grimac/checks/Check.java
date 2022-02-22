@@ -51,7 +51,7 @@ public class Check<T> {
     }
 
     public final boolean increaseViolationNoSetback() {
-        FlagEvent event = new FlagEvent(player, getCheckName(), getViolations());
+        FlagEvent event = new FlagEvent(this);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) return false;
 
@@ -113,11 +113,16 @@ public class Check<T> {
         if (setbackVL == -1) alertVL = Double.MAX_VALUE;
     }
 
-    public void alert(String verbose, String checkName, String violations) {
+    public boolean shouldAlert() {
         // Not enough alerts to be sure that the player is cheating
-        if (getViolations() < alertVL) return;
+        if (getViolations() < alertVL) return false;
         // To reduce spam, some checks only alert 10% of the time
-        if (alertInterval != 0 && alertCount++ % alertInterval != 0) return;
+        return alertInterval == 0 || alertCount % alertInterval == 0;
+    }
+
+    public void alert(String verbose, String checkName, String violations) {
+        if (!shouldAlert()) return;
+        alertCount++;
 
         String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrim &8»"));
