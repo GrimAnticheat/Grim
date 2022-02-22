@@ -45,6 +45,9 @@ public class FlagEvent extends Event implements Cancellable {
         return handlers;
     }
 
+    @Override
+    public static HandlerList getHandlerList() {return handlers;}
+
     public boolean isAlert() {
         return check.shouldAlert();
     }
