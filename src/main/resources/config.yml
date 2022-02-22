@@ -28,12 +28,12 @@ Prediction:
     threshold: 0.0001
     # Setback vl: How many times should the player have to go over this threshold to set them back?
     # Set to -1 to disable setbacks
-    setbackvl: 140
+    setbackvl: 100
     # Decay: How many violations should be reduced from the player for being below this threshold
     decay: 0.05
     # Alert vl: How many violations does the player need before they trigger alerts?
     # Set to -1 to disable alerts
-    dont-alert-until: 300
+    dont-alert-until: 200
     # Alert interval: Instead of sending 20 alerts for 20 flags, we send 1 alert every 20 flags
     alert-interval: 80
   # The vast majority of cheats flag in this offset range, 0.01-0.6
@@ -41,15 +41,15 @@ Prediction:
     threshold: 0.01
     setbackvl: 80
     decay: 0.02
-    dont-alert-until: 120
-    alert-interval: 60
+    dont-alert-until: 100
+    alert-interval: 40
   # This is to stop players from launching themselves extremely far in one tick
   Large:
     threshold: 0.1
     setbackvl: 1
     decay: 0.001
     dont-alert-until: 10
-    alert-interval: 40
+    alert-interval: 10
 
 # Vehicles are client sided in 1.9+, and server sided in 1.8 and below. This section only applies to 1.9+ servers
 # Vehicles are less stable than regular predictions as netcode for vehicles is significantly flawed
@@ -80,7 +80,7 @@ GroundSpoof:
   setbackvl: 10
   decay: 0.01
   dont-alert-until: 5
-  alert-interval: 1
+  alert-interval: 5
 
 # Checks LOOK and GROUND packets for NoFall
 # Mostly stable, this cheat results in no advantage as we correct it before it touches the server
@@ -88,7 +88,7 @@ NoFall:
   setbackvl: 10 # This doesn't give any advantage
   decay: 0.05 # This packet is rarer than other packets
   dont-alert-until: 10
-  alert-interval: 5
+  alert-interval: 15
 
 # Prediction-based no slow check
 # Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
@@ -107,9 +107,6 @@ NoSlow:
   # You likely don't want to be spammed with alerts. Target alerting once per item that wasn't slowed for
   alert-interval: 25
 
-# Real time NoFall check that is unstable
-# It works fine 99% of the time but everything this catches will be caught by the extremely stable
-# prediction based check.  It exists to enforce fall damage for the player
 Knockback:
   # How much of an offset is "cheating"
   # By default this is 1e-5, which is safe and sane
@@ -117,15 +114,15 @@ Knockback:
   threshold: 0.00001
   setbackvl: 10
   decay: 0.025
-  dont-alert-until: 5
-  alert-interval: 1
+  dont-alert-until: 8
+  alert-interval: 5
 
 Explosion:
   threshold: 0.00001
   setbackvl: 10
   decay: 0.025
-  dont-alert-until: 5
-  alert-interval: 1
+  dont-alert-until: 8
+  alert-interval: 5
 
 TimerA:
   # Target 1.005 timer
@@ -143,6 +140,13 @@ TimerVehicle:
   setbackvl: 10
   dont-alert-until: 5
   alert-interval: 5
+
+
+EntityControl:
+  decay: 0.05
+  setbackvl: 25
+  dont-alert-until: 40
+  alert-interval: 40
 
 Reach:
   # How much should we expand hitboxes by? 0.0005 should detect 3.0005+ reach

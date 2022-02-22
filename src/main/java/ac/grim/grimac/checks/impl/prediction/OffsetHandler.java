@@ -16,7 +16,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-@CheckData(name = "Prediction", buffer = 0)
+@CheckData(name = "Prediction")
 public class OffsetHandler extends PostPredictionCheck {
     List<OffsetData> regularOffsets;
     List<OffsetData> vehicleOffsets;
@@ -35,15 +35,15 @@ public class OffsetHandler extends PostPredictionCheck {
                 String name = (vehicle ? "Vehicle Prediction" : "Prediction") + "-" + offsetHandler.getName();
 
                 boolean isAlert = false;
-                if (violations + 1 > offsetHandler.getAlertMin()) {
-                    int diff = GrimMath.ceil(violations) - GrimMath.floor(offsetHandler.getAlertMin());
+                if (offsetHandler.violations > offsetHandler.getAlertMin()) {
+                    int diff = GrimMath.ceil(offsetHandler.violations) - GrimMath.floor(offsetHandler.getAlertMin());
                     if (diff % offsetHandler.getAlertInterval() == 0) {
                         isAlert = true;
                     }
                 }
 
                 // Check check, String checkName, double offset, double violations, boolean vehicle, boolean isAlert, boolean isSetback
-                OffsetAlertEvent event = new OffsetAlertEvent(this, name, offset, offsetHandler.getViolations(), vehicle, isAlert, violations > offsetHandler.getSetbackVL());
+                OffsetAlertEvent event = new OffsetAlertEvent(this, name, offset, offsetHandler.getViolations(), vehicle, isAlert, offsetHandler.violations > offsetHandler.getSetbackVL());
                 Bukkit.getPluginManager().callEvent(event);
                 if (event.isCancelled()) return;
 
@@ -133,9 +133,9 @@ public class OffsetHandler extends PostPredictionCheck {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            offsets.add(new OffsetData("small", 0.0001, 40, 0.125, 20, 10));
-            offsets.add(new OffsetData("medium", 0.01, 15, 0.05, 10, 10));
-            offsets.add(new OffsetData("large", 0.6, 1, 0.001, 3, 1));
+            offsets.add(new OffsetData("small", 0.0001, 100, 0.05, 200, 80));
+            offsets.add(new OffsetData("medium", 0.01, 15, 0.02, 100, 40));
+            offsets.add(new OffsetData("large", 0.1, 1, 0.001, 10, 10));
         }
 
         // Order based on highest offset to the lowest offset

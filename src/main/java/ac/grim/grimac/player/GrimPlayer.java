@@ -388,11 +388,6 @@ public class GrimPlayer {
     }
 
     public void pollData() {
-        // Force PacketEvents to resolve version...
-        if (!getClientVersion().isResolved() && bukkitPlayer != null) {
-            LogUtil.warn("Player " + bukkitPlayer.getName() + " has not resolved version yet... forcing manual resolve");
-            PacketEvents.getAPI().getPlayerManager().getClientVersion(bukkitPlayer);
-        }
         if (this.bukkitPlayer == null) {
             this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
 

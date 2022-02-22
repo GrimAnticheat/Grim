@@ -14,7 +14,7 @@ import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-@CheckData(name = "AntiExplosion", configName = "Explosion")
+@CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10, dontAlertUntil = 8, alertInterval = 5)
 public class ExplosionHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
 

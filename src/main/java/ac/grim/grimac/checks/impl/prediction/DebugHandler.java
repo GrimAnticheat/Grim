@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "Prediction (Debug)", buffer = 0)
+@CheckData(name = "Prediction (Debug)")
 public class DebugHandler extends PostPredictionCheck {
 
     List<Player> listeners = Collections.synchronizedList(new ArrayList<>());

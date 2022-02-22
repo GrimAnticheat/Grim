@@ -1,6 +1,5 @@
 package ac.grim.grimac.predictionengine;
 
-import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
@@ -11,7 +10,6 @@ import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
-@CheckData(buffer = 3, maxBuffer = 3)
 public class GhostBlockDetector extends PostPredictionCheck {
 
     public GhostBlockDetector(GrimPlayer player) {

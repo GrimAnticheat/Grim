@@ -162,14 +162,14 @@ public class SimpleCollisionBox implements CollisionBox {
         return this;
     }
 
-    @Override
+    @Override // TODO: collision epsilon
     public boolean isCollided(SimpleCollisionBox other) {
         return other.maxX >= this.minX && other.minX <= this.maxX
                 && other.maxY >= this.minY && other.minY <= this.maxY
                 && other.maxZ >= this.minZ && other.minZ <= this.maxZ;
     }
 
-    @Override
+    @Override // TODO: collision epsilon
     public boolean isIntersected(SimpleCollisionBox other) {
         return other.maxX > this.minX && other.minX < this.maxX
                 && other.maxY > this.minY && other.minY < this.maxY

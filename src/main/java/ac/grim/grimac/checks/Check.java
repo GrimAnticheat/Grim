@@ -21,10 +21,7 @@ public class Check<T> {
     public int alertInterval;
     public int alertCount;
     public boolean secretTestServerVLStyle = false;
-    private double buffer;
-    private double maxBuffer;
     private double setback;
-    private double flagCooldown;
     private double vlMultiplier;
     private String checkName;
     private String configName;
@@ -39,9 +36,6 @@ public class Check<T> {
             final CheckData checkData = checkClass.getAnnotation(CheckData.class);
             this.checkName = checkData.name();
             this.configName = checkData.configName();
-            this.flagCooldown = checkData.flagCooldown();
-            this.buffer = checkData.buffer();
-            this.maxBuffer = checkData.maxBuffer();
             this.vlMultiplier = checkData.decay();
             this.reset = checkData.reset();
             this.setback = checkData.setback();
@@ -67,30 +61,6 @@ public class Check<T> {
 
     public final void reward() {
         violations -= decay;
-    }
-
-    public final double increaseBuffer() {
-        return increaseBuffer(1);
-    }
-
-    public final double increaseBuffer(final double amount) {
-        return buffer = Math.min(maxBuffer, buffer + amount);
-    }
-
-    public final double decreaseBuffer() {
-        return decreaseBuffer(1);
-    }
-
-    public final double decreaseBuffer(final double amount) {
-        return buffer = Math.max(0, buffer - amount);
-    }
-
-    public final void setBuffer(final double amount) {
-        buffer = amount;
-    }
-
-    public final void multiplyBuffer(final double multiplier) {
-        buffer *= multiplier;
     }
 
     public final void debug(final Object object) {

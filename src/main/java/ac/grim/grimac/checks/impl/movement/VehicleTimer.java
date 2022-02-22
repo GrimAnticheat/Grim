@@ -5,7 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 
-@CheckData(name = "Timer - Vehicle", configName = "TimerVehicle", flagCooldown = 1000, maxBuffer = 5)
+@CheckData(name = "Timer - Vehicle", configName = "TimerVehicle", setback = 10, dontAlertUntil = 5, alertInterval = 5)
 public class VehicleTimer extends TimerCheck {
     public VehicleTimer(GrimPlayer player) {
         super(player);

@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.checks.impl.combat;
 
+import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // You may not copy the check unless you are licensed under GPL
+@CheckData(name = "Reach", configName = "Reach", setback = 10, dontAlertUntil = 5, alertInterval = 5)
 public class Reach extends PacketCheck {
     // Concurrent to support weird entity trackers
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();

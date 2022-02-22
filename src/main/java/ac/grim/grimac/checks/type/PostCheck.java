@@ -23,13 +23,9 @@ public class PostCheck extends PacketCheck {
 
             if (sent) {
                 if (delay > 40L && delay < 100L) {
-                    increaseBuffer(0.25);
-
-                    if (getBuffer() > 0.5) {
-                        debug("Failed check!");
-                    }
+                    debug("Failed check!");
                 } else {
-                    decreaseBuffer(0.025);
+                    reward();
                 }
 
                 sent = false;
@@ -44,7 +40,7 @@ public class PostCheck extends PacketCheck {
                 lastPacket = now;
                 sent = true;
             } else {
-                decreaseBuffer(0.025);
+                reward();
             }
         }
     }
