@@ -311,8 +311,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketId() == -1) {
+            System.out.println("Packet ID -1");
+            new Exception().printStackTrace();
+        }
         if (event.getPacketType() == null) {
-            System.out.println("Packet received type is null");
+            System.out.println("Packet type is null");
+            new Exception().printStackTrace();
         }
         if (event.getConnectionState() != ConnectionState.PLAY) return;
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
@@ -872,8 +877,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
+        if (event.getPacketId() == -1) {
+            System.out.println("Packet ID -1");
+            new Exception().printStackTrace();
+        }
         if (event.getPacketType() == null) {
-            System.out.println("Packet sent type is null");
+            System.out.println("Packet type is null");
+            new Exception().printStackTrace();
         }
 
         if (event.getConnectionState() != ConnectionState.PLAY) return;
