@@ -347,7 +347,7 @@ public class PacketEntityReplication extends PacketCheck {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         if (player == null) return;
 
-        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getX(), position.getX(), xRot, yRot));
+        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             player.compensatedEntities.addEntity(entityID, type, position);

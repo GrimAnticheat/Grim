@@ -706,7 +706,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
         if (!player.packetStateData.lastPacketWasTeleport && hasPosition &&
                 // Ground status will never change in this stupidity packet
-                (onGround == player.packetStateData.packetPlayerOnGround
+                (onGround == player.packetStateData.packetPlayerOnGround &&
+                        // If the player's transaction changed, it's not a stupidity packet
+                        // This solves some issues messing with reach
+                        player.antiFilterMojangStupidityTransaction != player.lastTransactionReceived.get()
                         // Always is a position look packet, no matter what
                         && hasLook
                         // Mojang added this stupid mechanic in 1.17
@@ -726,6 +729,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
             return;
         }
+
+        // Duplicate packet messes up duplicate packet detection, ironically.
+        // Only set duplicate packet transaction if not a duplicate packet
+        player.antiFilterMojangStupidityTransaction = player.lastTransactionReceived.get();
 
         player.lastXRot = player.xRot;
         player.lastYRot = player.yRot;

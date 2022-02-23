@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 
 public class GetBoundingBox {
     public static SimpleCollisionBox getCollisionBoxForPlayer(GrimPlayer player, double centerX, double centerY, double centerZ) {
@@ -40,19 +39,5 @@ public class GetBoundingBox {
         double maxZ = centerZ + (width / 2f);
 
         return new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ, false);
-    }
-
-    public static float getEyeHeight(boolean isShifting, boolean isGliding, boolean isSwimming, boolean isRiptiding, boolean isSleeping, ClientVersion clientVersion) {
-        if (isGliding || isSwimming || isRiptiding) {
-            return 0.4f;
-        } else if (isSleeping) {
-            return 0.2f;
-        } else if (isShifting && clientVersion.isNewerThanOrEquals(ClientVersion.V_1_14)) {
-            return 1.27f;
-        } else if (isShifting) {
-            return 1.54f;
-        } else {
-            return 1.62f;
-        }
     }
 }

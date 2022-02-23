@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
+import io.github.retrooper.packetevents.utils.SpigotReflectionUtil;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.awt.*;
@@ -33,7 +34,7 @@ public class DiscordManager implements Initable {
     public void sendAlert(GrimPlayer player, String checkName, String violations, String verbose) {
         if (client != null) {
 
-            String tps = String.format("%.2f", -1.234);
+            String tps = String.format("%.2f", SpigotReflectionUtil.getTPS());
             String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String formattedPing = "" + GrimMath.floor(player.getTransactionPing() / 1e6);
 

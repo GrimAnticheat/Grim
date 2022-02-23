@@ -85,6 +85,8 @@ public class GrimPlayer {
     public double speed;
     public Vector3d calculatedCollision = new Vector3d();
     public Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
+    // If there is a different transaction, it's not the 1.17 stupidity packet
+    public int antiFilterMojangStupidityTransaction;
     public double x;
     public double y;
     public double z;
