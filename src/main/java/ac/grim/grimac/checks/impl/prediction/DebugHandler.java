@@ -11,13 +11,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @CheckData(name = "Prediction (Debug)")
 public class DebugHandler extends PostPredictionCheck {
 
-    List<Player> listeners = Collections.synchronizedList(new ArrayList<>());
+    List<Player> listeners = new CopyOnWriteArrayList<>(new ArrayList<>());
     boolean outputToConsole = false;
 
     boolean enabledFlags = false;
