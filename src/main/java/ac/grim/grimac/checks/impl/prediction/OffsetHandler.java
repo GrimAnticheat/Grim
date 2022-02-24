@@ -35,11 +35,11 @@ public class OffsetHandler extends PostPredictionCheck {
         Bukkit.getPluginManager().callEvent(completePredictionEvent);
 
         for (OffsetData offsetHandler : (vehicle ? vehicleOffsets : regularOffsets)) {
-            if (offset > offsetHandler.getThreshold()) {
+            if (offset >= offsetHandler.getThreshold()) {
                 String name = (vehicle ? "Vehicle Prediction" : "Prediction") + "-" + offsetHandler.getName();
 
                 boolean isAlert = false;
-                if (offsetHandler.violations > offsetHandler.getAlertMin()) {
+                if (offsetHandler.violations >= offsetHandler.getAlertMin()) {
                     int diff = GrimMath.ceil(offsetHandler.violations) - GrimMath.floor(offsetHandler.getAlertMin());
                     if (diff % offsetHandler.getAlertInterval() == 0) {
                         isAlert = true;
@@ -55,7 +55,7 @@ public class OffsetHandler extends PostPredictionCheck {
                 double violations = offsetHandler.getViolations();
                 giveOffsetLenienceNextTick(offset);
 
-                if (violations > offsetHandler.getSetbackVL()) {
+                if (violations >= offsetHandler.getSetbackVL()) {
                     // Patch LiquidBounce Spartan NoFall
                     if (player.bukkitPlayer != null) {
                         player.bukkitPlayer.setFallDistance((float) player.fallDistance);
