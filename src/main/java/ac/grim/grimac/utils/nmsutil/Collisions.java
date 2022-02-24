@@ -59,8 +59,31 @@ public class Collisions {
     public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ, double clientVelY, VectorData data) {
         if (desiredX == 0 && desiredY == 0 && desiredZ == 0) return new Vector();
 
+        SimpleCollisionBox grabBoxesBB = player.boundingBox.copy();
+        double stepUpHeight = player.getMaxUpStep();
+
+        if (desiredX == 0.0 && desiredZ == 0.0) {
+            if (desiredY > 0.0) {
+                grabBoxesBB.maxY += desiredY;
+            } else {
+                grabBoxesBB.minY += desiredY;
+            }
+        } else {
+            if (stepUpHeight > 0.0 && (player.lastOnGround || desiredY < 0 || clientVelY < 0)) {
+                // don't bother getting the collisions if we don't need them.
+                if (desiredY <= 0.0) {
+                    grabBoxesBB.expand(desiredX, desiredY, desiredZ);
+                    grabBoxesBB.maxY += stepUpHeight;
+                } else {
+                    grabBoxesBB.expand(desiredX, Math.max(stepUpHeight, desiredY), desiredZ);
+                }
+            } else {
+                grabBoxesBB.expand(desiredX, desiredY, desiredZ);
+            }
+        }
+
         List<SimpleCollisionBox> desiredMovementCollisionBoxes = new ArrayList<>();
-        getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, desiredY, desiredZ), desiredMovementCollisionBoxes, false);
+        getCollisionBoxes(player, grabBoxesBB, desiredMovementCollisionBoxes, false);
 
         double bestInput = Double.MAX_VALUE;
         Vector bestOrderResult = null;
@@ -74,7 +97,6 @@ public class Collisions {
             // While running up stairs and holding space, the player activates the "lastOnGround" part without otherwise being able to step
             // 0.03 movement must compensate for stepping elsewhere.  Too much of a hack to include in this met5hod.
             boolean movingIntoGround = (player.lastOnGround || (collisionResult.getY() != desiredY && (desiredY < 0 || clientVelY < 0))) || player.pointThreeEstimator.closeEnoughToGroundToStepWithPointThree(data, clientVelY);
-            double stepUpHeight = player.getMaxUpStep();
 
             // If the player has x or z collision, is going in the downwards direction in the last or this tick, and can step up
             // If not, just return the collisions without stepping up that we calculated earlier
@@ -233,9 +255,7 @@ public class Collisions {
                             // Works on both legacy and modern!  Faster than checking for material types, most common case
                             if (data.getGlobalId() == 0) continue;
 
-                            int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
-                                    ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
-                                    ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
+                            int edgeCount = 0;
 
                             if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(data.getType()))
                                     && (edgeCount != 2 || data.getType() == StateTypes.PISTON_HEAD)) {
