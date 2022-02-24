@@ -18,7 +18,6 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
-import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
@@ -76,15 +75,13 @@ public class CompensatedWorld {
 
         try {
             if (column != null) {
+                if (column.getChunks().length <= (offsetY >> 4)) return;
+
                 BaseChunk chunk = column.getChunks()[offsetY >> 4];
 
                 if (chunk == null) {
-                    // TODO: Pre-1.18 support
-                    if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
-                        column.getChunks()[offsetY >> 4] = new Chunk_v1_18();
-                    }
-
-                    chunk = column.getChunks()[offsetY >> 4];
+                    chunk = BaseChunk.create();
+                    column.getChunks()[offsetY >> 4] = chunk;
 
                     // Sets entire chunk to air
                     // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
@@ -95,11 +92,10 @@ public class CompensatedWorld {
                 chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
                 // Handle stupidity such as fluids changing in idle ticks.
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
-                    player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(combinedID));
-                }
+                player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(combinedID));
             }
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -228,14 +224,18 @@ public class CompensatedWorld {
     }
 
     public WrappedBlockState getWrappedBlockStateAt(int x, int y, int z) {
-        Column column = getChunk(x >> 4, z >> 4);
+        try {
+            Column column = getChunk(x >> 4, z >> 4);
 
-        y -= minHeight;
-        if (column == null || y < 0 || y > maxHeight) return airData;
+            y -= minHeight;
+            if (column == null || y < 0 || (y >> 4) >= column.getChunks().length) return airData;
 
-        BaseChunk chunk = column.getChunks()[y >> 4];
-        if (chunk != null) {
-            return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+            BaseChunk chunk = column.getChunks()[y >> 4];
+            if (chunk != null) {
+                return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return airData;

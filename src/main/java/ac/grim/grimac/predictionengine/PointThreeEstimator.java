@@ -291,6 +291,8 @@ public class PointThreeEstimator {
         // 0.03 mitigation systems MAY be able to fix this)
         //
         // I give up.
+        //
+        // TODO: Part of these bugs were due to stepping BB grabbing being wrong, not 0.03 - can we simplify this?
         if (player.clientControlledVerticalCollision && data != null && data.isZeroPointZeroThree()) {
             return checkForGround(originalY);
         }

@@ -836,7 +836,6 @@ public enum BlockPlaceResult {
     }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("FENCE") && mat.getName().getKey().contains("GATE"))
             .toArray(ItemType[]::new)),
 
-    // TODO: This isn't allowed on 1.8 clients, they use different trapdoor placing logic
     TRAPDOOR((player, place) -> {
         WrappedBlockState door = place.getMaterial().createBlockState();
 

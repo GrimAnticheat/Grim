@@ -72,13 +72,13 @@ public class Collisions {
             if (stepUpHeight > 0.0 && (player.lastOnGround || desiredY < 0 || clientVelY < 0)) {
                 // don't bother getting the collisions if we don't need them.
                 if (desiredY <= 0.0) {
-                    grabBoxesBB.expand(desiredX, desiredY, desiredZ);
+                    grabBoxesBB.expandToCoordinate(desiredX, desiredY, desiredZ);
                     grabBoxesBB.maxY += stepUpHeight;
                 } else {
-                    grabBoxesBB.expand(desiredX, Math.max(stepUpHeight, desiredY), desiredZ);
+                    grabBoxesBB.expandToCoordinate(desiredX, Math.max(stepUpHeight, desiredY), desiredZ);
                 }
             } else {
-                grabBoxesBB.expand(desiredX, desiredY, desiredZ);
+                grabBoxesBB.expandToCoordinate(desiredX, desiredY, desiredZ);
             }
         }
 
