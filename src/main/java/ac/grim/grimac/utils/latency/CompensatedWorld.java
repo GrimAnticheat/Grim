@@ -44,7 +44,7 @@ public class CompensatedWorld {
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
     // 1.17 with datapacks, and 1.18, have negative world offset values
     private int minHeight = 0;
-    private int maxHeight = 255;
+    private int maxHeight = 256;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;

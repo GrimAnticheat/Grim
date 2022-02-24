@@ -362,8 +362,8 @@ public class GrimPlayer {
             } else {
                 user.sendPacket(new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
             }
-        } catch (Exception exception) {
-            exception.printStackTrace();
+        } catch (Exception ignored) { // Fix protocollib + viaversion support by ignoring any errors :) // TODO: Fix this
+            // recompile
         }
     }
 
