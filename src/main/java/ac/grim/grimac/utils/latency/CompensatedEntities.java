@@ -28,6 +28,7 @@ public class CompensatedEntities {
     public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public Integer serverPlayerVehicle = null;
     public double playerEntityMovementSpeed = 0.1f;
+    public boolean hasSprintingAttributeEnabled = false;
     public double playerEntityAttackSpeed = 4;
 
     GrimPlayer player;
@@ -49,6 +50,19 @@ public class CompensatedEntities {
         if (entityID == player.entityID) {
             for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
+                    boolean found = false;
+                    List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+                    for (WrapperPlayServerEntityProperties.PropertyModifier modifier : modifiers) {
+                        if (modifier.getUUID().equals(SPRINTING_MODIFIER_UUID)) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    // The server can set the player's sprinting attribute
+                    hasSprintingAttributeEnabled = found;
+
+                    // This affects the list, do it last
                     playerEntityMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                 }
 

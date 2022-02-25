@@ -364,7 +364,15 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
-        player.speed += player.isSprinting ? player.speed * 0.3f : 0;
+        // The player updates their attribute if it doesn't match the last value
+        // This last value can be changed by the server, however.
+        //
+        // Sprinting status itself does not desync, only the attribute as mojang forgot that the server
+        // can change the attribute
+        if (player.isSprinting != player.lastSprinting) {
+            player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
+        }
+        player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
 
         player.uncertaintyHandler.lastGlidingChangeTicks--;
         if (player.isGliding != player.wasGliding) player.uncertaintyHandler.lastGlidingChangeTicks = 0;

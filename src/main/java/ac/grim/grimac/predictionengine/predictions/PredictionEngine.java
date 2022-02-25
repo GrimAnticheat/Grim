@@ -293,23 +293,6 @@ public class PredictionEngine {
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
         loopVectors(player, possibleVectors, speed, returnVectors);
-
-        // There is a bug where the player sends sprinting, thinks they are sprinting, server also thinks so, but they don't have sprinting speed
-        // It mostly occurs when the player takes damage.
-        // This isn't going to destroy predictions as sprinting uses 1/3 the number of inputs, now 2/3 with this hack
-        // Meaning there is still a 1/3 improvement for sprinting players over non-sprinting
-        // If a player in this glitched state lets go of moving forward, then become un-glitched
-        if (player.isSprinting) {
-            player.isSprinting = false;
-            // Flying with sprinting increases speed by 2x
-            if (player.isFlying)
-                speed -= speed / 2;
-            else
-                speed /= 1.3f;
-            loopVectors(player, possibleVectors, speed, returnVectors);
-            player.isSprinting = true;
-        }
-
         return returnVectors;
     }
 

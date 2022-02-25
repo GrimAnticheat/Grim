@@ -111,6 +111,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             lastWorldResync = System.nanoTime();
         }
 
+        // Do this immediately to stop bypass
+        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, new Vector(), null, player.lastTransactionSent.get(), true);
+
         int bukkitTeleports = bukkitTeleportsProcessed;
 
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
