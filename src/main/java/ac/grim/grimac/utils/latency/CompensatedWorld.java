@@ -94,8 +94,7 @@ public class CompensatedWorld {
                 // Handle stupidity such as fluids changing in idle ticks.
                 player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(combinedID));
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
     }
 
@@ -234,8 +233,7 @@ public class CompensatedWorld {
             if (chunk != null) {
                 return chunk.get(x & 0xF, y & 0xF, z & 0xF);
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
 
         return airData;
