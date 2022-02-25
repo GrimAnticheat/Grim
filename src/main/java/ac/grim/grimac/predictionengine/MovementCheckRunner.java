@@ -549,8 +549,8 @@ public class MovementCheckRunner extends PositionCheck {
 
         // If the player is abusing a setback in order to gain the onGround status of true.
         // and the player then jumps from this position in the air.
-        // Fixes theoretically bypass.
-        if (player.getSetbackTeleportUtil().safeMovementTicks == 0 && player.predictedVelocity.isJump()
+        // Fixes LiquidBounce Jesus NCP, and theoretically AirJump bypass
+        if (player.getSetbackTeleportUtil().safeMovementTicks == 1 && player.predictedVelocity.isJump()
                 && Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY - 0.03, player.lastZ, 0.66f, 0.06f))) {
             player.getSetbackTeleportUtil().executeForceResync();
         }
