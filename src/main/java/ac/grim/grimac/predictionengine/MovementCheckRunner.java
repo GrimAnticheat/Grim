@@ -97,6 +97,8 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.lastHorizontalOffset = 0;
         player.uncertaintyHandler.lastVerticalOffset = 0;
+
+        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
     }
 
     private void check(PositionUpdate update) {
