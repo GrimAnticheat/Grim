@@ -18,7 +18,7 @@ import org.bukkit.Location;
 public class PacketServerTeleport extends PacketListenerAbstract {
 
     public PacketServerTeleport() {
-        super(PacketListenerPriority.LOW, false);
+        super(PacketListenerPriority.LOW, false, false);
     }
 
     @Override

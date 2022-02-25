@@ -597,6 +597,7 @@ public class BlockPlace {
     // MOJANG??? Why did you remove this from the damn packet.  YOU DON'T DO BLOCK PLACING RIGHT!
     // You use last tick vector on the server and current tick on the client...
     // You also have 0.03 for FIVE YEARS which will mess this up.  nice one mojang
+    // * 0.0004 as of 2/24/2022
     // Fix your damn netcode
     //
     // You also have the desync caused by eye height as apparently tracking the player's ticks wasn't important to you

@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPl
 public class PacketPlayerAbilities extends PacketListenerAbstract {
 
     public PacketPlayerAbilities() {
-        super(PacketListenerPriority.MONITOR, true);
+        super(PacketListenerPriority.MONITOR, true, false);
     }
 
     @Override

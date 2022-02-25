@@ -20,7 +20,7 @@ import java.util.List;
 public class PacketPlayerRespawn extends PacketListenerAbstract {
 
     public PacketPlayerRespawn() {
-        super(PacketListenerPriority.MONITOR, true);
+        super(PacketListenerPriority.MONITOR, true, false);
     }
 
     @Override

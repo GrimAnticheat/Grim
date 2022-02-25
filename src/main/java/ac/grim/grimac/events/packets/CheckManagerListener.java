@@ -55,7 +55,7 @@ import java.util.function.BiFunction;
 public class CheckManagerListener extends PacketListenerAbstract {
 
     public CheckManagerListener() {
-        super(PacketListenerPriority.LOW, false);
+        super(PacketListenerPriority.LOW, false, false);
     }
 
     // Copied from MCP...
@@ -694,11 +694,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
         }
 
-        if (hasLook) {
-            player.packetStateData.lastClaimedYaw = yaw;
-            player.packetStateData.lastClaimedPitch = pitch;
-        }
-
         // Don't check duplicate 1.17 packets (Why would you do this mojang?)
         // Don't check rotation since it changes between these packets, with the second being irrelevant.
         //
@@ -727,11 +722,24 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
-        player.lastXRot = player.xRot;
-        player.lastYRot = player.yRot;
+        if (hasLook) {
+            if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+                // Because of 0.03 (0.0004) combining with the duplicate stupidity packets,
+                // We can't rely on lastXRot and lastYRot being accurate :(
+                if (player.packetStateData.lastClaimedYaw != yaw || player.packetStateData.lastClaimedPitch != pitch) {
+                    player.lastXRot = yaw;
+                    player.lastYRot = pitch;
+                }
+            } else {
+                player.lastXRot = yaw;
+                player.lastYRot = pitch;
+            }
+
+            player.packetStateData.lastClaimedYaw = yaw;
+            player.packetStateData.lastClaimedPitch = pitch;
+        }
 
         handleQueuedPlaces(player, hasLook, pitch, yaw, now);
-
 
         // This stupid mechanic has been measured with 0.03403409022229198 y velocity... DAMN IT MOJANG, use 0.06 to be safe...
         if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround) {

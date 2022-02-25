@@ -15,7 +15,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 public class BasePacketWorldReader extends PacketListenerAbstract {
 
     public BasePacketWorldReader() {
-        super(PacketListenerPriority.MONITOR, true);
+        super(PacketListenerPriority.MONITOR, true, false);
     }
 
     @Override

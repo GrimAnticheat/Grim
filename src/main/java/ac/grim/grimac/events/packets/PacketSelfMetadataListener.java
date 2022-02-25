@@ -21,7 +21,7 @@ import java.util.List;
 
 public class PacketSelfMetadataListener extends PacketListenerAbstract {
     public PacketSelfMetadataListener() {
-        super(PacketListenerPriority.MONITOR, false);
+        super(PacketListenerPriority.MONITOR, false, false);
     }
 
     @Override
@@ -83,8 +83,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         player.sendTransaction();
                         hasSendTransaction = true;
 
+                        int trans = player.lastTransactionSent.get();
                         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                            player.uncertaintyHandler.lastMetadataDesync = 0;
+                            player.uncertaintyHandler.lastMetadataDesync = trans;
                             player.isSwimming = isSwimming;
                             player.lastSprinting = isSprinting;
                             // Protect this due to players being able to get the server to spam this packet a lot

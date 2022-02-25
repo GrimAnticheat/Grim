@@ -14,7 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 public class PacketEntityAction extends PacketListenerAbstract {
 
     public PacketEntityAction() {
-        super(PacketListenerPriority.LOW, true);
+        super(PacketListenerPriority.LOW, true, false);
     }
 
     @Override
