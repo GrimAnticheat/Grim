@@ -306,48 +306,52 @@ public class PacketEntityReplication extends PacketCheck {
     }
 
     private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative) {
-        PacketEntity reachEntity = player.compensatedEntities.getEntity(entityId);
+        TrackerData data = player.compensatedEntities.serverPositionsMap.get(entityId);
 
-        if (reachEntity != null) {
-            // We can't hang two relative moves on one transaction
-            if (reachEntity.lastTransactionHung == player.lastTransactionSent.get()) player.sendTransaction();
-            reachEntity.lastTransactionHung = player.lastTransactionSent.get();
-
-            // Only send one transaction before each wave, without flushing
-            if (!hasSentPreWavePacket) player.sendTransaction();
-            hasSentPreWavePacket = true; // Also functions to mark we need a post wave transaction
-
-            TrackerData data = player.compensatedEntities.serverPositionsMap.get(entityId);
-
-            if (data != null) {
-                // Update the tracked server's entity position
-                if (isRelative) {
-                    data.setX(data.getX() + deltaX);
-                    data.setY(data.getY() + deltaY);
-                    data.setZ(data.getZ() + deltaZ);
-                } else {
-                    data.setX(deltaX);
-                    data.setY(deltaY);
-                    data.setZ(deltaZ);
-                }
-                if (yaw != null) {
-                    data.setXRot(yaw);
-                    data.setYRot(pitch);
-                }
+        if (data != null) {
+            // Update the tracked server's entity position
+            if (isRelative) {
+                data.setX(data.getX() + deltaX);
+                data.setY(data.getY() + deltaY);
+                data.setZ(data.getZ() + deltaZ);
+            } else {
+                data.setX(deltaX);
+                data.setY(deltaY);
+                data.setZ(deltaZ);
+            }
+            if (yaw != null) {
+                data.setXRot(yaw);
+                data.setYRot(pitch);
             }
 
-            int lastTrans = player.lastTransactionSent.get();
-
-            player.latencyUtils.addRealTimeTask(lastTrans, () -> reachEntity.onFirstTransaction(isRelative, deltaX, deltaY, deltaZ, player));
-            player.latencyUtils.addRealTimeTask(lastTrans + 1, reachEntity::onSecondTransaction);
+            // We can't hang two relative moves on one transaction
+            if (data.getLastTransactionHung() == player.lastTransactionSent.get()) player.sendTransaction();
+            data.setLastTransactionHung(player.lastTransactionSent.get());
         }
+
+        // Only send one transaction before each wave, without flushing
+        if (!hasSentPreWavePacket) player.sendTransaction();
+        hasSentPreWavePacket = true; // Also functions to mark we need a post wave transaction
+
+        int lastTrans = player.lastTransactionSent.get();
+
+        player.latencyUtils.addRealTimeTask(lastTrans, () -> {
+            PacketEntity entity = player.compensatedEntities.getEntity(entityId);
+            if (entity == null) return;
+            entity.onFirstTransaction(isRelative, deltaX, deltaY, deltaZ, player);
+        });
+        player.latencyUtils.addRealTimeTask(lastTrans + 1,() -> {
+            PacketEntity entity = player.compensatedEntities.getEntity(entityId);
+            if (entity == null) return;
+            entity.onSecondTransaction();
+        });
     }
 
     public void addEntity(User user, int entityID, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData> entityMetadata) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         if (player == null) return;
 
-        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot));
+        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, player.lastTransactionSent.get()));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             player.compensatedEntities.addEntity(entityID, type, position);

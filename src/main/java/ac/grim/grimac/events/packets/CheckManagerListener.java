@@ -713,6 +713,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         || player.inVehicle)) {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
+            // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
+            player.packetStateData.lastClaimedYaw = yaw;
+            player.packetStateData.lastClaimedPitch = pitch;
+
             // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
             // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) &&
@@ -726,9 +730,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
                 // Because of 0.03 (0.0004) combining with the duplicate stupidity packets,
                 // We can't rely on lastXRot and lastYRot being accurate :(
+                // We must therefore trust the last claimed yaw, as stupidity packets don't allow for yaw changes
                 if (player.packetStateData.lastClaimedYaw != yaw || player.packetStateData.lastClaimedPitch != pitch) {
-                    player.lastXRot = yaw;
-                    player.lastYRot = pitch;
+                    player.lastXRot = player.packetStateData.lastClaimedYaw;
+                    player.lastYRot = player.packetStateData.lastClaimedPitch;
                 }
             } else {
                 player.lastXRot = yaw;

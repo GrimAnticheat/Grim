@@ -11,4 +11,5 @@ public class TrackerData {
     double z;
     float xRot;
     float yRot;
+    int lastTransactionHung;
 }

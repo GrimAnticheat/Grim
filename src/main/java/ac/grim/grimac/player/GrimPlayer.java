@@ -433,7 +433,7 @@ public class GrimPlayer {
         } else if (getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) { // Elytra, sneaking, standing
             return Arrays.asList(0.4, 1.54, 1.62);
         } else { // Only sneaking or standing
-            return Arrays.asList(1.54, 1.62);
+            return Arrays.asList((double) (1.62f - 0.08f), (double) (1.62f));
         }
     }
 
