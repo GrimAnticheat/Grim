@@ -736,8 +736,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     player.lastYRot = player.packetStateData.lastClaimedPitch;
                 }
             } else {
-                player.lastXRot = yaw;
-                player.lastYRot = pitch;
+                player.lastXRot = player.xRot;
+                player.lastYRot = player.yRot;
             }
 
             player.packetStateData.lastClaimedYaw = yaw;
