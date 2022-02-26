@@ -846,13 +846,29 @@ public enum CollisionData {
 
     }, StateTypes.LEVER),
 
-    PRESSURE_PLATE((player, version, data, x, y, z) -> {
+    STONE_PRESSURE_PLATE((player, version, data, x, y, z) -> {
         if (data.isPowered()) { // Pressed
             return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 0.5D, 15.0D);
         }
 
         return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
-    }, BlockTags.PRESSURE_PLATES.getStates().toArray(new StateType[0])),
+    }, BlockTags.STONE_PRESSURE_PLATES.getStates().toArray(new StateType[0])),
+
+    WOOD_PRESSURE_PLATE((player, version, data, x, y, z) -> {
+        if (data.isPowered()) { // Pressed
+            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 0.5D, 15.0D);
+        }
+
+        return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
+    }, BlockTags.WOODEN_PRESSURE_PLATES.getStates().toArray(new StateType[0])),
+
+    OTHER_PRESSURE_PLATE((player, version, data, x, y, z) -> {
+        if (data.getPower() > 0) { // Pressed
+            return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 0.5D, 15.0D);
+        }
+
+        return new HexCollisionBox(1.0D, 0.0D, 1.0D, 15.0D, 1.0D, 15.0D);
+    }, StateTypes.LIGHT_WEIGHTED_PRESSURE_PLATE, StateTypes.HEAVY_WEIGHTED_PRESSURE_PLATE),
 
     TRIPWIRE((player, version, data, x, y, z) -> {
         if (data.isAttached()) {
