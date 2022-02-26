@@ -75,6 +75,10 @@ public class PacketEntityReplication extends PacketCheck {
             Vector3d pos = move.getPosition();
             handleMoveEntity(move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false);
         }
+        if (event.getPacketType() == PacketType.Play.Server.ENTITY_ROTATION) { // Affects interpolation
+            WrapperPlayServerEntityRotation move = new WrapperPlayServerEntityRotation(event);
+            handleMoveEntity(move.getEntityId(), 0, 0, 0, move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true);
+        }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
