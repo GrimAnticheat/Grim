@@ -64,20 +64,20 @@ public class PacketEntityReplication extends PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
             WrapperPlayServerEntityRelativeMove move = new WrapperPlayServerEntityRelativeMove(event);
-            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), null, null, true);
+            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), null, null, true, true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_ROTATION) {
             WrapperPlayServerEntityRelativeMoveAndRotation move = new WrapperPlayServerEntityRelativeMoveAndRotation(event);
-            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true);
+            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT) {
             WrapperPlayServerEntityTeleport move = new WrapperPlayServerEntityTeleport(event);
             Vector3d pos = move.getPosition();
-            handleMoveEntity(move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false);
+            handleMoveEntity(move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false, true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_ROTATION) { // Affects interpolation
             WrapperPlayServerEntityRotation move = new WrapperPlayServerEntityRotation(event);
-            handleMoveEntity(move.getEntityId(), 0, 0, 0, move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true);
+            handleMoveEntity(move.getEntityId(), 0, 0, 0, move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, false);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
@@ -309,7 +309,7 @@ public class PacketEntityReplication extends PacketCheck {
         });
     }
 
-    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative) {
+    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
         TrackerData data = player.compensatedEntities.serverPositionsMap.get(entityId);
 
         if (data != null) {
@@ -342,7 +342,7 @@ public class PacketEntityReplication extends PacketCheck {
         player.latencyUtils.addRealTimeTask(lastTrans, () -> {
             PacketEntity entity = player.compensatedEntities.getEntity(entityId);
             if (entity == null) return;
-            entity.onFirstTransaction(isRelative, deltaX, deltaY, deltaZ, player);
+            entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
         });
         player.latencyUtils.addRealTimeTask(lastTrans + 1,() -> {
             PacketEntity entity = player.compensatedEntities.getEntity(entityId);

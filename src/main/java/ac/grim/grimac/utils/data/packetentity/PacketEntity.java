@@ -27,7 +27,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity {
     public Vector3d desyncClientPos;
-    public int lastTransactionHung;
     public EntityType type;
 
     public PacketEntity riding;
@@ -71,11 +70,16 @@ public class PacketEntity {
 
     // Set the old packet location to the new one
     // Set the new packet location to the updated packet location
-    public void onFirstTransaction(boolean relative, double relX, double relY, double relZ, GrimPlayer player) {
-        if (relative)
-            desyncClientPos = desyncClientPos.add(new Vector3d(relX, relY, relZ));
-        else
-            desyncClientPos = new Vector3d(relX, relY, relZ);
+    public void onFirstTransaction(boolean relative, boolean hasPos, double relX, double relY, double relZ, GrimPlayer player) {
+        if (hasPos) {
+            if (relative) {
+                // This only matters for 1.9+ clients, but it won't hurt 1.8 clients either... align for imprecision
+                desyncClientPos = new Vector3d(Math.floor(desyncClientPos.getX() * 4096) / 4096, Math.floor(desyncClientPos.getY() * 4096) / 4096, Math.floor(desyncClientPos.getZ() * 4096) / 4096);
+                desyncClientPos = desyncClientPos.add(new Vector3d(relX, relY, relZ));
+            } else {
+                desyncClientPos = new Vector3d(relX, relY, relZ);
+            }
+        }
 
         this.oldPacketLocation = newPacketLocation;
         this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
