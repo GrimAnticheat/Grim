@@ -433,7 +433,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         boolean couldBeStuckSpeed = Collisions.checkStuckSpeed(player, 0.03);
-        boolean couldLeaveStuckSpeed = Collisions.checkStuckSpeed(player, -0.03);
+        boolean couldLeaveStuckSpeed = player.isPointThree() && Collisions.checkStuckSpeed(player, -0.03);
         player.uncertaintyHandler.claimingLeftStuckSpeed = !player.inVehicle && player.stuckSpeedMultiplier.getX() < 1 && !couldLeaveStuckSpeed;
 
         if (couldBeStuckSpeed) {

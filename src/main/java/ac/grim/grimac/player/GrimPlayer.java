@@ -391,7 +391,8 @@ public class GrimPlayer {
 
     public void pollData() {
         // Send a transaction at least once a second, for timer purposes
-        if (lastTransSent + 1000 < System.currentTimeMillis()) {
+        // Don't be the first to send the transaction, or we will stack overflow
+        if (lastTransSent != 0 && lastTransSent + 1000 < System.currentTimeMillis()) {
             sendTransaction();
         }
         if (this.bukkitPlayer == null) {
@@ -400,10 +401,17 @@ public class GrimPlayer {
             if (this.bukkitPlayer == null) return;
 
             this.entityID = bukkitPlayer.getEntityId();
-            this.entityID = bukkitPlayer.getEntityId();
             this.playerWorld = bukkitPlayer.getWorld();
             this.gamemode = bukkitPlayer.getGameMode();
         }
+    }
+
+    public boolean isPointThree() {
+        return getClientVersion().isOlderThan(ClientVersion.V_1_18_2);
+    }
+
+    public double getMovementThreshold() {
+        return isPointThree() ? 0.03 : 0.0002;
     }
 
     public ClientVersion getClientVersion() {

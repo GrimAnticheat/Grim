@@ -694,6 +694,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
         }
 
+        double threshold = player.getMovementThreshold();
         // Don't check duplicate 1.17 packets (Why would you do this mojang?)
         // Don't check rotation since it changes between these packets, with the second being irrelevant.
         //
@@ -708,7 +709,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         // Due to 0.03, we can't check exact position, only within 0.03
                         // (Due to wrong look and timing, this would otherwise flag timer being 50 ms late)
-                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < 9e-4)
+                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < threshold * threshold)
                         // If the player was in a vehicle and wasn't a teleport, then it was this stupid packet
                         || player.inVehicle)) {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;

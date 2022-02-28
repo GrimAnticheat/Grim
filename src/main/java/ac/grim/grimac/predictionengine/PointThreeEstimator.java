@@ -74,6 +74,10 @@ import java.util.Set;
  * <p>
  * Call me out for the code (in this class) - but please put the blame on Mojang instead.  None of this would be needed
  * if Minecraft's netcode wasn't so terrible.
+ *
+ * 1.18.2 fixes this issue.  However, this code must now be applied to tick skipping,
+ * and I don't feel like writing another rant about tick skipping as mojang will never fix it, as it would
+ * increase bandwidth usage.  At least it only causes falses occasionally, and not bypasses.
  */
 public class PointThreeEstimator {
     private final GrimPlayer player;
@@ -275,6 +279,7 @@ public class PointThreeEstimator {
 
     public boolean closeEnoughToGroundToStepWithPointThree(VectorData data, double originalY) {
         if (player.inVehicle) return false; // No 0.03
+        if (!player.isPointThree()) return false; // No 0.03
 
         // This is intensive, only run it if we need it... compensate for stepping with 0.03
         //
@@ -333,7 +338,7 @@ public class PointThreeEstimator {
         SimpleCollisionBox oldPlayerBox = player.boundingBox;
         player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03);
 
-        boolean couldStep = checkForGround(player.clientVelocity.getY());
+        boolean couldStep = player.isPointThree() && checkForGround(player.clientVelocity.getY());
 
         // Takes 0.01 millis, on average, to compute... this should be improved eventually
         for (VectorData data : init) {
@@ -344,7 +349,7 @@ public class PointThreeEstimator {
 
             // If this tick is the tick after y velocity was by 0, a stepping movement is POSSIBLE to have been hidden
             // A bit hacky... is there a better way?  I'm unsure...
-            boolean likelyStepSkip = (data.vector.getY() > -0.08 && data.vector.getY() < 0.06) && couldStep;
+            boolean likelyStepSkip = player.isPointThree() && (data.vector.getY() > -0.08 && data.vector.getY() < 0.06) && couldStep;
 
             // We need to do hypot calculations for all 3 axis
             // sqrt(sqrt(x^2 + z^2)^2 + y^2) = hypot(x, z, y)
@@ -358,13 +363,13 @@ public class PointThreeEstimator {
 
             minimum = Math.min(minimum, length);
 
-            if (minimum < 0.03) break;
+            if (minimum < player.getMovementThreshold()) break;
         }
 
         player.boundingBox = oldPlayerBox;
 
         // As long as we are mathematically correct here, this should be perfectly accurate
-        return minimum < 0.03;
+        return minimum < player.getMovementThreshold();
     }
 
     public double getHorizontalFluidPushingUncertainty(VectorData vector) {
@@ -424,7 +429,7 @@ public class PointThreeEstimator {
 
             // We aren't making progress, avoid infinite loop (This can be due to the player not having gravity)
             if (yVel == 0) break;
-        } while (Math.abs(maxYTraveled + vector.vector.getY()) < 0.03);
+        } while (Math.abs(maxYTraveled + vector.vector.getY()) < player.getMovementThreshold());
 
         if (maxYTraveled != 0) {
             wasAlwaysCertain = false;

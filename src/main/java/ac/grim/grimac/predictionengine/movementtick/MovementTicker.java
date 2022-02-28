@@ -223,7 +223,7 @@ public class MovementTicker {
         }
 
         // Work around a bug introduced in 1.14 where a player colliding with an X and Z wall maintains X momentum
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14) || player.getClientVersion().isNewerThan(ClientVersion.V_1_18)) // 1.18.2 fixes this.
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14) || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2)) // 1.18.2 fixes this.
             return;
 
         // YXZ or YZX collision order
@@ -273,8 +273,8 @@ public class MovementTicker {
                 player.uncertaintyHandler.yPositiveUncertainty += 0.05;
             }
 
-            player.uncertaintyHandler.xNegativeUncertainty -= playerSpeed * 2;
-            player.uncertaintyHandler.xPositiveUncertainty += playerSpeed * 2;
+            player.uncertaintyHandler.xNegativeUncertainty -= playerSpeed * 3;
+            player.uncertaintyHandler.xPositiveUncertainty += playerSpeed * 3;
         }
     }
 

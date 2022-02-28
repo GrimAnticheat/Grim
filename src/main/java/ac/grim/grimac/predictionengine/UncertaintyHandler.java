@@ -151,24 +151,26 @@ public class UncertaintyHandler {
     }
 
     public double getOffsetHorizontal(VectorData data) {
+        double threshold = player.getMovementThreshold();
+
         boolean newVectorPointThree = player.couldSkipTick && data.isKnockback();
         boolean explicit003 = data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree;
         boolean either003 = newVectorPointThree || explicit003;
 
-        double pointThree = newVectorPointThree || lastMovementWasUnknown003VectorReset ? 0.03 : 0;
+        double pointThree = newVectorPointThree || lastMovementWasUnknown003VectorReset ? threshold : 0;
 
         // 0.91 * 0.6 * 0.06 = 0.03276 + 0.03 offset
         if (explicit003) {
-            pointThree = 0.06276;
+            pointThree = 0.91 * 0.6 * (threshold * 2);
         }
 
         // 0.06 * 0.91 * 0.8 = max + 0.03 offset
         if (either003 && (influencedByBouncyBlock() || isSteppingOnHoney))
-            pointThree = 0.07368;
+            pointThree = 0.06 * 0.91 * 0.8 * (threshold * 2);
 
         // 0.06 * 0.91 * 0.989 = max + 0.03 offset
         if (either003 && isSteppingOnIce)
-            pointThree = 0.084;
+            pointThree = 0.06 * 0.91 * 0.989 * (threshold * 2);
 
         // Reduce second tick uncertainty by minimum friction amount
         if (!newVectorPointThree && either003)
@@ -176,11 +178,11 @@ public class UncertaintyHandler {
 
         // 0.06 * 0.91 = max + 0.03 offset
         if (either003 && (player.lastOnGround || player.specialFlying))
-            pointThree = 0.0846;
+            pointThree = (0.06 * 0.91) * (threshold * 2);
 
         // Friction while gliding is 0.99 horizontally
         if (either003 && (player.isGliding || player.wasGliding)) {
-            pointThree = (0.99 * 0.06) + 0.03;
+            pointThree = (0.99 * (threshold * 2)) + threshold;
         }
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
@@ -227,26 +229,28 @@ public class UncertaintyHandler {
         if ((lastFlyingTicks < 5) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
             return 0.06;
 
+        double pointThree = player.getMovementThreshold();
         // This swim hop could be 0.03-influenced movement
         if (data.isTrident())
-            return 0.06;
+            return pointThree * 2;
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
         if (player.couldSkipTick && data.isKnockback())
-            return 0.03;
+            return pointThree;
 
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
             // Yeah, the second 0.06 isn't mathematically correct but 0.03 messes everything up...
             // Water pushing, elytras, EVERYTHING vertical movement gets messed up.
-            if (data.isZeroPointZeroThree()) return 0.06;
-            if (lastMovementWasZeroPointZeroThree) return 0.06;
+            if (data.isZeroPointZeroThree()) return pointThree * 2;
+            if (lastMovementWasZeroPointZeroThree) return pointThree * 2;
             if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
-                return 0.03;
+                return pointThree;
             return 0;
         }
 
         if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
-            return 0.03;
+            return pointThree;
+
 
         return 0;
     }
