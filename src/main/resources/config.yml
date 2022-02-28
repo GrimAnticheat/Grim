@@ -157,3 +157,17 @@ Reach:
   # Should we cancel hits that we know are impossible?
   # 3.00-3.03 hits may go through but still be flagged, due to packet order limitations
   block-impossible-hits: true
+  # This will send an additional packet at the end of every tick to increase the likelihood of catching cheats
+  # This injects into server's connection list to send a final packet just before the server flushes
+  # Enabling this will increase bandwidth usage for all players
+  # Enabling this may also cause a deadlock with ViaVersion's injection on 1.17+ servers
+  # Enabling this will consume performance on the main server thread
+  # Enabling this will catch more cheaters.
+  # Leaving this disabled will still catch cheaters and will not cause false positives
+  # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
+  enable-post-packet: false
+  # This will send an additional packet at the start of every tick to increase the likelihood of catching cheats
+  # This is safer then the post packet, but will increase bandwidth usage for all players
+  # Leaving this disabled will still catch cheaters and will not cause false positives
+  # This will not consume performance on the main server thread
+  enable-pre-packet: false

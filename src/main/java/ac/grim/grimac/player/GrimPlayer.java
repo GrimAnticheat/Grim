@@ -69,6 +69,7 @@ public class GrimPlayer {
     public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
     public boolean sendTrans = true;
+    private long lastTransSent = 0;
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
@@ -353,6 +354,7 @@ public class GrimPlayer {
     }
 
     public void sendTransaction() {
+        lastTransSent = System.currentTimeMillis();
         short transactionID = getNextTransactionID(1);
         try {
             addTransactionSend(transactionID);
@@ -388,6 +390,10 @@ public class GrimPlayer {
     }
 
     public void pollData() {
+        // Send a transaction at least once a second, for timer purposes
+        if (lastTransSent + 1000 < System.currentTimeMillis()) {
+            sendTransaction();
+        }
         if (this.bukkitPlayer == null) {
             this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
 

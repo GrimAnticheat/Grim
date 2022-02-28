@@ -25,10 +25,12 @@ import java.util.List;
 
 public class PacketEntityReplication extends PacketCheck {
 
-    private boolean hasSentPreWavePacket = false;
+    private final boolean enablePreWavePacket;
+    private boolean hasSentPreWavePacket = true;
 
     public PacketEntityReplication(GrimPlayer player) {
         super(player);
+        enablePreWavePacket = GrimAPI.INSTANCE.getPlugin().getConfig().getBoolean("reach.enable-pre-packet", false);
     }
 
     public void tickFlying() {
@@ -312,6 +314,11 @@ public class PacketEntityReplication extends PacketCheck {
     private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
         TrackerData data = player.compensatedEntities.serverPositionsMap.get(entityId);
 
+        if (!hasSentPreWavePacket) {
+            hasSentPreWavePacket = true;
+            player.sendTransaction();
+        }
+
         if (data != null) {
             // Update the tracked server's entity position
             if (isRelative) {
@@ -329,13 +336,11 @@ public class PacketEntityReplication extends PacketCheck {
             }
 
             // We can't hang two relative moves on one transaction
-            if (data.getLastTransactionHung() == player.lastTransactionSent.get()) player.sendTransaction();
+            if (data.getLastTransactionHung() == player.lastTransactionSent.get()) {
+                player.sendTransaction();
+            }
             data.setLastTransactionHung(player.lastTransactionSent.get());
         }
-
-        // Only send one transaction before each wave, without flushing
-        if (!hasSentPreWavePacket) player.sendTransaction();
-        hasSentPreWavePacket = true; // Also functions to mark we need a post wave transaction
 
         int lastTrans = player.lastTransactionSent.get();
 
@@ -374,6 +379,8 @@ public class PacketEntityReplication extends PacketCheck {
     public void onEndOfTickEvent() {
         // Only send a transaction at the end of the tick if we are tracking players
         player.sendTransaction(); // We injected before vanilla flushes :) we don't need to flush
-        hasSentPreWavePacket = false;
+        if (enablePreWavePacket) {
+            hasSentPreWavePacket = false;
+        }
     }
 }
