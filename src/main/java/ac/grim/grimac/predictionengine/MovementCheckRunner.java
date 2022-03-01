@@ -52,9 +52,11 @@ public class MovementCheckRunner extends PositionCheck {
         // Keep re-teleporting until they load the chunk!
         if (player.getSetbackTeleportUtil().insideUnloadedChunk()) {
             if (player.inVehicle) return;
-            if (!player.getSetbackTeleportUtil().isPendingTeleport() && !data.isTeleport()) {
+
+            player.lastOnGround = player.clientClaimsLastOnGround; // Stop a false on join
+            if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) return; // Not spawned yet
+            if (!data.isTeleport()) {
                 // Teleport the player back to avoid players being able to simply ignore transactions
-                player.lastOnGround = player.clientClaimsLastOnGround; // Stop a false on join
                 player.getSetbackTeleportUtil().executeForceResync();
                 return;
             }

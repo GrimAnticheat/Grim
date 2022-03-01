@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -62,17 +63,20 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         // Only exists in 1.7 and 1.8
         WrapperPlayServerChunkDataBulk chunkData = new WrapperPlayServerChunkDataBulk(event);
         for (int i = 0; i < chunkData.getChunks().length; i++) {
-            addChunkToCache(player, chunkData.getChunks()[i], true, chunkData.getX()[i], chunkData.getZ()[i]);
+            addChunkToCache(event, player, chunkData.getChunks()[i], true, chunkData.getX()[i], chunkData.getZ()[i]);
         }
     }
 
     public void handleMapChunk(GrimPlayer player, PacketSendEvent event) {
         WrapperPlayServerChunkData chunkData = new WrapperPlayServerChunkData(event);
-        addChunkToCache(player, chunkData.getColumn().getChunks(), true, chunkData.getColumn().getX(), chunkData.getColumn().getZ());
+        addChunkToCache(event, player, chunkData.getColumn().getChunks(), true, chunkData.getColumn().getX(), chunkData.getColumn().getZ());
         event.setLastUsedWrapper(null);
     }
 
-    public void addChunkToCache(GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
+    public void addChunkToCache(PacketSendEvent event, GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
+        if (GrimMath.floor(player.x) >> 4 == chunkX && GrimMath.floor(player.z) >> 4 == chunkZ) {
+            event.getPostTasks().add(player::sendTransaction); // Player is in this unloaded chunk
+        }
         if (isGroundUp) {
             Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
             player.compensatedWorld.addToCache(column, chunkX, chunkZ);
