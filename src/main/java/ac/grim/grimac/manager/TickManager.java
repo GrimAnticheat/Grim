@@ -2,6 +2,7 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.manager.tick.Tickable;
 import ac.grim.grimac.manager.tick.impl.ClientVersionSetter;
+import ac.grim.grimac.manager.tick.impl.ResetTick;
 import com.google.common.collect.ClassToInstanceMap;
 import com.google.common.collect.ImmutableClassToInstanceMap;
 import lombok.Getter;
@@ -19,6 +20,7 @@ public class TickManager {
 
         asyncTick = new ImmutableClassToInstanceMap.Builder<Tickable>()
                 .put(ClientVersionSetter.class, new ClientVersionSetter())
+                .put(ResetTick.class, new ResetTick())
                 .build();
     }
 
