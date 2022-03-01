@@ -12,6 +12,7 @@ public class PlayerJoinQuitListener implements Listener {
     // PacketEvents uses priority HIGHEST
     @EventHandler(priority = EventPriority.HIGH)
     public void playerQuitEvent(PlayerQuitEvent event) {
+        if (event.getPlayer().hasMetadata("NPC")) return;
         User user = PacketEvents.getAPI().getPlayerManager().getUser(event.getPlayer());
         GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
     }

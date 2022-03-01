@@ -21,6 +21,7 @@ import java.util.ArrayList;
 public class FishEvent implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onFishEvent(PlayerFishEvent event) {
+        if (event.getPlayer().hasMetadata("NPC")) return;
         if (event.getCaught() instanceof Player && event.getState() == PlayerFishEvent.State.CAUGHT_ENTITY) {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer((Player) event.getCaught());
             if (player == null) return;

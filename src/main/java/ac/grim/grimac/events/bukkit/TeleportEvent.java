@@ -13,6 +13,7 @@ import org.bukkit.event.player.PlayerTeleportEvent;
 public class TeleportEvent implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerTeleportEvent(PlayerTeleportEvent event) {
+        if (event.getPlayer().hasMetadata("NPC")) return;
         Location to = event.getTo();
 
         // Don't let the vanilla anticheat override our teleports
@@ -34,6 +35,7 @@ public class TeleportEvent implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void onPlayerRespawnEvent(PlayerRespawnEvent event) {
+        if (event.getPlayer().hasMetadata("NPC")) return;
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
         if (player == null) return;
 
