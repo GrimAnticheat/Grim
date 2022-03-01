@@ -68,7 +68,6 @@ public class GrimPlayer {
     // Sync this to the netty thread because when spamming transactions, they can get out of order... somehow
     public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
-    public boolean sendTrans = true;
     private long lastTransSent = 0;
     public Vector clientVelocity = new Vector();
     public double lastWasClimbing = 0;

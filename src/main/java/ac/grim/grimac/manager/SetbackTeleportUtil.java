@@ -107,9 +107,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (requiredSetBack == null) return; // Player hasn't gotten a single teleport yet.
 
         // Only let us full resync once every ten seconds to prevent unneeded bukkit load
-        if (System.nanoTime() - lastWorldResync > 10e-9) {
+        if (System.currentTimeMillis() - lastWorldResync > 10 * 1000) {
             ResyncWorldUtil.resyncPositions(player, player.boundingBox.copy().expand(1));
-            lastWorldResync = System.nanoTime();
+            lastWorldResync = System.currentTimeMillis();
         }
 
         // Do this immediately to stop bypass abusing vanilla anticheat
