@@ -281,6 +281,16 @@ public class UncertaintyHandler {
             offset = 0;
         }
 
+        // This is a section where I hack around current issues with Grim itself...
+        if (player.uncertaintyHandler.wasAffectedByStuckSpeed()) {
+            offset -= 0.01;
+        }
+
+        if (player.uncertaintyHandler.influencedByBouncyBlock()) {
+            offset -= 0.03;
+        }
+        // This is the end of that section.
+
         // I can't figure out how the client exactly tracks boost time
         if (player.playerVehicle instanceof PacketEntityRideable) {
             PacketEntityRideable vehicle = (PacketEntityRideable) player.playerVehicle;
