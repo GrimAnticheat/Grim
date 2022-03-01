@@ -159,18 +159,18 @@ public class UncertaintyHandler {
 
         double pointThree = newVectorPointThree || lastMovementWasUnknown003VectorReset ? threshold : 0;
 
-        // 0.91 * 0.6 * 0.06 = 0.03276 + 0.03 offset
+        // 0.91 * 0.6 * (offset * 2) = 0.03276 + 0.03 offset
         if (explicit003) {
-            pointThree = 0.91 * 0.6 * (threshold * 2);
+            pointThree = 0.91 * 0.6 * (threshold * 2) + threshold;
         }
 
-        // 0.06 * 0.91 * 0.8 = max + 0.03 offset
+        // (offset * 2) * 0.91 * 0.8 = max + 0.03 offset
         if (either003 && (influencedByBouncyBlock() || isSteppingOnHoney))
-            pointThree = 0.06 * 0.91 * 0.8 * (threshold * 2);
+            pointThree = 0.91 * 0.8 * (threshold * 2) + threshold;
 
-        // 0.06 * 0.91 * 0.989 = max + 0.03 offset
+        // (offset * 2) * 0.91 * 0.989 = max + 0.03 offset
         if (either003 && isSteppingOnIce)
-            pointThree = 0.06 * 0.91 * 0.989 * (threshold * 2);
+            pointThree = 0.91 * 0.989 * (threshold * 2) + threshold;
 
         // Reduce second tick uncertainty by minimum friction amount
         if (!newVectorPointThree && either003)
@@ -178,7 +178,7 @@ public class UncertaintyHandler {
 
         // 0.06 * 0.91 = max + 0.03 offset
         if (either003 && (player.lastOnGround || player.specialFlying))
-            pointThree = (0.06 * 0.91) * (threshold * 2);
+            pointThree = 0.91 * (threshold * 2) + threshold;
 
         // Friction while gliding is 0.99 horizontally
         if (either003 && (player.isGliding || player.wasGliding)) {
