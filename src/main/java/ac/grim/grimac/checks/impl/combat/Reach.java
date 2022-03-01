@@ -22,9 +22,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
-import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -125,15 +123,6 @@ public class Reach extends PacketCheck {
             if (reachEntity == null) return;
 
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-
-            // 1.9 -> 1.8 precision loss in packets
-            // (ViaVersion is doing some stuff that makes this code difficult)
-            //
-            // This will likely be fixed with PacketEvents 2.0, where our listener is before ViaVersion
-            // Don't attempt to fix it with this version of PacketEvents, it's not worth our time when 2.0 will fix it.
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
-                targetBox.expand(0.03125);
-            }
 
             // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
             // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.

@@ -19,6 +19,8 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 
 // You may not copy the check unless you are licensed under GPL
@@ -32,6 +34,13 @@ public class ReachInterpolationData {
     public ReachInterpolationData(SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine, PacketEntity entity) {
         this.startingLocation = startingLocation;
         this.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, BoundingBoxSize.getWidth(entity), BoundingBoxSize.getHeight(entity));
+
+        // 1.9 -> 1.8 precision loss in packets
+        // (ViaVersion is doing some stuff that makes this code difficult)
+        if (!isPointNine && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+            targetLocation.expand(0.03125);
+        }
+
         this.isBoat = entity.type == EntityTypes.BOAT;
         if (isPointNine) interpolationStepsHighBound = getInterpolationSteps();
     }
