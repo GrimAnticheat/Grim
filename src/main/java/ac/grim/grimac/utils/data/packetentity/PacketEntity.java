@@ -39,6 +39,9 @@ public class PacketEntity {
 
     public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
         this.desyncClientPos = new Vector3d(x, y, z);
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) { // Thanks ViaVersion
+            desyncClientPos = new Vector3d(((int) (desyncClientPos.getX() * 32)) / 32d, ((int) (desyncClientPos.getY() * 32)) / 32d, ((int) (desyncClientPos.getZ() * 32)) / 32d);
+        }
         this.type = type;
         this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getPacketEntityBoundingBox(x, y, z, this),
                 desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
@@ -78,6 +81,12 @@ public class PacketEntity {
                 desyncClientPos = desyncClientPos.add(new Vector3d(relX, relY, relZ));
             } else {
                 desyncClientPos = new Vector3d(relX, relY, relZ);
+                // ViaVersion desync's here for teleports
+                // It simply teleports the entity with its position divided by 32... ignoring the offset this causes.
+                // Thanks a lot ViaVersion!  Please don't fix this, or it will be a pain to support.
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+                    desyncClientPos = new Vector3d(((int) (desyncClientPos.getX() * 32)) / 32d, ((int) (desyncClientPos.getY() * 32)) / 32d, ((int) (desyncClientPos.getZ() * 32)) / 32d);
+                }
             }
         }
 

@@ -66,20 +66,20 @@ public class PacketEntityReplication extends PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
             WrapperPlayServerEntityRelativeMove move = new WrapperPlayServerEntityRelativeMove(event);
-            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), null, null, true, true);
+            handleMoveEntity(event, move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), null, null, true, true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE_AND_ROTATION) {
             WrapperPlayServerEntityRelativeMoveAndRotation move = new WrapperPlayServerEntityRelativeMoveAndRotation(event);
-            handleMoveEntity(move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, true);
+            handleMoveEntity(event, move.getEntityId(), move.getDeltaX(), move.getDeltaY(), move.getDeltaZ(), move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT) {
             WrapperPlayServerEntityTeleport move = new WrapperPlayServerEntityTeleport(event);
             Vector3d pos = move.getPosition();
-            handleMoveEntity(move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false, true);
+            handleMoveEntity(event, move.getEntityId(), pos.getX(), pos.getY(), pos.getZ(), move.getYaw(), move.getPitch(), false, true);
         }
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_ROTATION) { // Affects interpolation
             WrapperPlayServerEntityRotation move = new WrapperPlayServerEntityRotation(event);
-            handleMoveEntity(move.getEntityId(), 0, 0, 0, move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, false);
+            handleMoveEntity(event, move.getEntityId(), 0, 0, 0, move.getYaw() * 0.7111111F, move.getPitch() * 0.7111111F, true, false);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
@@ -311,7 +311,7 @@ public class PacketEntityReplication extends PacketCheck {
         });
     }
 
-    private void handleMoveEntity(int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
+    private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
         TrackerData data = player.compensatedEntities.serverPositionsMap.get(entityId);
 
         if (!hasSentPreWavePacket) {
@@ -322,6 +322,16 @@ public class PacketEntityReplication extends PacketCheck {
         if (data != null) {
             // Update the tracked server's entity position
             if (isRelative) {
+                // ViaVersion sends two relative packets when moving more than 4 blocks
+                // This is broken and causes the client to interpolate like (0, 4) and (1, 3) instead of (1, 7)
+                // This causes impossible hits, so grim must replace this with a teleport entity packet
+                // Not ideal, but neither is 1.8 players on a 1.9+ server.
+                if ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY(), data.getZ()), yaw, pitch, false));
+                    event.setCancelled(true);
+                    return;
+                }
+
                 data.setX(data.getX() + deltaX);
                 data.setY(data.getY() + deltaY);
                 data.setZ(data.getZ() + deltaZ);
