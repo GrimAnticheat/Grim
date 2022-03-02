@@ -216,6 +216,8 @@ public class CompensatedWorld {
         // Tick the pistons and remove them if they can no longer exist
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
         openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
+        // Remove if a shulker is not in this block position anymore
+        openShulkerBoxes.removeIf(box -> !Materials.isShulker(player.compensatedWorld.getWrappedBlockStateAt(box.blockPos).getType()));
     }
 
     public WrappedBlockState getWrappedBlockStateAt(Vector3i vector3i) {
