@@ -312,6 +312,12 @@ public class GrimPlayer {
             }
         }
 
+        if (lastTransactionSent.get() - lastTransactionReceived.get() - transactionsSent.size() != 0) {
+            System.out.println("It's mathematically impossible to see this message.");
+            System.out.println("Transaction responses is wrong! THIS WILL CAUSE MAJOR ISSUES REPORT THIS BUG! " + lastTransactionSent.get() + " " + lastTransactionReceived.get() + " " + transactionsSent.size());
+            new Exception("HERE'S A STACKTRACE SO YOU NOTICE AND REPORT THIS BUG");
+        }
+
         if (hasID) {
             do {
                 data = transactionsSent.poll();

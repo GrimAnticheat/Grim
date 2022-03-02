@@ -184,12 +184,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 double lastY = player.y;
                 double lastZ = player.z;
 
-                // We must set positions and stuff because 0.03 and stupidity packet combine
-                // into an ultra-stupid behavior that only mojang can accomplish
-                //
-                // We don't know which packets are the true movement
-                player.xRot = player.packetStateData.lastClaimedYaw;
-                player.yRot = player.packetStateData.lastClaimedPitch;
                 player.x = player.packetStateData.lastClaimedPosition.getX();
                 player.y = player.packetStateData.lastClaimedPosition.getY();
                 player.z = player.packetStateData.lastClaimedPosition.getZ();
@@ -715,8 +709,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
             // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
-            player.packetStateData.lastClaimedYaw = yaw;
-            player.packetStateData.lastClaimedPitch = pitch;
+            player.xRot = yaw;
+            player.yRot = pitch;
 
             // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
             // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
@@ -728,27 +722,14 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         if (hasLook) {
-            if (player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                // Because of 0.03 (0.0004) combining with the duplicate stupidity packets,
-                // We can't rely on lastXRot and lastYRot being accurate :(
-                // We must therefore trust the last claimed yaw, as stupidity packets don't allow for yaw changes
-                if (player.packetStateData.lastClaimedYaw != yaw || player.packetStateData.lastClaimedPitch != pitch) {
-                    player.lastXRot = player.packetStateData.lastClaimedYaw;
-                    player.lastYRot = player.packetStateData.lastClaimedPitch;
-                }
-            } else {
-                player.lastXRot = player.xRot;
-                player.lastYRot = player.yRot;
-            }
-
-            player.packetStateData.lastClaimedYaw = yaw;
-            player.packetStateData.lastClaimedPitch = pitch;
+            player.lastXRot = player.xRot;
+            player.lastYRot = player.yRot;
         }
 
         handleQueuedPlaces(player, hasLook, pitch, yaw, now);
 
         // This stupid mechanic has been measured with 0.03403409022229198 y velocity... DAMN IT MOJANG, use 0.06 to be safe...
-        if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround) {
+        if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && !player.inVehicle) {
             player.lastOnGround = onGround;
             player.clientClaimsLastOnGround = onGround;
             player.uncertaintyHandler.onGroundUncertain = true;
@@ -758,7 +739,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Cannot use collisions like normal because stepping messes it up :(
             //
             // This may need to be secured better, but limiting the new setback positions seems good enough for now...
-            if (Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 0.06f)) || player.clientVelocity.getY() > 0.06) {
+            SimpleCollisionBox stupidityBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 0.06f);
+            if ((Collisions.isEmpty(player, stupidityBox) && !player.compensatedWorld.isNearHardEntity(stupidityBox.copy().expand(4))) || player.clientVelocity.getY() > 0.06) {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
         }
