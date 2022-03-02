@@ -47,11 +47,6 @@ public class TeleportEvent implements Listener {
 
     private void onWorldChangeEvent(GrimPlayer player, World newWorld) {
         if (player == null) return;
-
-        player.sendTransaction();
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.playerWorld = newWorld);
-
-        // Force the player to accept a teleport before respawning
-        player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport = false;
     }
 }

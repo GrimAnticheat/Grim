@@ -14,17 +14,15 @@ public class SetBackData {
     float xRot, yRot;
     Vector velocity;
     Integer vehicle;
-    int trans;
     boolean isComplete = false;
     boolean isPlugin = false;
 
-    public SetBackData(Location position, float xRot, float yRot, Vector velocity, Integer vehicle, int trans, boolean isPlugin) {
+    public SetBackData(Location position, float xRot, float yRot, Vector velocity, Integer vehicle, boolean isPlugin) {
         this.position = position;
         this.xRot = xRot;
         this.yRot = yRot;
         this.velocity = velocity;
         this.vehicle = vehicle;
-        this.trans = trans;
         this.isPlugin = isPlugin;
     }
 }
