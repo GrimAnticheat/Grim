@@ -324,14 +324,14 @@ public class GrimPlayer {
                 if (data == null)
                     break;
 
-                int incrementingID = lastTransactionReceived.incrementAndGet();
+                lastTransactionReceived.incrementAndGet();
                 transactionPing = (int) (System.nanoTime() - data.getSecond());
                 playerClockAtLeast = data.getSecond();
-
-                // A transaction means a new tick, so apply any block places
-                CheckManagerListener.handleQueuedPlaces(this, false, 0, 0, System.currentTimeMillis());
-                latencyUtils.handleNettySyncTransaction(incrementingID);
             } while (data.getFirst() != id);
+
+            // A transaction means a new tick, so apply any block places
+            CheckManagerListener.handleQueuedPlaces(this, false, 0, 0, System.currentTimeMillis());
+            latencyUtils.handleNettySyncTransaction(lastTransactionReceived.get());
         }
 
         // Were we the ones who sent the packet?

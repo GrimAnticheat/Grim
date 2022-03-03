@@ -200,7 +200,7 @@ public class CompensatedEntities {
                         Vector3i bedPos = bed.get();
                         player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
                     } else { // Run when we know the player is not in bed 100%
-                        player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get() + 1, () -> player.isInBed = false);
+                        player.isInBed = false;
                     }
                 }
             }

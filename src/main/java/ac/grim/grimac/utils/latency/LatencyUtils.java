@@ -3,11 +3,11 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
 
-import java.util.Comparator;
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.LinkedList;
+import java.util.ListIterator;
 
 public class LatencyUtils {
-    private final PriorityBlockingQueue<Pair<Integer, Runnable>> transactionMap = new PriorityBlockingQueue<>(64, Comparator.comparingInt(Pair::getFirst));
+    private final LinkedList<Pair<Integer, Runnable>> transactionMap = new LinkedList<>();
     private final GrimPlayer player;
 
     public LatencyUtils(GrimPlayer player) {
@@ -19,19 +19,29 @@ public class LatencyUtils {
             runnable.run();
             return;
         }
-        transactionMap.add(new Pair<>(transaction, runnable));
+        synchronized (this) {
+            transactionMap.add(new Pair<>(transaction, runnable));
+        }
     }
 
     public void handleNettySyncTransaction(int transaction) {
-        Pair<Integer, Runnable> next = transactionMap.peek();
-        while (next != null) {
-            // This is a tick ahead of what we want
-            if (transaction < next.getFirst())
-                break;
+        synchronized (this) {
+            for (ListIterator<Pair<Integer, Runnable>> iterator = transactionMap.listIterator(); iterator.hasNext(); ) {
+                Pair<Integer, Runnable> pair = iterator.next();
 
-            transactionMap.poll();
-            next.getSecond().run();
-            next = transactionMap.peek();
+                // We are at most a tick ahead when running tasks based on transactions, meaning this is too far
+                if (transaction + 1 < pair.getFirst())
+                    return;
+
+                // This is at most tick ahead of what we want
+                if (transaction == pair.getFirst() - 1)
+                    continue;
+
+                // Run the task
+                pair.getSecond().run();
+                // We ran a task, remove it from the list
+                iterator.remove();
+            }
         }
     }
 }
