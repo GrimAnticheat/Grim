@@ -327,7 +327,7 @@ public class PacketEntityReplication extends PacketCheck {
                 // This causes impossible hits, so grim must replace this with a teleport entity packet
                 // Not ideal, but neither is 1.8 players on a 1.9+ server.
                 if ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY(), data.getZ()), yaw, pitch, false));
+                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY(), data.getZ()), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
                     event.setCancelled(true);
                     return;
                 }
