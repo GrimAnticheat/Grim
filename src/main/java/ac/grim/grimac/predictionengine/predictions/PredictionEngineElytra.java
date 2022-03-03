@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -39,14 +40,15 @@ public class PredictionEngineElytra extends PredictionEngine {
         double horizontalSqrt = Math.sqrt(lookVector.getX() * lookVector.getX() + lookVector.getZ() * lookVector.getZ());
         double horizontalLength = vector.clone().setY(0).length();
         double length = lookVector.length();
-        float vertCosRotation = player.trigHandler.cos(yRotRadians);
-        vertCosRotation = (float) ((double) vertCosRotation * (double) vertCosRotation * Math.min(1.0D, length / 0.4D));
-        vector.add(new Vector(0.0D, player.gravity * (-1.0D + (double) vertCosRotation * 0.75D), 0.0D));
+        // Mojang changed from using their math to using regular java math in 1.18.2 elytra movement
+        double vertCosRotation = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2) ? Math.cos(yRotRadians) : player.trigHandler.cos(yRotRadians);
+        vertCosRotation = (float) (vertCosRotation * vertCosRotation * Math.min(1.0D, length / 0.4D));
+        vector.add(new Vector(0.0D, player.gravity * (-1.0D + vertCosRotation * 0.75D), 0.0D));
         double d5;
 
         // Handle slowing the player down when falling
         if (vector.getY() < 0.0D && horizontalSqrt > 0.0D) {
-            d5 = vector.getY() * -0.1D * (double) vertCosRotation;
+            d5 = vector.getY() * -0.1D * vertCosRotation;
             vector.add(new Vector(lookVector.getX() * d5 / horizontalSqrt, d5, lookVector.getZ() * d5 / horizontalSqrt));
         }
 
