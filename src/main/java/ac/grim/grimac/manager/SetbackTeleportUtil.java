@@ -24,22 +24,23 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to netty
     private final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
     // Sync to netty, a player MUST accept a teleport to spawn into the world
+    // A teleport is used to end the loading screen.  Some cheats pretend to never end the loading screen
+    // in an attempt to disable the anticheat.  Be careful.
+    // We fix this by blocking serverbound movements until the player is out of the loading screen.
     public boolean hasAcceptedSpawnTeleport = false;
     // Was there a ghost block that forces us to block offsets until the player accepts their teleport?
     public boolean blockOffsets = false;
+    // This patches timer from being able to crash predictions.
     public boolean blockPredictions = false;
-    // This required setback data is sync to the BUKKIT MAIN THREAD (!)
-    SetBackData requiredSetBack = null;
-    // Sync to the anticheat thread
-    // The anticheat thread MUST be the only thread that controls these safe setback position variables
-    // This one prevents us from pulling positions the tick before a setback
-    boolean wasLastMovementSafe = true;
+    // Resetting velocity can be abused to "fly"
+    // Therefore, only allow one setback position every half second to patch this flight exploit
     public int safeMovementTicks = 0;
-    // Sync to anything, worst that can happen is sending an extra world update (which won't be noticed)
+    // This required setback data is the head of the teleport.
+    // It is set by both bukkit and netty due to going on the bukkit thread to setback players
+    SetBackData requiredSetBack = null;
+    // Sync to netty to stop excessive resync's
     long lastWorldResync = 0;
-    // Generally safe teleport position (ANTICHEAT THREAD!)
-    // Determined by the latest movement prediction
-    // Positions until the player's current setback is accepted cannot become safe teleport positions
+    // A legal place to setback the player to
     SetbackLocationVelocity safeTeleportPosition;
 
     public SetbackTeleportUtil(GrimPlayer player) {
@@ -76,7 +77,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
             }
         } else {
-            safeMovementTicks = 0;
+            safeMovementTicks = 0; // Pending setback
         }
     }
 
@@ -95,7 +96,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (player.bukkitPlayer != null && position.getWorld() != player.bukkitPlayer.getWorld()) return;
         if (requiredSetBack == null || player.bukkitPlayer == null)
             return; // Player hasn't gotten a single teleport yet.
-        if (isPendingTeleport()) return; // Don't spam teleports
+        requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
+        if (isPendingSetback()) return; // Don't spam setbacks
 
         // Only let us full resync once every ten seconds to prevent unneeded bukkit load
         if (System.currentTimeMillis() - lastWorldResync > 10 * 1000) {
@@ -103,12 +105,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             lastWorldResync = System.currentTimeMillis();
         }
 
-
         SetBackData data = new SetBackData(position, player.xRot, player.yRot, new Vector(), null, true);
         requiredSetBack = data;
 
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-            // Let a bukkit teleport or packet teleport override this setback
+            // Let bukkit teleports or packet teleports override this setback
             if (data != requiredSetBack) return;
 
             // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
@@ -129,8 +130,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void resendSetback() {
-        SetBackData setBack = requiredSetBack;
-        blockMovementsUntilResync(setBack.getPosition());
+        blockMovementsUntilResync(requiredSetBack.getPosition());
     }
 
     /**
@@ -230,16 +230,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @return Whether the current setback has been completed, or the player hasn't spawned yet
      */
     public boolean shouldBlockMovement() {
-        return isPendingSetback() || insideUnloadedChunk();
+        // We must block movements if we were the one to cause the teleport
+        // Else the vanilla anticheat will override our teleports causing a funny fly exploit
+        return insideUnloadedChunk() || (requiredSetBack != null && !requiredSetBack.isComplete() && !requiredSetBack.isPlugin());
     }
 
     private boolean isPendingSetback() {
-        SetBackData setBackData = requiredSetBack;
-        return setBackData != null && !setBackData.isComplete();
-    }
-
-    public boolean isPendingTeleport() {
-        return !teleports.isEmpty();
+        return requiredSetBack != null && !requiredSetBack.isComplete();
     }
 
     /**
@@ -274,7 +271,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * @param position Position of the teleport
      */
     public void setTargetTeleport(Location position) {
-        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, new Vector(), null, true);
+        boolean isPlugin = requiredSetBack == null || (requiredSetBack.getPosition().getX() != position.getX() ||
+                requiredSetBack.getPosition().getY() != position.getY() || requiredSetBack.getPosition().getZ() != position.getZ());
+
+        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, new Vector(), null, isPlugin);
         safeTeleportPosition = new SetbackLocationVelocity(position.getWorld(), new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
 
