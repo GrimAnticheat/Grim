@@ -162,7 +162,7 @@ public class GrimPlayer {
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
     public CompensatedPotions compensatedPotions;
-    public LatencyUtils latencyUtils = new LatencyUtils();
+    public LatencyUtils latencyUtils;
     public PointThreeEstimator pointThreeEstimator;
     public TrigHandler trigHandler;
     public PacketStateData packetStateData;
@@ -226,6 +226,7 @@ public class GrimPlayer {
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedEntities = new CompensatedEntities(this);
         compensatedPotions = new CompensatedPotions(this);
+        latencyUtils = new LatencyUtils(this);
         trigHandler = new TrigHandler(this);
         uncertaintyHandler = new UncertaintyHandler(this);
         pointThreeEstimator = new PointThreeEstimator(this);
@@ -315,7 +316,6 @@ public class GrimPlayer {
         if (lastTransactionSent.get() - lastTransactionReceived.get() - transactionsSent.size() != 0) {
             System.out.println("It's mathematically impossible to see this message.");
             System.out.println("Transaction responses is wrong! THIS WILL CAUSE MAJOR ISSUES REPORT THIS BUG! " + lastTransactionSent.get() + " " + lastTransactionReceived.get() + " " + transactionsSent.size());
-            new Exception("HERE'S A STACKTRACE SO YOU NOTICE AND REPORT THIS BUG");
         }
 
         if (hasID) {

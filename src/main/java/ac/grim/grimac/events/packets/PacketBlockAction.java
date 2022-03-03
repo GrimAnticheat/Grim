@@ -8,6 +8,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockAction;
 
@@ -17,7 +18,6 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBl
 // Exempting the player on shulker boxes is an option... but then you have people creating PvP arenas
 // on shulker boxes to get high lenience.
 //
-// Due to the difficulty of cross version shulker box
 public class PacketBlockAction extends PacketListenerAbstract {
     public PacketBlockAction() {
         super(PacketListenerPriority.MONITOR, true, false);
@@ -32,18 +32,22 @@ public class PacketBlockAction extends PacketListenerAbstract {
             WrapperPlayServerBlockAction blockAction = new WrapperPlayServerBlockAction(event);
             Vector3i blockPos = blockAction.getBlockPosition();
 
-            if (Materials.isShulker(blockAction.getBlockType().getType())) {
-                // Param is the number of viewers of the shulker box.
-                // Hashset with .equals() set to be position
-                if (blockAction.getActionData() >= 1) {
-                    ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), false);
-                    player.compensatedWorld.openShulkerBoxes.add(data);
-                } else {
-                    // The shulker box is closing
-                    ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), true);
-                    player.compensatedWorld.openShulkerBoxes.add(data);
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                // The client ignores the state sent to the client.
+                WrappedBlockState existing = player.compensatedWorld.getWrappedBlockStateAt(blockPos);
+                if (Materials.isShulker(existing.getType())) {
+                    // Param is the number of viewers of the shulker box.
+                    // Hashset with .equals() set to be position
+                    if (blockAction.getActionData() >= 1) {
+                        ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), false);
+                        player.compensatedWorld.openShulkerBoxes.add(data);
+                    } else {
+                        // The shulker box is closing
+                        ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), true);
+                        player.compensatedWorld.openShulkerBoxes.add(data);
+                    }
                 }
-            }
+            });
         }
     }
 }
