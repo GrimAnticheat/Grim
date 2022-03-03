@@ -56,6 +56,12 @@ public class Reach extends PacketCheck {
         if (!player.disableGrim && event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity action = new WrapperPlayClientInteractEntity(event);
 
+            // Don't let the player teleport to bypass reach
+            if (player.getSetbackTeleportUtil().shouldBlockMovement()) {
+                event.setCancelled(true);
+                return;
+            }
+
             PacketEntity entity = player.compensatedEntities.entityMap.get(action.getEntityId());
             // Stop people from freezing transactions before an entity spawns to bypass reach
             if (entity == null) {
