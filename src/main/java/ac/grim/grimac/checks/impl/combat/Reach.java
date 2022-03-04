@@ -105,7 +105,8 @@ public class Reach extends PacketCheck {
         PacketEntity reachEntity = player.compensatedEntities.entityMap.get(entityID);
         boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
-        if (reachEntity == null || reachEntity.type == EntityTypes.BOAT || reachEntity.type == EntityTypes.SHULKER)
+        if (reachEntity == null || reachEntity.type == EntityTypes.BOAT || reachEntity.type == EntityTypes.SHULKER || reachEntity.type == EntityTypes.ITEM_FRAME
+                || reachEntity.type == EntityTypes.GLOW_ITEM_FRAME || reachEntity.type == EntityTypes.PAINTING)
             return false; // exempt
 
         double lowest = 6;
@@ -183,7 +184,8 @@ public class Reach extends PacketCheck {
                 }
             }
 
-            if (reachEntity.type != EntityTypes.BOAT && reachEntity.type != EntityTypes.SHULKER) { // boats are too glitchy to consider
+            if (reachEntity.type != EntityTypes.BOAT && reachEntity.type != EntityTypes.SHULKER || reachEntity.type == EntityTypes.ITEM_FRAME
+                    || reachEntity.type == EntityTypes.GLOW_ITEM_FRAME || reachEntity.type == EntityTypes.PAINTING) { // boats are too glitchy to consider
                 if (minDistance == Double.MAX_VALUE) {
                     increaseViolationNoSetback();
                     alert("Missed hitbox", "Reach", formatViolations());
