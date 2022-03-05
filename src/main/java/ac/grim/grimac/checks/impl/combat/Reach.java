@@ -23,6 +23,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -43,6 +44,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Reach extends PacketCheck {
     // Concurrent to support weird entity trackers
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
+    private static final List<EntityType> exempt = Arrays.asList(
+            EntityTypes.BOAT,
+            EntityTypes.SHULKER,
+            EntityTypes.ITEM_FRAME,
+            EntityTypes.GLOW_ITEM_FRAME,
+            EntityTypes.PAINTING);
 
     private boolean cancelImpossibleHits;
     private double threshold;
@@ -105,8 +112,7 @@ public class Reach extends PacketCheck {
         PacketEntity reachEntity = player.compensatedEntities.entityMap.get(entityID);
         boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
-        if (reachEntity == null || reachEntity.type == EntityTypes.BOAT || reachEntity.type == EntityTypes.SHULKER || reachEntity.type == EntityTypes.ITEM_FRAME
-                || reachEntity.type == EntityTypes.GLOW_ITEM_FRAME || reachEntity.type == EntityTypes.PAINTING)
+        if (reachEntity == null || exempt.contains(reachEntity.type))
             return false; // exempt
 
         double lowest = 6;
@@ -184,8 +190,7 @@ public class Reach extends PacketCheck {
                 }
             }
 
-            if (reachEntity.type != EntityTypes.BOAT && reachEntity.type != EntityTypes.SHULKER || reachEntity.type == EntityTypes.ITEM_FRAME
-                    || reachEntity.type == EntityTypes.GLOW_ITEM_FRAME || reachEntity.type == EntityTypes.PAINTING) { // boats are too glitchy to consider
+            if (!exempt.contains(reachEntity.type)) {
                 if (minDistance == Double.MAX_VALUE) {
                     increaseViolationNoSetback();
                     alert("Missed hitbox", "Reach", formatViolations());
