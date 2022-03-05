@@ -114,10 +114,6 @@ public class DebugHandler extends PostPredictionCheck {
         if (!listeners.remove(player)) listeners.add(player);
     }
 
-    public void toggleFlags() {
-        enabledFlags = !enabledFlags;
-    }
-
     public boolean toggleConsoleOutput() {
         this.outputToConsole = !outputToConsole;
         return this.outputToConsole;

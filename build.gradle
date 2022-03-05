@@ -34,7 +34,7 @@ dependencies {
 }
 
 group = 'ac.grim.grimac'
-version = '2.0.20'
+version = '2.1.0'
 description = 'GrimAC'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -53,11 +53,6 @@ tasks.withType(JavaCompile) {
 
 shadowJar {
     minimize()
-    relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.io.github.retrooper.packetevents'
-    relocate 'com.github.retrooper.packetevents', 'ac.grim.grimac.shaded.com.github.retrooper.packetevents'
-    relocate 'co.aikar.acf', 'ac.grim.grimac.shaded.acf'
-    relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
-    relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
 }
 
 compileJava {

@@ -128,7 +128,7 @@ public class ExplosionHandler extends PacketCheck {
         // 100% known kb was taken
         if (player.likelyExplosions != null) {
             if (player.likelyExplosions.offset > offsetToFlag) {
-                increaseViolations();
+                flagWithSetback();
 
                 String formatOffset = "o: " + formatOffset(offset);
 

@@ -156,7 +156,7 @@ public class KnockbackHandler extends PacketCheck {
 
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
-                increaseViolations();
+                flagWithSetback();
 
                 String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
 

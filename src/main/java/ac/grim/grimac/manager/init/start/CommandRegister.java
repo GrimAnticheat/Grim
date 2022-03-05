@@ -1,8 +1,7 @@
 package ac.grim.grimac.manager.init.start;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.commands.GrimDebug;
-import ac.grim.grimac.commands.GrimPerf;
+import ac.grim.grimac.commands.*;
 import ac.grim.grimac.manager.init.Initable;
 import co.aikar.commands.PaperCommandManager;
 
@@ -17,5 +16,8 @@ public class CommandRegister implements Initable {
 
         commandManager.registerCommand(new GrimPerf());
         commandManager.registerCommand(new GrimDebug());
+        commandManager.registerCommand(new GrimAlerts());
+        commandManager.registerCommand(new GrimProfile());
+        commandManager.registerCommand(new GrimHelp());
     }
 }

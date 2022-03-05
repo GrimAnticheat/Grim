@@ -19,7 +19,7 @@ public class NoSlow extends PostPredictionCheck {
         // If the player was using an item for certain, and their predicted velocity had a flipped item
         if (player.packetStateData.slowedByUsingItem) {
             if (bestOffset > offsetToFlag) {
-                increaseViolations();
+                flagWithSetback();
                 alert("", "NoSlow", formatViolations());
             } else {
                 reward();

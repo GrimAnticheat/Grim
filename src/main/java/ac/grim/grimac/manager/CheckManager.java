@@ -1,8 +1,21 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.checks.impl.aim.AimA;
+import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
+import ac.grim.grimac.checks.impl.aim.processor.Cinematic;
+import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.combat.Reach;
+import ac.grim.grimac.checks.impl.crash.CrashA;
+import ac.grim.grimac.checks.impl.disabler.DisablerA;
+import ac.grim.grimac.checks.impl.disabler.DisablerB;
+import ac.grim.grimac.checks.impl.disabler.DisablerC;
+import ac.grim.grimac.checks.impl.disabler.DisablerD;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
+import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.movement.*;
+import ac.grim.grimac.checks.impl.pingspoof.PingSpoofA;
+import ac.grim.grimac.checks.impl.pingspoof.PingSpoofB;
+import ac.grim.grimac.checks.impl.post.*;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
@@ -44,7 +57,30 @@ public class CheckManager {
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(CompensatedInventory.class, new CompensatedInventory(player))
+                .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFallA.class, new NoFallA(player))
+                .put(PingSpoofA.class, new PingSpoofA(player))
+                .put(PingSpoofB.class, new PingSpoofB(player))
+                .put(BadPacketsA.class, new BadPacketsA(player))
+                .put(BadPacketsB.class, new BadPacketsB(player))
+                .put(BadPacketsC.class, new BadPacketsC(player))
+                .put(BadPacketsD.class, new BadPacketsD(player))
+                .put(BadPacketsE.class, new BadPacketsE(player))
+                .put(BadPacketsF.class, new BadPacketsF(player))
+                .put(BadPacketsG.class, new BadPacketsG(player))
+                .put(CrashA.class, new CrashA(player))
+                .put(DisablerA.class, new DisablerA(player))
+                .put(DisablerB.class, new DisablerB(player))
+                .put(DisablerC.class, new DisablerC(player))
+                .put(DisablerD.class, new DisablerD(player))
+                .put(PostA.class, new PostA(player))
+                .put(PostB.class, new PostB(player))
+                .put(PostC.class, new PostC(player))
+                .put(PostD.class, new PostD(player))
+                .put(PostE.class, new PostE(player))
+                .put(PostF.class, new PostF(player))
+                .put(PostG.class, new PostG(player))
+                .put(PostH.class, new PostH(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
@@ -52,6 +88,9 @@ public class CheckManager {
                 .put(CompensatedCooldown.class, new CompensatedCooldown(player))
                 .build();
         rotationCheck = new ImmutableClassToInstanceMap.Builder<RotationCheck>()
+                .put(AimProcessor.class, new AimProcessor(player))
+                .put(Cinematic.class, new Cinematic(player))
+                .put(AimA.class, new AimA(player))
                 .build();
         vehicleCheck = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
                 .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))

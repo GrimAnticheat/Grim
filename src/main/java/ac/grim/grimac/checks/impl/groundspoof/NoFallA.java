@@ -71,7 +71,7 @@ public class NoFallA extends PacketCheck {
             // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
             if (onGround(wrapper) && !hasPosition) {
                 if (!is003OnGround(onGround(wrapper))) { // If player isn't near ground
-                    increaseViolations();
+                    flagWithSetback();
                     setOnGround(wrapper, false);
                 } else {
                     reward();

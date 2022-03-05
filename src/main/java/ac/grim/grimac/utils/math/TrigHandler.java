@@ -1,11 +1,13 @@
 package ac.grim.grimac.utils.math;
 
 import ac.grim.grimac.player.GrimPlayer;
+import lombok.Getter;
 import org.bukkit.util.Vector;
 
 public class TrigHandler {
     GrimPlayer player;
     private double buffer = 0;
+    @Getter
     private boolean isVanillaMath = true;
 
     public TrigHandler(GrimPlayer player) {

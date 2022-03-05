@@ -192,10 +192,10 @@ public class Reach extends PacketCheck {
 
             if (!exempt.contains(reachEntity.type)) {
                 if (minDistance == Double.MAX_VALUE) {
-                    increaseViolationNoSetback();
+                    flag();
                     alert("Missed hitbox", "Reach", formatViolations());
                 } else if (minDistance > maxReach) {
-                    increaseViolationNoSetback();
+                    flag();
                     alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
                 } else {
                     reward();

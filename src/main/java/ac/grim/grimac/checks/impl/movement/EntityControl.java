@@ -10,10 +10,6 @@ public class EntityControl extends PostPredictionCheck {
         super(player);
     }
 
-    public void flag() {
-        increaseViolations();
-    }
-
     public void rewardPlayer() {
         reward();
     }
