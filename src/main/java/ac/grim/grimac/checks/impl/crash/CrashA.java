@@ -10,6 +10,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 @CheckData(name = "CrashA")
 public class CrashA extends PacketCheck {
     private static final double HARD_CODED_BORDER = 2.9999999E7D;
+    private static final double HARD_CODED_ILLEGAL_Y = 1.0E9D;
 
     public CrashA(GrimPlayer player) {
         super(player);
@@ -21,7 +22,7 @@ public class CrashA extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
             WrapperPlayClientPlayerPositionAndRotation packet = new WrapperPlayClientPlayerPositionAndRotation(event);
 
-            if (Math.abs(packet.getPosition().getX()) > HARD_CODED_BORDER || Math.abs(packet.getPosition().getZ()) > HARD_CODED_BORDER) {
+            if (Math.abs(packet.getPosition().getX()) > HARD_CODED_BORDER || Math.abs(packet.getPosition().getZ()) > HARD_CODED_BORDER || Math.abs(packet.getPosition.getZ()) > HARD_CODED_ILLEGAL_Y) {
                 flagAndAlert(); // Ban
             }
         }
