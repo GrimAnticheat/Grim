@@ -188,7 +188,6 @@ public class GrimPlayer {
     public GameMode gamemode;
     public Vector3d bedPosition;
     PacketTracker packetTracker;
-    private ClientVersion clientVersion;
     private int transactionPing = 0;
     private long playerClockAtLeast = 0;
     public long lastBlockPlaceUseItem = 0;
@@ -420,7 +419,12 @@ public class GrimPlayer {
     }
 
     public ClientVersion getClientVersion() {
-        return user.getClientVersion(); // It's a variable that will get inlined, no map calls.
+        ClientVersion ver = user.getClientVersion();
+        if (ver == null) {
+            // If temporarily null, assume server version...
+            return ClientVersion.getById(PacketEvents.getAPI().getServerManager().getVersion().getProtocolVersion());
+        }
+        return ver;
     }
 
     public CompensatedInventory getInventory() {

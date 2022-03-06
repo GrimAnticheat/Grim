@@ -258,6 +258,9 @@ public class CompensatedInventory extends PacketCheck {
                     for (int i = 0; i < slots.size(); i++) {
                         inventory.getSlot(i).set(slots.get(i));
                     }
+                    if (items.getCarriedItem().isPresent()) {
+                        inventory.setCarried(items.getCarriedItem().get());
+                    }
                 });
             } else {
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -267,6 +270,9 @@ public class CompensatedInventory extends PacketCheck {
                         for (int i = 0; i < slots.size(); i++) {
                             menu.getSlot(i).set(slots.get(i));
                         }
+                    }
+                    if (items.getCarriedItem().isPresent()) {
+                        inventory.setCarried(items.getCarriedItem().get());
                     }
                 });
             }
