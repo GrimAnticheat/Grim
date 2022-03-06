@@ -6,6 +6,7 @@ import ac.grim.grimac.checks.impl.aim.processor.Cinematic;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.CrashA;
+import ac.grim.grimac.checks.impl.crash.CrashB;
 import ac.grim.grimac.checks.impl.disabler.DisablerA;
 import ac.grim.grimac.checks.impl.disabler.DisablerB;
 import ac.grim.grimac.checks.impl.disabler.DisablerC;
@@ -69,6 +70,7 @@ public class CheckManager {
                 .put(BadPacketsF.class, new BadPacketsF(player))
                 .put(BadPacketsG.class, new BadPacketsG(player))
                 .put(CrashA.class, new CrashA(player))
+                .put(CrashB.class, new CrashB(player))
                 .put(DisablerA.class, new DisablerA(player))
                 .put(DisablerB.class, new DisablerB(player))
                 .put(DisablerC.class, new DisablerC(player))
