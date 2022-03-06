@@ -178,6 +178,8 @@ public class CompensatedWorld {
                 direction = ((PacketEntityShulker) data.entity).facing.getOppositeFace();
             }
 
+            if (direction == null) direction = BlockFace.UP; // default state
+
             // Change negative corner in expansion as the direction is negative
             // We don't bother differentiating shulker entities and shulker boxes
             // I guess players can cheat to get an extra 0.49 of Y height on shulker boxes, I don't care.
