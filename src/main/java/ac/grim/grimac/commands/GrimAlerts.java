@@ -17,12 +17,10 @@ public class GrimAlerts extends BaseCommand {
     private static final List<Player> disabledAlerts = new CopyOnWriteArrayList<>(new ArrayList<>());
 
     public static void toggle(Player player) {
-        if (disabledAlerts.contains(player)) {
+        if (disabledAlerts.remove(player)) {
             String alertString = GrimAPI.INSTANCE.getPlugin().getConfig().getString("messages.alerts-enabled", "%prefix% &fAlerts enabled");
             alertString = MessageUtil.format(alertString);
             player.sendMessage(alertString);
-
-            disabledAlerts.remove(player);
         } else {
             String alertString = GrimAPI.INSTANCE.getPlugin().getConfig().getString("messages.alerts-disabled", "%prefix% &fAlerts disabled");
             alertString = MessageUtil.format(alertString);
