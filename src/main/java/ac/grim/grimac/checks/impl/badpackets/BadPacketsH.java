@@ -27,7 +27,7 @@ public class BadPacketsH extends PacketCheck {
             swung = false;
 	} else if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
 	    swung = true;
-	} else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacket()) {
+	} else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
 	    swung = false;
 	}
       }
