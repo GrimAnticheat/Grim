@@ -18,7 +18,7 @@ public class BadPacketsH extends PacketCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.USE_ENTITY) {
+        if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrappedPacketInUseEntity packet = new WrappedPacketInUseEntity(event);
 
             if (packet.getAction() != WrappedPacketInUseEntity.EntityUseAction.ATTACK) return;
