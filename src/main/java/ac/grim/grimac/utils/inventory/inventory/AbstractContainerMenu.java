@@ -247,7 +247,8 @@ public abstract class AbstractContainerMenu {
         } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.SWAP) {
             Slot hoveringSlot = slots.get(slotID);
 
-            ItemStack hotbarKeyStack = getPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET);
+            // 40 is offhand
+            ItemStack hotbarKeyStack = getPlayerInventoryItem(button == 40 ? Inventory.SLOT_OFFHAND : button + Inventory.HOTBAR_OFFSET);
             ItemStack hoveringItem2 = hoveringSlot.getItem();
 
             if (!hotbarKeyStack.isEmpty() || !hoveringItem2.isEmpty()) {
