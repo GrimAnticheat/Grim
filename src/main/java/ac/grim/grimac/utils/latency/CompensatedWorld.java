@@ -216,7 +216,13 @@ public class CompensatedWorld {
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
         openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
         // Remove if a shulker is not in this block position anymore
-        openShulkerBoxes.removeIf(box -> !Materials.isShulker(player.compensatedWorld.getWrappedBlockStateAt(box.blockPos).getType()));
+        openShulkerBoxes.removeIf(box -> {
+            if (box.blockPos != null) { // Block is no longer valid
+                return !Materials.isShulker(player.compensatedWorld.getWrappedBlockStateAt(box.blockPos).getType());
+            } else { // Entity is no longer valid
+                return !player.compensatedEntities.entityMap.containsValue(box.entity);
+            }
+        });
     }
 
     public WrappedBlockState getWrappedBlockStateAt(Vector3i vector3i) {
