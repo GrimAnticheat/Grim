@@ -35,4 +35,3 @@ public class BadPacketsH extends PacketCheck {
         }
     }
 }
-		   
