@@ -243,6 +243,11 @@ CrashA:
   dont-alert-until: 1
   alert-interval: 1
 # Possible but unlikely to false
+CrashB:
+  decay: 0.01
+  dont-alert-until: 5
+  alert-interval: 5
+# Possible but unlikely to false
 DisablerA:
   decay: 0
   dont-alert-until: 5

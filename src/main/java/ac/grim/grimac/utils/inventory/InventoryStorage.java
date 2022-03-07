@@ -20,7 +20,7 @@ public class InventoryStorage {
     }
 
     public void setItem(int item, ItemStack stack) {
-        items[item] = stack;
+        items[item] = stack == null ? ItemStack.EMPTY : stack;
     }
 
     public ItemStack getItem(int index) {

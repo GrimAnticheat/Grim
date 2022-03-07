@@ -24,7 +24,7 @@ public class PostCheck extends PacketCheck {
 
             if (sent) {
                 if (delay > 40L && delay < 100L) {
-                    debug("Failed check!");
+                    flagAndAlert();
                 } else {
                     reward();
                 }

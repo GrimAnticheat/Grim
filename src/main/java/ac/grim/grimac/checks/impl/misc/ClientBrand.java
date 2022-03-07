@@ -8,6 +8,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
 public class ClientBrand extends PacketCheck {
     String brand = "vanilla";
@@ -46,7 +47,12 @@ public class ClientBrand extends PacketCheck {
                         message = message.replace("%brand%", brand);
                         message = message.replace("%player%", player.user.getProfile().getName());
 
-                        Bukkit.broadcast(message, "grim.brand");
+                        // sendMessage is async safe while broadcast isn't due to adventure
+                        for (Player player : Bukkit.getOnlinePlayers()) {
+                            if (player.hasPermission("grimac.brand")) {
+                                player.sendMessage(message);
+                            }
+                        }
                     }
                 }
             }

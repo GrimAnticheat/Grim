@@ -178,6 +178,8 @@ public class CompensatedWorld {
                 direction = ((PacketEntityShulker) data.entity).facing.getOppositeFace();
             }
 
+            if (direction == null) direction = BlockFace.UP; // default state
+
             // Change negative corner in expansion as the direction is negative
             // We don't bother differentiating shulker entities and shulker boxes
             // I guess players can cheat to get an extra 0.49 of Y height on shulker boxes, I don't care.
@@ -214,7 +216,13 @@ public class CompensatedWorld {
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);
         openShulkerBoxes.removeIf(ShulkerData::tickIfGuaranteedFinished);
         // Remove if a shulker is not in this block position anymore
-        openShulkerBoxes.removeIf(box -> !Materials.isShulker(player.compensatedWorld.getWrappedBlockStateAt(box.blockPos).getType()));
+        openShulkerBoxes.removeIf(box -> {
+            if (box.blockPos != null) { // Block is no longer valid
+                return !Materials.isShulker(player.compensatedWorld.getWrappedBlockStateAt(box.blockPos).getType());
+            } else { // Entity is no longer valid
+                return !player.compensatedEntities.entityMap.containsValue(box.entity);
+            }
+        });
     }
 
     public WrappedBlockState getWrappedBlockStateAt(Vector3i vector3i) {
