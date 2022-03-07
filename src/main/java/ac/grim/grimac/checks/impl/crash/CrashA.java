@@ -22,7 +22,7 @@ public class CrashA extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
             WrapperPlayClientPlayerPositionAndRotation packet = new WrapperPlayClientPlayerPositionAndRotation(event);
 
-            if (Math.abs(packet.getPosition().getX()) > HARD_CODED_BORDER || Math.abs(packet.getPosition().getZ()) > HARD_CODED_BORDER || Math.abs(packet.getPosition.getY()) > HARD_CODED_ILLEGAL_Y) {
+            if (Math.abs(packet.getPosition().getX()) > HARD_CODED_BORDER || Math.abs(packet.getPosition().getZ()) > HARD_CODED_BORDER || Math.abs(packet.getPosition().getY()) > HARD_CODED_ILLEGAL_Y) {
                 flagAndAlert(); // Ban
             }
         }
