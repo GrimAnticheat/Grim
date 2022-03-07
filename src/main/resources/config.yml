@@ -178,6 +178,11 @@ EntityControl:
   dont-alert-until: 40
   alert-interval: 40
 
+KillAuraA:
+  decay: 0
+  dont-alert-until: 2
+  alert-interval: 1
+
 Reach:
   # How much should we expand hitboxes by? 0.0005 should detect 3.0005+ reach
   #
