@@ -247,14 +247,16 @@ public abstract class AbstractContainerMenu {
         } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.SWAP) {
             Slot hoveringSlot = slots.get(slotID);
 
+            button = button == 40 ? Inventory.SLOT_OFFHAND : button + Inventory.HOTBAR_OFFSET;
+
             // 40 is offhand
-            ItemStack hotbarKeyStack = getPlayerInventoryItem(button == 40 ? Inventory.SLOT_OFFHAND : button + Inventory.HOTBAR_OFFSET);
+            ItemStack hotbarKeyStack = getPlayerInventoryItem(button);
             ItemStack hoveringItem2 = hoveringSlot.getItem();
 
             if (!hotbarKeyStack.isEmpty() || !hoveringItem2.isEmpty()) {
                 if (hotbarKeyStack.isEmpty()) {
                     if (hoveringSlot.mayPickup(player)) {
-                        setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, hoveringItem2);
+                        setPlayerInventoryItem(button, hoveringItem2);
                         hoveringSlot.set(ItemStack.EMPTY);
                         hoveringSlot.onTake(player, hoveringItem2);
                     }
@@ -265,7 +267,7 @@ public abstract class AbstractContainerMenu {
                             hoveringSlot.set(hotbarKeyStack.split(l1));
                         } else {
                             hoveringSlot.set(hotbarKeyStack);
-                            setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, ItemStack.EMPTY);
+                            setPlayerInventoryItem(button, ItemStack.EMPTY);
                         }
                     }
                 } else if (hoveringSlot.mayPickup(player) && hoveringSlot.mayPlace(hotbarKeyStack)) {
@@ -276,7 +278,7 @@ public abstract class AbstractContainerMenu {
                         playerInventory.add(hoveringItem2);
                     } else {
                         hoveringSlot.set(hotbarKeyStack);
-                        setPlayerInventoryItem(button + Inventory.HOTBAR_OFFSET, hoveringItem2);
+                        setPlayerInventoryItem(button, hoveringItem2);
                         hoveringSlot.onTake(player, hoveringItem2);
                     }
                 }
