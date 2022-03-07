@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.aim.processor.Cinematic;
 import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.combat.Reach;
+import ac.grim.grimac.checks.impl.combat.killaura.KillAuraA;
 import ac.grim.grimac.checks.impl.crash.CrashA;
 import ac.grim.grimac.checks.impl.crash.CrashB;
 import ac.grim.grimac.checks.impl.disabler.DisablerA;
@@ -52,6 +53,7 @@ public class CheckManager {
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
         packetChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
+                .put(KillAuraA.class, new KillAuraA(player))
                 .put(Reach.class, new Reach(player))
                 .put(PacketEntityReplication.class, new PacketEntityReplication(player))
                 .put(PacketChangeGameState.class, new PacketChangeGameState(player))
