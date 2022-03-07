@@ -36,7 +36,7 @@ public class KillAuraA extends PacketCheck {
             }
           
             lastEntityId = wrapper.getEntityId();
-        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacket()) {
+        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacket())) {
             ticks = 0;
         }
     }
