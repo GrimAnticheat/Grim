@@ -22,15 +22,17 @@ public class BadPacketsH extends PacketCheck {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
 
             if (packet.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
-			
-	    if (!swung) flagAndAlert();
+
+            if (!swung) {
+                flagAndAlert();
+            }
+
             swung = false;
-	} else if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
-	    swung = true;
-	} else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-	    swung = false;
-	}
-      }
+        } else if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+            swung = true;
+        } else if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            swung = false;
+        }
     }
 }
 		   
