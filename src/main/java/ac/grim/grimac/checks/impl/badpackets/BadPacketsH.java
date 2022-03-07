@@ -21,7 +21,7 @@ public class BadPacketsH extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrappedPacketInUseEntity packet = new WrappedPacketInUseEntity(event);
 
-            if (packet.getAction() != WrappedPacketInUseEntity.EntityUseAction.ATTACK) return;
+            if (packet.getAction() != WrapperPlayClientInteractEntity.InteractAction.ATTACK) return;
 			
 	    if (!swung) flagAndAlert();
             swung = false;
