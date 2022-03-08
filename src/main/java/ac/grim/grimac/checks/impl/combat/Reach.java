@@ -72,7 +72,11 @@ public class Reach extends PacketCheck {
             PacketEntity entity = player.compensatedEntities.entityMap.get(action.getEntityId());
             // Stop people from freezing transactions before an entity spawns to bypass reach
             if (entity == null) {
-                event.setCancelled(true);
+                // Only cancel if and only if we are tracking this entity
+                // This is because we don't track paintings.
+                if (player.compensatedEntities.serverPositionsMap.containsKey(action.getEntityId())) {
+                    event.setCancelled(true);
+                }
                 return;
             }
 

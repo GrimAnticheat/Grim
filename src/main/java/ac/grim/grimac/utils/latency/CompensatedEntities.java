@@ -100,6 +100,7 @@ public class CompensatedEntities {
         double d0 = snapshotWrapper.getValue();
 
         List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+        modifiers.removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID));
 
         for (WrapperPlayServerEntityProperties.PropertyModifier attributemodifier : modifiers) {
             if (attributemodifier.getOperation() == WrapperPlayServerEntityProperties.PropertyModifier.Operation.ADDITION)
