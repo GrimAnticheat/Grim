@@ -18,7 +18,6 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -28,7 +27,8 @@ public class CompensatedEntities {
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public Integer serverPlayerVehicle = null;
-    private WrapperPlayServerEntityProperties.Property playerEntitySpeed = new WrapperPlayServerEntityProperties.Property("MOVEMENT", 0.1f, new ArrayList<>());
+    public double playerEntityMovementSpeed = 0.1f;
+    public boolean hasSprintingAttributeEnabled = false;
     public double playerEntityAttackSpeed = 4;
 
     GrimPlayer player;
@@ -46,24 +46,24 @@ public class CompensatedEntities {
         }
     }
 
-    public double getPlayerEntityMovementSpeed() {
-        return calculateAttribute(playerEntitySpeed, 0.0, 1024.0);
-    }
-
-    public void setSprintingAttribute(boolean sprinting) {
-        if (sprinting) {
-            playerEntitySpeed.getModifiers().add(new WrapperPlayServerEntityProperties.PropertyModifier(SPRINTING_MODIFIER_UUID, 0.3f, WrapperPlayServerEntityProperties.PropertyModifier.Operation.MULTIPLY_TOTAL));
-        } else {
-            playerEntitySpeed.getModifiers().removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID));
-        }
-    }
-
     public void updateAttributes(int entityID, List<WrapperPlayServerEntityProperties.Property> objects) {
         if (entityID == player.entityID) {
             for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-                    playerEntitySpeed = snapshotWrapper;
-                    System.out.println(player.lastTransactionReceived.get() + " " + getPlayerEntityMovementSpeed());
+                    boolean found = false;
+                    List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+                    for (WrapperPlayServerEntityProperties.PropertyModifier modifier : modifiers) {
+                        if (modifier.getUUID().equals(SPRINTING_MODIFIER_UUID)) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    // The server can set the player's sprinting attribute
+                    hasSprintingAttributeEnabled = found;
+
+                    // This affects the list, do it last
+                    playerEntityMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
                 }
 
                 // TODO: This would allow us to check NoSlow on 1.9+ clients with OldCombatMechanics
