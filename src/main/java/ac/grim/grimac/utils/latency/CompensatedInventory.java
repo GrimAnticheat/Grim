@@ -24,7 +24,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOp
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerOpenWindow;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
-import io.github.retrooper.packetevents.utils.SpigotDataHelper;
+import io.github.retrooper.packetevents.util.SpigotDataHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 

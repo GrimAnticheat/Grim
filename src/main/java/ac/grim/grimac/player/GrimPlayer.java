@@ -15,7 +15,6 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
-import ac.grim.grimac.utils.lists.ConcurrentList;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.earth2me.essentials.Essentials;
@@ -35,8 +34,8 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWi
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
-import io.github.retrooper.packetevents.utils.GeyserUtil;
-import io.github.retrooper.packetevents.utils.dependencies.viaversion.ViaVersionUtil;
+import io.github.retrooper.packetevents.util.GeyserUtil;
+import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -62,14 +61,20 @@ public class GrimPlayer {
     public int entityID;
     @Nullable
     public Player bukkitPlayer;
+    // Start transaction handling stuff
     // Determining player ping
     // The difference between keepalive and transactions is that keepalive is async while transactions are sync
     public final Queue<Pair<Short, Long>> transactionsSent = new ConcurrentLinkedQueue<>();
-    // Sync this to the netty thread because when spamming transactions, they can get out of order... somehow
-    public final ConcurrentList<Short> didWeSendThatTrans = new ConcurrentList<>();
+    public final List<Short> didWeSendThatTrans = Collections.synchronizedList(new ArrayList<>());
     private final AtomicInteger transactionIDCounter = new AtomicInteger(0);
-    private long lastTransSent = 0;
+    public AtomicInteger lastTransactionSent = new AtomicInteger(0);
+    public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
+    // End transaction handling stuff
     public Vector clientVelocity = new Vector();
+    PacketTracker packetTracker;
+    private int transactionPing = 0;
+    private long lastTransSent = 0;
+    private long playerClockAtLeast = 0;
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
     public int riptideSpinAttackTicks = 0;
@@ -169,8 +174,6 @@ public class GrimPlayer {
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
     public Vector baseTickWaterPushing = new Vector();
-    public AtomicInteger lastTransactionSent = new AtomicInteger(0);
-    public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
     public VelocityData firstBreadKB = null;
@@ -187,9 +190,6 @@ public class GrimPlayer {
     public PacketEntity playerVehicle;
     public GameMode gamemode;
     public Vector3d bedPosition;
-    PacketTracker packetTracker;
-    private int transactionPing = 0;
-    private long playerClockAtLeast = 0;
     public long lastBlockPlaceUseItem = 0;
     public Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
     // This variable is for support with test servers that want to be able to disable grim
@@ -359,7 +359,7 @@ public class GrimPlayer {
 
     public void sendTransaction() {
         lastTransSent = System.currentTimeMillis();
-        short transactionID = getNextTransactionID(1);
+        short transactionID = (short) (-1 * (transactionIDCounter.getAndIncrement() & 0x7FFF));
         try {
             addTransactionSend(transactionID);
 
@@ -371,14 +371,6 @@ public class GrimPlayer {
         } catch (Exception ignored) { // Fix protocollib + viaversion support by ignoring any errors :) // TODO: Fix this
             // recompile
         }
-    }
-
-    public short getNextTransactionID(int add) {
-        // Take the 15 least significant bits, multiply by 1.
-        // Short range is -32768 to 32767
-        // We return a range of -32767 to 0
-        // Allowing a range of -32768 to 0 for velocity + explosions
-        return (short) (-1 * (transactionIDCounter.getAndAdd(add) & 0x7FFF));
     }
 
     public void addTransactionSend(short id) {

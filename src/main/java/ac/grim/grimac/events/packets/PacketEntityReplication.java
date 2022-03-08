@@ -19,7 +19,7 @@ import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
-import io.github.retrooper.packetevents.utils.dependencies.viaversion.ViaVersionUtil;
+import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 
 import java.util.List;
 
