@@ -72,7 +72,7 @@ public class GraphUtil {
 
     @Getter
     @Setter
-    public class GraphResult {
+    public static class GraphResult {
         private final String graph;
         private final int positives, negatives;
 
