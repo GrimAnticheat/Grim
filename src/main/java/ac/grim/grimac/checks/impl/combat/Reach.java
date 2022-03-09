@@ -86,7 +86,7 @@ public class Reach extends PacketCheck {
 
             checkReach(action.getEntityId());
 
-            if (cancelImpossibleHits && isKnownInvalid(action.getEntityId())) {
+            if (cancelImpossibleHits && isKnownInvalid(entity)) {
                 event.setCancelled(true);
             }
         }
@@ -112,11 +112,11 @@ public class Reach extends PacketCheck {
     // than this method.  If this method flags, the other method WILL flag.
     //
     // Meaning that the other check should be the only one that flags.
-    private boolean isKnownInvalid(int entityID) {
-        PacketEntity reachEntity = player.compensatedEntities.entityMap.get(entityID);
+    private boolean isKnownInvalid(PacketEntity reachEntity) {
         boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
-        if (reachEntity == null || exempt.contains(reachEntity.type))
+        // If the entity doesn't exist, or if it is exempt, or if it is dead
+        if (exempt.contains(reachEntity.type) || !reachEntity.isLivingEntity())
             return false; // exempt
 
         double lowest = 6;
@@ -194,7 +194,8 @@ public class Reach extends PacketCheck {
                 }
             }
 
-            if (!exempt.contains(reachEntity.type)) {
+            // if the entity is not exempt and the entity is alive
+            if (!exempt.contains(reachEntity.type) && reachEntity.isLivingEntity()) {
                 if (minDistance == Double.MAX_VALUE) {
                     flag();
                     alert("Missed hitbox", "Reach", formatViolations());

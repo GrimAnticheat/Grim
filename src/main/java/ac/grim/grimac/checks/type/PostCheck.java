@@ -2,7 +2,9 @@ package ac.grim.grimac.checks.type;
 
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 public class PostCheck extends PacketCheck {
@@ -33,6 +35,9 @@ public class PostCheck extends PacketCheck {
             }
 
             this.lastFlying = now;
+        } else if (event.getPacketType() == PacketType.Play.Client.USE_ITEM &&
+                player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17)) { // Stupidity packet handling
+            lastFlying = 0;
         } else if (event.getPacketType() == packet) {
             final long now = System.currentTimeMillis();
             final long delay = now - lastFlying;
