@@ -154,7 +154,7 @@ public class Reach extends PacketCheck {
             //
             // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
             if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9))
-                targetBox.expand(0.03);
+                targetBox.expand(player.getMovementThreshold());
 
             Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
 
