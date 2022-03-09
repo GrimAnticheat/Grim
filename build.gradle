@@ -7,7 +7,12 @@ plugins {
 repositories {
     mavenLocal()
     maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } // Bstats, Spigot
-    maven { url = 'https://jitpack.io/' } // PacketEvents
+    maven {
+        url = 'https://jitpack.io/'
+        metadataSources {
+            artifact() //Look directly for artifact
+        }
+    } // PacketEvents
     maven { url = 'https://repo.viaversion.com' } // ViaVersion
     maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF, PaperLib
     maven { url = "https://repo.essentialsx.net/releases/" } // Essentials
@@ -15,12 +20,13 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT'
+    implementation 'com.github.retrooper.packetevents:spigot:2.0-a9876a0cec-1'
     implementation 'co.aikar:acf-paper:0.5.1-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'club.minnced:discord-webhooks:0.7.5'
     implementation 'it.unimi.dsi:fastutil:8.5.8'
     implementation "io.papermc:paperlib:1.0.7"
+    implementation 'org.jetbrains:annotations:23.0.0' // Why is this needed to compile?
 
     compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.1.1'
