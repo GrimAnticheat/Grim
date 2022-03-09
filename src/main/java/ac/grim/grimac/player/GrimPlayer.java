@@ -202,6 +202,11 @@ public class GrimPlayer {
 
         // Geyser players don't have Java movement
         if (GeyserUtil.isGeyserPlayer(playerUUID)) return;
+        // Geyser formatted player string
+        // 1 in 1,208,925,800,000,000,000,000,000 chance of actually being a Java player
+        // Generating a new UUID every second, you would get this after 38,334,785,641.8 million years
+        // It's more likely a random bit flip will disable grim for you than this UUID
+        if (playerUUID.toString().contains("00000000-0000-0000-0009")) return;
 
         pollData();
 
