@@ -294,9 +294,9 @@ public class CompensatedInventory extends PacketCheck {
                 } else if (slot.getWindowId() == -2) { // Any slot is allowed to change in inventory
                     inventory.getSlot(slot.getSlot()).set(slot.getItem());
                 } else if (slot.getWindowId() == 0) { // Player hotbar
-                    if (slot.getSlot() >= 36 && slot.getSlot() <= 45) { // Client ignored if not in range
-                        inventory.getSlot(slot.getSlot()).set(slot.getItem());
-                    }
+                    // Client ignores this sometimes if not in range when in creative with inventory open
+                    // I'm unsure how to fix it, but it's a vanilla desync we really can't fix.
+                    inventory.getSlot(slot.getSlot()).set(slot.getItem());
                 } else if (slot.getWindowId() == openWindowID) { // Opened inventory
                     menu.getSlot(slot.getSlot()).set(slot.getItem());
                 }
