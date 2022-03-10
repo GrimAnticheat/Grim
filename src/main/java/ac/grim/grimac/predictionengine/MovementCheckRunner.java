@@ -371,10 +371,12 @@ public class MovementCheckRunner extends PositionCheck {
         //
         // Sprinting status itself does not desync, only the attribute as mojang forgot that the server
         // can change the attribute
-        if (player.isSprinting != player.lastSprinting) {
-            player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
+        if (!player.inVehicle) {
+            if (player.isSprinting != player.lastSprinting) {
+                player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
+            }
+            player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
         }
-        player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
 
         player.uncertaintyHandler.lastGlidingChangeTicks--;
         if (player.isGliding != player.wasGliding) player.uncertaintyHandler.lastGlidingChangeTicks = 0;
