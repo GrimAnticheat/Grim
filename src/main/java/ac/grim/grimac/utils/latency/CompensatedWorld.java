@@ -61,6 +61,24 @@ public class CompensatedWorld {
                 }
             }
         }
+
+        // Also block entities
+        for (ShulkerData data : openShulkerBoxes) {
+            SimpleCollisionBox shulkerCollision = data.getCollision();
+            if (playerBox.isCollided(shulkerCollision)) {
+                return true;
+            }
+        }
+
+        // Pistons are a block entity.
+        for (PistonData data : activePistons) {
+            for (SimpleCollisionBox box : data.boxes) {
+                if (playerBox.isCollided(box)) {
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 
