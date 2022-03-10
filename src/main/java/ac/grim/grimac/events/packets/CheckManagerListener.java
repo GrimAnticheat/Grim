@@ -687,19 +687,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
         //
         // removed a large rant, but I'm keeping this out of context insult below
         // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
-        if (!player.packetStateData.lastPacketWasTeleport && hasPosition &&
+        if (!player.packetStateData.lastPacketWasTeleport && hasPosition && hasLook &&
                 // Ground status will never change in this stupidity packet
-                (onGround == player.packetStateData.packetPlayerOnGround
-                        // Always is a position look packet, no matter what
-                        && hasLook
+                ((onGround == player.packetStateData.packetPlayerOnGround
                         // Mojang added this stupid mechanic in 1.17
                         && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
                         // Due to 0.03, we can't check exact position, only within 0.03
-                        // (Due to wrong look and timing, this would otherwise flag timer being 50 ms late)
-                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < threshold * threshold)
-                        // If the player was in a vehicle and wasn't a teleport, then it was this stupid packet
+                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < threshold * threshold))
+                        // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
                         || player.inVehicle)) {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+
+            if (player.xRot != yaw || player.yRot != pitch) {
+                player.lastXRot = player.xRot;
+                player.lastYRot = player.yRot;
+            }
 
             // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
             player.xRot = yaw;
@@ -714,7 +716,12 @@ public class CheckManagerListener extends PacketListenerAbstract {
             return;
         }
 
-        if (hasLook) {
+        // We can't set the look if this is actually the stupidity packet
+        // If the last packet wasn't stupid, then ignore this logic
+        // If it was stupid, only change the look if it's different
+        // Otherwise, reach and fireworks can false
+        if (hasLook && (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate ||
+                player.xRot != yaw || player.yRot != pitch)) {
             player.lastXRot = player.xRot;
             player.lastYRot = player.yRot;
         }

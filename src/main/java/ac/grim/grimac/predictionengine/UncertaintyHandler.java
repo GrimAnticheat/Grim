@@ -124,12 +124,14 @@ public class UncertaintyHandler {
         Vector currentLook = PredictionEngineElytra.getVectorForRotation(player, player.yRot, player.xRot);
         Vector lastLook = PredictionEngineElytra.getVectorForRotation(player, player.lastYRot, player.lastXRot);
 
-        double minX = Math.min(0, currentLook.getX()) + Math.min(0, lastLook.getX());
-        double minY = Math.min(0, currentLook.getY()) + Math.min(0, lastLook.getY());
-        double minZ = Math.min(0, currentLook.getZ()) + Math.min(0, lastLook.getZ());
-        double maxX = Math.max(0, currentLook.getX()) + Math.max(0, lastLook.getX());
-        double maxY = Math.max(0, currentLook.getY()) + Math.max(0, lastLook.getY());
-        double maxZ = Math.max(0, currentLook.getZ()) + Math.max(0, lastLook.getZ());
+        double antiTickSkipping = player.isPointThree() ? 0 : 0.05; // With 0.03, let that handle tick skipping
+
+        double minX = Math.min(-antiTickSkipping, currentLook.getX()) + Math.min(-antiTickSkipping, lastLook.getX());
+        double minY = Math.min(-antiTickSkipping, currentLook.getY()) + Math.min(-antiTickSkipping, lastLook.getY());
+        double minZ = Math.min(-antiTickSkipping, currentLook.getZ()) + Math.min(-antiTickSkipping, lastLook.getZ());
+        double maxX = Math.max(antiTickSkipping, currentLook.getX()) + Math.max(antiTickSkipping, lastLook.getX());
+        double maxY = Math.max(antiTickSkipping, currentLook.getY()) + Math.max(antiTickSkipping, lastLook.getY());
+        double maxZ = Math.max(antiTickSkipping, currentLook.getZ()) + Math.max(antiTickSkipping, lastLook.getZ());
 
         minX *= 1.7;
         minY *= 1.7;
