@@ -68,8 +68,6 @@ public class CompensatedEntities {
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
                     playerSpeed = snapshotWrapper;
-
-                    System.out.println("Updating speed too " + getPlayerMovementSpeed());
                 }
             }
         }
