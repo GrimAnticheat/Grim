@@ -52,6 +52,11 @@ public class PacketEntityAction extends PacketListenerAbstract {
                     } else {
                         // A client is flying with a ghost elytra, resync
                         player.getSetbackTeleportUtil().executeForceResync();
+                        if (player.bukkitPlayer != null) {
+                            // Client ignores sneaking, use it to resync
+                            player.bukkitPlayer.setSneaking(!player.bukkitPlayer.isSneaking());
+                        }
+                        event.setCancelled(true);
                     }
                     break;
                 case START_JUMPING_WITH_HORSE:
