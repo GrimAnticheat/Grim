@@ -112,6 +112,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // Let bukkit teleports or packet teleports override this setback
             if (data != requiredSetBack) return;
 
+            // Patch LiquidBounce Spartan NoFall
+            if (player.bukkitPlayer != null) {
+                player.bukkitPlayer.setFallDistance((float) player.fallDistance);
+            }
+
             // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
             Entity playerVehicle = player.bukkitPlayer.getVehicle();
 

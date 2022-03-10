@@ -56,11 +56,6 @@ public class OffsetHandler extends PostPredictionCheck {
                 giveOffsetLenienceNextTick(offset);
 
                 if (violations >= offsetHandler.getSetbackVL()) {
-                    // Patch LiquidBounce Spartan NoFall
-                    if (player.bukkitPlayer != null) {
-                        player.bukkitPlayer.setFallDistance((float) player.fallDistance);
-                    }
-
                     player.getSetbackTeleportUtil().executeSetback();
                 }
 
