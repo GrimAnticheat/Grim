@@ -4,11 +4,14 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.latency.CompensatedEntities;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
 import org.bukkit.World;
 import org.bukkit.util.Vector;
 
@@ -121,6 +124,26 @@ public class PlayerBaseTick {
         else if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
             SimpleCollisionBox playerBox = player.boundingBox.copy().expand(-0.1F, -0.4F, -0.1F);
             player.wasTouchingLava = player.compensatedWorld.containsLava(playerBox);
+        }
+    }
+
+    public void updatePowderSnow() {
+        // Pre-1.17 clients don't have powder snow and therefore don't desync
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) return;
+
+        // The client first desync's this attribute
+        player.compensatedEntities.playerSpeed.getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID));
+
+        // And then re-adds it using purely what the server has sent it
+        StateType type = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
+
+        if (!type.isAir()) {
+            int i = player.powderSnowFrozenTicks;
+            if (i > 0) {
+                int ticksToFreeze = 140;
+                float f = -0.05F * ((float) Math.min(i, 140) / ticksToFreeze);
+                player.compensatedEntities.playerSpeed.getModifiers().add(new WrapperPlayServerEntityProperties.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, f, WrapperPlayServerEntityProperties.PropertyModifier.Operation.ADDITION));
+            }
         }
     }
 

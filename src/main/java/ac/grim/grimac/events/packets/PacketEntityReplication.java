@@ -139,9 +139,9 @@ public class PacketEntityReplication extends PacketCheck {
             int entityID = attributes.getEntityId();
 
             // The attributes for this entity is active, currently
-            if (isDirectlyAffectingPlayer(player, entityID)) event.getPostTasks().add(player::sendTransaction);
+            if (isDirectlyAffectingPlayer(player, entityID)) player.sendTransaction();
 
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1,
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
                     () -> player.compensatedEntities.updateAttributes(entityID, attributes.getProperties()));
         }
 

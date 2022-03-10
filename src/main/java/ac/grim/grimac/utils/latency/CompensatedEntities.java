@@ -18,18 +18,19 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public class CompensatedEntities {
     private static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
+    public static final UUID SNOW_MODIFIER_UUID = UUID.fromString("1eaf83ff-7207-4596-b37a-d7a07b3ec4ce");
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public Integer serverPlayerVehicle = null;
-    public double playerEntityMovementSpeed = 0.1f;
+    public WrapperPlayServerEntityProperties.Property playerSpeed = new WrapperPlayServerEntityProperties.Property("MOVEMENT_SPEED", 0.1f, new ArrayList<>());
     public boolean hasSprintingAttributeEnabled = false;
-    public double playerEntityAttackSpeed = 4;
 
     GrimPlayer player;
 
@@ -46,10 +47,15 @@ public class CompensatedEntities {
         }
     }
 
+    public double getPlayerMovementSpeed() {
+        return calculateAttribute(playerSpeed, 0.0, 1024.0);
+    }
+
     public void updateAttributes(int entityID, List<WrapperPlayServerEntityProperties.Property> objects) {
         if (entityID == player.entityID) {
             for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
+
                     boolean found = false;
                     List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
                     for (WrapperPlayServerEntityProperties.PropertyModifier modifier : modifiers) {
@@ -61,14 +67,9 @@ public class CompensatedEntities {
 
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
+                    playerSpeed = snapshotWrapper;
 
-                    // This affects the list, do it last
-                    playerEntityMovementSpeed = calculateAttribute(snapshotWrapper, 0.0, 1024.0);
-                }
-
-                // TODO: This would allow us to check NoSlow on 1.9+ clients with OldCombatMechanics
-                if (snapshotWrapper.getKey().toUpperCase().contains("ATTACK_SPEED")) {
-
+                    System.out.println("Updating speed too " + getPlayerMovementSpeed());
                 }
             }
         }
@@ -181,6 +182,14 @@ public class CompensatedEntities {
                         // hasGravity > hasNoGravity
                         player.playerEntityHasGravity = !((Boolean) gravityObject);
                     }
+                }
+            }
+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
+                EntityData frozen = WatchableIndexUtil.getIndex(watchableObjects, 7);
+
+                if (frozen != null) {
+                    player.powderSnowFrozenTicks = (int) frozen.getValue();
                 }
             }
 

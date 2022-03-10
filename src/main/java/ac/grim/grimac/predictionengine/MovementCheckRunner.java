@@ -266,7 +266,7 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.isInBed) return;
 
         if (!player.inVehicle) {
-            player.speed = player.compensatedEntities.playerEntityMovementSpeed;
+            player.speed = player.compensatedEntities.getPlayerMovementSpeed();
             if (player.hasGravity != player.playerEntityHasGravity) {
                 player.pointThreeEstimator.updatePlayerGravity();
             }
@@ -500,6 +500,7 @@ public class MovementCheckRunner extends PositionCheck {
 
             new PlayerBaseTick(player).doBaseTick();
             new MovementTickerPlayer(player).livingEntityAIStep();
+            new PlayerBaseTick(player).updatePowderSnow();
             new PlayerBaseTick(player).updatePlayerPose();
 
         } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
