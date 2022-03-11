@@ -22,7 +22,7 @@ public class Check<T> {
     public double alertVL;
     public int alertInterval;
     public int alertCount;
-    public boolean secretTestServerVLStyle = false;
+    public boolean secretTestServerVLStyle;
     private double setback;
     private double vlMultiplier;
     private String checkName;
