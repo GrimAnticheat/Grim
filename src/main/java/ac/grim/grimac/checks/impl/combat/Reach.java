@@ -113,7 +113,7 @@ public class Reach extends PacketCheck {
     //
     // Meaning that the other check should be the only one that flags.
     private boolean isKnownInvalid(PacketEntity reachEntity) {
-        boolean zeroThree = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+        boolean giveMovementThresholdLenience = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
         // If the entity doesn't exist, or if it is exempt, or if it is dead
         if (exempt.contains(reachEntity.type) || !reachEntity.isLivingEntity())
@@ -127,7 +127,7 @@ public class Reach extends PacketCheck {
             lowest = Math.min(lowest, closestPoint.distance(from));
         }
 
-        return lowest > 3 + (zeroThree ? 0.03 : 0);
+        return lowest > 3 + (giveMovementThresholdLenience ? player.getMovementThreshold() : 0);
     }
 
     private void tickFlying() {

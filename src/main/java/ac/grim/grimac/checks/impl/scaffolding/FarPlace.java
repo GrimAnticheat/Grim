@@ -5,6 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.VectorUtils;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.GameMode;
@@ -12,6 +13,7 @@ import org.bukkit.util.Vector;
 
 public class FarPlace extends BlockPlaceCheck {
     double pointThree = Math.hypot(0.03, Math.hypot(0.03, 0.03));
+    double pointZeroZeroZeroTwo = Math.hypot(0.0002, Math.hypot(0.0002, 0.0002));
 
     public FarPlace(GrimPlayer player) {
         super(player);
@@ -33,7 +35,11 @@ public class FarPlace extends BlockPlaceCheck {
 
         // getPickRange() determines this?
         double maxReach = player.gamemode == GameMode.CREATIVE ? 6.0 : 4.5D;
-        maxReach += pointThree;
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2)) {
+            maxReach += pointZeroZeroZeroTwo;
+        } else {
+            maxReach += pointThree;
+        }
 
         if (min > maxReach * maxReach) { // fail
             place.resync();
