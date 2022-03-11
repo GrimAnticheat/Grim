@@ -70,7 +70,7 @@ public class NoFallA extends PacketCheck {
             // If the player claims to be on the ground
             // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
             if (onGround(wrapper) && !hasPosition) {
-                if (!is003OnGround(onGround(wrapper))) { // If player isn't near ground
+                if (!isNearGround(onGround(wrapper))) { // If player isn't near ground
                     flagWithSetback();
                     setOnGround(wrapper, false);
                 } else {
@@ -105,10 +105,10 @@ public class NoFallA extends PacketCheck {
         return false;
     }
 
-    public boolean is003OnGround(boolean onGround) {
+    public boolean isNearGround(boolean onGround) {
         if (onGround) {
             SimpleCollisionBox feetBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 0.001f);
-            feetBB.expand(0.03); // 0.03 can be in any direction
+            feetBB.expand(player.getMovementThreshold()); // Movement threshold can be in any direction
 
             return checkForBoxes(feetBB);
         }
