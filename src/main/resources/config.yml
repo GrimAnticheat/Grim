@@ -6,7 +6,8 @@
 # Report any license violations to DefineOutside
 #
 
-prefix: "&bGrim &8»"
+# \u00BB is », ANSI and UTF-8 interpret this differently so manually specify it
+prefix: "&bGrim &8\u00BB"
 
 alerts:
   # Valid placeholders:
