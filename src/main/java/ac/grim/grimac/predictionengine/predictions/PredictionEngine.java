@@ -190,12 +190,12 @@ public class PredictionEngine {
                 // And the last having uncertainty to deal with 0.03
 
                 if (clientVelAfterInput.isKnockback()) {
-                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
                     player.checkManager.getKnockbackHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
                 }
 
                 if (clientVelAfterInput.isExplosion()) {
-                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
                     player.checkManager.getExplosionHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
                 }
             }
@@ -204,7 +204,7 @@ public class PredictionEngine {
             // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
             // As not flipping item is preferred... it gets ran before any other options
             if (player.packetStateData.slowedByUsingItem && !clientVelAfterInput.isFlipItem()) {
-                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(resultAccuracy));
+                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
             }
 
             if (resultAccuracy < bestInput) {
