@@ -9,7 +9,10 @@ import ac.grim.grimac.utils.collisions.blocks.DoorHandler;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -23,6 +26,7 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
@@ -549,6 +553,29 @@ public class BlockPlace {
         // Great job!  It's only been an issue for years!  One second to fix but you are too incompetent to change a single value.
         if (box.isIntersected(player.boundingBox)) {
             return;
+        }
+
+        // Other entities can also block block-placing
+        // This sucks and desyncs constantly, but what can you do?
+        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+            SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
+
+            double width = BoundingBoxSize.getWidth(entity);
+            double height = BoundingBoxSize.getHeight(entity);
+            double interpWidth = Math.max(interpBox.maxX - interpBox.minX, interpBox.maxZ - interpBox.minZ);
+            double interpHeight = interpBox.maxY - interpBox.minY;
+
+            // If not accurate, fall back to desync pos
+            // This happens due to the lack of an idle packet on 1.9+ clients
+            // On 1.8 clients this should practically never happen
+            if (interpWidth - width > 0.05 || interpHeight - height > 0.05) {
+                Vector3d entityPos = entity.desyncClientPos;
+                interpBox = GetBoundingBox.getPacketEntityBoundingBox(entityPos.getX(), entityPos.getY(), entityPos.getZ(), entity);
+            }
+
+            if (box.isIntersected(interpBox)) {
+                return; // Blocking the block placement
+            }
         }
 
         // If a block already exists here, then we can't override it.
