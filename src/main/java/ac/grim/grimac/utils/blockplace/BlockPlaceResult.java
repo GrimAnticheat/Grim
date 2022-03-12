@@ -948,6 +948,59 @@ public enum BlockPlaceResult {
         }
     }, ItemTags.DOORS),
 
+    SCAFFOLDING((player, place) -> {
+        place.setReplaceClicked(false); // scaffolding is sometimes replace clicked
+
+        // The client lies about block place location and face to not false vanilla ac
+        // However, this causes TWO desync's!
+        if (place.getPlacedAgainstMaterial() == StateTypes.SCAFFOLDING) {
+            // This can desync due to look being a tick behind, pls fix mojang
+            // Convert the packet to the real direction
+            BlockFace direction;
+            if (place.isSecondaryUse()) {
+                direction = place.isInside() ? place.getDirection().getOppositeFace() : place.getDirection();
+            } else {
+                direction = place.getDirection() == BlockFace.UP ? place.getPlayerFacing() : BlockFace.UP;
+            }
+
+            place.setFace(direction);
+
+            // Mojang also lies about the location causing another GOD DAMN DESYNC
+            // Jesus christ, two desync's in a single block... should I be disappointed or concerned?
+            // Ghost blocks won't be fixed because of how it depends on the world state
+            int i = 0;
+            Vector3i starting = new Vector3i(place.getPlacedAgainstBlockLocation().getX() + direction.getModX(), place.getPlacedAgainstBlockLocation().getY() + direction.getModY(), place.getPlacedAgainstBlockLocation().getZ() + direction.getModZ());
+            while (i < 7) {
+                if (player.compensatedWorld.getWrappedBlockStateAt(starting).getType() != StateTypes.SCAFFOLDING) {
+                    if (player.compensatedWorld.getWrappedBlockStateAt(starting).getType().isReplaceable()) {
+                        place.setBlockPosition(starting);
+                        place.setReplaceClicked(true);
+                        break; // We found it!
+                    }
+                    return; // Cancel block place
+                }
+
+                starting = new Vector3i(starting.getX() + direction.getModX(), starting.getY() + direction.getModY(), starting.getZ() + direction.getModZ());
+                if (BlockFaceHelper.isFaceHorizontal(direction)) {
+                    i++;
+                }
+            }
+            if (i == 7) return; // Cancel block place
+        } // else, cancel if the scaffolding is exactly 7 away, grim doesn't handle this edge case yet.
+
+
+        // A scaffolding has a distance of 0 IFF it is placed above a sturdy face
+        // Else it has a distance greater than 0
+        boolean sturdyBelow = place.isFullFace(BlockFace.DOWN);
+        boolean isBelowScaffolding = place.getBelowMaterial() == StateTypes.SCAFFOLDING;
+        boolean isBottom = !sturdyBelow && !isBelowScaffolding;
+
+        WrappedBlockState scaffolding = StateTypes.SCAFFOLDING.createBlockState();
+        scaffolding.setBottom(isBottom);
+
+        place.set(scaffolding);
+    }, ItemTypes.SCAFFOLDING),
+
     DOUBLE_PLANT((player, place) -> {
         if (place.isBlockFaceOpen(BlockFace.UP) && place.isOnDirt() || place.isOn(StateTypes.FARMLAND)) {
             place.set();

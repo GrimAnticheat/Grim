@@ -294,6 +294,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith, getNearestHitResult(player, null, true));
 
+            if (place.getInsideBlock().isPresent()) {
+                blockPlace.setInside(place.getInsideBlock().get());
+            }
+
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
                 player.checkManager.onBlockPlace(blockPlace);
 

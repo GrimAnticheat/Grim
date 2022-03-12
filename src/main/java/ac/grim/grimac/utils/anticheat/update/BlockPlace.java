@@ -50,6 +50,9 @@ public class BlockPlace {
     HitData hitData;
     @Setter
     BlockFace face;
+    @Getter
+    @Setter
+    boolean isInside;
 
     public BlockPlace(GrimPlayer player, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
         this.player = player;
