@@ -15,6 +15,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -287,6 +288,13 @@ public class MovementCheckRunner extends PositionCheck {
 
             // When in control of the entity, the player sets the entity position to their current position
             player.playerVehicle.setPositionRaw(GetBoundingBox.getPacketEntityBoundingBox(player.x, player.y, player.z, player.playerVehicle));
+
+            if (player.playerVehicle instanceof PacketEntityTrackXRot) {
+                PacketEntityTrackXRot boat = (PacketEntityTrackXRot) player.playerVehicle;
+                boat.packetYaw = player.xRot;
+                boat.interpYaw = player.xRot;
+                boat.steps = 0;
+            }
 
             if (player.hasGravity != player.playerVehicle.hasGravity) {
                 player.pointThreeEstimator.updatePlayerGravity();

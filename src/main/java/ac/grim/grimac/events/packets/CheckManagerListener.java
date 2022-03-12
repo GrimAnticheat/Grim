@@ -169,6 +169,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Handle queue'd block places
         PacketWrapper packet;
         while ((packet = player.placeUseItemPackets.poll()) != null) {
+            double lastX = player.x;
+            double lastY = player.y;
+            double lastZ = player.z;
+
+            player.x = player.packetStateData.lastClaimedPosition.getX();
+            player.y = player.packetStateData.lastClaimedPosition.getY();
+            player.z = player.packetStateData.lastClaimedPosition.getZ();
+
+            if (player.playerVehicle != null) {
+                Vector3d posFromVehicle = BoundingBoxSize.getRidingOffsetFromVehicle(player.playerVehicle, player);
+                player.x = posFromVehicle.getX();
+                player.y = posFromVehicle.getY();
+                player.z = posFromVehicle.getZ();
+            }
+
             // Less than 15 milliseconds ago means this is likely (fix all look vectors being a tick behind server sided)
             // Or mojang had the idle packet... for the 1.7/1.8 clients
             // No idle packet on 1.9+
@@ -181,23 +196,17 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 // Store the prediction positions/look
                 float lastXRot = player.xRot;
                 float lastYRot = player.yRot;
-                double lastX = player.x;
-                double lastY = player.y;
-                double lastZ = player.z;
-
-                player.x = player.packetStateData.lastClaimedPosition.getX();
-                player.y = player.packetStateData.lastClaimedPosition.getY();
-                player.z = player.packetStateData.lastClaimedPosition.getZ();
 
                 handleBlockPlaceOrUseItem(packet, player);
 
                 // Reset positions/look to prediction
                 player.xRot = lastXRot;
                 player.yRot = lastYRot;
-                player.x = lastX;
-                player.y = lastY;
-                player.z = lastZ;
             }
+
+            player.x = lastX;
+            player.y = lastY;
+            player.z = lastZ;
         }
     }
 

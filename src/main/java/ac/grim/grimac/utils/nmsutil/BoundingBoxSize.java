@@ -1,9 +1,13 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.util.Vector3d;
 
 /**
  * Yeah, I know this is a bad class
@@ -94,6 +98,67 @@ public class BoundingBoxSize {
         return 0.6f;
     }
 
+    public static Vector3d getRidingOffsetFromVehicle(PacketEntity entity, GrimPlayer player) {
+        SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
+        double x = (box.maxX + box.minX) / 2.0;
+        double y = box.minY;
+        double z = (box.maxZ + box.minZ) / 2.0;
+
+        if (entity instanceof PacketEntityTrackXRot) {
+            PacketEntityTrackXRot xRotEntity = (PacketEntityTrackXRot) entity;
+
+            // Horses desync here, and we can't do anything about it without interpolating animations.
+            // Mojang just has to fix it.  I'm not attempting to fix it.
+            // Striders also do the same with animations, causing a desync.
+            // At least the only people using buckets are people in boats for villager transportation
+            // and people trying to false the anticheat.
+            if (entity.type == EntityTypes.BOAT) {
+                float f = 0.0F;
+                float f1 = (float) (getPassengerRidingOffset(entity) - 0.35f); // hardcoded player offset
+
+                if (entity.passengers.length > 1) {
+                    int i = 0;
+
+                    for (int j = 0; j < entity.passengers.length; ++j) {
+                        if (entity.passengers[j] == player.entityID) {
+                            i = j;
+                        }
+                    }
+
+                    if (i == 0) {
+                        f = 0.2F;
+                    } else {
+                        f = -0.6F;
+                    }
+                }
+
+                Vector3d vec3 = (new Vector3d(f, 0.0D, 0.0D));
+                vec3 = yRot(-xRotEntity.interpYaw * ((float) Math.PI / 180F) - ((float) Math.PI / 2F), vec3);
+                return new Vector3d(x + vec3.x, y + (double) f1, z + vec3.z);
+            } else if (entity.type == EntityTypes.LLAMA) {
+                float f = player.trigHandler.cos(xRotEntity.interpYaw * ((float) Math.PI / 180F));
+                float f1 = player.trigHandler.sin(xRotEntity.interpYaw * ((float) Math.PI / 180F));
+                return new Vector3d(x + (double) (0.3F * f1), y + getPassengerRidingOffset(entity) - 0.35f, z + (double) (0.3F * f));
+            } else if (entity.type == EntityTypes.CHICKEN) {
+                float f = player.trigHandler.sin(xRotEntity.interpYaw * ((float) Math.PI / 180F));
+                float f1 = player.trigHandler.cos(xRotEntity.interpYaw * ((float) Math.PI / 180F));
+                y = y + (getHeight(entity) * 0.5f);
+                return new Vector3d(x + (double) (0.1F * f), y - 0.35f, z - (double) (0.1F * f1));
+            }
+        }
+
+        return new Vector3d(x, y + getPassengerRidingOffset(entity) - 0.35f, z);
+    }
+
+    private static Vector3d yRot(float p_82525_, Vector3d start) {
+        float f = (float) Math.cos(p_82525_);
+        float f1 = (float) Math.sin(p_82525_);
+        double d0 = start.getX() * (double) f + start.getZ() * (double) f1;
+        double d1 = start.getY();
+        double d2 = start.getZ() * (double) f - start.getX() * (double) f1;
+        return new Vector3d(d0, d1, d2);
+    }
+
     public static float getHeight(PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
         if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.12f;
@@ -121,7 +186,6 @@ public class BoundingBoxSize {
     }
 
     public static double getPassengerRidingOffset(PacketEntity packetEntity) {
-
         if (packetEntity instanceof PacketEntityHorse)
             return (getHeight(packetEntity) * 0.75) - 0.25;
 

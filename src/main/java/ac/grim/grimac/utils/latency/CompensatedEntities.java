@@ -138,14 +138,14 @@ public class CompensatedEntities {
         }
     }
 
-    public void addEntity(int entityID, EntityType entityType, Vector3d position) {
+    public void addEntity(int entityID, EntityType entityType, Vector3d position, float xRot) {
         // Dropped items are all server sided and players can't interact with them (except create them!), save the performance
         if (entityType == EntityTypes.ITEM) return;
 
         PacketEntity packetEntity;
 
         if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.ABSTRACT_HORSE)) {
-            packetEntity = new PacketEntityHorse(player, entityType, position.getX(), position.getY(), position.getZ());
+            packetEntity = new PacketEntityHorse(player, entityType, position.getX(), position.getY(), position.getZ(), xRot);
         } else if (entityType == EntityTypes.SLIME || entityType == EntityTypes.MAGMA_CUBE || entityType == EntityTypes.PHANTOM) {
             packetEntity = new PacketEntitySizeable(player, entityType, position.getX(), position.getY(), position.getZ());
         } else {
@@ -155,6 +155,8 @@ public class CompensatedEntities {
                 packetEntity = new PacketEntityShulker(player, entityType, position.getX(), position.getY(), position.getZ());
             } else if (EntityTypes.STRIDER.equals(entityType)) {
                 packetEntity = new PacketEntityStrider(player, entityType, position.getX(), position.getY(), position.getZ());
+            } else if (EntityTypes.BOAT.equals(entityType) || EntityTypes.CHICKEN.equals(entityType)) {
+                packetEntity = new PacketEntityTrackXRot(player, entityType, position.getX(), position.getY(), position.getZ(), xRot);
             } else {
                 packetEntity = new PacketEntity(player, entityType, position.getX(), position.getY(), position.getZ());
             }

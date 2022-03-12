@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -358,6 +359,11 @@ public class PacketEntityReplication extends PacketCheck {
         player.latencyUtils.addRealTimeTask(lastTrans, () -> {
             PacketEntity entity = player.compensatedEntities.getEntity(entityId);
             if (entity == null) return;
+            if (entity instanceof PacketEntityTrackXRot && yaw != null) {
+                PacketEntityTrackXRot xRotEntity = (PacketEntityTrackXRot) entity;
+                xRotEntity.packetYaw = yaw;
+                xRotEntity.steps = xRotEntity.type == EntityTypes.BOAT ? 10 : 3;
+            }
             entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
         });
         player.latencyUtils.addRealTimeTask(lastTrans + 1,() -> {
@@ -374,7 +380,7 @@ public class PacketEntityReplication extends PacketCheck {
         player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, player.lastTransactionSent.get()));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            player.compensatedEntities.addEntity(entityID, type, position);
+            player.compensatedEntities.addEntity(entityID, type, position, xRot);
             if (entityMetadata != null) {
                 player.compensatedEntities.updateEntityMetadata(entityID, entityMetadata);
             }
