@@ -37,7 +37,7 @@ public class PredictionEngineNormal extends PredictionEngine {
         for (VectorData vector : new HashSet<>(existingVelocities)) {
             Vector jump = vector.vector.clone();
 
-            if (!player.specialFlying) {
+            if (!player.isFlying) {
                 // Negative jump boost does not allow the player to leave the ground
                 // Negative jump boost doesn't seem to work in water/lava
                 // If the player didn't try to jump
@@ -99,7 +99,7 @@ public class PredictionEngineNormal extends PredictionEngine {
             vector.setY(Math.max(vector.getY(), -0.15F));
 
             // Yes, this uses shifting not crouching
-            if (vector.getY() < 0.0 && !(player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY, player.lastZ) == StateTypes.SCAFFOLDING) && player.isSneaking && !player.specialFlying) {
+            if (vector.getY() < 0.0 && !(player.compensatedWorld.getStateTypeAt(player.lastX, player.lastY, player.lastZ) == StateTypes.SCAFFOLDING) && player.isSneaking && !player.isFlying) {
                 vector.setY(0.0);
             }
         }

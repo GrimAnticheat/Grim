@@ -27,6 +27,7 @@ import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
 import ac.grim.grimac.checks.type.*;
 import ac.grim.grimac.events.packets.PacketChangeGameState;
 import ac.grim.grimac.events.packets.PacketEntityReplication;
+import ac.grim.grimac.events.packets.PacketPlayerAbilities;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.anticheat.update.*;
@@ -58,6 +59,7 @@ public class CheckManager {
                 .put(ExplosionHandler.class, new ExplosionHandler(player))
                 .put(KnockbackHandler.class, new KnockbackHandler(player))
                 .put(CompensatedInventory.class, new CompensatedInventory(player))
+                .put(PacketPlayerAbilities.class, new PacketPlayerAbilities(player))
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFallA.class, new NoFallA(player))
                 .put(PingSpoofA.class, new PingSpoofA(player))

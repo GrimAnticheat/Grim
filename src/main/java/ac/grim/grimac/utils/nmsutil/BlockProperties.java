@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 public class BlockProperties {
 
     public static float getBlockFrictionUnderPlayer(GrimPlayer player) {
-        if (player.isGliding || player.specialFlying) return 1.0f;
+        if (player.isGliding || player.isFlying) return 1.0f;
 
         double searchBelowAmount = 0.5000001;
 
@@ -62,7 +62,7 @@ public class BlockProperties {
             }
         }
 
-        if (player.specialFlying) {
+        if (player.isFlying) {
             return player.flySpeed * 20 * (player.isSprinting ? 0.1f : 0.05f);
         }
 
@@ -84,7 +84,7 @@ public class BlockProperties {
     }
 
     public static float getBlockSpeedFactor(GrimPlayer player) {
-        if (player.isGliding || player.specialFlying) return 1.0f;
+        if (player.isGliding || player.isFlying) return 1.0f;
         // This system was introduces in 1.15 players to add support for honey blocks slowing players down
         if (player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) return 1.0f;
 

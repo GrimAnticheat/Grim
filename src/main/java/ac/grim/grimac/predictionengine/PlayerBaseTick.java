@@ -36,7 +36,7 @@ public class PlayerBaseTick {
         player.baseTickAddition = new Vector();
         player.baseTickWaterPushing = new Vector();
 
-        if (player.specialFlying && player.isSneaking && !player.inVehicle) {
+        if (player.isFlying && player.isSneaking && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
         }
 
@@ -49,7 +49,7 @@ public class PlayerBaseTick {
             player.fallDistance *= 0.5;
 
         // You cannot crouch while flying, only shift - could be specific to 1.14?
-        if (player.wasTouchingWater && player.isSneaking && !player.specialFlying && !player.inVehicle) {
+        if (player.wasTouchingWater && player.isSneaking && !player.isFlying && !player.inVehicle) {
             player.baseTickAddVector(new Vector(0, -0.04f, 0));
         }
 
@@ -161,7 +161,7 @@ public class PlayerBaseTick {
                 pose = Pose.SPIN_ATTACK;
             } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && player.getClientVersion().isOlderThan(ClientVersion.V_1_14) && player.isSneaking) {
                 pose = Pose.NINE_CROUCHING;
-            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.isSneaking && !player.specialFlying) {
+            } else if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.isSneaking && !player.isFlying) {
                 pose = Pose.CROUCHING;
             } else {
                 pose = Pose.STANDING;
@@ -412,7 +412,7 @@ public class PlayerBaseTick {
 
                     double d0 = (float) (y + 1) - fluidHeight;
 
-                    if (!player.specialFlying && ceilY >= d0) {
+                    if (!player.isFlying && ceilY >= d0) {
                         hasPushed = true;
                         vec3.add(FluidTypeFlowing.getFlow(player, x, y, z));
                     }
@@ -469,7 +469,7 @@ public class PlayerBaseTick {
                     hasTouched = true;
                     d2 = Math.max(fluidHeightToWorld - aABB.minY, d2);
 
-                    if (!player.specialFlying) {
+                    if (!player.isFlying) {
                         Vector vec32 = FluidTypeFlowing.getFlow(player, x, y, z);
                         if (d2 < 0.4) {
                             vec32 = vec32.multiply(d2);

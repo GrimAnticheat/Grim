@@ -188,7 +188,7 @@ public class MovementTicker {
         }
 
         // Flying players are not affected by cobwebs/sweet berry bushes
-        if (player.specialFlying) {
+        if (player.isFlying) {
             player.stuckSpeedMultiplier = new Vector(1, 1, 1);
         }
     }
@@ -279,7 +279,7 @@ public class MovementTicker {
     }
 
     public void playerEntityTravel() {
-        if (player.specialFlying && player.playerVehicle == null) {
+        if (player.isFlying && player.playerVehicle == null) {
             double oldY = player.clientVelocity.getY();
             double oldYJumping = oldY + player.flySpeed * 3;
             livingEntityTravel();
@@ -325,7 +325,7 @@ public class MovementTicker {
         if (canStandOnLava())
             lavaLevel = player.compensatedWorld.getLavaFluidLevelAt(GrimMath.floor(player.lastX), GrimMath.floor(player.lastY), GrimMath.floor(player.lastZ));
 
-        if (player.wasTouchingWater && !player.specialFlying) {
+        if (player.wasTouchingWater && !player.isFlying) {
             // 0.8F seems hardcoded in
             swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? 0.9F : 0.8F;
             float swimSpeed = 0.02F;
@@ -358,7 +358,7 @@ public class MovementTicker {
             }
 
         } else {
-            if (player.wasTouchingLava && !player.specialFlying && !(lavaLevel > 0 && canStandOnLava())) {
+            if (player.wasTouchingLava && !player.isFlying && !(lavaLevel > 0 && canStandOnLava())) {
 
                 doLavaMove();
 

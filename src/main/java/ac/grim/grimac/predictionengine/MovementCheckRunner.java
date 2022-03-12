@@ -120,7 +120,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.onGround = update.isOnGround();
 
-        if (!player.specialFlying && player.isSneaking && Collisions.isAboveGround(player)) {
+        if (!player.isFlying && player.isSneaking && Collisions.isAboveGround(player)) {
             // Before we do player block placements, determine if the shifting glitch occurred
             // The 0.03 and maintaining velocity is just brutal
             //
@@ -320,7 +320,6 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
-        player.specialFlying = player.onGround && !player.isFlying && player.wasFlying || player.isFlying;
 
         player.clientControlledVerticalCollision = Math.abs(player.y % (1 / 64D)) < 0.00001;
         // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
@@ -345,7 +344,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         boolean oldFlying = player.isFlying;
         boolean oldGliding = player.isGliding;
-        boolean oldSpecialFlying = player.specialFlying;
+        boolean oldisFlying = player.isFlying;
         boolean oldSprinting = player.isSprinting;
         boolean oldSneaking = player.isSneaking;
 
@@ -356,7 +355,6 @@ public class MovementCheckRunner extends PositionCheck {
             //player.fallDistance = 0;
             player.isFlying = false;
             player.isGliding = false;
-            player.specialFlying = false;
             player.isSprinting = false;
             player.isSneaking = false;
 
@@ -432,7 +430,7 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         player.uncertaintyHandler.lastUnderwaterFlyingHack--;
-        if (player.specialFlying && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
+        if (player.isFlying && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
             player.uncertaintyHandler.lastUnderwaterFlyingHack = 0;
         }
 
@@ -455,7 +453,7 @@ public class MovementCheckRunner extends PositionCheck {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
-        } else if (player.disableGrim || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.gamemode == GameMode.SPECTATOR) || player.specialFlying) {
+        } else if (player.disableGrim || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.gamemode == GameMode.SPECTATOR) || player.isFlying) {
             // We could technically check spectator but what's the point...
             // Added complexity to analyze a gamemode used mainly by moderators
             //
@@ -573,7 +571,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.inVehicle) {
             player.isFlying = oldFlying;
             player.isGliding = oldGliding;
-            player.specialFlying = oldSpecialFlying;
             player.isSprinting = oldSprinting;
             player.isSneaking = oldSneaking;
         }

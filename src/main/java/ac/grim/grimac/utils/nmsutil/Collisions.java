@@ -332,7 +332,7 @@ public class Collisions {
     }
 
     public static Vector maybeBackOffFromEdge(Vector vec3, GrimPlayer player, boolean overrideVersion) {
-        if (!player.specialFlying && player.isSneaking && isAboveGround(player)) {
+        if (!player.isFlying && player.isSneaking && isAboveGround(player)) {
             double x = vec3.getX();
             double z = vec3.getZ();
 
