@@ -34,8 +34,9 @@ public class PacketEntityReplication extends PacketCheck {
     }
 
     public void tickFlying() {
+        boolean setHighBound = !player.inVehicle && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            entity.onMovement();
+            entity.onMovement(setHighBound);
         }
     }
 

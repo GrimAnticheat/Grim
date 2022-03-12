@@ -44,7 +44,7 @@ public class PacketEntity {
         }
         this.type = type;
         this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getPacketEntityBoundingBox(x, y, z, this),
-                desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
+                desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.inVehicle && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
     }
 
     public boolean isLivingEntity() {
@@ -91,7 +91,7 @@ public class PacketEntity {
         }
 
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
+        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.inVehicle && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
     }
 
     // Remove the possibility of the old packet location
@@ -100,12 +100,12 @@ public class PacketEntity {
     }
 
     // If the old and new packet location are split, we need to combine bounding boxes
-    public void onMovement() {
-        newPacketLocation.tickMovement(oldPacketLocation == null);
+    public void onMovement(boolean highBound) {
+        newPacketLocation.tickMovement(oldPacketLocation == null, highBound);
 
         // Handle uncertainty of second transaction spanning over multiple ticks
         if (oldPacketLocation != null) {
-            oldPacketLocation.tickMovement(true);
+            oldPacketLocation.tickMovement(true, highBound);
             newPacketLocation.updatePossibleStartingLocation(oldPacketLocation.getPossibleLocationCombined());
         }
     }
