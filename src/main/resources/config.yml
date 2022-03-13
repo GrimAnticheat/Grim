@@ -1,10 +1,7 @@
 # GrimAC main configuration
 # Source code: https://github.com/MWHunter/Grim
-# Copyright DefineOutside, Licensed under GPLv3
-#
+# Copyright 2022 DefineOutside and contributors, Licensed under GPLv3.
 # Modified binaries, or plugins with copied grim code, must be private, or with full source code available to buyers.
-# Report any license violations to DefineOutside
-#
 
 # \u00BB is », ANSI and UTF-8 interpret this differently so manually specify it
 prefix: "&bGrim &8\u00BB"
@@ -48,62 +45,26 @@ messages:
     - "/grim perf &f- &7Developer ms/prediction"
     - "&7======================"
 
-# GrimAC can usually check movement within 0.00000001 precision
-# It is usually safe to check movement to 0.0001 with very few falses
-Prediction:
-  # There isn't much point checking this small of precision to catch 0.1% speed increases,
-  # but it would be a waste of a prediction engine to not check this far
-  Small:
-    # How large of an offset from the player's movement should we create a violation for?
-    # Measured in blocks (not squared) from the possible movement
-    threshold: 0.0001
-    # Setback vl: How many times should the player have to go over this threshold to set them back?
-    # Set to -1 to disable setbacks
-    setbackvl: 100
-    # Decay: How many violations should be reduced from the player for being below this threshold
-    decay: 0.05
-    # Alert vl: How many violations does the player need before they trigger alerts?
-    # Set to -1 to disable alerts
-    dont-alert-until: 80
-    # Alert interval: Instead of sending 20 alerts for 20 flags, we send 1 alert every 20 flags
-    alert-interval: 40
-  # The vast majority of cheats flag in this offset range, 0.01-0.6
-  Medium:
-    threshold: 0.01
-    setbackvl: 30
-    decay: 0.02
-    dont-alert-until: 40
-    alert-interval: 20
-  # This is to stop players from launching themselves extremely far in one tick
-  Large:
-    threshold: 0.1
-    setbackvl: 1
-    decay: 0.001
-    dont-alert-until: 10
-    alert-interval: 10
-
-# Vehicles are client sided in 1.9+, and server sided in 1.8 and below. This section only applies to 1.9+ servers
-# Vehicles are less stable than regular predictions as netcode for vehicles is significantly flawed
-Vehicle:
-  Small:
-    threshold: 0.005
-    setbackvl: 280
-    decay: 0.05
-    dont-alert-until: 400
-    alert-interval: 80
-  Medium:
-    threshold: 0.05
-    setbackvl: 80
-    decay: 0.02
-    dont-alert-until: 120
-    alert-interval: 60
-  Large:
-    threshold: 1
-    setbackvl: 1
-    decay: 0.001
-    dont-alert-until: 10
-    alert-interval: 40
-
+Simulation:
+  # How much should we multiply total advantage by when the player is legit
+  # This is what the default config looks like (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # How large of an offset from the player's movement should we create a violation for?
+  # Measured in blocks from the possible movement
+  threshold: 0.0001
+  # How large of a violation in a tick before the player gets immediately setback?
+  # -1 to disable
+  immediate-setback-threshold: 0.1
+  # How large of an advantage over all ticks before we start to setback?
+  # -1 to disable
+  max-advantage: 1
+  # After 50 seconds with default config, the player will go from 4 blocks -> 1 block of advantage
+  # This is to stop the player from gathering too
+  # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+  decay: 0.02
+  dont-alert-until: 100
+  alert-interval: 40
 
 # Prediction-based ground spoof check
 # Extremely stable
@@ -171,6 +132,7 @@ TimerA:
   # Milliseconds that the player can accumulate for later use when they fall behind
   # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
   drift: 120
+
 # Same check method as TimerA, but for vehicles
 TimerVehicle:
   # Target 1.005 timer
@@ -178,7 +140,6 @@ TimerVehicle:
   setbackvl: 10
   dont-alert-until: 5
   alert-interval: 5
-
 
 EntityControl:
   decay: 0.05

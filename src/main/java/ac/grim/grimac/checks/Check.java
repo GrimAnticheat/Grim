@@ -16,18 +16,18 @@ import org.bukkit.entity.Player;
 @Getter
 public class Check<T> {
     protected final GrimPlayer player;
+
     public double violations;
     public double decay;
     public double setbackVL;
     public double alertVL;
     public int alertInterval;
     public int alertCount;
+
     public boolean secretTestServerVLStyle;
-    private double setback;
-    private double vlMultiplier;
+
     private String checkName;
     private String configName;
-    private long reset;
 
     public Check(final GrimPlayer player) {
         this.player = player;
@@ -40,9 +40,10 @@ public class Check<T> {
             this.configName = checkData.configName();
             // Fall back to check name
             if (this.configName.equals("DEFAULT")) this.configName = this.checkName;
-            this.vlMultiplier = checkData.decay();
-            this.reset = checkData.reset();
-            this.setback = checkData.setback();
+            this.decay = checkData.decay();
+            this.setbackVL = checkData.setback();
+            this.alertVL = checkData.dontAlertUntil();
+            this.alertInterval = checkData.alertInterval();
         }
 
         reload();
@@ -82,10 +83,10 @@ public class Check<T> {
     }
 
     public void reload() {
-        decay = getConfig().getDouble(configName + ".decay");
-        alertVL = getConfig().getDouble(configName + ".dont-alert-until");
-        alertInterval = getConfig().getInt(configName + ".alert-interval");
-        setbackVL = getConfig().getDouble(configName + ".setbackvl", Double.MAX_VALUE);
+        decay = getConfig().getDouble(configName + ".decay", decay);
+        alertVL = getConfig().getDouble(configName + ".dont-alert-until", alertVL);
+        alertInterval = getConfig().getInt(configName + ".alert-interval", alertInterval);
+        setbackVL = getConfig().getDouble(configName + ".setbackvl", setbackVL);
 
         secretTestServerVLStyle = getConfig().getBoolean("test-mode", false);
 

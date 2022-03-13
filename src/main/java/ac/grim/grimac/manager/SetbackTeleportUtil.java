@@ -99,8 +99,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
         if (isPendingSetback()) return; // Don't spam setbacks
 
-        // Only let us full resync once every ten seconds to prevent unneeded bukkit load
-        if (System.currentTimeMillis() - lastWorldResync > 10 * 1000) {
+        // Only let us full resync once every five seconds to prevent unneeded bukkit load
+        if (System.currentTimeMillis() - lastWorldResync > 5 * 1000) {
             ResyncWorldUtil.resyncPositions(player, player.boundingBox.copy().expand(1));
             lastWorldResync = System.currentTimeMillis();
         }
