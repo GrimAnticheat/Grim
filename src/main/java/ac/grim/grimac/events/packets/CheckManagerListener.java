@@ -752,8 +752,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Cannot use collisions like normal because stepping messes it up :(
             //
             // This may need to be secured better, but limiting the new setback positions seems good enough for now...
-            SimpleCollisionBox stupidityBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y - 0.03, player.z, 0.66f, 0.06f);
-            if ((Collisions.isEmpty(player, stupidityBox) && !player.compensatedWorld.isNearHardEntity(stupidityBox.copy().expand(4))) || player.clientVelocity.getY() > 0.06) {
+            boolean canFeasiblyPointThree = Collisions.slowCouldPointThreeHitGround(player, player.x, player.y, player.z);
+            if ((!canFeasiblyPointThree && !player.compensatedWorld.isNearHardEntity(player.boundingBox.copy().expand(4))) || player.clientVelocity.getY() > 0.06) {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
         }

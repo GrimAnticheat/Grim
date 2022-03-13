@@ -51,6 +51,19 @@ public class Collisions {
             Arrays.asList(Axis.Y, Axis.X, Axis.Z),
             Arrays.asList(Axis.Y, Axis.Z, Axis.X));
 
+    public static boolean slowCouldPointThreeHitGround(GrimPlayer player, double x, double y, double z) {
+        SimpleCollisionBox oldBB = player.boundingBox;
+        player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 0.06f);
+
+        double posXZ = Collisions.collide(player, 0.03, -0.03, 0.03).getY();
+        double negXNegZ = Collisions.collide(player, -0.03, -0.03, -0.03).getY();
+        double posXNegZ = Collisions.collide(player, 0.03, -0.03, -0.03).getY();
+        double posZNegX = Collisions.collide(player, -0.03, -0.03, 0.03).getY();
+
+        player.boundingBox = oldBB;
+        return negXNegZ != -0.03 || posXNegZ != -0.03 || posXZ != -0.03 || posZNegX != -0.03;
+    }
+
     // Call this when there isn't uncertainty on the Y axis
     public static Vector collide(GrimPlayer player, double desiredX, double desiredY, double desiredZ) {
         return collide(player, desiredX, desiredY, desiredZ, desiredY, null);
