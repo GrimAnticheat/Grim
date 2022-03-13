@@ -90,7 +90,7 @@ public class Check<T> {
         secretTestServerVLStyle = getConfig().getBoolean("test-mode", false);
 
         if (alertVL == -1) alertVL = Double.MAX_VALUE;
-        if (setbackVL == -1) alertVL = Double.MAX_VALUE;
+        if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
 
     public boolean shouldAlert() {
