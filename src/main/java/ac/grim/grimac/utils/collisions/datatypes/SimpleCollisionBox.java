@@ -171,9 +171,9 @@ public class SimpleCollisionBox implements CollisionBox {
 
     @Override
     public boolean isIntersected(SimpleCollisionBox other) {
-        return other.maxX > this.minX && other.minX < this.maxX
-                && other.maxY > this.minY && other.minY < this.maxY
-                && other.maxZ > this.minZ && other.minZ < this.maxZ;
+        return other.maxX - SimpleCollisionBox.COLLISION_EPSILON > this.minX && other.minX + SimpleCollisionBox.COLLISION_EPSILON < this.maxX
+                && other.maxY - SimpleCollisionBox.COLLISION_EPSILON > this.minY && other.minY + SimpleCollisionBox.COLLISION_EPSILON < this.maxY
+                && other.maxZ - SimpleCollisionBox.COLLISION_EPSILON > this.minZ && other.minZ + SimpleCollisionBox.COLLISION_EPSILON < this.maxZ;
     }
 
     public boolean isIntersected(CollisionBox other) {

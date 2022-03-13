@@ -9,6 +9,7 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import org.bukkit.util.Vector;
 
 public class GhostBlockDetector extends PostPredictionCheck {
 
@@ -39,12 +40,20 @@ public class GhostBlockDetector extends PostPredictionCheck {
     }
 
     private boolean isGhostBlock() {
-        // Collisions are considered "close enough" within this epsilon
-        if (player.actualMovement.length() < 50 &&
-                (Math.abs(player.calculatedCollision.getX() - player.actualMovement.getX()) > SimpleCollisionBox.COLLISION_EPSILON ||
-                        Math.abs(player.calculatedCollision.getY() - player.actualMovement.getY()) > SimpleCollisionBox.COLLISION_EPSILON ||
-                        Math.abs(player.calculatedCollision.getZ() - player.actualMovement.getZ()) > SimpleCollisionBox.COLLISION_EPSILON)) {
-            return true;
+        if (player.actualMovement.length() < 50) { // anti-crash
+            // If the player entered a block, it is likely because of ghost blocks
+            // TODO: There has to be a better way to write this anti-ghost block check
+            // This entire anti ghost thing is terribly messy.
+            // It constantly sees ghost blocks where they aren't any
+            // It make it so stuff like vanilla Jesus doesn't flag and only setsback
+            // and it makes the Phase check practically useless in terms of flagging
+            //
+            // One solution is to figure out all the possibilities where ghost blocks are created
+            // Placing blocks, pistons, etc. and this isn't a terrible idea.
+            Vector phase = Collisions.collide(player, player.actualMovement.getX(), player.actualMovement.getY(), player.actualMovement.getZ());
+            if (phase.getX() != player.actualMovement.getX() || phase.getY() != player.actualMovement.getY() || phase.getZ() != player.actualMovement.getZ()) {
+                return true;
+            }
         }
 
         // Player is on glitchy block (1.8 client on anvil/wooden chest)

@@ -89,7 +89,6 @@ public class GrimPlayer {
     public double gravity;
     public float friction;
     public double speed;
-    public Vector3d calculatedCollision = new Vector3d();
     public Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
     public double x;
     public double y;

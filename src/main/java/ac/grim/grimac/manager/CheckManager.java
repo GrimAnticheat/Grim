@@ -20,6 +20,7 @@ import ac.grim.grimac.checks.impl.post.*;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
+import ac.grim.grimac.checks.impl.prediction.Phase;
 import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
 import ac.grim.grimac.checks.impl.scaffolding.FarPlace;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
@@ -103,6 +104,7 @@ public class CheckManager {
 
         postPredictionCheck = new ImmutableClassToInstanceMap.Builder<PostPredictionCheck>()
                 .put(GhostBlockDetector.class, new GhostBlockDetector(player))
+                .put(Phase.class, new Phase(player))
                 .put(NoFallB.class, new NoFallB(player))
                 .put(OffsetHandler.class, new OffsetHandler(player))
                 .put(DebugHandler.class, new DebugHandler(player))

@@ -691,7 +691,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d position = VectorUtils.clampVector(new Vector3d(x, y, z));
             teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
-            player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
         }
 
         double threshold = player.getMovementThreshold();
@@ -720,6 +719,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.xRot = yaw;
             player.yRot = pitch;
 
+            player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
+
             // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
             // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) &&
@@ -740,6 +741,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         handleQueuedPlaces(player, hasLook, pitch, yaw, now);
+
+        // We can set the new pos after the places
+        if (hasPosition) {
+            player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
+        }
 
         // This stupid mechanic has been measured with 0.03403409022229198 y velocity... DAMN IT MOJANG, use 0.06 to be safe...
         if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && !player.inVehicle) {
