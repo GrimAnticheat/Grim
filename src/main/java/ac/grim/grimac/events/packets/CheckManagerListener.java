@@ -34,6 +34,7 @@ import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.protocol.world.MaterialType;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
@@ -325,35 +326,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         player.checkManager.onPrePredictionReceivePacket(event);
 
-        // Flying packet types
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
-            WrapperPlayClientPlayerPosition wrapper = new WrapperPlayClientPlayerPosition(event);
-            Vector3d pos = wrapper.getPosition();
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
 
-            // Usually we would ban here but FastMath causes NaN's to be sent, thanks Optifine
-            if (Double.isNaN(pos.getX()) || Double.isNaN(pos.getY()) || Double.isNaN(pos.getZ())) {
-                event.setCancelled(true);
-                return;
+            Location pos = flying.getLocation();
+
+            if (flying.hasPositionChanged()) {
+                if (Double.isNaN(pos.getX()) || Double.isNaN(pos.getY()) || Double.isNaN(pos.getZ())) {
+                    event.setCancelled(true);
+                    return;
+                }
             }
 
-            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), 0, 0, true, false, wrapper.isOnGround(), event);
-        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-            WrapperPlayClientPlayerPositionAndRotation wrapper = new WrapperPlayClientPlayerPositionAndRotation(event);
-            Vector3d pos = wrapper.getPosition();
-
-            // Usually we would ban here but FastMath causes NaN's to be sent, thanks Optifine
-            if (Double.isNaN(pos.getX()) || Double.isNaN(pos.getY()) || Double.isNaN(pos.getZ())) {
-                event.setCancelled(true);
-                return;
-            }
-
-            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), wrapper.getYaw(), wrapper.getPitch(), true, true, wrapper.isOnGround(), event);
-        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
-            WrapperPlayClientPlayerRotation wrapper = new WrapperPlayClientPlayerRotation(event);
-            handleFlying(player, 0, 0, 0, wrapper.getYaw(), wrapper.getPitch(), false, true, wrapper.isOnGround(), event);
-        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING) {
-            WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
-            handleFlying(player, 0, 0, 0, 0, 0, false, false, wrapper.isOnGround(), event);
+            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), event);
         }
 
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {

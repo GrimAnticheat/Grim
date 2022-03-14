@@ -7,12 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPosition;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPositionAndRotation;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,23 +33,8 @@ public class NoFallA extends PacketCheck {
             // The player has already been flagged, and
             if (player.getSetbackTeleportUtil().blockOffsets) return;
 
-            PacketWrapper wrapper = null;
+            WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
             boolean hasPosition = false;
-
-            // Flying packet types
-            if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION) {
-                wrapper = new WrapperPlayClientPlayerPosition(event);
-                hasPosition = true;
-            } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-                wrapper = new WrapperPlayClientPlayerPositionAndRotation(event);
-                hasPosition = true;
-            } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
-                wrapper = new WrapperPlayClientPlayerRotation(event);
-            } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_FLYING) {
-                wrapper = new WrapperPlayClientPlayerFlying(event);
-            }
-
-            assert wrapper != null;
 
             // The prediction based NoFall check (that runs before us without the packet)
             // has asked us to flip the player's onGround status
@@ -63,46 +43,21 @@ public class NoFallA extends PacketCheck {
             // I could add that feature but ehh... this works and is better anyway.
             if (flipPlayerGroundStatus) {
                 flipPlayerGroundStatus = false;
-                setOnGround(wrapper, !onGround(wrapper));
+                wrapper.setOnGround(!wrapper.isOnGround());
                 return;
             }
 
             // If the player claims to be on the ground
             // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
-            if (onGround(wrapper) && !hasPosition) {
-                if (!isNearGround(onGround(wrapper))) { // If player isn't near ground
+            if (wrapper.isOnGround() && !hasPosition) {
+                if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     flagWithSetback();
-                    setOnGround(wrapper, false);
+                    wrapper.setOnGround(false);
                 } else {
                     reward();
                 }
             }
         }
-    }
-
-    private void setOnGround(PacketWrapper wrapper, boolean onGround) {
-        if (wrapper instanceof WrapperPlayClientPlayerPosition) {
-            ((WrapperPlayClientPlayerPosition) wrapper).setOnGround(onGround);
-        } else if (wrapper instanceof WrapperPlayClientPlayerPositionAndRotation) {
-            ((WrapperPlayClientPlayerPositionAndRotation) wrapper).setOnGround(onGround);
-        } else if (wrapper instanceof WrapperPlayClientPlayerRotation) {
-            ((WrapperPlayClientPlayerRotation) wrapper).setOnGround(onGround);
-        } else if (wrapper instanceof WrapperPlayClientPlayerFlying) {
-            ((WrapperPlayClientPlayerFlying) wrapper).setOnGround(onGround);
-        }
-    }
-
-    private boolean onGround(PacketWrapper wrapper) {
-        if (wrapper instanceof WrapperPlayClientPlayerPosition) {
-            return ((WrapperPlayClientPlayerPosition) wrapper).isOnGround();
-        } else if (wrapper instanceof WrapperPlayClientPlayerPositionAndRotation) {
-            return ((WrapperPlayClientPlayerPositionAndRotation) wrapper).isOnGround();
-        } else if (wrapper instanceof WrapperPlayClientPlayerRotation) {
-            return ((WrapperPlayClientPlayerRotation) wrapper).isOnGround();
-        } else if (wrapper instanceof WrapperPlayClientPlayerFlying) {
-            return ((WrapperPlayClientPlayerFlying) wrapper).isOnGround();
-        }
-        return false;
     }
 
     public boolean isNearGround(boolean onGround) {

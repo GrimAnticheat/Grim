@@ -4,8 +4,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerPositionAndRotation;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "CrashA")
 public class CrashA extends PacketCheck {
@@ -18,10 +17,11 @@ public class CrashA extends PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (player.packetStateData.lastPacketWasTeleport) return;
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-            WrapperPlayClientPlayerPositionAndRotation packet = new WrapperPlayClientPlayerPositionAndRotation(event);
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(event);
 
-            if (Math.abs(packet.getPosition().getX()) > HARD_CODED_BORDER || Math.abs(packet.getPosition().getZ()) > HARD_CODED_BORDER) {
+            if (!packet.hasPositionChanged()) return;
+            if (Math.abs(packet.getLocation().getX()) > HARD_CODED_BORDER || Math.abs(packet.getLocation().getZ()) > HARD_CODED_BORDER) {
                 flagAndAlert(); // Ban
             }
         }
