@@ -79,13 +79,18 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     public void forceExempt() {
-        // Unsure explosion was taken
-        if (player.firstBreadExplosion != null) {
-            player.firstBreadExplosion.offset = 0;
-        }
+        // Don't exempt if the player used grim to get a teleport here.
+        // This will flag but it's required to stop abuse
+        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
+                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
+            // Unsure explosion was taken
+            if (player.firstBreadExplosion != null) {
+                player.firstBreadExplosion.offset = 0;
+            }
 
-        if (player.likelyExplosions != null) {
-            player.likelyExplosions.offset = 0;
+            if (player.likelyExplosions != null) {
+                player.likelyExplosions.offset = 0;
+            }
         }
     }
 
