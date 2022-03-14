@@ -4,13 +4,17 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -34,7 +38,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean blockPredictions = false;
     // Resetting velocity can be abused to "fly"
     // Therefore, only allow one setback position every half second to patch this flight exploit
-    public int safeMovementTicks = 0;
+    public int setbackConfirmTicksAgo = 0;
     // This required setback data is the head of the teleport.
     // It is set by both bukkit and netty due to going on the bukkit thread to setback players
     SetBackData requiredSetBack = null;
@@ -64,12 +68,17 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // If the setback isn't complete, then this position is illegitimate
         if (predictionComplete.getData().getSetback() != null) {
             // The player did indeed accept the setback, and there are no new setbacks past now!
-            safeMovementTicks = 0;
+            setbackConfirmTicksAgo = 0;
+            // Teleport, let velocity be reset
             safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
-            if (safeMovementTicks++ > 10) { // You must be legit for at least 500 ms before getting a new setback pos...
-                safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.lastX, player.lastY, player.lastZ));
-            }
+            setbackConfirmTicksAgo++;
+
+            // Calculate the player's actual movement that should be given
+            safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld,
+                    new Vector3d(player.lastX, player.lastY, player.lastZ),
+                    // The client's current velocity is their velocity for the next tick
+                    player.clientVelocity.clone());
 
             // We checked for a new pending setback above
             if (predictionComplete.getData().isTeleport()) {
@@ -77,7 +86,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
             }
         } else {
-            safeMovementTicks = 0; // Pending setback
+            setbackConfirmTicksAgo = 0; // Pending setback
         }
     }
 
@@ -105,7 +114,40 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             lastWorldResync = System.currentTimeMillis();
         }
 
-        SetBackData data = new SetBackData(position, player.xRot, player.yRot, new Vector(), null, true);
+        Vector clientVel = player.predictedVelocity.vector.clone();
+        SimpleCollisionBox oldBB = player.boundingBox;
+        player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+
+        // Apply knockback before applying explosions to stop people from ignoring explosions
+        if (player.firstBreadKB != null && player.likelyKB == null) {
+            clientVel = player.firstBreadKB.vector.clone();
+        } else if (player.likelyKB != null) {
+            clientVel = player.likelyKB.vector.clone();
+        }
+
+        // First bread explosion needs to be applied
+        // Only apply if likely is not a valid explosion
+        // Don't apply this twice
+        if (player.firstBreadExplosion != null && player.likelyExplosions == null) {
+            clientVel.add(player.firstBreadExplosion.vector);
+        } else if (player.likelyExplosions != null) { // Likely explosion gets priority
+            clientVel.add(player.likelyExplosions.vector);
+        }
+
+        Vector collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());
+
+        position.setX(position.getX() + collide.getX());
+        position.setY(position.getY() + collide.getY());
+        position.setZ(position.getZ() + collide.getZ());
+
+        // TODO: Add support for elytra, water, lava, and end of ticks
+        PredictionEngineNormal.staticVectorEndOfTick(player, clientVel);
+
+        player.boundingBox = oldBB; // reset back to the new bounding box
+
+        if (!hasAcceptedSpawnTeleport) clientVel = null; // if the player hasn't spawned... don't force kb
+
+        SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, null, true);
         requiredSetBack = data;
 
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
@@ -128,6 +170,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             }
 
             player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), player.xRot % 360, player.yRot % 360));
+            if (data.getVelocity() != null) {
+                player.bukkitPlayer.setVelocity(data.getVelocity());
+            }
 
             // Override essentials giving player invulnerability on teleport
             player.setVulnerable();
@@ -279,7 +324,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         boolean isPlugin = requiredSetBack == null || (requiredSetBack.getPosition().getX() != position.getX() ||
                 requiredSetBack.getPosition().getY() != position.getY() || requiredSetBack.getPosition().getZ() != position.getZ());
 
-        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, new Vector(), null, isPlugin);
+        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, isPlugin);
         safeTeleportPosition = new SetbackLocationVelocity(position.getWorld(), new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
 
@@ -304,8 +349,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
 class SetbackLocationVelocity {
     Location position;
+    Vector velocity;
 
     public SetbackLocationVelocity(World world, Vector3d vector3d) {
         this.position = new Location(world, vector3d.getX(), vector3d.getY(), vector3d.getZ());
+        this.velocity = null;
+    }
+
+    public SetbackLocationVelocity(World world, Vector3d vector3d, Vector velocity) {
+        this.position = new Location(world, vector3d.getX(), vector3d.getY(), vector3d.getZ());
+        this.velocity = velocity;
     }
 }

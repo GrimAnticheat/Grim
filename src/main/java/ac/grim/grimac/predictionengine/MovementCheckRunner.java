@@ -12,6 +12,7 @@ import ac.grim.grimac.predictionengine.predictions.rideable.BoatPredictionEngine
 import ac.grim.grimac.utils.anticheat.update.PositionUpdate;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.SetBackData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
@@ -554,8 +555,16 @@ public class MovementCheckRunner extends PositionCheck {
         // If the player is abusing a setback in order to gain the onGround status of true.
         // and the player then jumps from this position in the air.
         // Fixes LiquidBounce Jesus NCP, and theoretically AirJump bypass
-        if (player.getSetbackTeleportUtil().safeMovementTicks == 1 && player.predictedVelocity.isJump() && !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ)) {
-            player.getSetbackTeleportUtil().executeForceResync();
+        if (player.getSetbackTeleportUtil().setbackConfirmTicksAgo == 1) {
+            if (player.predictedVelocity.isJump() && !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ)) {
+                player.getSetbackTeleportUtil().executeForceResync();
+            }
+            SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
+            // Player ignored the knockback or is delaying it a tick... bad!
+            if (!player.predictedVelocity.isKnockback() && data.getVelocity() != null) {
+                // And then send it again!
+                player.getSetbackTeleportUtil().executeForceResync();
+            }
         }
 
         player.lastOnGround = player.onGround;

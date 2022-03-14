@@ -26,7 +26,6 @@ public class KnockbackHandler extends PacketCheck {
 
     double offsetToFlag;
     double setbackVL;
-    double decay;
 
     public KnockbackHandler(GrimPlayer player) {
         super(player);
