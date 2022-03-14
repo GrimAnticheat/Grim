@@ -30,6 +30,10 @@ public class ExplosionHandler extends PacketCheck {
         super(player);
     }
 
+    public boolean isPendingExplosion() {
+        return firstBreadMap.size() > 0;
+    }
+
     @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
@@ -128,7 +132,11 @@ public class ExplosionHandler extends PacketCheck {
         // 100% known kb was taken
         if (player.likelyExplosions != null) {
             if (player.likelyExplosions.offset > offsetToFlag) {
-                flagWithSetback();
+                if (flag()) {
+                    if (getViolations() > setbackVL) {
+                        player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, true);
+                    }
+                }
 
                 String formatOffset = "o: " + formatOffset(offset);
 

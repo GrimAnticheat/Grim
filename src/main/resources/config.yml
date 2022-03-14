@@ -59,7 +59,7 @@ Simulation:
   # -1 to disable
   max-advantage: 1
   # After 50 seconds with default config, the player will go from 4 blocks -> 1 block of advantage
-  # This is to stop the player from gathering too
+  # This is to stop the player from gathering too many violations and never being able to clear them all
   # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
   decay: 0.02

@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.SetBackData;
+import ac.grim.grimac.utils.data.SetbackLocationVelocity;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -45,7 +46,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to netty to stop excessive resync's
     long lastWorldResync = 0;
     // A legal place to setback the player to
-    SetbackLocationVelocity safeTeleportPosition;
+    public SetbackLocationVelocity safeTeleportPosition;
 
     public SetbackTeleportUtil(GrimPlayer player) {
         super(player);
@@ -100,13 +101,17 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         blockMovementsUntilResync(safeTeleportPosition.position);
     }
 
-    private void blockMovementsUntilResync(Location position) {
+    public void blockMovementsUntilResync(Location position) {
+        blockMovementsUntilResync(position, false);
+    }
+
+    public void blockMovementsUntilResync(Location position, boolean force) {
         // Don't teleport cross world, it will break more than it fixes.
         if (player.bukkitPlayer != null && position.getWorld() != player.bukkitPlayer.getWorld()) return;
         if (requiredSetBack == null || player.bukkitPlayer == null)
             return; // Player hasn't gotten a single teleport yet.
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
-        if (isPendingSetback()) return; // Don't spam setbacks
+        if (!force && isPendingSetback()) return; // Don't spam setbacks
 
         // Only let us full resync once every five seconds to prevent unneeded bukkit load
         if (System.currentTimeMillis() - lastWorldResync > 5 * 1000) {
@@ -147,7 +152,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         if (!hasAcceptedSpawnTeleport) clientVel = null; // if the player hasn't spawned... don't force kb
 
-        SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, null, true);
+        // Don't let people get new velocities on demand
+        if (player.checkManager.getKnockbackHandler().isPendingKb() ||
+                player.checkManager.getExplosionHandler().isPendingExplosion()) {
+            clientVel = null;
+        }
+
+        SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, null, false);
         requiredSetBack = data;
 
         Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
@@ -344,20 +355,5 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      */
     public void addSentTeleport(Location position, int transaction) {
         teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer != null ? player.bukkitPlayer.getWorld() : null, position.getX(), position.getY(), position.getZ())));
-    }
-}
-
-class SetbackLocationVelocity {
-    Location position;
-    Vector velocity;
-
-    public SetbackLocationVelocity(World world, Vector3d vector3d) {
-        this.position = new Location(world, vector3d.getX(), vector3d.getY(), vector3d.getZ());
-        this.velocity = null;
-    }
-
-    public SetbackLocationVelocity(World world, Vector3d vector3d, Vector velocity) {
-        this.position = new Location(world, vector3d.getX(), vector3d.getY(), vector3d.getZ());
-        this.velocity = velocity;
     }
 }

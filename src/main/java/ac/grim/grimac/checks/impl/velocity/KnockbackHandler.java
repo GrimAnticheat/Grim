@@ -31,6 +31,10 @@ public class KnockbackHandler extends PacketCheck {
         super(player);
     }
 
+    public boolean isPendingKb() {
+        return firstBreadMap.size() > 0;
+    }
+
     @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
@@ -100,13 +104,18 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     public void forceExempt() {
-        // Unsure knockback was taken
-        if (player.firstBreadKB != null) {
-            player.firstBreadKB.offset = 0;
-        }
+        // Don't exempt if the player used grim to get a teleport here.
+        // This will flag but it's required to stop abuse
+        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
+                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
+            // Unsure knockback was taken
+            if (player.firstBreadKB != null) {
+                player.firstBreadKB.offset = 0;
+            }
 
-        if (player.likelyKB != null) {
-            player.likelyKB.offset = 0;
+            if (player.likelyKB != null) {
+                player.likelyKB.offset = 0;
+            }
         }
     }
 
@@ -155,7 +164,11 @@ public class KnockbackHandler extends PacketCheck {
 
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
-                flagWithSetback();
+                if (flag()) {
+                    if (getViolations() > setbackVL) {
+                        player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, true);
+                    }
+                }
 
                 String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
 
