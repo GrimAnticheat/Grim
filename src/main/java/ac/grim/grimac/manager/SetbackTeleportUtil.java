@@ -121,7 +121,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         Vector clientVel = player.predictedVelocity.vector.clone();
         SimpleCollisionBox oldBB = player.boundingBox;
-        player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+        player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, position.getX(), position.getY(), position.getZ());
 
         // Apply knockback before applying explosions to stop people from ignoring explosions
         if (player.firstBreadKB != null && player.likelyKB == null) {
