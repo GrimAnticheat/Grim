@@ -77,7 +77,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             // Calculate the player's actual movement that should be given
             safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld,
-                    new Vector3d(player.lastX, player.lastY, player.lastZ),
+                    new Vector3d(player.lastX + player.predictedVelocity.vector.getX(), player.lastY + player.predictedVelocity.vector.getY(), player.lastZ + player.predictedVelocity.vector.getZ()),
                     // The client's current velocity is their velocity for the next tick
                     player.clientVelocity.clone());
 
@@ -137,6 +137,20 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             clientVel.add(player.firstBreadExplosion.vector);
         } else if (player.likelyExplosions != null) { // Likely explosion gets priority
             clientVel.add(player.likelyExplosions.vector);
+        }
+
+        // Prevent double velocity/explosions
+        if (player.likelyExplosions != null) {
+            player.likelyExplosions.hasSetbackForThis = true;
+        }
+        if (player.firstBreadExplosion != null) {
+            player.firstBreadExplosion.hasSetbackForThis = true;
+        }
+        if (player.likelyKB != null) {
+            player.likelyKB.hasSetbackForThis = true;
+        }
+        if (player.firstBreadKB != null) {
+            player.firstBreadKB.hasSetbackForThis = true;
         }
 
         Vector collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());

@@ -134,7 +134,7 @@ public class ExplosionHandler extends PacketCheck {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 if (flag()) {
                     if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, true);
+                        player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, !player.likelyExplosions.hasSetbackForThis);
                     }
                 }
 
