@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.predictions.PredictionEngineNormal;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -23,6 +24,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
 import java.util.Random;
@@ -165,7 +167,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         position.setZ(position.getZ() + collide.getZ());
 
         // TODO: Add support for elytra, water, lava, and end of ticks
-        PredictionEngineNormal.staticVectorEndOfTick(player, clientVel);
+        if (player.wasTouchingWater) {
+            PredictionEngineWater.staticVectorEndOfTick(player, clientVel, 0.8F, player.gravity, true);
+        } else if (!player.isGliding) { // Gliding doesn't have friction, we handle it differently
+            PredictionEngineNormal.staticVectorEndOfTick(player, clientVel); // Lava and normal movement
+        }
 
         player.boundingBox = oldBB; // reset back to the new bounding box
 
@@ -189,18 +195,24 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         try {
             // Player is in a vehicle
+            Integer vehicleId = player.compensatedEntities.serverPlayerVehicle;
             if (player.compensatedEntities.serverPlayerVehicle != null) {
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                    player.user.sendPacket(new WrapperPlayServerSetPassengers(player.compensatedEntities.serverPlayerVehicle, new int[2]));
+                    player.user.sendPacket(new WrapperPlayServerSetPassengers(vehicleId, new int[2]));
                 } else {
-                    player.user.sendPacket(new WrapperPlayServerAttachEntity(player.compensatedEntities.serverPlayerVehicle, -1, false));
+                    player.user.sendPacket(new WrapperPlayServerAttachEntity(vehicleId, -1, false));
                 }
 
-                // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
-                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), player.bukkitPlayer::eject);
-
                 // Stop the player from being able to teleport vehicles and simply re-enter them to continue
-                player.user.sendPacket(new WrapperPlayServerEntityTeleport(player.compensatedEntities.serverPlayerVehicle, new Vector3d(position.getX(), position.getY(), position.getZ()), player.xRot % 360, 0, false));
+                player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, new Vector3d(position.getX(), position.getY(), position.getZ()), player.xRot % 360, 0, false));
+
+                // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
+                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                    Entity vehicle = player.bukkitPlayer.getVehicle();
+                    if (vehicle != null) {
+                        vehicle.eject();
+                    }
+                });
             }
 
             player.user.sendPacket(new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), player.xRot % 360, player.yRot % 360, (byte) 0b11000, new Random().nextInt(), false));
