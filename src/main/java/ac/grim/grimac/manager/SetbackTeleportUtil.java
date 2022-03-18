@@ -16,13 +16,16 @@ import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
+import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
@@ -47,6 +50,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     long lastWorldResync = 0;
     // A legal place to setback the player to
     public SetbackLocationVelocity safeTeleportPosition;
+    // Are we currently sending setback stuff?
+    public boolean isSendingSetback = false;
 
     public SetbackTeleportUtil(GrimPlayer player) {
         super(player);
@@ -175,33 +180,37 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, null, false);
         requiredSetBack = data;
 
-        Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-            // Let bukkit teleports or packet teleports override this setback
-            if (data != requiredSetBack) return;
+        // Patch LiquidBounce Spartan NoFall. Just a value so "safe" to set async
+        if (player.bukkitPlayer != null) {
+            player.bukkitPlayer.setFallDistance((float) player.fallDistance);
+        }
 
-            // Patch LiquidBounce Spartan NoFall
-            if (player.bukkitPlayer != null) {
-                player.bukkitPlayer.setFallDistance((float) player.fallDistance);
-            }
+        isSendingSetback = true;
 
-            // Vanilla is terrible at handling regular player teleports when in vehicle, eject to avoid issues
-            Entity playerVehicle = player.bukkitPlayer.getVehicle();
+        try {
+            // Player is in a vehicle
+            if (player.compensatedEntities.serverPlayerVehicle != null) {
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                    player.user.sendPacket(new WrapperPlayServerSetPassengers(player.compensatedEntities.serverPlayerVehicle, new int[2]));
+                } else {
+                    player.user.sendPacket(new WrapperPlayServerAttachEntity(player.compensatedEntities.serverPlayerVehicle, -1, false));
+                }
 
-            if (playerVehicle != null) {
-                playerVehicle.eject();
+                // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
+                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), player.bukkitPlayer::eject);
+
                 // Stop the player from being able to teleport vehicles and simply re-enter them to continue
-                Location vehicleLocation = playerVehicle.getLocation();
-                playerVehicle.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), vehicleLocation.getYaw() % 360, vehicleLocation.getPitch() % 360));
+                player.user.sendPacket(new WrapperPlayServerEntityTeleport(player.compensatedEntities.serverPlayerVehicle, new Vector3d(position.getX(), position.getY(), position.getZ()), player.xRot % 360, 0, false));
             }
 
-            player.bukkitPlayer.teleport(new Location(position.getWorld(), position.getX(), position.getY(), position.getZ(), player.xRot % 360, player.yRot % 360));
+            player.user.sendPacket(new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), player.xRot % 360, player.yRot % 360, (byte) 0b11000, new Random().nextInt(), false));
+
             if (data.getVelocity() != null) {
-                player.bukkitPlayer.setVelocity(data.getVelocity());
+                player.user.sendPacket(new WrapperPlayServerEntityVelocity(player.entityID, new Vector3d(data.getVelocity().getX(), data.getVelocity().getY(), data.getVelocity().getZ())));
             }
-
-            // Override essentials giving player invulnerability on teleport
-            player.setVulnerable();
-        });
+        } finally {
+            isSendingSetback = false;
+        }
     }
 
     public void resendSetback() {
@@ -345,11 +354,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      *
      * @param position Position of the teleport
      */
-    public void setTargetTeleport(Location position) {
-        boolean isPlugin = requiredSetBack == null || (requiredSetBack.getPosition().getX() != position.getX() ||
-                requiredSetBack.getPosition().getY() != position.getY() || requiredSetBack.getPosition().getZ() != position.getZ());
-
-        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, isPlugin);
+    public void setJoinTeleport(Location position) {
+        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, false);
         safeTeleportPosition = new SetbackLocationVelocity(position.getWorld(), new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
 

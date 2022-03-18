@@ -17,7 +17,6 @@ import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
-import com.earth2me.essentials.Essentials;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
@@ -41,11 +40,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -420,25 +417,6 @@ public class GrimPlayer {
 
     public CompensatedInventory getInventory() {
         return (CompensatedInventory) checkManager.getPacketCheck(CompensatedInventory.class);
-    }
-
-    public void setVulnerable() {
-        // Essentials gives players invulnerability after teleport, which is bad
-        try {
-            Plugin essentials = Bukkit.getServer().getPluginManager().getPlugin("Essentials");
-            if (essentials == null) return;
-            if (bukkitPlayer == null) return;
-
-            Object user = ((Essentials) essentials).getUser(bukkitPlayer);
-            if (user == null) return;
-
-            // Use reflection because there isn't an API for this
-            Field invulnerable = user.getClass().getDeclaredField("teleportInvulnerabilityTimestamp");
-            invulnerable.setAccessible(true);
-            invulnerable.set(user, 0);
-        } catch (Exception e) { // Might error from very outdated Essentials builds
-            e.printStackTrace();
-        }
     }
 
     public List<Double> getPossibleEyeHeights() { // We don't return sleeping eye height

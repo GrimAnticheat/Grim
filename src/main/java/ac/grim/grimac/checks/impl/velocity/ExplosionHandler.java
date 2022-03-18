@@ -61,7 +61,7 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     public void addPlayerExplosion(int breadOne, Vector3f explosion) {
-        firstBreadMap.add(new VelocityData(-1, breadOne, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
+        firstBreadMap.add(new VelocityData(-1, breadOne, player.getSetbackTeleportUtil().isSendingSetback, new Vector(explosion.getX(), explosion.getY(), explosion.getZ())));
     }
 
     public void setPointThree(boolean isPointThree) {
@@ -173,18 +173,18 @@ public class ExplosionHandler extends PacketCheck {
             if (data.transaction == transactionID) { // First bread explosion
                 firstBreadMap.poll();
                 if (lastExplosionsKnownTaken != null)
-                    firstBreadAddedExplosion = new VelocityData(-1, data.transaction, lastExplosionsKnownTaken.vector.clone().add(data.vector));
+                    firstBreadAddedExplosion = new VelocityData(-1, data.transaction, data.isSetback, lastExplosionsKnownTaken.vector.clone().add(data.vector));
                 else
-                    firstBreadAddedExplosion = new VelocityData(-1, data.transaction, data.vector);
+                    firstBreadAddedExplosion = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) {
                 if (lastExplosionsKnownTaken != null)
                     lastExplosionsKnownTaken.vector.clone().add(data.vector);
                 else {
                     if (firstBreadAddedExplosion != null) // Bring over the previous offset, don't require explosions twice
-                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.vector, firstBreadAddedExplosion.offset);
+                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.vector, data.isSetback, firstBreadAddedExplosion.offset);
                     else
-                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.vector);
+                        lastExplosionsKnownTaken = new VelocityData(-1, data.transaction, data.isSetback, data.vector);
                 }
 
                 firstBreadAddedExplosion = null;

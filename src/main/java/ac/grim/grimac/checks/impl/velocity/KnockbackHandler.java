@@ -65,7 +65,7 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     private void addPlayerKnockback(int entityID, int breadOne, Vector knockback) {
-        firstBreadMap.add(new VelocityData(entityID, breadOne, knockback));
+        firstBreadMap.add(new VelocityData(entityID, breadOne, player.getSetbackTeleportUtil().isSendingSetback, knockback));
     }
 
     public VelocityData calculateRequiredKB(int entityID, int transaction) {
@@ -86,14 +86,14 @@ public class KnockbackHandler extends PacketCheck {
         VelocityData data = firstBreadMap.peek();
         while (data != null) {
             if (data.transaction == transactionID) { // First bread knockback
-                firstBreadOnlyKnockback = new VelocityData(data.entityID, data.transaction, data.vector);
+                firstBreadOnlyKnockback = new VelocityData(data.entityID, data.transaction, data.isSetback, data.vector);
                 firstBreadMap.poll();
                 break; // All knockback after this will have not been applied
             } else if (data.transaction < transactionID) { // This kb has 100% arrived to the player
                 if (firstBreadOnlyKnockback != null) // Don't require kb twice
-                    lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.vector, data.offset));
+                    lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.vector, data.isSetback, data.offset));
                 else
-                    lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.vector));
+                    lastKnockbackKnownTaken.add(new VelocityData(data.entityID, data.transaction, data.isSetback, data.vector));
                 firstBreadOnlyKnockback = null;
                 firstBreadMap.poll();
                 data = firstBreadMap.peek();
@@ -164,19 +164,21 @@ public class KnockbackHandler extends PacketCheck {
 
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
-                if (flag()) {
+                if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
+                    player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, !player.likelyKB.hasSetbackForThis);
+                } else if (flag()) { // This velocity was sent by the server.
                     if (getViolations() > setbackVL) {
                         player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, !player.likelyKB.hasSetbackForThis);
                     }
+
+                    String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
+
+                    if (player.likelyKB.offset == Integer.MAX_VALUE) {
+                        formatOffset = "ignored knockback";
+                    }
+
+                    alert(formatOffset, "AntiKB", GrimMath.floor(violations) + "");
                 }
-
-                String formatOffset = "o: " + formatOffset(player.likelyKB.offset);
-
-                if (player.likelyKB.offset == Integer.MAX_VALUE) {
-                    formatOffset = "ignored knockback";
-                }
-
-                alert(formatOffset, "AntiKB", GrimMath.floor(violations) + "");
             }
         }
     }
