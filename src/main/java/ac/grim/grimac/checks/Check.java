@@ -118,7 +118,7 @@ public class Check<T> {
             String format = MessageUtil.format(alertString);
 
             for (Player player : Bukkit.getOnlinePlayers()) {
-                if (player.hasPermission("grimac.alert") && !GrimAlerts.isAlertDisabled(player)) {
+                if (player.hasPermission("grim.alerts") && !GrimAlerts.isAlertDisabled(player)) {
                     player.sendMessage(format);
                 }
             }

@@ -49,7 +49,7 @@ public class ClientBrand extends PacketCheck {
 
                         // sendMessage is async safe while broadcast isn't due to adventure
                         for (Player player : Bukkit.getOnlinePlayers()) {
-                            if (player.hasPermission("grimac.brand")) {
+                            if (player.hasPermission("grim.brand")) {
                                 player.sendMessage(message);
                             }
                         }
