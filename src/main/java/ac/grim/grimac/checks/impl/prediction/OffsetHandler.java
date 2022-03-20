@@ -80,7 +80,6 @@ public class OffsetHandler extends PostPredictionCheck {
     @Override
     public void reload() {
         super.reload();
-        secretTestServerVLStyle = getConfig().getBoolean("test-mode", false);
         setbackDecayMultiplier = getConfig().getDouble("Simulation.setback-decay-multiplier", 0.999);
         threshold = getConfig().getDouble("Simulation.threshold", 0.0001);
         immediateSetbackThreshold = getConfig().getDouble("Simulation.immediate-setback-threshold", 0.1);

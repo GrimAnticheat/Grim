@@ -10,14 +10,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 @CheckData(name = "Prediction (Debug)")
 public class DebugHandler extends PostPredictionCheck {
 
-    List<Player> listeners = new CopyOnWriteArrayList<>(new ArrayList<>());
+    Set<Player> listeners = new CopyOnWriteArraySet<>(new HashSet<>());
     boolean outputToConsole = false;
 
     boolean enabledFlags = false;

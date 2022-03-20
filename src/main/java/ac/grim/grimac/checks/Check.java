@@ -24,8 +24,6 @@ public class Check<T> {
     public int alertInterval;
     public int alertCount;
 
-    public boolean secretTestServerVLStyle;
-
     private String checkName;
     private String configName;
 
@@ -88,8 +86,6 @@ public class Check<T> {
         alertInterval = getConfig().getInt(configName + ".alert-interval", alertInterval);
         setbackVL = getConfig().getDouble(configName + ".setbackvl", setbackVL);
 
-        secretTestServerVLStyle = getConfig().getBoolean("test-mode", false);
-
         if (alertVL == -1) alertVL = Double.MAX_VALUE;
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
@@ -105,28 +101,7 @@ public class Check<T> {
         alertCount++;
         if (!shouldAlert()) return;
 
-        String alertString = getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
-        alertString = alertString.replace("%prefix%", getConfig().getString("prefix", "&bGrim &8»"));
-        if (player.bukkitPlayer != null) {
-            alertString = alertString.replace("%player%", player.bukkitPlayer.getName());
-        }
-        alertString = alertString.replace("%check_name%", checkName);
-        alertString = alertString.replace("%vl%", violations);
-        alertString = alertString.replace("%verbose%", verbose);
-
-        if (!secretTestServerVLStyle) { // Production
-            String format = MessageUtil.format(alertString);
-
-            for (Player player : Bukkit.getOnlinePlayers()) {
-                if (player.hasPermission("grim.alerts") && !GrimAlerts.isAlertDisabled(player)) {
-                    player.sendMessage(format);
-                }
-            }
-        } else { // Test server
-            player.user.sendMessage(MessageUtil.format(alertString));
-        }
-
-        GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, checkName, violations, verbose);
+        GrimAPI.INSTANCE.getAlertManager().sendAlert(player, verbose, checkName, violations);
     }
 
     public FileConfiguration getConfig() {
