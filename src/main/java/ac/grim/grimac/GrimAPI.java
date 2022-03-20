@@ -1,5 +1,6 @@
 package ac.grim.grimac;
 
+import ac.grim.grimac.manager.AlertManager;
 import ac.grim.grimac.manager.DiscordManager;
 import ac.grim.grimac.manager.InitManager;
 import ac.grim.grimac.manager.TickManager;
@@ -10,6 +11,7 @@ import lombok.Getter;
 public enum GrimAPI {
     INSTANCE;
 
+    private final AlertManager alertManager = new AlertManager();
     private final PlayerDataManager playerDataManager = new PlayerDataManager();
     private final InitManager initManager = new InitManager();
     private final TickManager tickManager = new TickManager();

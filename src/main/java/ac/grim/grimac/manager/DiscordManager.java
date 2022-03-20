@@ -31,7 +31,7 @@ public class DiscordManager implements Initable {
         }
     }
 
-    public void sendAlert(GrimPlayer player, String checkName, String violations, String verbose) {
+    public void sendAlert(GrimPlayer player, String verbose, String checkName, String violations) {
         if (client != null) {
 
             String tps = String.format("%.2f", SpigotReflectionUtil.getTPS());
