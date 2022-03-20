@@ -21,7 +21,7 @@ import java.util.List;
 
 public class PacketSelfMetadataListener extends PacketListenerAbstract {
     public PacketSelfMetadataListener() {
-        super(PacketListenerPriority.MONITOR, false, false);
+        super(PacketListenerPriority.MONITOR);
     }
 
     @Override

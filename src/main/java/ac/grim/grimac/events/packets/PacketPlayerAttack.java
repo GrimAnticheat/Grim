@@ -18,7 +18,7 @@ import org.bukkit.entity.LivingEntity;
 public class PacketPlayerAttack extends PacketListenerAbstract {
 
     public PacketPlayerAttack() {
-        super(PacketListenerPriority.LOW, true, false);
+        super(PacketListenerPriority.LOW);
     }
 
     @Override

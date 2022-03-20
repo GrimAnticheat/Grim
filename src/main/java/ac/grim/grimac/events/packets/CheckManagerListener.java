@@ -57,7 +57,7 @@ import java.util.function.BiFunction;
 public class CheckManagerListener extends PacketListenerAbstract {
 
     public CheckManagerListener() {
-        super(PacketListenerPriority.LOW, false, false);
+        super(PacketListenerPriority.LOW);
     }
 
     // Copied from MCP...

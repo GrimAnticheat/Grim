@@ -17,7 +17,7 @@ public class PacketPingListener extends PacketListenerAbstract {
 
     // Must listen on LOWEST (or maybe low) to stop Tuinity packet limiter from kicking players for transaction/pong spam
     public PacketPingListener() {
-        super(PacketListenerPriority.LOWEST, true, false);
+        super(PacketListenerPriority.LOWEST);
     }
 
     @Override

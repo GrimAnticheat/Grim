@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSe
 public class PacketPlayerCooldown extends PacketListenerAbstract {
 
     public PacketPlayerCooldown() {
-        super(PacketListenerPriority.MONITOR, true, false);
+        super(PacketListenerPriority.MONITOR);
     }
 
     @Override
