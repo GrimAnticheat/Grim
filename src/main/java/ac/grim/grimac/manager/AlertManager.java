@@ -32,7 +32,6 @@ public class AlertManager {
 
     public void sendAlert(GrimPlayer player, String verbose, String checkName, String violations) {
         String alertString = GrimAPI.INSTANCE.getPlugin().getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
-        alertString = alertString.replace("%prefix%", GrimAPI.INSTANCE.getPlugin().getConfig().getString("prefix", "&bGrim &8»"));
         if (player.bukkitPlayer != null) {
             alertString = alertString.replace("%player%", player.bukkitPlayer.getName());
         }
