@@ -112,7 +112,7 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         WrapperPlayServerMultiBlockChange multiBlockChange = new WrapperPlayServerMultiBlockChange(event);
         player.sendTransaction();
         for (WrapperPlayServerMultiBlockChange.EncodedBlock blockChange : multiBlockChange.getBlocks()) {
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockChange.getX(), blockChange.getY(), blockChange.getZ(), blockChange.getBlockID()));
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockChange.getX(), blockChange.getY(), blockChange.getZ(), blockChange.getBlockId()));
         }
     }
 }
