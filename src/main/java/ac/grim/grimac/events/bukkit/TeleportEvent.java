@@ -10,7 +10,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 public class TeleportEvent implements Listener {
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerTeleportEvent(PlayerTeleportEvent event) {
         if (event.getPlayer().hasMetadata("NPC")) return;
         // How can getTo be null?
