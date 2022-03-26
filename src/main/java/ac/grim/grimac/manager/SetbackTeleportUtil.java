@@ -387,5 +387,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      */
     public void addSentTeleport(Location position, int transaction) {
         teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer != null ? player.bukkitPlayer.getWorld() : null, position.getX(), position.getY(), position.getZ())));
+        setSafeSetbackLocation(player.playerWorld, new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
 }
