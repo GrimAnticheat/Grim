@@ -19,7 +19,7 @@ import java.util.ArrayList;
 // impossible to compute on 1.9+ because of the lack of the idle packet.
 // Why the hell did mojang decide to do this? The explosion packet exists for a reason.
 public class FishEvent implements Listener {
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onFishEvent(PlayerFishEvent event) {
         if (event.getPlayer().hasMetadata("NPC")) return;
         if (event.getCaught() instanceof Player && event.getState() == PlayerFishEvent.State.CAUGHT_ENTITY) {
