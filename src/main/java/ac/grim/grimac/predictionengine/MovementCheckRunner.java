@@ -90,10 +90,8 @@ public class MovementCheckRunner extends PositionCheck {
         player.canSwimHop = false;
 
         // Teleports OVERRIDE explosions and knockback
-        player.checkManager.getExplosionHandler().forceExempt();
-        player.checkManager.getExplosionHandler().handlePlayerExplosion(0);
-        player.checkManager.getKnockbackHandler().forceExempt();
-        player.checkManager.getKnockbackHandler().handlePlayerKb(0);
+        player.checkManager.getExplosionHandler().onTeleport();
+        player.checkManager.getKnockbackHandler().onTeleport();
 
         // Manually call prediction complete to handle teleport
         player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));

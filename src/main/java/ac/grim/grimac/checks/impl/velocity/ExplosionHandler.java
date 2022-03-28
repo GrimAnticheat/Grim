@@ -78,6 +78,13 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
+    public void onTeleport() {
+        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
+                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
+            forceExempt();
+        }
+    }
+
     public void forceExempt() {
         // Don't exempt if the player used grim to get a teleport here.
         // This will flag but it's required to stop abuse

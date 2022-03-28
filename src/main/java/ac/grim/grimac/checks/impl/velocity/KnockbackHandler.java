@@ -103,19 +103,23 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
-    public void forceExempt() {
+    public void onTeleport() {
         // Don't exempt if the player used grim to get a teleport here.
         // This will flag but it's required to stop abuse
         if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
                 player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            // Unsure knockback was taken
-            if (player.firstBreadKB != null) {
-                player.firstBreadKB.offset = 0;
-            }
+            forceExempt();
+        }
+    }
 
-            if (player.likelyKB != null) {
-                player.likelyKB.offset = 0;
-            }
+    public void forceExempt() {
+        // Unsure knockback was taken
+        if (player.firstBreadKB != null) {
+            player.firstBreadKB.offset = 0;
+        }
+
+        if (player.likelyKB != null) {
+            player.likelyKB.offset = 0;
         }
     }
 
