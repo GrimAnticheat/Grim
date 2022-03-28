@@ -21,7 +21,7 @@ public class PistonEvent implements Listener {
     Material SLIME_BLOCK = Material.getMaterial("SLIME_BLOCK");
     Material HONEY_BLOCK = Material.getMaterial("HONEY_BLOCK");
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPistonPushEvent(BlockPistonExtendEvent event) {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;
@@ -73,7 +73,7 @@ public class PistonEvent implements Listener {
     // But as this is insanely gitchy due to bukkit I don't care.
     // The lenience is never actually given because of collisions hitting the piston base
     // Blocks outside the piston head give only as much lenience as needed
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPistonRetractEvent(BlockPistonRetractEvent event) {
         boolean hasSlimeBlock = false;
         boolean hasHoneyBlock = false;

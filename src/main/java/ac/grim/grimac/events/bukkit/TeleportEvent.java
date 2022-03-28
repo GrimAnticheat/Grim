@@ -20,7 +20,7 @@ public class TeleportEvent implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlayerRespawnEvent(PlayerRespawnEvent event) {
         if (event.getPlayer().hasMetadata("NPC")) return;
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getPlayer());
