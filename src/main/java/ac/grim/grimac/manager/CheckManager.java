@@ -10,7 +10,6 @@ import ac.grim.grimac.checks.impl.crash.CrashB;
 import ac.grim.grimac.checks.impl.disabler.DisablerA;
 import ac.grim.grimac.checks.impl.disabler.DisablerB;
 import ac.grim.grimac.checks.impl.disabler.DisablerC;
-import ac.grim.grimac.checks.impl.disabler.DisablerD;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.movement.*;
@@ -78,7 +77,6 @@ public class CheckManager {
                 .put(DisablerA.class, new DisablerA(player))
                 .put(DisablerB.class, new DisablerB(player))
                 .put(DisablerC.class, new DisablerC(player))
-                .put(DisablerD.class, new DisablerD(player))
                 .put(PostA.class, new PostA(player))
                 .put(PostB.class, new PostB(player))
                 .put(PostC.class, new PostC(player))

@@ -231,11 +231,6 @@ DisablerC:
   decay: 0
   dont-alert-until: 5
   alert-interval: 10
-# Possible but unlikely to false
-DisablerD:
-  decay: 0
-  dont-alert-until: 5
-  alert-interval: 10
 # The next checks are all post checks
 # These are possible to false with an unstable connection
 # However, this is mostly mitigated by logic
