@@ -193,12 +193,15 @@ public class CompensatedEntities {
                 }
             }
 
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_12)) {
-                int id = 14;
-                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
-                    id = 13;
-                } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
-                    id = 12;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
+                int id;
+
+                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                    id = 12; // Added in 1.14 with an initial ID of 12
+                } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                    id = 13; // 1.15 changed this to 13
+                } else {
+                    id = 14; // 1.17 changed this to 14
                 }
 
                 EntityData bedObject = WatchableIndexUtil.getIndex(watchableObjects, id);
@@ -219,7 +222,7 @@ public class CompensatedEntities {
         if (entity == null) return;
 
         if (entity.isAgeable()) {
-            int id = 16;
+            int id;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
                 id = 12;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9_4)) {
@@ -230,6 +233,8 @@ public class CompensatedEntities {
                 id = 14;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
+            } else {
+                id = 16;
             }
 
             // 1.14 good
@@ -246,7 +251,7 @@ public class CompensatedEntities {
         }
 
         if (entity.isSize()) {
-            int id = 16;
+            int id;
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8)) {
                 id = 16;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9_4)) {
@@ -257,6 +262,8 @@ public class CompensatedEntities {
                 id = 14;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
+            } else {
+                id = 16;
             }
 
             EntityData sizeObject = WatchableIndexUtil.getIndex(watchableObjects, id);
@@ -271,7 +278,7 @@ public class CompensatedEntities {
         }
 
         if (entity instanceof PacketEntityShulker) {
-            int id = 16;
+            int id;
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9_4)) {
                 id = 11;
@@ -281,6 +288,8 @@ public class CompensatedEntities {
                 id = 14;
             } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
                 id = 15;
+            } else {
+                id = 16;
             }
 
             EntityData shulkerAttached = WatchableIndexUtil.getIndex(watchableObjects, id);
