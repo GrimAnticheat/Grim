@@ -1,49 +1,16 @@
 # GrimAC main configuration
 # Source code: https://github.com/MWHunter/Grim
 # Copyright 2022 DefineOutside and contributors, Licensed under GPLv3.
-# Modified binaries, or plugins with copied grim code, must be private, or with full source code available to buyers.
-
-# \u00BB is », ANSI and UTF-8 interpret this differently so manually specify it
-prefix: "&bGrim &8\u00BB"
+# Modified binaries, or plugins with copied grim code, must be private,
+# or with full source code available to buyers at no additional cost.
 
 alerts:
-  # Valid placeholders:
-  # %prefix%
-  # %player%
-  # %check_name%
-  # %vl% - violations
-  # %check-verbose% - extra information from the check such as offsets, not all checks will add information
-  format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
   # Should players with grim.alerts permission automatically enable alerts on join?
   enable-on-join: true
 
 client-brand:
-  format: "%prefix% &f%player% joined using %brand%"
   ignored-clients:
     - "vanilla"
-
-messages:
-  alerts-enabled: "%prefix% &fAlerts enabled"
-  alerts-disabled: "%prefix% &fAlerts disabled"
-  console-specify-target: "%prefix% &cYou must specify a target as the console!"
-  player-not-found: "%prefix% &cPlayer is exempt or offline!"
-  profile:
-    - "&7======================"
-    - "%prefix% &bProfile for &f%player%"
-    - "&bVersion: &f%version%"
-    - "&bClient Brand: &f%brand%"
-    - "&bHorizontal Sensitivity: &f%h_sensitivity%%"
-    - "&bVertical Sensitivity: &f%v_sensitivity%%"
-    - "&bFastMath Enabled: &f%fast_math%"
-    - "&7======================"
-  help:
-    - "&7======================"
-    - "/grim alerts &f- &7Toggle alerts"
-    - "/grim profile &f- &7View player info"
-    - "/grim help &f- &7View this help message"
-    - "/grim debug <player> &f- &7Developer Prediction output"
-    - "/grim perf &f- &7Developer ms/prediction"
-    - "&7======================"
 
 Simulation:
   # How much should we multiply total advantage by when the player is legit
@@ -51,6 +18,8 @@ Simulation:
   setback-decay-multiplier: 0.999
   # How large of an offset from the player's movement should we create a violation for?
   # Measured in blocks from the possible movement
+  # We account for Optifine by switching trig tables but dropping this to 0.001 will reduce FastMath
+  # flagging the anticheat if this compensation doesn't work...
   threshold: 0.0001
   # How large of a violation in a tick before the player gets immediately setback?
   # -1 to disable
@@ -62,25 +31,18 @@ Simulation:
   # This is to stop the player from gathering too many violations and never being able to clear them all
   # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
-  decay: 0.02
-  dont-alert-until: 100
-  alert-interval: 40
 
 # Prediction-based ground spoof check
 # Extremely stable
 GroundSpoof:
   setbackvl: 10
   decay: 0.01
-  dont-alert-until: 20
-  alert-interval: 20
 
 # Checks LOOK and GROUND packets for NoFall
 # Mostly stable, this cheat results in no advantage as we correct it before it touches the server
 NoFall:
   setbackvl: 10 # This doesn't give any advantage
   decay: 0.05 # This packet is rarer than other packets
-  dont-alert-until: 10
-  alert-interval: 15
 
 # Checks to see if a player entered a block during a movement
 Phase:
@@ -109,7 +71,7 @@ NoSlow:
 Knockback:
   # How much of an offset is "cheating"
   # By default this is 1e-5, which is safe and sane
-  # Measured in blocks (not squared) from the possible movement
+  # Measured in blocks from the correct movement
   threshold: 0.00001
   setbackvl: 10
   decay: 0.025
@@ -150,8 +112,8 @@ EntityControl:
 Reach:
   # How much should we expand hitboxes by? 0.0005 should detect 3.0005+ reach
   #
-  # There is 0.03 forced expansion with some client versions, or some client/server combinations due to
-  # slight protocol differences or protocol limitations.  I am working on fixing this.
+  # There is 0.03 forced expansion with 1.9-1.18.1 (not 1.18.2), or some client/server combinations due to
+  # protocol changes and limitations. This check is most powerful with 1.7/1.8 clients on 1.8 servers.
   threshold: 0.0005
   # Should we cancel hits that we know are impossible?
   # 3.00-3.03 hits may go through but still be flagged, due to packet order limitations
@@ -170,105 +132,3 @@ Reach:
   # Leaving this disabled will still catch cheaters and will not cause false positives
   # This will not consume performance on the main server thread
   enable-pre-packet: false
-
-# Impossible to false
-BadPacketsA:
-  decay: 0
-  dont-alert-until: 1
-  alert-interval: 1
-# Impossible to false
-BadPacketsB:
-  decay: 0
-  dont-alert-until: 1
-  alert-interval: 1
-# Impossible to false
-BadPacketsC:
-  decay: 0
-  dont-alert-until: 1
-  alert-interval: 1
-# Impossible to false
-BadPacketsD:
-  decay: 0
-  dont-alert-until: 1
-  alert-interval: 1
-# Impossible to false
-BadPacketsE:
-  decay: 0
-  dont-alert-until: 1
-  alert-interval: 1
-# Possible to false exactly once
-BadPacketsF:
-  decay: 0
-  dont-alert-until: 2
-  alert-interval: 1
-# Theoretically possible, but practically impossible to false
-BadPacketsG:
-  decay: 0
-  dont-alert-until: 1
-  alert-interval: 1
-# Impossible to false
-CrashA:
-  decay: 0
-  dont-alert-until: 1
-  alert-interval: 1
-# Possible but unlikely to false
-CrashB:
-  decay: 0.01
-  dont-alert-until: 5
-  alert-interval: 5
-# Possible but unlikely to false
-DisablerA:
-  decay: 0
-  dont-alert-until: 5
-  alert-interval: 10
-# Possible but unlikely to false
-DisablerB:
-  decay: 0
-  dont-alert-until: 5
-  alert-interval: 10
-# Possible but unlikely to false
-DisablerC:
-  decay: 0
-  dont-alert-until: 5
-  alert-interval: 10
-# Possible but unlikely to false
-DisablerD:
-  decay: 0
-  dont-alert-until: 5
-  alert-interval: 10
-# The next checks are all post checks
-# These are possible to false with an unstable connection
-# However, this is mostly mitigated by logic
-# A client consistently failing these checks are likely to be a cheater
-PostA:
-  decay: 0.05
-  dont-alert-until: 5
-  alert-interval: 10
-PostB:
-  decay: 0.05
-  dont-alert-until: 5
-  alert-interval: 10
-PostC:
-  decay: 0.05
-  dont-alert-until: 5
-  alert-interval: 10
-PostD:
-  decay: 0.05
-  dont-alert-until: 5
-  alert-interval: 10
-PostE:
-  decay: 0.05
-  dont-alert-until: 5
-  alert-interval: 10
-PostF:
-  decay: 0.05
-  dont-alert-until: 5
-  alert-interval: 10
-PostG:
-  decay: 0.05
-  dont-alert-until: 5
-  alert-interval: 10
-PostH:
-  decay: 0.05
-  dont-alert-until: 5
-  alert-interval: 10

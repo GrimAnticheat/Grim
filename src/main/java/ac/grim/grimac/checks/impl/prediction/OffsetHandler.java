@@ -31,6 +31,8 @@ public class OffsetHandler extends PostPredictionCheck {
         CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(getPlayer(), predictionComplete.getOffset());
         Bukkit.getPluginManager().callEvent(completePredictionEvent);
 
+        if (completePredictionEvent.isCancelled()) return;
+
         if (offset >= threshold || offset >= immediateSetbackThreshold) {
             advantageGained += offset;
 

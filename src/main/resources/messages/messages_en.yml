@@ -1,0 +1,34 @@
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fAlerts enabled"
+alerts-disabled: "%prefix% &fAlerts disabled"
+client-brand: "%prefix% &f%player% joined using %brand%"
+console-specify-target: "%prefix% &cYou must specify a target as the console!"
+player-not-found: "%prefix% &cPlayer is exempt or offline!"
+
+# Valid placeholders:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violations
+# %verbose% - extra information from the check such as offsets, not all checks will add information
+alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bProfile for &f%player%"
+  - "&bVersion: &f%version%"
+  - "&bClient Brand: &f%brand%"
+  - "&bHorizontal Sensitivity: &f%h_sensitivity%%"
+  - "&bVertical Sensitivity: &f%v_sensitivity%%"
+  - "&bFastMath Enabled: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Toggle alerts"
+  - "/grim profile &f- &7View player info"
+  - "/grim help &f- &7View this help message"
+  - "/grim debug <player> &f- &7Developer Prediction output"
+  - "/grim perf &f- &7Developer ms/prediction"
+  - "&7======================"

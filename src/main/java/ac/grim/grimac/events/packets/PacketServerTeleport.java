@@ -53,7 +53,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.pollData();
 
                 player.getSetbackTeleportUtil().setJoinTeleport(new Location(player.playerWorld, player.x, player.y, player.z));
-                player.getSetbackTeleportUtil().setSafeSetbackLocation(player.playerWorld, new Vector3d(player.x, player.y, player.z));
             }
 
             // Convert relative teleports to normal teleports

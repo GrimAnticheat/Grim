@@ -1,0 +1,44 @@
+Punishments:
+  Simulation:
+    name: "Simulation"
+    checks:
+      - "Simulation"
+      - "GroundSpoof"
+      - "Knockback"
+      - "Explosion"
+      - "TimerA"
+      - "TimerVehicle"
+    command:
+      - "100:20 [alert]"
+      - "200:0 grim kick %player% Unfair Advantage"
+  Post:
+    name: "Post"
+    checks:
+      - "Post*"
+    command:
+      - "20:20 [alert]"
+      - "30:0 grim kick %player% Unfair Advantage"
+  BadPackets:
+    name: "BadPackets"
+    checks:
+      - "BadPackets*"
+      - "Crash*"
+      - "DisablerD*"
+    command:
+      - "20:20 [alert]"
+      - "30:0 grim kick %player% Unfair Advantage"
+  Reach:
+    name: "Reach"
+    checks:
+      - "Reach"
+    command:
+      - "5:5 [alert]"
+      - "30:0 grim kick %player% Unfair Advantage"
+  Misc:
+    name: "Misc"
+    checks:
+      - "EntityControl"
+      - "NoSlow"
+    command:
+      - "5:5 [alert]"
+      - "30:0 grim kick %player% Unfair Advantage"
