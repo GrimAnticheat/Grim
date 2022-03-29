@@ -132,3 +132,5 @@ Reach:
   # Leaving this disabled will still catch cheaters and will not cause false positives
   # This will not consume performance on the main server thread
   enable-pre-packet: false
+
+config-version: 0

@@ -1,13 +1,14 @@
 package ac.grim.grimac.manager;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.math.GrimMath;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
-import org.bukkit.configuration.file.FileConfiguration;
 
 import java.awt.*;
 import java.time.LocalDateTime;
@@ -19,11 +20,15 @@ public class DiscordManager implements Initable {
     @Override
     public void start() {
         try {
-            FileConfiguration config = ConfigManager.getDiscordConfig();
+            if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("enabled", false)) return;
 
-            if (!config.getBoolean("enabled", false)) return;
+            client = WebhookClient.withUrl(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("webhook", ""));
+            if (client.getUrl().isEmpty()) {
+                LogUtil.warn("Discord webhook is empty, disabling Discord alerts");
+                client = null;
+                return;
+            }
 
-            client = WebhookClient.withUrl(config.getString("webhook", ""));
             client.setTimeout(15000); // Requests expire after 15 seconds
 
         } catch (Exception e) {
@@ -33,7 +38,6 @@ public class DiscordManager implements Initable {
 
     public void sendAlert(GrimPlayer player, String verbose, String checkName, String violations) {
         if (client != null) {
-
             String tps = String.format("%.2f", SpigotReflectionUtil.getTPS());
             String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String formattedPing = "" + GrimMath.floor(player.getTransactionPing() / 1e6);

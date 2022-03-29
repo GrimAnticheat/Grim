@@ -1,9 +1,6 @@
 package ac.grim.grimac;
 
-import ac.grim.grimac.manager.AlertManager;
-import ac.grim.grimac.manager.DiscordManager;
-import ac.grim.grimac.manager.InitManager;
-import ac.grim.grimac.manager.TickManager;
+import ac.grim.grimac.manager.*;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
 import lombok.Getter;
 
@@ -17,10 +14,12 @@ public enum GrimAPI {
     private final TickManager tickManager = new TickManager();
     private final DiscordManager discordManager = new DiscordManager();
 
+    private ConfigManager configManager;
     private GrimAC plugin;
 
     public void load(final GrimAC plugin) {
         this.plugin = plugin;
+        this.configManager = new ConfigManager();
         initManager.load();
     }
 

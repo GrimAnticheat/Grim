@@ -25,7 +25,7 @@ public class GrimProfile extends BaseCommand {
 
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getPlayer());
         if (grimPlayer == null) {
-            sender.sendMessage(GrimAPI.INSTANCE.getPlugin().getConfig().getString("messages.player-not-found", "%prefix% &cPlayer is exempt or offline!"));
+            sender.sendMessage(GrimAPI.INSTANCE.getPlugin().getConfig().getString("player-not-found", "%prefix% &cPlayer is exempt or offline!"));
             return;
         }
 
@@ -37,7 +37,7 @@ public class GrimProfile extends BaseCommand {
         String vSens = ((int) Math.round(aimProcessor.sensitivityY * 200)) + "";
         String fastMath = !grimPlayer.trigHandler.isVanillaMath() + "";
 
-        for (String message : GrimAPI.INSTANCE.getPlugin().getConfig().getStringList("messages.profile")) {
+        for (String message : GrimAPI.INSTANCE.getPlugin().getConfig().getStringList("profile")) {
             message = MessageUtil.format(message);
             message = message.replace("%player%", target.getPlayer().getName());
             message = message.replace("%version%", grimPlayer.getClientVersion().getReleaseName());
