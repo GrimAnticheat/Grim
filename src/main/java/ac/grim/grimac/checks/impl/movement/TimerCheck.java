@@ -110,6 +110,6 @@ public class TimerCheck extends PacketCheck {
     @Override
     public void reload() {
         super.reload();
-        clockDrift = (long) (getConfig().getDouble(getConfigName() + ".drift", 120.0) * 1e6);
+        clockDrift = (long) (getConfig().getDoubleElse(getConfigName() + ".drift", 120.0) * 1e6);
     }
 }

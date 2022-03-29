@@ -82,11 +82,11 @@ public class OffsetHandler extends PostPredictionCheck {
     @Override
     public void reload() {
         super.reload();
-        setbackDecayMultiplier = getConfig().getDouble("Simulation.setback-decay-multiplier", 0.999);
-        threshold = getConfig().getDouble("Simulation.threshold", 0.0001);
-        immediateSetbackThreshold = getConfig().getDouble("Simulation.immediate-setback-threshold", 0.1);
-        maxAdvantage = getConfig().getDouble("Simulation.max-advantage", 1);
-        maxCeiling = getConfig().getDouble("Simulation.max-ceiling", 4);
+        setbackDecayMultiplier = getConfig().getDoubleElse("Simulation.setback-decay-multiplier", 0.999);
+        threshold = getConfig().getDoubleElse("Simulation.threshold", 0.0001);
+        immediateSetbackThreshold = getConfig().getDoubleElse("Simulation.immediate-setback-threshold", 0.1);
+        maxAdvantage = getConfig().getDoubleElse("Simulation.max-advantage", 1);
+        maxCeiling = getConfig().getDoubleElse("Simulation.max-ceiling", 4);
 
         if (maxAdvantage == -1) setbackVL = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;

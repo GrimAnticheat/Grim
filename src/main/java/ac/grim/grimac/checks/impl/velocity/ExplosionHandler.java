@@ -212,8 +212,8 @@ public class ExplosionHandler extends PacketCheck {
     public void reload() {
         super.reload();
 
-        offsetToFlag = getConfig().getDouble("Explosion.threshold", 0.00001);
-        setbackVL = getConfig().getDouble("Explosion.setbackvl", 10);
+        offsetToFlag = getConfig().getDoubleElse("Explosion.threshold", 0.00001);
+        setbackVL = getConfig().getDoubleElse("Explosion.setbackvl", 10);
 
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }

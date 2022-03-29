@@ -1,16 +1,13 @@
 package ac.grim.grimac.checks;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.commands.GrimAlerts;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import ac.grim.grimac.utils.events.FlagEvent;
 import ac.grim.grimac.utils.math.GrimMath;
+import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Player;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
@@ -81,10 +78,10 @@ public class Check<T> {
     }
 
     public void reload() {
-        decay = getConfig().getDouble(configName + ".decay", decay);
-        alertVL = getConfig().getDouble(configName + ".dont-alert-until", alertVL);
-        alertInterval = getConfig().getInt(configName + ".alert-interval", alertInterval);
-        setbackVL = getConfig().getDouble(configName + ".setbackvl", setbackVL);
+        decay = getConfig().getDoubleElse(configName + ".decay", decay);
+        alertVL = getConfig().getDoubleElse(configName + ".dont-alert-until", alertVL);
+        alertInterval = getConfig().getIntElse(configName + ".alert-interval", alertInterval);
+        setbackVL = getConfig().getDoubleElse(configName + ".setbackvl", setbackVL);
 
         if (alertVL == -1) alertVL = Double.MAX_VALUE;
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
@@ -104,8 +101,8 @@ public class Check<T> {
         GrimAPI.INSTANCE.getAlertManager().sendAlert(player, verbose, checkName, violations);
     }
 
-    public FileConfiguration getConfig() {
-        return GrimAPI.INSTANCE.getPlugin().getConfig();
+    public DynamicConfig getConfig() {
+        return GrimAPI.INSTANCE.getConfigManager().getConfig();
     }
 
     public void setbackIfAboveSetbackVL() {

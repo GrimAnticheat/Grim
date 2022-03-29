@@ -214,7 +214,7 @@ public class Reach extends PacketCheck {
     @Override
     public void reload() {
         super.reload();
-        this.cancelImpossibleHits = getConfig().getBoolean("Reach.block-impossible-hits", true);
-        this.threshold = getConfig().getDouble("Reach.threshold", 0.0005);
+        this.cancelImpossibleHits = getConfig().getBooleanElse("Reach.block-impossible-hits", true);
+        this.threshold = getConfig().getDoubleElse("Reach.threshold", 0.0005);
     }
 }

@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.disabler;
+package ac.grim.grimac.checks.impl.badpackets;
 
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
@@ -8,8 +8,8 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerAbilities;
 
 @CheckData(name = "DisablerA")
-public class DisablerA extends PacketCheck {
-    public DisablerA(GrimPlayer player) {
+public class BadPacketsI extends PacketCheck {
+    public BadPacketsI(GrimPlayer player) {
         super(player);
     }
 

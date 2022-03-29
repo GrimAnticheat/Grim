@@ -35,6 +35,6 @@ public class NoSlow extends PostPredictionCheck {
     @Override
     public void reload() {
         super.reload();
-        offsetToFlag = getConfig().getDouble("NoSlow.threshold", 0.00001);
+        offsetToFlag = getConfig().getDoubleElse("NoSlow.threshold", 0.00001);
     }
 }
