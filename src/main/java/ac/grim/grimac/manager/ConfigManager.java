@@ -22,7 +22,7 @@ public class ConfigManager {
 
     public YamlConfiguration getDiscordConfig() {
         try {
-            File discord = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "discord.yml");
+            File discord = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "discord_en.yml");
             YamlConfiguration config = new YamlConfiguration();
             config.load(discord);
             return config;
