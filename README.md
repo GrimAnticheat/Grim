@@ -1,10 +1,10 @@
 # GrimAC
 
-**Stable enough for a small server. Please report any issues. Currently supporting 1.8-1.18.**
+**Stable enough for a small server. Please report any issues. Currently supporting 1.14-1.18 with somewhat broken 1.8-1.13 support.**
 
 **Test server with bufferless alerts: test.grim.ac**
 
-GrimAC is an open source anticheat designed for 1.18 and supporting 1.7-1.18. It is free while in beta.  It will be sold for somewhere between $15 and $25 on SpigotMC and other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats.
+GrimAC is an open source anticheat designed for 1.18 and supporting 1.14-1.18 with half working 1.8-1.13 support. It is free while in beta.  It will be sold for $20 on SpigotMC and other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats.
 
 **Discord:** https://discord.gg/FNRrcGAybJ
 
