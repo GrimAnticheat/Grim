@@ -14,13 +14,13 @@ public class AlertManager {
 
     public void toggle(Player player) {
         if (!enabledAlerts.remove(player)) {
-            String alertString = GrimAPI.INSTANCE.getPlugin().getConfig().getString("messages.alerts-enabled", "%prefix% &fAlerts enabled");
+            String alertString = GrimAPI.INSTANCE.getPlugin().getConfig().getString("alerts-enabled", "%prefix% &fAlerts enabled");
             alertString = MessageUtil.format(alertString);
             player.sendMessage(alertString);
 
             enabledAlerts.add(player);
         } else {
-            String alertString = GrimAPI.INSTANCE.getPlugin().getConfig().getString("messages.alerts-disabled", "%prefix% &fAlerts disabled");
+            String alertString = GrimAPI.INSTANCE.getPlugin().getConfig().getString("alerts-disabled", "%prefix% &fAlerts disabled");
             alertString = MessageUtil.format(alertString);
             player.sendMessage(alertString);
         }

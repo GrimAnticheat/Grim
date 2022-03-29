@@ -215,7 +215,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 });
             }
 
-            player.user.sendPacket(new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), player.xRot % 360, player.yRot % 360, (byte) 0b11000, new Random().nextInt(), false));
+            player.sendTransaction();
+            double y = position.getY();
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_7_10)) {
+                y += 1.62; // 1.7 teleport offset if grim ever supports 1.7 again
+            }
+            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), player.lastTransactionSent.get(), false);
+            // Send after tracking to fix race condition
+            PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, (byte) 0b11000, new Random().nextInt(), false));
+            player.sendTransaction();
 
             if (data.getVelocity() != null) {
                 player.user.sendPacket(new WrapperPlayServerEntityVelocity(player.entityID, new Vector3d(data.getVelocity().getX(), data.getVelocity().getY(), data.getVelocity().getZ())));
@@ -361,17 +369,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     /**
-     * This method is unsafe to call outside the bukkit thread
-     * This method sets a plugin teleport at this location
-     *
-     * @param position Position of the teleport
-     */
-    public void setJoinTeleport(Location position) {
-        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, false);
-        safeTeleportPosition = new SetbackLocationVelocity(position.getWorld(), new Vector3d(position.getX(), position.getY(), position.getZ()));
-    }
-
-    /**
      * @param position A safe setback location
      */
     public void setSafeSetbackLocation(World world, Vector3d position) {
@@ -385,7 +382,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * This means we have to discard teleports from the vanilla anticheat, as otherwise
      * it would allow the player to bypass our own setbacks
      */
-    public void addSentTeleport(Location position, int transaction) {
+    public void addSentTeleport(Location position, int transaction, boolean plugin) {
+        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, plugin);
         teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer != null ? player.bukkitPlayer.getWorld() : null, position.getX(), position.getY(), position.getZ())));
         setSafeSetbackLocation(player.playerWorld, new Vector3d(position.getX(), position.getY(), position.getZ()));
     }

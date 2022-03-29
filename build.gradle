@@ -16,6 +16,7 @@ repositories {
     maven { url = 'https://repo.viaversion.com' } // ViaVersion
     maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF, PaperLib
     maven { url = "https://repo.essentialsx.net/releases/" } // Essentials
+    maven { url = "https://nexus.scarsz.me/content/groups/public" } // Configuralize
     mavenCentral() // FastUtil, Discord-Webhooks, Log4J, Lombok
 }
 
@@ -23,10 +24,11 @@ dependencies {
     implementation 'com.github.retrooper.packetevents:spigot:2.0-SNAPSHOT'
     implementation 'co.aikar:acf-paper:0.5.1-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:3.0.0'
-    implementation 'club.minnced:discord-webhooks:0.7.5'
+    implementation 'club.minnced:discord-webhooks:0.8.0'
     implementation 'it.unimi.dsi:fastutil:8.5.8'
     implementation "io.papermc:paperlib:1.0.7"
     implementation 'org.jetbrains:annotations:23.0.0' // Why is this needed to compile?
+    implementation 'github.scarsz:configuralize:1.4.0'
 
     compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.1.1'
@@ -40,7 +42,7 @@ dependencies {
 }
 
 group = 'ac.grim.grimac'
-version = '2.1.2'
+version = '2.2.0'
 description = 'GrimAC'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -59,12 +61,6 @@ tasks.withType(JavaCompile) {
 
 shadowJar {
     minimize()
-    relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.io.github.retrooper.packetevents'
-    relocate 'com.github.retrooper.packetevents', 'ac.grim.grimac.shaded.com.github.retrooper.packetevents'
-    relocate 'net.kyori', 'ac.grim.grimac.shaded.kyori'
-    relocate 'co.aikar.acf', 'ac.grim.grimac.shaded.acf'
-    relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
-    relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
 }
 
 compileJava {

@@ -51,8 +51,6 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 player.lastYRot = teleport.getPitch();
 
                 player.pollData();
-
-                player.getSetbackTeleportUtil().setJoinTeleport(new Location(player.playerWorld, player.x, player.y, player.z));
             }
 
             // Convert relative teleports to normal teleports
@@ -94,7 +92,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 pos.setY(pos.getY() - 1.62);
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
-            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent);
+            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, true);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
