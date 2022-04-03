@@ -5,6 +5,7 @@
 # [alert] - special command to alert
 Punishments:
   Simulation:
+    # After how many seconds should a violation be removed?
     remove-violations-after: 300
     checks:
       - "Simulation"
@@ -12,8 +13,9 @@ Punishments:
       - "Knockback"
       - "Explosion"
       - "Timer"
+    # Threshold:Interval Command
     commands:
-      - "100:20 [alert]"
+      - "100:40 [alert]"
   Post:
     remove-violations-after: 300
     checks:
