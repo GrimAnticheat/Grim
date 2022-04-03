@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerAbilities;
 
-@CheckData(name = "DisablerA")
+@CheckData(name = "BadPacketsI")
 public class BadPacketsI extends PacketCheck {
     public BadPacketsI(GrimPlayer player) {
         super(player);

@@ -7,7 +7,7 @@ import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import org.bukkit.GameMode;
 
-@CheckData(name = "DisablerC")
+@CheckData(name = "BadPacketsK")
 public class BadPacketsK extends PacketCheck {
     public BadPacketsK(GrimPlayer player) {
         super(player);
