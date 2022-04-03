@@ -3,6 +3,7 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.CheckManager;
+import ac.grim.grimac.manager.PunishmentManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
@@ -172,6 +173,7 @@ public class GrimPlayer {
     public VelocityData firstBreadExplosion = null;
     public VelocityData likelyExplosions = null;
     public CheckManager checkManager;
+    public PunishmentManager punishmentManager;
     public MovementCheckRunner movementCheckRunner;
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
@@ -229,6 +231,7 @@ public class GrimPlayer {
         packetStateData = new PacketStateData();
 
         checkManager = new CheckManager(this);
+        punishmentManager = new PunishmentManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
         uncertaintyHandler.pistonPushing.add(0d);

@@ -588,6 +588,9 @@ public enum BlockPlaceResult {
 
     GLOW_LICHEN((player, place) -> {
         WrappedBlockState lichen = place.getExistingBlockData();
+        if (lichen.getType() != StateTypes.GLOW_LICHEN) {
+            lichen = StateTypes.GLOW_LICHEN.createBlockState();
+        }
 
         for (BlockFace face : place.getNearestPlacingDirections()) {
             switch (face) {

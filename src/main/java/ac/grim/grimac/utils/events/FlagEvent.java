@@ -49,10 +49,6 @@ public class FlagEvent extends Event implements Cancellable {
         return handlers;
     }
 
-    public boolean isAlert() {
-        return check.shouldAlert();
-    }
-
     public boolean isSetback() {
         return check.getViolations() > check.getSetbackVL();
     }

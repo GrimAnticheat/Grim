@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import org.bukkit.GameMode;
 
-@CheckData(name = "GroundSpoof", configName = "GroundSpoof", setback = 10, decay = 0.01, dontAlertUntil = 20, alertInterval = 20)
+@CheckData(name = "GroundSpoof", configName = "GroundSpoof", setback = 10, decay = 0.01)
 public class NoFallB extends PostPredictionCheck {
 
     public NoFallB(GrimPlayer player) {
@@ -32,7 +32,7 @@ public class NoFallB extends PostPredictionCheck {
 
         if (invalid) {
             flagWithSetback();
-            alert("claimed " + player.clientClaimsLastOnGround, "GroundSpoof (P)", formatViolations());
+            alert("claimed " + player.clientClaimsLastOnGround, formatViolations());
             player.checkManager.getNoFall().flipPlayerGroundStatus = true;
         }
     }

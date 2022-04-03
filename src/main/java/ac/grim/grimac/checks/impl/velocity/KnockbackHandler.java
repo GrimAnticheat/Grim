@@ -15,7 +15,7 @@ import org.bukkit.util.Vector;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // We are making a velocity sandwich between two pieces of transaction packets (bread)
-@CheckData(name = "AntiKB", configName = "Knockback", setback = 10, decay = 0.025, dontAlertUntil = 8, alertInterval = 5)
+@CheckData(name = "AntiKB", configName = "Knockback", setback = 10, decay = 0.025)
 public class KnockbackHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
 
@@ -181,7 +181,7 @@ public class KnockbackHandler extends PacketCheck {
                         formatOffset = "ignored knockback";
                     }
 
-                    alert(formatOffset, "AntiKB", GrimMath.floor(violations) + "");
+                    alert(formatOffset, GrimMath.floor(violations) + "");
                 }
             }
         }

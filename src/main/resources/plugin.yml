@@ -24,3 +24,9 @@ permissions:
   grim.brand:
     description: Show client brands on join
     default: op
+  grim.sendalert:
+    description: Send cheater alert
+    default: op
+  grim.sendwebhook:
+    description: Send webhook alert
+    default: op

@@ -5,11 +5,10 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.events.CompletePredictionEvent;
-import ac.grim.grimac.utils.events.OffsetAlertEvent;
 import ac.grim.grimac.utils.math.GrimMath;
 import org.bukkit.Bukkit;
 
-@CheckData(name = "Simulation", configName = "Simulation", decay = 0.02, dontAlertUntil = 100, alertInterval = 40)
+@CheckData(name = "Simulation", configName = "Simulation", decay = 0.02)
 public class OffsetHandler extends PostPredictionCheck {
     // Config
     double setbackDecayMultiplier;
@@ -34,16 +33,11 @@ public class OffsetHandler extends PostPredictionCheck {
         if (completePredictionEvent.isCancelled()) return;
 
         if (offset >= threshold || offset >= immediateSetbackThreshold) {
+            flag();
+
             advantageGained += offset;
 
-            boolean isAlert = shouldAlert();
             boolean isSetback = advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold;
-
-            // Check check, String checkName, double offset, double violations, boolean vehicle, boolean isAlert, boolean isSetback
-            OffsetAlertEvent event = new OffsetAlertEvent(this, getCheckName(), offset, getViolations(), player.inVehicle, isAlert, isSetback);
-            Bukkit.getPluginManager().callEvent(event);
-            if (event.isCancelled()) return;
-
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
@@ -51,7 +45,7 @@ public class OffsetHandler extends PostPredictionCheck {
             }
 
             violations++;
-            alert("o: " + formatOffset(offset), getCheckName(), GrimMath.floor(violations) + "");
+            alert("o: " + formatOffset(offset), GrimMath.floor(violations) + "");
 
             advantageGained = Math.max(advantageGained, maxCeiling);
         } else {

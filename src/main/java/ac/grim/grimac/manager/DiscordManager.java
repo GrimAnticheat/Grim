@@ -67,10 +67,14 @@ public class DiscordManager implements Initable {
                 embed.addField(new WebhookEmbed.EmbedField(true, "Verbose", verbose));
             }
 
-            try {
-                client.send(embed.build());
-            } catch (Exception ignored) {
-            }
+            sendWebhookEmbed(embed);
+        }
+    }
+
+    public void sendWebhookEmbed(WebhookEmbedBuilder embed) {
+        try {
+            client.send(embed.build());
+        } catch (Exception ignored) {
         }
     }
 }

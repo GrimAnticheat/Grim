@@ -19,6 +19,8 @@ public class ConfigManager {
     private final File messagesFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "messages.yml");
     @Getter
     private final File discordFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "discord.yml");
+    @Getter
+    private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
 
     public ConfigManager() {
         // load config
@@ -27,6 +29,7 @@ public class ConfigManager {
         config.addSource(GrimAC.class, "config", getConfigFile());
         config.addSource(GrimAC.class, "messages", getMessagesFile());
         config.addSource(GrimAC.class, "discord", getDiscordFile());
+        config.addSource(GrimAC.class, "punishments", getPunishFile());
 
         String languageCode = System.getProperty("user.language").toUpperCase();
 

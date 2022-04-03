@@ -14,7 +14,7 @@ import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-@CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10, dontAlertUntil = 8, alertInterval = 5)
+@CheckData(name = "AntiExplosion", configName = "Explosion", setback = 10)
 public class ExplosionHandler extends PacketCheck {
     ConcurrentLinkedQueue<VelocityData> firstBreadMap = new ConcurrentLinkedQueue<>();
 
@@ -156,7 +156,7 @@ public class ExplosionHandler extends PacketCheck {
                     formatOffset = "ignored explosion";
                 }
 
-                alert(formatOffset, "AntiExplosion", GrimMath.floor(violations) + "");
+                alert(formatOffset, GrimMath.floor(violations) + "");
             } else {
                 reward();
             }

@@ -5,7 +5,7 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 
-@CheckData(name = "NoSlow (Prediction)", configName = "NoSlow", setback = 5, dontAlertUntil = 25, alertInterval = 25)
+@CheckData(name = "NoSlow (Prediction)", configName = "NoSlow", setback = 5)
 public class NoSlow extends PostPredictionCheck {
     double offsetToFlag;
     double bestOffset = 1;
@@ -20,7 +20,7 @@ public class NoSlow extends PostPredictionCheck {
         if (player.packetStateData.slowedByUsingItem) {
             if (bestOffset > offsetToFlag) {
                 flagWithSetback();
-                alert("", "NoSlow", formatViolations());
+                alert("", formatViolations());
             } else {
                 reward();
             }

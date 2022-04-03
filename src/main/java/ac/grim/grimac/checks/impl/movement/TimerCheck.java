@@ -8,7 +8,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
-@CheckData(name = "Timer", configName = "TimerA", setback = 10, dontAlertUntil = 5, alertInterval = 5)
+@CheckData(name = "Timer", configName = "TimerA", setback = 10)
 public class TimerCheck extends PacketCheck {
     public int exempt = 200; // Exempt for 10 seconds on login
 
@@ -84,7 +84,7 @@ public class TimerCheck extends PacketCheck {
                 }
             }
 
-            alert("", getCheckName(), formatViolations());
+            alert("", formatViolations());
 
             // Reset the violation by 1 movement
             timerBalanceRealTime -= 50e6;

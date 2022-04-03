@@ -15,8 +15,4 @@ public @interface CheckData {
     double decay() default 0.05;
 
     double setback() default 25;
-
-    double dontAlertUntil() default 20;
-
-    int alertInterval() default 10;
 }

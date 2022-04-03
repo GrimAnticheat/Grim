@@ -7,7 +7,6 @@ import ac.grim.grimac.utils.math.GrimMath;
 import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 
 // Class from https://github.com/Tecnio/AntiCheatBase/blob/master/src/main/java/me/tecnio/anticheat/check/Check.java
 @Getter
@@ -17,9 +16,6 @@ public class Check<T> {
     public double violations;
     public double decay;
     public double setbackVL;
-    public double alertVL;
-    public int alertInterval;
-    public int alertCount;
 
     private String checkName;
     private String configName;
@@ -37,8 +33,6 @@ public class Check<T> {
             if (this.configName.equals("DEFAULT")) this.configName = this.checkName;
             this.decay = checkData.decay();
             this.setbackVL = checkData.setback();
-            this.alertVL = checkData.dontAlertUntil();
-            this.alertInterval = checkData.alertInterval();
         }
 
         reload();
@@ -46,7 +40,7 @@ public class Check<T> {
 
     public void flagAndAlert() {
         if (flag()) {
-            alert("", getCheckName(), formatViolations());
+            alert("", formatViolations());
         }
     }
 
@@ -54,6 +48,8 @@ public class Check<T> {
         FlagEvent event = new FlagEvent(this);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled()) return false;
+
+        player.punishmentManager.handleViolation(this);
 
         violations++;
         return true;
@@ -69,36 +65,15 @@ public class Check<T> {
         violations -= decay;
     }
 
-    public final void debug(final Object object) {
-        player.user.sendMessage(ChatColor.AQUA + "[Debug] " + ChatColor.GREEN + object);
-    }
-
-    public final void broadcast(final Object object) {
-        Bukkit.broadcastMessage(ChatColor.AQUA + "[GrimAC] " + ChatColor.GRAY + object);
-    }
-
     public void reload() {
         decay = getConfig().getDoubleElse(configName + ".decay", decay);
-        alertVL = getConfig().getDoubleElse(configName + ".dont-alert-until", alertVL);
-        alertInterval = getConfig().getIntElse(configName + ".alert-interval", alertInterval);
         setbackVL = getConfig().getDoubleElse(configName + ".setbackvl", setbackVL);
 
-        if (alertVL == -1) alertVL = Double.MAX_VALUE;
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
 
-    public boolean shouldAlert() {
-        // Not enough alerts to be sure that the player is cheating
-        if (getViolations() < alertVL) return false;
-        // To reduce spam, some checks only alert 10% of the time
-        return alertInterval == 0 || alertCount % alertInterval == 0;
-    }
-
-    public void alert(String verbose, String checkName, String violations) {
-        alertCount++;
-        if (!shouldAlert()) return;
-
-        GrimAPI.INSTANCE.getAlertManager().sendAlert(player, verbose, checkName, violations);
+    public void alert(String verbose, String violations) {
+        player.punishmentManager.handleAlert(player, verbose, this, violations);
     }
 
     public DynamicConfig getConfig() {

@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 // You may not copy the check unless you are licensed under GPL
-@CheckData(name = "Reach", configName = "Reach", setback = 10, dontAlertUntil = 5, alertInterval = 5)
+@CheckData(name = "Reach", configName = "Reach", setback = 10)
 public class Reach extends PacketCheck {
     // Concurrent to support weird entity trackers
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
@@ -198,10 +198,10 @@ public class Reach extends PacketCheck {
             if (!exempt.contains(reachEntity.type) && reachEntity.isLivingEntity()) {
                 if (minDistance == Double.MAX_VALUE) {
                     flag();
-                    alert("Missed hitbox", "Reach", formatViolations());
+                    alert("Missed hitbox", formatViolations());
                 } else if (minDistance > maxReach) {
                     flag();
-                    alert(String.format("%.5f", minDistance) + " blocks", "Reach", formatViolations());
+                    alert(String.format("%.5f", minDistance) + " blocks", formatViolations());
                 } else {
                     reward();
                 }
