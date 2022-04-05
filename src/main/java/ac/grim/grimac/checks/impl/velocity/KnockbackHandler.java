@@ -5,7 +5,6 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VelocityData;
-import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -181,7 +180,9 @@ public class KnockbackHandler extends PacketCheck {
                         formatOffset = "ignored knockback";
                     }
 
-                    alert(formatOffset, GrimMath.floor(violations) + "");
+                    alert(formatOffset);
+                } else {
+                    reward();
                 }
             }
         }

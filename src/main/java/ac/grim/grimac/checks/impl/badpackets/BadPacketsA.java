@@ -23,8 +23,6 @@ public class BadPacketsA extends PacketCheck {
 
             if (packet.getSlot() == lastSlot) {
                 flagAndAlert();
-            } else {
-                reward();
             }
 
             lastSlot = packet.getSlot();

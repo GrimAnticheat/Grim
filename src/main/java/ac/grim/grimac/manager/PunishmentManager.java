@@ -10,9 +10,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class PunishmentManager {
     GrimPlayer player;
@@ -39,8 +37,9 @@ public class PunishmentManager {
                 List<Check> checksList = new ArrayList<>();
 
                 for (String command : checks) {
+                    command = command.toLowerCase(Locale.ROOT);
                     for (Check check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
-                        if (check.getCheckName() != null && check.getCheckName().contains(command)) {
+                        if (check.getCheckName() != null && check.getCheckName().toLowerCase(Locale.ROOT).contains(command)) {
                             checksList.add(check);
                         }
                     }
@@ -65,7 +64,7 @@ public class PunishmentManager {
         }
     }
 
-    public void handleAlert(GrimPlayer player, String verbose, Check check, String violations) {
+    public void handleAlert(GrimPlayer player, String verbose, Check check) {
         String alertString = "grim sendalert " + GrimAPI.INSTANCE.getPlugin().getConfig().getString("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         boolean testMode = GrimAPI.INSTANCE.getPlugin().getConfig().getBoolean("test-mode", false);
 
@@ -81,9 +80,12 @@ public class PunishmentManager {
                         if (inInterval) {
                             String cmd = command.getCommand();
 
+                            // Streams are slow but this isn't a hot path... it's fine.
+                            String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
+
                             cmd = cmd.replace("[alert]", alertString);
                             cmd = cmd.replace("%check_name%", check.getCheckName());
-                            cmd = cmd.replace("%vl%", violations);
+                            cmd = cmd.replace("%vl%", vl);
                             cmd = cmd.replace("%verbose%", verbose);
 
                             if (player.bukkitPlayer != null) {
@@ -98,8 +100,9 @@ public class PunishmentManager {
 
                             String finalCmd = cmd;
                             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
-                            command.setExecuteCount(command.getExecuteCount() + 1);
                         }
+
+                        command.setExecuteCount(command.getExecuteCount() + 1);
                     }
                 }
             }
@@ -111,9 +114,9 @@ public class PunishmentManager {
             if (group.getChecks().contains(check)) {
                 long currentTime = System.currentTimeMillis();
 
-                group.violations.add(currentTime);
+                group.violations.put(currentTime, check);
                 // Remove violations older than the defined time in the config
-                group.violations.removeIf(time -> currentTime - time > group.removeViolationsAfter);
+                group.violations.entrySet().removeIf(time -> currentTime - time.getKey() > group.removeViolationsAfter);
             }
         }
     }
@@ -125,7 +128,7 @@ class PunishGroup {
     @Getter
     List<ParsedCommand> commands;
     @Getter
-    List<Long> violations = new ArrayList<>();
+    HashMap<Long, Check> violations = new HashMap<>();
     @Getter
     int removeViolationsAfter;
 

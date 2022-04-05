@@ -23,8 +23,6 @@ public class BadPacketsB extends PacketCheck {
 
             if (forwards > 0.98f || sideways > 0.98f) {
                 flagAndAlert();
-            } else {
-                reward();
             }
         }
     }

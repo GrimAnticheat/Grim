@@ -84,7 +84,7 @@ public class TimerCheck extends PacketCheck {
                 }
             }
 
-            alert("", formatViolations());
+            alert("");
 
             // Reset the violation by 1 movement
             timerBalanceRealTime -= 50e6;

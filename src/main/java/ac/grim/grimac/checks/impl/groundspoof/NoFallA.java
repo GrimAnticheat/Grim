@@ -53,8 +53,6 @@ public class NoFallA extends PacketCheck {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     flagWithSetback();
                     wrapper.setOnGround(false);
-                } else {
-                    reward();
                 }
             }
         }

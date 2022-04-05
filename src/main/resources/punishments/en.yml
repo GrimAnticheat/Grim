@@ -13,6 +13,7 @@ Punishments:
       - "Knockback"
       - "Explosion"
       - "Timer"
+      - "NoFall"
     # Threshold:Interval Command
     commands:
       - "100:40 [alert]"
@@ -40,5 +41,15 @@ Punishments:
     checks:
       - "EntityControl"
       - "NoSlow"
+      - "Place"
     commands:
-      - "5:5 [alert]"
+      - "10:5 [alert]"
+  Combat:
+    remove-violations-after: 300
+    checks:
+      - "Killaura"
+      - "Aim"
+  Autoclicker:
+    remove-violations-after: 300
+    checks:
+      - "Autoclicker"

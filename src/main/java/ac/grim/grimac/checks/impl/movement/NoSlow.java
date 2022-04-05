@@ -20,7 +20,7 @@ public class NoSlow extends PostPredictionCheck {
         if (player.packetStateData.slowedByUsingItem) {
             if (bestOffset > offsetToFlag) {
                 flagWithSetback();
-                alert("", formatViolations());
+                alert("");
             } else {
                 reward();
             }

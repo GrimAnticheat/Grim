@@ -23,16 +23,12 @@ public class BadPacketsF extends PacketCheck {
             if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
                 if (lastSprinting) {
                     flagAndAlert();
-                } else {
-                    reward();
                 }
 
                 lastSprinting = true;
             } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
                 if (!lastSprinting) {
                     flagAndAlert();
-                } else {
-                    reward();
                 }
 
                 lastSprinting = false;

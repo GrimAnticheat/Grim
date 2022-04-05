@@ -27,8 +27,6 @@ public class PostCheck extends PacketCheck {
             if (sent) {
                 if (delay > 40L && delay < 100L) {
                     flagAndAlert();
-                } else {
-                    reward();
                 }
 
                 sent = false;
@@ -45,8 +43,6 @@ public class PostCheck extends PacketCheck {
             if (delay < 10L) {
                 lastPacket = now;
                 sent = true;
-            } else {
-                reward();
             }
         }
     }

@@ -32,7 +32,7 @@ public class NoFallB extends PostPredictionCheck {
 
         if (invalid) {
             flagWithSetback();
-            alert("claimed " + player.clientClaimsLastOnGround, formatViolations());
+            alert("claimed " + player.clientClaimsLastOnGround);
             player.checkManager.getNoFall().flipPlayerGroundStatus = true;
         }
     }

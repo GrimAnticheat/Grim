@@ -27,6 +27,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import lombok.Getter;
 import lombok.Setter;
@@ -57,6 +58,9 @@ public class BlockPlace {
     @Getter
     @Setter
     boolean isInside;
+    @Getter
+    @Setter
+    Vector3f cursor;
 
     public BlockPlace(GrimPlayer player, Vector3i blockPosition, BlockFace face, ItemStack itemStack, HitData hitData) {
         this.player = player;

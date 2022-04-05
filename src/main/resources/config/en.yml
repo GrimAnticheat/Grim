@@ -32,18 +32,6 @@ Simulation:
   # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
   max-ceiling: 4
 
-# Prediction-based ground spoof check
-# Extremely stable
-GroundSpoof:
-  setbackvl: 10
-  decay: 0.01
-
-# Checks LOOK and GROUND packets for NoFall
-# Mostly stable, this cheat results in no advantage as we correct it before it touches the server
-NoFall:
-  setbackvl: 10 # This doesn't give any advantage
-  decay: 0.05 # This packet is rarer than other packets
-
 # Checks to see if a player entered a block during a movement
 Phase:
   setbackvl: 1 # Glitching into blocks can allow wall climbing, plus this check is relatively stable

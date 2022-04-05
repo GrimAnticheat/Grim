@@ -5,7 +5,6 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.events.CompletePredictionEvent;
-import ac.grim.grimac.utils.math.GrimMath;
 import org.bukkit.Bukkit;
 
 @CheckData(name = "Simulation", configName = "Simulation", decay = 0.02)
@@ -45,11 +44,10 @@ public class OffsetHandler extends PostPredictionCheck {
             }
 
             violations++;
-            alert("o: " + formatOffset(offset), GrimMath.floor(violations) + "");
+            alert("o: " + formatOffset(offset));
 
             advantageGained = Math.max(advantageGained, maxCeiling);
         } else {
-            reward();
             advantageGained *= setbackDecayMultiplier;
         }
 

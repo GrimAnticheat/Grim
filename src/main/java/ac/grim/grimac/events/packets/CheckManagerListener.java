@@ -309,11 +309,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
-                player.checkManager.onBlockPlace(blockPlace);
-
-                if (!blockPlace.isCancelled()) {
-                    BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
-                }
+                BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
             }
         }
     }
@@ -565,6 +561,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             // Anti-air place
             BlockPlace blockPlace = new BlockPlace(player, packet.getBlockPosition(), packet.getFace(), placedWith, getNearestHitResult(player, null, true));
+            blockPlace.setCursor(packet.getCursorPosition());
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
                 player.checkManager.onBlockPlace(blockPlace);
 

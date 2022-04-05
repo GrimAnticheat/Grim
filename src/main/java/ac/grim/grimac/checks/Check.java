@@ -3,7 +3,6 @@ package ac.grim.grimac.checks;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.events.FlagEvent;
-import ac.grim.grimac.utils.math.GrimMath;
 import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import org.bukkit.Bukkit;
@@ -40,7 +39,7 @@ public class Check<T> {
 
     public void flagAndAlert() {
         if (flag()) {
-            alert("", formatViolations());
+            alert("");
         }
     }
 
@@ -62,7 +61,7 @@ public class Check<T> {
     }
 
     public final void reward() {
-        violations -= decay;
+        violations = Math.max(0, violations - decay);
     }
 
     public void reload() {
@@ -72,8 +71,8 @@ public class Check<T> {
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
 
-    public void alert(String verbose, String violations) {
-        player.punishmentManager.handleAlert(player, verbose, this, violations);
+    public void alert(String verbose) {
+        player.punishmentManager.handleAlert(player, verbose, this);
     }
 
     public DynamicConfig getConfig() {
@@ -86,10 +85,6 @@ public class Check<T> {
 
     public String formatOffset(double offset) {
         return offset > 0.001 ? String.format("%.5f", offset) : String.format("%.2E", offset);
-    }
-
-    public String formatViolations() {
-        return GrimMath.ceil(violations) + "";
     }
 }
 
