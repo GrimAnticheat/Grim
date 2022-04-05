@@ -9,6 +9,7 @@ import lombok.Getter;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 public class ConfigManager {
     @Getter
@@ -23,6 +24,8 @@ public class ConfigManager {
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
 
     public ConfigManager() {
+        upgrade();
+
         // load config
         GrimAPI.INSTANCE.getPlugin().getDataFolder().mkdirs();
         config = new DynamicConfig();
@@ -56,6 +59,26 @@ public class ConfigManager {
             config.loadAll();
         } catch (Exception e) {
             throw new RuntimeException("Failed to load config", e);
+        }
+    }
+
+    private void upgrade() {
+        removeLegacyTwoPointOne();
+    }
+
+    private void removeLegacyTwoPointOne() {
+        File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "config.yml");
+        if (config.exists()) {
+            // If config doesn't have config-version, it's a legacy config
+            try {
+                String configString = new String(Files.readAllBytes(config.toPath()));
+
+                if (!configString.contains("config-version")) {
+                    Files.move(config.toPath(), new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "config-2.1.old.yml").toPath());
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
