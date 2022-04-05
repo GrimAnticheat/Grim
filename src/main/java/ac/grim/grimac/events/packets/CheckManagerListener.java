@@ -42,6 +42,7 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
@@ -562,6 +563,21 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Anti-air place
             BlockPlace blockPlace = new BlockPlace(player, packet.getBlockPosition(), packet.getFace(), placedWith, getNearestHitResult(player, null, true));
             blockPlace.setCursor(packet.getCursorPosition());
+
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_11) && player.getClientVersion().isOlderThan(ClientVersion.V_1_11)) {
+                // ViaRewind is stupid and divides the byte by 15 to get the float
+                // We must undo this to get the correct block place... why?
+                if (packet.getCursorPosition().getX() * 15 % 1 == 0 && packet.getCursorPosition().getY() * 15 % 1 == 0 && packet.getCursorPosition().getZ() * 15 % 1 == 0) {
+                    // This is impossible to occur without ViaRewind, fix their stupidity
+                    int trueByteX = (int) (packet.getCursorPosition().getX() * 15);
+                    int trueByteY = (int) (packet.getCursorPosition().getY() * 15);
+                    int trueByteZ = (int) (packet.getCursorPosition().getZ() * 15);
+
+                    blockPlace.setCursor(new Vector3f(trueByteX / 16f, trueByteY / 16f, trueByteZ / 16f));
+                }
+            }
+
+
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
                 player.checkManager.onBlockPlace(blockPlace);
 

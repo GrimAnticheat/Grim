@@ -4,51 +4,65 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.BlockPlaceCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.BlockPlace;
-import org.bukkit.Bukkit;
+import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+
+import java.util.Collections;
 
 @CheckData(name = "PositionPlace")
 public class PositionPlace extends BlockPlaceCheck {
+
     public PositionPlace(GrimPlayer player) {
         super(player);
     }
 
     @Override
     public void onBlockPlace(final BlockPlace place) {
-        if (true) return; // Check currently broken
+        if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
 
-        double xDiff = player.x - place.getPlacedAgainstBlockLocation().getX();
-        double yDiff = player.y - place.getPlacedAgainstBlockLocation().getY();
-        double zDiff = player.z - place.getPlacedAgainstBlockLocation().getZ();
+        SimpleCollisionBox combined = getCombinedBox(place);
 
+        // Alright, now that we have the most optimal positions for each place
+        // Please note that minY may be lower than maxY, this is INTENTIONAL!
+        // Each position represents the best case scenario to have clicked
+        //
+        // We will now calculate the most optimal position for the player's head to be in
+        double minEyeHeight = Collections.min(player.getPossibleEyeHeights());
+        double maxEyeHeight = Collections.max(player.getPossibleEyeHeights());
+        // I love the idle packet, why did you remove it mojang :(
+        // Don't give 0.03 lenience if the player is a 1.8 player and we know they couldn't have 0.03'd because idle packet
+        double movementThreshold = !player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? player.getMovementThreshold() : 0;
+
+        SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
+        eyePositions.expand(movementThreshold);
+
+        // So now we have the player's possible eye positions
+        // So then look at the face that the player has clicked
         boolean flag = false;
-
-        // TODO: Loop through hitbox to find the best collision
         switch (place.getDirection()) {
-            case NORTH:
-                flag = zDiff + player.getMovementThreshold() <= 0;
+            case NORTH: // Z- face
+                flag = eyePositions.minZ > combined.minZ;
                 break;
-            case SOUTH:
-                flag = zDiff + player.getMovementThreshold() <= 1;
+            case SOUTH: // Z+ face
+                flag = eyePositions.maxZ < combined.maxZ;
                 break;
-            case EAST:
-                flag = xDiff + player.getMovementThreshold() <= 0;
+            case EAST: // X+ face
+                flag = eyePositions.maxX < combined.maxX;
                 break;
-            case WEST:
-                flag = xDiff + player.getMovementThreshold() <= 1;
+            case WEST: // X- face
+                flag = eyePositions.minX > combined.minX;
                 break;
-            case UP:
-                // The player's maximum eye height is 1.62 blocks, so lower than clicked pos, impossible
-                // If the player is below the block by 1.62 blocks, they also couldn't have clicked it
-                flag = yDiff - player.getMovementThreshold() > 1.62 || yDiff - player.getMovementThreshold() < -1.62;
+            case UP: // Y+ face
+                flag = eyePositions.maxY < combined.maxY;
                 break;
-            case DOWN:
-                flag = yDiff + player.getMovementThreshold() <= 1;
+            case DOWN: // Y- face
+                flag = eyePositions.minY > combined.minY;
                 break;
         }
 
-        Bukkit.broadcastMessage(xDiff + " " + yDiff + " " + zDiff + " " + place.getDirection());
-
         if (flag) {
+            place.resync();
             flagAndAlert();
         }
     }
