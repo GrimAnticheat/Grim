@@ -317,6 +317,11 @@ public class PointThreeEstimator {
 
     // This method can be improved by using the actual movement to see if 0.03 was feasible...
     public boolean determineCanSkipTick(float speed, Set<VectorData> init) {
+        // If possible, check for idle packet
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && player.packetStateData.didLastMovementIncludePosition) {
+            return false; // Last packet included a position so not 0.03
+        }
+
         // Determine if the player can make an input below 0.03
         double minimum = Double.MAX_VALUE;
 
