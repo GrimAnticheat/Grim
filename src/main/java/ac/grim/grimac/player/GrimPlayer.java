@@ -266,8 +266,10 @@ public class GrimPlayer {
             possibleMovements.add(new VectorData(clientVelocity.clone().setY(0.3f), VectorData.VectorType.Swimhop));
         }
 
-        // If the player has that client sided riptide thing and has colliding with an entity this tick
-        if (riptideSpinAttackTicks >= 0 && uncertaintyHandler.collidingEntities.getLast() > 0) {
+        // If the player has that client sided riptide thing and has colliding with an entity
+        // This was determined in the previous tick but whatever just include the 2 ticks around it
+        // for a bit of safety as I doubt people will try to bypass this, it would be a very useless cheat
+        if (riptideSpinAttackTicks >= 0 && Collections.max(uncertaintyHandler.collidingEntities) > 0) {
             possibleMovements.add(new VectorData(clientVelocity.clone().multiply(-0.2), VectorData.VectorType.Trident));
         }
 

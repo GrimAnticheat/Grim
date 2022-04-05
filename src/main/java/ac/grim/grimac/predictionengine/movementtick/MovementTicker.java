@@ -36,7 +36,7 @@ public class MovementTicker {
             if (!player.inVehicle) {
                 // Calculate the offset of the player to colliding other stuff
                 SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
-                SimpleCollisionBox expandedPlayerBox = playerBox.copy().expand(1);
+                SimpleCollisionBox expandedPlayerBox = playerBox.copy().expandToAbsoluteCoordinates(player.x, player.y, player.z).expand(1);
 
                 for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
                     // Players can only push living entities
@@ -46,9 +46,6 @@ public class MovementTicker {
                         continue;
 
                     SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
-
-                    if (!playerBox.isCollided(entityBox))
-                        continue;
 
                     if (expandedPlayerBox.isCollided(entityBox))
                         possibleCollidingEntities++;

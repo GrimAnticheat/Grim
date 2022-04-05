@@ -484,18 +484,20 @@ public class MovementCheckRunner extends PositionCheck {
                 player.verticalCollision = pushingMovement.getY() != 1.1999999F;
                 double currentY = player.clientVelocity.getY();
 
-                player.uncertaintyHandler.thisTickSlimeBlockUncertainty = Math.abs(Riptide.getRiptideVelocity(player).getY()) + (currentY > 0 ? currentY : 0);
-                player.uncertaintyHandler.nextTickSlimeBlockUncertainty = Math.abs(Riptide.getRiptideVelocity(player).getY()) + (currentY > 0 ? currentY : 0);
+                if (likelyGroundRiptide(pushingMovement)) {
+                    player.uncertaintyHandler.thisTickSlimeBlockUncertainty = Math.abs(Riptide.getRiptideVelocity(player).getY()) + (currentY > 0 ? currentY : 0);
+                    player.uncertaintyHandler.nextTickSlimeBlockUncertainty = Math.abs(Riptide.getRiptideVelocity(player).getY()) + (currentY > 0 ? currentY : 0);
 
-                player.lastOnGround = false;
-                player.lastY += pushingMovement.getY();
-                new PlayerBaseTick(player).updatePlayerPose();
-                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
-                player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
+                    player.lastOnGround = false;
+                    player.lastY += pushingMovement.getY();
+                    new PlayerBaseTick(player).updatePlayerPose();
+                    player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+                    player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
-                player.couldSkipTick = true;
+                    player.couldSkipTick = true;
 
-                Collisions.handleInsideBlocks(player);
+                    Collisions.handleInsideBlocks(player);
+                }
             }
 
             new PlayerBaseTick(player).doBaseTick();
@@ -611,5 +613,30 @@ public class MovementCheckRunner extends PositionCheck {
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset);
         player.trigHandler.setOffset(oldClientVel, offset);
         player.pointThreeEstimator.endOfTickTick();
+    }
+
+    /**
+     * Computes the movement from the riptide, and then uses it to determine whether the player
+     * was more likely to be on or off of the ground when they started to riptide
+     * <p>
+     * A player on ground when riptiding will move upwards by 1.2f
+     * We don't know whether the player was on the ground, however, which is why
+     * we must attempt to guess here
+     * <p>
+     * Very reliable.
+     *
+     * @param pushingMovement The collision result when trying to move the player upwards by 1.2f
+     * @return Whether it is more likely that this player was on the ground the tick they riptided
+     */
+    private boolean likelyGroundRiptide(Vector pushingMovement) {
+        // Y velocity gets reset if the player collides vertically
+        double riptideYResult = Riptide.getRiptideVelocity(player).getY();
+
+        double riptideDiffToBase = Math.abs(player.actualMovement.getY() - riptideYResult);
+        double riptideDiffToGround = Math.abs(player.actualMovement.getY() - riptideYResult - pushingMovement.getY());
+
+        // If the player was very likely to have used riptide on the ground
+        // (Patches issues with slime and other desync's)
+        return riptideDiffToGround < riptideDiffToBase;
     }
 }
