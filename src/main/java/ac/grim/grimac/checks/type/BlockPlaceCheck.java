@@ -57,11 +57,11 @@ public class BlockPlaceCheck extends Check<BlockPlace> {
         }
 
         if (weirdBoxes.contains(place.getPlacedAgainstMaterial())) {
-            combined = new SimpleCollisionBox(0, 0, 0, 1, 1.5, 1);
+            combined = new SimpleCollisionBox(clicked.getX(), clicked.getY(), clicked.getZ(), clicked.getX() + 1, clicked.getY() + 1.5, clicked.getZ() + 1);
         }
 
         if (buggyBoxes.contains(place.getPlacedAgainstMaterial())) {
-            combined = new SimpleCollisionBox(0, 0, 0, 1, 1, 1);
+            combined = new SimpleCollisionBox(clicked.getX(), clicked.getY(), clicked.getZ());
         }
 
         return combined;
