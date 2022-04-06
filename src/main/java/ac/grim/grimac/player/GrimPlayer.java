@@ -2,6 +2,7 @@ package ac.grim.grimac.player;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.packets.CheckManagerListener;
+import ac.grim.grimac.manager.ActionManager;
 import ac.grim.grimac.manager.CheckManager;
 import ac.grim.grimac.manager.PunishmentManager;
 import ac.grim.grimac.manager.SetbackTeleportUtil;
@@ -173,6 +174,7 @@ public class GrimPlayer {
     public VelocityData firstBreadExplosion = null;
     public VelocityData likelyExplosions = null;
     public CheckManager checkManager;
+    public ActionManager actionManager;
     public PunishmentManager punishmentManager;
     public MovementCheckRunner movementCheckRunner;
     public boolean tryingToRiptide = false;
@@ -231,6 +233,7 @@ public class GrimPlayer {
         packetStateData = new PacketStateData();
 
         checkManager = new CheckManager(this);
+        actionManager = new ActionManager(this);
         punishmentManager = new PunishmentManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 

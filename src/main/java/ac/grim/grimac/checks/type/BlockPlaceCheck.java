@@ -45,7 +45,7 @@ public class BlockPlaceCheck extends Check<BlockPlace> {
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         placedOn.downCast(boxes);
 
-        SimpleCollisionBox combined = new SimpleCollisionBox(0, 0, 0, 0, 0, 0);
+        SimpleCollisionBox combined = new SimpleCollisionBox(clicked.getX(), clicked.getY(), clicked.getZ());
         for (SimpleCollisionBox box : boxes) {
             double minX = Math.max(box.minX, combined.minX);
             double minY = Math.max(box.minY, combined.minY);
