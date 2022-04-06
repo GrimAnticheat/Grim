@@ -41,7 +41,7 @@ public class ClientBrand extends PacketCheck {
                 if (!hasBrand) {
                     hasBrand = true;
 
-                    if (!GrimAPI.INSTANCE.getPlugin().getConfig().getStringList("client-brand.ignored-clients").contains(brand)) {
+                    if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("client-brand.ignored-clients").contains(brand)) {
                         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
                         message = MessageUtil.format(message);
                         message = message.replace("%brand%", brand);
