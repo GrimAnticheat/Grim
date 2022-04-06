@@ -13,7 +13,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     @Override
     public void onUserLogin(UserLoginEvent event) {
         Player player = (Player) event.getPlayer();
-        if (player.hasPermission("grim.alerts") && GrimAPI.INSTANCE.getPlugin().getConfig().getBoolean("alerts.enable-on-join")) {
+        if (player.hasPermission("grim.alerts") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.enable-on-join", true)) {
             GrimAPI.INSTANCE.getAlertManager().toggle(player);
         }
     }

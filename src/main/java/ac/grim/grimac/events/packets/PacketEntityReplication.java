@@ -31,7 +31,7 @@ public class PacketEntityReplication extends PacketCheck {
 
     public PacketEntityReplication(GrimPlayer player) {
         super(player);
-        enablePreWavePacket = GrimAPI.INSTANCE.getPlugin().getConfig().getBoolean("reach.enable-pre-packet", false);
+        enablePreWavePacket = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("reach.enable-pre-packet", false);
     }
 
     public void tickFlying() {
