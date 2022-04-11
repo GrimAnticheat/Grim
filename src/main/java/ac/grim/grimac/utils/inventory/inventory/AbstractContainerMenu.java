@@ -6,11 +6,11 @@ import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.google.common.collect.Sets;
 import lombok.Getter;
 import lombok.Setter;
-import org.bukkit.GameMode;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;

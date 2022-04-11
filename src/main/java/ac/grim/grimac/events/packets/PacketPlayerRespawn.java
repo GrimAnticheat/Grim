@@ -54,6 +54,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
 
             WrapperPlayServerJoinGame joinGame = new WrapperPlayServerJoinGame(event);
+            player.gamemode = joinGame.getGameMode();
             player.compensatedWorld.setDimension(joinGame.getDimension().getType().getName(), event.getUser());
         }
 
@@ -75,7 +76,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.isSneaking = false;
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
-                player.gamemode = GameMode.valueOf(respawn.getGameMode().name());
+                player.gamemode = respawn.getGameMode();
                 player.compensatedWorld.setDimension(respawn.getDimension().getType().getName(), event.getUser());
             });
         }

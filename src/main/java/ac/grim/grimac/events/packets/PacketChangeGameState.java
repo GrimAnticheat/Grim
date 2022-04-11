@@ -4,8 +4,8 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerChangeGameState;
-import org.bukkit.GameMode;
 
 public class PacketChangeGameState extends PacketCheck {
     public PacketChangeGameState(GrimPlayer playerData) {
@@ -22,7 +22,7 @@ public class PacketChangeGameState extends PacketCheck {
 
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                     // Bukkit's gamemode order is unreliable, so go from int -> packetevents -> bukkit
-                    player.gamemode = GameMode.valueOf(com.github.retrooper.packetevents.protocol.player.GameMode.values()[(int) packet.getValue()].name());
+                    player.gamemode = GameMode.values()[(int) packet.getValue()];
                 });
             }
         }

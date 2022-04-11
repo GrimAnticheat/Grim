@@ -24,6 +24,7 @@ import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
@@ -39,7 +40,6 @@ import io.github.retrooper.packetevents.util.GeyserUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -400,7 +400,6 @@ public class GrimPlayer {
 
             this.entityID = bukkitPlayer.getEntityId();
             this.playerWorld = bukkitPlayer.getWorld();
-            this.gamemode = bukkitPlayer.getGameMode();
         }
     }
 
