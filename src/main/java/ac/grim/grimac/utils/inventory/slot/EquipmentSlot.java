@@ -5,7 +5,7 @@ import ac.grim.grimac.utils.inventory.EquipmentType;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
-import org.bukkit.GameMode;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 public class EquipmentSlot extends Slot {
     EquipmentType type;
