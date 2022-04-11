@@ -183,11 +183,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, null, false);
         requiredSetBack = data;
 
-        // Patch LiquidBounce Spartan NoFall. Just a value so "safe" to set async
-        if (player.bukkitPlayer != null) {
-            player.bukkitPlayer.setFallDistance((float) player.fallDistance);
-        }
-
         isSendingSetback = true;
 
         try {
