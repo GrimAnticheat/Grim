@@ -20,7 +20,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBl
 //
 public class PacketBlockAction extends PacketListenerAbstract {
     public PacketBlockAction() {
-        super(PacketListenerPriority.MONITOR);
+        super(PacketListenerPriority.HIGH);
     }
 
     @Override

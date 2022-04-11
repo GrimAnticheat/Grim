@@ -22,7 +22,7 @@ import java.util.List;
 
 public class PacketSelfMetadataListener extends PacketListenerAbstract {
     public PacketSelfMetadataListener() {
-        super(PacketListenerPriority.MONITOR);
+        super(PacketListenerPriority.HIGH);
     }
 
     @Override
@@ -146,7 +146,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                                 // Grim update order: Process new interacts -> receive this
                                 if (player.packetStateData.slowedByUsingItemTransaction < markedTransaction) {
                                     PacketPlayerDigging.handleUseItem(player, item, isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
-                                    // The above line is a hack to fake activate use item
+                                    // The above line is a hack to fake activate use item TODO: Check vanilla code
                                     player.packetStateData.slowedByUsingItem = isActive && player.packetStateData.slowedByUsingItem;
 
                                     if (isActive) {

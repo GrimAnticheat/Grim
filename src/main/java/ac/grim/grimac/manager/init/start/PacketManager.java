@@ -33,6 +33,8 @@ public class PacketManager implements Initable {
             PacketEvents.getAPI().getEventManager().registerListener(new BasePacketWorldReader());
         }
 
+        PacketEvents.getAPI().getEventManager().registerListener(new PacketSetWrapperNull());
+
         PacketEvents.getAPI().init();
     }
 }
