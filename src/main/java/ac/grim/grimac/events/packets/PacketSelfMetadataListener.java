@@ -84,9 +84,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         player.sendTransaction();
                         hasSendTransaction = true;
 
-                        int trans = player.lastTransactionSent.get();
                         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                            player.uncertaintyHandler.lastMetadataDesync = trans;
                             player.isSwimming = isSwimming;
                             player.lastSprinting = isSprinting;
                             // Protect this due to players being able to get the server to spam this packet a lot

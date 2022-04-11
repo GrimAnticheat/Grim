@@ -77,7 +77,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.lastX = player.x;
         player.lastY = player.y;
         player.lastZ = player.z;
-        player.uncertaintyHandler.lastTeleportTicks = 0;
 
         // Reset velocities
         // Teleporting a vehicle does not reset its velocity
@@ -258,9 +257,6 @@ public class MovementCheckRunner extends PositionCheck {
         }
         player.lastInBed = player.isInBed;
 
-        // Teleporting is not a tick, don't run anything that we don't need to, to avoid falses
-        player.uncertaintyHandler.lastTeleportTicks--;
-
         // Don't check sleeping players
         if (player.isInBed) return;
 
@@ -331,10 +327,6 @@ public class MovementCheckRunner extends PositionCheck {
         // If you really have nothing better to do, make this support offset blocks like bamboo.  Good luck!
         player.clientControlledHorizontalCollision = Math.min(GrimMath.distanceToHorizontalCollision(player.x), GrimMath.distanceToHorizontalCollision(player.z)) < 1e-6;
 
-        player.uncertaintyHandler.lastSneakingChangeTicks--;
-        if (player.isSneaking != player.wasSneaking)
-            player.uncertaintyHandler.lastSneakingChangeTicks = 0;
-
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
 
@@ -376,10 +368,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
         }
 
-        player.uncertaintyHandler.lastGlidingChangeTicks--;
-        if (player.isGliding != player.wasGliding) player.uncertaintyHandler.lastGlidingChangeTicks = 0;
-
-
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
         player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
@@ -391,13 +379,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.thisTickSlimeBlockUncertainty = player.uncertaintyHandler.nextTickSlimeBlockUncertainty;
         player.uncertaintyHandler.nextTickSlimeBlockUncertainty = 0;
         player.couldSkipTick = false;
-
-        // Update firework end/start uncertainty
-        player.uncertaintyHandler.lastFireworkStatusChange--;
-        boolean hasFirework = (player.isGliding || player.wasGliding) && player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0;
-        if (hasFirework != player.uncertaintyHandler.lastUsingFirework)
-            player.uncertaintyHandler.lastFireworkStatusChange = 0;
-        player.uncertaintyHandler.lastUsingFirework = hasFirework;
 
         SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001f, 0.001f);
 
