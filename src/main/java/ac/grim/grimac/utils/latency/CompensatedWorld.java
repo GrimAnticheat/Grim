@@ -33,7 +33,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
-    private static final WrappedBlockState airData = WrappedBlockState.getByGlobalId(0);
+    public static final ClientVersion blockVersion = PacketEvents.getAPI().getServerManager().getVersion().toClientVersion();
+    private static final WrappedBlockState airData = WrappedBlockState.getByGlobalId(blockVersion, 0);
     public final GrimPlayer player;
     private final Map<Long, Column> chunks;
     // Packet locations for blocks
@@ -101,13 +102,13 @@ public class CompensatedWorld {
                     // Sets entire chunk to air
                     // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
                     // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
-                    chunk.set(0, 0, 0, 0);
+                    chunk.set(null, 0, 0, 0, 0);
                 }
 
-                chunk.set(x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+                chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
                 // Handle stupidity such as fluids changing in idle ticks.
-                player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(combinedID));
+                player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(blockVersion, combinedID));
             }
         } catch (Exception ignored) {
         }
@@ -256,7 +257,7 @@ public class CompensatedWorld {
 
             BaseChunk chunk = column.getChunks()[y >> 4];
             if (chunk != null) {
-                return chunk.get(x & 0xF, y & 0xF, z & 0xF);
+                return chunk.get(blockVersion, x & 0xF, y & 0xF, z & 0xF);
             }
         } catch (Exception ignored) {
         }

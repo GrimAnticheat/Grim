@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -162,8 +163,8 @@ public class Collisions {
 
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
-        if (player.clientControlledHorizontalCollision && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.playerWorld != null) {
-            WorldBorder border = player.playerWorld.getWorldBorder();
+        if (player.clientControlledHorizontalCollision && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.bukkitPlayer != null) {
+            WorldBorder border = player.bukkitPlayer.getWorld().getWorldBorder();
             double centerX = border.getCenter().getX();
             double centerZ = border.getCenter().getZ();
 
@@ -263,12 +264,14 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            WrappedBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
+                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF);
 
                             // Works on both legacy and modern!  Faster than checking for material types, most common case
                             if (data.getGlobalId() == 0) continue;
 
-                            int edgeCount = 0;
+                            int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
+                                    ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
+                                    ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
 
                             if (edgeCount != 3 && (edgeCount != 1 || Materials.isShapeExceedsCube(data.getType()))
                                     && (edgeCount != 2 || data.getType() == StateTypes.PISTON_HEAD)) {
@@ -402,8 +405,8 @@ public class Collisions {
         // Use the bounding box for after the player's movement is applied
         SimpleCollisionBox aABB = player.inVehicle ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-0.001) : player.boundingBox.copy().expand(-0.001);
 
-        Location blockPos = new Location(player.playerWorld, aABB.minX, aABB.minY, aABB.minZ);
-        Location blockPos2 = new Location(player.playerWorld, aABB.maxX, aABB.maxY, aABB.maxZ);
+        Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
+        Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
 
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
             return;
@@ -514,8 +517,8 @@ public class Collisions {
         // Use the bounding box for after the player's movement is applied
         SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(expand);
 
-        Location blockPos = new Location(player.playerWorld, aABB.minX, aABB.minY, aABB.minZ);
-        Location blockPos2 = new Location(player.playerWorld, aABB.maxX, aABB.maxY, aABB.maxZ);
+        Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
+        Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
 
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
             return false;
@@ -682,7 +685,7 @@ public class Collisions {
                             int x = currX | chunkXGlobalPos;
                             int z = currZ | chunkZGlobalPos;
 
-                            WrappedBlockState data = section.get(x & 0xF, y & 0xF, z & 0xF);
+                            WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF);
 
                             if (searchingFor.test(data)) return true;
                         }

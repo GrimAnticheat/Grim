@@ -14,6 +14,7 @@ import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.inventory.Inventory;
+import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.*;
@@ -826,7 +827,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 Vector3i pos = data.getPosition().clone();
                 pos.setY(pos.getY() + 1);
 
-                blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState());
+                blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState(CompensatedWorld.blockVersion));
 
                 if (player.gamemode != GameMode.CREATIVE) {
                     if (hand == InteractionHand.MAIN_HAND) {

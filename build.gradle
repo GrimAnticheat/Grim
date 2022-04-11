@@ -14,7 +14,7 @@ repositories {
         }
     } // PacketEvents
     maven { url = 'https://repo.viaversion.com' } // ViaVersion
-    maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF, PaperLib
+    maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF
     maven { url = "https://repo.essentialsx.net/releases/" } // Essentials
     maven { url = "https://nexus.scarsz.me/content/groups/public" } // Configuralize
     mavenCentral() // FastUtil, Discord-Webhooks, Log4J, Lombok
@@ -26,7 +26,6 @@ dependencies {
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'club.minnced:discord-webhooks:0.8.0'
     implementation 'it.unimi.dsi:fastutil:8.5.8'
-    implementation "io.papermc:paperlib:1.0.7"
     implementation 'org.jetbrains:annotations:23.0.0' // Why is this needed to compile?
     implementation 'github.scarsz:configuralize:1.4.0'
 

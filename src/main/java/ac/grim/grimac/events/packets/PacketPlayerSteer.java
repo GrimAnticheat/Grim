@@ -79,7 +79,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                     double x = location.getX();
                     double y = location.getY();
                     double z = location.getZ();
-                    player.getSetbackTeleportUtil().setSafeSetbackLocation(player.bukkitPlayer.getWorld(), new Vector3d(x, y, z));
+                    player.getSetbackTeleportUtil().setSafeSetbackLocation(new Vector3d(x, y, z));
                 }
 
                 return;

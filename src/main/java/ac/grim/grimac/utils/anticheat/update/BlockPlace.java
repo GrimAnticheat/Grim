@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.HitData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -539,7 +540,7 @@ public class BlockPlace {
     }
 
     public void set(StateType material) {
-        set(material.createBlockState());
+        set(material.createBlockState(CompensatedWorld.blockVersion));
     }
 
     public void set(BlockFace face, WrappedBlockState state) {
@@ -671,7 +672,7 @@ public class BlockPlace {
     public void setAbove() {
         Vector3i placed = getPlacedBlockPos();
         placed.setY(placed.getY() + 1);
-        set(placed, material.createBlockState());
+        set(placed, material.createBlockState(CompensatedWorld.blockVersion));
     }
 
     public void setAbove(WrappedBlockState toReplaceWith) {

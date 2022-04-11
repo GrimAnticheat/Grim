@@ -23,7 +23,6 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
@@ -78,12 +77,12 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // The player did indeed accept the setback, and there are no new setbacks past now!
             setbackConfirmTicksAgo = 0;
             // Teleport, let velocity be reset
-            safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
+            safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
             setbackConfirmTicksAgo++;
 
             // Calculate the player's actual movement that should be given
-            safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld,
+            safeTeleportPosition = new SetbackLocationVelocity(
                     new Vector3d(player.lastX + player.predictedVelocity.vector.getX(), player.lastY + player.predictedVelocity.vector.getY(), player.lastZ + player.predictedVelocity.vector.getZ()),
                     // The client's current velocity is their velocity for the next tick
                     player.clientVelocity.clone());
@@ -91,7 +90,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // We checked for a new pending setback above
             if (predictionComplete.getData().isTeleport()) {
                 // Avoid setting the player back to positions before this teleport
-                safeTeleportPosition = new SetbackLocationVelocity(player.playerWorld, new Vector3d(player.x, player.y, player.z));
+                safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
             }
         } else {
             setbackConfirmTicksAgo = 0; // Pending setback
@@ -113,8 +112,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void blockMovementsUntilResync(Location position, boolean force) {
-        // Don't teleport cross world, it will break more than it fixes.
-        if (player.bukkitPlayer != null && position.getWorld() != player.bukkitPlayer.getWorld()) return;
         if (requiredSetBack == null || player.bukkitPlayer == null)
             return; // Player hasn't gotten a single teleport yet.
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
@@ -371,8 +368,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     /**
      * @param position A safe setback location
      */
-    public void setSafeSetbackLocation(World world, Vector3d position) {
-        this.safeTeleportPosition = new SetbackLocationVelocity(world, position);
+    public void setSafeSetbackLocation(Vector3d position) {
+        this.safeTeleportPosition = new SetbackLocationVelocity(position);
     }
 
     /**
@@ -384,7 +381,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      */
     public void addSentTeleport(Location position, int transaction, boolean plugin) {
         requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, plugin);
-        teleports.add(new Pair<>(transaction, new Location(player.bukkitPlayer != null ? player.bukkitPlayer.getWorld() : null, position.getX(), position.getY(), position.getZ())));
-        setSafeSetbackLocation(player.playerWorld, new Vector3d(position.getX(), position.getY(), position.getZ()));
+        teleports.add(new Pair<>(transaction, new Location(null, position.getX(), position.getY(), position.getZ())));
+        setSafeSetbackLocation(new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
 }

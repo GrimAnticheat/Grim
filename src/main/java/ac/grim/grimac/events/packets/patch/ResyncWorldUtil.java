@@ -35,8 +35,8 @@ public class ResyncWorldUtil {
             if (!player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport) return;
 
             // Check the 4 corners of the BB for loaded chunks, don't freeze main thread to load chunks.
-            if (!player.playerWorld.isChunkLoaded(minBlockX >> 4, minBlockZ >> 4) || !player.playerWorld.isChunkLoaded(minBlockX >> 4, maxBlockZ >> 4)
-                    || !player.playerWorld.isChunkLoaded(maxBlockX >> 4, minBlockZ >> 4) || !player.playerWorld.isChunkLoaded(maxBlockX >> 4, maxBlockZ >> 4))
+            if (!player.bukkitPlayer.getWorld().isChunkLoaded(minBlockX >> 4, minBlockZ >> 4) || !player.bukkitPlayer.getWorld().isChunkLoaded(minBlockX >> 4, maxBlockZ >> 4)
+                    || !player.bukkitPlayer.getWorld().isChunkLoaded(maxBlockX >> 4, minBlockZ >> 4) || !player.bukkitPlayer.getWorld().isChunkLoaded(maxBlockX >> 4, maxBlockZ >> 4))
                 return;
 
             // This is based on Tuinity's code, thanks leaf. Now merged into paper.
@@ -65,7 +65,7 @@ public class ResyncWorldUtil {
                     int minX = currChunkX == minChunkX ? minBlockX & 15 : 0; // coordinate in chunk
                     int maxX = currChunkX == maxChunkX ? maxBlockX & 15 : 15; // coordinate in chunk
 
-                    Chunk chunk = player.playerWorld.getChunkAt(currChunkX, currChunkZ);
+                    Chunk chunk = player.bukkitPlayer.getWorld().getChunkAt(currChunkX, currChunkZ);
 
                     for (int currChunkY = minChunkY; currChunkY <= maxChunkY; ++currChunkY) {
                         int minY = currChunkZ == minChunkZ ? minBlockZ & 15 : 0; // coordinate in chunk
@@ -86,7 +86,7 @@ public class ResyncWorldUtil {
 
                                     if (flat) {
                                         // Cache this because strings are expensive
-                                        blockId = blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(data.getAsString(false)).getGlobalId());
+                                        blockId = blockDataToId.computeIfAbsent(block.getBlockData(), data -> WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), data.getAsString(false)).getGlobalId());
                                     } else {
                                         blockId = (block.getType().getId() << 4) | block.getData();
                                     }
