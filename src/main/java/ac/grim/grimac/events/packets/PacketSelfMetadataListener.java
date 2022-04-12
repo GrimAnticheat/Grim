@@ -84,15 +84,20 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         player.sendTransaction();
                         hasSendTransaction = true;
 
-                        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                        int trans = player.lastTransactionSent.get();
+
+                        player.latencyUtils.addRealTimeTask(trans, () -> {
                             player.isSwimming = isSwimming;
                             player.lastSprinting = isSprinting;
+                            player.compensatedEntities.serverHasUpdatedPlayerSprintingState();
                             // Protect this due to players being able to get the server to spam this packet a lot
                             if (player.isGliding != isGliding) {
                                 player.pointThreeEstimator.updatePlayerGliding();
                             }
                             player.isGliding = isGliding;
                         });
+
+                        if (event.getPostTasks().isEmpty()) event.getPostTasks().add(player::sendTransaction);
                     }
                 }
 
@@ -154,7 +159,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             });
 
                             // Yes, we do have to use a transaction for eating as otherwise it can desync much easier
-                            event.getPostTasks().add(player::sendTransaction);
+                            if (event.getPostTasks().isEmpty()) event.getPostTasks().add(player::sendTransaction);
                         }
                     }
                 }

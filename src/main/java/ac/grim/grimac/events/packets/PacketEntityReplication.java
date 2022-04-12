@@ -6,6 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
+import ac.grim.grimac.utils.latency.CompensatedEntities;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -145,6 +146,32 @@ public class PacketEntityReplication extends PacketCheck {
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),
                     () -> player.compensatedEntities.updateAttributes(entityID, attributes.getProperties()));
+
+            // if this is for the player
+            if (entityID == player.entityID) {
+                boolean hasSprinting = false;
+                boolean found = false;
+                for (WrapperPlayServerEntityProperties.Property snapshotWrapper : attributes.getProperties()) {
+                    if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
+                        hasSprinting = true;
+
+                        List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+                        for (WrapperPlayServerEntityProperties.PropertyModifier modifier : modifiers) {
+                            if (modifier.getUUID().equals(CompensatedEntities.SPRINTING_MODIFIER_UUID)) {
+                                found = true;
+                                break;
+                            }
+                        }
+
+                    }
+                }
+
+                if (hasSprinting) {
+                    boolean finalFound = found;
+                    player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.finalizeAttribute(finalFound));
+                    event.getPostTasks().add(player::sendTransaction);
+                }
+            }
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_STATUS) {

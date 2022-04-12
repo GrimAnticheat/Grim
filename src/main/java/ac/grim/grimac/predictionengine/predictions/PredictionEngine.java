@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.enums.SprintingState;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -293,6 +294,18 @@ public class PredictionEngine {
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> returnVectors = new ArrayList<>();
         loopVectors(player, possibleVectors, speed, returnVectors);
+
+        if (player.compensatedEntities.hasSprintingAttributeEnabled == SprintingState.Broken) {
+            player.isSprinting = false;
+            // Flying with sprinting increases speed by 2x
+            if (player.isFlying)
+                speed -= speed / 2;
+            else
+                speed /= 1.3f;
+            loopVectors(player, possibleVectors, speed, returnVectors);
+            player.isSprinting = true;
+        }
+
         return returnVectors;
     }
 
@@ -619,7 +632,7 @@ public class PredictionEngine {
         // Optimization - Also cuts down scenarios by 2/3
         // For some reason the player sprints while swimming no matter what
         // Probably as a way to tell the server it is swimming
-        int zMin = player.isSprinting && !player.isSwimming ? 1 : -1;
+        int zMin = player.isSprinting && !player.isSwimming && player.compensatedEntities.hasSprintingAttributeEnabled != SprintingState.Broken ? 1 : -1;
 
         for (int loopSlowed = 0; loopSlowed <= 1; loopSlowed++) {
             // Loop twice for the using item status if the player is using a trident

@@ -18,6 +18,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.enums.SprintingState;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -363,9 +364,9 @@ public class MovementCheckRunner extends PositionCheck {
         // can change the attribute
         if (!player.inVehicle) {
             if (player.isSprinting != player.lastSprinting) {
-                player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
+                player.compensatedEntities.playerIsRequestingNewSprintingState(player.isSprinting);
             }
-            player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
+            player.speed += player.compensatedEntities.hasSprintingAttributeEnabled != SprintingState.False ? player.speed * 0.3f : 0;
         }
 
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
@@ -577,8 +578,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;
         player.uncertaintyHandler.onGroundUncertain = false;
-
-        player.uncertaintyHandler.lastMetadataDesync--;
 
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));

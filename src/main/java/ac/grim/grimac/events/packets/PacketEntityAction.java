@@ -27,9 +27,15 @@ public class PacketEntityAction extends PacketListenerAbstract {
 
             switch (action.getAction()) {
                 case START_SPRINTING:
+                    if (!player.isSprinting) {
+                        player.compensatedEntities.playerHasChangedSprintingBasedOnState();
+                    }
                     player.isSprinting = true;
                     break;
                 case STOP_SPRINTING:
+                    if (player.isSprinting) {
+                        player.compensatedEntities.playerHasChangedSprintingBasedOnState();
+                    }
                     player.isSprinting = false;
                     break;
                 case START_SNEAKING:

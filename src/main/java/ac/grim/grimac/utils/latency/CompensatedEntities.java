@@ -4,6 +4,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.*;
+import ac.grim.grimac.utils.enums.SprintingState;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.WatchableIndexUtil;
@@ -17,6 +18,7 @@ import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +26,16 @@ import java.util.Optional;
 import java.util.UUID;
 
 public class CompensatedEntities {
-    private static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
+    public static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
     public static final UUID SNOW_MODIFIER_UUID = UUID.fromString("1eaf83ff-7207-4596-b37a-d7a07b3ec4ce");
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public Integer serverPlayerVehicle = null;
     public WrapperPlayServerEntityProperties.Property playerSpeed = new WrapperPlayServerEntityProperties.Property("MOVEMENT_SPEED", 0.1f, new ArrayList<>());
-    public boolean hasSprintingAttributeEnabled = false;
+
+    public SprintingState hasSprintingAttributeEnabled = SprintingState.False;
+    private int lastPlayerChangedSprinting = Integer.MIN_VALUE;
+    private int lastServerChangedSprinting = Integer.MIN_VALUE;
 
     GrimPlayer player;
 
@@ -47,6 +52,44 @@ public class CompensatedEntities {
         }
     }
 
+    public void playerIsRequestingNewSprintingState(boolean sprinting) {
+        if (lastServerChangedSprinting == player.lastTransactionReceived.get()) {
+            // Player updated in a desync, permanently broken once again
+            hasSprintingAttributeEnabled = SprintingState.Broken;
+            Bukkit.broadcastMessage("Requested new state while in desync");
+        } else {
+            // Sprinting is fine.
+            Bukkit.broadcastMessage("Desync is fine, " + sprinting + "  " + lastServerChangedSprinting + "  " + player.lastTransactionReceived.get());
+            hasSprintingAttributeEnabled = sprinting ? SprintingState.True : SprintingState.False;
+        }
+    }
+
+    public void playerHasChangedSprintingBasedOnState() {
+        // Handle the player changing their new sprinting status for other methods
+        Bukkit.broadcastMessage("Player has changed sprinting based on state at transaction " + player.lastTransactionReceived.get());
+        lastPlayerChangedSprinting = player.lastTransactionReceived.get();
+    }
+
+    public void serverHasUpdatedPlayerSprintingState() {
+        Bukkit.broadcastMessage("Server has updated player sprinting state at transaction " + player.lastTransactionReceived.get());
+        lastServerChangedSprinting = player.lastTransactionReceived.get();
+        hasSprintingAttributeEnabled = SprintingState.Broken;
+    }
+
+    // This method is called when we finalize the variable that could have caused a sprinting desync
+    public void finalizeAttribute(boolean sprinting) {
+        // It is not possible to change sprinting attribute in the same transaction task executed
+        if (lastPlayerChangedSprinting == player.lastTransactionReceived.get() - 1) {
+            Bukkit.broadcastMessage("Finalizing broken attribute at transaction " + player.lastTransactionReceived.get());
+            // Player updated their sprinting status while in a desync, permanent desync has been caused
+            hasSprintingAttributeEnabled = SprintingState.Broken;
+        } else {
+            // We are fine, this was set by the previous method for metadata
+            Bukkit.broadcastMessage("Finalizing attribute at transaction " + player.lastTransactionReceived.get() + "  " + sprinting);
+            hasSprintingAttributeEnabled = sprinting ? SprintingState.True : SprintingState.False;
+        }
+    }
+
     public double getPlayerMovementSpeed() {
         return calculateAttribute(playerSpeed, 0.0, 1024.0);
     }
@@ -55,18 +98,7 @@ public class CompensatedEntities {
         if (entityID == player.entityID) {
             for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-
-                    boolean found = false;
-                    List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
-                    for (WrapperPlayServerEntityProperties.PropertyModifier modifier : modifiers) {
-                        if (modifier.getUUID().equals(SPRINTING_MODIFIER_UUID)) {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    // The server can set the player's sprinting attribute
-                    hasSprintingAttributeEnabled = found;
+                    serverHasUpdatedPlayerSprintingState();
                     playerSpeed = snapshotWrapper;
                 }
             }
@@ -98,7 +130,7 @@ public class CompensatedEntities {
     private double calculateAttribute(WrapperPlayServerEntityProperties.Property snapshotWrapper, double minValue, double maxValue) {
         double d0 = snapshotWrapper.getValue();
 
-        List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
+        List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = new ArrayList<>(snapshotWrapper.getModifiers());
         modifiers.removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID));
 
         for (WrapperPlayServerEntityProperties.PropertyModifier attributemodifier : modifiers) {
