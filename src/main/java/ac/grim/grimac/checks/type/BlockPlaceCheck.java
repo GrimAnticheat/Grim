@@ -29,6 +29,7 @@ public class BlockPlaceCheck extends Check<BlockPlace> {
         // Fences and walls aren't worth checking.
         weirdBoxes.addAll(new ArrayList<>(BlockTags.FENCES.getStates()));
         weirdBoxes.addAll(new ArrayList<>(BlockTags.WALLS.getStates()));
+        weirdBoxes.add(StateTypes.LECTERN);
 
         buggyBoxes.addAll(new ArrayList<>(BlockTags.DOORS.getStates()));
         buggyBoxes.addAll(new ArrayList<>(BlockTags.STAIRS.getStates()));
