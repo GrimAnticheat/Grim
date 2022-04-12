@@ -46,7 +46,7 @@ public class OffsetHandler extends PostPredictionCheck {
             violations++;
             alert("o: " + formatOffset(offset));
 
-            advantageGained = Math.max(advantageGained, maxCeiling);
+            advantageGained = Math.min(advantageGained, maxCeiling);
         } else {
             advantageGained *= setbackDecayMultiplier;
         }
