@@ -25,8 +25,8 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
         int north, south, west, east, up;
         north = south = west = east = up = 0;
 
-        if (version.isNewerThan(ClientVersion.V_1_12_2)) {
-            boolean sixteen = version.isNewerThan(ClientVersion.V_1_16);
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_12_2)) {
+            boolean sixteen = PacketEvents.getAPI().getServerManager().getVersion().isNewerThan(ServerVersion.V_1_16);
 
             if (state.getNorth() != North.NONE)
                 north += state.getNorth() == North.LOW || sixteen ? 1 : 2;
@@ -48,7 +48,7 @@ public class DynamicWall extends DynamicConnecting implements CollisionFactory {
         }
 
         // On 1.13+ clients the bounding box is much more complicated
-        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
+        if (version.isNewerThanOrEquals(ClientVersion.V_1_13)) {
             ComplexCollisionBox box = new ComplexCollisionBox();
 
             // Proper and faster way would be to compute all this beforehand
