@@ -25,14 +25,15 @@ dependencies {
     implementation 'co.aikar:acf-paper:0.5.1-SNAPSHOT'
     implementation 'org.bstats:bstats-bukkit:3.0.0'
     implementation 'club.minnced:discord-webhooks:0.8.0'
-    implementation 'it.unimi.dsi:fastutil:8.5.8'
-    implementation 'org.jetbrains:annotations:23.0.0' // Why is this needed to compile?
+    implementation 'it.unimi.dsi:fastutil-core:8.5.8'
     implementation 'github.scarsz:configuralize:1.4.0'
+    implementation 'org.jetbrains:annotations:23.0.0'
 
-    compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
+    compileOnly 'org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.1.1'
-    compileOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.17.1'
-    compileOnly group: 'net.essentialsx', name: 'EssentialsX', version: '2.19.2'
+    compileOnly 'org.apache.logging.log4j:log4j-core:2.17.1'
+    compileOnly 'net.essentialsx:EssentialsX:2.19.2'
+
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
