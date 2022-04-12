@@ -121,7 +121,6 @@ public class GrimPlayer {
     public Pose pose = Pose.STANDING;
     // Determining slow movement has to be done before pose is updated
     public boolean isSlowMovement = false;
-    public World playerWorld;
     public boolean isInBed = false;
     public boolean lastInBed = false;
     public boolean isDead = false;
@@ -397,11 +396,6 @@ public class GrimPlayer {
         }
         if (this.bukkitPlayer == null) {
             this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
-
-            if (this.bukkitPlayer == null) return;
-
-            this.entityID = bukkitPlayer.getEntityId();
-            this.playerWorld = bukkitPlayer.getWorld();
         }
     }
 
