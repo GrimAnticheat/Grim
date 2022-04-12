@@ -9,7 +9,12 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class ServerPacketEntity {
-    public ServerPacketEntityPositionData position;
+    double x;
+    double y;
+    double z;
+    float xRot;
+    float yRot;
+
     int data;
     List<EntityData> metadata;
     int lastTransactionHung;

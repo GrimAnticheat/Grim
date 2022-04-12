@@ -492,7 +492,7 @@ public class GrimPlayer {
             if (vehicle != null) {
                 ServerPacketEntity data = compensatedEntities.serverEntityMap.get(vehicle);
                 if (data != null) {
-                    user.sendPacket(new WrapperPlayServerEntityTeleport(vehicle, new Vector3d(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()), data.getPosition().getXRot(), data.getPosition().getYRot(), false));
+                    user.sendPacket(new WrapperPlayServerEntityTeleport(vehicle, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }
             }
         });

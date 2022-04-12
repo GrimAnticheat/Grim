@@ -4,7 +4,6 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.ServerPacketEntity;
-import ac.grim.grimac.utils.data.packetentity.ServerPacketEntityPositionData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -193,10 +192,10 @@ public class PacketEntityReplication extends PacketCheck {
                 // Hide the explosion noise
                 // going too far will cause a memory leak in the client
                 // So 256 blocks is good enough and far past the minimum 16 blocks away we need to be for no sound
-                Vector3f pos = new Vector3f((float) owner.getPosition().getX(), (float) (owner.getPosition().getY() - 256), (float) owner.getPosition().getZ());
+                Vector3f pos = new Vector3f((float) owner.getX(), (float) (owner.getY() - 256), (float) owner.getZ());
 
                 // Exact calculation
-                Vector3d diff = new Vector3d(owner.getPosition().getX(), owner.getPosition().getY(), owner.getPosition().getZ()).subtract(player.x, player.y, player.z);
+                Vector3d diff = new Vector3d(owner.getX(), owner.getY(), owner.getZ()).subtract(player.x, player.y, player.z);
                 Vector3f diffF = new Vector3f((float) (diff.getX()*0.1), (float) (diff.getY()*0.1), (float) (diff.getZ()*0.1));
 
                 WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(pos, 0, new ArrayList<>(), diffF);
@@ -356,22 +355,22 @@ public class PacketEntityReplication extends PacketCheck {
                 // This causes impossible hits, so grim must replace this with a teleport entity packet
                 // Not ideal, but neither is 1.8 players on a 1.9+ server.
                 if ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.position.getX() + deltaX, data.position.getY(), data.position.getZ()), yaw == null ? data.position.getXRot() : yaw, pitch == null ? data.position.getYRot() : pitch, false));
+                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY(), data.getZ()), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
                     event.setCancelled(true);
                     return;
                 }
 
-                data.position.setX(data.position.getX() + deltaX);
-                data.position.setY(data.position.getY() + deltaY);
-                data.position.setZ(data.position.getZ() + deltaZ);
+                data.setX(data.getX() + deltaX);
+                data.setY(data.getY() + deltaY);
+                data.setZ(data.getZ() + deltaZ);
             } else {
-                data.position.setX(deltaX);
-                data.position.setY(deltaY);
-                data.position.setZ(deltaZ);
+                data.setX(deltaX);
+                data.setY(deltaY);
+                data.setZ(deltaZ);
             }
             if (yaw != null) {
-                data.position.setXRot(yaw);
-                data.position.setYRot(pitch);
+                data.setXRot(yaw);
+                data.setYRot(pitch);
             }
 
             // We can't hang two relative moves on one transaction
@@ -405,7 +404,11 @@ public class PacketEntityReplication extends PacketCheck {
         if (player == null) return;
 
         player.compensatedEntities.serverEntityMap.put(entityID, new ServerPacketEntity(
-                new ServerPacketEntityPositionData(position.getX(), position.getY(), position.getZ(), xRot, yRot),
+                position.getX(),
+                position.getY(),
+                position.getZ(),
+                xRot,
+                yRot,
                 data,
                 entityMetadata,
                 player.lastTransactionSent.get()
