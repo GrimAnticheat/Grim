@@ -1,8 +1,8 @@
 package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.packetentity.ServerPacketEntity;
 import ac.grim.grimac.utils.data.ShulkerData;
-import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.*;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
@@ -27,7 +27,7 @@ public class CompensatedEntities {
     private static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
     public static final UUID SNOW_MODIFIER_UUID = UUID.fromString("1eaf83ff-7207-4596-b37a-d7a07b3ec4ce");
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
-    public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
+    public final Int2ObjectOpenHashMap<ServerPacketEntity> serverEntityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public Integer serverPlayerVehicle = null;
     public WrapperPlayServerEntityProperties.Property playerSpeed = new WrapperPlayServerEntityProperties.Property("MOVEMENT_SPEED", 0.1f, new ArrayList<>());
     public boolean hasSprintingAttributeEnabled = false;

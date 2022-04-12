@@ -74,7 +74,7 @@ public class Reach extends PacketCheck {
             if (entity == null) {
                 // Only cancel if and only if we are tracking this entity
                 // This is because we don't track paintings.
-                if (player.compensatedEntities.serverPositionsMap.containsKey(action.getEntityId())) {
+                if (player.compensatedEntities.serverEntityMap.containsKey(action.getEntityId())) {
                     event.setCancelled(true);
                 }
                 return;

@@ -14,6 +14,7 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.ServerPacketEntity;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
@@ -38,7 +39,6 @@ import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -490,9 +490,9 @@ public class GrimPlayer {
         compensatedEntities.serverPlayerVehicle = null;
         event.getPostTasks().add(() -> {
             if (vehicle != null) {
-                TrackerData data = compensatedEntities.serverPositionsMap.get(vehicle);
+                ServerPacketEntity data = compensatedEntities.serverEntityMap.get(vehicle);
                 if (data != null) {
-                    user.sendPacket(new WrapperPlayServerEntityTeleport(vehicle, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
+                    user.sendPacket(new WrapperPlayServerEntityTeleport(vehicle, new Vector3d(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()), data.getPosition().getXRot(), data.getPosition().getYRot(), false));
                 }
             }
         });

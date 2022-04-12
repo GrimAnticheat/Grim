@@ -3,7 +3,8 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.TrackerData;
+import ac.grim.grimac.utils.data.packetentity.ServerPacketEntity;
+import ac.grim.grimac.utils.data.packetentity.ServerPacketEntityPositionData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -18,10 +19,12 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PacketEntityReplication extends PacketCheck {
@@ -55,15 +58,15 @@ public class PacketEntityReplication extends PacketCheck {
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_LIVING_ENTITY) {
             WrapperPlayServerSpawnLivingEntity packetOutEntity = new WrapperPlayServerSpawnLivingEntity(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), 0, packetOutEntity.getEntityMetadata());
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY) {
             WrapperPlayServerSpawnEntity packetOutEntity = new WrapperPlayServerSpawnEntity(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), null);
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getData(), null);
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_PLAYER) {
             WrapperPlayServerSpawnPlayer packetOutEntity = new WrapperPlayServerSpawnPlayer(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), 0, packetOutEntity.getEntityMetadata());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
@@ -86,6 +89,10 @@ public class PacketEntityReplication extends PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
+            ServerPacketEntity serverPacketEntity = player.compensatedEntities.serverEntityMap.get(entityMetadata.getEntityId());
+            if (serverPacketEntity != null) {
+                serverPacketEntity.setMetadata(entityMetadata.getEntityMetadata());
+            }
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
         }
 
@@ -175,7 +182,27 @@ public class PacketEntityReplication extends PacketCheck {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
 
+                ServerPacketEntity fishingRod = player.compensatedEntities.serverEntityMap.get(status.getEntityId());
+                if (fishingRod == null) return;
+
+                if (player.entityID != (int) fishingRod.getMetadata().get(0).getValue() - 1) return; // Only send the packet to the person affected
+
                 event.setCancelled(true); // We replace this packet with an explosion packet
+
+                ServerPacketEntity owner = player.compensatedEntities.serverEntityMap.get(fishingRod.getData());
+                // Hide the explosion noise
+                // going too far will cause a memory leak in the client
+                // So 256 blocks is good enough and far past the minimum 16 blocks away we need to be for no sound
+                Vector3f pos = new Vector3f((float) owner.getPosition().getX(), (float) (owner.getPosition().getY() - 256), (float) owner.getPosition().getZ());
+
+                // Exact calculation
+                Vector3d diff = new Vector3d(owner.getPosition().getX(), owner.getPosition().getY(), owner.getPosition().getZ()).subtract(player.x, player.y, player.z);
+                Vector3f diffF = new Vector3f((float) (diff.getX()*0.1), (float) (diff.getY()*0.1), (float) (diff.getZ()*0.1));
+
+                WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(pos, 0, new ArrayList<>(), diffF);
+                // There we go, this is how you implement this packet correctly, Mojang.
+                // Please stop being so stupid.
+                player.user.sendPacket(explosion);
             }
         }
 
@@ -248,7 +275,7 @@ public class PacketEntityReplication extends PacketCheck {
             int[] destroyEntityIds = destroy.getEntityIds();
 
             for (int entityID : destroyEntityIds) {
-                player.compensatedEntities.serverPositionsMap.remove(entityID);
+                player.compensatedEntities.serverEntityMap.remove(entityID);
             }
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -314,7 +341,7 @@ public class PacketEntityReplication extends PacketCheck {
     }
 
     private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
-        TrackerData data = player.compensatedEntities.serverPositionsMap.get(entityId);
+        ServerPacketEntity data = player.compensatedEntities.serverEntityMap.get(entityId);
 
         if (!hasSentPreWavePacket) {
             hasSentPreWavePacket = true;
@@ -329,22 +356,22 @@ public class PacketEntityReplication extends PacketCheck {
                 // This causes impossible hits, so grim must replace this with a teleport entity packet
                 // Not ideal, but neither is 1.8 players on a 1.9+ server.
                 if ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY(), data.getZ()), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
+                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.position.getX() + deltaX, data.position.getY(), data.position.getZ()), yaw == null ? data.position.getXRot() : yaw, pitch == null ? data.position.getYRot() : pitch, false));
                     event.setCancelled(true);
                     return;
                 }
 
-                data.setX(data.getX() + deltaX);
-                data.setY(data.getY() + deltaY);
-                data.setZ(data.getZ() + deltaZ);
+                data.position.setX(data.position.getX() + deltaX);
+                data.position.setY(data.position.getY() + deltaY);
+                data.position.setZ(data.position.getZ() + deltaZ);
             } else {
-                data.setX(deltaX);
-                data.setY(deltaY);
-                data.setZ(deltaZ);
+                data.position.setX(deltaX);
+                data.position.setY(deltaY);
+                data.position.setZ(deltaZ);
             }
             if (yaw != null) {
-                data.setXRot(yaw);
-                data.setYRot(pitch);
+                data.position.setXRot(yaw);
+                data.position.setYRot(pitch);
             }
 
             // We can't hang two relative moves on one transaction
@@ -373,11 +400,16 @@ public class PacketEntityReplication extends PacketCheck {
         });
     }
 
-    public void addEntity(User user, int entityID, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData> entityMetadata) {
+    public void addEntity(User user, int entityID, EntityType type, Vector3d position, float xRot, float yRot, int data, List<EntityData> entityMetadata) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         if (player == null) return;
 
-        player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, player.lastTransactionSent.get()));
+        player.compensatedEntities.serverEntityMap.put(entityID, new ServerPacketEntity(
+                new ServerPacketEntityPositionData(position.getX(), position.getY(), position.getZ(), xRot, yRot),
+                data,
+                entityMetadata,
+                player.lastTransactionSent.get()
+        ));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             player.compensatedEntities.addEntity(entityID, type, position, xRot);

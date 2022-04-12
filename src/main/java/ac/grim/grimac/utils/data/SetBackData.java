@@ -15,7 +15,7 @@ public class SetBackData {
     Vector velocity;
     Integer vehicle;
     boolean isComplete = false;
-    boolean isPlugin = false;
+    boolean isPlugin;
 
     public SetBackData(Location position, float xRot, float yRot, Vector velocity, Integer vehicle, boolean isPlugin) {
         this.position = position;
