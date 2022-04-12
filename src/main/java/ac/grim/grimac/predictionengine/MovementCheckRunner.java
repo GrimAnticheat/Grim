@@ -578,8 +578,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;
         player.uncertaintyHandler.onGroundUncertain = false;
 
-        player.uncertaintyHandler.lastMetadataDesync--;
-
         player.vehicleData.vehicleForward = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleForward));
         player.vehicleData.vehicleHorizontal = (float) Math.min(0.98, Math.max(-0.98, player.vehicleData.nextVehicleHorizontal));
         player.vehicleData.horseJump = player.vehicleData.nextHorseJump;
