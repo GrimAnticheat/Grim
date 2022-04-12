@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.math;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import lombok.Getter;
 import org.bukkit.util.Vector;
 
@@ -87,10 +88,10 @@ public class TrigHandler {
     }
 
     public float sin(float f) {
-        return isVanillaMath ? VanillaMath.sin(f) : OptifineFastMath.sin(f);
+        return isVanillaMath ? VanillaMath.sin(f) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.sin(f) : LegacyFastMath.sin(f));
     }
 
     public float cos(float f) {
-        return isVanillaMath ? VanillaMath.cos(f) : OptifineFastMath.cos(f);
+        return isVanillaMath ? VanillaMath.cos(f) : (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) ? OptifineFastMath.cos(f) : LegacyFastMath.cos(f));
     }
 }
