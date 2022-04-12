@@ -29,15 +29,13 @@ import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityTeleport;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityVelocity;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPing;
-import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowConfirmation;
+import com.github.retrooper.packetevents.wrapper.play.server.*;
 import com.viaversion.viaversion.api.Via;
 import com.viaversion.viaversion.api.connection.UserConnection;
 import com.viaversion.viaversion.api.protocol.packet.PacketTracker;
 import io.github.retrooper.packetevents.util.GeyserUtil;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.World;
@@ -73,7 +71,7 @@ public class GrimPlayer {
     PacketTracker packetTracker;
     private int transactionPing = 0;
     private long lastTransSent = 0;
-    private long playerClockAtLeast = 0;
+    private long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
     public int riptideSpinAttackTicks = 0;
@@ -392,6 +390,10 @@ public class GrimPlayer {
         // Don't be the first to send the transaction, or we will stack overflow
         if (lastTransSent != 0 && lastTransSent + 1000 < System.currentTimeMillis()) {
             sendTransaction();
+        }
+        if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping.transaction", 120) * 1e9) {
+            user.sendPacket(new WrapperPlayServerDisconnect(Component.text("Timed out!")));
+            user.closeConnection();
         }
         if (this.bukkitPlayer == null) {
             this.bukkitPlayer = Bukkit.getPlayer(playerUUID);

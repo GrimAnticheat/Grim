@@ -63,22 +63,50 @@ public class ConfigManager {
     }
 
     private void upgrade() {
-        removeLegacyTwoPointOne();
-    }
-
-    private void removeLegacyTwoPointOne() {
         File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "config.yml");
         if (config.exists()) {
-            // If config doesn't have config-version, it's a legacy config
             try {
                 String configString = new String(Files.readAllBytes(config.toPath()));
 
-                if (!configString.contains("config-version")) {
-                    Files.move(config.toPath(), new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "config-2.1.old.yml").toPath());
+                int configVersion = configString.indexOf("config-version: ");
+
+                if (configVersion != -1) {
+                    String configStringVersion = configString.substring(configVersion + "config-version: ".length());
+                    configStringVersion = configStringVersion.substring(0, !configStringVersion.contains("\n") ? configStringVersion.length() : configStringVersion.indexOf("\n"));
+                    configStringVersion = configStringVersion.replaceAll("\\D", "");
+
+                    configVersion = Integer.parseInt(configStringVersion);
+                    // TODO: Do we have to hardcode this?
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 1");
+                    Files.write(config.toPath(), configString.getBytes());
+
+                    upgradeModernConfig(config, configString, configVersion);
+                } else {
+                    removeLegacyTwoPointOne(config);
                 }
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void upgradeModernConfig(File config, String configString, int configVersion) throws IOException {
+        if (configVersion < 1) {
+            addMaxPing(config, configString);
+        }
+    }
+
+    private void removeLegacyTwoPointOne(File config) throws IOException {
+        // If config doesn't have config-version, it's a legacy config
+        Files.move(config.toPath(), new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "config-2.1.old.yml").toPath());
+    }
+
+    private void addMaxPing(File config, String configString) throws IOException {
+        configString += "\n\n\n" +
+                "# How long should players have until we keep them for timing out? Default = 2 minutes\n" +
+                "max-ping: 120";
+
+        Files.write(config.toPath(), configString.getBytes());
     }
 }
