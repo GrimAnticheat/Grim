@@ -180,7 +180,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             clientVel = null;
         }
 
-        SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, null, false);
+        SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, false);
         requiredSetBack = data;
 
         isSendingSetback = true;
@@ -375,7 +375,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * it would allow the player to bypass our own setbacks
      */
     public void addSentTeleport(Location position, int transaction, boolean plugin) {
-        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, plugin);
+        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, plugin);
         teleports.add(new Pair<>(transaction, new Location(null, position.getX(), position.getY(), position.getZ())));
         setSafeSetbackLocation(new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
