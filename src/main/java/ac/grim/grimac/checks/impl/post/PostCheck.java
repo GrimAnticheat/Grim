@@ -26,6 +26,9 @@ public class PostCheck extends PacketCheck {
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            // Don't count teleports or duplicates as movements
+            if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
+                return;
             post.clear();
             sentFlying = true;
         } else {
