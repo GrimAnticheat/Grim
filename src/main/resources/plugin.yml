@@ -27,6 +27,6 @@ permissions:
   grim.sendalert:
     description: Send cheater alert
     default: op
-  grim.sendwebhook:
-    description: Send webhook alert
-    default: op
+  grim.nosetback:
+    description: Disable setback
+    default: false

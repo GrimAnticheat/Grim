@@ -79,7 +79,7 @@ public class TimerCheck extends PacketCheck {
             if (flag()) {
                 setbackIfAboveSetbackVL();
                 if (getViolations() > setbackVL) {
-                    player.getSetbackTeleportUtil().executeSetback();
+                    player.getSetbackTeleportUtil().executeViolationSetback();
                     player.getSetbackTeleportUtil().blockPredictions = true;
                 }
             }

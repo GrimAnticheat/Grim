@@ -99,11 +99,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
     public void executeForceResync() {
         blockOffsets = true;
-        executeSetback();
+        if (safeTeleportPosition == null) return; // Player hasn't spawned yet
+        blockMovementsUntilResync(safeTeleportPosition.position);
     }
 
-    public void executeSetback() {
-        if (safeTeleportPosition == null) return; // Player hasn't spawned yet
+    public void executeViolationSetback() {
+        // Player hasn't spawned yet
+        if (safeTeleportPosition == null) return;
+        // Player has permission to cheat, permission not given to OP by default.
+        if (player.bukkitPlayer != null && player.bukkitPlayer.hasPermission("grim.nosetback")) return;
         blockMovementsUntilResync(safeTeleportPosition.position);
     }
 

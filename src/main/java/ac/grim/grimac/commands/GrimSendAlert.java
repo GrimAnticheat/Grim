@@ -1,6 +1,7 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
@@ -18,5 +19,7 @@ public class GrimSendAlert extends BaseCommand {
         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
             bukkitPlayer.sendMessage(string);
         }
+
+        LogUtil.info(string); // Print alert to console
     }
 }
