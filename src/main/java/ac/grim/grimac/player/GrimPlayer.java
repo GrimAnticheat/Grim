@@ -14,7 +14,7 @@ import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
-import ac.grim.grimac.utils.data.packetentity.ServerPacketEntity;
+import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
@@ -490,7 +490,7 @@ public class GrimPlayer {
         compensatedEntities.serverPlayerVehicle = null;
         event.getPostTasks().add(() -> {
             if (vehicle != null) {
-                ServerPacketEntity data = compensatedEntities.serverEntityMap.get(vehicle);
+                TrackerData data = compensatedEntities.serverEntityMap.get(vehicle);
                 if (data != null) {
                     user.sendPacket(new WrapperPlayServerEntityTeleport(vehicle, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }

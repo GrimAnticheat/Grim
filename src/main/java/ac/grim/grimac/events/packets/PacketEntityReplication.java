@@ -3,7 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.data.packetentity.ServerPacketEntity;
+import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -88,9 +88,9 @@ public class PacketEntityReplication extends PacketCheck {
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
-            ServerPacketEntity serverPacketEntity = player.compensatedEntities.serverEntityMap.get(entityMetadata.getEntityId());
-            if (serverPacketEntity != null) {
-                serverPacketEntity.setMetadata(entityMetadata.getEntityMetadata());
+            TrackerData trackerData = player.compensatedEntities.serverEntityMap.get(entityMetadata.getEntityId());
+            if (trackerData != null) {
+                trackerData.setMetadata(entityMetadata.getEntityMetadata());
             }
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
         }
@@ -181,14 +181,14 @@ public class PacketEntityReplication extends PacketCheck {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
 
-                ServerPacketEntity fishingRod = player.compensatedEntities.serverEntityMap.get(status.getEntityId());
+                TrackerData fishingRod = player.compensatedEntities.serverEntityMap.get(status.getEntityId());
                 if (fishingRod == null) return;
 
                 if (player.entityID != (int) fishingRod.getMetadata().get(0).getValue() - 1) return; // Only send the packet to the person affected
 
                 event.setCancelled(true); // We replace this packet with an explosion packet
 
-                ServerPacketEntity owner = player.compensatedEntities.serverEntityMap.get(fishingRod.getData());
+                TrackerData owner = player.compensatedEntities.serverEntityMap.get(fishingRod.getData());
                 // Hide the explosion noise
                 // going too far will cause a memory leak in the client
                 // So 256 blocks is good enough and far past the minimum 16 blocks away we need to be for no sound
@@ -340,7 +340,7 @@ public class PacketEntityReplication extends PacketCheck {
     }
 
     private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
-        ServerPacketEntity data = player.compensatedEntities.serverEntityMap.get(entityId);
+        TrackerData data = player.compensatedEntities.serverEntityMap.get(entityId);
 
         if (!hasSentPreWavePacket) {
             hasSentPreWavePacket = true;
@@ -403,7 +403,7 @@ public class PacketEntityReplication extends PacketCheck {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         if (player == null) return;
 
-        player.compensatedEntities.serverEntityMap.put(entityID, new ServerPacketEntity(
+        player.compensatedEntities.serverEntityMap.put(entityID, new TrackerData(
                 position.getX(),
                 position.getY(),
                 position.getZ(),
