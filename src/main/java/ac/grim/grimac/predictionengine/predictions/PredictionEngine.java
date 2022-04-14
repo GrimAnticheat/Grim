@@ -188,7 +188,9 @@ public class PredictionEngine {
                 // Check ONLY the knockback vectors for 0.03
                 // The first being the one without uncertainty
                 // And the last having uncertainty to deal with 0.03
-
+                //
+                // Fine, you can comment about the sqrt calls here being inefficient, but the offset is user-facing
+                // There's much larger performance design issues than losing a few nanoseconds here and there.
                 if (clientVelAfterInput.isKnockback()) {
                     player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
                     player.checkManager.getKnockbackHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
@@ -557,8 +559,37 @@ public class PredictionEngine {
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
         }
 
-        // :( how the hell do I fix this?  Poses cause issues as they aren't synced to the server correctly
-        if (vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY + 0.6, player.lastZ, 0.6f, 1.26f))) {
+        // Alright, so hard lerping entities are a pain to support.
+        // A transaction splits with interpolation and suddenly your predictions are off by 20 blocks due to a collision not being seen
+        // Or the player is on 1.9+ so you have no idea where the entity actually is.
+        //
+        // Or the player is on 1.9+ so you don't know how far the shulker has moved
+        //
+        //
+        // Grim's old solution with hard lerping entities was to just give a ton of direct offset reduction
+        // But that caused issues immediately after the uncertainty ended because then the player's calculated
+        // clientVelocity was off because it was wrong because the offset reduction made the predictions "accurate"
+        // but not the player's calculated velocity after friction.
+        //
+        // We also used to include the hard lerping entities into collisions, but not anymore.
+        // It could be wrong and do the exact same thing, make the calculated offset wrong by a huge factor
+        // and nothing can save it.
+        //
+        // The solution is that collisions are always less than the predicted movement
+        // So by expanding to 0,0,0, the player can collide with absolutely any position
+        // Yes, that allows a flight exploit, but not upwards which is important.
+        // You can hover a block above a boat but who cares? The boat could easily just be a block upwards.
+        //
+        // Therefore, the friction movement for the next tick is correct.  Running it two ticks past the actual
+        // hard lerping collision ensures that the friction remains correct (to the best in a sane amount of development effort)
+        //
+        // Also it's much faster not to look at every entity for every collision :) this hack saves compute time
+        //
+        // Or the player is on 1.14+ so you don't know how high their bounding box is making it so the player
+        // jumps upwards and collides with a block, which you don't actually see because mojang removed the idle
+        // packet and sneaking poses take 2 full ticks to apply
+        //
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || (vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
             box.expandToAbsoluteCoordinates(0, 0, 0);
         }
 
@@ -646,7 +677,9 @@ public class PredictionEngine {
 
                 player.packetStateData.slowedByUsingItem = !player.packetStateData.slowedByUsingItem;
             }
-            // TODO: Secure this (maybe timer for 0.03 movement where each skip is 100 ms?)
+            // TODO: Secure this? Do we care about minor 1.9-1.18.1 (not 1.18.2+!) bypasses that no client exploits yet?
+            // I personally don't care because 1.8 and 1.18.2 are much more popular than any weird version
+            // Who would notice a tick of non-slow movement when netcode is so terrible that it just looks normal
             player.isSlowMovement = !player.isSlowMovement;
         }
     }
@@ -671,12 +704,13 @@ public class PredictionEngine {
         // This means it is impossible to accurately create the requirement of no collision.
         // Oh well, I guess this could allow some Jesus bypasses next to a wall that has multiple blocks
         // But it's faster to swim anyways on 1.13+, and faster to just go on land in 1.12-
-
+        //
         // Oh, also don't forget that the player can swim hop when colliding with boats (and shulkers)
-        // Just give a high lenience to this... not worth the risk of falses
-
+        // We therefore check the hard lerping entity variable
+        //
         // Don't play with poses issues. just assume full bounding box
         // Except on vehicles which don't have poses, thankfully.
+        //
         SimpleCollisionBox oldBox = player.inVehicle ? GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ) :
                 GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
 
@@ -684,13 +718,15 @@ public class PredictionEngine {
 
         SimpleCollisionBox oldBB = player.boundingBox;
         player.boundingBox = player.boundingBox.copy().expand(-0.03, 0, -0.03);
+        // By flipping the distance to the ground, we can avoid players from swim hopping on the floor
+        // Although it is unclear what advantage this would even give.
         double pointThreeToGround = Collisions.collide(player, 0, -0.03, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
         player.boundingBox = oldBB;
 
         SimpleCollisionBox newBox = player.inVehicle ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :
                 GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f);
 
-        return !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
+        return player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1

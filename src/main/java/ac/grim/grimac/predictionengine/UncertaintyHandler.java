@@ -262,10 +262,6 @@ public class UncertaintyHandler {
             offset -= 1.2;
         }
 
-        if (player.uncertaintyHandler.lastFlyingStatusChange > -5) {
-            offset -= 0.25;
-        }
-
         if (player.uncertaintyHandler.isOrWasNearGlitchyBlock) {
             offset -= 0.25;
         }
@@ -302,7 +298,9 @@ public class UncertaintyHandler {
     }
 
     private boolean hasHardCollision() {
-        SimpleCollisionBox expandedBB = player.boundingBox.copy().expandToCoordinate(player.clientVelocity.getX(), player.clientVelocity.getY(), player.clientVelocity.getZ()).expand(1);
+        // This bounding box can be infinitely large without crashing the server.
+        // This works by the proof that if you collide with an object, you will stop near the object
+        SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
         return regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
     }
 

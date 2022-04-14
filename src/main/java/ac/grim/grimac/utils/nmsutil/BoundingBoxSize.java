@@ -223,6 +223,8 @@ public class BoundingBoxSize {
         } else if (EntityTypes.BLAZE.equals(packetEntity.type)) {
             return 1.8f;
         } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
+            // WHY DOES VIAVERSION OFFSET BOATS? THIS MAKES IT HARD TO SUPPORT, EVEN IF WE INTERPOLATE RIGHT.
+            // I gave up and just exempted boats from the reach check and gave up with interpolation for collisions
             return 0.5625f;
         } else if (EntityTypes.CAT.equals(packetEntity.type)) {
             return 0.7f;

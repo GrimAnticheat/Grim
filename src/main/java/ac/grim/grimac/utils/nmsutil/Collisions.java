@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -268,7 +267,7 @@ public class Collisions {
 
                             // Works on both legacy and modern!  Faster than checking for material types, most common case
                             if (data.getGlobalId() == 0) continue;
-
+                            // Thanks SpottedLeaf for this optimization, I took edgeCount from Tuinity
                             int edgeCount = ((x == minBlockX || x == maxBlockX) ? 1 : 0) +
                                     ((y == minBlockY || y == maxBlockY) ? 1 : 0) +
                                     ((z == minBlockZ || z == maxBlockZ) ? 1 : 0);
@@ -284,24 +283,6 @@ public class Collisions {
                             }
                         }
                     }
-                }
-            }
-        }
-
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if (entity.type == EntityTypes.BOAT && player.playerVehicle != entity) {
-                SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
-                if (box.isIntersected(expandedBB)) {
-                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
-                    listOfBlocks.add(box);
-                }
-            }
-
-            if (entity.type == EntityTypes.SHULKER) {
-                SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
-                if (box.isIntersected(expandedBB)) {
-                    if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
-                    listOfBlocks.add(box);
                 }
             }
         }
