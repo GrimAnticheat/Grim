@@ -196,7 +196,7 @@ public class PacketEntityReplication extends PacketCheck {
 
                 // Exact calculation
                 Vector3d diff = new Vector3d(owner.getX(), owner.getY(), owner.getZ()).subtract(player.x, player.y, player.z);
-                Vector3f diffF = new Vector3f((float) (diff.getX()*0.1), (float) (diff.getY()*0.1), (float) (diff.getZ()*0.1));
+                Vector3f diffF = new Vector3f((float) (diff.getX() * 0.1), (float) (diff.getY() * 0.1), (float) (diff.getZ() * 0.1));
 
                 WrapperPlayServerExplosion explosion = new WrapperPlayServerExplosion(pos, 0, new ArrayList<>(), diffF);
                 // There we go, this is how you implement this packet correctly, Mojang.
