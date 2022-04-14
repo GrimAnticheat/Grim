@@ -17,7 +17,7 @@ Punishments:
     # Threshold:Interval Command
     commands:
       - "100:40 [alert]"
-      - "100:100[webhook]"
+      - "100:100 [webhook]"
   Post:
     remove-violations-after: 300
     checks:
