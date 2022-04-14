@@ -106,12 +106,12 @@ public class GrindstoneMenu extends AbstractContainerMenu {
 
     private ItemStack mergeEnchants(ItemStack first, ItemStack second) {
         ItemStack copyFirst = first.copy();
-        List<Enchantment> enchants = ItemStack.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+        List<Enchantment> enchants = second.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
 
         for (Enchantment entry : enchants) {
             if (!EnchantmentHelper.isCurse(entry.getType()) || copyFirst.getEnchantmentLevel(entry.getType(), PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0) {
                 Enchantment enchant = Enchantment.builder().type(entry.getType()).level(entry.getLevel()).build();
-                List<Enchantment> enchantmentList = ItemStack.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
+                List<Enchantment> enchantmentList = copyFirst.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
                 enchantmentList.add(enchant);
                 copyFirst.setEnchantments(enchantmentList, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             }
@@ -132,7 +132,7 @@ public class GrindstoneMenu extends AbstractContainerMenu {
 
         itemstack.setAmount(p_39582_);
 
-        List<Enchantment> filteredCurses = ItemStack.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()).stream().filter(enchantment -> !EnchantmentHelper.isCurse(enchantment.getType())).collect(Collectors.toList());
+        List<Enchantment> filteredCurses = itemOne.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()).stream().filter(enchantment -> !EnchantmentHelper.isCurse(enchantment.getType())).collect(Collectors.toList());
 
         itemstack.setEnchantments(filteredCurses, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
 
