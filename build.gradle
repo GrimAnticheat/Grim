@@ -65,6 +65,7 @@ shadowJar {
     relocate 'co.aikar.acf', 'ac.grim.grimac.shaded.acf'
     relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
     relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
+    relocate 'github.scarsz:configuralize', 'ac.grim.grimac.shaded.configuralize'
 }
 
 compileJava {
