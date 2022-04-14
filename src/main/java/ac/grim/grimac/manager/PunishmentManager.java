@@ -65,7 +65,7 @@ public class PunishmentManager {
     }
 
     public void handleAlert(GrimPlayer player, String verbose, Check check) {
-        String alertString = "grim sendalert " + GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts.format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
+        String alertString = "grim sendalert " + GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         boolean testMode = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("test-mode", false);
 
         // Check commands
