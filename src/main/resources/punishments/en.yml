@@ -17,12 +17,14 @@ Punishments:
     # Threshold:Interval Command
     commands:
       - "100:40 [alert]"
+      - "100:100[webhook]"
   Post:
     remove-violations-after: 300
     checks:
       - "Post"
     commands:
       - "20:20 [alert]"
+      - "40:40 [webhook]"
   BadPackets:
     remove-violations-after: 300
     checks:
@@ -30,12 +32,14 @@ Punishments:
       - "Crash"
     command:
       - "20:20 [alert]"
+      - "40:40 [webhook]"
   Reach:
     remove-violations-after: 300
     checks:
       - "Reach"
     commands:
       - "5:5 [alert]"
+      - "5:5 [webhook]"
   Misc:
     remove-violations-after: 300
     checks:
@@ -44,6 +48,10 @@ Punishments:
       - "Place"
     commands:
       - "10:5 [alert]"
+      - "20:10 [webhook]"
+  # As of 2.2.2 these are just placeholders, there are no Killaura/Aim/Autoclicker checks other than those that
+  # flag prediction, reach, or timer (which is actually a good amount of them)
+  # Combat checks coming soon, after the main checks are stable.
   Combat:
     remove-violations-after: 300
     checks:

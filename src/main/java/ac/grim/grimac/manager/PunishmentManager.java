@@ -88,6 +88,11 @@ public class PunishmentManager {
                             cmd = cmd.replace("%vl%", vl);
                             cmd = cmd.replace("%verbose%", verbose);
 
+                            if (cmd.equals("[webhook]")) {
+                                GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getCheckName(), vl);
+                                continue;
+                            }
+
                             if (player.bukkitPlayer != null) {
                                 cmd = cmd.replace("%player%", player.bukkitPlayer.getName());
                             }
