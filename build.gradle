@@ -15,7 +15,6 @@ repositories {
     } // PacketEvents
     maven { url = 'https://repo.viaversion.com' } // ViaVersion
     maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF
-    maven { url = "https://repo.essentialsx.net/releases/" } // Essentials
     maven { url = "https://nexus.scarsz.me/content/groups/public" } // Configuralize
     mavenCentral() // FastUtil, Discord-Webhooks, Log4J, Lombok
 }
@@ -32,7 +31,6 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.18.2-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.1.1'
     compileOnly 'org.apache.logging.log4j:log4j-core:2.17.1'
-    compileOnly 'net.essentialsx:EssentialsX:2.19.2'
 
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
