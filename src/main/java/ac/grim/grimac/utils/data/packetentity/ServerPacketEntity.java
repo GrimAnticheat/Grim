@@ -15,7 +15,7 @@ public class ServerPacketEntity {
     float xRot;
     float yRot;
 
-    int data;
+    Integer data;
     List<EntityData> metadata;
     int lastTransactionHung;
 

@@ -57,7 +57,7 @@ public class PacketEntityReplication extends PacketCheck {
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_LIVING_ENTITY) {
             WrapperPlayServerSpawnLivingEntity packetOutEntity = new WrapperPlayServerSpawnLivingEntity(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), 0, packetOutEntity.getEntityMetadata());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), null, packetOutEntity.getEntityMetadata());
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY) {
             WrapperPlayServerSpawnEntity packetOutEntity = new WrapperPlayServerSpawnEntity(event);
@@ -65,7 +65,7 @@ public class PacketEntityReplication extends PacketCheck {
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_PLAYER) {
             WrapperPlayServerSpawnPlayer packetOutEntity = new WrapperPlayServerSpawnPlayer(event);
-            addEntity(event.getUser(), packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), 0, packetOutEntity.getEntityMetadata());
+            addEntity(event.getUser(), packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), null, packetOutEntity.getEntityMetadata());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
@@ -399,7 +399,7 @@ public class PacketEntityReplication extends PacketCheck {
         });
     }
 
-    public void addEntity(User user, int entityID, EntityType type, Vector3d position, float xRot, float yRot, int data, List<EntityData> entityMetadata) {
+    public void addEntity(User user, int entityID, EntityType type, Vector3d position, float xRot, float yRot, Integer data, List<EntityData> entityMetadata) {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         if (player == null) return;
 
