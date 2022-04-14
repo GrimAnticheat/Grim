@@ -175,7 +175,8 @@ public class PacketEntityReplication extends PacketCheck {
                 GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
                 if (player == null) return;
 
-                event.setCancelled(true); // We replace this packet with an explosion packet
+                //event.setCancelled(true); // We replace this packet with an explosion packet
+                status.setEntityId(-1); // https://github.com/retrooper/packetevents/issues/326
             }
         }
 
