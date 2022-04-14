@@ -79,8 +79,12 @@ public class Check<T> {
         return GrimAPI.INSTANCE.getConfigManager().getConfig();
     }
 
-    public void setbackIfAboveSetbackVL() {
-        if (getViolations() > setbackVL) player.getSetbackTeleportUtil().executeViolationSetback();
+    public boolean setbackIfAboveSetbackVL() {
+        if (getViolations() > setbackVL) {
+            player.getSetbackTeleportUtil().executeViolationSetback();
+            return true;
+        }
+        return false;
     }
 
     public String formatOffset(double offset) {
