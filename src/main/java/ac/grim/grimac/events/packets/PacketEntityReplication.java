@@ -25,13 +25,10 @@ import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import java.util.List;
 
 public class PacketEntityReplication extends PacketCheck {
-
-    private final boolean enablePreWavePacket;
     private boolean hasSentPreWavePacket = true;
 
     public PacketEntityReplication(GrimPlayer player) {
         super(player);
-        enablePreWavePacket = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("reach.enable-pre-packet", false);
     }
 
     public void tickFlying() {
@@ -396,12 +393,10 @@ public class PacketEntityReplication extends PacketCheck {
 
     public void onEndOfTickEvent() {
         // Only send a transaction at the end of the tick if we are tracking players
-        player.sendTransaction(); // We injected before vanilla flushes :) we don't need to flush
+        player.sendTransaction(true); // We injected before vanilla flushes :) we don't need to flush
     }
 
     public void tickStartTick() {
-        if (enablePreWavePacket) {
-            hasSentPreWavePacket = false;
-        }
+        hasSentPreWavePacket = false;
     }
 }

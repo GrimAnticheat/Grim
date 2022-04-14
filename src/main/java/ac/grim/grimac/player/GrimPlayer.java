@@ -358,15 +358,26 @@ public class GrimPlayer {
     }
 
     public void sendTransaction() {
+        sendTransaction(false);
+    }
+
+    public void sendTransaction(boolean async) {
         lastTransSent = System.currentTimeMillis();
         short transactionID = (short) (-1 * (transactionIDCounter.getAndIncrement() & 0x7FFF));
         try {
             addTransactionSend(transactionID);
 
+            PacketWrapper<?> packet;
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
-                user.sendPacket(new WrapperPlayServerPing(transactionID));
+                packet = new WrapperPlayServerPing(transactionID);
             } else {
-                user.sendPacket(new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false));
+                packet = new WrapperPlayServerWindowConfirmation((byte) 0, transactionID, false);
+            }
+
+            if (async) {
+                PacketEvents.getAPI().getProtocolManager().sendPacketAsync(user.getChannel(), packet);
+            } else {
+                user.sendPacket(packet);
             }
         } catch (Exception ignored) { // Fix protocollib + viaversion support by ignoring any errors :) // TODO: Fix this
             // recompile
@@ -386,10 +397,13 @@ public class GrimPlayer {
     }
 
     public void pollData() {
-        // Send a transaction at least once a second, for timer purposes
+        // Send a transaction at least once a tick, for timer and post check purposes
         // Don't be the first to send the transaction, or we will stack overflow
-        if (lastTransSent != 0 && lastTransSent + 1000 < System.currentTimeMillis()) {
-            sendTransaction();
+        //
+        // This will only really activate if there's no entities around the player being tracked
+        // 80 is a magic value that is roughly every other tick, we don't want to spam too many packets.
+        if (lastTransSent != 0 && lastTransSent + 80 < System.currentTimeMillis()) {
+            sendTransaction(true); // send on netty thread
         }
         if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping.transaction", 120) * 1e9) {
             user.sendPacket(new WrapperPlayServerDisconnect(Component.text("Timed out!")));

@@ -13,7 +13,7 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.movement.*;
 import ac.grim.grimac.checks.impl.pingspoof.PingSpoofA;
 import ac.grim.grimac.checks.impl.pingspoof.PingSpoofB;
-import ac.grim.grimac.checks.impl.post.*;
+import ac.grim.grimac.checks.impl.post.PostCheck;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
@@ -78,14 +78,7 @@ public class CheckManager {
                 .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
-                .put(PostA.class, new PostA(player))
-                .put(PostB.class, new PostB(player))
-                .put(PostC.class, new PostC(player))
-                .put(PostD.class, new PostD(player))
-                .put(PostE.class, new PostE(player))
-                .put(PostF.class, new PostF(player))
-                .put(PostG.class, new PostG(player))
-                .put(PostH.class, new PostH(player))
+                .put(PostCheck.class, new PostCheck(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
