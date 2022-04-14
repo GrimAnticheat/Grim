@@ -463,7 +463,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     if (blockHardness == -1.0f) {
                         speedMultiplier = 0;
                     } else {
-                        int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY);
+                        int digSpeed = tool.getEnchantmentLevel(EnchantmentTypes.BLOCK_EFFICIENCY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
                         if (digSpeed > 0) {
                             speedMultiplier += digSpeed * digSpeed + 1;
                         }
@@ -514,10 +514,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 ItemStack leggings = player.getInventory().getLeggings();
                 ItemStack boots = player.getInventory().getBoots();
 
-                if ((helmet != null && helmet.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY) > 0) ||
-                        (chestplate != null && chestplate.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY) > 0) ||
-                        (leggings != null && leggings.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY) > 0) ||
-                        (boots != null && boots.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY) > 0)) {
+                if ((helmet != null && helmet.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) ||
+                        (chestplate != null && chestplate.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) ||
+                        (leggings != null && leggings.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0) ||
+                        (boots != null && boots.getEnchantmentLevel(EnchantmentTypes.AQUA_AFFINITY, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) > 0)) {
                     hasAquaAffinity = true;
                 }
 

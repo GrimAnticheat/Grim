@@ -81,7 +81,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             // The client and server don't agree on trident status because mojang is incompetent at netcode.
             if (material == ItemTypes.TRIDENT) {
-                player.packetStateData.slowedByUsingItem = item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE) <= 0;
+                player.packetStateData.slowedByUsingItem = item.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) <= 0;
                 player.packetStateData.eatingHand = hand;
             }
 
@@ -132,9 +132,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
                     int j = 0;
                     if (main.getType() == ItemTypes.TRIDENT) {
-                        j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE);
+                        j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
                     } else if (off.getType() == ItemTypes.TRIDENT) {
-                        j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE);
+                        j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
                     }
 
                     if (j > 0) {

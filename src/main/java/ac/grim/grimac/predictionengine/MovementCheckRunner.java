@@ -450,7 +450,7 @@ public class MovementCheckRunner extends PositionCheck {
             // Depth strider was added in 1.8
             ItemStack boots = player.getInventory().getBoots();
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                player.depthStriderLevel = boots.getEnchantmentLevel(EnchantmentTypes.DEPTH_STRIDER);
+                player.depthStriderLevel = boots.getEnchantmentLevel(EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             } else {
                 player.depthStriderLevel = 0;
             }

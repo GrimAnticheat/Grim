@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.nmsutil;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
@@ -13,9 +14,9 @@ public class Riptide {
 
         int j;
         if (main.getType() == ItemTypes.TRIDENT) {
-            j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE);
+            j = main.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
         } else if (off.getType() == ItemTypes.TRIDENT) {
-            j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE);
+            j = off.getEnchantmentLevel(EnchantmentTypes.RIPTIDE, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
         } else {
             return new Vector(); // Can't riptide
         }

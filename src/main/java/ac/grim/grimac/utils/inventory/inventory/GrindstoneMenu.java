@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.inventory.EnchantmentHelper;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import ac.grim.grimac.utils.inventory.slot.Slot;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.Enchantment;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
@@ -26,14 +27,14 @@ public class GrindstoneMenu extends AbstractContainerMenu {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 // Is damageable, is enchanted book, or is enchanted
-                return (stack.isDamageableItem() || stack.getType() == ItemTypes.ENCHANTED_BOOK || !stack.isEnchanted());
+                return (stack.isDamageableItem() || stack.getType() == ItemTypes.ENCHANTED_BOOK || !stack.isEnchanted(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()));
             }
         });
         addSlot(new Slot(storage, 1) {
             @Override
             public boolean mayPlace(ItemStack stack) {
                 // Is damageable, is enchanted book, or is enchanted
-                return (stack.isDamageableItem() || stack.getType() == ItemTypes.ENCHANTED_BOOK || !stack.isEnchanted());
+                return (stack.isDamageableItem() || stack.getType() == ItemTypes.ENCHANTED_BOOK || !stack.isEnchanted(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()));
             }
         });
         addSlot(new Slot(storage, 2) {
@@ -64,7 +65,7 @@ public class GrindstoneMenu extends AbstractContainerMenu {
         if (!flag) {
             getSlot(0).set(ItemStack.EMPTY);
         } else {
-            boolean flag2 = !itemstack.isEmpty() && !itemstack.is(ItemTypes.ENCHANTED_BOOK) && !itemstack.isEnchanted() || !itemstack1.isEmpty() && !itemstack1.is(ItemTypes.ENCHANTED_BOOK) && !itemstack1.isEnchanted();
+            boolean flag2 = !itemstack.isEmpty() && !itemstack.is(ItemTypes.ENCHANTED_BOOK) && !itemstack.isEnchanted(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) || !itemstack1.isEmpty() && !itemstack1.is(ItemTypes.ENCHANTED_BOOK) && !itemstack1.isEnchanted(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             if (itemstack.getAmount() > 1 || itemstack1.getAmount() > 1 || !flag1 && flag2) {
                 getSlot(2).set(ItemStack.EMPTY);
                 return;
@@ -105,14 +106,14 @@ public class GrindstoneMenu extends AbstractContainerMenu {
 
     private ItemStack mergeEnchants(ItemStack first, ItemStack second) {
         ItemStack copyFirst = first.copy();
-        List<Enchantment> enchants = second.getEnchantments();
+        List<Enchantment> enchants = ItemStack.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
 
         for (Enchantment entry : enchants) {
-            if (!EnchantmentHelper.isCurse(entry.getType()) || copyFirst.getEnchantmentLevel(entry.getType()) == 0) {
+            if (!EnchantmentHelper.isCurse(entry.getType()) || copyFirst.getEnchantmentLevel(entry.getType(), PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()) == 0) {
                 Enchantment enchant = Enchantment.builder().type(entry.getType()).level(entry.getLevel()).build();
-                List<Enchantment> enchantmentList = copyFirst.getEnchantments();
+                List<Enchantment> enchantmentList = ItemStack.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
                 enchantmentList.add(enchant);
-                copyFirst.setEnchantments(enchantmentList);
+                copyFirst.setEnchantments(enchantmentList, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             }
         }
 
@@ -131,9 +132,9 @@ public class GrindstoneMenu extends AbstractContainerMenu {
 
         itemstack.setAmount(p_39582_);
 
-        List<Enchantment> filteredCurses = itemOne.getEnchantments().stream().filter(enchantment -> !EnchantmentHelper.isCurse(enchantment.getType())).collect(Collectors.toList());
+        List<Enchantment> filteredCurses = ItemStack.getEnchantments(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion()).stream().filter(enchantment -> !EnchantmentHelper.isCurse(enchantment.getType())).collect(Collectors.toList());
 
-        itemstack.setEnchantments(filteredCurses);
+        itemstack.setEnchantments(filteredCurses, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
 
         if (itemstack.is(ItemTypes.ENCHANTED_BOOK) && filteredCurses.size() == 0) {
             itemstack = new ItemStack.Builder().type(ItemTypes.BOOK).amount(1).build();
