@@ -90,7 +90,7 @@ public class PacketEntityReplication extends PacketCheck {
             WrapperPlayServerEntityMetadata entityMetadata = new WrapperPlayServerEntityMetadata(event);
             TrackerData trackerData = player.compensatedEntities.serverEntityMap.get(entityMetadata.getEntityId());
             if (trackerData != null) {
-                trackerData.setMetadata(entityMetadata.getEntityMetadata());
+                trackerData.updateMetadata(entityMetadata.getEntityMetadata());
             }
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.updateEntityMetadata(entityMetadata.getEntityId(), entityMetadata.getEntityMetadata()));
         }
@@ -184,11 +184,11 @@ public class PacketEntityReplication extends PacketCheck {
                 TrackerData fishingRod = player.compensatedEntities.serverEntityMap.get(status.getEntityId());
                 if (fishingRod == null) return;
 
-                if (player.entityID != (int) fishingRod.getMetadata().get(0).getValue() - 1) return; // Only send the packet to the person affected
+                if (player.entityID != fishingRod.getHookedEntity()) return; // Only send the packet to the person hooked
 
                 event.setCancelled(true); // We replace this packet with an explosion packet
 
-                TrackerData owner = player.compensatedEntities.serverEntityMap.get(fishingRod.getData());
+                TrackerData owner = player.compensatedEntities.serverEntityMap.get((int) fishingRod.getData());
                 // Hide the explosion noise
                 // going too far will cause a memory leak in the client
                 // So 256 blocks is good enough and far past the minimum 16 blocks away we need to be for no sound
@@ -403,16 +403,21 @@ public class PacketEntityReplication extends PacketCheck {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
         if (player == null) return;
 
-        player.compensatedEntities.serverEntityMap.put(entityID, new TrackerData(
+        TrackerData trackerData = new TrackerData(
+                type,
                 position.getX(),
                 position.getY(),
                 position.getZ(),
                 xRot,
                 yRot,
                 data,
-                entityMetadata,
                 player.lastTransactionSent.get()
-        ));
+        );
+        if (entityMetadata != null) {
+            trackerData.updateMetadata(entityMetadata);
+        }
+
+        player.compensatedEntities.serverEntityMap.put(entityID, trackerData);
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
             player.compensatedEntities.addEntity(entityID, type, position, xRot);
