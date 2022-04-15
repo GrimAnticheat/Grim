@@ -9,10 +9,10 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerRespawn;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUpdateHealth;
-import org.bukkit.GameMode;
 import org.bukkit.util.Vector;
 
 import java.util.List;
@@ -72,8 +72,15 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
             // TODO: What does keep all metadata do?
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
+                // Client creates a new entity on respawn
                 player.isDead = false;
                 player.isSneaking = false;
+                player.lastOnGround = false;
+                player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
+                player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+                    player.isSprinting = false;
+                }
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
                 player.gamemode = respawn.getGameMode();
