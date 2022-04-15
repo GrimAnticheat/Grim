@@ -83,6 +83,7 @@ public class UncertaintyHandler {
     public int lastStuckSpeedMultiplier = -100;
     public int lastHardCollidingLerpingEntity = -100;
     public int lastThirtyMillionHardBorder = -100;
+    public int lastTeleportTicks = 0; // You spawn with a teleport
 
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;

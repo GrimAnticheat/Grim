@@ -78,8 +78,10 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.lastOnGround = false;
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
-                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) {
+                if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;
+                    // TODO: This isn't right, what does viaversion do with keep all metadata??
+                    player.compensatedEntities.hasSprintingAttributeEnabled = false;
                 }
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
