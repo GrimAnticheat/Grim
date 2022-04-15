@@ -19,6 +19,7 @@ import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import org.bukkit.Bukkit;
@@ -98,12 +99,18 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void executeForceResync() {
+        if (player.gamemode == GameMode.SPECTATOR) return; // We don't care about spectators, they don't flag
         blockOffsets = true;
-        executeSetback();
+        if (safeTeleportPosition == null) return; // Player hasn't spawned yet
+        blockMovementsUntilResync(safeTeleportPosition.position);
     }
 
-    public void executeSetback() {
-        if (safeTeleportPosition == null) return; // Player hasn't spawned yet
+    public void executeViolationSetback() {
+        // Not exempting spectators here because timer check for spectators is actually valid.
+        // Player hasn't spawned yet
+        if (safeTeleportPosition == null) return;
+        // Player has permission to cheat, permission not given to OP by default.
+        if (player.bukkitPlayer != null && player.bukkitPlayer.hasPermission("grim.nosetback")) return;
         blockMovementsUntilResync(safeTeleportPosition.position);
     }
 

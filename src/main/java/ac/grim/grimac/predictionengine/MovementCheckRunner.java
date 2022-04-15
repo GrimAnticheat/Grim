@@ -511,7 +511,7 @@ public class MovementCheckRunner extends PositionCheck {
             }
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
-        // No, don't comment about the sqrt call.  It doesn't matter at all on modern CPU's.
+        // No, don't comment about the sqrt call.  It doesn't matter unless you run sqrt thousands of times a second.
         double offset = player.predictedVelocity.vector.distance(player.actualMovement);
         offset = player.uncertaintyHandler.reduceOffset(offset);
 

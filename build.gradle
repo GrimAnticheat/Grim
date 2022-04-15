@@ -40,7 +40,7 @@ dependencies {
 }
 
 group = 'ac.grim.grimac'
-version = '2.2.3'
+version = '2.2.4'
 description = 'GrimAC'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -64,6 +64,7 @@ shadowJar {
     relocate 'co.aikar.acf', 'ac.grim.grimac.shaded.acf'
     relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
     relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
+    relocate 'github.scarsz:configuralize', 'ac.grim.grimac.shaded.configuralize'
 }
 
 compileJava {

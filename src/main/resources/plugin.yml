@@ -1,5 +1,5 @@
 name: GrimAC
-version: 2.2.3
+version: 2.2.4
 main: ac.grim.grimac.GrimAC
 softdepend:
   - ProtocolLib
@@ -26,6 +26,6 @@ permissions:
   grim.sendalert:
     description: Send cheater alert
     default: op
-  grim.sendwebhook:
-    description: Send webhook alert
-    default: op
+  grim.nosetback:
+    description: Disable setback
+    default: false
