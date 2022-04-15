@@ -80,7 +80,7 @@ public class PostCheck extends PacketCheck {
                     || CLOSE_WINDOW.equals(packetType) || ENTITY_ACTION.equals(packetType) || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
                     || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
                 if (sentFlying) post.add(event.getPacketType());
-            } else if (ANIMATION.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+            } else if (ANIMATION.equals(packetType) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
                 // Handle ViaVersion being stupid and sending animations after flying packets for 1.8 players on 1.9+ servers
                 // Is this to not false anticheat or what?  What the fuck viaversion.
                 if (sentFlying) post.add(event.getPacketType());
