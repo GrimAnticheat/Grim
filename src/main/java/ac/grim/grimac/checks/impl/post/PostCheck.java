@@ -76,7 +76,7 @@ public class PostCheck extends PacketCheck {
                 }
                 post.clear();
                 sentFlying = false;
-            } else if (PLAYER_ABILITIES.equals(packetType) || CLOSE_WINDOW.equals(packetType) || ENTITY_ACTION.equals(packetType)
+            } else if (PLAYER_ABILITIES.equals(packetType) || ENTITY_ACTION.equals(packetType)
                     || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
                     || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
                 if (sentFlying) post.add(event.getPacketType());
