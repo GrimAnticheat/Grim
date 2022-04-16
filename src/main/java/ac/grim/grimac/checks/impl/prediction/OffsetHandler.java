@@ -80,7 +80,7 @@ public class OffsetHandler extends PostPredictionCheck {
         maxAdvantage = getConfig().getDoubleElse("Simulation.max-advantage", 1);
         maxCeiling = getConfig().getDoubleElse("Simulation.max-ceiling", 4);
 
-        if (maxAdvantage == -1) setbackVL = Double.MAX_VALUE;
+        if (maxAdvantage == -1) maxAdvantage = Double.MAX_VALUE;
         if (immediateSetbackThreshold == -1) immediateSetbackThreshold = Double.MAX_VALUE;
     }
 

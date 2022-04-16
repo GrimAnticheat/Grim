@@ -208,6 +208,11 @@ public class MovementTicker {
         player.uncertaintyHandler.zNegativeUncertainty = 0;
         player.uncertaintyHandler.zPositiveUncertainty = 0;
 
+        // A 1.8 player may spawn and get -0.1 gravity instead of -0.08 gravity
+        if (player.uncertaintyHandler.lastTeleportTicks == 0) {
+            player.uncertaintyHandler.yNegativeUncertainty -= 0.02;
+        }
+
         if (player.isFlying) {
             SimpleCollisionBox playerBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             if (!Collisions.isEmpty(player, playerBox.copy().offset(0, 0.1, 0))) {

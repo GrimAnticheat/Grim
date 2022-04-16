@@ -23,6 +23,7 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
@@ -361,6 +362,8 @@ public class GrimPlayer {
     }
 
     public void sendTransaction(boolean async) {
+        if (user.getConnectionState() != ConnectionState.PLAY) return;
+
         lastTransSent = System.currentTimeMillis();
         short transactionID = (short) (-1 * (transactionIDCounter.getAndIncrement() & 0x7FFF));
         try {
@@ -405,7 +408,11 @@ public class GrimPlayer {
             sendTransaction(true); // send on netty thread
         }
         if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping.transaction", 120) * 1e9) {
-            user.sendPacket(new WrapperPlayServerDisconnect(Component.text("Timed out!")));
+            try {
+                user.sendPacket(new WrapperPlayServerDisconnect(Component.text("Timed out!")));
+            } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
+                LogUtil.warn("Failed to send disconnect packet to time out " + user.getProfile().getName() + "! Disconnecting anyways.");
+            }
             user.closeConnection();
         }
         if (this.bukkitPlayer == null) {
