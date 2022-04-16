@@ -403,13 +403,10 @@ public enum BlockPlaceResult {
         }
 
         if (place.isOnDirt() || place.isOn(StateTypes.SAND, StateTypes.RED_SAND)) {
-            Vector3i pos = place.getPlacedBlockPos();
-            pos.setY(pos.getY() - 1);
+            Vector3i pos = place.getPlacedBlockPos().subtract(0, 1, 0);
 
             for (BlockFace direction : place.getHorizontalFaces()) {
-                Vector3i toSearchPos = pos.clone();
-                toSearchPos.setX(toSearchPos.getX() + direction.getModX());
-                toSearchPos.setZ(toSearchPos.getZ() + direction.getModZ());
+                Vector3i toSearchPos = pos.add(direction.getModX(), 0, direction.getModZ());
 
                 WrappedBlockState directional = player.compensatedWorld.getWrappedBlockStateAt(toSearchPos);
                 if (Materials.isWater(player.getClientVersion(), directional) || directional.getType() == StateTypes.FROSTED_ICE) {
@@ -472,10 +469,7 @@ public enum BlockPlaceResult {
                     return;
                 }
 
-                Vector3i placedPos = place.getPlacedBlockPos();
-                placedPos.setY(placedPos.getY() - 1);
-                placedPos.setX(placedPos.getX() + direction.getModX());
-                placedPos.setZ(placedPos.getZ() + direction.getModZ());
+                Vector3i placedPos = place.getPlacedBlockPos().add(direction.getModX(), -1, direction.getModZ());
 
                 WrappedBlockState blockstate2 = player.compensatedWorld.getWrappedBlockStateAt(placedPos);
                 if (blockstate2.getType() == StateTypes.CHORUS_PLANT || blockstate2.getType() == StateTypes.END_STONE) {
