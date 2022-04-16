@@ -41,11 +41,7 @@ public class DiscordManager implements Initable {
             String tps = String.format("%.2f", SpigotReflectionUtil.getTPS());
             String time = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             String formattedPing = "" + GrimMath.floor(player.getTransactionPing() / 1e6);
-
-            String ver = player.getClientVersion().name();
-            if (ver.startsWith("v")) ver = ver.substring(2);
-            ver = ver.replace("_", ".");
-            String formattedVer = ver;
+            String formattedVer = player.getClientVersion().getReleaseName();
 
             String content = "**Player**\n" + (player.bukkitPlayer != null ? player.bukkitPlayer.getName() : player.user.getProfile().getName())
                     + "\n**Check**\n" + checkName
@@ -56,7 +52,7 @@ public class DiscordManager implements Initable {
 
             WebhookEmbedBuilder embed = new WebhookEmbedBuilder()
                     .setImageUrl("https://i.stack.imgur.com/Fzh0w.png") // Constant width
-                    .setColor(Color.CYAN.getRGB())
+                    .setColor(Color.YELLOW.getRGB())
                     // Discord caches this for around 24 hours, this is abuse of neither CraftHead nor discord
                     .setThumbnailUrl("https://crafthead.net/avatar/" + player.user.getProfile().getUUID())
                     .setTitle(new WebhookEmbed.EmbedTitle("**Grim Alert**", null))
