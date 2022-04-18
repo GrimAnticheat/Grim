@@ -695,6 +695,8 @@ public class Collisions {
 
     public static boolean trapdoorUsableAsLadder(GrimPlayer player, double x, double y, double z, WrappedBlockState blockData) {
         if (!BlockTags.TRAPDOORS.contains(blockData.getType())) return false;
+        // Feature implemented in 1.9
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) return false;
 
         if (blockData.isOpen()) {
             WrappedBlockState blockBelow = player.compensatedWorld.getWrappedBlockStateAt(x, y - 1, z);
