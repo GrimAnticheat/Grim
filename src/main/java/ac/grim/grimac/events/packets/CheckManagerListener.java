@@ -824,8 +824,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // We checked for a full fluid block below here.
             if (player.compensatedWorld.getWaterFluidLevelAt(data.getPosition().getX(), data.getPosition().getY(), data.getPosition().getZ()) > 0
                     || data.getState().getType() == StateTypes.ICE || data.getState().getType() == StateTypes.FROSTED_ICE) {
-                Vector3i pos = data.getPosition().clone();
-                pos.setY(pos.getY() + 1);
+                Vector3i pos = data.getPosition();
+                pos = pos.add(0, 1, 0);
 
                 blockPlace.set(pos, StateTypes.LILY_PAD.createBlockState(CompensatedWorld.blockVersion));
 

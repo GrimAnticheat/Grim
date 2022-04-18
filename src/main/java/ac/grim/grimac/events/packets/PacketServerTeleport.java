@@ -89,7 +89,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             // For some reason teleports on 1.7 servers are offset by 1.62?
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_8))
-                pos.setY(pos.getY() - 1.62);
+                pos = pos.withY(pos.getY() - 1.62);
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
             player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, true);

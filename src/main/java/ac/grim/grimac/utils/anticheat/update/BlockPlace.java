@@ -89,21 +89,19 @@ public class BlockPlace {
 
     public WrappedBlockState getBelowState() {
         Vector3i pos = getPlacedBlockPos();
-        pos.setY(pos.getY() - 1);
+        pos = pos.withY(pos.getY() - 1);
         return player.compensatedWorld.getWrappedBlockStateAt(pos);
     }
 
     public WrappedBlockState getAboveState() {
         Vector3i pos = getPlacedBlockPos();
-        pos.setY(pos.getY() + 1);
+        pos = pos.withY(pos.getY() + 1);
         return player.compensatedWorld.getWrappedBlockStateAt(pos);
     }
 
     public WrappedBlockState getDirectionalState(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
-        pos.setX(pos.getX() + facing.getModX());
-        pos.setY(pos.getY() + facing.getModY());
-        pos.setZ(pos.getZ() + facing.getModZ());
+        pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
         return player.compensatedWorld.getWrappedBlockStateAt(pos);
     }
 
@@ -285,9 +283,7 @@ public class BlockPlace {
 
     public boolean isBlockFaceOpen(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
-        pos.setX(pos.getX() + facing.getModX());
-        pos.setY(pos.getY() + facing.getModY());
-        pos.setZ(pos.getZ() + facing.getModZ());
+        pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
         // You can't build above height limit.
         if (pos.getY() >= player.compensatedWorld.getMaxHeight()) return false;
 
@@ -338,9 +334,7 @@ public class BlockPlace {
 
     public boolean isLava(BlockFace facing) {
         Vector3i pos = getPlacedBlockPos();
-        pos.setX(pos.getX() + facing.getModX());
-        pos.setY(pos.getY() + facing.getModY());
-        pos.setZ(pos.getZ() + facing.getModZ());
+        pos = pos.add(facing.getModX(), facing.getModY(), facing.getModZ());
         return player.compensatedWorld.getWrappedBlockStateAt(pos).getType() == StateTypes.LAVA;
     }
 
@@ -380,11 +374,7 @@ public class BlockPlace {
         Vector3i placed = getPlacedBlockPos();
 
         for (BlockFace face : BlockFace.CARTESIAN_VALUES) {
-            Vector3i modified = placed.clone();
-
-            modified.setX(placed.getX() + face.getModX());
-            modified.setY(placed.getY() + face.getModY());
-            modified.setZ(placed.getZ() + face.getModZ());
+            Vector3i modified = placed.add(face.getModX(), face.getModY(), face.getModZ());
 
             // A block next to the player is providing power.  Therefore the block is powered
             if (player.compensatedWorld.getRawPowerAtState(face, modified.getX(), modified.getY(), modified.getZ()) > 0) {
@@ -410,11 +400,7 @@ public class BlockPlace {
             // There's a better way to do this, but this is "good enough"
             // Mojang probably does it in a worse way than this.
             for (BlockFace recursive : BlockFace.CARTESIAN_VALUES) {
-                Vector3i poweredRecursive = placed.clone();
-
-                poweredRecursive.setX(modified.getX() + recursive.getModX());
-                poweredRecursive.setY(modified.getY() + recursive.getModY());
-                poweredRecursive.setZ(modified.getZ() + recursive.getModZ());
+                Vector3i poweredRecursive = placed.add(recursive.getModX(), recursive.getModY(), recursive.getModZ());
 
                 // A block next to the player is directly powered.  Therefore, the block is powered
                 if (player.compensatedWorld.getDirectSignalAtState(recursive, poweredRecursive.getX(), poweredRecursive.getY(), poweredRecursive.getZ()) > 0) {
@@ -513,7 +499,7 @@ public class BlockPlace {
     }
 
     public Vector3i getPlacedBlockPos() {
-        if (replaceClicked) return blockPosition.clone();
+        if (replaceClicked) return blockPosition;
 
         int x = blockPosition.getX() + getNormalBlockFace().getX();
         int y = blockPosition.getY() + getNormalBlockFace().getY();
@@ -544,10 +530,7 @@ public class BlockPlace {
     }
 
     public void set(BlockFace face, WrappedBlockState state) {
-        Vector3i blockPos = getPlacedBlockPos();
-        blockPos.setX(blockPos.getX() + face.getModX());
-        blockPos.setY(blockPos.getY() + face.getModY());
-        blockPos.setZ(blockPos.getZ() + face.getModZ());
+        Vector3i blockPos = getPlacedBlockPos().add(face.getModX(), face.getModY(), face.getModZ());
         set(blockPos, state);
     }
 
@@ -671,13 +654,13 @@ public class BlockPlace {
 
     public void setAbove() {
         Vector3i placed = getPlacedBlockPos();
-        placed.setY(placed.getY() + 1);
+        placed = placed.add(0, 1, 0);
         set(placed, material.createBlockState(CompensatedWorld.blockVersion));
     }
 
     public void setAbove(WrappedBlockState toReplaceWith) {
         Vector3i placed = getPlacedBlockPos();
-        placed.setY(placed.getY() + 1);
+        placed = placed.add(0, 1, 0);
         set(placed, toReplaceWith);
     }
 }
