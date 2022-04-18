@@ -119,6 +119,9 @@ public class Reach extends PacketCheck {
         if (exempt.contains(reachEntity.type) || !reachEntity.isLivingEntity())
             return false; // exempt
 
+        if (player.gamemode == GameMode.CREATIVE) return false;
+        if (player.vehicle != null) return false;
+
         double lowest = 6;
         for (double eyes : player.getPossibleEyeHeights()) {
             SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
