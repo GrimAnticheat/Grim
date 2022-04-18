@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.data;
 
+import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -11,5 +12,6 @@ public class TrackerData {
     double z;
     float xRot;
     float yRot;
+    EntityType entityType;
     int lastTransactionHung;
 }
