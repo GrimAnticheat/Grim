@@ -77,6 +77,11 @@ public class DynamicPane extends DynamicConnecting implements CollisionFactory {
         }
     }
 
+    @Override
+    public boolean canConnectToGlassBlock() {
+        return true;
+    }
+
 
     @Override
     public boolean checkCanConnect(GrimPlayer player, WrappedBlockState state, StateType one, StateType two) {

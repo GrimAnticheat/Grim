@@ -86,8 +86,8 @@ public class DynamicConnecting {
 
         return m == StateTypes.CARVED_PUMPKIN || m == StateTypes.JACK_O_LANTERN || m == StateTypes.PUMPKIN || m == StateTypes.MELON ||
                 m == StateTypes.BEACON || BlockTags.CAULDRONS.contains(m) || m == StateTypes.GLOWSTONE || m == StateTypes.SEA_LANTERN || m == StateTypes.ICE
-                || m == StateTypes.PISTON || m == StateTypes.STICKY_PISTON || m == StateTypes.PISTON_HEAD || !canConnectToGlassBlock()
-                && BlockTags.GLASS_BLOCKS.contains(m);
+                || m == StateTypes.PISTON || m == StateTypes.STICKY_PISTON || m == StateTypes.PISTON_HEAD || (!canConnectToGlassBlock()
+                && BlockTags.GLASS_BLOCKS.contains(m));
     }
 
     protected int getAABBIndex(boolean north, boolean east, boolean south, boolean west) {
