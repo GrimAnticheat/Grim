@@ -18,11 +18,13 @@ public class PacketSetWrapperNull extends PacketListenerAbstract {
 
     @Override
     public void onPacketSend(PacketSendEvent event) {
-        if (event.getPacketType() != PacketType.Play.Server.ENTITY_METADATA) {
+        if (event.getPacketType() == PacketType.Play.Server.ENTITY_METADATA) {
             WrapperPlayServerEntityMetadata wrapper = new WrapperPlayServerEntityMetadata(event);
             if (wrapper.getEntityId() != event.getUser().getEntityId()) {
                 event.setLastUsedWrapper(null);
             }
+        } else {
+            event.setLastUsedWrapper(null);
         }
     }
 
