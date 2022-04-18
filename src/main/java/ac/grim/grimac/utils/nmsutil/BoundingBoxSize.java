@@ -47,7 +47,7 @@ public class BoundingBoxSize {
 
             return 1.5f;
         } else if (EntityTypes.DONKEY.equals(packetEntity.type)) {
-            return 1.5f;
+            return 1.3964844F;
         } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) { // TODO: 2.35 * guardian?
             return 1.9975f;
         } else if (EntityTypes.END_CRYSTAL.equals(packetEntity.type)) {
@@ -241,7 +241,7 @@ public class BoundingBoxSize {
         } else if (EntityTypes.CREEPER.equals(packetEntity.type)) {
             return 1.7f;
         } else if (EntityTypes.DONKEY.equals(packetEntity.type)) {
-            return 1.39648f;
+            return 1.5f;
         } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) { // TODO: WTF is * guardian?
             return 1.9975f;
         } else if (EntityTypes.ENDERMAN.equals(packetEntity.type)) {
