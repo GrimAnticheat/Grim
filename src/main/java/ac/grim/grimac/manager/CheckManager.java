@@ -13,7 +13,6 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.movement.*;
 import ac.grim.grimac.checks.impl.pingspoof.PingSpoofA;
 import ac.grim.grimac.checks.impl.pingspoof.PingSpoofB;
-import ac.grim.grimac.checks.impl.post.PostCheck;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
@@ -78,7 +77,7 @@ public class CheckManager {
                 .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
-                .put(PostCheck.class, new PostCheck(player))
+                //.put(PostCheck.class, new PostCheck(player)) // TODO: What the fuck is mojang doing on 1.8, fix 1.9+ without the fucking idle packet
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
