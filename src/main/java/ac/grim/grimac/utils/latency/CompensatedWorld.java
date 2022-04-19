@@ -119,12 +119,12 @@ public class CompensatedWorld {
 
         if (BlockTags.DOORS.contains(data.getType())) {
             WrappedBlockState otherDoor = player.compensatedWorld.getWrappedBlockStateAt(blockX,
-                    blockY + (data.getHalf() == Half.BOTTOM ? 1 : -1), blockZ);
+                    blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
                 if (BlockTags.DOORS.contains(otherDoor.getType())) {
                     otherDoor.setOpen(!otherDoor.isOpen());
-                    player.compensatedWorld.updateBlock(blockX, blockY + (data.getHalf() == Half.BOTTOM ? 1 : -1), blockZ, otherDoor.getGlobalId());
+                    player.compensatedWorld.updateBlock(blockX, blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ, otherDoor.getGlobalId());
                 }
                 data.setOpen(!data.isOpen());
                 player.compensatedWorld.updateBlock(blockX, blockY, blockZ, data.getGlobalId());
