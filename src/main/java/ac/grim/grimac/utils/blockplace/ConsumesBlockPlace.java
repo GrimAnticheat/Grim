@@ -24,21 +24,21 @@ public class ConsumesBlockPlace {
         if (BlockTags.CANDLE_CAKES.contains(state.getType())) {
             WrappedBlockState cake = StateTypes.CAKE.createBlockState(CompensatedWorld.blockVersion);
             cake.setBites(1);
-            place.set(cake);
+            place.set(place.getPlacedAgainstBlockLocation(), cake);
             return true;
         }
         if (state.getType() == StateTypes.CAKE) {
             if (state.getBites() == 0 && place.getMaterial() != null) {
-                place.set(StateTypes.CANDLE_CAKE);
+                place.set(place.getPlacedAgainstBlockLocation(), StateTypes.CANDLE_CAKE.createBlockState(CompensatedWorld.blockVersion));
                 return true;
             }
 
-            if (player.gamemode == GameMode.CREATIVE || (player.bukkitPlayer != null && player.bukkitPlayer.getFoodLevel() < 20)) {
+            if (player.gamemode == GameMode.CREATIVE || (player.food < 20)) {
                 if (state.getBites() != 6) {
                     state.setBites(state.getBites() + 1);
-                    place.set(state);
+                    place.set(place.getPlacedAgainstBlockLocation(), state);
                 } else {
-                    place.set(StateTypes.AIR);
+                    place.set(place.getPlacedAgainstBlockLocation(), StateTypes.AIR.createBlockState(CompensatedWorld.blockVersion));
                 }
                 return true;
             }
@@ -48,7 +48,7 @@ public class ConsumesBlockPlace {
         if (state.getType() == StateTypes.CAVE_VINES || state.getType() == StateTypes.CAVE_VINES_PLANT) {
             if (state.isBerries()) {
                 state.setBerries(false);
-                place.set(state);
+                place.set(place.getPlacedAgainstBlockLocation(), state);
                 return true;
             }
             return false;
@@ -58,7 +58,7 @@ public class ConsumesBlockPlace {
                 return false;
             } else if (state.getAge() > 1) {
                 state.setAge(1);
-                place.set(state);
+                place.set(place.getPlacedAgainstBlockLocation(), state);
                 return true;
             } else {
                 return false;
