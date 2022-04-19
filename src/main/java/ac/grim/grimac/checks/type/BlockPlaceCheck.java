@@ -58,11 +58,13 @@ public class BlockPlaceCheck extends Check<BlockPlace> {
         }
 
         if (weirdBoxes.contains(place.getPlacedAgainstMaterial())) {
-            combined = new SimpleCollisionBox(clicked.getX(), clicked.getY(), clicked.getZ(), clicked.getX() + 1, clicked.getY() + 1.5, clicked.getZ() + 1);
+            // Invert the box to give lenience
+            combined = new SimpleCollisionBox(clicked.getX() + 1, clicked.getY() + 1, clicked.getZ() + 1, clicked.getX(), clicked.getY() + 1.5, clicked.getZ());
         }
 
         if (buggyBoxes.contains(place.getPlacedAgainstMaterial())) {
-            combined = new SimpleCollisionBox(clicked.getX(), clicked.getY(), clicked.getZ());
+            // Invert the bounding box to give a block of lenience
+            combined = new SimpleCollisionBox(clicked.getX() + 1, clicked.getY() + 1, clicked.getZ() + 1, clicked.getX(), clicked.getY(), clicked.getZ());
         }
 
         return combined;
