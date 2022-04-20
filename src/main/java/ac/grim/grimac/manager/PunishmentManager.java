@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.events.CommandExecuteEvent;
 import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import lombok.Setter;
@@ -87,6 +88,10 @@ public class PunishmentManager {
                             cmd = cmd.replace("%check_name%", check.getCheckName());
                             cmd = cmd.replace("%vl%", vl);
                             cmd = cmd.replace("%verbose%", verbose);
+
+                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(check, cmd);
+                            Bukkit.getPluginManager().callEvent(executeEvent);
+                            if (executeEvent.isCancelled()) continue;
 
                             if (cmd.equals("[webhook]")) {
                                 GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getCheckName(), vl);
