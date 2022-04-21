@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.anticheat;
 
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.puregero.multilib.MultiLib;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.player.User;
 import org.bukkit.entity.Player;
@@ -13,6 +14,8 @@ public class PlayerDataManager {
     private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
 
     public GrimPlayer getPlayer(final Player player) {
+        if (MultiLib.isExternalPlayer(player)) return null;
+
         // Is it safe to interact with this, or is this internal PacketEvents code?
         User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
         if (user == null) {
