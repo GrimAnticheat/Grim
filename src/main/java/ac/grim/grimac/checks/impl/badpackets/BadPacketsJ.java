@@ -15,7 +15,7 @@ public class BadPacketsJ extends PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.STEER_VEHICLE) {
-            if (!player.inVehicle) {
+            if (!player.compensatedEntities.getSelf().inVehicle()) {
                 flagAndAlert();
             }
         }

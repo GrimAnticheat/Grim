@@ -22,7 +22,12 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 // You may not copy this check unless your anticheat is licensed under GPL
 public class PacketEntity {
@@ -30,12 +35,18 @@ public class PacketEntity {
     public EntityType type;
 
     public PacketEntity riding;
-    public int[] passengers = new int[0];
+    public List<PacketEntity> passengers = new ArrayList<>(0);
     public boolean isDead = false;
     public boolean isBaby = false;
     public boolean hasGravity = true;
     private ReachInterpolationData oldPacketLocation;
     private ReachInterpolationData newPacketLocation;
+
+    public HashMap<PotionType, Integer> potionsMap = null;
+
+    public PacketEntity(EntityType type) {
+        this.type = type;
+    }
 
     public PacketEntity(GrimPlayer player, EntityType type, double x, double y, double z) {
         this.desyncClientPos = new Vector3d(x, y, z);
@@ -44,7 +55,7 @@ public class PacketEntity {
         }
         this.type = type;
         this.newPacketLocation = new ReachInterpolationData(GetBoundingBox.getPacketEntityBoundingBox(x, y, z, this),
-                desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.inVehicle && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
+                desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
     }
 
     public boolean isLivingEntity() {
@@ -91,7 +102,7 @@ public class PacketEntity {
         }
 
         this.oldPacketLocation = newPacketLocation;
-        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.inVehicle && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
+        this.newPacketLocation = new ReachInterpolationData(oldPacketLocation.getPossibleLocationCombined(), desyncClientPos.getX(), desyncClientPos.getY(), desyncClientPos.getZ(), !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9), this);
     }
 
     // Remove the possibility of the old packet location
@@ -110,11 +121,21 @@ public class PacketEntity {
         }
     }
 
-    public boolean hasPassenger(int entityID) {
-        for (int passenger : passengers) {
-            if (passenger == entityID) return true;
+    public boolean hasPassenger(PacketEntity entity) {
+        return passengers.contains(entity);
+    }
+
+    public void mount(PacketEntity vehicle) {
+        if (riding != null) eject();
+        vehicle.passengers.add(this);
+        riding = vehicle;
+    }
+
+    public void eject() {
+        if (riding != null) {
+            riding.passengers.remove(this);
         }
-        return false;
+        this.riding = null;
     }
 
     // This is for handling riding and entities attached to one another.
@@ -132,5 +153,21 @@ public class PacketEntity {
         }
 
         return ReachInterpolationData.combineCollisionBox(oldPacketLocation.getPossibleLocationCombined(), newPacketLocation.getPossibleLocationCombined());
+    }
+
+    public PacketEntity getRiding() {
+        return riding;
+    }
+
+    public void addPotionEffect(PotionType effect, int amplifier) {
+        if (potionsMap == null) {
+            potionsMap = new HashMap<>();
+        }
+        potionsMap.put(effect, amplifier);
+    }
+
+    public void removePotionEffect(PotionType effect) {
+        if (potionsMap == null) return;
+        potionsMap.remove(effect);
     }
 }

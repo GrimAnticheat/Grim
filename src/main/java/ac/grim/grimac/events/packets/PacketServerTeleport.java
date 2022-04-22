@@ -81,9 +81,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 GrimPlayer finalPlayer = player;
                 // Remove player from vehicle
                 event.getPostTasks().add(() -> {
-                    finalPlayer.playerVehicle = null;
-                    finalPlayer.vehicle = null;
-                    finalPlayer.inVehicle = false;
+                    player.compensatedEntities.getSelf().eject();
                 });
             }
 

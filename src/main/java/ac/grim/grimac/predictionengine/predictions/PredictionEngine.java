@@ -19,7 +19,7 @@ import java.util.*;
 public class PredictionEngine {
 
     public static Vector clampMovementToHardBorder(GrimPlayer player, Vector outputVel, Vector handleHardCodedBorder) {
-        if (!player.inVehicle) {
+        if (!player.compensatedEntities.getSelf().inVehicle()) {
             double d0 = GrimMath.clamp(player.lastX + outputVel.getX(), -2.9999999E7D, 2.9999999E7D);
             double d1 = GrimMath.clamp(player.lastZ + outputVel.getZ(), -2.9999999E7D, 2.9999999E7D);
             if (d0 != player.lastX + handleHardCodedBorder.getX()) {
@@ -141,7 +141,7 @@ public class PredictionEngine {
                 player.boundingBox = originalBB;
             }
 
-            boolean vehicleKB = player.inVehicle && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
+            boolean vehicleKB = player.compensatedEntities.getSelf().inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
             // Extra collision epsilon required for vehicles to be accurate
             double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
             // The server likes sending y=0 kb "lifting" the player off the ground.
@@ -341,7 +341,7 @@ public class PredictionEngine {
     }
 
     private void addNonEffectiveAI(GrimPlayer player, Set<VectorData> data) {
-        if (!player.inVehicle) return;
+        if (!player.compensatedEntities.getSelf().inVehicle()) return;
 
         for (VectorData vectorData : data) {
             vectorData.vector = vectorData.vector.clone().multiply(0.98);
@@ -424,10 +424,10 @@ public class PredictionEngine {
             bScore -= 1;
 
         // If the player is on the ground but the vector leads the player off the ground
-        if ((player.inVehicle ? player.clientControlledVerticalCollision : player.onGround) && a.vector.getY() >= 0)
+        if ((player.compensatedEntities.getSelf().inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && a.vector.getY() >= 0)
             aScore += 2;
 
-        if ((player.inVehicle ? player.clientControlledVerticalCollision : player.onGround) && b.vector.getY() >= 0)
+        if ((player.compensatedEntities.getSelf().inVehicle() ? player.clientControlledVerticalCollision : player.onGround) && b.vector.getY() >= 0)
             bScore += 2;
 
         if (aScore != bScore)
@@ -686,7 +686,7 @@ public class PredictionEngine {
 
     public boolean canSwimHop(GrimPlayer player) {
         // Boats cannot swim hop, all other living entities should be able to.
-        if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT)
+        if (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT)
             return false;
 
         // Vanilla system ->
@@ -711,7 +711,7 @@ public class PredictionEngine {
         // Don't play with poses issues. just assume full bounding box
         // Except on vehicles which don't have poses, thankfully.
         //
-        SimpleCollisionBox oldBox = player.inVehicle ? GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ) :
+        SimpleCollisionBox oldBox = player.compensatedEntities.getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ) :
                 GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
 
         if (!player.compensatedWorld.containsLiquid(oldBox.expand(0.1, 0.1, 0.1))) return false;
@@ -723,7 +723,7 @@ public class PredictionEngine {
         double pointThreeToGround = Collisions.collide(player, 0, -0.03, 0).getY() + SimpleCollisionBox.COLLISION_EPSILON;
         player.boundingBox = oldBB;
 
-        SimpleCollisionBox newBox = player.inVehicle ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :
+        SimpleCollisionBox newBox = player.compensatedEntities.getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :
                 GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f);
 
         return player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));

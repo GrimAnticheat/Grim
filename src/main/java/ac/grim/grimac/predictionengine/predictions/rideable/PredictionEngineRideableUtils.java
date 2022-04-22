@@ -23,9 +23,9 @@ public class PredictionEngineRideableUtils {
     }
 
     public static Set<VectorData> handleJumps(GrimPlayer player, Set<VectorData> possibleVectors) {
-        if (!(player.playerVehicle instanceof PacketEntityHorse)) return possibleVectors;
+        if (!(player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse)) return possibleVectors;
 
-        PacketEntityHorse horse = (PacketEntityHorse) player.playerVehicle;
+        PacketEntityHorse horse = (PacketEntityHorse) player.compensatedEntities.getSelf().getRiding();
 
         // Setup player inputs
         float f = player.vehicleData.vehicleHorizontal * 0.5F;
@@ -47,8 +47,8 @@ public class PredictionEngineRideableUtils {
             // broken ever since vehicle control became client sided
             //
             // But plugins can still send this, so support it anyways
-            if (player.compensatedPotions.getJumpAmplifier() != null) {
-                d1 = d0 + ((player.compensatedPotions.getJumpAmplifier() + 1) * 0.1F);
+            if (player.compensatedEntities.getJumpAmplifier() != null) {
+                d1 = d0 + ((player.compensatedEntities.getJumpAmplifier() + 1) * 0.1F);
             } else {
                 d1 = d0;
             }

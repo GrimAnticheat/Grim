@@ -32,12 +32,12 @@ public class MovementTickerStrider extends MovementTickerRideable {
     public void livingEntityAIStep() {
         super.livingEntityAIStep();
 
-        ((PacketEntityStrider) player.playerVehicle).isShaking = true;
+        ((PacketEntityStrider) player.compensatedEntities.getSelf().getRiding()).isShaking = true;
 
         StateType posMaterial = player.compensatedWorld.getStateTypeAt(player.x, player.y, player.z);
         StateType belowMaterial = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
 
-        ((PacketEntityStrider) player.playerVehicle).isShaking =
+        ((PacketEntityStrider) player.compensatedEntities.getSelf().getRiding()).isShaking =
                 !BlockTags.STRIDER_WARM_BLOCKS.contains(posMaterial) &&
                         !BlockTags.STRIDER_WARM_BLOCKS.contains(belowMaterial) &&
                         !player.wasTouchingLava;
@@ -45,7 +45,7 @@ public class MovementTickerStrider extends MovementTickerRideable {
 
     @Override
     public float getSteeringSpeed() {
-        PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
+        PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
         return strider.movementSpeedAttribute * (strider.isShaking ? 0.23F : 0.55F);
     }
 

@@ -3,6 +3,7 @@ package ac.grim.grimac.events.packets;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
@@ -22,6 +23,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PacketEntityReplication extends PacketCheck {
@@ -32,7 +34,7 @@ public class PacketEntityReplication extends PacketCheck {
     }
 
     public void tickFlying() {
-        boolean setHighBound = !player.inVehicle && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
+        boolean setHighBound = !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
             entity.onMovement(setHighBound);
         }
@@ -114,7 +116,12 @@ public class PacketEntityReplication extends PacketCheck {
             if (isDirectlyAffectingPlayer(player, effect.getEntityId()))
                 event.getPostTasks().add(player::sendTransaction);
 
-            player.compensatedPotions.addPotionEffect(type, effect.getEffectAmplifier(), effect.getEntityId());
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                PacketEntity entity = player.compensatedEntities.getEntity(effect.getEntityId());
+                if (entity == null) return;
+
+                entity.addPotionEffect(type, effect.getEffectAmplifier());
+            });
         }
 
         if (event.getPacketType() == PacketType.Play.Server.REMOVE_ENTITY_EFFECT) {
@@ -126,7 +133,12 @@ public class PacketEntityReplication extends PacketCheck {
             if (isDirectlyAffectingPlayer(player, effect.getEntityId()))
                 event.getPostTasks().add(player::sendTransaction);
 
-            player.compensatedPotions.removePotionEffect(effect.getPotionType(), effect.getEntityId());
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                PacketEntity entity = player.compensatedEntities.getEntity(effect.getEntityId());
+                if (entity == null) return;
+
+                entity.removePotionEffect(effect.getPotionType());
+            });
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_PROPERTIES) {
@@ -233,7 +245,26 @@ public class PacketEntityReplication extends PacketCheck {
 
             // If this is mounting rather than leashing
             if (!attach.isLeash()) {
-                handleMountVehicle(event, attach.getHoldingId(), new int[]{attach.getAttachedId()});
+                // Alright, let's convert this to the 1.9+ format to make it easier for grim
+                int vehicleID = attach.getHoldingId();
+                int attachID = attach.getAttachedId();
+                TrackerData trackerData = player.compensatedEntities.getTrackedEntity(attachID);
+
+                if (trackerData != null) {
+                    // 1.8 sends a vehicle ID of -1 to dismount the entity from its vehicle
+                    // This is opposite of the 1.9+ format, which sends the vehicle ID and then an empty array.
+                    if (vehicleID == -1) { // Dismounting
+                        vehicleID = trackerData.getLegacyPointEightMountedUpon();
+                        handleMountVehicle(event, vehicleID, new int[]{}); // The vehicle is empty
+                        return;
+                    } else { // Mounting
+                        trackerData.setLegacyPointEightMountedUpon(vehicleID);
+                        handleMountVehicle(event, vehicleID, new int[]{attachID});
+                    }
+                } else {
+                    // I don't think we can recover from this... warn and move on as this shouldn't happen.
+                    LogUtil.warn("Server sent an invalid attach entity packet for entity " + attach.getHoldingId() + " with passenger " + attach.getAttachedId() + "! The client ignores this.");
+                }
             }
         }
 
@@ -251,23 +282,15 @@ public class PacketEntityReplication extends PacketCheck {
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 for (int integer : destroyEntityIds) {
-                    player.compensatedEntities.entityMap.remove(integer);
+                    player.compensatedEntities.removeEntity(integer);
                     player.compensatedFireworks.removeFirework(integer);
-                    player.compensatedPotions.removeEntity(integer);
-                    // Remove player vehicle if it despawns
-                    if (player.vehicle != null && player.vehicle == integer) {
-                        player.vehicle = null;
-                        player.playerVehicle = null;
-                        player.inVehicle = false;
-                        player.vehicleData.wasVehicleSwitch = true;
-                    }
                 }
             });
         }
     }
 
     private void handleMountVehicle(PacketSendEvent event, int vehicleID, int[] passengers) {
-        boolean wasInVehicle = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == vehicleID;
+        boolean wasInVehicle = player.getRidingVehicleId() == vehicleID;
         boolean inThisVehicle = false;
 
         for (int passenger : passengers) {
@@ -290,29 +313,21 @@ public class PacketEntityReplication extends PacketCheck {
             if (vehicle == null) return;
 
             // Eject existing passengers for this vehicle
-            if (vehicle.passengers != null) {
-                for (int entityID : vehicle.passengers) {
-                    PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
-                    if (passenger == null) continue;
-
-                    passenger.riding = null;
-                }
+            for (PacketEntity passenger : new ArrayList<>(vehicle.passengers)) {
+                passenger.eject();
             }
 
             // Add the entities as vehicles
             for (int entityID : passengers) {
                 PacketEntity passenger = player.compensatedEntities.getEntity(entityID);
                 if (passenger == null) continue;
-
-                passenger.riding = vehicle;
+                passenger.mount(vehicle);
             }
-
-            vehicle.passengers = passengers;
         });
     }
 
     private void handleMoveEntity(PacketSendEvent event, int entityId, double deltaX, double deltaY, double deltaZ, Float yaw, Float pitch, boolean isRelative, boolean hasPos) {
-        TrackerData data = player.compensatedEntities.serverPositionsMap.get(entityId);
+        TrackerData data = player.compensatedEntities.getTrackedEntity(entityId);
 
         if (!hasSentPreWavePacket) {
             hasSentPreWavePacket = true;
@@ -364,7 +379,7 @@ public class PacketEntityReplication extends PacketCheck {
             }
             entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
         });
-        player.latencyUtils.addRealTimeTask(lastTrans + 1,() -> {
+        player.latencyUtils.addRealTimeTask(lastTrans + 1, () -> {
             PacketEntity entity = player.compensatedEntities.getEntity(entityId);
             if (entity == null) return;
             entity.onSecondTransaction();

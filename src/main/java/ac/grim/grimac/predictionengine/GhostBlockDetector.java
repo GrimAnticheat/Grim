@@ -18,7 +18,7 @@ public class GhostBlockDetector extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         // If the offset is low, there probably isn't ghost blocks
         // However, if we would flag nofall, check for ghost blocks
-        if (predictionComplete.getOffset() < 0.001 && (player.clientClaimsLastOnGround == player.onGround || player.inVehicle))
+        if (predictionComplete.getOffset() < 0.001 && (player.clientClaimsLastOnGround == player.onGround || player.compensatedEntities.getSelf().inVehicle()))
             return;
 
         // This is meant for stuff like buggy blocks and mechanics on old clients

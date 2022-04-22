@@ -12,16 +12,15 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.entity.data.EntityData;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.potion.PotionType;
+import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class CompensatedEntities {
     private static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
@@ -29,26 +28,73 @@ public class CompensatedEntities {
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public Integer serverPlayerVehicle = null;
-    public WrapperPlayServerEntityProperties.Property playerSpeed = new WrapperPlayServerEntityProperties.Property("MOVEMENT_SPEED", 0.1f, new ArrayList<>());
     public boolean hasSprintingAttributeEnabled = false;
 
     GrimPlayer player;
 
+    TrackerData selfTrackedEntity;
+    PacketEntitySelf playerEntity;
+
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
+        this.playerEntity = new PacketEntitySelf();
+        this.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
+    }
+
+    public int getPacketEntityID(PacketEntity entity) {
+        for (Map.Entry<Integer, PacketEntity> entry : entityMap.entrySet()) {
+            if (entry.getValue() == entity) {
+                return entry.getKey();
+            }
+        }
+        return Integer.MIN_VALUE;
     }
 
     public void tick() {
+        this.playerEntity.setPositionRaw(player.boundingBox);
         for (PacketEntity vehicle : entityMap.values()) {
-            for (int passengerID : vehicle.passengers) {
-                PacketEntity passenger = player.compensatedEntities.getEntity(passengerID);
+            for (PacketEntity passenger : vehicle.passengers) {
                 tickPassenger(vehicle, passenger);
             }
         }
     }
 
+    public void removeEntity(int entityID) {
+        PacketEntity entity = entityMap.remove(entityID);
+        if (entity == null) return;
+
+        for (PacketEntity passenger : entity.passengers) {
+            passenger.eject();
+        }
+    }
+
+    public Integer getJumpAmplifier() {
+        return getPotionLevelForPlayer(PotionTypes.JUMP_BOOST);
+    }
+
+    public Integer getLevitationAmplifier() {
+        return getPotionLevelForPlayer(PotionTypes.LEVITATION);
+    }
+
+    public Integer getSlowFallingAmplifier() {
+        return getPotionLevelForPlayer(PotionTypes.SLOW_FALLING);
+    }
+
+    public Integer getDolphinsGraceAmplifier() {
+        return getPotionLevelForPlayer(PotionTypes.DOLPHINS_GRACE);
+    }
+
+    public Integer getPotionLevelForPlayer(PotionType type) {
+        PacketEntity desiredEntity = playerEntity.getRiding() != null ? playerEntity.getRiding() : playerEntity;
+
+        HashMap<PotionType, Integer> effects = desiredEntity.potionsMap;
+        if (effects == null) return null;
+
+        return effects.get(type);
+    }
+
     public double getPlayerMovementSpeed() {
-        return calculateAttribute(playerSpeed, 0.0, 1024.0);
+        return calculateAttribute(player.compensatedEntities.getSelf().playerSpeed, 0.0, 1024.0);
     }
 
     public void updateAttributes(int entityID, List<WrapperPlayServerEntityProperties.Property> objects) {
@@ -67,7 +113,7 @@ public class CompensatedEntities {
 
                     // The server can set the player's sprinting attribute
                     hasSprintingAttributeEnabled = found;
-                    playerSpeed = snapshotWrapper;
+                    player.compensatedEntities.getSelf().playerSpeed = snapshotWrapper;
                 }
             }
         }
@@ -131,8 +177,7 @@ public class CompensatedEntities {
         } else {
             passenger.setPositionRaw(riding.getPossibleCollisionBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(passenger), 0));
 
-            for (int entity : riding.passengers) {
-                PacketEntity passengerPassenger = getEntity(entity);
+            for (PacketEntity passengerPassenger : riding.passengers) {
                 tickPassenger(passenger, passengerPassenger);
             }
         }
@@ -166,7 +211,21 @@ public class CompensatedEntities {
     }
 
     public PacketEntity getEntity(int entityID) {
+        if (entityID == player.entityID) {
+            return playerEntity;
+        }
         return entityMap.get(entityID);
+    }
+
+    public PacketEntitySelf getSelf() {
+        return playerEntity;
+    }
+
+    public TrackerData getTrackedEntity(int id) {
+        if (id == player.entityID) {
+            return selfTrackedEntity;
+        }
+        return serverPositionsMap.get(id);
     }
 
     public void updateEntityMetadata(int entityID, List<EntityData> watchableObjects) {

@@ -39,7 +39,7 @@ public class PredictionEngineWater extends PredictionEngine {
         // This stops players from abusing this mechanic while on top of water, which could theoretically allow
         // some form of a new Jesus hack.
         // Anyways, Jesus doesn't make too much sense on 1.13+ clients anyways when swimming is faster
-        if ((player.wasEyeInWater || player.fluidOnEyes == FluidTag.WATER || player.isSwimming || player.wasSwimming) && player.playerVehicle == null) {
+        if ((player.wasEyeInWater || player.fluidOnEyes == FluidTag.WATER || player.isSwimming || player.wasSwimming) && player.compensatedEntities.getSelf().getRiding() == null) {
             for (VectorData vector : base) {
                 double d = getLookAngle(player).getY();
                 double d5 = d < -0.2 ? 0.085 : 0.06;

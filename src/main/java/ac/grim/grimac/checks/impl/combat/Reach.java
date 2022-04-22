@@ -81,7 +81,7 @@ public class Reach extends PacketCheck {
             }
 
             if (player.gamemode == GameMode.CREATIVE) return;
-            if (player.vehicle != null) return;
+            if (player.compensatedEntities.getSelf().inVehicle()) return;
             if (entity.riding != null) return;
 
             checkReach(action.getEntityId());
@@ -120,7 +120,7 @@ public class Reach extends PacketCheck {
             return false; // exempt
 
         if (player.gamemode == GameMode.CREATIVE) return false;
-        if (player.vehicle != null) return false;
+        if (player.compensatedEntities.getSelf().inVehicle()) return false;
 
         double lowest = 6;
         for (double eyes : player.getPossibleEyeHeights()) {

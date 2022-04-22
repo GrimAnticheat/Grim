@@ -33,7 +33,7 @@ public class MovementTicker {
             int possibleCollidingEntities = 0;
 
             // Players in vehicles do not have collisions
-            if (!player.inVehicle) {
+            if (!player.compensatedEntities.getSelf().inVehicle()) {
                 // Calculate the offset of the player to colliding other stuff
                 SimpleCollisionBox playerBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 1.8f);
                 SimpleCollisionBox expandedPlayerBox = playerBox.copy().expandToAbsoluteCoordinates(player.x, player.y, player.z).expand(1);
@@ -88,13 +88,13 @@ public class MovementTicker {
         boolean calculatedOnGround = (player.verticalCollision && inputVel.getY() < 0.0D);
 
         // If the player is on the ground with a y velocity of 0, let the player decide (too close to call)
-        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() > -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() <= 0 && !player.inVehicle)
+        if (inputVel.getY() == -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() > -SimpleCollisionBox.COLLISION_EPSILON && collide.getY() <= 0 && !player.compensatedEntities.getSelf().inVehicle())
             calculatedOnGround = player.onGround;
         player.clientClaimsLastOnGround = player.onGround;
 
         // Fix step movement inside of water
         // Swim hop into step is very unlikely, as step requires y < 0, while swim hop forces y = 0.3
-        if (player.inVehicle && player.clientControlledVerticalCollision && player.uncertaintyHandler.isStepMovement &&
+        if (player.compensatedEntities.getSelf().inVehicle() && player.clientControlledVerticalCollision && player.uncertaintyHandler.isStepMovement &&
                 (inputVel.getY() <= 0 || player.predictedVelocity.isSwimHop())) {
             calculatedOnGround = true;
         }
@@ -104,7 +104,7 @@ public class MovementTicker {
         // The player's onGround status isn't given when riding a vehicle, so we don't have a choice in whether we calculate or not
         //
         // Trust the onGround status if the player is near the ground and they sent a ground packet
-        if (player.inVehicle || !player.exemptOnGround()) {
+        if (player.compensatedEntities.getSelf().inVehicle() || !player.exemptOnGround()) {
             player.onGround = calculatedOnGround;
         }
 
@@ -112,7 +112,7 @@ public class MovementTicker {
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
-        if (!player.wasTouchingWater && (player.playerVehicle == null || player.playerVehicle.type != EntityTypes.BOAT)) {
+        if (!player.wasTouchingWater && (player.compensatedEntities.getSelf().getRiding() == null || player.compensatedEntities.getSelf().getRiding().type != EntityTypes.BOAT)) {
             new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
         }
 
@@ -124,7 +124,7 @@ public class MovementTicker {
         }
 
         // Striders call the method for inside blocks AGAIN!
-        if (player.playerVehicle instanceof PacketEntityStrider) {
+        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
             Collisions.handleInsideBlocks(player);
         }
 
@@ -140,13 +140,13 @@ public class MovementTicker {
                 } else {
                     if (player.clientVelocity.getY() < 0.0) {
                         player.clientVelocity.setY(-player.clientVelocity.getY() *
-                                (player.playerVehicle != null && !player.playerVehicle.isLivingEntity() ? 0.8 : 1.0));
+                                (player.compensatedEntities.getSelf().getRiding() != null && !player.compensatedEntities.getSelf().getRiding().isLivingEntity() ? 0.8 : 1.0));
                     }
                 }
             } else if (BlockTags.BEDS.contains(onBlock) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_12)) {
                 if (player.clientVelocity.getY() < 0.0) {
                     player.clientVelocity.setY(-player.clientVelocity.getY() * 0.6600000262260437 *
-                            (player.playerVehicle != null && !player.playerVehicle.isLivingEntity() ? 0.8 : 1.0));
+                            (player.compensatedEntities.getSelf().getRiding() != null && !player.compensatedEntities.getSelf().getRiding().isLivingEntity() ? 0.8 : 1.0));
                 }
             } else {
                 player.clientVelocity.setY(0);
@@ -195,7 +195,7 @@ public class MovementTicker {
 
         SimpleCollisionBox oldBB = player.boundingBox.copy();
 
-        if (player.playerVehicle == null) {
+        if (player.compensatedEntities.getSelf().getRiding() == null) {
             playerEntityTravel();
         } else {
             livingEntityTravel();
@@ -281,7 +281,7 @@ public class MovementTicker {
     }
 
     public void playerEntityTravel() {
-        if (player.isFlying && player.playerVehicle == null) {
+        if (player.isFlying && player.compensatedEntities.getSelf().getRiding() == null) {
             double oldY = player.clientVelocity.getY();
             double oldYJumping = oldY + player.flySpeed * 3;
             livingEntityTravel();
@@ -313,7 +313,7 @@ public class MovementTicker {
         double playerGravity = 0.08;
 
         boolean isFalling = player.actualMovement.getY() <= 0.0;
-        if (isFalling && player.compensatedPotions.getSlowFallingAmplifier() != null) {
+        if (isFalling && player.compensatedEntities.getSlowFallingAmplifier() != null) {
             playerGravity = 0.01;
             // Set fall distance to 0 if the player has slow falling
             player.fallDistance = 0;
@@ -330,7 +330,7 @@ public class MovementTicker {
         if (player.wasTouchingWater && !player.isFlying) {
             // 0.8F seems hardcoded in
             // 1.13+ players on skeleton horses swim faster! Cool feature.
-            boolean isSkeletonHorse = player.playerVehicle != null && player.playerVehicle.type == EntityTypes.SKELETON_HORSE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13);
+            boolean isSkeletonHorse = player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.SKELETON_HORSE && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13);
             swimFriction = player.isSprinting && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? 0.9F : (isSkeletonHorse ? 0.96F : 0.8F);
             float swimSpeed = 0.02F;
 
@@ -347,7 +347,7 @@ public class MovementTicker {
                 swimSpeed += (player.speed - swimSpeed) * player.depthStriderLevel / 3.0F;
             }
 
-            if (player.compensatedPotions.getDolphinsGraceAmplifier() != null) {
+            if (player.compensatedEntities.getDolphinsGraceAmplifier() != null) {
                 swimFriction = 0.96F;
             }
 

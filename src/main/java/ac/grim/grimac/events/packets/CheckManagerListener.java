@@ -180,8 +180,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.y = player.packetStateData.lastClaimedPosition.getY();
             player.z = player.packetStateData.lastClaimedPosition.getZ();
 
-            if (player.playerVehicle != null) {
-                Vector3d posFromVehicle = BoundingBoxSize.getRidingOffsetFromVehicle(player.playerVehicle, player);
+            if (player.compensatedEntities.getSelf().getRiding() != null) {
+                Vector3d posFromVehicle = BoundingBoxSize.getRidingOffsetFromVehicle(player.compensatedEntities.getSelf().getRiding(), player);
                 player.x = posFromVehicle.getX();
                 player.y = posFromVehicle.getY();
                 player.z = posFromVehicle.getZ();
@@ -470,8 +470,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     }
                 }
 
-                Integer digSpeed = player.compensatedPotions.getPotionLevel(PotionTypes.HASTE);
-                Integer conduit = player.compensatedPotions.getPotionLevel(PotionTypes.CONDUIT_POWER);
+                Integer digSpeed = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.HASTE);
+                Integer conduit = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);
 
                 if (digSpeed != null || conduit != null) {
                     int i = 0;
@@ -489,7 +489,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                     speedMultiplier *= 1 + (0.2 * hasteLevel);
                 }
 
-                Integer miningFatigue = player.compensatedPotions.getPotionLevel(PotionTypes.MINING_FATIGUE);
+                Integer miningFatigue = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.MINING_FATIGUE);
 
                 if (miningFatigue != null) {
                     switch (miningFatigue) {
@@ -706,7 +706,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         // Due to 0.03, we can't check exact position, only within 0.03
                         player.filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < threshold * threshold))
                         // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
-                        || player.inVehicle)) {
+                        || player.compensatedEntities.getSelf().inVehicle())) {
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
 
             if (player.xRot != yaw || player.yRot != pitch) {
@@ -747,7 +747,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
 
         // This stupid mechanic has been measured with 0.03403409022229198 y velocity... DAMN IT MOJANG, use 0.06 to be safe...
-        if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && !player.inVehicle) {
+        if (!hasPosition && onGround != player.packetStateData.packetPlayerOnGround && !player.compensatedEntities.getSelf().inVehicle()) {
             player.lastOnGround = onGround;
             player.clientClaimsLastOnGround = onGround;
             player.uncertaintyHandler.onGroundUncertain = true;
@@ -785,7 +785,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             player.filterMojangStupidityOnMojangStupidity = clampVector;
 
-            if (!player.inVehicle) {
+            if (!player.compensatedEntities.getSelf().inVehicle()) {
                 player.x = clampVector.getX();
                 player.y = clampVector.getY();
                 player.z = clampVector.getZ();

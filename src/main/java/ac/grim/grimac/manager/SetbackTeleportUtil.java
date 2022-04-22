@@ -272,7 +272,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 if (setBack != null && requiredSetBack.getPosition().getX() == teleportPos.getSecond().getX()
                         && Math.abs(requiredSetBack.getPosition().getY() - teleportPos.getSecond().getY()) < 1e-7
                         && requiredSetBack.getPosition().getZ() == teleportPos.getSecond().getZ()) {
-                    if (!player.inVehicle) {
+                    if (!player.compensatedEntities.getSelf().inVehicle()) {
                         player.lastOnGround = player.packetStateData.packetPlayerOnGround;
                     }
                     teleportData.setSetback(requiredSetBack);

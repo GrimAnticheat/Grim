@@ -273,18 +273,18 @@ public class UncertaintyHandler {
         }
 
         // This is a section where I hack around current issues with Grim itself...
-        if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && (!player.isPointThree() || player.inVehicle)) {
+        if (player.uncertaintyHandler.wasAffectedByStuckSpeed() && (!player.isPointThree() || player.compensatedEntities.getSelf().inVehicle())) {
             offset -= 0.01;
         }
 
-        if (player.uncertaintyHandler.influencedByBouncyBlock() && (!player.isPointThree() || player.inVehicle)) {
+        if (player.uncertaintyHandler.influencedByBouncyBlock() && (!player.isPointThree() || player.compensatedEntities.getSelf().inVehicle())) {
             offset -= 0.03;
         }
         // This is the end of that section.
 
         // I can't figure out how the client exactly tracks boost time
-        if (player.playerVehicle instanceof PacketEntityRideable) {
-            PacketEntityRideable vehicle = (PacketEntityRideable) player.playerVehicle;
+        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
+            PacketEntityRideable vehicle = (PacketEntityRideable) player.compensatedEntities.getSelf().getRiding();
             if (vehicle.currentBoostTime < vehicle.boostTimeMax + 20)
                 offset -= 0.01;
         }
@@ -307,7 +307,7 @@ public class UncertaintyHandler {
 
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.type == EntityTypes.BOAT || entity.type == EntityTypes.SHULKER) && entity != player.playerVehicle &&
+            if ((entity.type == EntityTypes.BOAT || entity.type == EntityTypes.SHULKER) && entity != player.compensatedEntities.getSelf().getRiding() &&
                     entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -318,10 +318,10 @@ public class UncertaintyHandler {
 
     private boolean striderCollision(SimpleCollisionBox expandedBB) {
         // Stiders can walk on top of other striders
-        if (player.playerVehicle instanceof PacketEntityStrider) {
+        if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
             for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
-                if (entity.type == EntityTypes.STRIDER && entity != player.playerVehicle && !entity.hasPassenger(entityPair.getKey())
+                if (entity.type == EntityTypes.STRIDER && entity != player.compensatedEntities.getSelf().getRiding() && !entity.hasPassenger(entityPair.getValue())
                         && entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }
@@ -333,10 +333,10 @@ public class UncertaintyHandler {
 
     private boolean boatCollision(SimpleCollisionBox expandedBB) {
         // Boats can collide with quite literally anything
-        if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT) {
+        if (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT) {
             for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
-                if (entity != player.playerVehicle && (player.playerVehicle == null || !player.playerVehicle.hasPassenger(entityPair.getKey())) &&
+                if (entity != player.compensatedEntities.getSelf().getRiding() && (player.compensatedEntities.getSelf().getRiding() == null || !player.compensatedEntities.getSelf().getRiding().hasPassenger(entityPair.getValue())) &&
                         entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                     return true;
                 }

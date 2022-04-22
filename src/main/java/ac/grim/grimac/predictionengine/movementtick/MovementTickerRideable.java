@@ -4,7 +4,6 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.apache.commons.lang.NotImplementedException;
 
 public class MovementTickerRideable extends MovementTickerLivingVehicle {
 
@@ -14,7 +13,7 @@ public class MovementTickerRideable extends MovementTickerLivingVehicle {
         // If the player has carrot/fungus on a stick, otherwise the player has no control
         float f = getSteeringSpeed();
 
-        PacketEntityRideable boost = ((PacketEntityRideable) player.playerVehicle);
+        PacketEntityRideable boost = ((PacketEntityRideable) player.compensatedEntities.getSelf().getRiding());
 
         // Do stuff for boosting on a pig/strider
         if (boost.currentBoostTime++ < boost.boostTimeMax) {
@@ -28,7 +27,7 @@ public class MovementTickerRideable extends MovementTickerLivingVehicle {
 
     // Pig and Strider should implement this
     public float getSteeringSpeed() {
-        throw new NotImplementedException();
+        throw new IllegalStateException("Not implemented");
     }
 
     @Override

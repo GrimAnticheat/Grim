@@ -7,10 +7,7 @@ import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSteerVehicle;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 
 public class PacketPlayerSteer extends PacketListenerAbstract {
 
@@ -29,7 +26,7 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
             // Multiple steer vehicles in a row, the player is not in control of their vehicle
             // We must do this SYNC! to netty, as to get the packet location of the vehicle
             // Otherwise other checks may false because the player's position is unknown.
-            if (player.packetStateData.receivedSteerVehicle && player.playerVehicle != null) {
+            if (player.packetStateData.receivedSteerVehicle && player.compensatedEntities.getSelf().getRiding() != null) {
                 // Tick update
                 player.compensatedWorld.tickPlayerInPistonPushingArea();
                 player.compensatedEntities.tick();
@@ -38,8 +35,9 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.vehicleData.lastDummy = true;
 
                 // Update knockback and explosions after getting the vehicle
-                player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
-                player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(player.inVehicle ? player.vehicle : player.entityID, player.lastTransactionReceived.get());
+                int controllingEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
+                player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(controllingEntityId, player.lastTransactionReceived.get());
+                player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(controllingEntityId, player.lastTransactionReceived.get());
 
                 // The player still applies kb even if they aren't in control of the vehicle, for some reason
                 if (player.firstBreadKB != null) {
@@ -64,23 +62,11 @@ public class PacketPlayerSteer extends PacketListenerAbstract {
                 player.lastY = player.y;
                 player.lastZ = player.z;
 
-                SimpleCollisionBox vehiclePos = player.playerVehicle.getPossibleCollisionBoxes();
+                SimpleCollisionBox vehiclePos = player.compensatedEntities.getSelf().getRiding().getPossibleCollisionBoxes();
 
                 player.x = (vehiclePos.minX + vehiclePos.maxX) / 2;
                 player.y = (vehiclePos.minY + vehiclePos.maxY) / 2;
                 player.z = (vehiclePos.minZ + vehiclePos.maxZ) / 2;
-
-                if (player.bukkitPlayer == null) return;
-
-                // Use bukkit location, not packet location, to stop ping spoof attacks on entity position
-                Entity playerVehicle = player.bukkitPlayer.getVehicle();
-                if (playerVehicle != null) {
-                    Location location = playerVehicle.getLocation();
-                    double x = location.getX();
-                    double y = location.getY();
-                    double z = location.getZ();
-                    player.getSetbackTeleportUtil().setSafeSetbackLocation(new Vector3d(x, y, z));
-                }
 
                 return;
             }

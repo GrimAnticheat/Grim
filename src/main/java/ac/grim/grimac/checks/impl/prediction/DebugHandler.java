@@ -10,7 +10,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 @CheckData(name = "Prediction (Debug)")
@@ -50,7 +52,7 @@ public class DebugHandler extends PostPredictionCheck {
         String a = color + "A: " + xColor + actually.getX() + " " + yColor + actually.getY() + " " + zColor + actually.getZ();
         String canSkipTick = (player.couldSkipTick + " ").substring(0, 1);
         String actualMovementSkip = (player.skippedTickInActualMovement + " ").substring(0, 1);
-        String o = ChatColor.GRAY + "" + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset + " " + player.inVehicle;
+        String o = ChatColor.GRAY + "" + canSkipTick + "→0.03→" + actualMovementSkip + color + " O: " + offset;
 
         String prefix = player.bukkitPlayer == null ? "null" : player.bukkitPlayer.getName() + " ";
 

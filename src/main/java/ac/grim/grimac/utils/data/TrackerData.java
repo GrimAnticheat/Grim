@@ -1,17 +1,20 @@
 package ac.grim.grimac.utils.data;
 
 import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 @Data
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TrackerData {
-    double x;
-    double y;
-    double z;
-    float xRot;
-    float yRot;
+    @NonNull
+    double x, y, z;
+    @NonNull
+    float xRot, yRot;
+    @NonNull
     EntityType entityType;
+    @NonNull
     int lastTransactionHung;
+    int legacyPointEightMountedUpon;
 }

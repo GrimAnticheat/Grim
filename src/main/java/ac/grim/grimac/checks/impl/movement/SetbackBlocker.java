@@ -24,7 +24,7 @@ public class SetbackBlocker extends PacketCheck {
             }
 
             // Look is the only valid packet to send while in a vehicle
-            if (player.inVehicle && event.getPacketType() != PacketType.Play.Client.PLAYER_ROTATION && !player.packetStateData.lastPacketWasTeleport) {
+            if (player.compensatedEntities.getSelf().inVehicle() && event.getPacketType() != PacketType.Play.Client.PLAYER_ROTATION && !player.packetStateData.lastPacketWasTeleport) {
                 event.setCancelled(true);
             }
 
@@ -45,7 +45,7 @@ public class SetbackBlocker extends PacketCheck {
             }
 
             // Don't let a player move a vehicle when not in a vehicle
-            if (!player.inVehicle) {
+            if (!player.compensatedEntities.getSelf().inVehicle()) {
                 event.setCancelled(true);
             }
 

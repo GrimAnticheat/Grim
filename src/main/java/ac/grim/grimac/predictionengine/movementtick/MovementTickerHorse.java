@@ -11,7 +11,7 @@ public class MovementTickerHorse extends MovementTickerLivingVehicle {
     public MovementTickerHorse(GrimPlayer player) {
         super(player);
 
-        PacketEntityHorse horsePacket = (PacketEntityHorse) player.playerVehicle;
+        PacketEntityHorse horsePacket = (PacketEntityHorse) player.compensatedEntities.getSelf().getRiding();
 
         if (!horsePacket.hasSaddle) return;
 

@@ -13,7 +13,6 @@ import ac.grim.grimac.predictionengine.UncertaintyHandler;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
-import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.latency.*;
@@ -158,7 +157,6 @@ public class GrimPlayer {
     public CompensatedFireworks compensatedFireworks;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
-    public CompensatedPotions compensatedPotions;
     public LatencyUtils latencyUtils;
     public PointThreeEstimator pointThreeEstimator;
     public TrigHandler trigHandler;
@@ -179,9 +177,6 @@ public class GrimPlayer {
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
-    public boolean inVehicle;
-    public Integer vehicle = null;
-    public PacketEntity playerVehicle;
     public GameMode gamemode;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
@@ -221,7 +216,6 @@ public class GrimPlayer {
         compensatedWorld = new CompensatedWorld(this);
         compensatedFireworks = new CompensatedFireworks(this);
         compensatedEntities = new CompensatedEntities(this);
-        compensatedPotions = new CompensatedPotions(this);
         latencyUtils = new LatencyUtils(this);
         trigHandler = new TrigHandler(this);
         uncertaintyHandler = new UncertaintyHandler(this);
@@ -348,9 +342,9 @@ public class GrimPlayer {
     }
 
     public float getMaxUpStep() {
-        if (playerVehicle == null) return 0.6f;
+        if (compensatedEntities.getSelf().getRiding() == null) return 0.6f;
 
-        if (playerVehicle.type == EntityTypes.BOAT) {
+        if (compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT) {
             return 0f;
         }
 
@@ -484,7 +478,7 @@ public class GrimPlayer {
     }
 
     public boolean exemptOnGround() {
-        return inVehicle
+        return compensatedEntities.getSelf().inVehicle()
                 || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
                 || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isStepMovement
                 || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
@@ -493,7 +487,7 @@ public class GrimPlayer {
 
     public void handleMountVehicle(int vehicleID) {
         compensatedEntities.serverPlayerVehicle = vehicleID;
-        TrackerData data = compensatedEntities.serverPositionsMap.get(vehicleID);
+        TrackerData data = compensatedEntities.getTrackedEntity(vehicleID);
 
         if (data != null) {
             // If we actually need to check vehicle movement
@@ -511,14 +505,12 @@ public class GrimPlayer {
         sendTransaction();
 
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
-            PacketEntity packetVehicle = compensatedEntities.getEntity(vehicleID);
-            if (packetVehicle == null) return; // Vanilla behavior for invalid vehicles
-
-            this.vehicle = vehicleID;
-            this.playerVehicle = packetVehicle;
-            this.inVehicle = true;
             this.vehicleData.wasVehicleSwitch = true;
         });
+    }
+
+    public int getRidingVehicleId() {
+        return compensatedEntities.getPacketEntityID(compensatedEntities.getSelf().getRiding());
     }
 
     public void handleDismountVehicle(PacketSendEvent event) {
@@ -527,19 +519,21 @@ public class GrimPlayer {
 
         compensatedEntities.serverPlayerVehicle = null;
         event.getPostTasks().add(() -> {
-            if (vehicle != null) {
-                TrackerData data = compensatedEntities.serverPositionsMap.get(vehicle);
+            if (compensatedEntities.getSelf().getRiding() != null) {
+                int ridingId = getRidingVehicleId();
+                TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
-                    user.sendPacket(new WrapperPlayServerEntityTeleport(vehicle, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
+                    user.sendPacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }
             }
         });
 
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
-            this.playerVehicle = null;
-            this.vehicle = null;
-            this.inVehicle = false;
             this.vehicleData.wasVehicleSwitch = true;
+            // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
+            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)) {
+                compensatedEntities.hasSprintingAttributeEnabled = false;
+            }
         });
     }
 }

@@ -51,13 +51,13 @@ public class BlockProperties {
         }
 
         // The game uses values known as flyingSpeed for some vehicles in the air
-        if (player.playerVehicle != null) {
-            if (player.playerVehicle.type == EntityTypes.PIG || player.playerVehicle instanceof PacketEntityHorse) {
+        if (player.compensatedEntities.getSelf().getRiding() != null) {
+            if (player.compensatedEntities.getSelf().getRiding().type == EntityTypes.PIG || player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityHorse) {
                 return (float) (player.speed * 0.1f);
             }
 
-            if (player.playerVehicle instanceof PacketEntityStrider) {
-                PacketEntityStrider strider = (PacketEntityStrider) player.playerVehicle;
+            if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
+                PacketEntityStrider strider = (PacketEntityStrider) player.compensatedEntities.getSelf().getRiding();
                 // Vanilla multiplies by 0.1 to calculate speed
                 return strider.movementSpeedAttribute * (strider.isShaking ? 0.66F : 1.0F) * 0.1f;
             }

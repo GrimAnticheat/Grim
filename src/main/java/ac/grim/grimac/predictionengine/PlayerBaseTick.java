@@ -36,7 +36,7 @@ public class PlayerBaseTick {
         player.baseTickAddition = new Vector();
         player.baseTickWaterPushing = new Vector();
 
-        if (player.isFlying && player.isSneaking && !player.inVehicle) {
+        if (player.isFlying && player.isSneaking && !player.compensatedEntities.getSelf().inVehicle()) {
             player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
         }
 
@@ -49,7 +49,7 @@ public class PlayerBaseTick {
             player.fallDistance *= 0.5;
 
         // You cannot crouch while flying, only shift - could be specific to 1.14?
-        if (player.wasTouchingWater && player.isSneaking && !player.isFlying && !player.inVehicle) {
+        if (player.wasTouchingWater && player.isSneaking && !player.isFlying && !player.compensatedEntities.getSelf().inVehicle()) {
             player.baseTickAddVector(new Vector(0, -0.04f, 0));
         }
 
@@ -67,10 +67,10 @@ public class PlayerBaseTick {
                 // and the player is not touching water (yes, this also can override the gliding slowness)
                 (player.pose == Pose.SWIMMING || (!player.isGliding && player.pose == Pose.FALL_FLYING)) && !player.wasTouchingWater);
 
-        if (player.inVehicle) player.isSlowMovement = false;
+        if (player.compensatedEntities.getSelf().inVehicle()) player.isSlowMovement = false;
 
         // Players in boats don't care about being in blocks
-        if (!player.inVehicle) {
+        if (!player.compensatedEntities.getSelf().inVehicle()) {
             this.moveTowardsClosestSpace(player.lastX - (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ + (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
             this.moveTowardsClosestSpace(player.lastX - (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ - (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
             this.moveTowardsClosestSpace(player.lastX + (player.boundingBox.maxX - player.boundingBox.minX) * 0.35, player.lastZ - (player.boundingBox.maxZ - player.boundingBox.minZ) * 0.35);
@@ -93,7 +93,7 @@ public class PlayerBaseTick {
 
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
 
-        if (player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
@@ -132,7 +132,7 @@ public class PlayerBaseTick {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) return;
 
         // The client first desync's this attribute
-        player.compensatedEntities.playerSpeed.getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID));
+        player.compensatedEntities.getSelf().playerSpeed.getModifiers().removeIf(modifier -> modifier.getUUID().equals(CompensatedEntities.SNOW_MODIFIER_UUID));
 
         // And then re-adds it using purely what the server has sent it
         StateType type = BlockProperties.getOnBlock(player, player.x, player.y, player.z);
@@ -141,8 +141,10 @@ public class PlayerBaseTick {
             int i = player.powderSnowFrozenTicks;
             if (i > 0) {
                 int ticksToFreeze = 140;
-                float f = -0.05F * ((float) Math.min(i, 140) / ticksToFreeze);
-                player.compensatedEntities.playerSpeed.getModifiers().add(new WrapperPlayServerEntityProperties.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, f, WrapperPlayServerEntityProperties.PropertyModifier.Operation.ADDITION));
+                // Remember, floats are not commutative, we must do it in the client's specific order
+                float percentFrozen = (float) Math.min(i, ticksToFreeze) / (float) ticksToFreeze;
+                float percentFrozenReducedToSpeed = -0.05F * percentFrozen;
+                player.compensatedEntities.getSelf().playerSpeed.getModifiers().add(new WrapperPlayServerEntityProperties.PropertyModifier(CompensatedEntities.SNOW_MODIFIER_UUID, percentFrozenReducedToSpeed, WrapperPlayServerEntityProperties.PropertyModifier.Operation.ADDITION));
             }
         }
     }
@@ -170,7 +172,7 @@ public class PlayerBaseTick {
             // I'm not too sure about this code, but it appears like this is only a 1.14+ feature
             // In my testing this seems good but still don't have full confidence for versions like 1.13
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) &&
-                    !player.inVehicle && !canEnterPose(player, pose, player.x, player.y, player.z)) {
+                    !player.compensatedEntities.getSelf().inVehicle() && !canEnterPose(player, pose, player.x, player.y, player.z)) {
                 if (canEnterPose(player, Pose.CROUCHING, player.x, player.y, player.z)) {
                     pose = Pose.CROUCHING;
                 } else {
@@ -225,7 +227,7 @@ public class PlayerBaseTick {
         } else if (player.isFlying) {
             player.isSwimming = false;
         } else {
-            if (player.inVehicle) {
+            if (player.compensatedEntities.getSelf().inVehicle()) {
                 player.isSwimming = false;
             } else if (player.isSwimming) {
                 player.isSwimming = player.lastSprinting && player.wasTouchingWater;
@@ -368,7 +370,7 @@ public class PlayerBaseTick {
     }
 
     public void updateInWaterStateAndDoWaterCurrentPushing() {
-        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.playerVehicle != null && player.playerVehicle.type == EntityTypes.BOAT);
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT);
         if (player.wasTouchingWater)
             player.fallDistance = 0;
     }
@@ -486,7 +488,7 @@ public class PlayerBaseTick {
                 vec3 = vec3.multiply(1.0 / n7);
             }
 
-            if (player.inVehicle) {
+            if (player.compensatedEntities.getSelf().inVehicle()) {
                 // This is a riding entity, normalize it for some reason.
                 vec3 = vec3.normalize();
             }
