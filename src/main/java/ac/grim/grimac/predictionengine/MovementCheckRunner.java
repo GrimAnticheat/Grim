@@ -336,6 +336,10 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && player.isFlying)
             player.isSprinting = true;
 
+        if (player.isSprinting != player.lastSprinting) {
+            player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
+        }
+
         boolean oldFlying = player.isFlying;
         boolean oldGliding = player.isGliding;
         boolean oldSprinting = player.isSprinting;
