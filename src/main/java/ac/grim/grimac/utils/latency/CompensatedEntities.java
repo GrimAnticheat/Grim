@@ -32,8 +32,8 @@ public class CompensatedEntities {
 
     GrimPlayer player;
 
-    TrackerData selfTrackedEntity;
-    PacketEntitySelf playerEntity;
+    public TrackerData selfTrackedEntity;
+    public PacketEntitySelf playerEntity;
 
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
