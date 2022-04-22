@@ -15,7 +15,6 @@ repositories {
     } // PacketEvents
     maven { url = 'https://repo.viaversion.com' } // ViaVersion
     maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF
-    maven { url = "https://repo.essentialsx.net/releases/" } // Essentials
     maven { url = "https://nexus.scarsz.me/content/groups/public" } // Configuralize
     maven { url = "https://clojars.org/repo" } // MultiPaper MultiLib
     mavenCentral() // FastUtil, Discord-Webhooks, Lombok
@@ -33,7 +32,6 @@ dependencies {
 
     compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.1.1'
-    compileOnly group: 'net.essentialsx', name: 'EssentialsX', version: '2.19.2'
     compileOnly 'org.projectlombok:lombok:1.18.22'
     annotationProcessor 'org.projectlombok:lombok:1.18.22'
 
