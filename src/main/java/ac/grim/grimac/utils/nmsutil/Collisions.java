@@ -5,6 +5,7 @@ import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -18,6 +19,7 @@ import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.Location;
 import org.bukkit.WorldBorder;
 import org.bukkit.util.Vector;
@@ -590,31 +592,8 @@ public class Collisions {
         return box.isFullBlock();
     }
 
-    public static boolean hasBouncyBlock(GrimPlayer player) {
-        SimpleCollisionBox playerBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
-        return hasSlimeBlock(player) || hasMaterial(player, playerBB, type -> BlockTags.BEDS.contains(type.getType()));
-    }
-
-    // Has slime block, or honey with the ViaVersion replacement block
-    // This is terrible code lmao.  I need to refactor to add a new player bounding box, or somehow play with block mappings,
-    // so I can automatically map honey -> slime and other important ViaVersion replacement blocks
-    public static boolean hasSlimeBlock(GrimPlayer player) {
-        return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8) // Only 1.8 players have slime blocks
-                && (hasMaterial(player, StateTypes.SLIME_BLOCK, -1) // Directly a slime block
-                ||
-                // ViaVersion mapped slime block from 1.8 to 1.14.4
-                (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)
-                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)
-                        && hasMaterial(player, StateTypes.HONEY_BLOCK, -1)));
-    }
-
-    public static boolean hasMaterial(GrimPlayer player, StateType searchMat, double offset) {
-        SimpleCollisionBox playerBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, offset, 0);
-        return hasMaterial(player, playerBB, material -> material.getType() == searchMat);
-    }
-
     // Thanks Tuinity
-    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<WrappedBlockState> searchingFor) {
+    public static boolean hasMaterial(GrimPlayer player, SimpleCollisionBox checkBox, Predicate<Pair<WrappedBlockState, Vector3d>> searchingFor) {
         int minBlockX = (int) Math.floor(checkBox.minX);
         int maxBlockX = (int) Math.floor(checkBox.maxX);
         int minBlockY = (int) Math.floor(checkBox.minY);
@@ -668,7 +647,7 @@ public class Collisions {
 
                             WrappedBlockState data = section.get(CompensatedWorld.blockVersion, x & 0xF, y & 0xF, z & 0xF);
 
-                            if (searchingFor.test(data)) return true;
+                            if (searchingFor.test(new Pair<>(data, new Vector3d(x, y, z)))) return true;
                         }
                     }
                 }

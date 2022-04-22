@@ -32,6 +32,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import org.bukkit.util.Vector;
@@ -370,13 +371,39 @@ public class MovementCheckRunner extends PositionCheck {
             player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
         }
 
-        SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
-        player.uncertaintyHandler.isSteppingOnSlime = Collisions.hasSlimeBlock(player);
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
-        player.uncertaintyHandler.isSteppingOnBouncyBlock = Collisions.hasBouncyBlock(player);
-        player.uncertaintyHandler.isSteppingOnIce = Collisions.hasMaterial(player, steppingOnBB, type -> BlockTags.ICE.contains(type.getType()));
-        player.uncertaintyHandler.isSteppingOnHoney = Collisions.hasMaterial(player, StateTypes.HONEY_BLOCK, -0.03);
-        player.uncertaintyHandler.isSteppingNearBubbleColumn = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && Collisions.hasMaterial(player, StateTypes.BUBBLE_COLUMN, -1);
+        player.uncertaintyHandler.isSteppingOnSlime = false;
+        player.uncertaintyHandler.isSteppingOnBouncyBlock = false;
+        player.uncertaintyHandler.isSteppingOnIce = false;
+        player.uncertaintyHandler.isSteppingOnHoney = false;
+        player.uncertaintyHandler.isSteppingNearBubbleColumn = false;
+
+
+        SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
+        Collisions.hasMaterial(player, steppingOnBB, (pair) -> {
+            WrappedBlockState data = pair.getFirst();
+            if (data.getType() == StateTypes.SLIME_BLOCK && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                player.uncertaintyHandler.isSteppingOnSlime = true;
+                player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
+            }
+            if (data.getType() == StateTypes.HONEY_BLOCK) {
+                if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)
+                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                    player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
+                }
+                player.uncertaintyHandler.isSteppingOnHoney = true;
+            }
+            if (BlockTags.BEDS.contains(data.getType()) && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+                player.uncertaintyHandler.isSteppingOnBouncyBlock = true;
+            }
+            if (BlockTags.ICE.contains(data.getType())) {
+                player.uncertaintyHandler.isSteppingOnIce = true;
+            }
+            if (data.getType() == StateTypes.BUBBLE_COLUMN) {
+                player.uncertaintyHandler.isSteppingNearBubbleColumn = true;
+            }
+            return false;
+        });
 
         player.uncertaintyHandler.thisTickSlimeBlockUncertainty = player.uncertaintyHandler.nextTickSlimeBlockUncertainty;
         player.uncertaintyHandler.nextTickSlimeBlockUncertainty = 0;
@@ -395,10 +422,12 @@ public class MovementCheckRunner extends PositionCheck {
         // and they are intersecting with these glitched bounding boxes
         // give them a decent amount of uncertainty and don't ban them for mojang's stupid mistake
         boolean isGlitchy = player.uncertaintyHandler.isNearGlitchyBlock;
+
         player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
                 && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03),
-                checkData -> BlockTags.ANVIL.contains(checkData.getType())
-                        || checkData.getType() == StateTypes.CHEST || checkData.getType() == StateTypes.TRAPPED_CHEST);
+                checkData -> BlockTags.ANVIL.contains(checkData.getFirst().getType())
+                        || checkData.getFirst().getType() == StateTypes.CHEST || checkData.getFirst().getType() == StateTypes.TRAPPED_CHEST);
+
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
 
         player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;

@@ -6,14 +6,12 @@ import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
-import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.*;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import lombok.Getter;
 import lombok.Setter;
@@ -212,14 +210,12 @@ public class PointThreeEstimator {
         headHitter = false;
         // Can we trust the pose height?
         for (float sizes : (player.skippedTickInActualMovement ? new float[]{0.6f, 1.5f, 1.8f} : new float[]{player.pose.height})) {
-            player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, sizes);
+            // Try to limit collisions to be as small as possible, for maximum performance
+            player.boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y + (sizes - 0.01f), player.z, 0.6f, 0.01f);
             headHitter = headHitter || Collisions.collide(player, 0, 0.03, 0).getY() != 0.03;
         }
 
         player.boundingBox = oldBB;
-
-        // The last tick determines whether the player is swimming for the next tick
-        isNearFluid = player.compensatedWorld.containsLiquid(pointThreeBox);
 
         checkNearbyBlocks(pointThreeBox);
 
@@ -246,35 +242,29 @@ public class PointThreeEstimator {
         isNearVerticalFlowingLiquid = false;
         isNearClimbable = false;
         isNearBubbleColumn = false;
+        isNearFluid = false;
 
         // Check for flowing water
-        for (int bbX = GrimMath.floor(pointThreeBox.minX); bbX <= GrimMath.ceil(pointThreeBox.maxX); bbX++) {
-            for (int bbY = GrimMath.floor(pointThreeBox.minY); bbY <= GrimMath.ceil(pointThreeBox.maxY); bbY++) {
-                for (int bbZ = GrimMath.floor(pointThreeBox.minZ); bbZ <= GrimMath.ceil(pointThreeBox.maxZ); bbZ++) {
-                    Vector flow = FluidTypeFlowing.getFlow(player, bbX, bbY, bbZ);
-                    if (flow.getX() != 0 || flow.getZ() != 0) {
-                        isNearHorizontalFlowingLiquid = true;
-                    }
-                    if (flow.getY() != 0) {
-                        isNearVerticalFlowingLiquid = true;
-                    }
-
-                    WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(bbX, bbY, bbZ);
-                    StateType mat = state.getType();
-                    if (Materials.isClimbable(player.compensatedWorld.getStateTypeAt(bbX, bbY, bbZ)) || (mat == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle())) {
-                        isNearClimbable = true;
-                    }
-
-                    if (BlockTags.TRAPDOORS.contains(mat)) {
-                        isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, bbX, bbY, bbZ, state);
-                    }
-
-                    if (mat == StateTypes.BUBBLE_COLUMN) {
-                        isNearBubbleColumn = true;
-                    }
-                }
+        Collisions.hasMaterial(player, pointThreeBox, (pair) -> {
+            WrappedBlockState state = pair.getFirst();
+            if (Materials.isClimbable(state.getType()) || (state.getType() == StateTypes.POWDER_SNOW && !player.compensatedEntities.getSelf().inVehicle())) {
+                isNearClimbable = true;
             }
-        }
+
+            if (BlockTags.TRAPDOORS.contains(state.getType())) {
+                isNearClimbable = isNearClimbable || Collisions.trapdoorUsableAsLadder(player, pair.getSecond().getX(), pair.getSecond().getY(), pair.getSecond().getZ(), state);
+            }
+
+            if (state.getType() == StateTypes.BUBBLE_COLUMN) {
+                isNearBubbleColumn = true;
+            }
+
+            if (Materials.isWater(player.getClientVersion(), pair.getFirst()) || pair.getFirst().getType() == StateTypes.LAVA) {
+                isNearFluid = true;
+            }
+
+            return false;
+        });
     }
 
     public boolean closeEnoughToGroundToStepWithPointThree(VectorData data, double originalY) {

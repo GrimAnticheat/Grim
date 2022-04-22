@@ -430,11 +430,7 @@ public class CompensatedWorld {
     }
 
     public boolean containsLiquid(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data) || data.getType() == StateTypes.LAVA);
-    }
-
-    public boolean containsWater(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data));
+        return Collisions.hasMaterial(player, var0, data -> Materials.isWater(player.getClientVersion(), data.getFirst()) || data.getFirst().getType() == StateTypes.LAVA);
     }
 
     public double getLavaFluidLevelAt(int x, int y, int z) {
@@ -456,7 +452,7 @@ public class CompensatedWorld {
     }
 
     public boolean containsLava(SimpleCollisionBox var0) {
-        return Collisions.hasMaterial(player, var0, data -> data.getType() == StateTypes.LAVA);
+        return Collisions.hasMaterial(player, var0, data -> data.getFirst().getType() == StateTypes.LAVA);
     }
 
     public double getWaterFluidLevelAt(double x, double y, double z) {

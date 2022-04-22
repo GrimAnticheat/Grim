@@ -2,12 +2,15 @@ package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.TrackerData;
+import ac.grim.grimac.utils.data.packetentity.PacketEntitySelf;
 import ac.grim.grimac.utils.enums.Pose;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerJoinGame;
@@ -78,9 +81,12 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.lastOnGround = false;
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
+                player.compensatedEntities.playerEntity = new PacketEntitySelf();
+                player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;
-                    // TODO: This isn't right, what does viaversion do with keep all metadata??
+                    // TODO: What the fuck viaversion, why do you throw out keep all metadata?
+                    // The server doesn't even use it... what do we do?
                     player.compensatedEntities.hasSprintingAttributeEnabled = false;
                 }
                 player.pose = Pose.STANDING;
