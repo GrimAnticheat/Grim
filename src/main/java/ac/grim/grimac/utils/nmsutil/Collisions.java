@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.nmsutil;
 
+import ac.grim.grimac.events.packets.PacketWorldBorder;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
@@ -21,7 +22,6 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
 import org.bukkit.Location;
-import org.bukkit.WorldBorder;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -164,14 +164,13 @@ public class Collisions {
 
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
-        if (player.clientControlledHorizontalCollision && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.bukkitPlayer != null) {
-            WorldBorder border = player.bukkitPlayer.getWorld().getWorldBorder();
-            double centerX = border.getCenter().getX();
-            double centerZ = border.getCenter().getZ();
+        if (player.clientControlledHorizontalCollision && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
+            PacketWorldBorder border = ((PacketWorldBorder) player.checkManager.getPacketCheck(PacketWorldBorder.class));
+            double centerX = border.getCenterX();
+            double centerZ = border.getCenterZ();
 
             // For some reason, the game limits the border to 29999984 blocks wide
-            // TODO: Support dynamic worldborder with latency compensation
-            double size = border.getSize() / 2;
+            double size = border.getCurrentDiameter() / 2;
 
             // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions (optimization)
             if (Math.abs(player.x + centerX) + 16 > size || Math.abs(player.z + centerZ) + 16 > size) {
