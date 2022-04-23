@@ -49,7 +49,8 @@ public class PlayerBaseTick {
             player.fallDistance *= 0.5;
 
         // You cannot crouch while flying, only shift - could be specific to 1.14?
-        if (player.wasTouchingWater && player.isSneaking && !player.isFlying && !player.compensatedEntities.getSelf().inVehicle()) {
+        // pre-1.13 clients don't have this code
+        if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && player.wasTouchingWater && player.isSneaking && !player.isFlying && !player.compensatedEntities.getSelf().inVehicle()) {
             player.baseTickAddVector(new Vector(0, -0.04f, 0));
         }
 
