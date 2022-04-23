@@ -14,11 +14,13 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityAnimation;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityMetadata;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUseBed;
 
 import java.util.List;
+import java.util.Optional;
 
 public class PacketSelfMetadataListener extends PacketListenerAbstract {
     public PacketSelfMetadataListener() {
@@ -79,9 +81,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         boolean isSwimming = (field & 0x10) == 0x10;
                         boolean isSprinting = (field & 0x8) == 0x8;
 
-                        // Send transaction BEFORE gliding so that any transition stuff will get removed
-                        // by the uncertainty from switching with an elytra
-                        player.sendTransaction();
+                        if (!hasSendTransaction) player.sendTransaction();
                         hasSendTransaction = true;
 
                         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
@@ -96,6 +96,60 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     }
                 }
 
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                    EntityData gravity = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), 5);
+
+                    if (gravity != null) {
+                        Object gravityObject = gravity.getValue();
+
+                        if (gravityObject instanceof Boolean) {
+                            if (!hasSendTransaction) player.sendTransaction();
+                            hasSendTransaction = true;
+
+                            // Vanilla uses hasNoGravity, which is a bad name IMO
+                            // hasGravity > hasNoGravity
+                            player.playerEntityHasGravity = !((Boolean) gravityObject);
+                        }
+                    }
+                }
+
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
+                    EntityData frozen = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), 7);
+
+                    if (frozen != null) {
+                        if (!hasSendTransaction) player.sendTransaction();
+                        hasSendTransaction = true;
+                        player.powderSnowFrozenTicks = (int) frozen.getValue();
+                    }
+                }
+
+                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
+                    int id;
+
+                    if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                        id = 12; // Added in 1.14 with an initial ID of 12
+                    } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                        id = 13; // 1.15 changed this to 13
+                    } else {
+                        id = 14; // 1.17 changed this to 14
+                    }
+
+                    EntityData bedObject = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), id);
+                    if (bedObject != null) {
+                        if (!hasSendTransaction) player.sendTransaction();
+                        hasSendTransaction = true;
+
+                        Optional<Vector3i> bed = (Optional<Vector3i>) bedObject.getValue();
+                        if (bed.isPresent()) {
+                            player.isInBed = true;
+                            Vector3i bedPos = bed.get();
+                            player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
+                        } else { // Run when we know the player is not in bed 100%
+                            player.isInBed = false;
+                        }
+                    }
+                }
+
                 if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) &&
                         player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
                     EntityData riptide = WatchableIndexUtil.getIndex(entityMetadata.getEntityMetadata(), PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17) ? 8 : 7);
@@ -103,6 +157,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     // This one only present if it changed
                     if (riptide != null && riptide.getValue() instanceof Byte) {
                         boolean isRiptiding = (((byte) riptide.getValue()) & 0x04) == 0x04;
+
+                        if (!hasSendTransaction) player.sendTransaction();
+                        hasSendTransaction = true;
 
                         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                             player.isRiptidePose = isRiptiding;
@@ -126,8 +183,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
                             boolean isActive = (((byte) riptide.getValue()) & 0x01) == 0x01;
                             boolean isOffhand = (((byte) riptide.getValue()) & 0x01) == 0x01;
-
-                            if (!hasSendTransaction) player.sendTransaction();
 
                             // Player might have gotten this packet
                             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(),

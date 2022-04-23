@@ -16,7 +16,6 @@ import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.protocol.potion.PotionTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.util.Vector3d;
-import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 
@@ -229,54 +228,6 @@ public class CompensatedEntities {
     }
 
     public void updateEntityMetadata(int entityID, List<EntityData> watchableObjects) {
-        if (entityID == player.entityID) {
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                EntityData gravity = WatchableIndexUtil.getIndex(watchableObjects, 5);
-
-                if (gravity != null) {
-                    Object gravityObject = gravity.getValue();
-
-                    if (gravityObject instanceof Boolean) {
-                        // Vanilla uses hasNoGravity, which is a bad name IMO
-                        // hasGravity > hasNoGravity
-                        player.playerEntityHasGravity = !((Boolean) gravityObject);
-                    }
-                }
-            }
-
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_17)) {
-                EntityData frozen = WatchableIndexUtil.getIndex(watchableObjects, 7);
-
-                if (frozen != null) {
-                    player.powderSnowFrozenTicks = (int) frozen.getValue();
-                }
-            }
-
-            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_14)) {
-                int id;
-
-                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
-                    id = 12; // Added in 1.14 with an initial ID of 12
-                } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
-                    id = 13; // 1.15 changed this to 13
-                } else {
-                    id = 14; // 1.17 changed this to 14
-                }
-
-                EntityData bedObject = WatchableIndexUtil.getIndex(watchableObjects, id);
-                if (bedObject != null) {
-                    Optional<Vector3i> bed = (Optional<Vector3i>) bedObject.getValue();
-                    if (bed.isPresent()) {
-                        player.isInBed = true;
-                        Vector3i bedPos = bed.get();
-                        player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
-                    } else { // Run when we know the player is not in bed 100%
-                        player.isInBed = false;
-                    }
-                }
-            }
-        }
-
         PacketEntity entity = player.compensatedEntities.getEntity(entityID);
         if (entity == null) return;
 
