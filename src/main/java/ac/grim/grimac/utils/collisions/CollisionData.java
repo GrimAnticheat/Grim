@@ -1037,6 +1037,15 @@ public enum CollisionData {
 
     }, StateTypes.POWDER_SNOW),
 
+    NETHER_PORTAL((player, version, data, x, y, z) -> {
+        if (data.getAxis() == Axis.X) {
+            return new HexCollisionBox(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
+        }
+        return new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D);
+    }, StateTypes.NETHER_PORTAL),
+
+    END_PORTAL(new HexCollisionBox(0.0D, 6.0D, 0.0D, 16.0D, 12.0D, 16.0D), StateTypes.END_PORTAL),
+
     AZALEA((player, version, data, x, y, z) -> {
         return new ComplexCollisionBox(new HexCollisionBox(0.0, 8.0, 0.0, 16.0, 16.0, 16.0),
                 new HexCollisionBox(6.0, 0.0, 6.0, 10.0, 8.0, 10.0));
