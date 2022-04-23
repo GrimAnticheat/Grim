@@ -9,7 +9,8 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientEn
 
 @CheckData(name = "BadPacketsF")
 public class BadPacketsF extends PacketCheck {
-    boolean lastSprinting;
+    public boolean lastSprinting;
+    boolean thanksMojang; // Support 1.14+ clients starting on either true or false sprinting, we don't know
 
     public BadPacketsF(GrimPlayer player) {
         super(player);
@@ -22,12 +23,20 @@ public class BadPacketsF extends PacketCheck {
 
             if (packet.getAction() == WrapperPlayClientEntityAction.Action.START_SPRINTING) {
                 if (lastSprinting) {
+                    if (!thanksMojang) {
+                        thanksMojang = true;
+                        return;
+                    }
                     flagAndAlert();
                 }
 
                 lastSprinting = true;
             } else if (packet.getAction() == WrapperPlayClientEntityAction.Action.STOP_SPRINTING) {
                 if (!lastSprinting) {
+                    if (!thanksMojang) {
+                        thanksMojang = true;
+                        return;
+                    }
                     flagAndAlert();
                 }
 
