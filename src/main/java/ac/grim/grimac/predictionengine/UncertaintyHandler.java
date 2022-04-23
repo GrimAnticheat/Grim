@@ -230,7 +230,7 @@ public class UncertaintyHandler {
             return pointThree * 2;
 
         // Velocity resets velocity, so we only have to give 0.03 uncertainty rather than 0.06
-        if (player.couldSkipTick && data.isKnockback())
+        if (player.couldSkipTick && (data.isKnockback() || player.isClimbing))
             return pointThree;
 
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
