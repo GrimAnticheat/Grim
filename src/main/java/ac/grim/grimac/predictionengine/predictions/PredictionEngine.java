@@ -104,138 +104,15 @@ public class PredictionEngine {
         endOfTick(player, player.gravity, player.friction);
     }
 
-    private void doPredictions(GrimPlayer player, List<VectorData> possibleVelocities, float speed) {
-        // Sorting is an optimization and a requirement
-        //
-        // TODO: Sorting is unnecessary and slow!
-        // We KNOW the order that we should run things anyways! Use it instead! No lists needed!
-        // Will be a good performance boost!  Although not essential as right now there's larger issues
-        // than a lost hundredth millisecond here and there. Readability/Accuracy > Performance currently.
-        possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
+    // These math equations are based off of the vanilla equations, made impossible to divide by 0
+    public static Vector getBestTheoreticalPlayerInput(GrimPlayer player, Vector wantedMovement, float f, float f2) {
+        float f3 = player.trigHandler.sin(f2 * 0.017453292f);
+        float f4 = player.trigHandler.cos(f2 * 0.017453292f);
 
-        double bestInput = Double.MAX_VALUE;
+        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
+        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
 
-        VectorData bestCollisionVel = null;
-        Vector beforeCollisionMovement = null;
-        Vector originalClientVel = player.clientVelocity.clone();
-
-        SimpleCollisionBox originalBB = player.boundingBox;
-        // 0.03 doesn't exist with vehicles, thank god
-        SimpleCollisionBox pointThreeThanksMojang = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 0.6f);
-
-        player.skippedTickInActualMovement = false;
-
-        for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
-            Vector primaryPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
-
-            Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
-            // Check if this vector could ever possible beat the last vector in terms of accuracy
-            // This is quite a good optimization :)
-            if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
-                continue;
-
-            if (clientVelAfterInput.isZeroPointZeroThree()) {
-                player.boundingBox = pointThreeThanksMojang;
-            } else {
-                player.boundingBox = originalBB;
-            }
-
-            boolean vehicleKB = player.compensatedEntities.getSelf().inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
-            // Extra collision epsilon required for vehicles to be accurate
-            double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
-            // The server likes sending y=0 kb "lifting" the player off the ground.
-            // The client doesn't send the vehicles onGround status, so we can't check for ground like normal.
-            double yAdditional = vehicleKB ? 0 : (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON;
-            double zAdditional = Math.signum(primaryPushMovement.getZ()) * SimpleCollisionBox.COLLISION_EPSILON;
-
-            // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
-            double testX = primaryPushMovement.getX() + xAdditional;
-            double testY = primaryPushMovement.getY() + yAdditional;
-            double testZ = primaryPushMovement.getZ() + zAdditional;
-            primaryPushMovement = new Vector(testX, testY, testZ);
-
-            Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY(), clientVelAfterInput);
-
-            if (testX == outputVel.getX()) { // the player didn't have X collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setX(primaryPushMovement.getX() - xAdditional);
-                outputVel.setX(outputVel.getX() - xAdditional);
-            }
-
-            if (testY == outputVel.getY()) { // the player didn't have Y collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setY(primaryPushMovement.getY() - yAdditional);
-                outputVel.setY(outputVel.getY() - yAdditional);
-            }
-
-            if (testZ == outputVel.getZ()) { // the player didn't have Z collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setZ(primaryPushMovement.getZ() - zAdditional);
-                outputVel.setZ(outputVel.getZ() - zAdditional);
-            }
-
-            Vector handleHardCodedBorder = outputVel;
-            handleHardCodedBorder = clampMovementToHardBorder(player, outputVel, handleHardCodedBorder);
-
-            double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
-
-            // Check if this possiblity is zero point zero three and is "close enough" to the player's actual movement
-            if (clientVelAfterInput.isZeroPointZeroThree() && resultAccuracy < 0.001 * 0.001) {
-                player.skippedTickInActualMovement = true;
-            }
-
-            // This allows us to always check the percentage of knockback taken
-            // A player cannot simply ignore knockback without us measuring how off it was
-            if (clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) {
-                // Check ONLY the knockback vectors for 0.03
-                // The first being the one without uncertainty
-                // And the last having uncertainty to deal with 0.03
-                //
-                // Fine, you can comment about the sqrt calls here being inefficient, but the offset is user-facing
-                // There's much larger performance design issues than losing a few nanoseconds here and there.
-                if (clientVelAfterInput.isKnockback()) {
-                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
-                    player.checkManager.getKnockbackHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
-                }
-
-                if (clientVelAfterInput.isExplosion()) {
-                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
-                    player.checkManager.getExplosionHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
-                }
-            }
-
-            // Whatever, if someone uses phase or something they will get caught by everything else...
-            // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
-            // As not flipping item is preferred... it gets ran before any other options
-            if (player.packetStateData.slowedByUsingItem && !clientVelAfterInput.isFlipItem()) {
-                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
-            }
-
-            if (resultAccuracy < bestInput) {
-                bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
-                beforeCollisionMovement = primaryPushMovement;
-
-                // We basically want to avoid falsing ground spoof, try to find a vector that works
-                if (player.wouldCollisionResultFlagGroundSpoof(primaryPushMovement.getY(), bestCollisionVel.vector.getY()))
-                    resultAccuracy += 0.0001 * 0.0001;
-
-                bestInput = resultAccuracy;
-            }
-
-            // Close enough, there's no reason to continue our predictions.
-            if (bestInput < 1e-5 * 1e-5) {
-                break;
-            }
-        }
-
-        assert beforeCollisionMovement != null;
-
-        player.clientVelocity = beforeCollisionMovement.clone();
-        player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
-        player.boundingBox = originalBB;
-
-        // If the closest vector is 0.03, consider it 0.03.
-        if (player.predictedVelocity.isZeroPointZeroThree()) {
-            player.skippedTickInActualMovement = true;
-        }
+        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
     // 0.03 has some quite bad interactions with velocity + explosions (one extremely stupid line of code... thanks mojang)
@@ -410,12 +287,6 @@ public class PredictionEngine {
 
         if (b.isKnockback())
             bScore -= 5;
-
-        if (a.isFlipItem())
-            aScore += 3;
-
-        if (b.isFlipItem())
-            bScore += 3;
 
         if (a.isZeroPointZeroThree())
             aScore -= 1;
@@ -645,42 +516,164 @@ public class PredictionEngine {
         player.lastWasClimbing = 0;
     }
 
-    private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
-        // Stop omni-sprint
-        // Optimization - Also cuts down scenarios by 2/3
-        // For some reason the player sprints while swimming no matter what
-        // Probably as a way to tell the server it is swimming
-        int zMin = player.isSprinting && !player.isSwimming ? 1 : -1;
+    public static Vector getBestPossiblePlayerInput(GrimPlayer player, Vector theoreticalInput) {
+        double bestPossibleX = GrimMath.clamp(theoreticalInput.getX(), -0.98, 0.98);
+        double bestPossibleZ = GrimMath.clamp(theoreticalInput.getZ(), -0.98, 0.98);
 
-        for (int loopSlowed = 0; loopSlowed <= 1; loopSlowed++) {
-            // Loop twice for the using item status if the player is using a trident
-            // (Or in the future mojang desync's with another item and we can't be sure)
-            //
-            // I tried using delays, vertical collision detection, and other methods for sneaking
-            // But nothing works as well as brute force
-            for (int loopUsingItem = 0; loopUsingItem <= 1; loopUsingItem++) {
-                for (VectorData possibleLastTickOutput : possibleVectors) {
-                    // Only do this when there is tick skipping
-                    if (loopSlowed == 1 && !possibleLastTickOutput.isZeroPointZeroThree()) continue;
-                    for (int x = -1; x <= 1; x++) {
-                        for (int z = zMin; z <= 1; z++) {
-                            VectorData result = new VectorData(possibleLastTickOutput.vector.clone().add(getMovementResultFromInput(player, transformInputsToVector(player, new Vector(x, 0, z)), speed, player.xRot)), possibleLastTickOutput, VectorData.VectorType.InputResult);
-                            result = result.returnNewModified(result.vector.clone().multiply(player.stuckSpeedMultiplier), VectorData.VectorType.StuckMultiplier);
-                            result = result.returnNewModified(handleOnClimbable(result.vector.clone(), player), VectorData.VectorType.Climbable);
-                            // Signal that we need to flip sneaking bounding box
-                            if (loopUsingItem == 1)
-                                result = result.returnNewModified(result.vector, VectorData.VectorType.Flip_Use_Item);
-                            returnVectors.add(result);
-                        }
-                    }
+        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
+
+        if (inputVector.lengthSquared() > 1) {
+            inputVector.normalize();
+        }
+
+        return inputVector;
+    }
+
+    private void doPredictions(GrimPlayer player, List<VectorData> possibleVelocities, float speed) {
+        // Sorting is an optimization and a requirement
+        //
+        // TODO: Sorting is unnecessary and slow!
+        // We KNOW the order that we should run things anyways! Use it instead! No lists needed!
+        // Will be a good performance boost!  Although not essential as right now there's larger issues
+        // than a lost hundredth millisecond here and there. Readability/Accuracy > Performance currently.
+        possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
+
+        double bestInput = Double.MAX_VALUE;
+
+        VectorData bestCollisionVel = null;
+        Vector beforeCollisionMovement = null;
+        Vector originalClientVel = player.clientVelocity.clone();
+
+        SimpleCollisionBox originalBB = player.boundingBox;
+        // 0.03 doesn't exist with vehicles, thank god
+        SimpleCollisionBox pointThreeThanksMojang = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 0.6f);
+
+        player.skippedTickInActualMovement = false;
+
+        for (VectorData clientVelAfterInput : possibleVelocities) {
+            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
+            Vector primaryPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
+
+            Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
+            // Check if this vector could ever possible beat the last vector in terms of accuracy
+            // This is quite a good optimization :)
+            if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
+                continue;
+
+            if (clientVelAfterInput.isZeroPointZeroThree()) {
+                player.boundingBox = pointThreeThanksMojang;
+            } else {
+                player.boundingBox = originalBB;
+            }
+
+            boolean vehicleKB = player.compensatedEntities.getSelf().inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
+            // Extra collision epsilon required for vehicles to be accurate
+            double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
+            // The server likes sending y=0 kb "lifting" the player off the ground.
+            // The client doesn't send the vehicles onGround status, so we can't check for ground like normal.
+            double yAdditional = vehicleKB ? 0 : (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON;
+            double zAdditional = Math.signum(primaryPushMovement.getZ()) * SimpleCollisionBox.COLLISION_EPSILON;
+
+            // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
+            double testX = primaryPushMovement.getX() + xAdditional;
+            double testY = primaryPushMovement.getY() + yAdditional;
+            double testZ = primaryPushMovement.getZ() + zAdditional;
+            primaryPushMovement = new Vector(testX, testY, testZ);
+
+            Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY(), clientVelAfterInput);
+
+            if (testX == outputVel.getX()) { // the player didn't have X collision, don't ruin offset by collision epsilon
+                primaryPushMovement.setX(primaryPushMovement.getX() - xAdditional);
+                outputVel.setX(outputVel.getX() - xAdditional);
+            }
+
+            if (testY == outputVel.getY()) { // the player didn't have Y collision, don't ruin offset by collision epsilon
+                primaryPushMovement.setY(primaryPushMovement.getY() - yAdditional);
+                outputVel.setY(outputVel.getY() - yAdditional);
+            }
+
+            if (testZ == outputVel.getZ()) { // the player didn't have Z collision, don't ruin offset by collision epsilon
+                primaryPushMovement.setZ(primaryPushMovement.getZ() - zAdditional);
+                outputVel.setZ(outputVel.getZ() - zAdditional);
+            }
+
+            Vector handleHardCodedBorder = outputVel;
+            handleHardCodedBorder = clampMovementToHardBorder(player, outputVel, handleHardCodedBorder);
+
+            double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
+
+            // Check if this possiblity is zero point zero three and is "close enough" to the player's actual movement
+            if (clientVelAfterInput.isZeroPointZeroThree() && resultAccuracy < 0.001 * 0.001) {
+                player.skippedTickInActualMovement = true;
+            }
+
+            // This allows us to always check the percentage of knockback taken
+            // A player cannot simply ignore knockback without us measuring how off it was
+            if (clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) {
+                // Check ONLY the knockback vectors for 0.03
+                // The first being the one without uncertainty
+                // And the last having uncertainty to deal with 0.03
+                //
+                // Fine, you can comment about the sqrt calls here being inefficient, but the offset is user-facing
+                // There's much larger performance design issues than losing a few nanoseconds here and there.
+                if (clientVelAfterInput.isKnockback()) {
+                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+                    player.checkManager.getKnockbackHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
                 }
 
-                player.packetStateData.slowedByUsingItem = !player.packetStateData.slowedByUsingItem;
+                if (clientVelAfterInput.isExplosion()) {
+                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+                    player.checkManager.getExplosionHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
+                }
             }
-            // TODO: Secure this? Do we care about minor 1.9-1.18.1 (not 1.18.2+!) bypasses that no client exploits yet?
-            // I personally don't care because 1.8 and 1.18.2 are much more popular than any weird version
-            // Who would notice a tick of non-slow movement when netcode is so terrible that it just looks normal
-            player.isSlowMovement = !player.isSlowMovement;
+
+            // Whatever, if someone uses phase or something they will get caught by everything else...
+            // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
+            // As not flipping item is preferred... it gets ran before any other options
+            if (player.packetStateData.slowedByUsingItem) { // TODO: Analyze no slow
+                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+            }
+
+            if (resultAccuracy < bestInput) {
+                bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
+                beforeCollisionMovement = primaryPushMovement;
+
+                // We basically want to avoid falsing ground spoof, try to find a vector that works
+                if (player.wouldCollisionResultFlagGroundSpoof(primaryPushMovement.getY(), bestCollisionVel.vector.getY()))
+                    resultAccuracy += 0.0001 * 0.0001;
+
+                bestInput = resultAccuracy;
+            }
+
+            // Close enough, there's no reason to continue our predictions.
+            if (bestInput < 1e-5 * 1e-5) {
+                break;
+            }
+        }
+
+        assert beforeCollisionMovement != null;
+
+        player.clientVelocity = beforeCollisionMovement.clone();
+        player.predictedVelocity = bestCollisionVel; // Set predicted vel to get the vector types later in the move method
+        player.boundingBox = originalBB;
+
+        // If the closest vector is 0.03, consider it 0.03.
+        if (player.predictedVelocity.isZeroPointZeroThree()) {
+            player.skippedTickInActualMovement = true;
+        }
+    }
+
+    private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
+        for (VectorData vector : possibleVectors) {
+            Vector bestTheoreticalInput = getBestTheoreticalPlayerInput(player, player.actualMovement.clone().subtract(vector.vector), speed, player.xRot);
+            Vector reducedToBestPossible = getBestPossiblePlayerInput(player, bestTheoreticalInput);
+            Vector resultForMovement = getMovementResultFromInput(player, reducedToBestPossible, speed, player.xRot);
+
+            Vector appliedToStartingVel = vector.vector.clone().add(resultForMovement);
+            Vector withClimbingApplied = handleOnClimbable(appliedToStartingVel, player);
+
+            vector.playerInputs = reducedToBestPossible;
+            returnVectors.add(vector.returnNewModified(withClimbingApplied, VectorData.VectorType.InputResult));
         }
     }
 

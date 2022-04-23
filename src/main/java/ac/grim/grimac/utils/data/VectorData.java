@@ -8,9 +8,10 @@ public class VectorData {
     public VectorType vectorType;
     public VectorData lastVector;
     public Vector vector;
+    public Vector playerInputs;
 
     @Getter
-    private boolean isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump = false;
+    private boolean isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isJump = false;
 
     // For handling replacing the type of vector it is while keeping data
     public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
@@ -25,11 +26,15 @@ public class VectorData {
             isZeroPointZeroThree = lastVector.isZeroPointZeroThree;
             isSwimHop = lastVector.isSwimHop;
             isFlipSneaking = lastVector.isFlipSneaking;
-            isFlipItem = lastVector.isFlipItem;
             isJump = lastVector.isJump;
         }
 
         addVectorType(vectorType);
+    }
+
+    public VectorData(Vector vector, VectorType vectorType, Vector playerInputs) {
+        this(vector, vectorType);
+        this.playerInputs = playerInputs;
     }
 
     public VectorData(Vector vector, VectorType vectorType) {
@@ -44,7 +49,7 @@ public class VectorData {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(vectorType, vector, isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump);
+        return Objects.hashCode(vectorType, vector, isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isJump);
     }
 
     @Override
@@ -52,7 +57,7 @@ public class VectorData {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VectorData that = (VectorData) o;
-        return isKnockback == that.isKnockback && isExplosion == that.isExplosion && isTrident == that.isTrident && isZeroPointZeroThree == that.isZeroPointZeroThree && isSwimHop == that.isSwimHop && isFlipSneaking == that.isFlipSneaking && isFlipItem == that.isFlipItem && isJump == that.isJump && Objects.equal(vector, that.vector);
+        return isKnockback == that.isKnockback && isExplosion == that.isExplosion && isTrident == that.isTrident && isZeroPointZeroThree == that.isZeroPointZeroThree && isSwimHop == that.isSwimHop && isFlipSneaking == that.isFlipSneaking && isJump == that.isJump && Objects.equal(vector, that.vector);
     }
 
     private void addVectorType(VectorType type) {
@@ -74,9 +79,6 @@ public class VectorData {
                 break;
             case Flip_Sneaking:
                 isFlipSneaking = true;
-                break;
-            case Flip_Use_Item:
-                isFlipItem = true;
                 break;
             case Jump:
                 isJump = true;
@@ -122,7 +124,6 @@ public class VectorData {
         Entity_Pushing,
         ZeroPointZeroThree,
         AttackSlow,
-        Flip_Sneaking,
-        Flip_Use_Item
+        Flip_Sneaking
     }
 }
