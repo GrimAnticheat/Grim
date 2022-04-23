@@ -66,7 +66,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
                     // Remove the pose metadata from the list
                     metadataStuff.removeIf(element -> element.getIndex() == 6);
-
                     entityMetadata.setEntityMetadata(metadataStuff);
                 }
 
@@ -106,9 +105,11 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                             if (!hasSendTransaction) player.sendTransaction();
                             hasSendTransaction = true;
 
-                            // Vanilla uses hasNoGravity, which is a bad name IMO
-                            // hasGravity > hasNoGravity
-                            player.playerEntityHasGravity = !((Boolean) gravityObject);
+                            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                                // Vanilla uses hasNoGravity, which is a bad name IMO
+                                // hasGravity > hasNoGravity
+                                player.playerEntityHasGravity = !((Boolean) gravityObject);
+                            });
                         }
                     }
                 }
@@ -119,7 +120,9 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                     if (frozen != null) {
                         if (!hasSendTransaction) player.sendTransaction();
                         hasSendTransaction = true;
-                        player.powderSnowFrozenTicks = (int) frozen.getValue();
+                        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                            player.powderSnowFrozenTicks = (int) frozen.getValue();
+                        });
                     }
                 }
 
@@ -139,14 +142,16 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         if (!hasSendTransaction) player.sendTransaction();
                         hasSendTransaction = true;
 
-                        Optional<Vector3i> bed = (Optional<Vector3i>) bedObject.getValue();
-                        if (bed.isPresent()) {
-                            player.isInBed = true;
-                            Vector3i bedPos = bed.get();
-                            player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
-                        } else { // Run when we know the player is not in bed 100%
-                            player.isInBed = false;
-                        }
+                        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+                            Optional<Vector3i> bed = (Optional<Vector3i>) bedObject.getValue();
+                            if (bed.isPresent()) {
+                                player.isInBed = true;
+                                Vector3i bedPos = bed.get();
+                                player.bedPosition = new Vector3d(bedPos.getX() + 0.5, bedPos.getY(), bedPos.getZ() + 0.5);
+                            } else { // Run when we know the player is not in bed 100%
+                                player.isInBed = false;
+                            }
+                        });
                     }
                 }
 
