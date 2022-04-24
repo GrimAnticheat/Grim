@@ -28,7 +28,8 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
@@ -38,7 +39,7 @@ public class CompensatedWorld {
     public final GrimPlayer player;
     private final Map<Long, Column> chunks;
     // Packet locations for blocks
-    public List<PistonData> activePistons = Collections.synchronizedList(new ArrayList<>());
+    public Set<PistonData> activePistons = ConcurrentHashMap.newKeySet();
     public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
     // 1.17 with datapacks, and 1.18, have negative world offset values
     private int minHeight = 0;

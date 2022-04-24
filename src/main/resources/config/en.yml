@@ -9,6 +9,7 @@ alerts:
   enable-on-join: true
 
 client-brand:
+  # This means it won't broadcast their brand to operators.
   ignored-clients:
     - "vanilla"
 
