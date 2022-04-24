@@ -151,12 +151,14 @@ public class ReachUtils {
     }
 
     // Look vector accounting for optifine FastMath
-    public static Vector getLook(GrimPlayer player, float xRot, float yRot) {
-        float f = player.trigHandler.cos(-xRot * 0.017453292F - (float) Math.PI);
-        float f1 = player.trigHandler.sin(-xRot * 0.017453292F - (float) Math.PI);
-        float f2 = -player.trigHandler.cos(-yRot * 0.017453292F);
-        float f3 = player.trigHandler.sin(-yRot * 0.017453292F);
-        return new Vector(f1 * f2, f3, (double) (f * f2));
+    public static Vector getLook(GrimPlayer player, float yaw, float pitch) {
+        float f = pitch * ((float) Math.PI / 180F);
+        float f1 = -yaw * ((float) Math.PI / 180F);
+        float f2 = player.trigHandler.cos(f1);
+        float f3 = player.trigHandler.sin(f1);
+        float f4 = player.trigHandler.cos(f);
+        float f5 = player.trigHandler.sin(f);
+        return new Vector(f3 * f4, -f5, (double) (f2 * f4));
     }
 
     public static boolean isVecInside(SimpleCollisionBox self, Vector vec) {

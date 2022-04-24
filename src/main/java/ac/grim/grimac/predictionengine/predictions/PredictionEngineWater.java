@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.FluidFallingAdjustedMovement;
+import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
@@ -41,7 +42,7 @@ public class PredictionEngineWater extends PredictionEngine {
         // Anyways, Jesus doesn't make too much sense on 1.13+ clients anyways when swimming is faster
         if ((player.wasEyeInWater || player.fluidOnEyes == FluidTag.WATER || player.isSwimming || player.wasSwimming) && player.compensatedEntities.getSelf().getRiding() == null) {
             for (VectorData vector : base) {
-                double d = getLookAngle(player).getY();
+                double d = ReachUtils.getLook(player, player.xRot, player.yRot).getY();
                 double d5 = d < -0.2 ? 0.085 : 0.06;
 
                 // The player can always press jump and activate this
@@ -60,20 +61,6 @@ public class PredictionEngineWater extends PredictionEngine {
             return swimmingVelocities;
         }
         return base;
-    }
-
-    public static Vector getLookAngle(GrimPlayer player) {
-        return calculateViewVector(player, player.yRot, player.xRot);
-    }
-
-    public static Vector calculateViewVector(GrimPlayer player, float f, float f2) {
-        float f3 = f * 0.017453292f;
-        float f4 = -f2 * 0.017453292f;
-        float f5 = player.trigHandler.cos(f4);
-        float f6 = player.trigHandler.sin(f4);
-        float f7 = player.trigHandler.cos(f3);
-        float f8 = player.trigHandler.sin(f3);
-        return new Vector(f6 * f7, -f8, f5 * f7);
     }
 
     public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {

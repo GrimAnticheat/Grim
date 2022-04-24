@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.VectorData;
+import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import org.bukkit.util.Vector;
 
@@ -10,22 +11,11 @@ import java.util.List;
 import java.util.Set;
 
 public class PredictionEngineElytra extends PredictionEngine {
-
-    public static Vector getVectorForRotation(GrimPlayer player, float pitch, float yaw) {
-        float f = pitch * ((float) Math.PI / 180F);
-        float f1 = -yaw * ((float) Math.PI / 180F);
-        float f2 = player.trigHandler.cos(f1);
-        float f3 = player.trigHandler.sin(f1);
-        float f4 = player.trigHandler.cos(f);
-        float f5 = player.trigHandler.sin(f);
-        return new Vector(f3 * f4, -f5, (double) (f2 * f4));
-    }
-
     // Inputs have no effect on movement
     @Override
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         List<VectorData> results = new ArrayList<>();
-        Vector currentLook = getVectorForRotation(player, player.yRot, player.xRot);
+        Vector currentLook = ReachUtils.getLook(player, player.xRot, player.yRot);
 
         for (VectorData data : possibleVectors) {
             Vector elytraResult = getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99F, 0.98F, 0.99F));
