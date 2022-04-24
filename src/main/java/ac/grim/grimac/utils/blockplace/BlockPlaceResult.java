@@ -771,7 +771,20 @@ public enum BlockPlaceResult {
 
     KELP((player, place) -> {
         StateType below = place.getDirectionalState(BlockFace.DOWN).getType();
-        if (below != StateTypes.MAGMA_BLOCK && (place.isFullFace(BlockFace.DOWN) || below == StateTypes.KELP || below == StateTypes.KELP_PLANT) && place.isInWater()) {
+        WrappedBlockState existing = place.getExistingBlockData();
+
+        double fluidLevel = 0;
+        if (Materials.isWater(player.getClientVersion(), existing)) {
+            if (existing.getType() == StateTypes.WATER) {
+                int level = existing.getLevel();
+                // Falling water has a level of 8
+                fluidLevel = ((level & 0x8) == 8) ? (8.0 / 9.0f) : (8 - level) / 9.0f;
+            } else { // Water source block such as bubble columns
+                fluidLevel = 1.0;
+            }
+        }
+
+        if (below != StateTypes.MAGMA_BLOCK && (place.isFullFace(BlockFace.DOWN) || below == StateTypes.KELP || below == StateTypes.KELP_PLANT) && fluidLevel >= 8 / 9d) {
             place.set(place.getMaterial());
         }
     }, ItemTypes.KELP),
