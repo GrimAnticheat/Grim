@@ -5,7 +5,7 @@ import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
-import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerRotation;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 
 @CheckData(name = "BadPacketsD")
 public class BadPacketsD extends PacketCheck {
@@ -17,14 +17,9 @@ public class BadPacketsD extends PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (player.packetStateData.lastPacketWasTeleport) return;
 
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION) {
-            WrapperPlayClientPlayerRotation packet = new WrapperPlayClientPlayerRotation(event);
-            if (packet.getPitch() > 90 || packet.getPitch() < -90) {
-                flagAndAlert(); // Ban.
-            }
-        } else if (event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
-            WrapperPlayClientPlayerRotation packet = new WrapperPlayClientPlayerRotation(event);
-            if (packet.getPitch() > 90 || packet.getPitch() < -90) {
+        if (event.getPacketType() == PacketType.Play.Client.PLAYER_ROTATION || event.getPacketType() == PacketType.Play.Client.PLAYER_POSITION_AND_ROTATION) {
+            WrapperPlayClientPlayerFlying packet = new WrapperPlayClientPlayerFlying(event);
+            if (packet.getLocation().getPitch() > 90 || packet.getLocation().getPitch() < -90) {
                 flagAndAlert(); // Ban.
             }
         }

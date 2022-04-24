@@ -35,17 +35,6 @@ public class NoFallA extends PacketCheck {
             WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
             boolean hasPosition = false;
 
-            // The prediction based NoFall check (that runs before us without the packet)
-            // has asked us to flip the player's onGround status
-            // This happens to make both checks use the same logic... and
-            // since we don't have access to modify the packet with prediction based checks
-            // I could add that feature but ehh... this works and is better anyway.
-            if (flipPlayerGroundStatus) {
-                flipPlayerGroundStatus = false;
-                wrapper.setOnGround(!wrapper.isOnGround());
-                return;
-            }
-
             // If the player claims to be on the ground
             // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
             if (wrapper.isOnGround() && !hasPosition) {
@@ -53,6 +42,24 @@ public class NoFallA extends PacketCheck {
                     flagWithSetback();
                     wrapper.setOnGround(false);
                 }
+            }
+        }
+
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
+            // The prediction based NoFall check (that runs before us without the packet)
+            // has asked us to flip the player's onGround status
+            // This happens to make both checks use the same logic... and
+            // since we don't have access to modify the packet with prediction based checks
+            // I could add that feature but ehh... this works and is better anyway.
+            //
+            // Also flip teleports because I don't trust vanilla's handling of teleports and ground
+            if (flipPlayerGroundStatus) {
+                flipPlayerGroundStatus = false;
+                wrapper.setOnGround(!wrapper.isOnGround());
+            }
+            if (player.packetStateData.lastPacketWasTeleport) {
+                wrapper.setOnGround(false);
             }
         }
     }
