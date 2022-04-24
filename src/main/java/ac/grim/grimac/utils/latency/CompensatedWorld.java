@@ -117,7 +117,7 @@ public class CompensatedWorld {
     public void tickOpenable(int blockX, int blockY, int blockZ) {
         WrappedBlockState data = player.compensatedWorld.getWrappedBlockStateAt(blockX, blockY, blockZ);
 
-        if (BlockTags.DOORS.contains(data.getType())) {
+        if (BlockTags.DOORS.contains(data.getType()) && data.getType() != StateTypes.IRON_DOOR) {
             WrappedBlockState otherDoor = player.compensatedWorld.getWrappedBlockStateAt(blockX,
                     blockY + (data.getHalf() == Half.LOWER ? 1 : -1), blockZ);
 
