@@ -461,8 +461,8 @@ public class CompensatedWorld {
     }
 
     public double getWaterFluidLevelAt(int x, int y, int z) {
-        WrappedBlockState bukkitBlock = getWrappedBlockStateAt(x, y, z);
-        boolean isWater = Materials.isWater(player.getClientVersion(), bukkitBlock);
+        WrappedBlockState wrappedBlock = getWrappedBlockStateAt(x, y, z);
+        boolean isWater = Materials.isWater(player.getClientVersion(), wrappedBlock);
 
         if (!isWater) return 0;
 
@@ -472,13 +472,13 @@ public class CompensatedWorld {
         }
 
         // If it is water or flowing water
-        if (bukkitBlock.getType() == StateTypes.WATER) {
-            int magicData = bukkitBlock.getLevel();
+        if (wrappedBlock.getType() == StateTypes.WATER) {
+            int level = wrappedBlock.getLevel();
 
             // Falling water has a level of 8
-            if ((magicData & 0x8) == 8) return 8 / 9f;
+            if ((level & 0x8) == 8) return 8 / 9f;
 
-            return (8 - magicData) / 9f;
+            return (8 - level) / 9f;
         }
 
         // The block is water, isn't water material directly, and doesn't have block above, so it is waterlogged

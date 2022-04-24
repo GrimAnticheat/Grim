@@ -102,7 +102,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             }
 
             // Only 1.8 and below players can block with swords
-            if (material.toString().endsWith("_SWORD")) {
+            if (material.hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
                 if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8))
                     player.packetStateData.slowedByUsingItem = true;
                 else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9)) // ViaVersion stuff
@@ -154,6 +154,9 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             // Stop people from spamming the server with out of bounds exceptions
             if (slot.getSlot() > 8) return;
 
+            if (player.packetStateData.lastSlotSelected != slot.getSlot()) {
+                player.packetStateData.slowedByUsingItem = false;
+            }
             player.packetStateData.lastSlotSelected = slot.getSlot();
         }
 
