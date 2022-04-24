@@ -8,14 +8,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class PredictionEngineWaterLegacy extends PredictionEngine {
-    boolean isFalling;
     double playerGravity;
     float swimmingSpeed;
     float swimmingFriction;
     double lastY;
 
-    public void guessBestMovement(float swimmingSpeed, GrimPlayer player, boolean isFalling, double playerGravity, float swimmingFriction, double lastY) {
-        this.isFalling = isFalling;
+    public void guessBestMovement(float swimmingSpeed, GrimPlayer player, double playerGravity, float swimmingFriction, double lastY) {
         this.playerGravity = playerGravity;
         this.swimmingSpeed = swimmingSpeed;
         this.swimmingFriction = swimmingFriction;

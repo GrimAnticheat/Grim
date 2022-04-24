@@ -19,7 +19,7 @@ public class PredictionEngineElytra extends PredictionEngine {
 
         for (VectorData data : possibleVectors) {
             Vector elytraResult = getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99F, 0.98F, 0.99F));
-            results.add(data.returnNewModified(elytraResult, VectorData.VectorType.Elytra));
+            results.add(data.returnNewModified(elytraResult, VectorData.VectorType.InputResult));
         }
 
         return results;
@@ -33,7 +33,14 @@ public class PredictionEngineElytra extends PredictionEngine {
         // Mojang changed from using their math to using regular java math in 1.18.2 elytra movement
         double vertCosRotation = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_18_2) ? Math.cos(yRotRadians) : player.trigHandler.cos(yRotRadians);
         vertCosRotation = (float) (vertCosRotation * vertCosRotation * Math.min(1.0D, length / 0.4D));
-        vector.add(new Vector(0.0D, player.gravity * (-1.0D + vertCosRotation * 0.75D), 0.0D));
+        // So we actually use the player's actual movement to get the gravity/slow falling status
+        // However, this is wrong with elytra movement because players can control vertical movement after gravity is calculated
+        // Yeah, slow falling needs a refactor in grim.
+        double recalculatedGravity = 0.08;
+        if (player.clientVelocity.getY() <= 0 && player.compensatedEntities.getSlowFallingAmplifier() != null)
+            recalculatedGravity = 0.01;
+
+        vector.add(new Vector(0.0D, recalculatedGravity * (-1.0D + vertCosRotation * 0.75D), 0.0D));
         double d5;
 
         // Handle slowing the player down when falling

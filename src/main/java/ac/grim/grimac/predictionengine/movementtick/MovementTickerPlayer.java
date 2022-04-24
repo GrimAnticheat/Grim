@@ -18,7 +18,7 @@ public class MovementTickerPlayer extends MovementTicker {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
             new PredictionEngineWater().guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);
         } else {
-            new PredictionEngineWaterLegacy().guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);
+            new PredictionEngineWaterLegacy().guessBestMovement(swimSpeed, player, player.gravity, swimFriction, player.lastY);
         }
     }
 

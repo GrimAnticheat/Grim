@@ -21,7 +21,7 @@ public class MovementTickerLivingVehicle extends MovementTicker {
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
             new PredictionEngineRideableWater(movementInput).guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);
         } else {
-            new PredictionEngineRideableWaterLegacy(movementInput).guessBestMovement(swimSpeed, player, isFalling, player.gravity, swimFriction, player.lastY);
+            new PredictionEngineRideableWaterLegacy(movementInput).guessBestMovement(swimSpeed, player, player.gravity, swimFriction, player.lastY);
         }
     }
 
