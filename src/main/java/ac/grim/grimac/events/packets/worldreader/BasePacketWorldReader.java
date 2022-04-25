@@ -74,14 +74,15 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     public void addChunkToCache(PacketSendEvent event, GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
-        if (GrimMath.floor(player.x) >> 4 == chunkX && GrimMath.floor(player.z) >> 4 == chunkZ) {
+        boolean shouldPostTrans = GrimMath.floor(player.x) >> 4 == chunkX && GrimMath.floor(player.z) >> 4 == chunkZ;
+        if (shouldPostTrans) {
             event.getPostTasks().add(player::sendTransaction); // Player is in this unloaded chunk
         }
         if (isGroundUp) {
-            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + 1);
+            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + (shouldPostTrans ? 1 : 0));
             player.compensatedWorld.addToCache(column, chunkX, chunkZ);
         } else {
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 Column existingColumn = player.compensatedWorld.getChunk(chunkX, chunkZ);
                 if (existingColumn == null) {
                     LogUtil.warn("Invalid non-ground up continuous sent for empty chunk " + chunkX + " " + chunkZ + " for " + player.user.getProfile().getName() + "! This corrupts the player's empty chunk!");
