@@ -43,6 +43,10 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
                 // Pls have this mapped correctly retrooper
                 if (item.getType() == ItemTypes.SPLASH_POTION)
                     return;
+                // 1.8 splash potion
+                if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) && item.getLegacyData() > 16384) {
+                    return;
+                }
 
                 // Eatable items that don't require any hunger to eat
                 if (material == ItemTypes.POTION || material == ItemTypes.MILK_BUCKET
