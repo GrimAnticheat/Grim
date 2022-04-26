@@ -53,7 +53,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
 public class GrimPlayer {
-    public final UUID playerUUID;
+    public UUID playerUUID;
     public final User user;
     public int entityID;
     @Nullable
@@ -121,7 +121,6 @@ public class GrimPlayer {
     public Pose pose = Pose.STANDING;
     // Determining slow movement has to be done before pose is updated
     public boolean isSlowMovement = false;
-    public World playerWorld;
     public boolean isInBed = false;
     public boolean lastInBed = false;
     public boolean isDead = false;
@@ -186,16 +185,10 @@ public class GrimPlayer {
     public boolean disableGrim = false;
 
     public GrimPlayer(User user) {
-        this.playerUUID = user.getProfile().getUUID();
         this.user = user;
 
-        // Geyser players don't have Java movement
-        if (GeyserUtil.isGeyserPlayer(playerUUID)) return;
-        // Geyser formatted player string
-        // This will never happen for Java players, as the first character in the 3rd group is always 4 (xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx)
-        if (playerUUID.toString().startsWith("00000000-0000-0000-0009")) return;
-
-        pollData();
+        // If exempt
+        if (pollData()) return;
 
         // We can't send transaction packets to this player, disable the anticheat for them
         if (!ViaBackwardsManager.isViaLegacyUpdated && getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_16_4)) {
@@ -207,11 +200,6 @@ public class GrimPlayer {
         }
 
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 1.8f);
-
-        if (ViaVersionUtil.isAvailable()) {
-            UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
-            packetTracker = connection != null ? connection.getPacketTracker() : null;
-        }
 
         compensatedWorld = new CompensatedWorld(this);
         compensatedFireworks = new CompensatedFireworks(this);
@@ -393,7 +381,7 @@ public class GrimPlayer {
         return pose.eyeHeight;
     }
 
-    public void pollData() {
+    public boolean pollData() {
         // Send a transaction at least once a tick, for timer and post check purposes
         // Don't be the first to send the transaction, or we will stack overflow
         //
@@ -412,12 +400,32 @@ public class GrimPlayer {
         }
         if (this.bukkitPlayer == null) {
             this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
-
-            if (this.bukkitPlayer == null) return;
-
-            this.entityID = bukkitPlayer.getEntityId();
-            this.playerWorld = bukkitPlayer.getWorld();
         }
+        if (this.playerUUID == null) {
+            this.playerUUID = user.getUUID();
+            if (this.playerUUID != null) {
+                // Geyser players don't have Java movement
+                if (GeyserUtil.isGeyserPlayer(playerUUID)) {
+                    GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
+                    return true;
+                }
+                // Geyser formatted player string
+                // This will never happen for Java players, as the first character in the 3rd group is always 4 (xxxxxxxx-xxxx-4xxx-xxxx-xxxxxxxxxxxx)
+                if (playerUUID.toString().startsWith("00000000-0000-0000-0009")) {
+                    GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
+                    return true;
+                }
+                if (ViaVersionUtil.isAvailable() && playerUUID != null) {
+                    UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
+                    packetTracker = connection != null ? connection.getPacketTracker() : null;
+                }
+            }
+        }
+        if (this.bukkitPlayer != null && this.bukkitPlayer.hasPermission("grim.exempt")) {
+            GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
+            return true;
+        }
+        return false;
     }
 
     public boolean isPointThree() {

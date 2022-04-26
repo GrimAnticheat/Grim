@@ -57,6 +57,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
 
             WrapperPlayServerJoinGame joinGame = new WrapperPlayServerJoinGame(event);
             player.gamemode = joinGame.getGameMode();
+            player.entityID = joinGame.getEntityId();
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
             player.compensatedWorld.setDimension(joinGame.getDimension().getType().getName(), event.getUser());

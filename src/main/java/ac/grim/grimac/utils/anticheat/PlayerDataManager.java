@@ -18,29 +18,12 @@ public class PlayerDataManager {
 
         // Is it safe to interact with this, or is this internal PacketEvents code?
         User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
-        if (user == null) {
-            LogUtil.warn("PacketEvents not injected for player " + player.getName() + " " + player.getUniqueId());
-            return null;
-        }
         return playerDataMap.get(user);
     }
 
     @Nullable
     public GrimPlayer getPlayer(final User player) {
-        if (player == null) {
-            new IllegalStateException("PacketEvents returned null for an event's user.  This is NEVER possible!").printStackTrace();
-            return null;
-        }
-
-        GrimPlayer grimPlayer = playerDataMap.get(player);
-
-        if (grimPlayer == null) {
-            // Player teleport event gets called AFTER player join event
-            new GrimPlayer(player);
-            return playerDataMap.get(player);
-        }
-
-        return grimPlayer;
+        return playerDataMap.get(player);
     }
 
     public void addPlayer(final User user, final GrimPlayer player) {
