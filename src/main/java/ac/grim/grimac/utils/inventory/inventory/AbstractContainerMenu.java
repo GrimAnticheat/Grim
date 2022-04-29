@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.inventory.inventory;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.ClickAction;
 import ac.grim.grimac.utils.inventory.Inventory;
+import ac.grim.grimac.utils.inventory.slot.ResultSlot;
 import ac.grim.grimac.utils.inventory.slot.Slot;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
@@ -210,6 +211,12 @@ public abstract class AbstractContainerMenu {
                 Slot slot = getSlot(slotID);
                 ItemStack slotItem = slot.getItem();
                 ItemStack carriedItem = getCarried();
+
+                // TODO: What do we do with crafting? I think this is overkill and we shouldn't attempt to track crafting, and just resync inventory.
+                // 1.17+ clients send changed itemstacks anyways, so just hack around stuff until people stop using decade old versions.
+                if (slot instanceof ResultSlot) {
+                    player.getInventory().isPacketInventoryActive = false;
+                }
 
                 // TODO: Bundle support
                 //if (!carriedItem.overrideStackedOnOther(slotItem, clickAction) && !slotItem.overrideOtherStackedOnMe(slotItem, clickAction, carriedItem)) {

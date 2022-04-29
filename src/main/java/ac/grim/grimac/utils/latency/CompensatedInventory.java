@@ -16,6 +16,7 @@ import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.type.ItemType;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
@@ -119,6 +120,9 @@ public class CompensatedInventory extends PacketCheck {
     public void onPacketReceive(final PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING) {
             WrapperPlayClientPlayerDigging dig = new WrapperPlayClientPlayerDigging(event);
+
+            // 1.8 clients don't predict dropping items
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) return;
 
             if (dig.getAction() != DiggingAction.DROP_ITEM) {
             } else {
