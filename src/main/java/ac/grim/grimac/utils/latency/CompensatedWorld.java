@@ -285,37 +285,41 @@ public class CompensatedWorld {
             BlockFace badTwo = needed.getCCW();
 
             boolean isPowered = false;
-            switch (needed) {
-                case DOWN:
-                    isPowered = true;
-                    break;
-                case UP:
-                    isPowered = state.isUp();
-                    break;
-                case NORTH:
-                    isPowered = state.getNorth() == North.TRUE;
-                    if (isPowered && (badOne == BlockFace.NORTH || badTwo == BlockFace.NORTH)) {
-                        return 0;
-                    }
-                    break;
-                case SOUTH:
-                    isPowered = state.getSouth() == South.TRUE;
-                    if (isPowered && (badOne == BlockFace.SOUTH || badTwo == BlockFace.SOUTH)) {
-                        return 0;
-                    }
-                    break;
-                case WEST:
-                    isPowered = state.getWest() == West.TRUE;
-                    if (isPowered && (badOne == BlockFace.WEST || badTwo == BlockFace.WEST)) {
-                        return 0;
-                    }
-                    break;
-                case EAST:
-                    isPowered = state.getEast() == East.TRUE;
-                    if (isPowered && (badOne == BlockFace.EAST || badTwo == BlockFace.EAST)) {
-                        return 0;
-                    }
-                    break;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+                switch (needed) {
+                    case DOWN:
+                        isPowered = true;
+                        break;
+                    case UP:
+                        isPowered = state.isUp();
+                        break;
+                    case NORTH:
+                        isPowered = state.getNorth() == North.TRUE;
+                        if (isPowered && (badOne == BlockFace.NORTH || badTwo == BlockFace.NORTH)) {
+                            return 0;
+                        }
+                        break;
+                    case SOUTH:
+                        isPowered = state.getSouth() == South.TRUE;
+                        if (isPowered && (badOne == BlockFace.SOUTH || badTwo == BlockFace.SOUTH)) {
+                            return 0;
+                        }
+                        break;
+                    case WEST:
+                        isPowered = state.getWest() == West.TRUE;
+                        if (isPowered && (badOne == BlockFace.WEST || badTwo == BlockFace.WEST)) {
+                            return 0;
+                        }
+                        break;
+                    case EAST:
+                        isPowered = state.getEast() == East.TRUE;
+                        if (isPowered && (badOne == BlockFace.EAST || badTwo == BlockFace.EAST)) {
+                            return 0;
+                        }
+                        break;
+                }
+            } else {
+                isPowered = true; // whatever, just go off the block's power to see if it connects
             }
 
             return isPowered ? state.getPower() : 0;
