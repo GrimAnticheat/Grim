@@ -567,7 +567,7 @@ public class BlockPlace {
         }
 
         // If a block already exists here, then we can't override it.
-        WrappedBlockState existingState = player.compensatedWorld.getWrappedBlockStateAt(getPlacedBlockPos());
+        WrappedBlockState existingState = player.compensatedWorld.getWrappedBlockStateAt(position);
         if (!replaceClicked && !canBeReplaced(material, existingState)) {
             return;
         }
