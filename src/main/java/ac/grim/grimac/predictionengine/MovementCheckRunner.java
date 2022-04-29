@@ -104,12 +104,6 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     private void check(PositionUpdate update) {
-        player.uncertaintyHandler.stuckOnEdge--;
-        player.uncertaintyHandler.lastStuckEast--;
-        player.uncertaintyHandler.lastStuckWest--;
-        player.uncertaintyHandler.lastStuckSouth--;
-        player.uncertaintyHandler.lastStuckNorth--;
-
         if (update.isTeleport()) {
             handleTeleport(update);
             return;
@@ -120,10 +114,11 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.onGround = update.isOnGround();
 
+        player.uncertaintyHandler.stuckOnEdge--;
+        // This is here to prevent abuse of sneaking
+        // Without this, players could sneak on a flat plane to avoid velocity
+        // That would be bad so this prevents it
         if (!player.isFlying && player.isSneaking && Collisions.isAboveGround(player)) {
-            // Before we do player block placements, determine if the shifting glitch occurred
-            // The 0.03 and maintaining velocity is just brutal
-            //
             // 16 - Magic number to stop people from crashing the server
             double posX = Math.max(0.1, Math.max(player.actualMovement.getX(), 16) + 0.1);
             double posZ = Math.max(0.1, Math.max(player.actualMovement.getZ(), 16) + 0.1);
@@ -139,27 +134,6 @@ public class MovementCheckRunner extends PositionCheck {
             boolean isWest = NW.getX() != negX || SW.getX() != negX;
             boolean isNorth = NE.getZ() != posZ || NW.getZ() != posZ;
             boolean isSouth = SE.getZ() != posZ || SW.getZ() != posZ;
-
-            if (isEast) player.uncertaintyHandler.lastStuckEast = 0;
-            if (isWest) player.uncertaintyHandler.lastStuckWest = 0;
-            if (isSouth) player.uncertaintyHandler.lastStuckSouth = 0;
-            if (isNorth) player.uncertaintyHandler.lastStuckNorth = 0;
-
-            if (player.uncertaintyHandler.lastStuckEast > -3) {
-                player.uncertaintyHandler.xPositiveUncertainty += player.speed;
-            }
-
-            if (player.uncertaintyHandler.lastStuckWest > -3) {
-                player.uncertaintyHandler.xNegativeUncertainty -= player.speed;
-            }
-
-            if (player.uncertaintyHandler.lastStuckNorth > -3) {
-                player.uncertaintyHandler.zNegativeUncertainty -= player.speed;
-            }
-
-            if (player.uncertaintyHandler.lastStuckSouth > -3) {
-                player.uncertaintyHandler.zPositiveUncertainty += player.speed;
-            }
 
             if (isEast || isWest || isSouth || isNorth) {
                 player.uncertaintyHandler.stuckOnEdge = 0;

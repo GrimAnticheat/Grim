@@ -195,8 +195,8 @@ public class UncertaintyHandler {
 
         // 0.03 plus being able to maintain velocity even when shifting is brutal
         // Value patched - I have no idea why these things are different in liquid vs in air
-        if (stuckOnEdge == ((player.wasTouchingWater || player.wasTouchingLava) ? 0 : -1)) {
-            pointThree = Math.max(pointThree, player.speed * 2);
+        if ((player.wasTouchingWater || player.wasTouchingLava) && stuckOnEdge == -1) {
+            pointThree = Math.max(pointThree, 0.05);
         }
 
         return pointThree;
