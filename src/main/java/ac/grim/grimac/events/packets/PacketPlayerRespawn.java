@@ -89,7 +89,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                     ((BadPacketsF) player.checkManager.getPacketCheck(BadPacketsF.class)).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
                     // TODO: What the fuck viaversion, why do you throw out keep all metadata?
                     // The server doesn't even use it... what do we do?
-                    player.compensatedEntities.hasSprintingAttributeEnabled = false;
                 }
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();

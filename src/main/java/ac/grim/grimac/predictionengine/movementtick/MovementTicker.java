@@ -78,7 +78,8 @@ public class MovementTicker {
             player.clientVelocity.setZ(0);
         }
 
-        player.horizontalCollision = !GrimMath.isCloseEnoughEquals(inputVel.getX(), collide.getX()) || !GrimMath.isCloseEnoughEquals(inputVel.getZ(), collide.getZ());
+        player.xAxisCollision = !GrimMath.isCloseEnoughEquals(inputVel.getX(), collide.getX());
+        player.zAxisCollision = !GrimMath.isCloseEnoughEquals(inputVel.getZ(), collide.getZ());
         player.verticalCollision = inputVel.getY() != collide.getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
@@ -161,8 +162,7 @@ public class MovementTicker {
         }
 
         // This is where vanilla moves the bounding box and sets it
-        player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity.lastVector, player.predictedVelocity.vectorType);
-
+        player.predictedVelocity = new VectorData(collide.clone(), player.predictedVelocity, player.predictedVelocity.vectorType);
         player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update

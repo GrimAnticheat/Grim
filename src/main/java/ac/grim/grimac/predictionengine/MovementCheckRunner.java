@@ -337,10 +337,6 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && player.isFlying)
             player.isSprinting = true;
 
-        if (player.isSprinting != player.lastSprinting) {
-            player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
-        }
-
         boolean oldFlying = player.isFlying;
         boolean oldGliding = player.isGliding;
         boolean oldSprinting = player.isSprinting;
@@ -359,16 +355,6 @@ public class MovementCheckRunner extends PositionCheck {
             if (player.compensatedEntities.getSelf().getRiding().type != EntityTypes.PIG && player.compensatedEntities.getSelf().getRiding().type != EntityTypes.STRIDER) {
                 player.isClimbing = false;
             }
-        }
-
-        // Multiplying by 1.3 or 1.3f results in precision loss, you must multiply by 0.3
-        // The player updates their attribute if it doesn't match the last value
-        // This last value can be changed by the server, however.
-        //
-        // Sprinting status itself does not desync, only the attribute as mojang forgot that the server
-        // can change the attribute
-        if (!player.compensatedEntities.getSelf().inVehicle()) {
-            player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
         }
 
         player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
@@ -543,7 +529,7 @@ public class MovementCheckRunner extends PositionCheck {
         } // If it isn't any of these cases, the player is on a mob they can't control and therefore is exempt
 
         // No, don't comment about the sqrt call.  It doesn't matter unless you run sqrt thousands of times a second.
-        double offset = player.predictedVelocity.vector.distance(player.actualMovement);
+        double offset = player.predictedVelocity.calculateOffset(player, player.isSlowMovement && !player.predictedVelocity.isZeroPointZeroThree(), false, player.frictionInfluencedSpeed).getOffset();
         offset = player.uncertaintyHandler.reduceOffset(offset);
 
         // Let's hope this doesn't desync :)

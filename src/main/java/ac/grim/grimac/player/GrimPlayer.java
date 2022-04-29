@@ -86,6 +86,7 @@ public class GrimPlayer {
     public double gravity;
     public float friction;
     public double speed;
+    public float frictionInfluencedSpeed;
     public Vector3d filterMojangStupidityOnMojangStupidity = new Vector3d();
     public double x;
     public double y;
@@ -140,7 +141,8 @@ public class GrimPlayer {
     public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
-    public boolean horizontalCollision;
+    public boolean xAxisCollision;
+    public boolean zAxisCollision;
     public boolean verticalCollision;
     public boolean clientControlledHorizontalCollision;
     public boolean clientControlledVerticalCollision;
@@ -531,9 +533,6 @@ public class GrimPlayer {
         latencyUtils.addRealTimeTask(lastTransactionSent.get(), () -> {
             this.vehicleData.wasVehicleSwitch = true;
             // Pre-1.14 players desync sprinting attribute when in vehicle to be false, sprinting itself doesn't change
-            if (getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14)) {
-                compensatedEntities.hasSprintingAttributeEnabled = false;
-            }
         });
     }
 }

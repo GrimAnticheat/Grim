@@ -100,18 +100,7 @@ public class CompensatedEntities {
         if (entityID == player.entityID) {
             for (WrapperPlayServerEntityProperties.Property snapshotWrapper : objects) {
                 if (snapshotWrapper.getKey().toUpperCase().contains("MOVEMENT")) {
-
-                    boolean found = false;
-                    List<WrapperPlayServerEntityProperties.PropertyModifier> modifiers = snapshotWrapper.getModifiers();
-                    for (WrapperPlayServerEntityProperties.PropertyModifier modifier : modifiers) {
-                        if (modifier.getUUID().equals(SPRINTING_MODIFIER_UUID)) {
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    // The server can set the player's sprinting attribute
-                    hasSprintingAttributeEnabled = found;
+                    snapshotWrapper.getModifiers().removeIf(modifier -> modifier.getUUID().equals(SPRINTING_MODIFIER_UUID));
                     player.compensatedEntities.getSelf().playerSpeed = snapshotWrapper;
                 }
             }

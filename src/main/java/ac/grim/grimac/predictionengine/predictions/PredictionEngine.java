@@ -3,6 +3,7 @@ package ac.grim.grimac.predictionengine.predictions;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.InputsOffsetData;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
@@ -33,39 +34,9 @@ public class PredictionEngine {
         return handleHardCodedBorder;
     }
 
-    public static Vector transformInputsToVector(GrimPlayer player, Vector theoreticalInput) {
-        float bestPossibleX;
-        float bestPossibleZ;
-
-        // Slow movement was determined by the previous pose
-        if (player.isSlowMovement) {
-            bestPossibleX = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getX() / 0.3)), 1f) * 0.3d);
-            bestPossibleZ = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ() / 0.3)), 1f) * 0.3d);
-        } else {
-            bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
-            bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
-        }
-
-        if (player.packetStateData.slowedByUsingItem) {
-            bestPossibleX *= 0.2F;
-            bestPossibleZ *= 0.2F;
-        }
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-        inputVector.multiply(0.98F);
-
-        // Simulate float rounding imprecision
-        inputVector = new Vector((float) inputVector.getX(), (float) inputVector.getY(), (float) inputVector.getZ());
-
-        if (inputVector.lengthSquared() > 1) {
-            double d0 = Math.sqrt(inputVector.getX() * inputVector.getX() + inputVector.getY() * inputVector.getY() + inputVector.getZ() * inputVector.getZ());
-            inputVector = new Vector(inputVector.getX() / d0, inputVector.getY() / d0, inputVector.getZ() / d0);
-        }
-
-        return inputVector;
-    }
-
     public void guessBestMovement(float speed, GrimPlayer player) {
+        player.frictionInfluencedSpeed = speed;
+
         Set<VectorData> init = fetchPossibleStartTickVectors(player);
 
         if (player.uncertaintyHandler.influencedByBouncyBlock()) {
@@ -102,17 +73,6 @@ public class PredictionEngine {
         // Predicted velocity - after collision and not carried into the next tick
         new MovementTickerPlayer(player).move(player.clientVelocity.clone(), player.predictedVelocity.vector);
         endOfTick(player, player.gravity, player.friction);
-    }
-
-    // These math equations are based off of the vanilla equations, made impossible to divide by 0
-    public static Vector getBestTheoreticalPlayerInput(GrimPlayer player, Vector wantedMovement, float f, float f2) {
-        float f3 = player.trigHandler.sin(f2 * 0.017453292f);
-        float f4 = player.trigHandler.cos(f2 * 0.017453292f);
-
-        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4) / f;
-        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4) / f;
-
-        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
     }
 
     // 0.03 has some quite bad interactions with velocity + explosions (one extremely stupid line of code... thanks mojang)
@@ -516,19 +476,6 @@ public class PredictionEngine {
         player.lastWasClimbing = 0;
     }
 
-    public static Vector getBestPossiblePlayerInput(GrimPlayer player, Vector theoreticalInput) {
-        double bestPossibleX = GrimMath.clamp(theoreticalInput.getX(), -0.98, 0.98);
-        double bestPossibleZ = GrimMath.clamp(theoreticalInput.getZ(), -0.98, 0.98);
-
-        Vector inputVector = new Vector(bestPossibleX, 0, bestPossibleZ);
-
-        if (inputVector.lengthSquared() > 1) {
-            inputVector.normalize();
-        }
-
-        return inputVector;
-    }
-
     private void doPredictions(GrimPlayer player, List<VectorData> possibleVelocities, float speed) {
         // Sorting is an optimization and a requirement
         //
@@ -551,6 +498,8 @@ public class PredictionEngine {
         player.skippedTickInActualMovement = false;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
+            boolean forceSneaking = !clientVelAfterInput.isZeroPointZeroThree() && player.isSlowMovement;
+
             Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
             Vector primaryPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
 
@@ -600,10 +549,12 @@ public class PredictionEngine {
             Vector handleHardCodedBorder = outputVel;
             handleHardCodedBorder = clampMovementToHardBorder(player, outputVel, handleHardCodedBorder);
 
-            double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
+            VectorData outputData = clientVelAfterInput.returnNewModified(handleHardCodedBorder, VectorData.VectorType.BestVelPicked);
+            InputsOffsetData resultAccuracy = outputData.calculateOffset(player, forceSneaking, false, speed);
+            double offset = player.uncertaintyHandler.reduceOffset(resultAccuracy.getOffset());
 
             // Check if this possiblity is zero point zero three and is "close enough" to the player's actual movement
-            if (clientVelAfterInput.isZeroPointZeroThree() && resultAccuracy < 0.001 * 0.001) {
+            if (clientVelAfterInput.isZeroPointZeroThree() && resultAccuracy.getOffset() < 0.001 * 0.001) {
                 player.skippedTickInActualMovement = true;
             }
 
@@ -617,12 +568,12 @@ public class PredictionEngine {
                 // Fine, you can comment about the sqrt calls here being inefficient, but the offset is user-facing
                 // There's much larger performance design issues than losing a few nanoseconds here and there.
                 if (clientVelAfterInput.isKnockback()) {
-                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+                    player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(offset));
                     player.checkManager.getKnockbackHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
                 }
 
                 if (clientVelAfterInput.isExplosion()) {
-                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+                    player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(offset));
                     player.checkManager.getExplosionHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
                 }
             }
@@ -631,18 +582,18 @@ public class PredictionEngine {
             // Unlike knockback/explosions, there is no reason to force collisions to run to check it.
             // As not flipping item is preferred... it gets ran before any other options
             if (player.packetStateData.slowedByUsingItem) { // TODO: Analyze no slow
-                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
+                InputsOffsetData forceUseItemAccuracy = outputData.calculateOffset(player, forceSneaking, true, speed);
+                player.checkManager.getNoSlow().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(forceUseItemAccuracy.getOffset())));
             }
 
-            if (resultAccuracy < bestInput) {
-                bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
+            // We basically want to avoid falsing ground spoof, try to find a vector that works
+            if (player.wouldCollisionResultFlagGroundSpoof(primaryPushMovement.getY(), outputData.vector.getY()))
+                bestInput += 0.0001 * 0.0001;
+
+            if (resultAccuracy.getOffset() < bestInput) {
+                bestCollisionVel = outputData;
                 beforeCollisionMovement = primaryPushMovement;
-
-                // We basically want to avoid falsing ground spoof, try to find a vector that works
-                if (player.wouldCollisionResultFlagGroundSpoof(primaryPushMovement.getY(), bestCollisionVel.vector.getY()))
-                    resultAccuracy += 0.0001 * 0.0001;
-
-                bestInput = resultAccuracy;
+                bestInput = resultAccuracy.getOffset();
             }
 
             // Close enough, there's no reason to continue our predictions.
@@ -665,14 +616,12 @@ public class PredictionEngine {
 
     private void loopVectors(GrimPlayer player, Set<VectorData> possibleVectors, float speed, List<VectorData> returnVectors) {
         for (VectorData vector : possibleVectors) {
-            Vector bestTheoreticalInput = getBestTheoreticalPlayerInput(player, player.actualMovement.clone().subtract(vector.vector), speed, player.xRot);
-            Vector reducedToBestPossible = getBestPossiblePlayerInput(player, bestTheoreticalInput);
+            Vector reducedToBestPossible = vector.storeAndSanifyVector(player, speed, player.actualMovement, vector.vector);
             Vector resultForMovement = getMovementResultFromInput(player, reducedToBestPossible, speed, player.xRot);
 
             Vector appliedToStartingVel = vector.vector.clone().add(resultForMovement);
             Vector withClimbingApplied = handleOnClimbable(appliedToStartingVel, player);
 
-            vector.playerInputs = reducedToBestPossible;
             returnVectors.add(vector.returnNewModified(withClimbingApplied, VectorData.VectorType.InputResult));
         }
     }

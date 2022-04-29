@@ -31,6 +31,8 @@ public class OffsetHandler extends PostPredictionCheck {
 
         if (completePredictionEvent.isCancelled()) return;
 
+        player.predictedVelocity.calculateOffset(player, player.isSlowMovement, player.packetStateData.slowedByUsingItem, player.frictionInfluencedSpeed);
+
         if (offset >= threshold || offset >= immediateSetbackThreshold) {
             flag();
 

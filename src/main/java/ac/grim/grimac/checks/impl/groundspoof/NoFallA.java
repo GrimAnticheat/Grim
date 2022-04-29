@@ -33,11 +33,10 @@ public class NoFallA extends PacketCheck {
             if (player.getSetbackTeleportUtil().blockOffsets) return;
 
             WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
-            boolean hasPosition = false;
 
             // If the player claims to be on the ground
             // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
-            if (wrapper.isOnGround() && !hasPosition) {
+            if (wrapper.isOnGround()) {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
                     flagWithSetback();
                     wrapper.setOnGround(false);
