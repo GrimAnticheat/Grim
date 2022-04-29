@@ -121,7 +121,8 @@ public class PredictionEngine {
 
         SimpleCollisionBox originalBB = player.boundingBox;
         // 0.03 doesn't exist with vehicles, thank god
-        SimpleCollisionBox pointThreeThanksMojang = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 0.6f);
+        // 1.13+ clients have stupid poses that desync because mojang brilliantly removed the idle packet in 1.9
+        SimpleCollisionBox pointThreeThanksMojang = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) ? GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.6f, 0.6f) : originalBB;
 
         player.skippedTickInActualMovement = false;
 
@@ -589,7 +590,7 @@ public class PredictionEngine {
         // jumps upwards and collides with a block, which you don't actually see because mojang removed the idle
         // packet and sneaking poses take 2 full ticks to apply
         //
-        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || (vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
+         if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
             box.expandToAbsoluteCoordinates(0, 0, 0);
         }
 
