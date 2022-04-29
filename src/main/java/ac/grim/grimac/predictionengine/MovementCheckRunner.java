@@ -306,11 +306,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-
-        // ViaVersion messes up flight speed for 1.7 players
-        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_7_10) && player.isFlying)
-            player.isSprinting = true;
-
+        
         if (player.isSprinting != player.lastSprinting) {
             player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
         }
