@@ -303,7 +303,8 @@ public class PointThreeEstimator {
     // This method can be improved by using the actual movement to see if 0.03 was feasible...
     public boolean determineCanSkipTick(float speed, Set<VectorData> init) {
         // If possible, check for idle packet
-        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && player.packetStateData.didLastMovementIncludePosition) {
+        // TODO: Find a better way to fix slime without forcing 0.03 where there is none
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && player.packetStateData.didLastMovementIncludePosition && !player.uncertaintyHandler.isSteppingOnSlime) {
             return false; // Last packet included a position so not 0.03
         }
 
