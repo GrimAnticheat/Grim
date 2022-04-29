@@ -524,7 +524,7 @@ public class PredictionEngine {
 
         // Hidden slime block bounces by missing idle tick and 0.03
         if (player.actualMovement.getY() >= 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
-            if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty != 0) {
+            if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty != 0 && !vector.isJump()) { // jumping overrides slime block
                 if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty > maxVector.getY()) {
                     maxVector.setY(player.uncertaintyHandler.thisTickSlimeBlockUncertainty);
                 }
