@@ -95,6 +95,9 @@ public class ConfigManager {
         if (configVersion < 1) {
             addMaxPing(config, configString);
         }
+        if (configVersion < 2 && false) {
+            addMissingPunishments();
+        }
     }
 
     private void removeLegacyTwoPointOne(File config) throws IOException {
@@ -108,5 +111,22 @@ public class ConfigManager {
                 "max-ping: 120";
 
         Files.write(config.toPath(), configString.getBytes());
+    }
+
+    // TODO: Write conversion for this... I'm having issues with windows new lines
+    private void addMissingPunishments() {
+        File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+        String configString;
+        if (config.exists()) {
+            try {
+                configString = new String(Files.readAllBytes(config.toPath()));
+
+                // If it works, it isn't stupid.  Only replace it if it exactly matches the default config.
+                configString = configString.substring(0, configString.indexOf("  # As of 2.2.2 these are just placeholders, there are no Killaura/Aim/Autoclicker checks other than those that"));
+
+                Files.write(config.toPath(), configString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
     }
 }

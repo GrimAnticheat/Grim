@@ -31,4 +31,8 @@ public class ActionManager extends PacketCheck {
             }
         }
     }
+
+    public boolean hasAttackedSince(long time) {
+        return System.currentTimeMillis() - lastAttack < time;
+    }
 }

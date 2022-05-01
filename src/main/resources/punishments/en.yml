@@ -57,7 +57,11 @@ Punishments:
     checks:
       - "Killaura"
       - "Aim"
+    commands:
+      - "100:40 [alert]"
   Autoclicker:
     remove-violations-after: 300
     checks:
       - "Autoclicker"
+    commands:
+      - "100:40 [alert]"

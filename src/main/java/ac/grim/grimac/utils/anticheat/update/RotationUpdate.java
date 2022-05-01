@@ -18,4 +18,6 @@ public final class RotationUpdate {
         this.deltaPitch = deltaPitch;
         this.deltaYaw = deltaYaw;
     }
+
+    // TODO: Math.abs stuff
 }
