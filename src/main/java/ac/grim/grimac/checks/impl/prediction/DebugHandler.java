@@ -38,6 +38,8 @@ public class DebugHandler extends PostPredictionCheck {
 
         // No one is listening to this debug
         if (listeners.isEmpty() && !outputToConsole) return;
+        // This is pointless debug!
+        if (player.predictedVelocity.vector.lengthSquared() == 0 && offset == 0) return;
 
         ChatColor color = pickColor(offset, offset);
 
