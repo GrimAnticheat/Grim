@@ -83,8 +83,16 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.lastOnGround = false;
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
+
+                // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
+                player.compensatedEntities.entityMap.clear();
+                player.compensatedWorld.activePistons.clear();
+                player.compensatedWorld.openShulkerBoxes.clear();
+                player.compensatedWorld.chunks.clear();
+                player.compensatedEntities.serverPlayerVehicle = null; // All entities get removed on respawn
                 player.compensatedEntities.playerEntity = new PacketEntitySelf();
                 player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
+
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;
                     ((BadPacketsF) player.checkManager.getPacketCheck(BadPacketsF.class)).lastSprinting = false; // Pre 1.14 clients set this to false when creating new entity
