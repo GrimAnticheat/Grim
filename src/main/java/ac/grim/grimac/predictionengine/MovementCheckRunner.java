@@ -35,6 +35,7 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 public class MovementCheckRunner extends PositionCheck {
@@ -120,19 +121,19 @@ public class MovementCheckRunner extends PositionCheck {
         // That would be bad so this prevents it
         if (!player.isFlying && player.isSneaking && Collisions.isAboveGround(player)) {
             // 16 - Magic number to stop people from crashing the server
-            double posX = Math.max(0.1, Math.max(player.actualMovement.getX(), 16) + 0.1);
-            double posZ = Math.max(0.1, Math.max(player.actualMovement.getZ(), 16) + 0.1);
-            double negX = Math.min(-0.1, Math.max(player.actualMovement.getX(), 16) - 0.1);
-            double negZ = Math.min(-0.1, Math.max(player.actualMovement.getZ(), 16) - 0.1);
+            double posX = Math.max(0.1, GrimMath.clamp(player.actualMovement.getX(), -16, 16) + 0.1);
+            double posZ = Math.max(0.1, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) + 0.1);
+            double negX = Math.min(-0.1, GrimMath.clamp(player.actualMovement.getX(), -16, 16) - 0.1);
+            double negZ = Math.min(-0.1, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) - 0.1);
 
-            Vector NE = Collisions.maybeBackOffFromEdge(new Vector(posX, 0, posZ), player, true);
+            Vector NE = Collisions.maybeBackOffFromEdge(new Vector(posX, 0, negZ), player, true);
             Vector NW = Collisions.maybeBackOffFromEdge(new Vector(negX, 0, negZ), player, true);
             Vector SE = Collisions.maybeBackOffFromEdge(new Vector(posX, 0, posZ), player, true);
-            Vector SW = Collisions.maybeBackOffFromEdge(new Vector(negX, 0, negZ), player, true);
+            Vector SW = Collisions.maybeBackOffFromEdge(new Vector(negX, 0, posZ), player, true);
 
             boolean isEast = NE.getX() != posX || SE.getX() != posX;
             boolean isWest = NW.getX() != negX || SW.getX() != negX;
-            boolean isNorth = NE.getZ() != posZ || NW.getZ() != posZ;
+            boolean isNorth = NE.getZ() != negZ || NW.getZ() != negZ;
             boolean isSouth = SE.getZ() != posZ || SW.getZ() != posZ;
 
             if (isEast || isWest || isSouth || isNorth) {
@@ -306,7 +307,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         // This isn't the final velocity of the player in the tick, only the one applied to the player
         player.actualMovement = new Vector(player.x - player.lastX, player.y - player.lastY, player.z - player.lastZ);
-        
+
         if (player.isSprinting != player.lastSprinting) {
             player.compensatedEntities.hasSprintingAttributeEnabled = player.isSprinting;
         }
