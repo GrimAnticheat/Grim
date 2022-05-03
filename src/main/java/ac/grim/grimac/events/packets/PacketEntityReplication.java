@@ -278,6 +278,10 @@ public class PacketEntityReplication extends PacketCheck {
 
             for (int entityID : destroyEntityIds) {
                 player.compensatedEntities.serverPositionsMap.remove(entityID);
+                // Remove the tracked vehicle (handling tracking knockback) if despawned
+                if (player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == entityID) {
+                    player.compensatedEntities.serverPlayerVehicle = null;
+                }
             }
 
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
