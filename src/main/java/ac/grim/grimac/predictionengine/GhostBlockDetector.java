@@ -23,7 +23,7 @@ public class GhostBlockDetector extends PostPredictionCheck {
 
         // This is meant for stuff like buggy blocks and mechanics on old clients
         // It was once for ghost blocks, although I've removed it for ghost blocks
-        boolean shouldResync = isGhostBlock();
+        boolean shouldResync = isGhostBlock(player);
 
         if (shouldResync) {
             // I once used a buffer for this, but it should be very accurate now.
@@ -38,7 +38,7 @@ public class GhostBlockDetector extends PostPredictionCheck {
         }
     }
 
-    private boolean isGhostBlock() {
+    public static boolean isGhostBlock(GrimPlayer player) {
         // Player is on glitchy block (1.8 client on anvil/wooden chest)
         if (player.uncertaintyHandler.isOrWasNearGlitchyBlock) {
             return true;

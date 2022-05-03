@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.groundspoof;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.GhostBlockDetector;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -39,7 +40,10 @@ public class NoFallA extends PacketCheck {
             // Run this code IFF the player doesn't send the position, as that won't get processed by predictions
             if (wrapper.isOnGround() && !hasPosition) {
                 if (!isNearGround(wrapper.isOnGround())) { // If player isn't near ground
-                    flagWithSetback();
+                    // 1.8 boats have a mind on their own... only flag if they're not near a boat or are on 1.9+
+                    if (!GhostBlockDetector.isGhostBlock(player)) {
+                        flagWithSetback();
+                    }
                     wrapper.setOnGround(false);
                 }
             }

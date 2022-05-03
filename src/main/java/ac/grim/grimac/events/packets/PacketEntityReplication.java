@@ -1,6 +1,5 @@
 package ac.grim.grimac.events.packets;
 
-import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -16,7 +15,6 @@ import com.github.retrooper.packetevents.protocol.entity.type.EntityType;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
@@ -28,6 +26,24 @@ import java.util.List;
 
 public class PacketEntityReplication extends PacketCheck {
     private boolean hasSentPreWavePacket = true;
+    // Let's imagine the player is on a boat.
+    // The player breaks this boat
+    // If we were to despawn the boat without an extra transaction, then the boat would disappear before
+    // it disappeared on the client side, creating a ghost boat to flag checks with
+    //
+    // If we were to despawn the tick after, spawning must occur the transaction before to stop the same exact
+    // problem with ghost boats in reverse.
+    //
+    // Therefore, we despawn the transaction after, and spawn the tick before.
+    //
+    // If we despawn then spawn an entity in the same transaction, then this solution would despawn the new entity
+    // instead of the old entity, so we wouldn't see the boat at all
+    //
+    // Therefore, if the server sends a despawn and then a spawn in the same transaction for the same entity,
+    // We should simply add a transaction (which will clear this list!)
+    //
+    // Another valid solution is to simply spam more transactions, but let's not waste bandwidth.
+    private final List<Integer> despawnedEntitiesThisTransaction = new ArrayList<>();
 
     public PacketEntityReplication(GrimPlayer player) {
         super(player);
@@ -47,6 +63,10 @@ public class PacketEntityReplication extends PacketCheck {
             if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
                 return;
             tickFlying();
+        }
+
+        if (event.getPacketType() == PacketType.Play.Server.PING || event.getPacketType() == PacketType.Play.Server.WINDOW_CONFIRMATION) {
+            despawnedEntitiesThisTransaction.clear();
         }
     }
 
@@ -244,6 +264,7 @@ public class PacketEntityReplication extends PacketCheck {
             int[] destroyEntityIds = destroy.getEntityIds();
 
             for (int entityID : destroyEntityIds) {
+                despawnedEntitiesThisTransaction.add(entityID);
                 player.compensatedEntities.serverPositionsMap.remove(entityID);
                 // Remove the tracked vehicle (handling tracking knockback) if despawned
                 if (player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == entityID) {
@@ -251,7 +272,7 @@ public class PacketEntityReplication extends PacketCheck {
                 }
             }
 
-            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                 for (int integer : destroyEntityIds) {
                     player.compensatedEntities.removeEntity(integer);
                     player.compensatedFireworks.removeFirework(integer);
@@ -358,6 +379,10 @@ public class PacketEntityReplication extends PacketCheck {
     }
 
     public void addEntity(int entityID, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData> entityMetadata) {
+        if (despawnedEntitiesThisTransaction.contains(entityID)) {
+            player.sendTransaction();
+        }
+
         player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, type, player.lastTransactionSent.get()));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
