@@ -218,6 +218,16 @@ public class PacketEntityReplication extends PacketCheck {
             }
         }
 
+        // 1.8 clients fail to send the RELEASE_USE_ITEM packet when a window is opened client sided while using an item
+        if (event.getPacketType() == PacketType.Play.Server.OPEN_WINDOW) {
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
+        }
+        if (event.getPacketType() == PacketType.Play.Server.OPEN_HORSE_WINDOW) {
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
+            player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
+        }
+
         if (event.getPacketType() == PacketType.Play.Server.SET_PASSENGERS) {
             WrapperPlayServerSetPassengers mount = new WrapperPlayServerSetPassengers(event);
 
