@@ -26,7 +26,7 @@ public class FarPlace extends BlockPlaceCheck {
         double min = Double.MAX_VALUE;
         for (double d : player.getPossibleEyeHeights()) {
             SimpleCollisionBox box = new SimpleCollisionBox(blockPos);
-            Vector eyes = new Vector(player.lastX, player.lastY + d, player.lastZ);
+            Vector eyes = new Vector(player.x, player.y + d, player.z);
             Vector best = VectorUtils.cutBoxToVector(eyes, box);
             min = Math.min(min, eyes.distanceSquared(best));
         }
