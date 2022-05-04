@@ -52,9 +52,12 @@ public enum CollisionData {
         if (block.getSouth() == South.TRUE)
             boxes.add(new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
 
+        // This is where fire differs from vine with its hitbox
+        if (block.getType() == StateTypes.FIRE && boxes.isNull()) return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
+
         return boxes;
 
-    }, StateTypes.VINE),
+    }, StateTypes.VINE, StateTypes.FIRE),
 
     LAVA((player, version, block, x, y, z) -> {
         if (MovementTickerStrider.isAbove(player) && player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityStrider) {
@@ -637,6 +640,8 @@ public enum CollisionData {
         return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
     }, StateTypes.FARMLAND),
+
+    HANGING_ROOTS(new HexCollisionBox(2.0D, 10.0D, 2.0D, 14.0D, 16.0D, 14.0D), StateTypes.HANGING_ROOTS),
 
     GRASS_PATH((player, version, data, x, y, z) -> {
         if (version.isNewerThanOrEquals(ClientVersion.V_1_9))

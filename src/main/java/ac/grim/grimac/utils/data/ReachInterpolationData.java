@@ -15,6 +15,7 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 package ac.grim.grimac.utils.data;
 
+import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
@@ -31,9 +32,9 @@ public class ReachInterpolationData {
     private int interpolationStepsHighBound = 0;
     private boolean isBoat;
 
-    public ReachInterpolationData(SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine, PacketEntity entity) {
+    public ReachInterpolationData(GrimPlayer player, SimpleCollisionBox startingLocation, double x, double y, double z, boolean isPointNine, PacketEntity entity) {
         this.startingLocation = startingLocation;
-        this.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, BoundingBoxSize.getWidth(entity), BoundingBoxSize.getHeight(entity));
+        this.targetLocation = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, BoundingBoxSize.getWidth(player, entity), BoundingBoxSize.getHeight(player, entity));
 
         // 1.9 -> 1.8 precision loss in packets
         // (ViaVersion is doing some stuff that makes this code difficult)

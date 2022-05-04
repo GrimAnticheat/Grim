@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityHorse;
 import ac.grim.grimac.utils.data.packetentity.PacketEntitySizeable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.util.Vector3d;
 
 /**
@@ -17,13 +18,13 @@ import com.github.retrooper.packetevents.util.Vector3d;
  * (And even if they did they would likely be breaking my license...)
  */
 public class BoundingBoxSize {
-    public static float getWidth(PacketEntity packetEntity) {
+    public static float getWidth(GrimPlayer player, PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
         if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.36f;
-        return getWidthMinusBaby(packetEntity) * (packetEntity.isBaby ? 0.5f : 1f);
+        return getWidthMinusBaby(player, packetEntity) * (packetEntity.isBaby ? 0.5f : 1f);
     }
 
-    private static float getWidthMinusBaby(PacketEntity packetEntity) {
+    private static float getWidthMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
         if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.PANDA.equals(packetEntity.type)) {
             return 1.3f;
         } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.TROPICAL_FISH.equals(packetEntity.type)) {
@@ -36,8 +37,10 @@ public class BoundingBoxSize {
             return 1.39648f;
         } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
             return 1.375f;
-        } else if (EntityTypes.CHICKEN.equals(packetEntity.type) || EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.RABBIT.equals(packetEntity.type) || EntityTypes.SILVERFISH.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
+        } else if (EntityTypes.CHICKEN.equals(packetEntity.type) || EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.SILVERFISH.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
             return 0.4f;
+        } else if (EntityTypes.RABBIT.equals(packetEntity.type)) {
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.4f : 0.6f;
         } else if (EntityTypes.STRIDER.equals(packetEntity.type) || EntityTypes.COW.equals(packetEntity.type) || EntityTypes.SHEEP.equals(packetEntity.type) || EntityTypes.MOOSHROOM.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.LLAMA.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type) || EntityTypes.WITHER.equals(packetEntity.type) || EntityTypes.TRADER_LLAMA.equals(packetEntity.type)) {
             return 0.9f;
         } else if (EntityTypes.PHANTOM.equals(packetEntity.type)) {
@@ -114,7 +117,7 @@ public class BoundingBoxSize {
             // and people trying to false the anticheat.
             if (entity.type == EntityTypes.BOAT) {
                 float f = 0.0F;
-                float f1 = (float) (getPassengerRidingOffset(entity) - 0.35f); // hardcoded player offset
+                float f1 = (float) (getPassengerRidingOffset(player, entity) - 0.35f); // hardcoded player offset
 
                 if (!entity.passengers.isEmpty()) {
                     int i = entity.passengers.indexOf(player.compensatedEntities.getSelf());
@@ -132,16 +135,16 @@ public class BoundingBoxSize {
             } else if (entity.type == EntityTypes.LLAMA) {
                 float f = player.trigHandler.cos(xRotEntity.interpYaw * ((float) Math.PI / 180F));
                 float f1 = player.trigHandler.sin(xRotEntity.interpYaw * ((float) Math.PI / 180F));
-                return new Vector3d(x + (double) (0.3F * f1), y + getPassengerRidingOffset(entity) - 0.35f, z + (double) (0.3F * f));
+                return new Vector3d(x + (double) (0.3F * f1), y + getPassengerRidingOffset(player, entity) - 0.35f, z + (double) (0.3F * f));
             } else if (entity.type == EntityTypes.CHICKEN) {
                 float f = player.trigHandler.sin(xRotEntity.interpYaw * ((float) Math.PI / 180F));
                 float f1 = player.trigHandler.cos(xRotEntity.interpYaw * ((float) Math.PI / 180F));
-                y = y + (getHeight(entity) * 0.5f);
+                y = y + (getHeight(player, entity) * 0.5f);
                 return new Vector3d(x + (double) (0.1F * f), y - 0.35f, z - (double) (0.1F * f1));
             }
         }
 
-        return new Vector3d(x, y + getPassengerRidingOffset(entity) - 0.35f, z);
+        return new Vector3d(x, y + getPassengerRidingOffset(player, entity) - 0.35f, z);
     }
 
     private static Vector3d yRot(float p_82525_, Vector3d start) {
@@ -153,10 +156,10 @@ public class BoundingBoxSize {
         return new Vector3d(d0, d1, d2);
     }
 
-    public static float getHeight(PacketEntity packetEntity) {
+    public static float getHeight(GrimPlayer player, PacketEntity packetEntity) {
         // Turtles are the only baby animal that don't follow the * 0.5 rule
         if (packetEntity.type == EntityTypes.TURTLE && packetEntity.isBaby) return 0.12f;
-        return getHeightMinusBaby(packetEntity) * (packetEntity.isBaby ? 0.5f : 1f);
+        return getHeightMinusBaby(player, packetEntity) * (packetEntity.isBaby ? 0.5f : 1f);
     }
 
     public static double getMyRidingOffset(PacketEntity packetEntity) {
@@ -179,33 +182,33 @@ public class BoundingBoxSize {
         return 0;
     }
 
-    public static double getPassengerRidingOffset(PacketEntity packetEntity) {
+    public static double getPassengerRidingOffset(GrimPlayer player, PacketEntity packetEntity) {
         if (packetEntity instanceof PacketEntityHorse)
-            return (getHeight(packetEntity) * 0.75) - 0.25;
+            return (getHeight(player, packetEntity) * 0.75) - 0.25;
 
         if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.MINECART_ABSTRACT)) {
             return 0;
         } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
             return -0.1;
         } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
-            return getHeight(packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
+            return getHeight(player, packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
         } else if (EntityTypes.LLAMA.equals(packetEntity.type)) {
-            return getHeight(packetEntity) * 0.67;
+            return getHeight(player, packetEntity) * 0.67;
         } else if (EntityTypes.PIGLIN.equals(packetEntity.type)) {
-            return getHeight(packetEntity) * 0.92;
+            return getHeight(player, packetEntity) * 0.92;
         } else if (EntityTypes.RAVAGER.equals(packetEntity.type)) {
             return 2.1;
         } else if (EntityTypes.SKELETON.equals(packetEntity.type)) {
-            return (getHeight(packetEntity) * 0.75) - 0.1875;
+            return (getHeight(player, packetEntity) * 0.75) - 0.1875;
         } else if (EntityTypes.SPIDER.equals(packetEntity.type)) {
-            return getHeight(packetEntity) * 0.5;
+            return getHeight(player, packetEntity) * 0.5;
         } else if (EntityTypes.STRIDER.equals(packetEntity.type)) {// depends on animation position, good luck getting it exactly, this is the best you can do though
-            return getHeight(packetEntity) - 0.19;
+            return getHeight(player, packetEntity) - 0.19;
         }
-        return getHeight(packetEntity) * 0.75;
+        return getHeight(player, packetEntity) * 0.75;
     }
 
-    private static float getHeightMinusBaby(PacketEntity packetEntity) {
+    private static float getHeightMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
         if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type)) {
             return 0.6f;
         } else if (EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.SQUID.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
@@ -293,7 +296,7 @@ public class BoundingBoxSize {
         } else if (EntityTypes.PUFFERFISH.equals(packetEntity.type)) {
             return 0.7f;
         } else if (EntityTypes.RABBIT.equals(packetEntity.type)) {
-            return 0.5f;
+            return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.5f : 0.7f;
         } else if (EntityTypes.RAVAGER.equals(packetEntity.type)) {
             return 2.2f;
         } else if (EntityTypes.SALMON.equals(packetEntity.type)) {

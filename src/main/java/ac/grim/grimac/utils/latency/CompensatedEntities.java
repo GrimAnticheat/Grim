@@ -174,7 +174,7 @@ public class CompensatedEntities {
         if (riding.isDead && passenger.riding == riding) {
             passenger.riding = null;
         } else {
-            passenger.setPositionRaw(riding.getPossibleCollisionBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(passenger), 0));
+            passenger.setPositionRaw(riding.getPossibleCollisionBoxes().offset(0, BoundingBoxSize.getMyRidingOffset(riding) + BoundingBoxSize.getPassengerRidingOffset(player, passenger), 0));
 
             for (PacketEntity passengerPassenger : riding.passengers) {
                 tickPassenger(passenger, passengerPassenger);

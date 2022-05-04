@@ -548,8 +548,8 @@ public class BlockPlace {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
             SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
 
-            double width = BoundingBoxSize.getWidth(entity);
-            double height = BoundingBoxSize.getHeight(entity);
+            double width = BoundingBoxSize.getWidth(player, entity);
+            double height = BoundingBoxSize.getHeight(player, entity);
             double interpWidth = Math.max(interpBox.maxX - interpBox.minX, interpBox.maxZ - interpBox.minZ);
             double interpHeight = interpBox.maxY - interpBox.minY;
 
@@ -558,7 +558,7 @@ public class BlockPlace {
             // On 1.8 clients this should practically never happen
             if (interpWidth - width > 0.05 || interpHeight - height > 0.05) {
                 Vector3d entityPos = entity.desyncClientPos;
-                interpBox = GetBoundingBox.getPacketEntityBoundingBox(entityPos.getX(), entityPos.getY(), entityPos.getZ(), entity);
+                interpBox = GetBoundingBox.getPacketEntityBoundingBox(player, entityPos.getX(), entityPos.getY(), entityPos.getZ(), entity);
             }
 
             if (box.isIntersected(interpBox)) {
