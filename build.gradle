@@ -40,18 +40,6 @@ description = 'GrimAC'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
 
-publishing {
-    publications {
-        maven(MavenPublication) {
-            from(components.java)
-        }
-    }
-}
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
 shadowJar {
     minimize()
     relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.io.github.retrooper.packetevents'
@@ -63,14 +51,11 @@ shadowJar {
     relocate 'com.github.puregero', 'ac.grim.grimac.shaded.com.github.puregero'
 }
 
-compileJava {
-    options.compilerArgs += ["-parameters"]
-    options.fork = true
-    options.forkOptions.executable = 'javac'
+publishing {
+    publications {
+        Library(MavenPublication) {
+            from project.components.java
+            artifact tasks.shadowJar
+        }
+    }
 }
-
-artifacts {
-    archives shadowJar
-}
-
-build.dependsOn shadowJar
