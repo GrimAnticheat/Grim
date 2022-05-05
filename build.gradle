@@ -47,8 +47,8 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 
 publishing {
     publications {
-        maven(MavenPublication) {
-            from(components.java)
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
         }
     }
 }
