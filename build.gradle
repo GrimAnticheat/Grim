@@ -1,18 +1,8 @@
 plugins {
+    id 'java'
+    id 'maven-publish'
     id "com.github.johnrengelman.shadow" version "7.1.2"
-    id "maven-publish"
 }
-
-apply plugin: 'java'
-apply plugin: 'maven-publish'
-apply plugin: 'com.github.johnrengelman.shadow'
-
-group = 'ac.grim.grimac'
-version = '2.2.9'
-description = 'GrimAC'
-
-java.sourceCompatibility = JavaVersion.VERSION_1_8
-java.targetCompatibility = JavaVersion.VERSION_1_8
 
 repositories {
     mavenLocal()
@@ -44,14 +34,43 @@ dependencies {
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
 }
 
-apply plugin: 'java'
-apply plugin: 'maven-publish'
-apply plugin: 'com.github.johnrengelman.shadow'
+group = 'ac.grim.grimac'
+version = '2.2.9'
+description = 'GrimAC'
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+java.targetCompatibility = JavaVersion.VERSION_1_8
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+shadowJar {
+    minimize()
+    relocate 'io.github.retrooper.packetevents', 'ac.grim.grimac.shaded.io.github.retrooper.packetevents'
+    relocate 'com.github.retrooper.packetevents', 'ac.grim.grimac.shaded.com.github.retrooper.packetevents'
+    relocate 'co.aikar.acf', 'ac.grim.grimac.shaded.acf'
+    relocate 'org.bstats', 'ac.grim.grimac.shaded.bstats'
+    relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
+    relocate 'github.scarsz.configuralize', 'ac.grim.grimac.shaded.configuralize'
+    relocate 'com.github.puregero', 'ac.grim.grimac.shaded.com.github.puregero'
+}
+
+compileJava {
+    options.compilerArgs += ["-parameters"]
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+}
 
 artifacts {
     archives shadowJar
 }
 
-shadowJar {
-    minimize()
-}
+build.dependsOn shadowJar
