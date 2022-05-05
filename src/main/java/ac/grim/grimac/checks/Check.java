@@ -81,8 +81,7 @@ public class Check<T> {
 
     public boolean setbackIfAboveSetbackVL() {
         if (getViolations() > setbackVL) {
-            player.getSetbackTeleportUtil().executeViolationSetback();
-            return true;
+            return player.getSetbackTeleportUtil().executeViolationSetback();
         }
         return false;
     }

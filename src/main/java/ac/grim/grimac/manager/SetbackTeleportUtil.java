@@ -66,12 +66,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      */
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
-        // Desync is fixed
-        if (predictionComplete.getData().isTeleport()) {
-            blockOffsets = false;
-            blockPredictions = false;
-        }
-
         // We must first check if the player has accepted their setback
         // If the setback isn't complete, then this position is illegitimate
         if (predictionComplete.getData().getSetback() != null) {
@@ -79,20 +73,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             setbackConfirmTicksAgo = 0;
             // Teleport, let velocity be reset
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
+            blockOffsets = false;
+            blockPredictions = false;
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
             setbackConfirmTicksAgo++;
-
-            // Calculate the player's actual movement that should be given
-            safeTeleportPosition = new SetbackLocationVelocity(
-                    new Vector3d(player.lastX + player.predictedVelocity.vector.getX(), player.lastY + player.predictedVelocity.vector.getY(), player.lastZ + player.predictedVelocity.vector.getZ()),
-                    // The client's current velocity is their velocity for the next tick
-                    player.clientVelocity.clone());
-
-            // We checked for a new pending setback above
-            if (predictionComplete.getData().isTeleport()) {
-                // Avoid setting the player back to positions before this teleport
-                safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
-            }
+            // No simulation... we can do that later. We just need to know the valid position.
+            // Don't worry about accidentally setting before a teleport, teleports set lastX/Y/Z to teleport position
+            safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ), player.clientVelocity.clone());
         } else {
             setbackConfirmTicksAgo = 0; // Pending setback
         }
@@ -105,13 +92,27 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         blockMovementsUntilResync(safeTeleportPosition.position);
     }
 
-    public void executeViolationSetback() {
+    public boolean executeViolationSetback() {
+        if (isExempt()) return false;
+        blockMovementsUntilResync(safeTeleportPosition.position);
+        return true;
+    }
+
+    public boolean executeNonSimulatingSetback() {
+        if (isExempt()) return false;
+        blockMovementsUntilResync(safeTeleportPosition.position, false, false);
+        return true;
+    }
+
+    private boolean isExempt() {
         // Not exempting spectators here because timer check for spectators is actually valid.
         // Player hasn't spawned yet
-        if (safeTeleportPosition == null) return;
+        if (safeTeleportPosition == null) return true;
+        // Setbacks aren't allowed
+        if (player.disableGrim) return true;
         // Player has permission to cheat, permission not given to OP by default.
-        if (player.bukkitPlayer != null && player.bukkitPlayer.hasPermission("grim.nosetback")) return;
-        blockMovementsUntilResync(safeTeleportPosition.position);
+        if (player.bukkitPlayer != null && player.bukkitPlayer.hasPermission("grim.nosetback")) return true;
+        return false;
     }
 
     public void blockMovementsUntilResync(Location position) {
@@ -119,6 +120,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void blockMovementsUntilResync(Location position, boolean force) {
+        blockMovementsUntilResync(position, force, true);
+    }
+
+    public void blockMovementsUntilResync(Location position, boolean force, boolean simulateNextTickPosition) {
         if (requiredSetBack == null || player.bukkitPlayer == null)
             return; // Player hasn't gotten a single teleport yet.
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
@@ -164,17 +169,22 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             player.firstBreadKB.hasSetbackForThis = true;
         }
 
-        Vector collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());
+        // Mini prediction engine - simulate collisions
+        if (simulateNextTickPosition) {
+            Vector collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());
 
-        position.setX(position.getX() + collide.getX());
-        position.setY(position.getY() + collide.getY());
-        position.setZ(position.getZ() + collide.getZ());
+            position.setX(position.getX() + collide.getX());
+            // 1.8 players need the collision epsilon to not phase into blocks when being setback
+            // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
+            position.setY(position.getY() + collide.getY() + SimpleCollisionBox.COLLISION_EPSILON);
+            position.setZ(position.getZ() + collide.getZ());
 
-        // TODO: Add support for elytra, water, lava, and end of ticks
-        if (player.wasTouchingWater) {
-            PredictionEngineWater.staticVectorEndOfTick(player, clientVel, 0.8F, player.gravity, true);
-        } else if (!player.isGliding) { // Gliding doesn't have friction, we handle it differently
-            PredictionEngineNormal.staticVectorEndOfTick(player, clientVel); // Lava and normal movement
+            // TODO: Add support for elytra, water, lava, and end of ticks
+            if (player.wasTouchingWater) {
+                PredictionEngineWater.staticVectorEndOfTick(player, clientVel, 0.8F, player.gravity, true);
+            } else if (!player.isGliding) { // Gliding doesn't have friction, we handle it differently
+                PredictionEngineNormal.staticVectorEndOfTick(player, clientVel); // Lava and normal movement
+            }
         }
 
         player.boundingBox = oldBB; // reset back to the new bounding box
@@ -282,9 +292,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 teleportData.setTeleport(true);
             } else if (lastTransaction > teleportPos.getFirst() + 1) {
                 teleports.poll();
-                if (teleports.isEmpty()) {
-                    resendSetback();
-                }
                 continue;
             }
 

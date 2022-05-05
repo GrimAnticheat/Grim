@@ -111,7 +111,11 @@ public class MovementCheckRunner extends PositionCheck {
         }
 
         // Stop people from crashing predictions with timer
-        if (player.getSetbackTeleportUtil().blockPredictions) return;
+        if (player.getSetbackTeleportUtil().blockPredictions) {
+            return;
+        }
+
+        player.movementPackets++;
 
         player.onGround = update.isOnGround();
 
@@ -140,8 +144,6 @@ public class MovementCheckRunner extends PositionCheck {
                 player.uncertaintyHandler.stuckOnEdge = 0;
             }
         }
-
-        if (!update.isTeleport()) player.movementPackets++;
 
         // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickPlayerInPistonPushingArea();
@@ -259,7 +261,7 @@ public class MovementCheckRunner extends PositionCheck {
             player.checkManager.getExplosionHandler().forceExempt();
 
             // When in control of the entity, the player sets the entity position to their current position
-            player.compensatedEntities.getSelf().getRiding().setPositionRaw(GetBoundingBox.getPacketEntityBoundingBox(player.x, player.y, player.z, player.compensatedEntities.getSelf().getRiding()));
+            player.compensatedEntities.getSelf().getRiding().setPositionRaw(GetBoundingBox.getPacketEntityBoundingBox(player, player.x, player.y, player.z, player.compensatedEntities.getSelf().getRiding()));
 
             if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityTrackXRot) {
                 PacketEntityTrackXRot boat = (PacketEntityTrackXRot) player.compensatedEntities.getSelf().getRiding();

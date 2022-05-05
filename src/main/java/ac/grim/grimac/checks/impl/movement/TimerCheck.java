@@ -10,8 +10,6 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 @CheckData(name = "Timer", configName = "TimerA", setback = 10)
 public class TimerCheck extends PacketCheck {
-    public int exempt = 200; // Exempt for 10 seconds on login
-
     long timerBalanceRealTime = 0;
 
     // Default value is real time minus max keep-alive time
@@ -66,18 +64,16 @@ public class TimerCheck extends PacketCheck {
         if (checkReturnPacketType(event.getPacketType())) return;
 
         hasGottenMovementAfterTransaction = true;
-
-        // Teleporting sends its own packet (We could handle this, but it's not worth the complexity)
-        if (exempt-- > 0) {
-            return;
-        }
-        exempt = 0;
-
         timerBalanceRealTime += 50e6;
 
         if (timerBalanceRealTime > System.nanoTime()) {
             if (flag()) {
-                if (setbackIfAboveSetbackVL()) { // Checks if above setbackVL
+                // This is a strange setback situation as simulating the correct movement will result in additional movements
+                // being simulated for the player, therefore, we must wait until the player sends a movement packet
+                // that is legitimate and isn't timer BEFORE we can send the setback
+                //
+                // This code is hacky, but I think this is the only check that needs to be hacky in this way.
+                if (!player.getSetbackTeleportUtil().blockPredictions && getViolations() > setbackVL && player.getSetbackTeleportUtil().executeNonSimulatingSetback()) {
                     player.getSetbackTeleportUtil().blockPredictions = true;
                 }
                 alert("");
@@ -85,9 +81,6 @@ public class TimerCheck extends PacketCheck {
 
             // Reset the violation by 1 movement
             timerBalanceRealTime -= 50e6;
-        } else {
-            // Decrease buffer as to target 1.005 timer - 0.005
-            reward();
         }
 
         timerBalanceRealTime = Math.max(timerBalanceRealTime, lastMovementPlayerClock - clockDrift);

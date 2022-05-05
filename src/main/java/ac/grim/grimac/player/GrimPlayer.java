@@ -345,7 +345,8 @@ public class GrimPlayer {
     }
 
     public void sendTransaction(boolean async) {
-        if (user.getConnectionState() != ConnectionState.PLAY) return;
+        // Sending in non-play corrupts the pipeline, don't waste bandwidth when anticheat disabled
+        if (user.getConnectionState() != ConnectionState.PLAY || disableGrim) return;
 
         lastTransSent = System.currentTimeMillis();
         short transactionID = (short) (-1 * (transactionIDCounter.getAndIncrement() & 0x7FFF));
