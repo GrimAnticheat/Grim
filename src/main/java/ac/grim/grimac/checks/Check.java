@@ -46,7 +46,7 @@ public class Check<T> {
     public final boolean flag() {
         FlagEvent event = new FlagEvent(this);
         Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled()) return false;
+        if (event.isCancelled() || player.disableGrim) return false;
 
         player.punishmentManager.handleViolation(this);
 
