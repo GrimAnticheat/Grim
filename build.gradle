@@ -4,6 +4,18 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
 }
 
+apply plugin: 'java'
+apply plugin: 'maven-publish'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+publishing {
+    publications {
+        shadow(MavenPublication) { publication ->
+            project.shadow.component(publication)
+        }
+    }
+}
+
 repositories {
     mavenLocal()
     maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } // Bstats, Spigot
@@ -49,13 +61,4 @@ shadowJar {
     relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
     relocate 'github.scarsz.configuralize', 'ac.grim.grimac.shaded.configuralize'
     relocate 'com.github.puregero', 'ac.grim.grimac.shaded.com.github.puregero'
-}
-
-publishing {
-    publications {
-        Library(MavenPublication) {
-            from project.components.java
-            artifact tasks.shadowJar
-        }
-    }
 }
