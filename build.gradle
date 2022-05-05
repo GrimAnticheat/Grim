@@ -1,5 +1,6 @@
 plugins {
     id "com.github.johnrengelman.shadow" version "7.1.2"
+    id "maven-publish"
 }
 
 apply plugin: 'java'
@@ -16,12 +17,7 @@ java.targetCompatibility = JavaVersion.VERSION_1_8
 repositories {
     mavenLocal()
     maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' } // Bstats, Spigot
-    maven {
-        url = 'https://jitpack.io/'
-        metadataSources {
-            artifact() //Look directly for artifact
-        }
-    } // PacketEvents
+    maven { url = 'https://jitpack.io/' } // PacketEvents
     maven { url = 'https://repo.viaversion.com' } // ViaVersion
     maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF
     maven { url = "https://nexus.scarsz.me/content/groups/public" } // Configuralize
