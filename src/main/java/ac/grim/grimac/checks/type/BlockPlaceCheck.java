@@ -36,6 +36,14 @@ public class BlockPlaceCheck extends Check<BlockPlace> {
         buggyBoxes.add(StateTypes.CHEST);
         buggyBoxes.add(StateTypes.TRAPPED_CHEST);
         buggyBoxes.add(StateTypes.CHORUS_PLANT);
+
+        // The client changes these block states around when placing blocks, temporary desync
+        buggyBoxes.add(StateTypes.KELP);
+        buggyBoxes.add(StateTypes.KELP_PLANT);
+        buggyBoxes.add(StateTypes.TWISTING_VINES);
+        buggyBoxes.add(StateTypes.TWISTING_VINES_PLANT);
+        buggyBoxes.add(StateTypes.WEEPING_VINES);
+        buggyBoxes.add(StateTypes.WEEPING_VINES_PLANT);
     }
 
     protected SimpleCollisionBox getCombinedBox(final BlockPlace place) {
