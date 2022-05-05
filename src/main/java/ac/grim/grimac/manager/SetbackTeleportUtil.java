@@ -79,6 +79,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             setbackConfirmTicksAgo++;
             // No simulation... we can do that later. We just need to know the valid position.
             // Don't worry about accidentally setting before a teleport, teleports set lastX/Y/Z to teleport position
+            // TODO: Simplify setback logic to not include safe teleport position
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ), player.clientVelocity.clone());
         } else {
             setbackConfirmTicksAgo = 0; // Pending setback
@@ -240,10 +241,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         } finally {
             isSendingSetback = false;
         }
-    }
-
-    public void resendSetback() {
-        blockMovementsUntilResync(requiredSetBack.getPosition());
     }
 
     /**
