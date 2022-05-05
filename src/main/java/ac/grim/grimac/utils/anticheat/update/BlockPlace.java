@@ -164,7 +164,7 @@ public class BlockPlace {
         if (state.getType() == StateTypes.VINE) {
             if (baseReplaceable) return true;
             if (heldItem != state.getType()) return false;
-            if (!state.isUp()) return true;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13) && !state.isUp()) return true;
             if (state.getNorth() == North.FALSE) return true;
             if (state.getSouth() == South.FALSE) return true;
             if (state.getEast() == East.FALSE) return true;
