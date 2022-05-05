@@ -161,7 +161,7 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
 
             if (player.packetStateData.lastSlotSelected != slot.getSlot()) {
                 player.packetStateData.slowedByUsingItem = false;
-                ((NoSlow) player.checkManager.getPostPredictionCheck(NoSlow.class)).fuckLegacyVersions = true;
+                player.checkManager.getPostPredictionCheck(NoSlow.class).fuckLegacyVersions = true;
             }
             player.packetStateData.lastSlotSelected = slot.getSlot();
         }

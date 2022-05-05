@@ -49,7 +49,7 @@ public class CheckManager {
     ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
     ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
 
-    public ClassToInstanceMap<Check> allChecks;
+    public ClassToInstanceMap<Check<?>> allChecks;
 
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
@@ -122,7 +122,7 @@ public class CheckManager {
                 .put(VehicleTimer.class, new VehicleTimer(player))
                 .build();
 
-        allChecks = new ImmutableClassToInstanceMap.Builder<Check>()
+        allChecks = new ImmutableClassToInstanceMap.Builder<Check<?>>()
                 .putAll(packetChecks)
                 .putAll(positionCheck)
                 .putAll(rotationCheck)
@@ -133,16 +133,19 @@ public class CheckManager {
                 .build();
     }
 
-    public PositionCheck getPositionCheck(Class<? extends PositionCheck> check) {
-        return positionCheck.get(check);
+    @SuppressWarnings("unchecked")
+    public <T extends PositionCheck> T getPositionCheck(Class<T> check) {
+        return (T) positionCheck.get(check);
     }
 
-    public RotationCheck getRotationCheck(Class<? extends RotationCheck> check) {
-        return rotationCheck.get(check);
+    @SuppressWarnings("unchecked")
+    public <T extends RotationCheck> T getRotationCheck(Class<T> check) {
+        return (T) rotationCheck.get(check);
     }
 
-    public VehicleCheck getVehicleCheck(Class<? extends VehicleCheck> check) {
-        return vehicleCheck.get(check);
+    @SuppressWarnings("unchecked")
+    public <T extends VehicleCheck> T getVehicleCheck(Class<T> check) {
+        return (T) vehicleCheck.get(check);
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
@@ -181,46 +184,48 @@ public class CheckManager {
     }
 
     public ExplosionHandler getExplosionHandler() {
-        return (ExplosionHandler) getPacketCheck(ExplosionHandler.class);
+        return getPacketCheck(ExplosionHandler.class);
     }
 
-    public PacketCheck getPacketCheck(Class<? extends PacketCheck> check) {
-        return packetChecks.get(check);
+    @SuppressWarnings("unchecked")
+    public <T extends PacketCheck> T getPacketCheck(Class<T> check) {
+        return (T) packetChecks.get(check);
     }
 
     public PacketEntityReplication getEntityReplication() {
-        return (PacketEntityReplication) getPacketCheck(PacketEntityReplication.class);
+        return getPacketCheck(PacketEntityReplication.class);
     }
 
     public NoFallA getNoFall() {
-        return (NoFallA) getPacketCheck(NoFallA.class);
+        return getPacketCheck(NoFallA.class);
     }
 
     public KnockbackHandler getKnockbackHandler() {
-        return (KnockbackHandler) getPacketCheck(KnockbackHandler.class);
+        return getPacketCheck(KnockbackHandler.class);
     }
 
     public CompensatedCooldown getCompensatedCooldown() {
-        return (CompensatedCooldown) getPositionCheck(CompensatedCooldown.class);
+        return getPositionCheck(CompensatedCooldown.class);
     }
 
     public NoSlow getNoSlow() {
-        return (NoSlow) getPostPredictionCheck(NoSlow.class);
+        return getPostPredictionCheck(NoSlow.class);
     }
 
     public SetbackTeleportUtil getSetbackUtil() {
-        return ((SetbackTeleportUtil) getPostPredictionCheck(SetbackTeleportUtil.class));
+        return getPostPredictionCheck(SetbackTeleportUtil.class);
     }
 
     public DebugHandler getDebugHandler() {
-        return ((DebugHandler) getPostPredictionCheck(DebugHandler.class));
+        return getPostPredictionCheck(DebugHandler.class);
     }
 
     public OffsetHandler getOffsetHandler() {
-        return ((OffsetHandler) getPostPredictionCheck(OffsetHandler.class));
+        return getPostPredictionCheck(OffsetHandler.class);
     }
 
-    public PostPredictionCheck getPostPredictionCheck(Class<? extends PostPredictionCheck> check) {
-        return postPredictionCheck.get(check);
+    @SuppressWarnings("unchecked")
+    public <T extends PostPredictionCheck> T getPostPredictionCheck(Class<T> check) {
+        return (T) postPredictionCheck.get(check);
     }
 }
