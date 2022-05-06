@@ -117,18 +117,13 @@ public class Collisions {
             // If not, just return the collisions without stepping up that we calculated earlier
             if (stepUpHeight > 0.0F && movingIntoGround && (collisionResult.getX() != desiredX || collisionResult.getZ() != desiredZ)) {
                 player.uncertaintyHandler.isStepMovement = true;
-
-                // Get a list of bounding boxes from the player's current bounding box to the wanted coordinates
-                List<SimpleCollisionBox> stepUpCollisionBoxes = new ArrayList<>();
-                getCollisionBoxes(player, player.boundingBox.copy().expandToCoordinate(desiredX, stepUpHeight, desiredZ), stepUpCollisionBoxes, false);
-
-                Vector regularStepUp = collideBoundingBoxLegacy(new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, stepUpCollisionBoxes, order);
+                Vector regularStepUp = collideBoundingBoxLegacy(new Vector(desiredX, stepUpHeight, desiredZ), player.boundingBox, desiredMovementCollisionBoxes, order);
 
                 // 1.7 clients do not have this stepping bug fix
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-                    Vector stepUpBugFix = collideBoundingBoxLegacy(new Vector(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), stepUpCollisionBoxes, order);
+                    Vector stepUpBugFix = collideBoundingBoxLegacy(new Vector(0, stepUpHeight, 0), player.boundingBox.copy().expandToCoordinate(desiredX, 0, desiredZ), desiredMovementCollisionBoxes, order);
                     if (stepUpBugFix.getY() < stepUpHeight) {
-                        Vector stepUpBugFixResult = collideBoundingBoxLegacy(new Vector(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), stepUpCollisionBoxes, order).add(stepUpBugFix);
+                        Vector stepUpBugFixResult = collideBoundingBoxLegacy(new Vector(desiredX, 0, desiredZ), player.boundingBox.copy().offset(0, stepUpBugFix.getY(), 0), desiredMovementCollisionBoxes, order).add(stepUpBugFix);
                         if (getHorizontalDistanceSqr(stepUpBugFixResult) > getHorizontalDistanceSqr(regularStepUp)) {
                             regularStepUp = stepUpBugFixResult;
                         }
@@ -136,7 +131,7 @@ public class Collisions {
                 }
 
                 if (getHorizontalDistanceSqr(regularStepUp) > getHorizontalDistanceSqr(collisionResult)) {
-                    collisionResult = regularStepUp.add(collideBoundingBoxLegacy(new Vector(0, -regularStepUp.getY() + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? desiredY : 0), 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), stepUpCollisionBoxes, order));
+                    collisionResult = regularStepUp.add(collideBoundingBoxLegacy(new Vector(0, -regularStepUp.getY() + (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ? desiredY : 0), 0), player.boundingBox.copy().offset(regularStepUp.getX(), regularStepUp.getY(), regularStepUp.getZ()), desiredMovementCollisionBoxes, order));
                 }
             }
 
