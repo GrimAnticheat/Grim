@@ -77,7 +77,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 1");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 2");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -95,7 +95,7 @@ public class ConfigManager {
         if (configVersion < 1) {
             addMaxPing(config, configString);
         }
-        if (configVersion < 2 && false) {
+        if (configVersion < 2) {
             addMissingPunishments();
         }
     }
@@ -122,7 +122,25 @@ public class ConfigManager {
                 configString = new String(Files.readAllBytes(config.toPath()));
 
                 // If it works, it isn't stupid.  Only replace it if it exactly matches the default config.
-                configString = configString.substring(0, configString.indexOf("  # As of 2.2.2 these are just placeholders, there are no Killaura/Aim/Autoclicker checks other than those that"));
+                int commentIndex = configString.indexOf("  # As of 2.2.2 these are just placeholders, there are no Killaura/Aim/Autoclicker checks other than those that");
+                if (commentIndex != -1) {
+
+                    configString = configString.substring(0, commentIndex);
+                    configString += "  Combat:\n" +
+                            "    remove-violations-after: 300\n" +
+                            "    checks:\n" +
+                            "      - \"Killaura\"\n" +
+                            "      - \"Aim\"\n" +
+                            "    commands:\n" +
+                            "      - \"20:40 [alert]\"\n" +
+                            "  # As of 2.2.10, there are no AutoClicker checks and this is a placeholder. 2.3 will include AutoClicker checks.\n" +
+                            "  Autoclicker:\n" +
+                            "    remove-violations-after: 300\n" +
+                            "    checks:\n" +
+                            "      - \"Autoclicker\"\n" +
+                            "    commands:\n" +
+                            "      - \"20:40 [alert]\"\n";
+                }
 
                 Files.write(config.toPath(), configString.getBytes());
             } catch (IOException ignored) {
