@@ -38,7 +38,6 @@ import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -530,7 +529,7 @@ public class GrimPlayer {
         event.getPostTasks().add(() -> {
             if (compensatedEntities.getSelf().getRiding() != null) {
                 int ridingId = getRidingVehicleId();
-                TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
+                TrackerData data = compensatedEntities.serverEntityMap.get(ridingId);
                 if (data != null) {
                     user.sendPacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }

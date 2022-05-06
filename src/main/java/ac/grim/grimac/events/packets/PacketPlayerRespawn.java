@@ -93,7 +93,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.compensatedWorld.chunks.clear();
                 player.compensatedEntities.serverPlayerVehicle = null; // All entities get removed on respawn
                 player.compensatedEntities.playerEntity = new PacketEntitySelf();
-                player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
+                player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get(), null);
 
                 if (player.getClientVersion().isOlderThan(ClientVersion.V_1_14)) { // 1.14+ players send a packet for this, listen for it instead
                     player.isSprinting = false;

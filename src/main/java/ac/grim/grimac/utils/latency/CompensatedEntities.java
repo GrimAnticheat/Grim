@@ -25,7 +25,7 @@ public class CompensatedEntities {
     private static final UUID SPRINTING_MODIFIER_UUID = UUID.fromString("662A6B8D-DA3E-4C1C-8813-96EA6097278D");
     public static final UUID SNOW_MODIFIER_UUID = UUID.fromString("1eaf83ff-7207-4596-b37a-d7a07b3ec4ce");
     public final Int2ObjectOpenHashMap<PacketEntity> entityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
-    public final Int2ObjectOpenHashMap<TrackerData> serverPositionsMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
+    public final Int2ObjectOpenHashMap<TrackerData> serverEntityMap = new Int2ObjectOpenHashMap<>(40, 0.7f);
     public Integer serverPlayerVehicle = null;
     public boolean hasSprintingAttributeEnabled = false;
 
@@ -37,7 +37,7 @@ public class CompensatedEntities {
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
         this.playerEntity = new PacketEntitySelf();
-        this.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
+        this.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get(), null);
     }
 
     public int getPacketEntityID(PacketEntity entity) {
@@ -220,7 +220,7 @@ public class CompensatedEntities {
         if (id == player.entityID) {
             return selfTrackedEntity;
         }
-        return serverPositionsMap.get(id);
+        return serverEntityMap.get(id);
     }
 
     public void updateEntityMetadata(int entityID, List<EntityData> watchableObjects) {
