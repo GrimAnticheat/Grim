@@ -86,8 +86,8 @@ public class PredictionEngineWater extends PredictionEngine {
     }
 
     @Override
-    public void endOfTick(GrimPlayer player, double playerGravity, float friction) {
-        super.endOfTick(player, playerGravity, friction);
+    public void endOfTick(GrimPlayer player, double playerGravity) {
+        super.endOfTick(player, playerGravity);
 
         for (VectorData vector : player.getPossibleVelocitiesMinusKnockback()) {
             staticVectorEndOfTick(player, vector.vector, swimmingFriction, playerGravity, isFalling);

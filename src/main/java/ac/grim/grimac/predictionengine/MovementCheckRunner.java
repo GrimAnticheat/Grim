@@ -119,7 +119,11 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.onGround = update.isOnGround();
 
-        player.uncertaintyHandler.stuckOnEdge--;
+        player.uncertaintyHandler.lastStuckEast++;
+        player.uncertaintyHandler.lastStuckWest++;
+        player.uncertaintyHandler.lastStuckNorth++;
+        player.uncertaintyHandler.lastStuckSouth++;
+        player.uncertaintyHandler.stuckOnEdge++;
         // This is here to prevent abuse of sneaking
         // Without this, players could sneak on a flat plane to avoid velocity
         // That would be bad so this prevents it
@@ -139,6 +143,11 @@ public class MovementCheckRunner extends PositionCheck {
             boolean isWest = NW.getX() != negX || SW.getX() != negX;
             boolean isNorth = NE.getZ() != negZ || NW.getZ() != negZ;
             boolean isSouth = SE.getZ() != posZ || SW.getZ() != posZ;
+
+            if (isEast) player.uncertaintyHandler.lastStuckEast = 0;
+            if (isWest) player.uncertaintyHandler.lastStuckWest = 0;
+            if (isNorth) player.uncertaintyHandler.lastStuckNorth = 0;
+            if (isSouth) player.uncertaintyHandler.lastStuckSouth = 0;
 
             if (isEast || isWest || isSouth || isNorth) {
                 player.uncertaintyHandler.stuckOnEdge = 0;
@@ -350,7 +359,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.isSteppingOnIce = false;
         player.uncertaintyHandler.isSteppingOnHoney = false;
         player.uncertaintyHandler.isSteppingNearBubbleColumn = false;
-
+        player.uncertaintyHandler.isSteppingNearScaffolding = false;
 
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
         Collisions.hasMaterial(player, steppingOnBB, (pair) -> {
@@ -374,6 +383,9 @@ public class MovementCheckRunner extends PositionCheck {
             }
             if (data.getType() == StateTypes.BUBBLE_COLUMN) {
                 player.uncertaintyHandler.isSteppingNearBubbleColumn = true;
+            }
+            if (data.getType() == StateTypes.SCAFFOLDING) {
+                player.uncertaintyHandler.isSteppingNearScaffolding = true;
             }
             return false;
         });
@@ -402,8 +414,6 @@ public class MovementCheckRunner extends PositionCheck {
                         || checkData.getFirst().getType() == StateTypes.CHEST || checkData.getFirst().getType() == StateTypes.TRAPPED_CHEST);
 
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
-
-        player.uncertaintyHandler.scaffoldingOnEdge = player.uncertaintyHandler.nextTickScaffoldingOnEdge;
         player.uncertaintyHandler.checkForHardCollision();
 
         player.uncertaintyHandler.lastFlyingStatusChange--;
@@ -427,8 +437,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastStuckSpeedMultiplier = 0;
         }
 
-        Vector backOff = Collisions.maybeBackOffFromEdge(player.clientVelocity, player, true);
-        player.uncertaintyHandler.nextTickScaffoldingOnEdge = player.clientVelocity.getX() != 0 && player.clientVelocity.getZ() != 0 && backOff.getX() == 0 && backOff.getZ() == 0;
         Vector oldClientVel = player.clientVelocity;
 
         boolean wasChecked = false;
