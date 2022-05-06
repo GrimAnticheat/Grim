@@ -79,6 +79,7 @@ public class CheckManager {
                 .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
+                .put(BadPacketsL.class, new BadPacketsL(player))
                 //.put(PostCheck.class, new PostCheck(player)) // TODO: What the fuck is mojang doing on 1.8, fix 1.9+ without the fucking idle packet
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
