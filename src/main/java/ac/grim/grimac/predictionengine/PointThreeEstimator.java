@@ -324,11 +324,6 @@ public class PointThreeEstimator {
             return true;
         }
 
-        // Fixes an issue where 0.03 causes an issue with 0.03 mitigation because slightly moving the player
-        // -_- this game sucks
-        SimpleCollisionBox oldPlayerBox = player.boundingBox;
-        player.boundingBox = player.boundingBox.copy().expand(0.03, 0, 0.03);
-
         boolean couldStep = player.isPointThree() && checkForGround(player.clientVelocity.getY());
 
         // Takes 0.01 millis, on average, to compute... this should be improved eventually
@@ -356,8 +351,6 @@ public class PointThreeEstimator {
 
             if (minimum < player.getMovementThreshold()) break;
         }
-
-        player.boundingBox = oldPlayerBox;
 
         // As long as we are mathematically correct here, this should be perfectly accurate
         return minimum < player.getMovementThreshold();
