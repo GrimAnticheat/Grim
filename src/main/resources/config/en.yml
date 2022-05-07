@@ -7,6 +7,8 @@
 alerts:
   # Should players with grim.alerts permission automatically enable alerts on join?
   enable-on-join: true
+  # In addition to broadcasting alerts to players, should they also be sent to the console?
+  print-to-console: true
 
 client-brand:
   # This means it won't broadcast their brand to operators.
