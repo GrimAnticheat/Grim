@@ -34,6 +34,10 @@ public class ConfigManager {
         config.addSource(GrimAC.class, "discord", getDiscordFile());
         config.addSource(GrimAC.class, "punishments", getPunishFile());
 
+        reload();
+    }
+
+    public void reload() {
         String languageCode = System.getProperty("user.language").toUpperCase();
 
         try {
