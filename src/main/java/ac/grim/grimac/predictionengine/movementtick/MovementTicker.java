@@ -351,6 +351,7 @@ public class MovementTicker {
                 swimFriction = 0.96F;
             }
 
+            player.friction = swimFriction; // Not vanilla, just useful for other grim stuff
             doWaterMove(swimSpeed, isFalling, swimFriction);
 
             player.isClimbing = Collisions.onClimbable(player, player.x, player.y, player.z);
@@ -363,6 +364,7 @@ public class MovementTicker {
 
         } else {
             if (player.wasTouchingLava && !player.isFlying && !(lavaLevel > 0 && canStandOnLava())) {
+                player.friction = 0.5F; // Not vanilla, just useful for other grim stuff
 
                 doLavaMove();
 
@@ -378,6 +380,7 @@ public class MovementTicker {
                     player.clientVelocity.add(new Vector(0.0D, -playerGravity / 4.0D, 0.0D));
 
             } else if (player.isGliding) {
+                player.friction = 0.99F; // Not vanilla, just useful for other grim stuff
                 // Set fall distance to 1 if the player’s y velocity is greater than -0.5 when falling
                 if (player.clientVelocity.getY() > -0.5)
                     player.fallDistance = 1;

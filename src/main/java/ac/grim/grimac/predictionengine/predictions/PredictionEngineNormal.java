@@ -61,8 +61,8 @@ public class PredictionEngineNormal extends PredictionEngine {
     }
 
     @Override
-    public void endOfTick(GrimPlayer player, double d, float friction) {
-        super.endOfTick(player, d, friction);
+    public void endOfTick(GrimPlayer player, double d) {
+        super.endOfTick(player, d);
 
         boolean walkingOnPowderSnow = false;
 

@@ -7,6 +7,7 @@ import org.bukkit.util.Vector;
 public class VectorData {
     public VectorType vectorType;
     public VectorData lastVector;
+    public VectorData preUncertainty;
     public Vector vector;
 
     @Getter
@@ -27,6 +28,7 @@ public class VectorData {
             isFlipSneaking = lastVector.isFlipSneaking;
             isFlipItem = lastVector.isFlipItem;
             isJump = lastVector.isJump;
+            preUncertainty = lastVector.preUncertainty;
         }
 
         addVectorType(vectorType);

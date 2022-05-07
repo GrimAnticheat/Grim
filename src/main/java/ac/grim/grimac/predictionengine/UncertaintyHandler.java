@@ -53,17 +53,16 @@ public class UncertaintyHandler {
     public boolean wasSteppingOnBouncyBlock = false;
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
+    public boolean isSteppingNearScaffolding = false;
     public boolean isNearGlitchyBlock = false;
     public boolean isOrWasNearGlitchyBlock = false;
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
     public boolean claimingLeftStuckSpeed = false;
-    public int stuckOnEdge = -100;
-    public int lastStuckNorth = -100;
-    public int lastStuckSouth = -100;
-    public int lastStuckWest = -100;
-    public int lastStuckEast = -100;
-    public boolean nextTickScaffoldingOnEdge = false;
-    public boolean scaffoldingOnEdge = false;
+    public int stuckOnEdge = 100;
+    public int lastStuckNorth = 100;
+    public int lastStuckSouth = 100;
+    public int lastStuckWest = 100;
+    public int lastStuckEast = 100;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = false;
     // Give horizontal lenience if the last movement reset velocity because 0.03 becomes unknown then
@@ -78,6 +77,7 @@ public class UncertaintyHandler {
     public SimpleCollisionBox fireworksBox = null;
 
     public int lastFlyingTicks = -100;
+    // TODO: Make this a better class (LastTickAction) instead of an integer that counts up or down inconsistently
     public int lastFlyingStatusChange = -100;
     public int lastUnderwaterFlyingHack = -100;
     public int lastStuckSpeedMultiplier = -100;
@@ -188,16 +188,6 @@ public class UncertaintyHandler {
 
         if (player.vehicleData.lastVehicleSwitch < 3)
             pointThree = Math.max(pointThree, player.speed * 2);
-
-        if (player.uncertaintyHandler.scaffoldingOnEdge) {
-            pointThree = Math.max(pointThree, player.speed * 1.6);
-        }
-
-        // 0.03 plus being able to maintain velocity even when shifting is brutal
-        // Value patched - I have no idea why these things are different in liquid vs in air
-        if ((player.wasTouchingWater || player.wasTouchingLava) && stuckOnEdge == -1) {
-            pointThree = Math.max(pointThree, 0.05);
-        }
 
         return pointThree;
     }
