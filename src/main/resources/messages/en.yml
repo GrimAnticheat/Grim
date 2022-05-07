@@ -32,4 +32,5 @@ help:
   - "/grim help &f- &7View this help message"
   - "/grim debug <player> &f- &7Developer Prediction output"
   - "/grim perf &f- &7Developer ms/prediction"
+  - "/grim reload &f- &7Reloads the config"
   - "&7======================"
