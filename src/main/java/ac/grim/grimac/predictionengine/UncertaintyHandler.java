@@ -69,8 +69,6 @@ public class UncertaintyHandler {
     public boolean lastMovementWasUnknown003VectorReset = false;
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasZeroPointThreeVertically = false;
-    // Did the player change their look with elytra between tick (we can't calculate 0.03 here)
-    public boolean claimedLookChangedBetweenTick = false;
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
