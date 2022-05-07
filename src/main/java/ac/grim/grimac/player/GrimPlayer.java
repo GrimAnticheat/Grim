@@ -418,11 +418,12 @@ public class GrimPlayer {
                     packetTracker = connection != null ? connection.getPacketTracker() : null;
                 }
             }
-        } else {
-            if (this.bukkitPlayer == null) {
-                this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
-            }
         }
+
+        if (this.playerUUID != null && this.bukkitPlayer == null) {
+            this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
+        }
+
         if (this.bukkitPlayer != null && this.bukkitPlayer.hasPermission("grim.exempt")) {
             GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
             return true;
