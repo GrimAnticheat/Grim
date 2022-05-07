@@ -7,14 +7,13 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
 import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.util.Vector;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Map;
+import java.util.*;
 
 public class UncertaintyHandler {
     private final GrimPlayer player;
@@ -72,7 +71,10 @@ public class UncertaintyHandler {
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
     public EvictingList<Double> pistonPushing = new EvictingList<>(20);
+    // Fishing rod pulling is another method of adding to a player's velocity
+    public List<Integer> fishingRodPulls = new ArrayList<>();
     public SimpleCollisionBox fireworksBox = null;
+    public SimpleCollisionBox fishingRodPullBox = null;
 
     public int lastFlyingTicks = -100;
     // TODO: Make this a better class (LastTickAction) instead of an integer that counts up or down inconsistently
@@ -105,12 +107,43 @@ public class UncertaintyHandler {
     }
 
     public void tickFireworksBox() {
-        int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
+        fishingRodPullBox = fishingRodPulls.isEmpty() ? null : new SimpleCollisionBox();
+        fireworksBox = null;
 
+        for (int owner : fishingRodPulls) {
+            PacketEntity entity = player.compensatedEntities.getEntity(owner);
+            if (entity == null) continue;
+
+            SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
+            float width = BoundingBoxSize.getWidth(player, entity);
+            float height = BoundingBoxSize.getHeight(player, entity);
+
+            // Convert back to coordinates instead of hitbox
+            entityBox.maxY -= height;
+            entityBox.expand(-width / 2, 0, -width / 2);
+
+            Vector maxLocation = new Vector(entityBox.maxX, entityBox.maxY, entityBox.maxZ);
+            Vector minLocation = new Vector(entityBox.minX, entityBox.minY, entityBox.minZ);
+
+            Vector diff = minLocation.subtract(new Vector(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ)).multiply(0.1);
+            fishingRodPullBox.minX = Math.min(0, diff.getX());
+            fishingRodPullBox.minY = Math.min(0, diff.getY());
+            fishingRodPullBox.minZ = Math.min(0, diff.getZ());
+
+            diff = maxLocation.subtract(new Vector(player.lastX, player.lastY + 0.8 * 1.8, player.lastZ)).multiply(0.1);
+            fishingRodPullBox.maxX = Math.max(0, diff.getX());
+            fishingRodPullBox.maxY = Math.max(0, diff.getY());
+            fishingRodPullBox.maxZ = Math.max(0, diff.getZ());
+        }
+
+        fishingRodPulls.clear();
+
+        int maxFireworks = player.compensatedFireworks.getMaxFireworksAppliedPossible() * 2;
         if (maxFireworks <= 0 || (!player.isGliding && !player.wasGliding)) {
-            fireworksBox = null;
             return;
         }
+
+        fireworksBox = new SimpleCollisionBox();
 
         Vector currentLook = ReachUtils.getLook(player, player.xRot, player.yRot);
         Vector lastLook = ReachUtils.getLook(player, player.lastXRot, player.lastYRot);

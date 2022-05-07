@@ -178,7 +178,7 @@ public class CompensatedEntities {
         }
     }
 
-    public void addEntity(int entityID, EntityType entityType, Vector3d position, float xRot) {
+    public void addEntity(int entityID, EntityType entityType, Vector3d position, float xRot, int data) {
         // Dropped items are all server sided and players can't interact with them (except create them!), save the performance
         if (entityType == EntityTypes.ITEM) return;
 
@@ -197,6 +197,8 @@ public class CompensatedEntities {
                 packetEntity = new PacketEntityStrider(player, entityType, position.getX(), position.getY(), position.getZ());
             } else if (EntityTypes.BOAT.equals(entityType) || EntityTypes.CHICKEN.equals(entityType)) {
                 packetEntity = new PacketEntityTrackXRot(player, entityType, position.getX(), position.getY(), position.getZ(), xRot);
+            } else if (EntityTypes.FISHING_BOBBER.equals(entityType)) {
+                packetEntity = new PacketEntityHook(player, entityType, position.getX(), position.getY(), position.getZ(), data);
             } else {
                 packetEntity = new PacketEntity(player, entityType, position.getX(), position.getY(), position.getZ());
             }
@@ -435,6 +437,25 @@ public class CompensatedEntities {
             if (attachedEntityID.isPresent() && attachedEntityID.get().equals(player.entityID)) {
                 player.compensatedFireworks.addNewFirework(entityID);
             }
+        }
+
+        if (entity instanceof PacketEntityHook) {
+            int index;
+            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_9_4)) {
+                index = 5;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_14_4)) {
+                index = 6;
+            } else if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_16_5)) {
+                index = 7;
+            } else {
+                index = 8;
+            }
+
+            EntityData hookWatchableObject = WatchableIndexUtil.getIndex(watchableObjects, index);
+            if (hookWatchableObject == null) return;
+
+            Integer attachedEntityID = (Integer) hookWatchableObject.getValue();
+            ((PacketEntityHook) entity).attached = attachedEntityID - 1; // the server adds 1 to the ID
         }
     }
 }

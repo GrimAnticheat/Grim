@@ -5,6 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.data.TrackerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
+import ac.grim.grimac.utils.data.packetentity.PacketEntityHook;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
@@ -74,15 +75,15 @@ public class PacketEntityReplication extends PacketCheck {
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_LIVING_ENTITY) {
             WrapperPlayServerSpawnLivingEntity packetOutEntity = new WrapperPlayServerSpawnLivingEntity(event);
-            addEntity(packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata());
+            addEntity(packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata(), 0);
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY) {
             WrapperPlayServerSpawnEntity packetOutEntity = new WrapperPlayServerSpawnEntity(event);
-            addEntity(packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), null);
+            addEntity(packetOutEntity.getEntityId(), packetOutEntity.getEntityType(), packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), null, packetOutEntity.getData());
         }
         if (event.getPacketType() == PacketType.Play.Server.SPAWN_PLAYER) {
             WrapperPlayServerSpawnPlayer packetOutEntity = new WrapperPlayServerSpawnPlayer(event);
-            addEntity(packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata());
+            addEntity(packetOutEntity.getEntityId(), EntityTypes.PLAYER, packetOutEntity.getPosition(), packetOutEntity.getYaw(), packetOutEntity.getPitch(), packetOutEntity.getEntityMetadata(), 0);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_RELATIVE_MOVE) {
@@ -186,8 +187,15 @@ public class PacketEntityReplication extends PacketCheck {
             }
 
             if (status.getStatus() == 31) {
-                //event.setCancelled(true); // We replace this packet with an explosion packet
-                status.setEntityId(-1); // https://github.com/retrooper/packetevents/issues/326
+                PacketEntity hook = player.compensatedEntities.getEntity(status.getEntityId());
+                if (!(hook instanceof PacketEntityHook)) return;
+
+                PacketEntityHook hookEntity = (PacketEntityHook) hook;
+                if (hookEntity.attached == player.entityID) {
+                    player.sendTransaction();
+                    // We don't transaction sandwich this, it's too rare to be a real problem.
+                    player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.uncertaintyHandler.fishingRodPulls.add(hookEntity.owner));
+                }
             }
         }
 
@@ -388,7 +396,7 @@ public class PacketEntityReplication extends PacketCheck {
         });
     }
 
-    public void addEntity(int entityID, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData> entityMetadata) {
+    public void addEntity(int entityID, EntityType type, Vector3d position, float xRot, float yRot, List<EntityData> entityMetadata, int extraData) {
         if (despawnedEntitiesThisTransaction.contains(entityID)) {
             player.sendTransaction();
         }
@@ -396,7 +404,7 @@ public class PacketEntityReplication extends PacketCheck {
         player.compensatedEntities.serverPositionsMap.put(entityID, new TrackerData(position.getX(), position.getY(), position.getZ(), xRot, yRot, type, player.lastTransactionSent.get()));
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-            player.compensatedEntities.addEntity(entityID, type, position, xRot);
+            player.compensatedEntities.addEntity(entityID, type, position, xRot, extraData);
             if (entityMetadata != null) {
                 player.compensatedEntities.updateEntityMetadata(entityID, entityMetadata);
             }

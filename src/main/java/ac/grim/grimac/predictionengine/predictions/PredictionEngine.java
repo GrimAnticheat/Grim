@@ -561,6 +561,12 @@ public class PredictionEngine {
             box.expandMax(maxXdiff, maxYdiff, maxZdiff);
         }
 
+        SimpleCollisionBox rod = player.uncertaintyHandler.fishingRodPullBox;
+        if (rod != null) {
+            box.expandMin(rod.minX, rod.minY, rod.minZ);
+            box.expandMax(rod.maxX, rod.maxY, rod.maxZ);
+        }
+
         // Player velocity can multiply 0.4-0.45 (guess on max) when the player is on slime with
         // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
         //
