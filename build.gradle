@@ -47,7 +47,7 @@ dependencies {
 }
 
 group = 'ac.grim.grimac'
-version = '2.2.9'
+version = '2.2.10'
 description = 'GrimAC'
 java.sourceCompatibility = JavaVersion.VERSION_1_8
 java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -61,4 +61,8 @@ shadowJar {
     relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
     relocate 'github.scarsz.configuralize', 'ac.grim.grimac.shaded.configuralize'
     relocate 'com.github.puregero', 'ac.grim.grimac.shaded.com.github.puregero'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }

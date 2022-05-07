@@ -3,6 +3,7 @@ package ac.grim.grimac;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.utils.anticheat.PlayerDataManager;
 import lombok.Getter;
+import org.bukkit.plugin.java.JavaPlugin;
 
 @Getter
 public enum GrimAPI {
@@ -15,20 +16,20 @@ public enum GrimAPI {
     private final DiscordManager discordManager = new DiscordManager();
 
     private ConfigManager configManager;
-    private GrimAC plugin;
+    private JavaPlugin plugin;
 
-    public void load(final GrimAC plugin) {
+    public void load(final JavaPlugin plugin) {
         this.plugin = plugin;
         this.configManager = new ConfigManager();
         initManager.load();
     }
 
-    public void start(final GrimAC plugin) {
+    public void start(final JavaPlugin plugin) {
         this.plugin = plugin;
         initManager.start();
     }
 
-    public void stop(final GrimAC plugin) {
+    public void stop(final JavaPlugin plugin) {
         this.plugin = plugin;
         initManager.stop();
     }

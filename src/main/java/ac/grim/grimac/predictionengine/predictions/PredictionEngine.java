@@ -1,6 +1,7 @@
 package ac.grim.grimac.predictionengine.predictions;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.predictionengine.SneakingEstimator;
 import ac.grim.grimac.predictionengine.movementtick.MovementTickerPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.VectorData;
@@ -101,7 +102,7 @@ public class PredictionEngine {
         // Client velocity - before collision and carried into the next tick
         // Predicted velocity - after collision and not carried into the next tick
         new MovementTickerPlayer(player).move(player.clientVelocity.clone(), player.predictedVelocity.vector);
-        endOfTick(player, player.gravity, player.friction);
+        endOfTick(player, player.gravity);
     }
 
     private void doPredictions(GrimPlayer player, List<VectorData> possibleVelocities, float speed) {
@@ -112,6 +113,8 @@ public class PredictionEngine {
         // Will be a good performance boost!  Although not essential as right now there's larger issues
         // than a lost hundredth millisecond here and there. Readability/Accuracy > Performance currently.
         possibleVelocities.sort((a, b) -> sortVectorData(a, b, player));
+
+        player.checkManager.getPostPredictionCheck(SneakingEstimator.class).storePossibleVelocities(possibleVelocities);
 
         double bestInput = Double.MAX_VALUE;
 
@@ -212,6 +215,7 @@ public class PredictionEngine {
 
             if (resultAccuracy < bestInput) {
                 bestCollisionVel = clientVelAfterInput.returnNewModified(outputVel, VectorData.VectorType.BestVelPicked);
+                bestCollisionVel.preUncertainty = clientVelAfterInput;
                 beforeCollisionMovement = primaryPushMovement;
 
                 // We basically want to avoid falsing ground spoof, try to find a vector that works
@@ -539,6 +543,12 @@ public class PredictionEngine {
         SimpleCollisionBox box = new SimpleCollisionBox(minVector, maxVector);
         box.sort();
 
+        SneakingEstimator sneaking = player.checkManager.getPostPredictionCheck(SneakingEstimator.class);
+        box.minX += sneaking.getSneakingPotentialHiddenVelocity().minX;
+        box.minZ += sneaking.getSneakingPotentialHiddenVelocity().minZ;
+        box.maxX += sneaking.getSneakingPotentialHiddenVelocity().maxX;
+        box.maxZ += sneaking.getSneakingPotentialHiddenVelocity().maxZ;
+
         if (player.uncertaintyHandler.fireworksBox != null) {
             double minXdiff = Math.min(0, player.uncertaintyHandler.fireworksBox.minX - originalVec.vector.getX());
             double minYdiff = Math.min(0, player.uncertaintyHandler.fireworksBox.minY - originalVec.vector.getY());
@@ -555,7 +565,7 @@ public class PredictionEngine {
         // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
         //
         // Stuck on edge also reduces the player's movement.  It's wrong by 0.05 so hard to implement.
-        if (player.uncertaintyHandler.stuckOnEdge > -3 || player.uncertaintyHandler.isSteppingOnSlime) {
+        if (player.uncertaintyHandler.stuckOnEdge == 0 || player.uncertaintyHandler.isSteppingOnSlime) {
             // Avoid changing Y axis
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
         }
@@ -641,7 +651,7 @@ public class PredictionEngine {
         return VectorUtils.cutBoxToVector(player.actualMovement, min, max);
     }
 
-    public void endOfTick(GrimPlayer player, double d, float friction) {
+    public void endOfTick(GrimPlayer player, double d) {
         player.canSwimHop = canSwimHop(player);
         player.lastWasClimbing = 0;
     }
