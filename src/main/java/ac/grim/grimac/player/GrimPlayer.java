@@ -399,9 +399,6 @@ public class GrimPlayer {
             }
             user.closeConnection();
         }
-        if (this.bukkitPlayer == null) {
-            this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
-        }
         if (this.playerUUID == null) {
             this.playerUUID = user.getUUID();
             if (this.playerUUID != null) {
@@ -420,6 +417,10 @@ public class GrimPlayer {
                     UserConnection connection = Via.getManager().getConnectionManager().getConnectedClient(playerUUID);
                     packetTracker = connection != null ? connection.getPacketTracker() : null;
                 }
+            }
+        } else {
+            if (this.bukkitPlayer == null) {
+                this.bukkitPlayer = Bukkit.getPlayer(playerUUID);
             }
         }
         if (this.bukkitPlayer != null && this.bukkitPlayer.hasPermission("grim.exempt")) {
