@@ -531,10 +531,11 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.getSetbackTeleportUtil().blockOffsets)
             offset = 0;
 
-        if (wasChecked) {
+        if (wasChecked || player.disableGrim) {
             // We shouldn't attempt to send this prediction analysis into checks if we didn't predict anything
             player.checkManager.onPredictionFinish(new PredictionComplete(offset, update));
-        } else {
+        }
+        if (!wasChecked) {
             // The player wasn't checked, explosion and knockback status unknown
             player.checkManager.getExplosionHandler().forceExempt();
             player.checkManager.getKnockbackHandler().forceExempt();

@@ -87,7 +87,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     public void executeForceResync() {
-        if (player.gamemode == GameMode.SPECTATOR) return; // We don't care about spectators, they don't flag
+        if (player.gamemode == GameMode.SPECTATOR || player.disableGrim) return; // We don't care about spectators, they don't flag
         blockOffsets = true;
         if (safeTeleportPosition == null) return; // Player hasn't spawned yet
         blockMovementsUntilResync(safeTeleportPosition.position);
@@ -359,9 +359,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         Column column = player.compensatedWorld.getChunk(GrimMath.floor(playerX) >> 4, GrimMath.floor(playerZ) >> 4);
 
         // The player is in an unloaded chunk
-        return column == null || column.transaction > transaction ||
+        return !player.disableGrim && (column == null || column.transaction > transaction ||
                 // The player hasn't loaded past the DOWNLOADING TERRAIN screen
-                !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport;
+                !player.getSetbackTeleportUtil().hasAcceptedSpawnTeleport);
     }
 
     /**
