@@ -17,7 +17,7 @@ public class BadPacketsC extends PacketCheck {
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getPacketType() == PacketType.Play.Client.INTERACT_ENTITY) {
             WrapperPlayClientInteractEntity packet = new WrapperPlayClientInteractEntity(event);
-            if (packet.getEntityId() == player.entityID) {
+            if (packet.getEntityId() < 0 || packet.getEntityId() == player.entityID) {
                 flagAndAlert(); // Instant ban
             }
         }
