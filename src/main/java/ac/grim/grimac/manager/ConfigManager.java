@@ -27,7 +27,6 @@ public class ConfigManager {
     @Getter
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
 
-    @Getter
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
     public ConfigManager() {
