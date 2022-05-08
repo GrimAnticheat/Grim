@@ -66,15 +66,18 @@ public class SneakingEstimator extends PostPredictionCheck {
             // Don't let the player always get jumping bonus, for example
             if (data.isJump() == player.predictedVelocity.isJump() && data.isKnockback() == player.predictedVelocity.isKnockback()
                     && data.isExplosion() == player.predictedVelocity.isExplosion()) {
-
                 // Fuck, we are compounding this which is very dangerous. After light testing seems fine... can we do better?
                 Vector toMin = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(-100000, 0, -100000));
-                Vector toMax = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(100000, 0, 100000));
+                if (player.uncertaintyHandler.lastStuckWest != 0 || player.uncertaintyHandler.lastStuckNorth != 0) {
+                    sneakingPotentialHiddenVelocity.minX = Math.min(sneakingPotentialHiddenVelocity.minX, toMin.getX());
+                    sneakingPotentialHiddenVelocity.minZ = Math.min(sneakingPotentialHiddenVelocity.minZ, toMin.getZ());
+                }
 
-                sneakingPotentialHiddenVelocity.minX = Math.min(sneakingPotentialHiddenVelocity.minX, toMin.getX());
-                sneakingPotentialHiddenVelocity.minZ = Math.min(sneakingPotentialHiddenVelocity.minZ, toMin.getZ());
-                sneakingPotentialHiddenVelocity.maxX = Math.max(sneakingPotentialHiddenVelocity.maxX, toMax.getX());
-                sneakingPotentialHiddenVelocity.maxZ = Math.max(sneakingPotentialHiddenVelocity.maxZ, toMax.getZ());
+                if (player.uncertaintyHandler.lastStuckEast != 0 || player.uncertaintyHandler.lastStuckSouth != 0) {
+                    Vector toMax = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(100000, 0, 100000));
+                    sneakingPotentialHiddenVelocity.maxX = Math.max(sneakingPotentialHiddenVelocity.maxX, toMax.getX());
+                    sneakingPotentialHiddenVelocity.maxZ = Math.max(sneakingPotentialHiddenVelocity.maxZ, toMax.getZ());
+                }
             }
         }
         // END HACKERY
