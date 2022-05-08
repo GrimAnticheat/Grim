@@ -19,7 +19,7 @@ public class AimInvalidYaw extends RotationCheck {
         boolean invalid = Math.abs(rotationUpdate.getDeltaPitch()) > 0.5 && Math.abs(rotationUpdate.getDeltaYaw()) < 0.001 && rotationUpdate.getDeltaYaw() != 0;
 
         if (invalid) {
-            flagAndAlert();
+            flagAndAlert("x: " + Math.abs(rotationUpdate.getDeltaYaw()) + " y: " + Math.abs(rotationUpdate.getDeltaPitch()));
         }
     }
 }

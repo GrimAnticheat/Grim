@@ -37,10 +37,14 @@ public class Check<T> {
         reload();
     }
 
-    public void flagAndAlert() {
+    public void flagAndAlert(String verbose) {
         if (flag()) {
-            alert("");
+            alert(verbose);
         }
+    }
+
+    public void flagAndAlert() {
+        flagAndAlert("");
     }
 
     public final boolean flag() {
