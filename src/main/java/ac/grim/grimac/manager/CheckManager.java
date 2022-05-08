@@ -8,6 +8,7 @@ import ac.grim.grimac.checks.impl.badpackets.*;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.CrashA;
 import ac.grim.grimac.checks.impl.crash.CrashB;
+import ac.grim.grimac.checks.impl.crash.CrashD;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.movement.*;
@@ -77,6 +78,7 @@ public class CheckManager {
                 .put(BadPacketsH.class, new BadPacketsH(player))
                 .put(CrashA.class, new CrashA(player))
                 .put(CrashB.class, new CrashB(player))
+                .put(CrashD.class, new CrashD(player))
                 .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
