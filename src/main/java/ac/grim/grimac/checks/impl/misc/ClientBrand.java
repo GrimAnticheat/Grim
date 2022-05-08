@@ -36,12 +36,11 @@ public class ClientBrand extends PacketCheck {
                 byte[] minusLength = new byte[data.length - 1];
                 System.arraycopy(data, 1, minusLength, 0, minusLength.length);
 
-                brand = new String(minusLength);
+                brand = new String(minusLength).replace(" (Velocity)", ""); //removes velocity's brand suffix
 
                 if (!hasBrand) {
                     hasBrand = true;
-
-                    if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("client-brand.ignored-clients").contains(brand)) {
+                    if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
                         message = MessageUtil.format(message);
                         message = message.replace("%brand%", brand);

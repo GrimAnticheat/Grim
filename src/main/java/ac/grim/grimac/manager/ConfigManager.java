@@ -10,6 +10,10 @@ import lombok.Getter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 
 public class ConfigManager {
     @Getter
@@ -22,6 +26,9 @@ public class ConfigManager {
     private final File discordFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "discord.yml");
     @Getter
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+
+    @Getter
+    private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
     public ConfigManager() {
         upgrade();
@@ -64,6 +71,22 @@ public class ConfigManager {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load config", e);
         }
+        //
+        ignoredClientPatterns.clear();
+        for (String string : config.getStringList("client-brand.ignored-clients")) {
+            try {
+                ignoredClientPatterns.add(Pattern.compile(string));
+            } catch (PatternSyntaxException e) {
+                throw new RuntimeException("Failed to compile client pattern", e);
+            }
+        }
+    }
+
+    public boolean isIgnoredClient(String brand) {
+        for (Pattern pattern : ignoredClientPatterns) {
+            if (pattern.matcher(brand).find()) return true;
+        }
+        return false;
     }
 
     private void upgrade() {
