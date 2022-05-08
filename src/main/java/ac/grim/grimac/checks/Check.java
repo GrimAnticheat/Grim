@@ -48,9 +48,11 @@ public class Check<T> {
     }
 
     public final boolean flag() {
+        if (player.disableGrim) return false; // Avoid calling event if disabled
+
         FlagEvent event = new FlagEvent(this);
         Bukkit.getPluginManager().callEvent(event);
-        if (event.isCancelled() || player.disableGrim) return false;
+        if (event.isCancelled()) return false;
 
         player.punishmentManager.handleViolation(this);
 
