@@ -55,6 +55,13 @@ public class SneakingEstimator extends PostPredictionCheck {
         if (player.isGliding) trueFriction = 0.99;
 
         // START HACKERY
+
+        // Avoid calling the method if the player isn't sneaking
+        if (player.uncertaintyHandler.stuckOnEdge != 0) {
+            sneakingPotentialHiddenVelocity = new SimpleCollisionBox();
+            return;
+        }
+
         for (VectorData data : possible) {
             // Don't let the player always get jumping bonus, for example
             if (data.isJump() == player.predictedVelocity.isJump() && data.isKnockback() == player.predictedVelocity.isKnockback()
