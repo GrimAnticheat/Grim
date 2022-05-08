@@ -4,13 +4,13 @@ import ac.grim.grimac.checks.type.RotationCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.data.HeadRotation;
-import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
 
-// From OverFlow V2 AntiCheat.
+// From OverFlow V2 AntiCheat, modified from o(n^2) to best case o(1) worst case o(n) time.
 public class AimProcessor extends RotationCheck {
-    private final EvictingList<Double> yawSamples = new EvictingList<>(50);
-    private final EvictingList<Double> pitchSamples = new EvictingList<>(50);
+    private final RunningMode<Double> yawSamples = new RunningMode<>(50);
+    private final RunningMode<Double> pitchSamples = new RunningMode<>(50);
     public double sensitivityX, sensitivityY, deltaX, deltaY;
     private float lastDeltaYaw, lastDeltaPitch;
 
@@ -67,8 +67,8 @@ public class AimProcessor extends RotationCheck {
         double modePitch = 0.0;
 
         if (pitchSamples.size() > 5 && yawSamples.size() > 5) {
-            modeYaw = GrimMath.getMode(yawSamples);
-            modePitch = GrimMath.getMode(pitchSamples);
+            modeYaw = yawSamples.getMode();
+            modePitch = pitchSamples.getMode();
         }
 
         final double deltaX = deltaYaw / modeYaw;

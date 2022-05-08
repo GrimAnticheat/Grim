@@ -199,25 +199,6 @@ public class GrimMath {
         }
     }
 
-    public static Double getMode(List<Double> collect) {
-        double maxValue = 0;
-        int maxCount = 0;
-
-        for (int i = 0; i < collect.size(); ++i) {
-            int count = 0;
-            for (double t : collect) {
-                if (t == collect.get(i)) ++count;
-            }
-            if (count > maxCount) {
-                maxCount = count;
-                maxValue = collect.get(i);
-            }
-        }
-
-        return maxValue;
-    }
-
-
     public static int floor(double d) {
         return (int) Math.floor(d);
     }
