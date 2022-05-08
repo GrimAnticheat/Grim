@@ -1,4 +1,4 @@
-package ac.grim.grimac.checks.impl.aim;
+package ac.grim.grimac.checks.impl.removed;
 
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.RotationCheck;

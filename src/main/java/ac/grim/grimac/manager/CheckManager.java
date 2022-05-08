@@ -94,8 +94,6 @@ public class CheckManager {
                 .put(AimProcessor.class, new AimProcessor(player))
                 .put(Cinematic.class, new Cinematic(player))
                 .put(AimModulo360.class, new AimModulo360(player))
-                .put(AimInvalidPitch.class, new AimInvalidPitch(player))
-                .put(AimInvalidYaw.class, new AimInvalidYaw(player))
                 .put(AimDuplicateLook.class, new AimDuplicateLook(player))
                 .build();
         vehicleCheck = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
