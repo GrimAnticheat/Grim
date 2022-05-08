@@ -361,9 +361,9 @@ public class GrimPlayer {
             }
 
             if (async) {
-                PacketEvents.getAPI().getProtocolManager().sendPacketAsync(user.getChannel(), packet);
+                PacketEvents.getAPI().getProtocolManager().writePacketAsync(user.getChannel(), packet);
             } else {
-                user.sendPacket(packet);
+                user.writePacket(packet);
             }
         } catch (Exception ignored) { // Fix protocollib + viaversion support by ignoring any errors :) // TODO: Fix this
             // recompile
@@ -534,7 +534,7 @@ public class GrimPlayer {
                 int ridingId = getRidingVehicleId();
                 TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
-                    user.sendPacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
+                    user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }
             }
         });
