@@ -103,7 +103,9 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         int range = 16;
 
         Vector3i blockPosition = blockChange.getBlockPosition();
-        if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range)
+        // Don't spam transactions (block changes are sent in batches)
+        if (Math.abs(blockPosition.getX() - player.x) < range && Math.abs(blockPosition.getY() - player.y) < range && Math.abs(blockPosition.getZ() - player.z) < range &&
+                player.lastTransSent + 2 < System.currentTimeMillis())
             player.sendTransaction();
 
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockPosition.getX(), blockPosition.getY(), blockPosition.getZ(), blockChange.getBlockId()));
@@ -111,8 +113,18 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
     public void handleMultiBlockChange(GrimPlayer player, PacketSendEvent event) {
         WrapperPlayServerMultiBlockChange multiBlockChange = new WrapperPlayServerMultiBlockChange(event);
-        player.sendTransaction();
+
+        boolean didSend = false;
+        int range = 16;
+
         for (WrapperPlayServerMultiBlockChange.EncodedBlock blockChange : multiBlockChange.getBlocks()) {
+            // Don't send a transaction unless it's within 16 blocks of the player
+            if (!didSend && Math.abs(blockChange.getX() - player.x) < range && Math.abs(blockChange.getY() - player.y) < range && Math.abs(blockChange.getZ() - player.z) < range &&
+                    player.lastTransSent + 2 < System.currentTimeMillis()) {
+                didSend = true;
+                player.sendTransaction();
+            }
+
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedWorld.updateBlock(blockChange.getX(), blockChange.getY(), blockChange.getZ(), blockChange.getBlockId()));
         }
     }
