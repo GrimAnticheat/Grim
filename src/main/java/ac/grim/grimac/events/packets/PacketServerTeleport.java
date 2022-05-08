@@ -13,7 +13,6 @@ import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
-import org.bukkit.Location;
 
 public class PacketServerTeleport extends PacketListenerAbstract {
 
@@ -28,9 +27,9 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
 
-            Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
-
             if (player == null) return;
+
+            Vector3d pos = new Vector3d(teleport.getX(), teleport.getY(), teleport.getZ());
 
             // This is the first packet sent to the client which we need to track
             if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) {
@@ -78,18 +77,15 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             event.getPostTasks().add(player::sendTransaction);
 
             if (teleport.isDismountVehicle()) {
-                GrimPlayer finalPlayer = player;
                 // Remove player from vehicle
-                event.getPostTasks().add(() -> {
-                    player.compensatedEntities.getSelf().eject();
-                });
+                event.getPostTasks().add(() -> player.compensatedEntities.getSelf().eject());
             }
 
             // For some reason teleports on 1.7 servers are offset by 1.62?
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_8))
                 pos = pos.withY(pos.getY() - 1.62);
 
-            Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
+            Vector3d target = new Vector3d(pos.getX(), pos.getY(), pos.getZ());
             player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, true);
         }
 

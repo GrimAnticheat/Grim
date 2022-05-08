@@ -3,7 +3,6 @@ package ac.grim.grimac.utils.collisions.datatypes;
 import ac.grim.grimac.utils.nmsutil.Ray;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
-import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -56,8 +55,8 @@ public class SimpleCollisionBox implements CollisionBox {
         this(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
     }
 
-    public SimpleCollisionBox(Location loc, double width, double height) {
-        this(loc.toVector(), width, height);
+    public SimpleCollisionBox(Vector3d loc, double width, double height) {
+        this(new Vector(loc.getX(), loc.getY(), loc.getZ()), width, height);
     }
 
     public SimpleCollisionBox(Vector vec, double width, double height) {

@@ -21,7 +21,7 @@ import com.github.retrooper.packetevents.protocol.world.states.defaulttags.Block
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.util.Vector3d;
-import org.bukkit.Location;
+import com.github.retrooper.packetevents.util.Vector3i;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -382,15 +382,15 @@ public class Collisions {
         // Use the bounding box for after the player's movement is applied
         SimpleCollisionBox aABB = player.compensatedEntities.getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-0.001) : player.boundingBox.copy().expand(-0.001);
 
-        Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
-        Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
+        Vector3i blockPos = new Vector3i((int) aABB.minX, (int) aABB.minY, (int) aABB.minZ);
+        Vector3i blockPos2 = new Vector3i((int) aABB.maxX, (int) aABB.maxY, (int) aABB.maxZ);
 
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
+        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos2.getX(), blockPos2.getY(), blockPos2.getZ()))
             return;
 
-        for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
-            for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
-                for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
+        for (int i = blockPos.getX(); i <= blockPos2.getX(); ++i) {
+            for (int j = blockPos.getY(); j <= blockPos2.getY(); ++j) {
+                for (int k = blockPos.getZ(); k <= blockPos2.getZ(); ++k) {
                     WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(i, j, k);
                     StateType blockType = block.getType();
 
@@ -494,15 +494,15 @@ public class Collisions {
         // Use the bounding box for after the player's movement is applied
         SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(expand);
 
-        Location blockPos = new Location(null, aABB.minX, aABB.minY, aABB.minZ);
-        Location blockPos2 = new Location(null, aABB.maxX, aABB.maxY, aABB.maxZ);
+        Vector3i blockPos = new Vector3i((int) aABB.minX, (int) aABB.minY, (int) aABB.minZ);
+        Vector3i blockPos2 = new Vector3i((int) aABB.maxX, (int) aABB.maxY, (int) aABB.maxZ);
 
-        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getBlockX(), blockPos.getBlockY(), blockPos.getBlockZ(), blockPos2.getBlockX(), blockPos2.getBlockY(), blockPos2.getBlockZ()))
+        if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos2.getX(), blockPos2.getY(), blockPos2.getZ()))
             return false;
 
-        for (int i = blockPos.getBlockX(); i <= blockPos2.getBlockX(); ++i) {
-            for (int j = blockPos.getBlockY(); j <= blockPos2.getBlockY(); ++j) {
-                for (int k = blockPos.getBlockZ(); k <= blockPos2.getBlockZ(); ++k) {
+        for (int i = blockPos.getX(); i <= blockPos2.getX(); ++i) {
+            for (int j = blockPos.getY(); j <= blockPos2.getY(); ++j) {
+                for (int k = blockPos.getZ(); k <= blockPos2.getZ(); ++k) {
                     WrappedBlockState block = player.compensatedWorld.getWrappedBlockStateAt(i, j, k);
                     StateType blockType = block.getType();
 

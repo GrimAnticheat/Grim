@@ -23,7 +23,6 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
@@ -32,7 +31,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to netty
-    private final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Pair<Integer, Vector3d>> teleports = new ConcurrentLinkedQueue<>();
     // Sync to netty, a player MUST accept a teleport to spawn into the world
     // A teleport is used to end the loading screen.  Some cheats pretend to never end the loading screen
     // in an attempt to disable the anticheat.  Be careful.
@@ -116,15 +115,15 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return false;
     }
 
-    public void blockMovementsUntilResync(Location position) {
+    public void blockMovementsUntilResync(Vector3d position) {
         blockMovementsUntilResync(position, false);
     }
 
-    public void blockMovementsUntilResync(Location position, boolean force) {
+    public void blockMovementsUntilResync(Vector3d position, boolean force) {
         blockMovementsUntilResync(position, force, true);
     }
 
-    public void blockMovementsUntilResync(Location position, boolean force, boolean simulateNextTickPosition) {
+    public void blockMovementsUntilResync(Vector3d position, boolean force, boolean simulateNextTickPosition) {
         if (requiredSetBack == null || player.bukkitPlayer == null)
             return; // Player hasn't gotten a single teleport yet.
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
@@ -174,11 +173,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (simulateNextTickPosition) {
             Vector collide = Collisions.collide(player, clientVel.getX(), clientVel.getY(), clientVel.getZ());
 
-            position.setX(position.getX() + collide.getX());
             // 1.8 players need the collision epsilon to not phase into blocks when being setback
             // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
-            position.setY(position.getY() + collide.getY() + SimpleCollisionBox.COLLISION_EPSILON);
-            position.setZ(position.getZ() + collide.getZ());
+            position = position.add(collide.getX(), collide.getY() + SimpleCollisionBox.COLLISION_EPSILON, collide.getZ());
 
             // TODO: Add support for elytra, water, lava, and end of ticks
             if (player.wasTouchingWater) {
@@ -230,7 +227,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_7_10)) {
                 y += 1.62; // 1.7 teleport offset if grim ever supports 1.7 again
             }
-            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), player.lastTransactionSent.get(), false);
+            addSentTeleport(new Vector3d(position.getX(), y, position.getZ()), player.lastTransactionSent.get(), false);
             // Send after tracking to fix race condition
             PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, (byte) 0b11000, new Random().nextInt(), false));
             player.sendTransaction();
@@ -256,10 +253,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
         while (true) {
-            Pair<Integer, Location> teleportPos = teleports.peek();
+            Pair<Integer, Vector3d> teleportPos = teleports.peek();
             if (teleportPos == null) break;
 
-            Location position = teleportPos.getSecond();
+            Vector3d position = teleportPos.getSecond();
 
             if (lastTransaction < teleportPos.getFirst()) {
                 break;
@@ -385,9 +382,9 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * This means we have to discard teleports from the vanilla anticheat, as otherwise
      * it would allow the player to bypass our own setbacks
      */
-    public void addSentTeleport(Location position, int transaction, boolean plugin) {
+    public void addSentTeleport(Vector3d position, int transaction, boolean plugin) {
         requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, plugin);
-        teleports.add(new Pair<>(transaction, new Location(null, position.getX(), position.getY(), position.getZ())));
+        teleports.add(new Pair<>(transaction, new Vector3d(position.getX(), position.getY(), position.getZ())));
         setSafeSetbackLocation(new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
 }
