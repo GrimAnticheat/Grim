@@ -70,7 +70,7 @@ public class GrimPlayer {
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
     private int transactionPing = 0;
-    private long lastTransSent = 0;
+    public long lastTransSent = 0;
     private long playerClockAtLeast = System.nanoTime();
     public double lastWasClimbing = 0;
     public boolean canSwimHop = false;
