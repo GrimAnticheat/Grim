@@ -8,6 +8,7 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -27,9 +28,11 @@ public class GrimReload extends BaseCommand {
 
         //Reload checks for all players
         for (GrimPlayer grimPlayer : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            for (Check<?> value : grimPlayer.checkManager.allChecks.values()) {
-                value.reload();
-            }
+            ChannelHelper.runInEventLoop(grimPlayer.user.getChannel(), () -> {
+                for (Check<?> value : grimPlayer.checkManager.allChecks.values()) {
+                    value.reload();
+                }
+            });
         }
 
         sender.sendMessage(MessageUtil.format("%prefix% &fConfig has been reloaded."));
