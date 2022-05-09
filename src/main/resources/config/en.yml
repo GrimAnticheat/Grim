@@ -11,9 +11,9 @@ alerts:
   print-to-console: true
 
 client-brand:
-  # This means it won't broadcast their brand to operators.
+  # This means it won't broadcast their brand to operators if the brand matches the following regexes
   ignored-clients:
-    - "vanilla"
+    - "^vanilla$"
 
 # How long should players have until we keep them for timing out? Default = 2 minutes
 max-ping: 120
