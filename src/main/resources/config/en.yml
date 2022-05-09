@@ -121,4 +121,7 @@ Reach:
   # Unless you are a 1.8 PvP focused server, this additional packet is not recommended
   enable-post-packet: false
 
-config-version: 1
+# Enable logging plugins who have injected into netty on join to debug compatibility issues
+debug-pipeline-on-join: false
+
+config-version: 2
