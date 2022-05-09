@@ -1,0 +1,36 @@
+# \u00BB это "»" (двойные >>), кодировка ANSI и UTF-8 интерпретируют это по-разному... ибо вы увидите "?" из-за этого
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fОповещения включены"
+alerts-disabled: "%prefix% &fОповещения выключены"
+client-brand-format: "%prefix% &f%player% использует %brand%"
+console-specify-target: "%prefix% &cYou must specify a target as the console!"
+player-not-found: "%prefix% &cИгрок не найден!"
+player-not-this-server: "%prefix% &cИгрок не на этом сервере!"
+
+# Valid placeholders:
+# %prefix% - Префикс
+# %player% - Ник игрока
+# %check_name% - Название проверки (BadPackets, NoSlow и т.п)
+# %vl% - Сколько раз провалилась проверка
+# %verbose% - Дополнительная информация из проверки, такая как смещения. Не все проверки будут добавлять информацию
+alerts-format: "%prefix% &f%player% &bподозревается в &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bПрофиль &f%player%"
+  - "&bВерсия: &f%version%"
+  - "&bИспользует: &f%brand%"
+  - "&bГоризонтальная чуствительность: &f%h_sensitivity%%"
+  - "&bВертикальная чуствительность: &f%v_sensitivity%%"
+  - "&bFastMath: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Оповещания"
+  - "/grim profile &f- &7Информация о игроке"
+  - "/grim help &f- &7Список команд"
+  - "/grim debug <player> &f- &7Дополнительная информация о игроке"
+  - "/grim perf &f- &7Прогнозирование ms разбработчика"
+  - "/grim reload &f- &7Перезапускает плагин"
+  - "&7======================"
