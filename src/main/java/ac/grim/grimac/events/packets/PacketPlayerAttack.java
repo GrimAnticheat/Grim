@@ -14,6 +14,7 @@ import com.github.retrooper.packetevents.protocol.item.type.ItemTypes;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientInteractEntity;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import org.bukkit.entity.LivingEntity;
 
 public class PacketPlayerAttack extends PacketListenerAbstract {
@@ -63,6 +64,13 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
                     }
                 }
             }
+        }
+
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            player.minPlayerAttackSlow = 0;
         }
     }
 }
