@@ -27,6 +27,8 @@ public class PunishmentManager {
         List<String> punish = config.getStringListElse("Punishments", new ArrayList<>());
 
         try {
+            groups.clear();
+
             for (Object s : punish) {
                 LinkedHashMap<String, Object> map = (LinkedHashMap<String, Object>) s;
 
