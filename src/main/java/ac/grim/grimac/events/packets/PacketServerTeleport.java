@@ -85,8 +85,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_8))
                 pos = pos.withY(pos.getY() - 1.62);
 
-            Vector3d target = new Vector3d(pos.getX(), pos.getY(), pos.getZ());
-            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, true);
+            player.getSetbackTeleportUtil().addSentTeleport(pos, lastTransactionSent, true);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {
