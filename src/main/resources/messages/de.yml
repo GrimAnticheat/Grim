@@ -1,0 +1,36 @@
+# \u00BB ist » (double >>), ANSI und UTF-8 interpretieren das unterschiedlich... es könnte sein, dass deswegen sogar ein ? angezeigt wird
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fBenachrichtigungen aktiviert"
+alerts-disabled: "%prefix% &fBenachrichtigungen deaktiviert"
+client-brand-format: "%prefix% &f%player% ist mit %brand% beigetreten"
+console-specify-target: "%prefix% &cAls Konsole muss ein Ziel angegeben werden!"
+player-not-found: "%prefix% &cSpieler ist von Checks freigestellt (exempt) oder ist offline!"
+player-not-this-server: "%prefix% &cDer Spieler ist nicht auf diesem Server!"
+
+# Mögliche Platzhalter:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violations
+# %verbose% - Zeigt extra Informationen von Checks wie das Offset, nicht jeder Check zeigt diese Informationen an
+alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bProfil für &f%player%"
+  - "&bVersion: &f%version%"
+  - "&bClient Brand: &f%brand%"
+  - "&bHorizontale Mausempfindlichkeit: &f%h_sensitivity%%"
+  - "&bVertikale Mausempfindlichkeit: &f%v_sensitivity%%"
+  - "&bFastMath: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Aktiviert/deaktiviert Benachrichtigungen"
+  - "/grim profile &f- &7Zeigt Spieler-Informationen an"
+  - "/grim help &f- &7Zeigt diese Hilfenachricht an"
+  - "/grim debug <player> &f- &7Zeigt Debug Output für die Simulations-Engine an"
+  - "/grim perf &f- &7Zeigt Performance-Daten für die Simulations-Engine an"
+  - "/grim reload &f- &7Lädt die Konfiguration neu"
+  - "&7======================"
