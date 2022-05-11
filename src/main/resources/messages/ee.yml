@@ -1,0 +1,40 @@
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fAlerts enabled"
+alerts-disabled: "%prefix% &fAlerts disabled"
+client-brand-format: "%prefix% &f%player% liitus kasutades %brand%"
+console-specify-target: "%prefix% &cSa pead kirjutama mängija!"
+player-not-found: "%prefix% &cMängija on kaitstud või mängust väljas!"
+player-not-this-server: "%prefix% &cMängija ei ole selles serveris!"
+spectate-return: "\n%prefix% &fVajuta siia et minna eelmisesse asukohta\n"
+cannot-spectate-return: "%prefix% &cSa saad ainult seda teha kui oled mängijat uurinud"
+
+# Valid placeholders:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violations
+# %verbose% - extra information from the check such as offsets, not all checks will add information
+alerts-format: "%prefix% &f%player% &bflaggis &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &f%player% &bprofiil"
+  - "&bPing: &f%ping%"
+  - "&bVersioon: &f%version%"
+  - "&bKlient: &f%brand%"
+  - "&bHorisontaalne hiire tundlikkus: &f%h_sensitivity%%"
+  - "&bVertikaalne hiire tundlikkus: &f%v_sensitivity%%"
+  - "&bFastMath: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Luba teavitused"
+  - "/grim profile &f- &7Vaata mängija profiili"
+  - "/grim help &f- &7Vaata seda abi sõnumit"
+  - "/grim debug <player> &f- &7Ennustuse informatsioon kooderitele"
+  - "/grim perf &f- &7Kooderite ennustuse informatsiooni ajad"
+  - "/grim reload &f- &7Uuenda konfiguratsiooni"
+  - "/grim spectate <player> &f- &7Uuri mängijat lähemalt"
+  - "&7======================"
