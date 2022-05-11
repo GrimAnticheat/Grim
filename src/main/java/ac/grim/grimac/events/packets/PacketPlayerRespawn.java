@@ -60,6 +60,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             WrapperPlayServerJoinGame joinGame = new WrapperPlayServerJoinGame(event);
             player.gamemode = joinGame.getGameMode();
             player.entityID = joinGame.getEntityId();
+            player.dimension = joinGame.getDimension();
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
             player.compensatedWorld.setDimension(joinGame.getDimension().getType().getName(), event.getUser());
@@ -87,10 +88,15 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
 
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
-                player.compensatedEntities.entityMap.clear();
-                player.compensatedWorld.activePistons.clear();
-                player.compensatedWorld.openShulkerBoxes.clear();
-                player.compensatedWorld.chunks.clear();
+                if (respawn.getDimension().getType() != player.dimension.getType() ||
+                        !respawn.getDimension().getAttributes().equals(player.dimension.getAttributes())) {
+                    player.compensatedEntities.entityMap.clear();
+                    player.compensatedWorld.activePistons.clear();
+                    player.compensatedWorld.openShulkerBoxes.clear();
+                    player.compensatedWorld.chunks.clear();
+                }
+                player.dimension = respawn.getDimension();
+
                 player.compensatedEntities.serverPlayerVehicle = null; // All entities get removed on respawn
                 player.compensatedEntities.playerEntity = new PacketEntitySelf();
                 player.compensatedEntities.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
