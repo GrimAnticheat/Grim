@@ -46,7 +46,7 @@ public class GrimProfile extends BaseCommand {
 
         for (String message : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("profile")) {
             message = MessageUtil.format(message);
-            message = message.replace("%ping%", (grimPlayer.getTransactionPing() / 10000000) + "");
+            message = message.replace("%ping%", (grimPlayer.getTransactionPing() / 1000000) + "");
             message = message.replace("%player%", target.getPlayer().getName());
             message = message.replace("%version%", grimPlayer.getClientVersion().getReleaseName());
             message = message.replace("%brand%", brand.getBrand());
