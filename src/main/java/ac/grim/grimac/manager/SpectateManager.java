@@ -1,6 +1,5 @@
 package ac.grim.grimac.manager;
 
-import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import org.bukkit.Location;
@@ -25,7 +24,9 @@ public class SpectateManager {
     }
 
     public boolean enable(Player player) {
-        return spectatingPlayers.put(player.getUniqueId(), new PreviousState(player.getGameMode(), player.getLocation())) == null;
+        if (spectatingPlayers.containsKey(player.getUniqueId())) return false;
+        spectatingPlayers.put(player.getUniqueId(), new PreviousState(player.getGameMode(), player.getLocation()));
+        return true;
     }
 
     public void disable(Player player) {
