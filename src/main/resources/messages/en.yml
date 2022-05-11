@@ -19,6 +19,7 @@ alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%ver
 profile:
   - "&7======================"
   - "%prefix% &bProfile for &f%player%"
+  - "&bPing: &f%ping%"
   - "&bVersion: &f%version%"
   - "&bClient Brand: &f%brand%"
   - "&bHorizontal Sensitivity: &f%h_sensitivity%%"
