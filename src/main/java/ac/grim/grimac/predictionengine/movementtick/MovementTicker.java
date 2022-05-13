@@ -166,9 +166,8 @@ public class MovementTicker {
         player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
-        player.uncertaintyHandler.lastStuckSpeedMultiplier--;
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
-            player.uncertaintyHandler.lastStuckSpeedMultiplier = 0;
+            player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
         player.stuckSpeedMultiplier = new Vector(1, 1, 1);
@@ -209,7 +208,7 @@ public class MovementTicker {
         player.uncertaintyHandler.zPositiveUncertainty = 0;
 
         // A 1.8 player may spawn and get -0.1 gravity instead of -0.08 gravity
-        if (player.uncertaintyHandler.lastTeleportTicks == 0) {
+        if (player.uncertaintyHandler.lastTeleportTicks.hasOccurredSince(0)) {
             player.uncertaintyHandler.yNegativeUncertainty -= 0.02;
         }
 

@@ -67,6 +67,12 @@ public class GrimPlayer {
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
     // End transaction handling stuff
+    // Manager like classes
+    public CheckManager checkManager;
+    public ActionManager actionManager;
+    public PunishmentManager punishmentManager;
+    public MovementCheckRunner movementCheckRunner;
+    // End manager like classes
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
     private int transactionPing = 0;
@@ -169,10 +175,6 @@ public class GrimPlayer {
     public VelocityData likelyKB = null;
     public VelocityData firstBreadExplosion = null;
     public VelocityData likelyExplosions = null;
-    public CheckManager checkManager;
-    public ActionManager actionManager;
-    public PunishmentManager punishmentManager;
-    public MovementCheckRunner movementCheckRunner;
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
@@ -202,20 +204,21 @@ public class GrimPlayer {
 
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 1.8f);
 
-        compensatedWorld = new CompensatedWorld(this);
-        compensatedFireworks = new CompensatedFireworks(this);
-        compensatedEntities = new CompensatedEntities(this);
-        latencyUtils = new LatencyUtils(this);
-        trigHandler = new TrigHandler(this);
-        uncertaintyHandler = new UncertaintyHandler(this);
-        pointThreeEstimator = new PointThreeEstimator(this);
-
-        packetStateData = new PacketStateData();
+        compensatedFireworks = new CompensatedFireworks(this); // Must be before checkmanager
 
         checkManager = new CheckManager(this);
         actionManager = new ActionManager(this);
         punishmentManager = new PunishmentManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
+
+        compensatedWorld = new CompensatedWorld(this);
+        compensatedEntities = new CompensatedEntities(this);
+        latencyUtils = new LatencyUtils(this);
+        trigHandler = new TrigHandler(this);
+        uncertaintyHandler = new UncertaintyHandler(this); // must be after checkmanager
+        pointThreeEstimator = new PointThreeEstimator(this);
+
+        packetStateData = new PacketStateData();
 
         uncertaintyHandler.pistonPushing.add(0d);
         uncertaintyHandler.collidingEntities.add(0);
@@ -498,8 +501,8 @@ public class GrimPlayer {
         return compensatedEntities.getSelf().inVehicle()
                 || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
                 || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isStepMovement
-                || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
-                || uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || uncertaintyHandler.isOrWasNearGlitchyBlock;
+                || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(30)
+                || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || uncertaintyHandler.isOrWasNearGlitchyBlock;
     }
 
     public void handleMountVehicle(int vehicleID) {

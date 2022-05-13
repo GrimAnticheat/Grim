@@ -467,16 +467,16 @@ public class PredictionEngine {
         // Difficult as there are a ton of edge cases and version differences with flying
         // For example, try toggling not using elytra to flying without this hack
         double bonusY = 0;
-        if (player.uncertaintyHandler.lastFlyingStatusChange > -5) {
+        if (player.uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(4)) {
             additionHorizontal += 0.3;
             bonusY += 0.3;
         }
 
-        if (player.uncertaintyHandler.lastUnderwaterFlyingHack > -10) {
+        if (player.uncertaintyHandler.lastUnderwaterFlyingHack.hasOccurredSince(9)) {
             bonusY += 0.2;
         }
 
-        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3) {
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(2)) {
             additionHorizontal += 0.1;
             bonusY += 0.1;
         }
@@ -606,7 +606,7 @@ public class PredictionEngine {
         // jumps upwards and collides with a block, which you don't actually see because mojang removed the idle
         // packet and sneaking poses take 2 full ticks to apply
         //
-         if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
+         if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
             box.expandToAbsoluteCoordinates(0, 0, 0);
         }
 
@@ -743,7 +743,7 @@ public class PredictionEngine {
         SimpleCollisionBox newBox = player.compensatedEntities.getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :
                 GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f);
 
-        return player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
+        return player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1

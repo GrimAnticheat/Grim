@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.LastInstance;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
@@ -76,20 +77,28 @@ public class UncertaintyHandler {
     public SimpleCollisionBox fireworksBox = null;
     public SimpleCollisionBox fishingRodPullBox = null;
 
-    public int lastFlyingTicks = -100;
-    // TODO: Make this a better class (LastTickAction) instead of an integer that counts up or down inconsistently
-    public int lastFlyingStatusChange = -100;
-    public int lastUnderwaterFlyingHack = -100;
-    public int lastStuckSpeedMultiplier = -100;
-    public int lastHardCollidingLerpingEntity = -100;
-    public int lastThirtyMillionHardBorder = -100;
-    public int lastTeleportTicks = 0; // You spawn with a teleport
+    public LastInstance lastFlyingTicks;
+    public LastInstance lastFlyingStatusChange;
+    public LastInstance lastUnderwaterFlyingHack;
+    public LastInstance lastStuckSpeedMultiplier;
+    public LastInstance lastHardCollidingLerpingEntity;
+    public LastInstance lastThirtyMillionHardBorder;
+    public LastInstance lastTeleportTicks;
+    public LastInstance lastPointThree;
 
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
+        this.lastFlyingTicks = new LastInstance(player);
+        this.lastFlyingStatusChange = new LastInstance(player);
+        this.lastUnderwaterFlyingHack = new LastInstance(player);
+        this.lastStuckSpeedMultiplier = new LastInstance(player);
+        this.lastHardCollidingLerpingEntity = new LastInstance(player);
+        this.lastThirtyMillionHardBorder = new LastInstance(player);
+        this.lastTeleportTicks = new LastInstance(player);
+        this.lastPointThree = new LastInstance(player);
         tick();
     }
 
@@ -103,7 +112,7 @@ public class UncertaintyHandler {
     }
 
     public boolean wasAffectedByStuckSpeed() {
-        return lastStuckSpeedMultiplier > -5;
+        return lastStuckSpeedMultiplier.hasOccurredSince(5);
     }
 
     public void tickFireworksBox() {
@@ -214,7 +223,7 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             pointThree = 0.15;
 
-        if (lastThirtyMillionHardBorder > -3)
+        if (lastThirtyMillionHardBorder.hasOccurredSince(3))
             pointThree = 0.15;
 
         if (player.vehicleData.lastVehicleSwitch < 3)
@@ -228,7 +237,7 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
-        if (lastThirtyMillionHardBorder > -3)
+        if (lastThirtyMillionHardBorder.hasOccurredSince(3))
             return 0.15;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
@@ -242,7 +251,7 @@ public class UncertaintyHandler {
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
-        if ((lastFlyingTicks < 5) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
+        if ((lastFlyingTicks.hasOccurredSince(5)) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
             return 0.06;
 
         double pointThree = player.getMovementThreshold();
@@ -280,7 +289,7 @@ public class UncertaintyHandler {
         // Boats are too glitchy to check.
         // Yes, they have caused an insane amount of uncertainty!
         // Even 1 block offset reduction isn't enough... damn it mojang
-        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3) {
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3)) {
             offset -= 1.2;
         }
 
@@ -289,7 +298,7 @@ public class UncertaintyHandler {
         }
 
         // Exempt flying status change
-        if (player.uncertaintyHandler.lastFlyingStatusChange > -20) {
+        if (player.uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(20)) {
             offset = 0;
         }
 
@@ -315,8 +324,7 @@ public class UncertaintyHandler {
 
     public void checkForHardCollision() {
         // Look for boats the player could collide with
-        player.uncertaintyHandler.lastHardCollidingLerpingEntity--;
-        if (hasHardCollision()) player.uncertaintyHandler.lastHardCollidingLerpingEntity = 0;
+        if (hasHardCollision()) player.uncertaintyHandler.lastHardCollidingLerpingEntity.reset();
     }
 
     private boolean hasHardCollision() {

@@ -86,7 +86,7 @@ public class MovementCheckRunner extends PositionCheck {
             player.clientVelocity = new Vector();
         }
 
-        player.uncertaintyHandler.lastTeleportTicks = 0;
+        player.uncertaintyHandler.lastTeleportTicks.reset();
         player.lastWasClimbing = 0;
         player.fallDistance = 0;
         player.canSwimHop = false;
@@ -304,10 +304,9 @@ public class MovementCheckRunner extends PositionCheck {
             }
         }
 
-        player.uncertaintyHandler.lastFlyingTicks++;
         if (player.isFlying) {
             player.fallDistance = 0;
-            player.uncertaintyHandler.lastFlyingTicks = 0;
+            player.uncertaintyHandler.lastFlyingTicks.reset();
         }
 
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
@@ -416,17 +415,14 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
         player.uncertaintyHandler.checkForHardCollision();
 
-        player.uncertaintyHandler.lastFlyingStatusChange--;
-        if (player.isFlying != player.wasFlying) player.uncertaintyHandler.lastFlyingStatusChange = 0;
+        if (player.isFlying != player.wasFlying) player.uncertaintyHandler.lastFlyingStatusChange.reset();
 
-        player.uncertaintyHandler.lastThirtyMillionHardBorder--;
         if (!player.compensatedEntities.getSelf().inVehicle() && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D)) {
-            player.uncertaintyHandler.lastThirtyMillionHardBorder = 0;
+            player.uncertaintyHandler.lastThirtyMillionHardBorder.reset();
         }
 
-        player.uncertaintyHandler.lastUnderwaterFlyingHack--;
         if (player.isFlying && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
-            player.uncertaintyHandler.lastUnderwaterFlyingHack = 0;
+            player.uncertaintyHandler.lastUnderwaterFlyingHack.reset();
         }
 
         boolean couldBeStuckSpeed = Collisions.checkStuckSpeed(player, 0.03);
@@ -434,7 +430,7 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.claimingLeftStuckSpeed = !player.compensatedEntities.getSelf().inVehicle() && player.stuckSpeedMultiplier.getX() < 1 && !couldLeaveStuckSpeed;
 
         if (couldBeStuckSpeed) {
-            player.uncertaintyHandler.lastStuckSpeedMultiplier = 0;
+            player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
         Vector oldClientVel = player.clientVelocity;
@@ -579,7 +575,6 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = !player.compensatedEntities.getSelf().inVehicle() && player.skippedTickInActualMovement;
         player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.compensatedEntities.getSelf().inVehicle() && player.couldSkipTick && player.predictedVelocity.isKnockback();
-        player.uncertaintyHandler.lastTeleportTicks--;
 
         // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03
         // Or some state of the player changed, so we can no longer predict this vertical movement
