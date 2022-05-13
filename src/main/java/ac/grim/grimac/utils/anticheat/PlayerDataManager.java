@@ -8,30 +8,28 @@ import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PlayerDataManager {
-    private final ConcurrentHashMap<User, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, GrimPlayer> playerDataMap = new ConcurrentHashMap<>();
 
     public GrimPlayer getPlayer(final Player player) {
         if (MultiLib.isExternalPlayer(player)) return null;
-
-        // Is it safe to interact with this, or is this internal PacketEvents code?
-        User user = PacketEvents.getAPI().getPlayerManager().getUser(player);
-        return playerDataMap.get(user);
+        return playerDataMap.get(player.getUniqueId());
     }
 
     @Nullable
     public GrimPlayer getPlayer(final User player) {
-        return playerDataMap.get(player);
+        return playerDataMap.get(player.getUUID());
     }
 
     public void addPlayer(final User user, final GrimPlayer player) {
-        playerDataMap.put(user, player);
+        playerDataMap.put(user.getUUID(), player);
     }
 
     public void remove(final User player) {
-        playerDataMap.remove(player);
+        playerDataMap.remove(player.getUUID());
     }
 
     public Collection<GrimPlayer> getEntries() {
