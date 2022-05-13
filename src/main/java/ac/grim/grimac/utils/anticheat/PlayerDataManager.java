@@ -24,6 +24,11 @@ public class PlayerDataManager {
         return playerDataMap.get(player.getUUID());
     }
 
+    @Nullable
+    public GrimPlayer getPlayer(final UUID uuid) {
+        return playerDataMap.get(uuid);
+    }
+
     public void addPlayer(final User user, final GrimPlayer player) {
         playerDataMap.put(user.getUUID(), player);
     }
