@@ -400,7 +400,7 @@ public class GrimPlayer {
         if (lastTransSent != 0 && lastTransSent + 80 < System.currentTimeMillis()) {
             sendTransaction(true); // send on netty thread
         }
-        if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping.transaction", 120) * 1e9) {
+        if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getMaxPingTransaction() * 1e9) {
             try {
                 user.sendPacket(new WrapperPlayServerDisconnect(Component.text("Timed out!")));
             } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...

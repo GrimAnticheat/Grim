@@ -26,6 +26,8 @@ public class ConfigManager {
     private final File discordFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "discord.yml");
     @Getter
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+    @Getter
+    private int maxPingTransaction = 120; // This is just a really hot variable so cache it.
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
@@ -70,7 +72,7 @@ public class ConfigManager {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load config", e);
         }
-        //
+        maxPingTransaction = config.getIntElse("max-ping.transaction", 120);
         ignoredClientPatterns.clear();
         for (String string : config.getStringList("client-brand.ignored-clients")) {
             try {
