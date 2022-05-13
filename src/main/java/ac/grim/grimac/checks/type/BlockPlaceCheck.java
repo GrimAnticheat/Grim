@@ -44,6 +44,7 @@ public class BlockPlaceCheck extends Check<BlockPlace> {
         buggyBoxes.add(StateTypes.TWISTING_VINES_PLANT);
         buggyBoxes.add(StateTypes.WEEPING_VINES);
         buggyBoxes.add(StateTypes.WEEPING_VINES_PLANT);
+        buggyBoxes.add(StateTypes.REDSTONE_WIRE);
     }
 
     protected SimpleCollisionBox getCombinedBox(final BlockPlace place) {
