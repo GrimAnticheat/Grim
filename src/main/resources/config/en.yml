@@ -9,6 +9,11 @@ alerts:
   enable-on-join: true
   # In addition to broadcasting alerts to players, should they also be sent to the console?
   print-to-console: true
+  bungeecord:
+     # Should alerts be sent to other servers connected to your proxy?
+     send: false
+     # Should alerts received by other servers be broadcasted?
+     receive: false
 
 client-brand:
   # This means it won't broadcast their brand to operators if the brand matches the following regexes

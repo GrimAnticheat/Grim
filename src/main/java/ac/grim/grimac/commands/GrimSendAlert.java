@@ -1,6 +1,7 @@
 package ac.grim.grimac.commands;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.events.packets.PacketPluginMessage;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import co.aikar.commands.BaseCommand;
@@ -18,6 +19,10 @@ public class GrimSendAlert extends BaseCommand {
 
         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
             bukkitPlayer.sendMessage(string);
+        }
+        
+        if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.bungeecord.send", false)) {
+        	PacketPluginMessage.sendPluginMessage(string);
         }
 
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.print-to-console", true)) {
