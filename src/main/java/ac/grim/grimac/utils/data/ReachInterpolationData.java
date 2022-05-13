@@ -110,8 +110,8 @@ public class ReachInterpolationData {
         //GrimAC.staticGetLogger().info(ChatColor.BLUE + "Finished updating new starting location as second trans hasn't arrived " + startingLocation);
     }
 
-    public void tickMovement(boolean incrementLowBound, boolean setHighBound) {
-        if (setHighBound) this.interpolationStepsHighBound = getInterpolationSteps();
+    public void tickMovement(boolean incrementLowBound, boolean tickingReliably) {
+        if (!tickingReliably) this.interpolationStepsHighBound = getInterpolationSteps();
         if (incrementLowBound)
             this.interpolationStepsLowBound = Math.min(interpolationStepsLowBound + 1, getInterpolationSteps());
         this.interpolationStepsHighBound = Math.min(interpolationStepsHighBound + 1, getInterpolationSteps());

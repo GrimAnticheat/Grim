@@ -70,12 +70,12 @@ public class PacketEntityReplication extends PacketCheck {
             //     - This code runs after the prediction engine to prevent a false when immediately switching back to 1.9-like movements
             //     - 3 ticks is a magic value, but it should buffer out incorrect predictions somewhat.
             // 2. The player is in a vehicle
-            boolean setHighBound = (wrapper.hasPositionChanged() && !player.uncertaintyHandler.lastPointThree.hasOccurredSince(3))
+            boolean isTickingReliably = (wrapper.hasPositionChanged() && !player.uncertaintyHandler.lastPointThree.hasOccurredSince(3))
                     || player.compensatedEntities.getSelf().inVehicle()
                     || player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
 
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                entity.onMovement(setHighBound);
+                entity.onMovement(isTickingReliably);
             }
         }
 
