@@ -58,11 +58,6 @@ public class UncertaintyHandler {
     public boolean isOrWasNearGlitchyBlock = false;
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
     public boolean claimingLeftStuckSpeed = false;
-    public int stuckOnEdge = 100;
-    public int lastStuckNorth = 100;
-    public int lastStuckSouth = 100;
-    public int lastStuckWest = 100;
-    public int lastStuckEast = 100;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = false;
     // Give horizontal lenience if the last movement reset velocity because 0.03 becomes unknown then
@@ -86,6 +81,12 @@ public class UncertaintyHandler {
     public LastInstance lastTeleportTicks;
     public LastInstance lastPointThree;
 
+    public LastInstance stuckOnEdge;
+    public LastInstance lastStuckNorth;
+    public LastInstance lastStuckSouth;
+    public LastInstance lastStuckWest;
+    public LastInstance lastStuckEast;
+
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
@@ -99,6 +100,11 @@ public class UncertaintyHandler {
         this.lastThirtyMillionHardBorder = new LastInstance(player);
         this.lastTeleportTicks = new LastInstance(player);
         this.lastPointThree = new LastInstance(player);
+        this.stuckOnEdge = new LastInstance(player);
+        this.lastStuckNorth = new LastInstance(player);
+        this.lastStuckSouth = new LastInstance(player);
+        this.lastStuckWest = new LastInstance(player);
+        this.lastStuckEast = new LastInstance(player);
         tick();
     }
 

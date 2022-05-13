@@ -119,20 +119,18 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.onGround = update.isOnGround();
 
-        player.uncertaintyHandler.lastStuckEast++;
-        player.uncertaintyHandler.lastStuckWest++;
-        player.uncertaintyHandler.lastStuckNorth++;
-        player.uncertaintyHandler.lastStuckSouth++;
-        player.uncertaintyHandler.stuckOnEdge++;
         // This is here to prevent abuse of sneaking
         // Without this, players could sneak on a flat plane to avoid velocity
         // That would be bad so this prevents it
         if (!player.isFlying && player.isSneaking && Collisions.isAboveGround(player)) {
             // 16 - Magic number to stop people from crashing the server
-            double posX = Math.max(0.1, GrimMath.clamp(player.actualMovement.getX(), -16, 16) + 0.1);
-            double posZ = Math.max(0.1, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) + 0.1);
-            double negX = Math.min(-0.1, GrimMath.clamp(player.actualMovement.getX(), -16, 16) - 0.1);
-            double negZ = Math.min(-0.1, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) - 0.1);
+            // 0.05 - Mojang's magic value that they use to calculate precision of sneaking
+            // They move the position back by 0.05 blocks repeatedly until they are above ground
+            // So by going forwards 0.05 blocks, we can determine if the player was influenced by this
+            double posX = Math.max(0.05, GrimMath.clamp(player.actualMovement.getX(), -16, 16) + 0.05);
+            double posZ = Math.max(0.05, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) + 0.05);
+            double negX = Math.min(-0.05, GrimMath.clamp(player.actualMovement.getX(), -16, 16) - 0.05);
+            double negZ = Math.min(-0.05, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) - 0.05);
 
             Vector NE = Collisions.maybeBackOffFromEdge(new Vector(posX, 0, negZ), player, true);
             Vector NW = Collisions.maybeBackOffFromEdge(new Vector(negX, 0, negZ), player, true);
@@ -144,13 +142,13 @@ public class MovementCheckRunner extends PositionCheck {
             boolean isNorth = NE.getZ() != negZ || NW.getZ() != negZ;
             boolean isSouth = SE.getZ() != posZ || SW.getZ() != posZ;
 
-            if (isEast) player.uncertaintyHandler.lastStuckEast = 0;
-            if (isWest) player.uncertaintyHandler.lastStuckWest = 0;
-            if (isNorth) player.uncertaintyHandler.lastStuckNorth = 0;
-            if (isSouth) player.uncertaintyHandler.lastStuckSouth = 0;
+            if (isEast) player.uncertaintyHandler.lastStuckEast.reset();
+            if (isWest) player.uncertaintyHandler.lastStuckWest.reset();
+            if (isNorth) player.uncertaintyHandler.lastStuckNorth.reset();
+            if (isSouth) player.uncertaintyHandler.lastStuckSouth.reset();
 
             if (isEast || isWest || isSouth || isNorth) {
-                player.uncertaintyHandler.stuckOnEdge = 0;
+                player.uncertaintyHandler.stuckOnEdge.reset();
             }
         }
 
