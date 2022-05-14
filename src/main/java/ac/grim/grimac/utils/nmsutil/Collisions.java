@@ -382,8 +382,8 @@ public class Collisions {
         // Use the bounding box for after the player's movement is applied
         SimpleCollisionBox aABB = player.compensatedEntities.getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(-0.001) : player.boundingBox.copy().expand(-0.001);
 
-        Vector3i blockPos = new Vector3i((int) aABB.minX, (int) aABB.minY, (int) aABB.minZ);
-        Vector3i blockPos2 = new Vector3i((int) aABB.maxX, (int) aABB.maxY, (int) aABB.maxZ);
+        Vector3i blockPos = new Vector3i(GrimMath.floor(aABB.minX), GrimMath.floor(aABB.minY), GrimMath.floor(aABB.minZ));
+        Vector3i blockPos2 = new Vector3i(GrimMath.floor(aABB.maxX), GrimMath.floor(aABB.maxY), GrimMath.floor(aABB.maxZ));
 
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos2.getX(), blockPos2.getY(), blockPos2.getZ()))
             return;
@@ -494,8 +494,8 @@ public class Collisions {
         // Use the bounding box for after the player's movement is applied
         SimpleCollisionBox aABB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(expand);
 
-        Vector3i blockPos = new Vector3i((int) aABB.minX, (int) aABB.minY, (int) aABB.minZ);
-        Vector3i blockPos2 = new Vector3i((int) aABB.maxX, (int) aABB.maxY, (int) aABB.maxZ);
+        Vector3i blockPos = new Vector3i(GrimMath.floor(aABB.minX), GrimMath.floor(aABB.minY), GrimMath.floor(aABB.minZ));
+        Vector3i blockPos2 = new Vector3i(GrimMath.floor(aABB.maxX), GrimMath.floor(aABB.maxY), GrimMath.floor(aABB.maxZ));
 
         if (CheckIfChunksLoaded.isChunksUnloadedAt(player, blockPos.getX(), blockPos.getY(), blockPos.getZ(), blockPos2.getX(), blockPos2.getY(), blockPos2.getZ()))
             return false;
