@@ -212,7 +212,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 }
 
                 // Stop the player from being able to teleport vehicles and simply re-enter them to continue
-                player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, new Vector3d(position.getX(), position.getY(), position.getZ()), player.xRot % 360, 0, false));
+                player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, position, player.xRot % 360, 0, false));
 
                 // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
                 Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
@@ -386,6 +386,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void addSentTeleport(Vector3d position, int transaction, boolean plugin) {
         requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, plugin);
         teleports.add(new Pair<>(transaction, new Location(position, player.xRot, player.yRot)));
-        setSafeSetbackLocation(new Vector3d(position.getX(), position.getY(), position.getZ()));
+        setSafeSetbackLocation(position);
     }
 }
