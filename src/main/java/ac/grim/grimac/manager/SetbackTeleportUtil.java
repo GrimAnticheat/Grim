@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.world.Location;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import org.bukkit.Bukkit;
@@ -31,7 +32,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to netty
-    private final ConcurrentLinkedQueue<Pair<Integer, Vector3d>> teleports = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
     // Sync to netty, a player MUST accept a teleport to spawn into the world
     // A teleport is used to end the loading screen.  Some cheats pretend to never end the loading screen
     // in an attempt to disable the anticheat.  Be careful.
@@ -253,17 +254,17 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
         while (true) {
-            Pair<Integer, Vector3d> teleportPos = teleports.peek();
+            Pair<Integer, Location> teleportPos = teleports.peek();
             if (teleportPos == null) break;
 
-            Vector3d position = teleportPos.getSecond();
+            Location location = teleportPos.getSecond();
 
             if (lastTransaction < teleportPos.getFirst()) {
                 break;
             }
 
             // There seems to be a version difference in teleports past 30 million... just clamp the vector
-            Vector3d clamped = VectorUtils.clampVector(new Vector3d(position.getX(), position.getY(), position.getZ()));
+            Vector3d clamped = VectorUtils.clampVector(location.getPosition());
 
             boolean closeEnoughY = Math.abs(clamped.getY() - y) < 1e-7; // 1.7 rounding
             if (clamped.getX() == x && closeEnoughY && clamped.getZ() == z) {
@@ -384,7 +385,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      */
     public void addSentTeleport(Vector3d position, int transaction, boolean plugin) {
         requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, plugin);
-        teleports.add(new Pair<>(transaction, new Vector3d(position.getX(), position.getY(), position.getZ())));
+        teleports.add(new Pair<>(transaction, new Location(position, player.xRot, player.yRot)));
         setSafeSetbackLocation(new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
 }
