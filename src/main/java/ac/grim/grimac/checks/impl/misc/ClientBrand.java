@@ -11,8 +11,15 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class ClientBrand extends PacketCheck {
-    String brand = "vanilla";
-    boolean hasBrand = false;
+    private String brand = "vanilla";
+    private boolean hasBrand = false;
+    private String message;
+
+    @Override
+    public void reload() {
+        super.reload();
+        message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
+    }
 
     public ClientBrand(GrimPlayer player) {
         super(player);
@@ -41,15 +48,14 @@ public class ClientBrand extends PacketCheck {
                 if (!hasBrand) {
                     hasBrand = true;
                     if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
-                        String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
-                        message = MessageUtil.format(message);
-                        message = message.replace("%brand%", brand);
-                        message = message.replace("%player%", player.user.getProfile().getName());
+                        String msg = MessageUtil.format(message);
+                        msg = msg.replace("%brand%", brand);
+                        msg = msg.replace("%player%", player.user.getProfile().getName());
 
                         // sendMessage is async safe while broadcast isn't due to adventure
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             if (player.hasPermission("grim.brand")) {
-                                player.sendMessage(message);
+                                player.sendMessage(msg);
                             }
                         }
                     }
