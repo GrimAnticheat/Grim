@@ -1,10 +1,15 @@
 package ac.grim.grimac.manager.init.start;
 
+import java.io.File;
+
+import org.bukkit.configuration.file.YamlConfiguration;
+
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.events.packets.worldreader.BasePacketWorldReader;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEighteen;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.utils.anticheat.LogUtil;
+
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 
@@ -26,13 +31,19 @@ public class PacketManager implements Initable {
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerRespawn());
         PacketEvents.getAPI().getEventManager().registerListener(new CheckManagerListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerSteer());
-        PacketEvents.getAPI().getEventManager().registerListener(new PacketPluginMessage());
+        
 
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
             PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderEighteen());
         } else {
             PacketEvents.getAPI().getEventManager().registerListener(new BasePacketWorldReader());
         }
+
+        if (AlertPluginMessenger.bungeeEnabled=YamlConfiguration.loadConfiguration(new File("spigot.yml")).getBoolean("settings.bungeecord")) {
+        	PacketEvents.getAPI().getEventManager().registerListener(new AlertPluginMessenger());
+        }
+        
+        LogUtil.info("Bungeecord " + (AlertPluginMessenger.bungeeEnabled ? "detected" : "not found") + "...");
 
         PacketEvents.getAPI().getEventManager().registerListener(new PacketSetWrapperNull());
 

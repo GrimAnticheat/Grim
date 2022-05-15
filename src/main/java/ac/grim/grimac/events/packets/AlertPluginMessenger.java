@@ -19,9 +19,12 @@ import com.google.common.io.ByteArrayDataOutput;
 import com.google.common.io.ByteStreams;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.utils.anticheat.MessageUtil;
 
-public class PacketPluginMessage extends PacketListenerAbstract {
-	public PacketPluginMessage() {
+public class AlertPluginMessenger extends PacketListenerAbstract {
+	public static boolean bungeeEnabled;
+	
+	public AlertPluginMessenger() {
 		GrimAPI.INSTANCE.getPlugin().getServer().getMessenger().registerOutgoingPluginChannel(GrimAPI.INSTANCE.getPlugin(), "BungeeCord");
 	}	
 	
@@ -30,7 +33,7 @@ public class PacketPluginMessage extends PacketListenerAbstract {
         if (event.getPacketType() == PacketType.Play.Client.PLUGIN_MESSAGE) {
             WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
             
-            if (!packet.getChannelName().equals("BungeeCord") || !GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.bungeecord.receive", false)) return;
+            if (!packet.getChannelName().equals("BungeeCord") || !AlertPluginMessenger.canReceiveAlerts()) return;
             
             ByteArrayDataInput in = ByteStreams.newDataInput(packet.getData());
             
@@ -64,7 +67,7 @@ public class PacketPluginMessage extends PacketListenerAbstract {
 		ByteArrayOutputStream msgbytes = new ByteArrayOutputStream();
 
 		try {
-			new DataOutputStream(msgbytes).writeUTF(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-bungeecord", message).replace("%alert%", message));
+			new DataOutputStream(msgbytes).writeUTF(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-bungeecord", message)).replace("%alert%", message));
 		} catch (IOException exception) {
 			exception.printStackTrace();
 		}
@@ -73,5 +76,13 @@ public class PacketPluginMessage extends PacketListenerAbstract {
 		out.write(msgbytes.toByteArray());
 		
 		Iterables.getFirst(Bukkit.getOnlinePlayers(), null).sendPluginMessage(GrimAPI.INSTANCE.getPlugin(), "BungeeCord", out.toByteArray());
+	}
+	
+	public static boolean canSendAlerts() {
+		return AlertPluginMessenger.bungeeEnabled && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.bungeecord.send", false) && Bukkit.getOnlinePlayers().size() > 0;
+	}
+	
+	public static boolean canReceiveAlerts() {
+		return AlertPluginMessenger.bungeeEnabled && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.bungeecord.receive", false);
 	}
 }
