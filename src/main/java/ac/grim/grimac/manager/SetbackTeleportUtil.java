@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsN;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.events.packets.patch.ResyncWorldUtil;
 import ac.grim.grimac.player.GrimPlayer;
@@ -199,9 +200,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         }
 
         SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, null, false);
-        requiredSetBack = data;
+        sendSetback(data);
+    }
 
+    private void sendSetback(SetBackData data) {
+        requiredSetBack = data;
         isSendingSetback = true;
+        Location position = data.getPosition();
 
         try {
             // Player is in a vehicle
@@ -273,21 +278,26 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 teleports.poll();
                 hasAcceptedSpawnTeleport = true;
 
-                SetBackData setBack = requiredSetBack;
-
                 // Player has accepted their setback!
-                if (setBack != null && requiredSetBack.getPosition().getX() == teleportPos.getSecond().getX()
+                if (requiredSetBack != null && requiredSetBack.getPosition().getX() == teleportPos.getSecond().getX()
                         && Math.abs(requiredSetBack.getPosition().getY() - teleportPos.getSecond().getY()) < 1e-7
                         && requiredSetBack.getPosition().getZ() == teleportPos.getSecond().getZ()) {
                     if (!player.compensatedEntities.getSelf().inVehicle()) {
                         player.lastOnGround = player.packetStateData.packetPlayerOnGround;
                     }
                     teleportData.setSetback(requiredSetBack);
-                    setBack.setComplete(true);
+                    requiredSetBack.setComplete(true);
                 }
 
                 teleportData.setTeleport(true);
-            } else if (lastTransaction > teleportPos.getFirst() + 1) {
+            } else if (lastTransaction > teleportPos.getFirst()) { // The player ignored the teleport
+                // Stop a permanent desync from people ping spoofing
+                // Mainly so people stop reporting "disablers" when they just enable ping spoof
+                // And for debugging purposes... so misbehaving clients can be tested
+                if (teleports.size() == 1) {
+                    player.checkManager.getPacketCheck(BadPacketsN.class).flagAndAlert();
+                    sendSetback(requiredSetBack);
+                }
                 teleports.poll();
                 continue;
             }
