@@ -18,10 +18,7 @@ import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
 import ac.grim.grimac.checks.impl.prediction.Phase;
-import ac.grim.grimac.checks.impl.scaffolding.AirLiquidPlace;
-import ac.grim.grimac.checks.impl.scaffolding.FabricatedPlace;
-import ac.grim.grimac.checks.impl.scaffolding.FarPlace;
-import ac.grim.grimac.checks.impl.scaffolding.PositionPlace;
+import ac.grim.grimac.checks.impl.scaffolding.*;
 import ac.grim.grimac.checks.impl.velocity.ExplosionHandler;
 import ac.grim.grimac.checks.impl.velocity.KnockbackHandler;
 import ac.grim.grimac.checks.type.*;
@@ -121,6 +118,7 @@ public class CheckManager {
                 .put(FarPlace.class, new FarPlace(player))
                 .put(FabricatedPlace.class, new FabricatedPlace(player))
                 .put(PositionPlace.class, new PositionPlace(player))
+                .put(RotationPlace.class, new RotationPlace(player))
                 .build();
 
         timerCheck = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
@@ -187,6 +185,10 @@ public class CheckManager {
 
     public void onBlockPlace(final BlockPlace place) {
         blockPlaceCheck.values().forEach(check -> check.onBlockPlace(place));
+    }
+
+    public void onPostFlyingBlockPlace(final BlockPlace place) {
+        blockPlaceCheck.values().forEach(check -> check.onPostFlyingBlockPlace(place));
     }
 
     public ExplosionHandler getExplosionHandler() {

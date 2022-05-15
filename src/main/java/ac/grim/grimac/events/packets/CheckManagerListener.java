@@ -68,7 +68,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
     //
     // I do have to admit that I'm starting to like bifunctions/new java 8 things more than I originally did.
     // although I still don't understand Mojang's obsession with streams in some of the hottest methods... that kills performance
-    static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<WrappedBlockState, Vector3i, HitData> predicate) {
+    public static HitData traverseBlocks(GrimPlayer player, Vector3d start, Vector3d end, BiFunction<WrappedBlockState, Vector3i, HitData> predicate) {
         // I guess go back by the collision epsilon?
         double endX = GrimMath.lerp(-1.0E-7D, end.x, start.x);
         double endY = GrimMath.lerp(-1.0E-7D, end.y, start.y);
@@ -194,19 +194,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if ((now - player.lastBlockPlaceUseItem < 15 || player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) && hasLook) {
                 player.xRot = yaw;
                 player.yRot = pitch;
-
-                handleBlockPlaceOrUseItem(packet, player);
-            } else {
-                // Store the prediction positions/look
-                float lastXRot = player.xRot;
-                float lastYRot = player.yRot;
-
-                handleBlockPlaceOrUseItem(packet, player);
-
-                // Reset positions/look to prediction
-                player.xRot = lastXRot;
-                player.yRot = lastYRot;
             }
+
+            handleBlockPlaceOrUseItem(packet, player);
 
             player.x = lastX;
             player.y = lastY;
@@ -298,6 +288,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3i blockPosition = place.getBlockPosition();
             BlockFace face = place.getFace();
 
+
             if (player.gamemode == GameMode.SPECTATOR || player.gamemode == GameMode.ADVENTURE) return;
 
             ItemStack placedWith = player.getInventory().getHeldItem();
@@ -306,6 +297,8 @@ public class CheckManagerListener extends PacketListenerAbstract {
             }
 
             BlockPlace blockPlace = new BlockPlace(player, blockPosition, face, placedWith, getNearestHitResult(player, null, true));
+            // At this point, it is too late to cancel, so we can only flag, and cancel subsequent block places more aggressively
+            player.checkManager.onPostFlyingBlockPlace(blockPlace);
 
             if (place.getInsideBlock().isPresent()) {
                 blockPlace.setInside(place.getInsideBlock().get());
