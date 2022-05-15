@@ -220,7 +220,6 @@ public class GrimPlayer {
 
         packetStateData = new PacketStateData();
 
-        uncertaintyHandler.pistonPushing.add(0d);
         uncertaintyHandler.collidingEntities.add(0);
 
         GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(user, this);
@@ -499,8 +498,8 @@ public class GrimPlayer {
 
     public boolean exemptOnGround() {
         return compensatedEntities.getSelf().inVehicle()
-                || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
-                || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isStepMovement
+                || Collections.max(uncertaintyHandler.pistonX) != 0 || Collections.max(uncertaintyHandler.pistonY) != 0
+                || Collections.max(uncertaintyHandler.pistonZ) != 0 || uncertaintyHandler.isStepMovement
                 || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(30)
                 || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || uncertaintyHandler.isOrWasNearGlitchyBlock;
     }

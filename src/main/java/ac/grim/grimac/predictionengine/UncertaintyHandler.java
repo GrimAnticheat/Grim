@@ -20,9 +20,9 @@ public class UncertaintyHandler {
     private final GrimPlayer player;
     // Handles uncertainty when a piston could have pushed a player in a direction
     // Only the required amount of uncertainty is given
-    public double pistonX;
-    public double pistonY;
-    public double pistonZ;
+    public EvictingList<Double> pistonX = new EvictingList<>(5);
+    public EvictingList<Double> pistonY = new EvictingList<>(5);
+    public EvictingList<Double> pistonZ = new EvictingList<>(5);
     // Did the player step onto a block?
     // This is needed because we don't know if a player jumped onto the step block or not
     // Jumping would set onGround to false while not would set it to true
@@ -66,7 +66,6 @@ public class UncertaintyHandler {
     public boolean wasZeroPointThreeVertically = false;
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
-    public EvictingList<Double> pistonPushing = new EvictingList<>(20);
     // Fishing rod pulling is another method of adding to a player's velocity
     public List<Integer> fishingRodPulls = new ArrayList<>();
     public SimpleCollisionBox fireworksBox = null;
@@ -109,9 +108,9 @@ public class UncertaintyHandler {
     }
 
     public void tick() {
-        pistonX = 0;
-        pistonY = 0;
-        pistonZ = 0;
+        pistonX.add(0d);
+        pistonY.add(0d);
+        pistonZ.add(0d);
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
         tickFireworksBox();
@@ -287,11 +286,6 @@ public class UncertaintyHandler {
     }
 
     public double reduceOffset(double offset) {
-        // Exempt players from piston checks by giving them 1 block of lenience for any piston pushing
-        if (Collections.max(player.uncertaintyHandler.pistonPushing) > 0) {
-            offset -= 1;
-        }
-
         // Boats are too glitchy to check.
         // Yes, they have caused an insane amount of uncertainty!
         // Even 1 block offset reduction isn't enough... damn it mojang

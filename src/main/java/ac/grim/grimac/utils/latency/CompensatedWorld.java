@@ -154,18 +154,18 @@ public class CompensatedWorld {
         player.uncertaintyHandler.tick();
         // Occurs on player login
         if (player.boundingBox == null) return;
-        SimpleCollisionBox playerBox = player.boundingBox.copy().expand(0.03);
+        SimpleCollisionBox playerBox = player.boundingBox;
+
+        double modX = 0;
+        double modY = 0;
+        double modZ = 0;
 
         for (PistonData data : activePistons) {
-            double modX = 0;
-            double modY = 0;
-            double modZ = 0;
-
             for (SimpleCollisionBox box : data.boxes) {
                 if (playerBox.isCollided(box)) {
-                    modX = Math.abs(data.direction.getModX()) * 0.51D;
-                    modY = Math.abs(data.direction.getModY()) * 0.51D;
-                    modZ = Math.abs(data.direction.getModZ()) * 0.51D;
+                    modX = Math.max(modX, Math.abs(data.direction.getModX() * 0.51D));
+                    modY = Math.max(modY, Math.abs(data.direction.getModY() * 0.51D));
+                    modZ = Math.max(modZ, Math.abs(data.direction.getModZ() * 0.51D));
 
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
@@ -177,17 +177,9 @@ public class CompensatedWorld {
                     break;
                 }
             }
-
-            player.uncertaintyHandler.pistonX = Math.max(modX, player.uncertaintyHandler.pistonX);
-            player.uncertaintyHandler.pistonY = Math.max(modY, player.uncertaintyHandler.pistonY);
-            player.uncertaintyHandler.pistonZ = Math.max(modZ, player.uncertaintyHandler.pistonZ);
         }
 
         for (ShulkerData data : openShulkerBoxes) {
-            double modX = 0;
-            double modY = 0;
-            double modZ = 0;
-
             SimpleCollisionBox shulkerCollision = data.getCollision();
 
             BlockFace direction;
@@ -210,27 +202,18 @@ public class CompensatedWorld {
             }
 
             if (playerBox.isCollided(shulkerCollision)) {
-                modX = Math.abs(direction.getModX());
-                modY = Math.abs(direction.getModY());
-                modZ = Math.abs(direction.getModZ());
+                modX = Math.max(modX, Math.abs(direction.getModX() * 0.51D));
+                modY = Math.max(modY, Math.abs(direction.getModY() * 0.51D));
+                modZ = Math.max(modZ, Math.abs(direction.getModZ() * 0.51D));
 
                 playerBox.expandMax(modX, modY, modZ);
                 playerBox.expandMin(modX, modY, modZ);
             }
-
-            player.uncertaintyHandler.pistonX = Math.max(modX, player.uncertaintyHandler.pistonX);
-            player.uncertaintyHandler.pistonY = Math.max(modY, player.uncertaintyHandler.pistonY);
-            player.uncertaintyHandler.pistonZ = Math.max(modZ, player.uncertaintyHandler.pistonZ);
         }
 
-        if (activePistons.isEmpty() && openShulkerBoxes.isEmpty()) {
-            player.uncertaintyHandler.pistonX = 0;
-            player.uncertaintyHandler.pistonY = 0;
-            player.uncertaintyHandler.pistonZ = 0;
-        }
-
-        // Reduce effects of piston pushing by 0.5 per tick
-        player.uncertaintyHandler.pistonPushing.add(Math.max(Math.max(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY), player.uncertaintyHandler.pistonZ) * (player.uncertaintyHandler.slimePistonBounces.isEmpty() ? 1 : 2));
+        player.uncertaintyHandler.pistonX.add(modX);
+        player.uncertaintyHandler.pistonY.add(modY);
+        player.uncertaintyHandler.pistonZ.add(modZ);
 
         // Tick the pistons and remove them if they can no longer exist
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);

@@ -13,6 +13,7 @@ import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -130,8 +131,7 @@ public class PredictionEngine {
         player.skippedTickInActualMovement = false;
 
         for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
-            Vector primaryPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
+            Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
 
             Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
             // Check if this vector could ever possible beat the last vector in terms of accuracy
@@ -447,20 +447,16 @@ public class PredictionEngine {
         double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
         double additionVertical = player.uncertaintyHandler.getVerticalOffset(vector);
 
+        double pistonX = Collections.max(player.uncertaintyHandler.pistonX);
+        double pistonY = Collections.max(player.uncertaintyHandler.pistonY);
+        double pistonZ = Collections.max(player.uncertaintyHandler.pistonZ);
+
         additionHorizontal += player.uncertaintyHandler.lastHorizontalOffset;
         additionVertical += player.uncertaintyHandler.lastVerticalOffset;
 
         VectorData originalVec = vector;
         while (originalVec.lastVector != null) {
             originalVec = originalVec.lastVector;
-        }
-
-        double uncertainPiston = 0;
-        for (int x = 0; x < player.uncertaintyHandler.pistonPushing.size(); x++) {
-            double value = player.uncertaintyHandler.pistonPushing.get(x);
-            if (value == 0) continue;
-            value *= (Math.pow(0.8, x));
-            uncertainPiston = Math.max(uncertainPiston, value);
         }
 
         // "temporary" workaround for when player toggles flight
@@ -481,6 +477,11 @@ public class PredictionEngine {
             bonusY += 0.1;
         }
 
+        if (pistonX != 0 || pistonY != 0 || pistonZ != 0) {
+            additionHorizontal += 0.1;
+            bonusY += 0.1;
+        }
+
         // Handle horizontal fluid pushing within 0.03
         double horizontalFluid = player.pointThreeEstimator.getHorizontalFluidPushingUncertainty(vector);
         additionHorizontal += horizontalFluid;
@@ -491,7 +492,7 @@ public class PredictionEngine {
         // 0.075 seems safe?
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(avgColliding * 0.08 + uncertainPiston, additionVertical + uncertainPiston, avgColliding * 0.08 + uncertainPiston);
+        Vector uncertainty = new Vector(avgColliding * 0.08, additionVertical, avgColliding * 0.08);
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal, -bonusY + player.uncertaintyHandler.yNegativeUncertainty, player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal);
         Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
 
@@ -606,55 +607,28 @@ public class PredictionEngine {
         // jumps upwards and collides with a block, which you don't actually see because mojang removed the idle
         // packet and sneaking poses take 2 full ticks to apply
         //
-         if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
             box.expandToAbsoluteCoordinates(0, 0, 0);
+        }
+
+        // Likely stepping movement, avoid changing 0.03 related movement
+        // Piston gets priority over this code
+        if (player.clientControlledVerticalCollision && player.actualMovement.getY() > 0 && vector.vector.getY() < 0) {
+            minVector.setY(vector.vector.getY());
+            maxVector.setY(vector.vector.getY());
         }
 
         minVector = box.min();
         maxVector = box.max();
 
-        Vector cut = VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
+        minVector.setX(Math.min(minVector.getX() - pistonX, pistonX));
+        minVector.setY(Math.min(minVector.getY() - pistonY, pistonY));
+        minVector.setZ(Math.min(minVector.getZ() - pistonZ, pistonZ));
+        maxVector.setX(Math.max(maxVector.getX() + pistonX, pistonX));
+        maxVector.setY(Math.max(maxVector.getY() + pistonY, pistonY));
+        maxVector.setZ(Math.max(maxVector.getZ() + pistonZ, pistonZ));
 
-        if (player.clientControlledVerticalCollision && player.actualMovement.getY() > 0 && vector.vector.getY() < 0) {
-            cut.setY(vector.vector.getY()); // Likely stepping movement, avoid changing 0.03 related movement
-        }
-
-        return cut;
-    }
-
-    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ);
-
-        Vector min = vector.clone().add(new Vector(0, player.uncertaintyHandler.onGroundUncertain ? -0.03 : 0, 0));
-        Vector max = vector.clone();
-
-        // Hack around pistons resetting player velocity
-        if (player.uncertaintyHandler.pistonX != 0) {
-            if (player.actualMovement.getX() > 0) {
-                max.setX(Math.max(max.getX(), 0));
-            } else {
-                min.setX(Math.min(min.getX(), 0));
-            }
-        }
-        if (player.uncertaintyHandler.pistonY != 0) {
-            if (player.actualMovement.getY() > 0) {
-                max.setY(Math.max(max.getY(), 0));
-            } else {
-                min.setY(Math.min(min.getY(), 0));
-            }
-        }
-        if (player.uncertaintyHandler.pistonZ != 0) {
-            if (player.actualMovement.getZ() > 0) {
-                max.setZ(Math.max(max.getZ(), 0));
-            } else {
-                min.setZ(Math.min(min.getZ(), 0));
-            }
-        }
-
-        min.subtract(uncertainty);
-        max.add(uncertainty);
-
-        return VectorUtils.cutBoxToVector(player.actualMovement, min, max);
+        return VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
     }
 
     public void endOfTick(GrimPlayer player, double d) {
