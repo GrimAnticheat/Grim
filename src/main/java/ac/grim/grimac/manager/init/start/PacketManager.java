@@ -39,11 +39,12 @@ public class PacketManager implements Initable {
             PacketEvents.getAPI().getEventManager().registerListener(new BasePacketWorldReader());
         }
 
-        if (AlertPluginMessenger.bungeeEnabled=YamlConfiguration.loadConfiguration(new File("spigot.yml")).getBoolean("settings.bungeecord")) {
+        AlertPluginMessenger.setBungeeEnabled(YamlConfiguration.loadConfiguration(new File("spigot.yml")).getBoolean("settings.bungeecord"));
+        if (AlertPluginMessenger.isBungeeEnabled()) {
         	PacketEvents.getAPI().getEventManager().registerListener(new AlertPluginMessenger());
         }
         
-        LogUtil.info("Bungeecord " + (AlertPluginMessenger.bungeeEnabled ? "detected" : "not found") + "...");
+        LogUtil.info("Bungeecord " + (AlertPluginMessenger.isBungeeEnabled() ? "detected" : "not found") + "...");
 
         PacketEvents.getAPI().getEventManager().registerListener(new PacketSetWrapperNull());
 

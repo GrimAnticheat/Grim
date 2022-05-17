@@ -6,6 +6,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -22,7 +24,9 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 
 public class AlertPluginMessenger extends PacketListenerAbstract {
-	public static boolean bungeeEnabled;
+	@Getter
+	@Setter
+	private static boolean bungeeEnabled;
 	
 	public AlertPluginMessenger() {
 		GrimAPI.INSTANCE.getPlugin().getServer().getMessenger().registerOutgoingPluginChannel(GrimAPI.INSTANCE.getPlugin(), "BungeeCord");
