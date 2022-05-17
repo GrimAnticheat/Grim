@@ -31,8 +31,7 @@ public class RotationPlace extends BlockPlaceCheck {
     @Override
     public void onBlockPlace(final BlockPlace place) {
         if (place.getMaterial() == StateTypes.SCAFFOLDING) return;
-        boolean hit = didRayTraceHit(place);
-        if (!hit && flagBuffer > 0) {
+        if (flagBuffer > 0 && !didRayTraceHit(place)) {
             // If the player hit and has flagged this check recently
             place.resync(); // Deny the block placement.
             flagAndAlert("pre-flying");
@@ -55,7 +54,7 @@ public class RotationPlace extends BlockPlaceCheck {
     }
 
     private boolean didRayTraceHit(BlockPlace place) {
-        SimpleCollisionBox box = new SimpleCollisionBox(place.getPlacedBlockPos());
+        SimpleCollisionBox box = new SimpleCollisionBox(place.getPlacedAgainstBlockLocation());
 
         List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
                 new Vector3f(player.lastXRot, player.yRot, 0),
