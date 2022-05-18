@@ -154,7 +154,7 @@ public class CompensatedWorld {
         player.uncertaintyHandler.tick();
         // Occurs on player login
         if (player.boundingBox == null) return;
-        SimpleCollisionBox playerBox = player.boundingBox;
+        SimpleCollisionBox playerBox = player.boundingBox.copy();
 
         double modX = 0;
         double modY = 0;

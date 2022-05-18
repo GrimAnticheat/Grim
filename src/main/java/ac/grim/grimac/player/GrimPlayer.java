@@ -284,11 +284,6 @@ public class GrimPlayer {
     // But if some error made a client miss a packet, then it won't hurt them too bad.
     // Also it forces players to take knockback
     public boolean addTransactionResponse(short id) {
-        // Disable ViaVersion packet limiter
-        // Required as ViaVersion listens before us for converting packets between game versions
-        if (packetTracker != null)
-            packetTracker.setIntervalPackets(0);
-
         Pair<Short, Long> data = null;
         boolean hasID = false;
         for (Pair<Short, Long> iterator : transactionsSent) {
@@ -304,6 +299,9 @@ public class GrimPlayer {
         }
 
         if (hasID) {
+            // Transactions that we send don't count towards total limit
+            if (packetTracker != null) packetTracker.setIntervalPackets(packetTracker.getIntervalPackets() - 1);
+
             do {
                 data = transactionsSent.poll();
                 if (data == null)
