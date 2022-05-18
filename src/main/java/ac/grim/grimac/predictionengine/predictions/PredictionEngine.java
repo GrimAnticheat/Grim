@@ -621,13 +621,18 @@ public class PredictionEngine {
         minVector = box.min();
         maxVector = box.max();
 
-        minVector.setX(Math.min(minVector.getX() - pistonX, pistonX));
-        minVector.setY(Math.min(minVector.getY() - pistonY, pistonY));
-        minVector.setZ(Math.min(minVector.getZ() - pistonZ, pistonZ));
-        maxVector.setX(Math.max(maxVector.getX() + pistonX, pistonX));
-        maxVector.setY(Math.max(maxVector.getY() + pistonY, pistonY));
-        maxVector.setZ(Math.max(maxVector.getZ() + pistonZ, pistonZ));
-
+        if (pistonX != 0) {
+            minVector.setX(Math.min(minVector.getX() - pistonX, pistonX));
+            maxVector.setX(Math.max(maxVector.getX() + pistonX, pistonX));
+        }
+        if (pistonY != 0) {
+            minVector.setY(Math.min(minVector.getY() - pistonY, pistonY));
+            maxVector.setY(Math.max(maxVector.getY() + pistonY, pistonY));
+        }
+        if (pistonZ != 0) {
+            minVector.setZ(Math.min(minVector.getZ() - pistonZ, pistonZ));
+            maxVector.setZ(Math.max(maxVector.getZ() + pistonZ, pistonZ));
+        }
         return VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
     }
 
