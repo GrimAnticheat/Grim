@@ -31,6 +31,7 @@ public class PacketSetWrapperNull extends PacketListenerAbstract {
             }
         } else if (event.getPacketType() == PacketType.Play.Server.PLAYER_INFO) {
             //iterate through players and fake their game mode if they are spectating via grim spectate
+            if (true) return;
             User user = event.getUser();
             WrapperPlayServerPlayerInfo info = new WrapperPlayServerPlayerInfo(event);
             if (info.getAction() == WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE || info.getAction() == WrapperPlayServerPlayerInfo.Action.ADD_PLAYER) {
