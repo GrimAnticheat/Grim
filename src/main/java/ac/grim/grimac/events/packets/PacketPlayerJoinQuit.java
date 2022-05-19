@@ -15,7 +15,6 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
     @Override
     public void onUserConnect(UserConnectEvent event) {
         new GrimPlayer(event.getUser()); // Player takes care of adding to hashmap
-        LogUtil.info("Connection initialized, total players connected: " + GrimAPI.INSTANCE.getPlayerDataManager().size());
     }
 
     @Override
