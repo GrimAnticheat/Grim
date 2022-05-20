@@ -12,7 +12,7 @@ alerts:
   bungeecord:
      # Should alerts be sent to other servers connected to your proxy?
      send: false
-     # Should alerts received by other servers be broadcasted?
+     # Should alerts received from other servers be broadcasted?
      receive: false
 
 client-brand:
