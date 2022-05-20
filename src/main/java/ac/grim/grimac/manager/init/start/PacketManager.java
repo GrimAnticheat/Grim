@@ -31,7 +31,7 @@ public class PacketManager implements Initable {
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerRespawn());
         PacketEvents.getAPI().getEventManager().registerListener(new CheckManagerListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerSteer());
-        
+
 
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
             PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderEighteen());
@@ -39,11 +39,15 @@ public class PacketManager implements Initable {
             PacketEvents.getAPI().getEventManager().registerListener(new BasePacketWorldReader());
         }
 
-        AlertPluginMessenger.setBungeeEnabled(YamlConfiguration.loadConfiguration(new File("spigot.yml")).getBoolean("settings.bungeecord"));
+        File paperFile = new File("paper.yml");
+
+        AlertPluginMessenger.setBungeeEnabled(YamlConfiguration.loadConfiguration(new File("spigot.yml")).getBoolean("settings.bungeecord") ||
+                (paperFile.exists() && YamlConfiguration.loadConfiguration(paperFile).getBoolean("settings.velocity-support.enabled")));
+
         if (AlertPluginMessenger.isBungeeEnabled()) {
-        	PacketEvents.getAPI().getEventManager().registerListener(new AlertPluginMessenger());
+            PacketEvents.getAPI().getEventManager().registerListener(new AlertPluginMessenger());
         }
-        
+
         LogUtil.info("Bungeecord " + (AlertPluginMessenger.isBungeeEnabled() ? "detected" : "not found") + "...");
 
         PacketEvents.getAPI().getEventManager().registerListener(new PacketSetWrapperNull());
