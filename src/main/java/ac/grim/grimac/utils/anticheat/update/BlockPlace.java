@@ -606,7 +606,7 @@ public class BlockPlace {
     }
 
     public void resync() {
-        isCancelled = true;
+        if (!player.bukkitPlayer.hasPermission("grim.nosetback")) isCancelled = true;
     }
 
     // All method with rants about mojang must go below this line
