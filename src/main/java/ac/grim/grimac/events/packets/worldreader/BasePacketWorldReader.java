@@ -4,7 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -12,6 +12,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
+import org.bukkit.Location;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
 
@@ -74,12 +75,19 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     public void addChunkToCache(PacketSendEvent event, GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
-        boolean shouldPostTrans = GrimMath.floor(player.x) >> 4 == chunkX && GrimMath.floor(player.z) >> 4 == chunkZ;
+        double chunkCenterX = chunkX << 4 + 8;
+        double chunkCenterZ = chunkZ << 4 + 8;
+        boolean shouldPostTrans = Math.abs(player.x - chunkCenterX) < 16 && Math.abs(player.z - chunkCenterZ) < 16;
+
+        for (Pair<Integer, Location> teleports : player.getSetbackTeleportUtil().teleports) {
+            shouldPostTrans = shouldPostTrans || (Math.abs(teleports.getSecond().getX() - chunkCenterX) < 16 && Math.abs(teleports.getSecond().getZ() - chunkCenterZ) < 16);
+        }
+
         if (shouldPostTrans) {
             event.getPostTasks().add(player::sendTransaction); // Player is in this unloaded chunk
         }
         if (isGroundUp) {
-            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + (shouldPostTrans ? 1 : 0));
+            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get());
             player.compensatedWorld.addToCache(column, chunkX, chunkZ);
         } else {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
