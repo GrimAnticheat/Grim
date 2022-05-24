@@ -83,25 +83,25 @@ public class CompensatedInventory extends PacketCheck {
     }
 
     public ItemStack getHelmet() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getHelmet() :
+        ItemStack item = /*isPacketInventoryActive || */player.bukkitPlayer == null ? inventory.getHelmet() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getHelmet());
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getChestplate() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getChestplate() :
+        ItemStack item = /*isPacketInventoryActive || */player.bukkitPlayer == null ? inventory.getChestplate() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getChestplate());
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getLeggings() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getLeggings() :
+        ItemStack item = /*isPacketInventoryActive || */player.bukkitPlayer == null ? inventory.getLeggings() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getLeggings());
         return item == null ? ItemStack.EMPTY : item;
     }
 
     public ItemStack getBoots() {
-        ItemStack item = isPacketInventoryActive || player.bukkitPlayer == null ? inventory.getBoots() :
+        ItemStack item = /*isPacketInventoryActive || */player.bukkitPlayer == null ? inventory.getBoots() :
                 SpigotDataHelper.fromBukkitItemStack(player.bukkitPlayer.getInventory().getBoots());
         return item == null ? ItemStack.EMPTY : item;
     }
