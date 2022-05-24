@@ -75,8 +75,8 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     public void addChunkToCache(PacketSendEvent event, GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
-        double chunkCenterX = chunkX << 4 + 8;
-        double chunkCenterZ = chunkZ << 4 + 8;
+        double chunkCenterX = (chunkX << 4) + 8;
+        double chunkCenterZ = (chunkZ << 4) + 8;
         boolean shouldPostTrans = Math.abs(player.x - chunkCenterX) < 16 && Math.abs(player.z - chunkCenterZ) < 16;
 
         for (Pair<Integer, Location> teleports : player.getSetbackTeleportUtil().teleports) {
