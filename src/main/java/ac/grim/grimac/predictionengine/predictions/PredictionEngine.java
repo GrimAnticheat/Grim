@@ -494,13 +494,13 @@ public class PredictionEngine {
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
         Vector uncertainty = new Vector(avgColliding * 0.08, additionVertical, avgColliding * 0.08);
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal, -bonusY + player.uncertaintyHandler.yNegativeUncertainty, player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal);
-        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
+        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty, player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
 
         Vector minVector = vector.vector.clone().add(min.subtract(uncertainty));
         Vector maxVector = vector.vector.clone().add(max.add(uncertainty));
 
-        // Handle the player landing within 0.03 movement
-        if ((player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.vector.getY() < 0) {
+        // Handle the player landing within 0.03 movement, which resets Y velocity
+        if (player.uncertaintyHandler.onGroundUncertain && vector.vector.getY() < 0) {
             maxVector.setY(0);
         }
 

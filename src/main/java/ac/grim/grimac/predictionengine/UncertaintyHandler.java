@@ -44,8 +44,6 @@ public class UncertaintyHandler {
     public boolean onGroundUncertain = false;
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
     public boolean lastPacketWasGroundPacket = false;
-    // Marks previous lastPacketWasGroundPacket from last tick
-    public boolean lastLastPacketWasGroundPacket = false;
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
@@ -273,14 +271,11 @@ public class UncertaintyHandler {
             // Water pushing, elytras, EVERYTHING vertical movement gets messed up.
             if (data.isZeroPointZeroThree()) return pointThree * 2;
             if (lastMovementWasZeroPointZeroThree) return pointThree * 2;
-            if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
-                return pointThree;
-            return 0;
+            if (wasZeroPointThreeVertically) return pointThree;
         }
 
-        if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
-            return pointThree;
-
+        // Handle the player landing on this tick or the next tick
+        if (player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) return pointThree;
 
         return 0;
     }
