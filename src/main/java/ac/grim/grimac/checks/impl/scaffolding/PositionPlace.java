@@ -37,6 +37,11 @@ public class PositionPlace extends BlockPlaceCheck {
         SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
         eyePositions.expand(movementThreshold);
 
+        // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
+        if (eyePositions.isIntersected(combined)) {
+            return;
+        }
+
         // So now we have the player's possible eye positions
         // So then look at the face that the player has clicked
         boolean flag = false;
