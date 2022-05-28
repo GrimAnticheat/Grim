@@ -611,15 +611,18 @@ public class PredictionEngine {
             box.expandToAbsoluteCoordinates(0, 0, 0);
         }
 
+        minVector = box.min();
+        maxVector = box.max();
+
         // Likely stepping movement, avoid changing 0.03 related movement
         // Piston gets priority over this code
-        if (player.clientControlledVerticalCollision && player.actualMovement.getY() > 0 && vector.vector.getY() < 0) {
+        //
+        // This shouldn't matter if the vector is going upwards or at precisely 0 because then
+        // the player couldn't be on the ground anyways...
+        if (player.clientControlledVerticalCollision && vector.vector.getY() < 0) {
             minVector.setY(vector.vector.getY());
             maxVector.setY(vector.vector.getY());
         }
-
-        minVector = box.min();
-        maxVector = box.max();
 
         if (pistonX != 0) {
             minVector.setX(Math.min(minVector.getX() - pistonX, pistonX));
