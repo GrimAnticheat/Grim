@@ -44,12 +44,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Reach extends PacketCheck {
     // Concurrent to support weird entity trackers
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
-    private static final List<EntityType> exempt = Arrays.asList(
+    private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
-            EntityTypes.SHULKER,
-            EntityTypes.ITEM_FRAME,
-            EntityTypes.GLOW_ITEM_FRAME,
-            EntityTypes.PAINTING);
+            EntityTypes.SHULKER);
 
     private boolean cancelImpossibleHits;
     private double threshold;
@@ -85,7 +82,7 @@ public class Reach extends PacketCheck {
             if (player.compensatedEntities.getSelf().inVehicle()) return;
             if (entity.riding != null) return;
 
-            checkReach(action.getEntityId());
+            playerAttackQueue.add(action.getEntityId()); // Queue for next tick for very precise check
 
             if (cancelImpossibleHits && isKnownInvalid(entity)) {
                 event.setCancelled(true);
@@ -100,11 +97,6 @@ public class Reach extends PacketCheck {
         }
     }
 
-    public void checkReach(int entityID) {
-        if (player.compensatedEntities.entityMap.containsKey(entityID))
-            playerAttackQueue.add(entityID);
-    }
-
     // This method finds the most optimal point at which the user should be aiming at
     // and then measures the distance between the player's eyes and this target point
     //
@@ -117,7 +109,7 @@ public class Reach extends PacketCheck {
         boolean giveMovementThresholdLenience = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
         // If the entity doesn't exist, or if it is exempt, or if it is dead
-        if (exempt.contains(reachEntity.type) || !reachEntity.isLivingEntity())
+        if ((blacklisted.contains(reachEntity.type) || !reachEntity.isLivingEntity()) && reachEntity.type != EntityTypes.END_CRYSTAL)
             return false; // exempt
 
         if (player.gamemode == GameMode.CREATIVE) return false;
@@ -131,6 +123,9 @@ public class Reach extends PacketCheck {
             // Don't allow blatant cheats to get first hit
             for (double eyes : player.getPossibleEyeHeights()) {
                 SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+                if (reachEntity.type == EntityTypes.END_CRYSTAL) {
+                    targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
+                }
                 Vector from = new Vector(player.x, player.y + eyes, player.z);
                 Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
                 lowest = Math.min(lowest, closestPoint.distance(from));
@@ -145,7 +140,7 @@ public class Reach extends PacketCheck {
         while (attackQueue != null) {
             PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attackQueue);
 
-            if (reachEntity == null) return;
+            if (reachEntity == null) continue;
             String result = checkReach(reachEntity, false);
 
             if (result != null) {
@@ -158,6 +153,10 @@ public class Reach extends PacketCheck {
 
     private String checkReach(PacketEntity reachEntity, boolean isPrediction) {
         SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+
+        if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
+            targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
+        }
 
         // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
         // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
@@ -179,7 +178,7 @@ public class Reach extends PacketCheck {
         double minDistance = Double.MAX_VALUE;
 
         // https://bugs.mojang.com/browse/MC-67665
-        List<Vector> possibleLookDirs =  new ArrayList<>(Arrays.asList(ReachUtils.getLook(player, player.xRot, player.yRot)));
+        List<Vector> possibleLookDirs = new ArrayList<>(Arrays.asList(ReachUtils.getLook(player, player.xRot, player.yRot)));
 
         // If we are a tick behind, we don't know their next look so don't bother doing this
         if (!isPrediction) {
@@ -215,7 +214,7 @@ public class Reach extends PacketCheck {
         }
 
         // if the entity is not exempt and the entity is alive
-        if (!exempt.contains(reachEntity.type) && reachEntity.isLivingEntity()) {
+        if ((!blacklisted.contains(reachEntity.type) && reachEntity.isLivingEntity()) || reachEntity.type == EntityTypes.END_CRYSTAL) {
             if (minDistance == Double.MAX_VALUE) {
                 cancelBuffer = 1;
                 return "Missed hitbox";
