@@ -105,10 +105,6 @@ public class PointThreeEstimator {
     private boolean hasNegativeLevitation = false; // Negative potion effects [-127, -1]
     private boolean didLevitationChange = false; // We can't predict with an unknown amount of ticks between a levitation change
 
-    // If the world changed in a way that allowed the player to skip a tick between ticks
-    // Just pillar upwards with high latency to see this happen... it happens a lot due to netcode
-    private boolean sneakyPointThree = false;
-
     @Setter
     @Getter
     private boolean isPushing = false;
@@ -152,10 +148,9 @@ public class PointThreeEstimator {
         }
 
         if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
-            if (!sneakyPointThree && !player.couldSkipTick && !isPushing) {
+            if (!player.couldSkipTick) {
                 player.couldSkipTick = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
             }
-            sneakyPointThree = sneakyPointThree || isPushing || player.couldSkipTick;
         }
 
         if (!player.compensatedEntities.getSelf().inVehicle() && (state.getType() == StateTypes.POWDER_SNOW || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
@@ -228,7 +223,6 @@ public class PointThreeEstimator {
         isGliding = player.isGliding;
         gravityChanged = false;
         wasAlwaysCertain = true;
-        sneakyPointThree = false;
         isPushing = false;
     }
 
@@ -321,7 +315,7 @@ public class PointThreeEstimator {
             return false;
         }
 
-        if (isNearClimbable() || sneakyPointThree || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
+        if (isNearClimbable() || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
             return true;
         }
 

@@ -79,9 +79,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
             setbackConfirmTicksAgo++;
             // No simulation... we can do that later. We just need to know the valid position.
-            // Don't worry about accidentally setting before a teleport, teleports set lastX/Y/Z to teleport position
-            // TODO: Simplify setback logic to not include safe teleport position
-            safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.lastX, player.lastY, player.lastZ), player.clientVelocity.clone());
+            // As we didn't setback here, the new position is known to be safe!
+            safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), player.clientVelocity.clone());
         } else {
             setbackConfirmTicksAgo = 0; // Pending setback
         }
@@ -204,7 +203,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     private void sendSetback(SetBackData data) {
-        requiredSetBack = data;
         isSendingSetback = true;
         Location position = data.getPosition();
 
@@ -236,6 +234,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
                 y += 1.62; // 1.7 teleport offset if grim ever supports 1.7 again
             }
             addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), player.lastTransactionSent.get(), false);
+            // This must be done after setting the sent teleport, otherwise we lose velocity data
+            requiredSetBack = data;
             // Send after tracking to fix race condition
             PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, (byte) 0b11000, new Random().nextInt(), false));
             player.sendTransaction();

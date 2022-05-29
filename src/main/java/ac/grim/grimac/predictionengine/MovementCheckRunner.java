@@ -538,8 +538,13 @@ public class MovementCheckRunner extends PositionCheck {
         // If the player is abusing a setback in order to gain the onGround status of true.
         // and the player then jumps from this position in the air.
         // Fixes LiquidBounce Jesus NCP, and theoretically AirJump bypass
+        //
+        // Checking for oldClientVel being too high fixes BleachHack vertical scaffold
         if (player.getSetbackTeleportUtil().setbackConfirmTicksAgo == 1) {
-            if (player.predictedVelocity.isJump() && !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ)) {
+            Vector setbackVel = player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity();
+            // A player must have velocity going INTO the ground to be able to jump
+            // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
+            if (player.predictedVelocity.isJump() && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
             SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
