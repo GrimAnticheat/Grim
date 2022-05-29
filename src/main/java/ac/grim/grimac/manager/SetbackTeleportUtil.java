@@ -41,8 +41,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean hasAcceptedSpawnTeleport = false;
     // Was there a ghost block that forces us to block offsets until the player accepts their teleport?
     public boolean blockOffsets = false;
-    // This patches timer from being able to crash predictions.
-    public boolean blockPredictions = false;
     // Resetting velocity can be abused to "fly"
     // Therefore, only allow one setback position every half second to patch this flight exploit
     public int setbackConfirmTicksAgo = 0;
@@ -75,7 +73,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // Teleport, let velocity be reset
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
             blockOffsets = false;
-            blockPredictions = false;
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
             setbackConfirmTicksAgo++;
             // No simulation... we can do that later. We just need to know the valid position.
@@ -96,12 +93,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean executeViolationSetback() {
         if (isExempt()) return false;
         blockMovementsUntilResync(safeTeleportPosition.position);
-        return true;
-    }
-
-    public boolean executeNonSimulatingSetback() {
-        if (isExempt()) return false;
-        blockMovementsUntilResync(safeTeleportPosition.position, false, false);
         return true;
     }
 

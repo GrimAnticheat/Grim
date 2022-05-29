@@ -68,14 +68,8 @@ public class TimerCheck extends PacketCheck {
 
         if (timerBalanceRealTime > System.nanoTime()) {
             if (flag()) {
-                // This is a strange setback situation as simulating the correct movement will result in additional movements
-                // being simulated for the player, therefore, we must wait until the player sends a movement packet
-                // that is legitimate and isn't timer BEFORE we can send the setback
-                //
-                // This code is hacky, but I think this is the only check that needs to be hacky in this way.
-                if (!player.getSetbackTeleportUtil().blockPredictions && getViolations() > setbackVL && player.getSetbackTeleportUtil().executeNonSimulatingSetback()) {
-                    player.getSetbackTeleportUtil().blockPredictions = true;
-                }
+                // Cancel the packet
+                if (!player.disableGrim) event.setCancelled(true);
                 alert("");
             }
 
