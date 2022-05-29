@@ -61,7 +61,7 @@ public class TimerCheck extends PacketCheck {
             hasGottenMovementAfterTransaction = false;
         }
 
-        if (checkReturnPacketType(event.getPacketType())) return;
+        if (!shouldCountPacketForTimer(event.getPacketType())) return;
 
         hasGottenMovementAfterTransaction = true;
         timerBalanceRealTime += 50e6;
@@ -85,10 +85,10 @@ public class TimerCheck extends PacketCheck {
                 packetType == PacketType.Play.Client.WINDOW_CONFIRMATION;
     }
 
-    public boolean checkReturnPacketType(PacketTypeCommon packetType) {
+    public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {
         // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
-        return !WrapperPlayClientPlayerFlying.isFlying(packetType) ||
-                player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate;
+        return WrapperPlayClientPlayerFlying.isFlying(packetType) &&
+                !player.packetStateData.lastPacketWasTeleport && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate;
     }
 
     @Override

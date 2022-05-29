@@ -7,13 +7,29 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 
 @CheckData(name = "Timer - Vehicle", configName = "TimerVehicle", setback = 10)
 public class VehicleTimer extends TimerCheck {
+    boolean isDummy = false;
+
     public VehicleTimer(GrimPlayer player) {
         super(player);
     }
 
     @Override
-    public boolean checkReturnPacketType(PacketTypeCommon packetType) {
-        // If not flying, or this was a teleport, or this was a duplicate 1.17 mojang stupidity packet
-        return packetType != PacketType.Play.Client.VEHICLE_MOVE || player.packetStateData.lastPacketWasTeleport;
+    public boolean shouldCountPacketForTimer(PacketTypeCommon packetType) {
+        // Ignore teleports (TODO: Fix vehicle teleports)
+        if (player.packetStateData.lastPacketWasTeleport) return false;
+
+        if (packetType == PacketType.Play.Client.VEHICLE_MOVE) {
+            isDummy = false;
+            return true; // Client controlling vehicle
+        }
+
+        if (packetType == PacketType.Play.Client.STEER_VEHICLE) {
+            if (isDummy) { // Server is controlling vehicle
+                return true;
+            }
+            isDummy = true; // Client is controlling vehicle
+        }
+
+        return false;
     }
 }
