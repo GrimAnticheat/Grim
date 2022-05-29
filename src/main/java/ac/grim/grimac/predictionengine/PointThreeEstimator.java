@@ -72,7 +72,7 @@ import java.util.Set;
  * <p>
  * Call me out for the code (in this class) - but please put the blame on Mojang instead.  None of this would be needed
  * if Minecraft's netcode wasn't so terrible.
- *
+ * <p>
  * 1.18.2 fixes this issue.  However, this code must now be applied to tick skipping,
  * and I don't feel like writing another rant about tick skipping as mojang will never fix it, as it would
  * increase bandwidth usage.  At least it only causes falses occasionally, and not bypasses.
@@ -127,7 +127,8 @@ public class PointThreeEstimator {
 
         // Calculate head hitters.  Take a shortcut by checking if the player doesn't intersect with this block, but does
         // when the player vertically moves upwards by 0.03!  This is equivalent to the move method, but MUCH faster.
-        if (!normalBox.copy().expand(0.03, 0, 0.03).isIntersected(data) && normalBox.copy().expand(0.03, 0.03, 0.03).isIntersected(data)) {
+        SimpleCollisionBox slightlyExpanded = normalBox.copy().expand(0.03, 0, 0.03);
+        if (!slightlyExpanded.isIntersected(data) && slightlyExpanded.offset(0, 0.03, 0).isIntersected(data)) {
             headHitter = true;
         }
 
