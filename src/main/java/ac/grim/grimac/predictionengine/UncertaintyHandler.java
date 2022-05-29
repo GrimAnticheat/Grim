@@ -269,13 +269,11 @@ public class UncertaintyHandler {
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
             // Yeah, the second 0.06 isn't mathematically correct but 0.03 messes everything up...
             // Water pushing, elytras, EVERYTHING vertical movement gets messed up.
-            if (data.isZeroPointZeroThree()) return pointThree * 2;
-            if (lastMovementWasZeroPointZeroThree) return pointThree * 2;
-            if (wasZeroPointThreeVertically) return pointThree;
+            if (data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree) return pointThree * 2;
         }
 
         // Handle the player landing on this tick or the next tick
-        if (player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) return pointThree;
+        if (wasZeroPointThreeVertically || player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) return pointThree;
 
         return 0;
     }
