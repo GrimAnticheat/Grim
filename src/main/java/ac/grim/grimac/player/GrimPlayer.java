@@ -107,7 +107,6 @@ public class GrimPlayer {
     public boolean lastOnGround;
     public boolean isSneaking;
     public boolean wasSneaking;
-    public boolean isCrouching;
     public boolean isSprinting;
     public boolean lastSprinting;
     // The client updates sprinting attribute at end of each tick
