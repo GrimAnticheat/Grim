@@ -86,10 +86,6 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
         for (int i = 0; i < 4096; ++i) {
             int next = in.readShort();
 
-            if (next != 0) { // If not air, doesn't need any endian flip
-                blockCount++;
-            }
-
             // 0111 0000 0000 0000
             // First byte of block type, followed by data, followed by second and third byte of block data
             //
@@ -103,6 +99,10 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
                 dataPalette.set(i & 15, (i >> 8) & 15, (i >> 4) & 15, next); // Allow it to resize
                 lastID = dataPalette.storage.get(i); // Get stored ID
                 continue;
+            }
+
+            if (next != 0) { // If not air, doesn't need any endian flip
+                blockCount++;
             }
 
             dataPalette.storage.set(i, lastID);
