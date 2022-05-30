@@ -53,6 +53,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public SetbackLocationVelocity safeTeleportPosition;
     // Are we currently sending setback stuff?
     public boolean isSendingSetback = false;
+    public int cheatVehicleInterpolationDelay = 0;
 
     public SetbackTeleportUtil(GrimPlayer player) {
         super(player);
@@ -70,11 +71,14 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (predictionComplete.getData().getSetback() != null) {
             // The player did indeed accept the setback, and there are no new setbacks past now!
             setbackConfirmTicksAgo = 0;
+            // The player needs to now wait for their vehicle to go into the right place before getting back in
+            if (predictionComplete.getData().getSetback().isVehicle()) cheatVehicleInterpolationDelay = 3;
             // Teleport, let velocity be reset
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
             blockOffsets = false;
         } else if (requiredSetBack == null || requiredSetBack.isComplete()) {
             setbackConfirmTicksAgo++;
+            cheatVehicleInterpolationDelay--;
             // No simulation... we can do that later. We just need to know the valid position.
             // As we didn't setback here, the new position is known to be safe!
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z), player.clientVelocity.clone());
@@ -189,7 +193,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             clientVel = null;
         }
 
-        SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, null, false);
+        SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, player.compensatedEntities.getSelf().getRiding() != null, false);
         sendSetback(data);
     }
 
@@ -199,24 +203,29 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         try {
             // Player is in a vehicle
-            Integer vehicleId = player.compensatedEntities.serverPlayerVehicle;
-            if (player.compensatedEntities.serverPlayerVehicle != null) {
-                if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                    player.user.sendPacket(new WrapperPlayServerSetPassengers(vehicleId, new int[2]));
-                } else {
-                    player.user.sendPacket(new WrapperPlayServerAttachEntity(vehicleId, -1, false));
-                }
-
-                // Stop the player from being able to teleport vehicles and simply re-enter them to continue
-                player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, new Vector3d(position.getX(), position.getY(), position.getZ()), player.xRot % 360, 0, false));
-
-                // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
-                Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                    Entity vehicle = player.bukkitPlayer.getVehicle();
-                    if (vehicle != null) {
-                        vehicle.eject();
+            if (player.compensatedEntities.getSelf().getRiding() != null) {
+                int vehicleId = player.compensatedEntities.getPacketEntityID(player.compensatedEntities.getSelf().getRiding());
+                if (player.compensatedEntities.serverPlayerVehicle != null) {
+                    // Dismount player from vehicle
+                    if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
+                        player.user.sendPacket(new WrapperPlayServerSetPassengers(vehicleId, new int[2]));
+                    } else {
+                        player.user.sendPacket(new WrapperPlayServerAttachEntity(vehicleId, -1, false));
                     }
-                });
+
+                    // Stop the player from being able to teleport vehicles and simply re-enter them to continue,
+                    // therefore, teleport the entity
+                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(vehicleId, new Vector3d(position.getX(), position.getY(), position.getZ()), player.xRot % 360, 0, false));
+                    player.getSetbackTeleportUtil().cheatVehicleInterpolationDelay = Integer.MAX_VALUE; // Set to max until player accepts the new position
+
+                    // Make sure bukkit also knows the player got teleported out of their vehicle, can't do this async
+                    Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                        Entity vehicle = player.bukkitPlayer.getVehicle();
+                        if (vehicle != null) {
+                            vehicle.eject();
+                        }
+                    });
+                }
             }
 
             player.sendTransaction();
@@ -387,7 +396,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * it would allow the player to bypass our own setbacks
      */
     public void addSentTeleport(Location position, int transaction, boolean plugin) {
-        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, null, plugin);
+        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, false, plugin);
         teleports.add(new Pair<>(transaction, new Location(null, position.getX(), position.getY(), position.getZ())));
         setSafeSetbackLocation(new Vector3d(position.getX(), position.getY(), position.getZ()));
     }
