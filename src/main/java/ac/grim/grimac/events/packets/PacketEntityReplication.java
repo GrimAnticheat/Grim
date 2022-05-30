@@ -360,12 +360,22 @@ public class PacketEntityReplication extends PacketCheck {
         if (data != null) {
             // Update the tracked server's entity position
             if (isRelative) {
+                // There is a bug where vehicles may start flying due to mojang setting packet position on the client
+                // (Works at 0 ping but causes funny bugs at any higher ping)
+                // As we don't want vehicles to fly, we need to replace it with a teleport if it is player vehicle
+                //
+                // Don't bother with client controlled vehicles though
+                boolean vanillaVehicleFlight = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == entityId
+                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
+                        PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
+
                 // ViaVersion sends two relative packets when moving more than 4 blocks
                 // This is broken and causes the client to interpolate like (0, 4) and (1, 3) instead of (1, 7)
                 // This causes impossible hits, so grim must replace this with a teleport entity packet
                 // Not ideal, but neither is 1.8 players on a 1.9+ server.
-                if ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                    player.user.writePacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY(), data.getZ()), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
+                if (vanillaVehicleFlight ||
+                        ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9))) {
+                    player.user.writePacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
                     event.setCancelled(true);
                     return;
                 }
