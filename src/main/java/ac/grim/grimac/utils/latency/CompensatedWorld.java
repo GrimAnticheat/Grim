@@ -18,6 +18,12 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
+import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
+import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.PaletteType;
+import com.github.retrooper.packetevents.protocol.world.chunk.storage.LegacyFlexibleStorage;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
@@ -84,34 +90,40 @@ public class CompensatedWorld {
         return false;
     }
 
+    private static BaseChunk create() {
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
+            return new Chunk_v1_18();
+        } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
+            return new Chunk_v1_9(0, DataPalette.createForChunk());
+        }
+        return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
+    }
+
     public void updateBlock(int x, int y, int z, int combinedID) {
         Column column = getChunk(x >> 4, z >> 4);
 
         // Apply 1.17 expanded world offset
         int offsetY = y - minHeight;
 
-        try {
-            if (column != null) {
-                if (column.getChunks().length <= (offsetY >> 4)) return;
+        if (column != null) {
+            if (column.getChunks().length <= (offsetY >> 4)) return;
 
-                BaseChunk chunk = column.getChunks()[offsetY >> 4];
+            BaseChunk chunk = column.getChunks()[offsetY >> 4];
 
-                if (chunk == null) {
-                    chunk = BaseChunk.create();
-                    column.getChunks()[offsetY >> 4] = chunk;
+            if (chunk == null) {
+                chunk = create();
+                column.getChunks()[offsetY >> 4] = chunk;
 
-                    // Sets entire chunk to air
-                    // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
-                    // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
-                    chunk.set(null, 0, 0, 0, 0);
-                }
-
-                chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
-
-                // Handle stupidity such as fluids changing in idle ticks.
-                player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(blockVersion, combinedID));
+                // Sets entire chunk to air
+                // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
+                // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
+                chunk.set(null, 0, 0, 0, 0);
             }
-        } catch (Exception ignored) {
+
+            chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+
+            // Handle stupidity such as fluids changing in idle ticks.
+            player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(blockVersion, combinedID));
         }
     }
 
