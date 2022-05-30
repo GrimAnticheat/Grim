@@ -101,11 +101,11 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
                 lastNext = next;
                 next = (short) (((next & 0xFF00) >> 8) | (next << 8)); // Flip endian bytes, computations are cheap compared to memory access
                 dataPalette.set(i & 15, (i >> 8) & 15, (i >> 4) & 15, next); // Allow it to resize
-                lastID = dataPalette.get(i & 15, (i >> 8) & 15, (i >> 4) & 15); // Get stored ID
+                lastID = dataPalette.storage.get(i); // Get stored ID
                 continue;
             }
 
-            storage.set(i, lastID);
+            dataPalette.storage.set(i, lastID);
         }
 
         return new Chunk_v1_9(blockCount, dataPalette);
