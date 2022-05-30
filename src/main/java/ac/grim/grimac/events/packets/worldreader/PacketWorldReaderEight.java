@@ -93,7 +93,7 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
             if (next != lastNext) {
                 lastNext = next;
                 // Flip endian bytes, computations are cheap compared to memory access
-                next = (short) ((next >> 8) | (next << 8));
+                next = (short) (((next & 0xFF00) >> 8) | (next << 8));
                 lastID = palette.stateToId(next);
             }
 
