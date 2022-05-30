@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.world.chunk.palette.PaletteTyp
 import com.github.retrooper.packetevents.protocol.world.chunk.storage.BitStorage;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import io.netty.buffer.ByteBuf;
+
 import java.util.BitSet;
 
 public class PacketWorldReaderEight extends BasePacketWorldReader {
@@ -73,16 +74,22 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
 
     public Chunk_v1_9 readChunk(final ByteBuf in) {
         ListPalette palette = new ListPalette(4);
-        BitStorage storage = new BitStorage(8, 4096);
-        Chunk_v1_9 toWrite = new Chunk_v1_9(0, new DataPalette(palette, storage, PaletteType.CHUNK));
+        BitStorage storage = new BitStorage(4, 4096);
+        DataPalette dataPalette = new DataPalette(palette, storage, PaletteType.CHUNK);
 
         palette.stateToId(0); // Make sure to init chunk as air
 
         int lastNext = -1;
         int lastID = -1;
+        int blockCount = 0;
 
         for (int i = 0; i < 4096; ++i) {
             int next = in.readShort();
+
+            if (next != 0) { // If not air, doesn't need any endian flip
+                blockCount++;
+            }
+
             // 0111 0000 0000 0000
             // First byte of block type, followed by data, followed by second and third byte of block data
             //
@@ -90,16 +97,17 @@ public class PacketWorldReaderEight extends BasePacketWorldReader {
             //
             // Due to endian weirdness, it must be turned into
             // 0000 0000 01110 0000
-            if (next != lastNext) {
+            if (next != lastNext) { // If same, then couldn't have changed palette size, optimization
                 lastNext = next;
-                // Flip endian bytes, computations are cheap compared to memory access
-                next = (short) (((next & 0xFF00) >> 8) | (next << 8));
-                lastID = palette.stateToId(next);
+                next = (short) (((next & 0xFF00) >> 8) | (next << 8)); // Flip endian bytes, computations are cheap compared to memory access
+                dataPalette.set(i & 15, (i >> 8) & 15, (i >> 4) & 15, next); // Allow it to resize
+                lastID = dataPalette.get(i & 15, (i >> 8) & 15, (i >> 4) & 15); // Get stored ID
+                continue;
             }
 
             storage.set(i, lastID);
         }
 
-        return toWrite;
+        return new Chunk_v1_9(blockCount, dataPalette);
     }
 }
