@@ -72,7 +72,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // The player did indeed accept the setback, and there are no new setbacks past now!
             setbackConfirmTicksAgo = 0;
             // The player needs to now wait for their vehicle to go into the right place before getting back in
-            if (predictionComplete.getData().getSetback().isVehicle()) cheatVehicleInterpolationDelay = 3;
+            if (cheatVehicleInterpolationDelay > 0) cheatVehicleInterpolationDelay = 3;
             // Teleport, let velocity be reset
             safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(player.x, player.y, player.z));
             blockOffsets = false;
