@@ -607,8 +607,31 @@ public class PredictionEngine {
         // jumps upwards and collides with a block, which you don't actually see because mojang removed the idle
         // packet and sneaking poses take 2 full ticks to apply
         //
-        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
+        // Or the player is switching in and out of controlling a vehicle, in which friction messes it up
+        //
+        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(0) || player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
             box.expandToAbsoluteCoordinates(0, 0, 0);
+        }
+
+        // Handle missing a tick with friction in vehicles
+        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(1) && !player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(0)) {
+            double trueFriction = player.lastOnGround ? player.friction * 0.91 : 0.91;
+            if (player.wasTouchingLava) trueFriction = 0.5;
+            if (player.wasTouchingWater) trueFriction = 0.96;
+
+            double maxY = Math.max(box.maxY, box.maxY + ((box.maxY - player.gravity) * 0.91));
+            double minY = Math.min(box.minY, box.minY + ((box.minY - player.gravity) * 0.91));
+            double minX = Math.min(box.minX, box.minX + (-player.speed * trueFriction));
+            double minZ = Math.min(box.minZ, box.minZ + (-player.speed * trueFriction));
+            double maxX = Math.max(box.maxX, box.maxX + (player.speed * trueFriction));
+            double maxZ = Math.max(box.maxZ, box.maxZ + (player.speed * trueFriction));
+
+            box = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+            box.expand(0.05, 0, 0.05); // Try value patching out any issues
+        }
+
+        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(10)) {
+            box.expand(0.001); // Ignore 1e-3 offsets as we don't know starting vel
         }
 
         minVector = box.min();

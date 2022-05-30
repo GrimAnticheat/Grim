@@ -74,8 +74,15 @@ public class PacketEntityReplication extends PacketCheck {
                     || player.compensatedEntities.getSelf().inVehicle()
                     || player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
 
+            PacketEntity playerVehicle = player.compensatedEntities.getSelf().getRiding();
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-                entity.onMovement(isTickingReliably);
+                if (entity == playerVehicle && !player.vehicleData.lastDummy) {
+                    // The player has this as their vehicle, so they aren't interpolating it.
+                    // And it isn't a dummy position
+                    entity.setPositionRaw(entity.getPossibleCollisionBoxes());
+                } else {
+                    entity.onMovement(isTickingReliably);
+                }
             }
         }
 

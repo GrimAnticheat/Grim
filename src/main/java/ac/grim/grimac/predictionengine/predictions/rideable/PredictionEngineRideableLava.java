@@ -25,11 +25,4 @@ public class PredictionEngineRideableLava extends PredictionEngineLava {
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         return PredictionEngineRideableUtils.applyInputsToVelocityPossibilities(movementVector, player, possibleVectors, speed);
     }
-
-    @Override
-    public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
-        Set<VectorData> vectors = super.fetchPossibleStartTickVectors(player);
-
-        return PredictionEngineRideableUtils.fetchPossibleStartTickVectors(player, vectors);
-    }
 }

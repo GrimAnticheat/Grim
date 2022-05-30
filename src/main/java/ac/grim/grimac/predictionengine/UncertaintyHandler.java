@@ -83,7 +83,7 @@ public class UncertaintyHandler {
     public LastInstance lastStuckSouth;
     public LastInstance lastStuckWest;
     public LastInstance lastStuckEast;
-
+    public LastInstance lastVehicleSwitch;
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
@@ -102,6 +102,7 @@ public class UncertaintyHandler {
         this.lastStuckSouth = new LastInstance(player);
         this.lastStuckWest = new LastInstance(player);
         this.lastStuckEast = new LastInstance(player);
+        this.lastVehicleSwitch = new LastInstance(player);
         tick();
     }
 
@@ -229,9 +230,6 @@ public class UncertaintyHandler {
         if (lastThirtyMillionHardBorder.hasOccurredSince(3))
             pointThree = 0.15;
 
-        if (player.vehicleData.lastVehicleSwitch < 3)
-            pointThree = Math.max(pointThree, player.speed * 2);
-
         return pointThree;
     }
 
@@ -245,9 +243,6 @@ public class UncertaintyHandler {
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             return 0.06;
-
-        if (player.vehicleData.lastVehicleSwitch < 3)
-            return 0.1;
 
         // We don't know if the player was pressing jump or not
         if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))

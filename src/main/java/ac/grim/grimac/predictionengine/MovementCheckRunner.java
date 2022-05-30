@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Riptide;
@@ -166,14 +167,8 @@ public class MovementCheckRunner extends PositionCheck {
         // Exiting vehicles does not suffer the same issue
         //
         // It is also glitchy when switching between client vs server vehicle control
-        player.vehicleData.lastVehicleSwitch++;
         if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
-            player.vehicleData.lastVehicleSwitch = 0;
-        }
-
-        if (player.vehicleData.lastVehicleSwitch < 5) {
-            player.checkManager.getExplosionHandler().forceExempt();
-            player.checkManager.getKnockbackHandler().forceExempt();
+            player.uncertaintyHandler.lastVehicleSwitch.reset();
         }
 
         if (player.vehicleData.lastDummy) {
@@ -183,55 +178,51 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
             update.setTeleport(true);
 
-            if (player.compensatedEntities.getSelf().getRiding() != null) {
-                Vector pos = new Vector(player.x, player.y, player.z);
-                Vector cutTo = VectorUtils.cutBoxToVector(pos, player.compensatedEntities.getSelf().getRiding().getPossibleCollisionBoxes());
-
-                // Stop players from teleporting when they enter a vehicle
-                // Is this a cheat?  Do we have to lower this threshold?
-                // Until I see evidence that this cheat exists, I am keeping this lenient.
-                if (cutTo.distanceSquared(pos) > 1) {
-                    player.getSetbackTeleportUtil().executeForceResync();
-                }
-            }
-
-            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-            player.isClimbing = Collisions.onClimbable(player, player.x, player.y, player.z);
-
             player.vehicleData.lastDummy = false;
             player.vehicleData.wasVehicleSwitch = false;
 
-            // Mojang is dumb and combines two movements when starting vehicle movement
-            if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
-                if (((PacketEntityRideable) player.compensatedEntities.getSelf().getRiding()).currentBoostTime < ((PacketEntityRideable) player.compensatedEntities.getSelf().getRiding()).boostTimeMax) {
-                    // This is not a value hack, please do not change this.
-                    // Any other value will false.
-                    ((PacketEntityRideable) player.compensatedEntities.getSelf().getRiding()).currentBoostTime++;
+
+            if (player.compensatedEntities.getSelf().getRiding() != null) {
+                Vector pos = new Vector(player.x, player.y, player.z);
+                SimpleCollisionBox interTruePositions = player.compensatedEntities.getSelf().getRiding().getPossibleCollisionBoxes();
+
+                // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
+                float width = BoundingBoxSize.getWidth(player, player.compensatedEntities.getSelf().getRiding());
+                float height = BoundingBoxSize.getHeight(player, player.compensatedEntities.getSelf().getRiding());
+                interTruePositions.expand(-width, 0, -width);
+                interTruePositions.expandMax(0, -height, 0);
+
+                Vector cutTo = VectorUtils.cutBoxToVector(pos, interTruePositions);
+
+                // Now we need to simulate a tick starting at the most optimal position
+                // The start position is never sent, so we assume the most optimal start position
+                //
+                // Value patching this is not allowed.
+                // NoCheatPlus suffers from this type of exploit, so attacks against
+                // their similar code may also work on grim.
+                //
+                // This is the best I can do, but I think it might just work.
+                player.lastX = cutTo.getX();
+                player.lastY = cutTo.getY();
+                player.lastZ = cutTo.getZ();
+
+                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+            } else {
+                // Server always teleports the player when they eject anyways,
+                // so just let the player control where they eject within reason, they get set back anyways
+                if (new Vector(player.lastX, player.lastY, player.lastZ).distance(new Vector(player.x, player.y, player.z)) > 3) {
+                    player.getSetbackTeleportUtil().executeForceResync(); // Too far! (I think this value is sane)
                 }
+
+                handleTeleport(update);
+
+                if (player.isClimbing) {
+                    Vector ladder = player.clientVelocity.clone().setY(0.2);
+                    PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
+                    player.lastWasClimbing = ladder.getY();
+                }
+                return;
             }
-
-            // The server sets vehicle velocity when entering
-            // Grim also does this, although the server
-            // overrides Grim due to packet order.
-            // This is intentional!  We don't want to modify
-            // vanilla behavior if it's not a bug.
-            if (player.likelyKB != null) {
-                player.clientVelocity = player.likelyKB.vector;
-            }
-
-            if (player.firstBreadKB != null) {
-                player.clientVelocity = player.firstBreadKB.vector;
-            }
-
-            handleTeleport(update);
-
-            if (player.isClimbing) {
-                Vector ladder = player.clientVelocity.clone().setY(0.2);
-                PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
-                player.lastWasClimbing = ladder.getY();
-            }
-
-            return;
         }
 
         if (player.isInBed != player.lastInBed) {
