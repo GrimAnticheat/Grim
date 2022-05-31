@@ -140,11 +140,11 @@ public class Reach extends PacketCheck {
         while (attackQueue != null) {
             PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attackQueue);
 
-            if (reachEntity == null) continue;
-            String result = checkReach(reachEntity, false);
-
-            if (result != null) {
-                flagAndAlert(result);
+            if (reachEntity != null) {
+                String result = checkReach(reachEntity, false);
+                if (result != null) {
+                    flagAndAlert(result);
+                }
             }
 
             attackQueue = playerAttackQueue.poll();
