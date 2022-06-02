@@ -366,9 +366,9 @@ public class GrimPlayer {
             }
 
             if (async) {
-                PacketEvents.getAPI().getProtocolManager().sendPacketAsync(user.getChannel(), packet);
+                PacketEvents.getAPI().getProtocolManager().writePacketAsync(user.getChannel(), packet);
             } else {
-                user.sendPacket(packet);
+                user.writePacket(packet);
             }
         } catch (Exception ignored) { // Fix protocollib + viaversion support by ignoring any errors :) // TODO: Fix this
             // recompile
@@ -512,7 +512,7 @@ public class GrimPlayer {
                 if (data.getEntityType() == EntityTypes.BOAT || EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) || data.getEntityType() == EntityTypes.PIG || data.getEntityType() == EntityTypes.STRIDER) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
-                    user.sendPacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
+                    user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
                 }
             }
         }
@@ -539,7 +539,7 @@ public class GrimPlayer {
                 int ridingId = getRidingVehicleId();
                 TrackerData data = compensatedEntities.serverPositionsMap.get(ridingId);
                 if (data != null) {
-                    user.sendPacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
+                    user.writePacket(new WrapperPlayServerEntityTeleport(ridingId, new Vector3d(data.getX(), data.getY(), data.getZ()), data.getXRot(), data.getYRot(), false));
                 }
             }
         });
