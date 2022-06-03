@@ -34,4 +34,8 @@ public enum GrimAPI {
         this.plugin = plugin;
         initManager.stop();
     }
+
+    public JavaPlugin getPlugin() {
+        return plugin;
+    }
 }
