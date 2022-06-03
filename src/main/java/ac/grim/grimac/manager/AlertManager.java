@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 public class AlertManager {
@@ -18,8 +19,9 @@ public class AlertManager {
             if (args.length == 2) {
                 String playerUUID = args[0];
                 String state = args[1];
+                UUID uuid = UUID.fromString(playerUUID);
                 Bukkit.getScheduler().runTaskAsynchronously(GrimAPI.INSTANCE.getPlugin(), () -> {
-                    Player player = Bukkit.getPlayer(playerUUID);
+                    Player player = Bukkit.getPlayer(uuid);
                     if (player != null) {
                         if (state.equals("true")) {
                             enabledAlerts.add(player);
