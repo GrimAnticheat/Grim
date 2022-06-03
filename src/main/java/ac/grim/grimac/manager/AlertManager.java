@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class AlertManager {
     public AlertManager() {
+        //Ignored when not using MultiPaper server.
         MultiLib.onString(GrimAPI.INSTANCE.getPlugin(), "grimac:alerts", string -> {
             String[] args = string.split("\t");
             if (args.length == 2) {
@@ -49,6 +50,7 @@ public class AlertManager {
             alertString = MessageUtil.format(alertString);
             player.sendMessage(alertString);
         }
+        //Ignored when not using MultiPaper server.
         handleMultiPaper(player, enabledAlerts.contains(player));
     }
 
