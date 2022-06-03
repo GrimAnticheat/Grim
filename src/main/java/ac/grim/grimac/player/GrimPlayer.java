@@ -15,6 +15,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
@@ -408,7 +409,8 @@ public class GrimPlayer {
             this.playerUUID = user.getUUID();
             if (this.playerUUID != null) {
                 // Geyser players don't have Java movement
-                if (GeyserUtil.isGeyserPlayer(playerUUID)) {
+                // Floodgate is the authentication system for Geyser on servers that use Geyser as a proxy instead of installing it as a plugin directly on the server
+                if (GeyserUtil.isGeyserPlayer(playerUUID) || FloodgateUtil.isFloodgatePlayer(playerUUID)) {
                     GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
                     return true;
                 }
