@@ -24,6 +24,7 @@ repositories {
     maven { url = "https://repo.aikar.co/content/groups/aikar/" } // ACF
     maven { url = "https://nexus.scarsz.me/content/groups/public" } // Configuralize
     maven { url = "https://clojars.org/repo" } // MultiPaper MultiLib
+    maven { url = "https://repo.opencollab.dev/maven-snapshots/" } // Floodgate
     mavenCentral() // FastUtil, Discord-Webhooks, Lombok
 }
 
@@ -37,6 +38,7 @@ dependencies {
     implementation 'github.scarsz:configuralize:1.4.0'
     implementation 'com.github.puregero:multilib:1.1.3'
 
+    compileOnly 'org.geysermc.floodgate:api:2.0-SNAPSHOT'
     compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
     compileOnly 'com.viaversion:viaversion-api:4.1.1'
     compileOnly 'org.projectlombok:lombok:1.18.22'
