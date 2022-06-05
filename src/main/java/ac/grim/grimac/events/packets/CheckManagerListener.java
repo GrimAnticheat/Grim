@@ -693,6 +693,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d position = VectorUtils.clampVector(new Vector3d(x, y, z));
             teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
+        } else {
+            // This may need to be secured later, although nothing that is very important relies on this
+            // 1.8 ghost clients can't abuse this anyway
+            player.uncertaintyHandler.lastPointThree.reset();
         }
 
         double threshold = player.getMovementThreshold();
