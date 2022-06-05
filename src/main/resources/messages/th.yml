@@ -1,0 +1,40 @@
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fเปิดใช้งานการแจ้งเตือน"
+alerts-disabled: "%prefix% &fปิดใช้งานการแจ้งเตือน"
+client-brand-format: "%prefix% &fผู้เล่น &c%player% &fได้เข้าร่วมโดยใช้ &c%brand%"
+console-specify-target: "%prefix% &cขออภัย! &cแต่คุณจะต้องระบุเป้าหมายเป็นคอนโซล!"
+player-not-found: "%prefix% &cขออภัย! &cแต่ผู้เล่นคนนั้นอาจจะได้รับข้อยกเว้นหรืออาจจะออฟไลน์"
+player-not-this-server: "%prefix% &cขออภัย! &cแต่ผู้เล่นคนนั้นไม่ได้อยู่ในเซิร์ฟเวอร์นี้!"
+spectate-return: "\n%prefix% &fคลิกตรงนี้เพื่อกลับไปยังตำแหน่งก่อนหน้านี้\n"
+cannot-spectate-return: "%prefix% &cขออภัย! &cแต่คุณจะสามารถทำสิ่งนี้ได้ก็ต่อเมื่อคุณชมผู้เล่นคนนั้นเสร็จแล้ว"
+
+# Valid placeholders:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violations
+# %verbose% - extra information from the check such as offsets, not all checks will add information
+alerts-format: "%prefix% &f%player% &bล้มเหลว &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bข้อมูลของผู้เล่น &c&f%player%"
+  - "&bPing: &f%ping%"
+  - "&bVersion: &f%version%"
+  - "&bClient ที่ใช้: &f%brand%"
+  - "&bความไวในแนวนอน: &f%h_sensitivity%%"
+  - "&bความไวในแนวตั้ง: &f%v_sensitivity%%"
+  - "&bเปิดใช้งาน FastMath ของ Optifine: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7เปิดปิดการแจ้งเตือน"
+  - "/grim profile &f- &7ดูข้อมูลของผู้เล่น"
+  - "/grim help &f- &7ดูข้อความช่วยเหลือที่คุณกำลังดูอยู่"
+  - "/grim debug <player> &f- &7ผลลัพธ์การคาดการณ์ของนักพัฒนา"
+  - "/grim perf &f- &7Developer ms/prediction"
+  - "/grim reload &f- &7รีโหลด config"
+  - "/grim spectate <player> &f- &7รับชมผู้เล่น"
+  - "&7======================"
