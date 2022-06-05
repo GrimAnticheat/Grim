@@ -320,7 +320,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
         // It's not optimal, but we ignore packets blocked by timer because it could be used to interpolate
         // entities for reach faster, and mainly because it fucks with setbacks too much.
-        if (event.isCancelled()) return;
+        if (event.isCancelled() && (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE)) return;
 
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
