@@ -4,6 +4,7 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -59,13 +60,13 @@ public class BadPacketsP extends PacketCheck {
                     ping = (int) (System.nanoTime() - data.getSecond());
                 } while (data.getFirst() != id);
             } else { // No ID found
-                player.checkManager.getPacketCheck(BadPacketsO.class).flag();
+                player.checkManager.getPacketCheck(BadPacketsO.class).flagAndAlert("ID: " + id);
             }
 
             double ms = (player.getTransactionPing() - ping) / 1e6;
 
             if (ms > 120) {
-                flag();
+                flagAndAlert("keepalive: " + GrimMath.floor(ping / 1e6) + " trans: " + GrimMath.floor(player.getTransactionPing() / 1e6));
             }
         }
     }
