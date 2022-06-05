@@ -5,7 +5,7 @@ import ac.grim.grimac.checks.impl.aim.*;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.aim.processor.Cinematic;
 import ac.grim.grimac.checks.impl.badpackets.*;
-import ac.grim.grimac.checks.impl.baritone.AimGCD;
+import ac.grim.grimac.checks.impl.baritone.Baritone;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.CrashA;
 import ac.grim.grimac.checks.impl.crash.CrashB;
@@ -95,7 +95,7 @@ public class CheckManager {
                 .put(Cinematic.class, new Cinematic(player))
                 .put(AimModulo360.class, new AimModulo360(player))
                 .put(AimDuplicateLook.class, new AimDuplicateLook(player))
-                .put(AimGCD.class, new AimGCD(player))
+                .put(Baritone.class, new Baritone(player))
                 .build();
         vehicleCheck = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
                 .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))
