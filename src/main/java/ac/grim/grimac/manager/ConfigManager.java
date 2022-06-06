@@ -185,7 +185,7 @@ public class ConfigManager {
         if (config.exists()) {
             try {
                 configString = new String(Files.readAllBytes(config.toPath()));
-                configString = configString.replace("      - \"EntityControl\"\n", "      - \"EntityControl\"\n      - \"Baritone\"\n");
+                configString = configString.replace("      - \"EntityControl\"\n", "      - \"EntityControl\"\n      - \"Baritone\"\n      - \"FastBreak\"\n");
                 Files.write(config.toPath(), configString.getBytes());
             } catch (IOException ignored) {
             }
