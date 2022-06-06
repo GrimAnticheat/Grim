@@ -6,12 +6,15 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SpectateManager {
 
     private final Map<UUID, PreviousState> spectatingPlayers = new ConcurrentHashMap<>();
+
+    private final Set<UUID> validPlayers = ConcurrentHashMap.newKeySet();
 
     public boolean isSpectating(UUID uuid) {
         return spectatingPlayers.containsKey(uuid);
@@ -20,13 +23,23 @@ public class SpectateManager {
     public boolean shouldHidePlayer(User receiver, WrapperPlayServerPlayerInfo.PlayerData playerData) {
         return playerData.getUser() != null
                 && !playerData.getUser().getUUID().equals(receiver.getUUID())
-                && spectatingPlayers.containsKey(playerData.getUser().getUUID());
+                &&
+                (spectatingPlayers.containsKey(playerData.getUser().getUUID()) || validPlayers.contains(playerData.getUser().getUUID()));
     }
 
     public boolean enable(Player player) {
         if (spectatingPlayers.containsKey(player.getUniqueId())) return false;
         spectatingPlayers.put(player.getUniqueId(), new PreviousState(player.getGameMode(), player.getLocation()));
         return true;
+    }
+
+    public void onLogin(Player player) {
+        validPlayers.add(player.getUniqueId());
+    }
+
+    public void onQuit(Player player) {
+        validPlayers.remove(player.getUniqueId());
+        disable(player);
     }
 
     public void disable(Player player) {
