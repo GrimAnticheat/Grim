@@ -398,7 +398,7 @@ public class GrimPlayer {
         }
         if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getMaxPingTransaction() * 1e9) {
             try {
-                user.sendPacket(new WrapperPlayServerDisconnect(Component.text("Timed out!")));
+                user.sendPacket(new WrapperPlayServerDisconnect(Component.translatable("disconnect.timeout")));
             } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
                 LogUtil.warn("Failed to send disconnect packet to time out " + user.getProfile().getName() + "! Disconnecting anyways.");
             }
