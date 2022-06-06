@@ -1,21 +1,26 @@
-package ac.grim.grimac.checks.impl.pingspoof;
+package ac.grim.grimac.checks.impl.badpackets;
 
+import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientKeepAlive;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKeepAlive;
 
+import java.util.ArrayDeque;
+import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-public class PingSpoofB extends PacketCheck {
-    Queue<Pair<Long, Long>> keepaliveMap = new ConcurrentLinkedQueue<>();
+@CheckData(name = "BadPacketsP")
+public class BadPacketsP extends PacketCheck {
+    Queue<Pair<Long, Long>> keepaliveMap = new LinkedList<>();
 
-    public PingSpoofB(GrimPlayer player) {
+    public BadPacketsP(GrimPlayer player) {
         super(player);
     }
 
@@ -54,15 +59,14 @@ public class PingSpoofB extends PacketCheck {
 
                     ping = (int) (System.nanoTime() - data.getSecond());
                 } while (data.getFirst() != id);
+            } else { // No ID found
+                player.checkManager.getPacketCheck(BadPacketsO.class).flagAndAlert("ID: " + id);
             }
 
             double ms = (player.getTransactionPing() - ping) / 1e6;
 
-            // TODO: Refine ping spoofing checks
             if (ms > 120) {
-                //flag();
-            } else {
-                //reward();
+                flagAndAlert("keepalive: " + GrimMath.floor(ping / 1e6) + " trans: " + GrimMath.floor(player.getTransactionPing() / 1e6));
             }
         }
     }

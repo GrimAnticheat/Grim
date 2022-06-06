@@ -5,15 +5,18 @@ import ac.grim.grimac.checks.impl.aim.*;
 import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.aim.processor.Cinematic;
 import ac.grim.grimac.checks.impl.badpackets.*;
+import ac.grim.grimac.checks.impl.baritone.Baritone;
 import ac.grim.grimac.checks.impl.combat.Reach;
 import ac.grim.grimac.checks.impl.crash.CrashA;
 import ac.grim.grimac.checks.impl.crash.CrashB;
 import ac.grim.grimac.checks.impl.crash.CrashD;
 import ac.grim.grimac.checks.impl.groundspoof.NoFallA;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
+import ac.grim.grimac.checks.impl.misc.FastBreak;
 import ac.grim.grimac.checks.impl.movement.*;
-import ac.grim.grimac.checks.impl.pingspoof.PingSpoofA;
-import ac.grim.grimac.checks.impl.pingspoof.PingSpoofB;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsO;
+import ac.grim.grimac.checks.impl.badpackets.BadPacketsP;
+import ac.grim.grimac.checks.impl.post.PostCheck;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
 import ac.grim.grimac.checks.impl.prediction.OffsetHandler;
@@ -63,8 +66,8 @@ public class CheckManager {
                 .put(PacketWorldBorder.class, new PacketWorldBorder(player))
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFallA.class, new NoFallA(player))
-                .put(PingSpoofA.class, new PingSpoofA(player))
-                .put(PingSpoofB.class, new PingSpoofB(player))
+                .put(BadPacketsO.class, new BadPacketsO(player))
+                .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))
@@ -82,7 +85,8 @@ public class CheckManager {
                 .put(BadPacketsL.class, new BadPacketsL(player))
                 .put(BadPacketsM.class, new BadPacketsM(player))
                 .put(BadPacketsN.class, new BadPacketsN(player))
-                //.put(PostCheck.class, new PostCheck(player)) // TODO: What the fuck is mojang doing on 1.8, fix 1.9+ without the fucking idle packet
+                .put(PostCheck.class, new PostCheck(player))
+                .put(FastBreak.class, new FastBreak(player))
                 .put(SetbackBlocker.class, new SetbackBlocker(player)) // Must be last class otherwise we can't check while blocking packets
                 .build();
         positionCheck = new ImmutableClassToInstanceMap.Builder<PositionCheck>()
@@ -94,6 +98,7 @@ public class CheckManager {
                 .put(Cinematic.class, new Cinematic(player))
                 .put(AimModulo360.class, new AimModulo360(player))
                 .put(AimDuplicateLook.class, new AimDuplicateLook(player))
+                .put(Baritone.class, new Baritone(player))
                 .build();
         vehicleCheck = new ImmutableClassToInstanceMap.Builder<VehicleCheck>()
                 .put(VehiclePredictionRunner.class, new VehiclePredictionRunner(player))

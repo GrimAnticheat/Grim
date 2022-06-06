@@ -105,7 +105,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 2");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 3");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -125,6 +125,9 @@ public class ConfigManager {
         }
         if (configVersion < 2) {
             addMissingPunishments();
+        }
+        if (configVersion < 3) {
+            addBaritoneCheck();
         }
     }
 
@@ -170,6 +173,19 @@ public class ConfigManager {
                             "      - \"20:40 [alert]\"\n";
                 }
 
+                Files.write(config.toPath(), configString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private void addBaritoneCheck() {
+        File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+        String configString;
+        if (config.exists()) {
+            try {
+                configString = new String(Files.readAllBytes(config.toPath()));
+                configString = configString.replace("      - \"EntityControl\"\n", "      - \"EntityControl\"\n      - \"Baritone\"\n      - \"FastBreak\"\n");
                 Files.write(config.toPath(), configString.getBytes());
             } catch (IOException ignored) {
             }
