@@ -3,7 +3,9 @@ package ac.grim.grimac.checks.impl.post;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
@@ -59,11 +61,13 @@ public class PostCheck extends PacketCheck {
                 sentFlying = false;
             } else if (PLAYER_ABILITIES.equals(packetType) || ENTITY_ACTION.equals(packetType)
                     || INTERACT_ENTITY.equals(packetType) || PLAYER_BLOCK_PLACEMENT.equals(packetType)
-                    || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)
-                    || ANIMATION.equals(packetType)) {
+                    || USE_ITEM.equals(packetType) || PLAYER_DIGGING.equals(packetType)) {
                 if (sentFlying) post.add(event.getPacketType());
             } else if (CLICK_WINDOW.equals(packetType) && player.getClientVersion().isOlderThan(ClientVersion.V_1_15)) {
                 // Why do 1.15+ players send the click window packet whenever? This doesn't make sense.
+                if (sentFlying) post.add(event.getPacketType());
+            } else if (ANIMATION.equals(packetType) && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) // ViaVersion delays animations for 1.8 clients on 1.9+ servers
+                    || PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8))) {
                 if (sentFlying) post.add(event.getPacketType());
             }
         }

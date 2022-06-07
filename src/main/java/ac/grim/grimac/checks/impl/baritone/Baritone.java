@@ -24,7 +24,8 @@ public class Baritone extends RotationCheck {
 
         final float deltaPitch = Math.abs(to.getPitch() - from.getPitch());
 
-        if (rotationUpdate.getDeltaYaw() == 0 && deltaPitch != 0.0 && Math.abs(to.getPitch()) != 90.0f) {
+        // Baritone works with small degrees, limit to 1 degrees to pick up on baritone slightly moving aim to bypass anticheats
+        if (rotationUpdate.getDeltaYaw() == 0 && deltaPitch > 0 && deltaPitch < 1 && Math.abs(to.getPitch()) != 90.0f) {
             final long gcd = GrimMath.getGcd((long) (deltaPitch * GrimMath.EXPANDER), (long) (this.lastPitchDifference * GrimMath.EXPANDER));
 
             if (gcd < 131072L) {

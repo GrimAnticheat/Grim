@@ -21,6 +21,7 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -349,7 +350,7 @@ public class GrimPlayer {
         if (user.getConnectionState() != ConnectionState.PLAY) return;
 
         // Send a packet once every 15 seconds to avoid any memory leaks
-        if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9 ) {
+        if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9) {
             return;
         }
 
@@ -366,7 +367,7 @@ public class GrimPlayer {
             }
 
             if (async) {
-                PacketEvents.getAPI().getProtocolManager().writePacketAsync(user.getChannel(), packet);
+                ChannelHelper.runInEventLoop(user.getChannel(), () -> user.writePacket(packet));
             } else {
                 user.writePacket(packet);
             }
