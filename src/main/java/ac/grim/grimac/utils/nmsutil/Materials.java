@@ -220,7 +220,8 @@ public class Materials {
 
     public static boolean isPlaceableWaterBucket(ItemType mat) {
         return mat == ItemTypes.AXOLOTL_BUCKET || mat == ItemTypes.COD_BUCKET || mat == ItemTypes.PUFFERFISH_BUCKET
-                || mat == ItemTypes.SALMON_BUCKET || mat == ItemTypes.TROPICAL_FISH_BUCKET || mat == ItemTypes.WATER_BUCKET;
+                || mat == ItemTypes.SALMON_BUCKET || mat == ItemTypes.TROPICAL_FISH_BUCKET || mat == ItemTypes.WATER_BUCKET
+                || mat == ItemTypes.TADPOLE_BUCKET;
     }
 
     public static StateType transformBucketMaterial(ItemType mat) {

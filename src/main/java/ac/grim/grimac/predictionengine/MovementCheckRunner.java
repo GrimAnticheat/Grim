@@ -447,6 +447,12 @@ public class MovementCheckRunner extends PositionCheck {
                 player.depthStriderLevel = 0;
             }
 
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
+                player.sneakingSpeedMultiplier = GrimMath.clampFloat(0.3F + (boots.getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion()) * 0.15F), 0f, 1f);
+            } else {
+                player.sneakingSpeedMultiplier = 0.3F;
+            }
+
             // This is wrong and the engine was not designed around stuff like this
             player.verticalCollision = false;
 

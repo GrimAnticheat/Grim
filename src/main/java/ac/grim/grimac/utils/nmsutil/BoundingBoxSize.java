@@ -27,7 +27,7 @@ public class BoundingBoxSize {
     private static float getWidthMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
         if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.PANDA.equals(packetEntity.type)) {
             return 1.3f;
-        } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.TROPICAL_FISH.equals(packetEntity.type)) {
+        } else if (EntityTypes.BAT.equals(packetEntity.type) || EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.TROPICAL_FISH.equals(packetEntity.type) || EntityTypes.FROG.equals(packetEntity.type)) {
             return 0.5f;
         } else if (EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.PUFFERFISH.equals(packetEntity.type) || EntityTypes.SALMON.equals(packetEntity.type) || EntityTypes.SNOW_GOLEM.equals(packetEntity.type) || EntityTypes.WITHER_SKELETON.equals(packetEntity.type) || EntityTypes.CAVE_SPIDER.equals(packetEntity.type)) {
             return 0.7f;
@@ -35,13 +35,13 @@ public class BoundingBoxSize {
             return 0.3125f;
         } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.SKELETON_HORSE.equals(packetEntity.type) || EntityTypes.MULE.equals(packetEntity.type) || EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type) || EntityTypes.HORSE.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
             return 1.39648f;
-        } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
+        } else if (EntityTypes.BOAT.equals(packetEntity.type) || EntityTypes.CHEST_BOAT.equals(packetEntity.type)) {
             return 1.375f;
-        } else if (EntityTypes.CHICKEN.equals(packetEntity.type) || EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.SILVERFISH.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
+        } else if (EntityTypes.CHICKEN.equals(packetEntity.type) || EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.SILVERFISH.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type) || EntityTypes.TADPOLE.equals(packetEntity.type)) {
             return 0.4f;
         } else if (EntityTypes.RABBIT.equals(packetEntity.type)) {
             return player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.4f : 0.6f;
-        } else if (EntityTypes.STRIDER.equals(packetEntity.type) || EntityTypes.COW.equals(packetEntity.type) || EntityTypes.SHEEP.equals(packetEntity.type) || EntityTypes.MOOSHROOM.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.LLAMA.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type) || EntityTypes.WITHER.equals(packetEntity.type) || EntityTypes.TRADER_LLAMA.equals(packetEntity.type)) {
+        } else if (EntityTypes.STRIDER.equals(packetEntity.type) || EntityTypes.COW.equals(packetEntity.type) || EntityTypes.SHEEP.equals(packetEntity.type) || EntityTypes.MOOSHROOM.equals(packetEntity.type) || EntityTypes.PIG.equals(packetEntity.type) || EntityTypes.LLAMA.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type) || EntityTypes.WITHER.equals(packetEntity.type) || EntityTypes.TRADER_LLAMA.equals(packetEntity.type) || EntityTypes.WARDEN.equals(packetEntity.type)) {
             return 0.9f;
         } else if (EntityTypes.PHANTOM.equals(packetEntity.type)) {
             if (packetEntity instanceof PacketEntitySizeable) {
@@ -97,6 +97,8 @@ public class BoundingBoxSize {
             return 0.8f;
         } else if (EntityTypes.TURTLE.equals(packetEntity.type)) {
             return 1.2f;
+        } else if (EntityTypes.ALLAY.equals(packetEntity.type)) {
+            return 0.35f;
         }
         return 0.6f;
     }
@@ -115,7 +117,7 @@ public class BoundingBoxSize {
             // Striders also do the same with animations, causing a desync.
             // At least the only people using buckets are people in boats for villager transportation
             // and people trying to false the anticheat.
-            if (entity.type == EntityTypes.BOAT) {
+            if (entity.type == EntityTypes.BOAT || entity.type == EntityTypes.CHEST_BOAT) {
                 float f = 0.0F;
                 float f1 = (float) (getPassengerRidingOffset(player, entity) - 0.35f); // hardcoded player offset
 
@@ -188,7 +190,7 @@ public class BoundingBoxSize {
 
         if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.MINECART_ABSTRACT)) {
             return 0;
-        } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
+        } else if (EntityTypes.BOAT.equals(packetEntity.type) || EntityTypes.CHEST_BOAT.equals(packetEntity.type)) {
             return -0.1;
         } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
             return getHeight(player, packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
@@ -209,7 +211,7 @@ public class BoundingBoxSize {
     }
 
     private static float getHeightMinusBaby(GrimPlayer player, PacketEntity packetEntity) {
-        if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type)) {
+        if (EntityTypes.AXOLOTL.equals(packetEntity.type) || EntityTypes.BEE.equals(packetEntity.type) || EntityTypes.DOLPHIN.equals(packetEntity.type) || EntityTypes.ALLAY.equals(packetEntity.type)) {
             return 0.6f;
         } else if (EntityTypes.PARROT.equals(packetEntity.type) || EntityTypes.EVOKER_FANGS.equals(packetEntity.type) || EntityTypes.SQUID.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type)) {
             return 0.8f;
@@ -219,13 +221,13 @@ public class BoundingBoxSize {
             return 0.3125f;
         } else if (EntityTypes.BLAZE.equals(packetEntity.type)) {
             return 1.8f;
-        } else if (EntityTypes.BOAT.equals(packetEntity.type)) {
+        } else if (EntityTypes.BOAT.equals(packetEntity.type) || EntityTypes.CHEST_BOAT.equals(packetEntity.type)) {
             // WHY DOES VIAVERSION OFFSET BOATS? THIS MAKES IT HARD TO SUPPORT, EVEN IF WE INTERPOLATE RIGHT.
             // I gave up and just exempted boats from the reach check and gave up with interpolation for collisions
             return 0.5625f;
         } else if (EntityTypes.CAT.equals(packetEntity.type)) {
             return 0.7f;
-        } else if (EntityTypes.CAVE_SPIDER.equals(packetEntity.type)) {
+        } else if (EntityTypes.CAVE_SPIDER.equals(packetEntity.type) || EntityTypes.FROG.equals(packetEntity.type)) {
             return 0.5f;
         } else if (EntityTypes.CHICKEN.equals(packetEntity.type)) {
             return 0.7f;
@@ -239,9 +241,9 @@ public class BoundingBoxSize {
             return 1.7f;
         } else if (EntityTypes.DONKEY.equals(packetEntity.type)) {
             return 1.5f;
-        } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) { // TODO: WTF is * guardian?
+        } else if (EntityTypes.ELDER_GUARDIAN.equals(packetEntity.type)) {
             return 1.9975f;
-        } else if (EntityTypes.ENDERMAN.equals(packetEntity.type)) {
+        } else if (EntityTypes.ENDERMAN.equals(packetEntity.type) || EntityTypes.WARDEN.equals(packetEntity.type)) {
             return 2.9f;
         } else if (EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.COD.equals(packetEntity.type)) {
             return 0.3f;
@@ -333,6 +335,8 @@ public class BoundingBoxSize {
             return 0.85f;
         } else if (EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type)) {
             return 1.6f;
+        } else if (EntityTypes.TADPOLE.equals(packetEntity.type)) {
+            return 0.3f;
         }
         return 1.95f;
     }
