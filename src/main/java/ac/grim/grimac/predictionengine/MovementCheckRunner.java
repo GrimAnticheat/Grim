@@ -448,7 +448,8 @@ public class MovementCheckRunner extends PositionCheck {
             }
 
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
-                player.sneakingSpeedMultiplier = GrimMath.clampFloat(0.3F + (boots.getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion()) * 0.15F), 0f, 1f);
+                ItemStack leggings = player.getInventory().getLeggings();
+                player.sneakingSpeedMultiplier = GrimMath.clampFloat(0.3F + (leggings.getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion()) * 0.15F), 0f, 1f);
             } else {
                 player.sneakingSpeedMultiplier = 0.3F;
             }
