@@ -56,7 +56,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-  # As of 2.2.10, there are no AutoClicker checks and this is a placeholder. 2.3 will include AutoClicker checks.
+  # As of 2.2.10, there are no AutoClicker checks and this is a placeholder. Grim will include AutoClicker checks in the future.
   Autoclicker:
     remove-violations-after: 300
     checks:
