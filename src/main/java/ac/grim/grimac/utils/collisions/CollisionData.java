@@ -1269,4 +1269,4 @@ public enum CollisionData {
 
         return new DynamicCollisionBox(player, version, dynamic, block);
     }
-    }
+}
