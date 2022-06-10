@@ -14,6 +14,9 @@ client-brand:
   # This means it won't broadcast their brand to operators if the brand matches the following regexes
   ignored-clients:
     - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:[a-z0-9]{7}"
+    - "^Feather Fabric$"
 
 spectators:
   # Hide all spectators with the grim.spectator permission regardless if they are actually actively spectating
