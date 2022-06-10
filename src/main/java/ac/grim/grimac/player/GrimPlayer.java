@@ -132,6 +132,7 @@ public class GrimPlayer {
     public boolean isDead = false;
     public int food = 20;
     public float depthStriderLevel;
+    public float sneakingSpeedMultiplier = 0.3f;
     public float flySpeed;
     public VehicleData vehicleData = new VehicleData();
     // The client claims this

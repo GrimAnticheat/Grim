@@ -13,7 +13,6 @@ import ac.grim.grimac.utils.nmsutil.JumpPower;
 import ac.grim.grimac.utils.nmsutil.Riptide;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -41,8 +40,8 @@ public class PredictionEngine {
 
         // Slow movement was determined by the previous pose
         if (player.isSlowMovement) {
-            bestPossibleX = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getX() / 0.3)), 1f) * 0.3d);
-            bestPossibleZ = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ() / 0.3)), 1f) * 0.3d);
+            bestPossibleX = (float) (theoreticalInput.getX() * player.sneakingSpeedMultiplier);
+            bestPossibleZ = (float) (theoreticalInput.getZ() * player.sneakingSpeedMultiplier);
         } else {
             bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
             bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
