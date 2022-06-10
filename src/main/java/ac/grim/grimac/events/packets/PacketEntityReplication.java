@@ -53,26 +53,11 @@ public class PacketEntityReplication extends PacketCheck {
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
-            WrapperPlayClientPlayerFlying wrapper = new WrapperPlayClientPlayerFlying(event);
-
             // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
             if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
                 return;
 
-            // Alright, someone at mojang decided to not send a flying packet every tick with 1.9
-            // Thanks for wasting my time to save 1 MB an hour
-            //
-            // MEANING, to get an "acceptable" 1.9+ reach check, we must only treat it like a 1.8 clients
-            // when it is acting like one and sending a packet every tick.
-            //
-            // There are two predictable scenarios where this happens:
-            // 1. The player moves more than 0.03/0.0002 blocks every tick
-            //     - This code runs after the prediction engine to prevent a false when immediately switching back to 1.9-like movements
-            //     - 3 ticks is a magic value, but it should buffer out incorrect predictions somewhat.
-            // 2. The player is in a vehicle
-            boolean isTickingReliably = (wrapper.hasPositionChanged() && !player.uncertaintyHandler.lastPointThree.hasOccurredSince(3))
-                    || player.compensatedEntities.getSelf().inVehicle()
-                    || player.getClientVersion().isOlderThan(ClientVersion.V_1_9);
+            boolean isTickingReliably = player.isTickingReliablyFor(3);
 
             PacketEntity playerVehicle = player.compensatedEntities.getSelf().getRiding();
             for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
@@ -382,7 +367,7 @@ public class PacketEntityReplication extends PacketCheck {
                 // Not ideal, but neither is 1.8 players on a 1.9+ server.
                 if (vanillaVehicleFlight ||
                         ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9))) {
-                    player.user.sendPacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
+                    player.user.writePacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
                     event.setCancelled(true);
                     return;
                 }

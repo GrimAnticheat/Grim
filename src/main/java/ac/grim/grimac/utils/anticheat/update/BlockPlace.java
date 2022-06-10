@@ -41,6 +41,7 @@ import java.util.List;
 public class BlockPlace {
     protected static final BlockFace[] UPDATE_SHAPE_ORDER = new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP};
     private static final BlockFace[] BY_2D = new BlockFace[]{BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
+    static final BlockFace[] BY_3D = new BlockFace[]{BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
     @Setter
     Vector3i blockPosition;
     @Getter
@@ -373,7 +374,7 @@ public class BlockPlace {
     public boolean isBlockPlacedPowered() {
         Vector3i placed = getPlacedBlockPos();
 
-        for (BlockFace face : BlockFace.CARTESIAN_VALUES) {
+        for (BlockFace face : BY_3D) {
             Vector3i modified = placed.add(face.getModX(), face.getModY(), face.getModZ());
 
             // A block next to the player is providing power.  Therefore the block is powered
@@ -399,7 +400,7 @@ public class BlockPlace {
 
             // There's a better way to do this, but this is "good enough"
             // Mojang probably does it in a worse way than this.
-            for (BlockFace recursive : BlockFace.CARTESIAN_VALUES) {
+            for (BlockFace recursive : BY_3D) {
                 Vector3i poweredRecursive = placed.add(recursive.getModX(), recursive.getModY(), recursive.getModZ());
 
                 // A block next to the player is directly powered.  Therefore, the block is powered

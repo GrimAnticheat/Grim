@@ -18,8 +18,8 @@ public class BadPacketsM extends PacketCheck {
     }
 
     public void onPacketReceive(final PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) { // idle packet // TODO: Fix for 1.9+ clients
-            if (sentHeldItem && player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+        if (event.getPacketType() == PacketType.Play.Client.HELD_ITEM_CHANGE) { // idle packet
+            if (sentHeldItem && player.isTickingReliablyFor(3)) {
                 flagAndAlert();
                 player.checkManager.getPostPredictionCheck(NoSlow.class).flagWithSetback(); // Impossible to false, call NoSlow violation to setback
             } else {

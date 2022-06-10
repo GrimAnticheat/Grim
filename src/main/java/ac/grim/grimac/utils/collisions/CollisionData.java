@@ -53,7 +53,8 @@ public enum CollisionData {
             boxes.add(new HexCollisionBox(0.0D, 0.0D, 15.0D, 16.0D, 16.0D, 16.0D));
 
         // This is where fire differs from vine with its hitbox
-        if (block.getType() == StateTypes.FIRE && boxes.isNull()) return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
+        if (block.getType() == StateTypes.FIRE && boxes.isNull())
+            return new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.0D, 16.0D);
 
         return boxes;
 
@@ -1081,10 +1082,34 @@ public enum CollisionData {
         return getAmethystBox(version, data.getFacing(), 5, 3);
     }, StateTypes.LARGE_AMETHYST_BUD),
 
+    MUD_BLOCK(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 14.0D, 16.0D), StateTypes.MUD),
+
+    MANGROVE_PROPAGULE_BLOCK((player, version, data, x, y, z) -> {
+        if (!data.isHanging()) {
+            return new HexCollisionBox(7.0D, 0.0D, 7.0D, 9.0D, 16.0D, 9.0D);
+        }
+        switch (data.getAge()) {
+            case 0:
+                return new HexCollisionBox(7.0D, 13.0D, 7.0D, 9.0D, 16.0D, 9.0D);
+            case 1:
+                return new HexCollisionBox(7.0D, 10.0D, 7.0D, 9.0D, 16.0D, 9.0D);
+            case 2:
+                return new HexCollisionBox(7.0D, 7.0D, 7.0D, 9.0D, 16.0D, 9.0D);
+            case 3:
+                return new HexCollisionBox(7.0D, 3.0D, 7.0D, 9.0D, 16.0D, 9.0D);
+            case 4:
+            default:
+                return new HexCollisionBox(7.0D, 0.0D, 7.0D, 9.0D, 16.0D, 9.0D);
+        }
+    }, StateTypes.MANGROVE_PROPAGULE),
+
+    SCULK_SHRIKER(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 8.0D, 16.0D), StateTypes.SCULK_SHRIEKER),
+
+    FROGSPAWN(new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 1.5D, 16.0D), StateTypes.FROGSPAWN),
+
     NONE(NoCollisionBox.INSTANCE, StateTypes.AIR, StateTypes.LIGHT),
 
-    DEFAULT(new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true),
-            StateTypes.STONE);
+    DEFAULT(new SimpleCollisionBox(0, 0,0,1,1,1,true),StateTypes.STONE);
 
     // This should be an array... but a hashmap will do for now...
     private static final Map<StateType, CollisionData> rawLookupMap = new HashMap<>();

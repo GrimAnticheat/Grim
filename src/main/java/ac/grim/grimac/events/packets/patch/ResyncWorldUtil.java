@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerMultiBlockChange;
@@ -97,7 +98,7 @@ public class ResyncWorldUtil {
                         }
 
                         WrapperPlayServerMultiBlockChange packet = new WrapperPlayServerMultiBlockChange(new Vector3i(currChunkX, currChunkY, currChunkZ), true, encodedBlocks);
-                        PacketEvents.getAPI().getProtocolManager().sendPacketAsync(player.user.getChannel(), packet);
+                        ChannelHelper.runInEventLoop(player.user.getChannel(), () -> player.user.sendPacket(packet));
                     }
                 }
             }
