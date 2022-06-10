@@ -1,30 +1,43 @@
 package ac.grim.grimac.manager;
 
-import com.github.retrooper.packetevents.protocol.player.User;
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerInfo;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SpectateManager {
+public class SpectateManager implements Initable {
 
     private final Map<UUID, PreviousState> spectatingPlayers = new ConcurrentHashMap<>();
+    private final Set<UUID> hiddenPlayers = ConcurrentHashMap.newKeySet();
+    private final Set<String> allowedWorlds = ConcurrentHashMap.newKeySet();
 
-    private final Set<UUID> validPlayers = ConcurrentHashMap.newKeySet();
+    private boolean checkWorld = false;
+
+    @Override
+    public void start() {
+        allowedWorlds.clear();
+        allowedWorlds.addAll(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringListElse("spectators.allowed-worlds", new ArrayList<>()));
+        checkWorld = !(allowedWorlds.isEmpty() || new ArrayList<>(allowedWorlds).get(0).isEmpty());
+    }
 
     public boolean isSpectating(UUID uuid) {
         return spectatingPlayers.containsKey(uuid);
     }
 
-    public boolean shouldHidePlayer(User receiver, WrapperPlayServerPlayerInfo.PlayerData playerData) {
+    public boolean shouldHidePlayer(GrimPlayer receiver, WrapperPlayServerPlayerInfo.PlayerData playerData) {
         return playerData.getUser() != null
-                && !playerData.getUser().getUUID().equals(receiver.getUUID())
-                &&
-                (spectatingPlayers.containsKey(playerData.getUser().getUUID()) || validPlayers.contains(playerData.getUser().getUUID()));
+                && !playerData.getUser().getUUID().equals(receiver.playerUUID) // don't hide to yourself
+                && (spectatingPlayers.containsKey(playerData.getUser().getUUID()) || hiddenPlayers.contains(playerData.getUser().getUUID())) //hide if you are a spectator
+                && !(spectatingPlayers.containsKey(receiver.playerUUID) || hiddenPlayers.contains(receiver.playerUUID)) // don't hide to other spectators
+                && (!checkWorld || (receiver.bukkitPlayer != null && allowedWorlds.contains(receiver.bukkitPlayer.getWorld().getName()))); // hide if you are in a specific world
     }
 
     public boolean enable(Player player) {
@@ -34,11 +47,11 @@ public class SpectateManager {
     }
 
     public void onLogin(Player player) {
-        validPlayers.add(player.getUniqueId());
+        hiddenPlayers.add(player.getUniqueId());
     }
 
     public void onQuit(Player player) {
-        validPlayers.remove(player.getUniqueId());
+        hiddenPlayers.remove(player.getUniqueId());
         disable(player);
     }
 

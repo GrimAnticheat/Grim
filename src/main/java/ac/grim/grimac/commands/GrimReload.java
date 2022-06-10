@@ -38,6 +38,8 @@ public class GrimReload extends BaseCommand {
 
         //restart discord manager
         GrimAPI.INSTANCE.getDiscordManager().start();
+        //
+        GrimAPI.INSTANCE.getSpectateManager().start();
 
         sender.sendMessage(MessageUtil.format("%prefix% &fConfig has been reloaded."));
     }

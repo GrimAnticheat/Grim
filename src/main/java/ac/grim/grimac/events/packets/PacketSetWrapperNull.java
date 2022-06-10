@@ -1,6 +1,7 @@
 package ac.grim.grimac.events.packets;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.player.GrimPlayer;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -35,12 +36,13 @@ public class PacketSetWrapperNull extends PacketListenerAbstract {
             //iterate through players and fake their game mode if they are spectating via grim spectate
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_12_2)) return;
             User user = event.getUser();
+            GrimPlayer receiver = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(user);
             WrapperPlayServerPlayerInfo info = new WrapperPlayServerPlayerInfo(event);
             if (info.getAction() == WrapperPlayServerPlayerInfo.Action.UPDATE_GAME_MODE || info.getAction() == WrapperPlayServerPlayerInfo.Action.ADD_PLAYER) {
                 List<WrapperPlayServerPlayerInfo.PlayerData> nmsPlayerInfoDataList = info.getPlayerDataList();
                 int hideCount = 0;
                 for (WrapperPlayServerPlayerInfo.PlayerData playerData : nmsPlayerInfoDataList) {
-                    if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(user, playerData)) {
+                    if (GrimAPI.INSTANCE.getSpectateManager().shouldHidePlayer(receiver, playerData)) {
                         hideCount++;
                         if (playerData.getGameMode() == GameMode.SPECTATOR) playerData.setGameMode(GameMode.SURVIVAL);
                     }

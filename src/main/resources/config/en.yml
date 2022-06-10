@@ -15,8 +15,13 @@ client-brand:
   ignored-clients:
     - "^vanilla$"
 
-# Hide all spectators with the grim.spectator permission regardless if they are actually actively spectating
-hide-spectators-regardless: false
+spectators:
+  # Hide all spectators with the grim.spectator permission regardless if they are actually actively spectating
+  hide-regardless: false
+  # Will make spectators hidden only in these worlds, keep blank to allow all worlds
+  allowed-worlds:
+    - ""
+
 # How long should players have until we keep them for timing out? Default = 2 minutes
 max-ping: 120
 
