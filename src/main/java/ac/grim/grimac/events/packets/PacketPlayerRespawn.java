@@ -20,6 +20,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerUp
 import org.bukkit.util.Vector;
 
 import java.util.List;
+import java.util.Objects;
 
 public class PacketPlayerRespawn extends PacketListenerAbstract {
 
@@ -63,7 +64,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             player.dimension = joinGame.getDimension();
 
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_17)) return;
-            player.compensatedWorld.setDimension(joinGame.getDimension().getType().getName(), event.getUser());
+            player.compensatedWorld.setDimension(joinGame.getDimension().getDimensionName(), event.getUser());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.RESPAWN) {
@@ -88,8 +89,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients
 
                 // EVERYTHING gets reset on a cross dimensional teleport, clear chunks and entities!
-                if (respawn.getDimension().getType() != player.dimension.getType() ||
-                        !respawn.getDimension().getAttributes().equals(player.dimension.getAttributes())) {
+                if (!respawn.getDimension().getDimensionName().equals(player.dimension.getDimensionName()) || !Objects.equals(respawn.getDimension().getAttributes(), player.dimension.getAttributes())) {
                     player.compensatedEntities.entityMap.clear();
                     player.compensatedWorld.activePistons.clear();
                     player.compensatedWorld.openShulkerBoxes.clear();
@@ -111,7 +111,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.pose = Pose.STANDING;
                 player.clientVelocity = new Vector();
                 player.gamemode = respawn.getGameMode();
-                player.compensatedWorld.setDimension(respawn.getDimension().getType().getName(), event.getUser());
+                player.compensatedWorld.setDimension(respawn.getDimension().getDimensionName(), event.getUser());
             });
         }
     }
