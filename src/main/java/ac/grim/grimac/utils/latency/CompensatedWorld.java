@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.ClientBlockPrediction;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
@@ -32,10 +33,10 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import lombok.Setter;
 import org.bukkit.util.Vector;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
@@ -50,6 +51,11 @@ public class CompensatedWorld {
     // 1.17 with datapacks, and 1.18, have negative world offset values
     private int minHeight = 0;
     private int maxHeight = 256;
+
+    public Long2ObjectOpenHashMap<ClientBlockPrediction> clientPredictions = new Long2ObjectOpenHashMap<>();
+    @Setter
+    boolean isPrediction;
+    int lastReceivedSequence;
 
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
@@ -99,7 +105,19 @@ public class CompensatedWorld {
         return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
     }
 
+    public void incrementSequence() {
+        lastReceivedSequence++;
+    }
+
     public void updateBlock(int x, int y, int z, int combinedID) {
+        long serializedPos = new Vector3i(x, y, z).getSerializedPosition();
+
+        // Update the prediction and return
+        if (!isPrediction && clientPredictions.containsKey(serializedPos)) {
+            clientPredictions.get(serializedPos).setBlockId(combinedID);
+            return;
+        }
+
         Column column = getChunk(x >> 4, z >> 4);
 
         // Apply 1.17 expanded world offset
@@ -118,6 +136,11 @@ public class CompensatedWorld {
                 // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
                 // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
                 chunk.set(null, 0, 0, 0, 0);
+            }
+
+            // Store previous state when placing blocks etc.
+            if (isPrediction) {
+                clientPredictions.put(serializedPos, new ClientBlockPrediction(lastReceivedSequence, chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF).getGlobalId(), new Vector3i(x, y, z)));
             }
 
             chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
