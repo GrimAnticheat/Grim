@@ -36,7 +36,7 @@ public class CompensatedEntities {
 
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
-        this.playerEntity = new PacketEntitySelf();
+        this.playerEntity = new PacketEntitySelf(player);
         this.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
     }
 
