@@ -49,8 +49,8 @@ public class FastBreak extends PacketCheck {
             WrapperPlayClientPlayerDigging digging = new WrapperPlayClientPlayerDigging(event);
 
             if (digging.getAction() == DiggingAction.START_DIGGING) {
+                startBreak = System.currentTimeMillis() - (targetBlock == null ? 50 : 0); // ???
                 targetBlock = digging.getBlockPosition();
-                startBreak = System.currentTimeMillis();
                 maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, targetBlock);
 
                 double breakDelay = System.currentTimeMillis() - lastFinishBreak;
