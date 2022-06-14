@@ -31,7 +31,7 @@ profile:
 help:
   - "&7======================"
   - "/grim alerts &f- &7Toggle alerts"
-  - "/grim profile &f- &7View player info"
+  - "/grim profile <player> &f- &7View player info"
   - "/grim help &f- &7View this help message"
   - "/grim debug <player> &f- &7Developer Prediction output"
   - "/grim perf &f- &7Developer ms/prediction"
