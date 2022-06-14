@@ -14,6 +14,16 @@ client-brand:
   # This means it won't broadcast their brand to operators if the brand matches the following regexes
   ignored-clients:
     - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:[a-z0-9]{7}"
+    - "^Feather Fabric$"
+
+spectators:
+  # Hide all spectators with the grim.spectator permission regardless if they are actually actively spectating
+  hide-regardless: false
+  # Will make spectators hidden only in these worlds, keep blank to allow all worlds
+  allowed-worlds:
+    - ""
 
 # How long should players have until we keep them for timing out? Default = 2 minutes
 max-ping: 120
