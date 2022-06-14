@@ -1,18 +1,27 @@
 package ac.grim.grimac.checks.impl.misc;
 
+import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.BlockBreakSpeed;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
+import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
+import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
+import org.bukkit.entity.Player;
 
 // Based loosely off of Hawk BlockBreakSpeedSurvival
 // Also based loosely off of NoCheatPlus FastBreak
@@ -83,9 +92,30 @@ public class FastBreak extends PacketCheck {
                 }
 
                 if (blockBreakBalance > 1000) { // If more than a second of advantage
-                    int blockID = player.compensatedWorld.getWrappedBlockStateAt(digging.getBlockPosition()).getGlobalId();
-                    player.user.sendPacket(new WrapperPlayServerBlockChange(digging.getBlockPosition(), blockID));
-                    event.setCancelled(true); // Cancelling will make the server believe the player insta-broke the block
+                    Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                        Player bukkitPlayer = player.bukkitPlayer;
+                        if (bukkitPlayer == null || !bukkitPlayer.isOnline()) return;
+
+                        if (bukkitPlayer.getLocation().distance(new Location(bukkitPlayer.getWorld(), digging.getBlockPosition().getX(), digging.getBlockPosition().getY(), digging.getBlockPosition().getZ())) < 64) {
+                            Chunk chunk = bukkitPlayer.getWorld().getChunkAt(digging.getBlockPosition().getX() >> 4, digging.getBlockPosition().getZ() >> 4);
+                            if (!chunk.isLoaded()) return; // Don't load chunks sync
+
+                            Block block = chunk.getBlock(digging.getBlockPosition().getX() & 15, digging.getBlockPosition().getY(), digging.getBlockPosition().getZ() & 15);
+
+                            int blockId;
+
+                            if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_13)) {
+                                // Cache this because strings are expensive
+                                blockId = WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), block.getBlockData().getAsString(false)).getGlobalId();
+                            } else {
+                                blockId = (block.getType().getId() << 4) | block.getData();
+                            }
+
+                            player.user.sendPacket(new WrapperPlayServerBlockChange(digging.getBlockPosition(), blockId));
+                        }
+                    });
+
+                    event.setCancelled(true);
                     flagAndAlert("Diff=" + diff + ",Balance=" + blockBreakBalance);
                 }
 
