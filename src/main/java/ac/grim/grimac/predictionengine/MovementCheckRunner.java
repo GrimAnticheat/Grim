@@ -206,7 +206,7 @@ public class MovementCheckRunner extends PositionCheck {
                 player.lastY = cutTo.getY();
                 player.lastZ = cutTo.getZ();
 
-                player.boundingBox = GetBoundingBox.getPlayerBoundingBox(player, player.lastX, player.lastY, player.lastZ);
+                player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
             } else {
                 // Server always teleports the player when they eject anyways,
                 // so just let the player control where they eject within reason, they get set back anyways

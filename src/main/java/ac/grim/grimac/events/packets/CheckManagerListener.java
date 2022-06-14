@@ -316,6 +316,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
         GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
         if (player == null) return;
 
+        // Determine if teleport BEFORE we call the pre-prediction vehicle
+        if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
+            WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
+            Vector3d position = move.getPosition();
+            player.packetStateData.lastPacketWasTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
+        }
+
         player.checkManager.onPrePredictionReceivePacket(event);
 
         // It's not optimal, but we ignore packets blocked by timer because it could be used to interpolate
@@ -357,9 +364,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.xRot = move.getYaw();
             player.yRot = move.getPitch();
 
-            final boolean isTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
-            player.packetStateData.lastPacketWasTeleport = isTeleport;
-            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), isTeleport);
+            final VehiclePositionUpdate update = new VehiclePositionUpdate(clamp, position, move.getYaw(), move.getPitch(), player.packetStateData.lastPacketWasTeleport);
             player.checkManager.onVehiclePositionUpdate(update);
 
             player.packetStateData.receivedSteerVehicle = false;

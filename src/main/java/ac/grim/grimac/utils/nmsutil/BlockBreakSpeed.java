@@ -115,19 +115,8 @@ public class BlockBreakSpeed {
         Integer conduit = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.CONDUIT_POWER);
 
         if (digSpeed != null || conduit != null) {
-            int i = 0;
-            int j = 0;
-            if (digSpeed != null) {
-                i = digSpeed;
-            }
-
-            if (conduit != null) {
-                j = conduit;
-            }
-
-            int hasteLevel = Math.max(i, j);
-
-            speedMultiplier *= 1 + (0.2 * hasteLevel);
+            int hasteLevel = Math.max(digSpeed == null ? 0 : digSpeed, conduit == null ? 0 : conduit);
+            speedMultiplier *= 1 + (0.2 * (hasteLevel + 1));
         }
 
         Integer miningFatigue = player.compensatedEntities.getPotionLevelForPlayer(PotionTypes.MINING_FATIGUE);
