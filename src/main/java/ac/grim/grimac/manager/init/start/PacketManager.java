@@ -1,9 +1,5 @@
 package ac.grim.grimac.manager.init.start;
 
-import java.io.File;
-
-import org.bukkit.configuration.file.YamlConfiguration;
-
 import ac.grim.grimac.events.packets.*;
 import ac.grim.grimac.events.packets.worldreader.BasePacketWorldReader;
 import ac.grim.grimac.events.packets.worldreader.PacketWorldReaderEighteen;
@@ -32,24 +28,13 @@ public class PacketManager implements Initable {
         PacketEvents.getAPI().getEventManager().registerListener(new CheckManagerListener());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketPlayerSteer());
 
-
         if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
             PacketEvents.getAPI().getEventManager().registerListener(new PacketWorldReaderEighteen());
         } else {
             PacketEvents.getAPI().getEventManager().registerListener(new BasePacketWorldReader());
         }
 
-        File paperFile = new File("paper.yml");
-
-        AlertPluginMessenger.setBungeeEnabled(YamlConfiguration.loadConfiguration(new File("spigot.yml")).getBoolean("settings.bungeecord") ||
-                (paperFile.exists() && YamlConfiguration.loadConfiguration(paperFile).getBoolean("settings.velocity-support.enabled")));
-
-        if (AlertPluginMessenger.isBungeeEnabled()) {
-            PacketEvents.getAPI().getEventManager().registerListener(new AlertPluginMessenger());
-        }
-
-        LogUtil.info("Bungeecord " + (AlertPluginMessenger.isBungeeEnabled() ? "detected" : "not found") + "...");
-
+        PacketEvents.getAPI().getEventManager().registerListener(new ProxyAlertMessenger());
         PacketEvents.getAPI().getEventManager().registerListener(new PacketSetWrapperNull());
 
         PacketEvents.getAPI().init();

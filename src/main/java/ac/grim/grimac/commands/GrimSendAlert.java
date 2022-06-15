@@ -3,7 +3,7 @@ package ac.grim.grimac.commands;
 import org.bukkit.entity.Player;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.events.packets.AlertPluginMessenger;
+import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import co.aikar.commands.BaseCommand;
@@ -22,8 +22,8 @@ public class GrimSendAlert extends BaseCommand {
             bukkitPlayer.sendMessage(string);
         }
         
-        if (AlertPluginMessenger.canSendAlerts()) {
-        	AlertPluginMessenger.sendPluginMessage(string);
+        if (ProxyAlertMessenger.canSendAlerts()) {
+        	ProxyAlertMessenger.sendPluginMessage(string);
         }
 
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.print-to-console", true)) {

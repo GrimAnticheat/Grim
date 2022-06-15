@@ -9,10 +9,12 @@ alerts:
   enable-on-join: true
   # In addition to broadcasting alerts to players, should they also be sent to the console?
   print-to-console: true
-  bungeecord:
+  # This controls whether/how alerts are shared between servers connected to your proxy.
+  # You must have 'bungee-plugin-message-channel' enabled in your Velocity's configuration if Velocity is in use.
+  proxy:
      # Should alerts be sent to other servers connected to your proxy?
      send: false
-     # Should alerts received from other servers be broadcasted?
+     # Should the alerts received from other servers be announced?
      receive: false
 
 client-brand:
