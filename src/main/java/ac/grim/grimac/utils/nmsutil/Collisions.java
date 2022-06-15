@@ -420,7 +420,7 @@ public class Collisions {
                     if (blockType == StateTypes.BUBBLE_COLUMN && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                         WrappedBlockState blockAbove = player.compensatedWorld.getWrappedBlockStateAt(i, j + 1, k);
 
-                        if (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT) {
+                        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
                             if (!blockAbove.getType().isAir()) {
                                 if (block.isDrag()) {
                                     player.clientVelocity.setY(Math.max(-0.3D, player.clientVelocity.getY() - 0.03D));

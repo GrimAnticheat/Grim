@@ -334,7 +334,7 @@ public class GrimPlayer {
     public float getMaxUpStep() {
         if (compensatedEntities.getSelf().getRiding() == null) return 0.6f;
 
-        if (compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT) {
+        if (EntityTypes.isTypeInstanceOf(compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
             return 0f;
         }
 
@@ -528,7 +528,7 @@ public class GrimPlayer {
             // If we actually need to check vehicle movement
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
                 // And if the vehicle is a type of vehicle that we track
-                if (data.getEntityType() == EntityTypes.BOAT || EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) || data.getEntityType() == EntityTypes.PIG || data.getEntityType() == EntityTypes.STRIDER) {
+                if (EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.BOAT) || EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) || data.getEntityType() == EntityTypes.PIG || data.getEntityType() == EntityTypes.STRIDER) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
                     user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));

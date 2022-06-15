@@ -35,7 +35,7 @@ public class BoundingBoxSize {
             return 0.3125f;
         } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.SKELETON_HORSE.equals(packetEntity.type) || EntityTypes.MULE.equals(packetEntity.type) || EntityTypes.ZOMBIE_HORSE.equals(packetEntity.type) || EntityTypes.HORSE.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
             return 1.39648f;
-        } else if (EntityTypes.BOAT.equals(packetEntity.type) || EntityTypes.CHEST_BOAT.equals(packetEntity.type)) {
+        } else if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.BOAT)) {
             return 1.375f;
         } else if (EntityTypes.CHICKEN.equals(packetEntity.type) || EntityTypes.ENDERMITE.equals(packetEntity.type) || EntityTypes.SILVERFISH.equals(packetEntity.type) || EntityTypes.VEX.equals(packetEntity.type) || EntityTypes.TADPOLE.equals(packetEntity.type)) {
             return 0.4f;
@@ -117,7 +117,7 @@ public class BoundingBoxSize {
             // Striders also do the same with animations, causing a desync.
             // At least the only people using buckets are people in boats for villager transportation
             // and people trying to false the anticheat.
-            if (entity.type == EntityTypes.BOAT || entity.type == EntityTypes.CHEST_BOAT) {
+            if (EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT)) {
                 float f = 0.0F;
                 float f1 = (float) (getPassengerRidingOffset(player, entity) - 0.35f); // hardcoded player offset
 
@@ -190,7 +190,7 @@ public class BoundingBoxSize {
 
         if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.MINECART_ABSTRACT)) {
             return 0;
-        } else if (EntityTypes.BOAT.equals(packetEntity.type) || EntityTypes.CHEST_BOAT.equals(packetEntity.type)) {
+        } else if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.BOAT)) {
             return -0.1;
         } else if (EntityTypes.HOGLIN.equals(packetEntity.type) || EntityTypes.ZOGLIN.equals(packetEntity.type)) {
             return getHeight(player, packetEntity) - (packetEntity.isBaby ? 0.2 : 0.15);
@@ -221,7 +221,7 @@ public class BoundingBoxSize {
             return 0.3125f;
         } else if (EntityTypes.BLAZE.equals(packetEntity.type)) {
             return 1.8f;
-        } else if (EntityTypes.BOAT.equals(packetEntity.type) || EntityTypes.CHEST_BOAT.equals(packetEntity.type)) {
+        } else if (EntityTypes.isTypeInstanceOf(packetEntity.type, EntityTypes.BOAT)) {
             // WHY DOES VIAVERSION OFFSET BOATS? THIS MAKES IT HARD TO SUPPORT, EVEN IF WE INTERPOLATE RIGHT.
             // I gave up and just exempted boats from the reach check and gave up with interpolation for collisions
             return 0.5625f;

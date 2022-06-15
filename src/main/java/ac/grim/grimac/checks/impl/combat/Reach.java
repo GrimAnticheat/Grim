@@ -46,6 +46,7 @@ public class Reach extends PacketCheck {
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
+            EntityTypes.CHEST_BOAT,
             EntityTypes.SHULKER);
 
     private boolean cancelImpossibleHits;

@@ -42,7 +42,7 @@ public class ReachInterpolationData {
             targetLocation.expand(0.03125);
         }
 
-        this.isBoat = entity.type == EntityTypes.BOAT;
+        this.isBoat = EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT);
         if (isPointNine) interpolationStepsHighBound = getInterpolationSteps();
     }
 

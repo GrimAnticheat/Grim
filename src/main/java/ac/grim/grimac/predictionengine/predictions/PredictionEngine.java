@@ -707,7 +707,7 @@ public class PredictionEngine {
 
     public boolean canSwimHop(GrimPlayer player) {
         // Boats cannot swim hop, all other living entities should be able to.
-        if (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT)
+        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT))
             return false;
 
         // Vanilla system ->

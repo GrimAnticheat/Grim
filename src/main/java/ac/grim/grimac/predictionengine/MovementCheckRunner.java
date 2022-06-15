@@ -490,7 +490,7 @@ public class MovementCheckRunner extends PositionCheck {
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
             // The player can't use entities (or the server just checks the entities)
-            if (player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT) {
+            if (EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
                 new PlayerBaseTick(player).doBaseTick();
                 // Speed doesn't affect anything with boat movement
                 new BoatPredictionEngine(player).guessBestMovement(0.1f, player);
