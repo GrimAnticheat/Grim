@@ -11,8 +11,6 @@ Punishments:
     checks:
       - "Simulation"
       - "GroundSpoof"
-      - "Knockback"
-      - "Explosion"
       - "Timer"
       - "NoFall"
     # Threshold:Interval Command
@@ -24,6 +22,14 @@ Punishments:
     commands:
       - "100:40 [alert]"
       - "100:100 [webhook]"
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"
+      - "Explosion"
+    commands:
+      - "5:5 [alert]"
+      - "20:20 [webhook]"
   Post:
     remove-violations-after: 300
     checks:
@@ -52,6 +58,8 @@ Punishments:
       - "EntityControl"
       - "NoSlow"
       - "Place"
+      - "Baritone"
+      - "FastBreak"
     commands:
       - "10:5 [alert]"
       - "20:10 [webhook]"
