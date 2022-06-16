@@ -392,7 +392,7 @@ public class MovementCheckRunner extends PositionCheck {
         boolean isGlitchy = player.uncertaintyHandler.isNearGlitchyBlock;
 
         player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
-                && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03),
+                && Collisions.hasMaterial(player, expandedBB.copy().expand(0.2),
                 checkData -> BlockTags.ANVIL.contains(checkData.getFirst().getType())
                         || checkData.getFirst().getType() == StateTypes.CHEST || checkData.getFirst().getType() == StateTypes.TRAPPED_CHEST);
 
