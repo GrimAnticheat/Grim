@@ -160,7 +160,7 @@ public class Collisions {
         // Worldborders were added in 1.8
         // Don't add to border unless the player is colliding with it and is near it
         if (player.clientControlledHorizontalCollision && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_8)) {
-            PacketWorldBorder border = ((PacketWorldBorder) player.checkManager.getPacketCheck(PacketWorldBorder.class));
+            PacketWorldBorder border = player.checkManager.getPacketCheck(PacketWorldBorder.class);
             double centerX = border.getCenterX();
             double centerZ = border.getCenterZ();
 
@@ -168,7 +168,7 @@ public class Collisions {
             double size = border.getCurrentDiameter() / 2;
 
             // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions (optimization)
-            if (Math.abs(player.x + centerX) + 16 > size || Math.abs(player.z + centerZ) + 16 > size) {
+            if (Math.abs(Math.abs(player.x - centerX) - size) < 16 || Math.abs(Math.abs(player.z - centerZ) - size) < 16) {
                 double minX = Math.floor(GrimMath.clamp(centerX - size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
                 double minZ = Math.floor(GrimMath.clamp(centerZ - size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
                 double maxX = Math.ceil(GrimMath.clamp(centerX + size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
