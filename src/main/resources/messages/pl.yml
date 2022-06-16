@@ -1,0 +1,40 @@
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+prefix: "&bGrim &8\u00BB"
+
+alerts-enabled: "%prefix% &fWłączyłeś powiadomienia"
+alerts-disabled: "%prefix% &fWyłączyłeś powiadomienia"
+client-brand-format: "%prefix% &f%player% dołączył, używając %brand%"
+console-specify-target: "%prefix% &cMusisz określić cel, wykonując tę czynność z konsoli."
+player-not-found: "%prefix% &cGracz jest wykluczony lub jest nieaktywny!"
+player-not-this-server: "%prefix% &cGracz nie jest na tym serwerze!"
+spectate-return: "\n%prefix% &fNaciśnij aby powrócić do poprzedniej lokalizacji\n"
+cannot-spectate-return: "%prefix% &cMożesz wykonać to tylko podczas obserwacji gracza"
+
+# Valid placeholders:
+# %prefix%
+# %player%
+# %check_name%
+# %vl% - violations
+# %verbose% - extra information from the check such as offsets, not all checks will add information
+alerts-format: "%prefix% &f%player% &bnie zaliczył &f%check_name% &f(x&c%vl%&f) &7%verbose%"
+
+profile:
+  - "&7======================"
+  - "%prefix% &bProfil &f%player%"
+  - "&bPing: &f%ping%"
+  - "&bWersja: &f%version%"
+  - "&bKlient: &f%brand%"
+  - "&bCzułość pozioma: &f%h_sensitivity%%"
+  - "&bCzułość pionowa: &f%v_sensitivity%%"
+  - "&bFastMath włączony: &f%fast_math%"
+  - "&7======================"
+help:
+  - "&7======================"
+  - "/grim alerts &f- &7Zmienia status powiadomień"
+  - "/grim profile &f- &7Wyświetla informacje o graczu"
+  - "/grim help &f- &7Wyświetla wiadomość pomocniczą"
+  - "/grim debug <player> &f- &7Developer Prediction output"
+  - "/grim perf &f- &7Developer ms/prediction"
+  - "/grim reload &f- &7Odświeża konfiguracje"
+  - "/grim spectate <player> &f- &7Obserwuje gracza"
+  - "&7======================"
