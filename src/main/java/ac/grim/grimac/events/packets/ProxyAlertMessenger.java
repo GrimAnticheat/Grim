@@ -77,7 +77,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         try {
             new DataOutputStream(messageBytes).writeUTF(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-proxy", message)).replace("%alert%", message));
         } catch (IOException exception) {
-            LogUtil.error("Error whilst forwarding an alert to proxy!");
+            LogUtil.error("Error whilst forwarding an alert to other servers!");
             exception.printStackTrace();
             return;
         }
