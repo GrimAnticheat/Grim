@@ -1,0 +1,3 @@
+# 是否启用discord webhook
+enabled: false
+webhook: ""
