@@ -1,0 +1,136 @@
+# GrimAC主要配置
+# 源代码链接: https://github.com/MWHunter/Grim
+# 版权归 DefineOutside 和 贡献者所有，基于GPLv3开源协议。
+#修改过的二进制文件，或带有复制的Grim代码的插件，必须是私有的，或提供完整的源代码给买家，而不需要额外的成本。
+
+alerts:
+  # 管理员进入时是否自动开启警告？
+  enable-on-join: true
+  # 是否在控制台显示警告？
+  print-to-console: true
+
+client-brand:
+  # 这意味着如果客户端型号匹配以下正则表达式，它将不会将其客户端型号传播给运营商
+  ignored-clients:
+    - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:[a-z0-9]{7}"
+    - "^Feather Fabric$"
+
+spectators:
+  # 把所有拥有 grim.spectartor 权限的人都隐藏起来，不管他是否观察玩家。
+  hide-regardless: false
+  # 让观察者只隐藏在这些世界里
+  allowed-worlds:
+    - ""
+
+# 在我们让他们超时之前，玩家应该有多长时间？ 120秒 = 2分钟
+max-ping: 120
+
+Simulation:
+  # 当玩家合法时，我们应该将总优势乘以多少
+  # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/d4ufgxrxer
+  setback-decay-multiplier: 0.999
+  # 我们应该为玩家的移动创建多大的偏移量？
+  # 从可能的移动中以块为单位测量
+  # 我们通过另一种方式来计算 Optifine，但将其降低到 0.001 会降低 FastMath
+  # 如果此补偿不起作用，则标记反作弊...
+  threshold: 0.0001
+  # 在玩家立即受到回弹之前，1ticks的违规行为有多大？
+  # -1 关闭
+  immediate-setback-threshold: 0.1
+  # 在我们开始遭遇回弹之前，我们的优势有多大?
+  # -1 关闭
+  max-advantage: 1
+  # 在默认配置的50秒后，玩家将从4块跑到1块
+  # 这是为了防止玩家收集过多的违规行为，并且永远无法清除所有的违规行为
+  # 这是默认配置的样子（x 轴 = seconds ，y 轴 = 1/1000 方块）: https://www.desmos.com/calculator/4lovswdarj
+  max-ceiling: 4
+
+# 检查玩家是否在移动过程中进入方块
+Phase:
+  setbackvl: 1 # 错误的方块可以允许爬墙，加上这个检查是相对稳定的
+  decay: 0.005
+  dont-alert-until: 10
+  alert-interval: 10
+
+# Prediction-based NoSlow 检查
+# 在这里解释错误的网络代码......即使在发送垃圾数据包时右键单击和副手按钮也很难假
+# 比其他反作弊更稳定，但请报告任何错误......我在这里修复了大量的网络代码问题。
+NoSlow:
+  # 有多少偏移量是“作弊”
+  # 默认低于其他offs
+  # 标志 0.03-0.2 与 NoSlow 一致
+  threshold: 0.001
+  # 到达多少VL时回弹
+  setbackvl: 5
+  # 当玩家使用一个物品并被它减慢时衰减多少VL
+  decay: 0.05
+  # 完全消耗一件物品需要 32ticks...... 25ticks 会在这里安全地标记作弊
+  dont-alert-until: 25
+  # 您可能不希望收到垃圾警报。每个NoSlow的项目目标警只报一次
+  alert-interval: 25
+
+Knockback:
+  # 有多少反击退是“作弊”
+  # 默认情况下这是 1e-5，这是安全和理智的
+  # 以正确移动的块为单位测量
+  threshold: 0.00001
+  setbackvl: 10
+  decay: 0.025
+  dont-alert-until: 8
+  alert-interval: 5
+
+Explosion:
+  threshold: 0.00001
+  setbackvl: 10
+  decay: 0.025
+  dont-alert-until: 8
+  alert-interval: 5
+
+TimerA:
+  # 1.0005 Timer检查
+  decay: 0.005
+  setbackvl: 10
+  dont-alert-until: 5
+  alert-interval: 5
+  # 玩家落后时可以累积以供以后使用的毫秒数
+  # 如果设置得太高，可能会允许 1.8 快速使用/快速治疗/快速弓箭绕过，120 毫秒似乎是一个很好的平衡
+  drift: 120
+
+# 与 TimerA 相同的检查方法，但适用于坐骑
+TimerVehicle:
+  # 实体1.0005 检查
+  decay: 0.005
+  setbackvl: 10
+  dont-alert-until: 5
+  alert-interval: 5
+
+EntityControl:
+  decay: 0.05
+  setbackvl: 25
+  dont-alert-until: 40
+  alert-interval: 40
+
+Reach:
+  # 我们应该将碰撞箱扩大多少？ 0.0005 应该检测到 3.0005+ reach
+  #
+  # 在 1.9-1.18.1（不是 1.18.2）或某些客户端/服务器组合中存在 0.03 强制扩展，因为
+  # 协议更改和限制。 对于 1.8 服务器上的 1.7/1.8 客户端，此检查功能最为强大。
+  threshold: 0.0005
+  # 我们应该取消我们知道不可能的命中吗？
+  # 3.00-3.03 命中可能会通过，但仍会被标记，因为数据包顺序限制
+  block-impossible-hits: true
+  # 这将在每个刻度结束时发送一个额外的数据包，以增加捕获作弊的可能性
+  # 这会注入服务器的连接列表以在服务器刷新之前发送最终数据包
+  # 启用这将增加所有玩家的带宽使用
+  # 这不会降低整体服务器性能
+  # 启用此功能将捕获更多作弊者。
+  # 禁用此功能仍会捕获作弊者，不会导致误报
+  # 除非你是专注于 1.8 PvP 的服务器，否则不建议使用这个额外的数据包
+  enable-post-packet: false
+
+# 启用在加入时注入 netty 的日志插件以调试兼容性问题
+debug-pipeline-on-join: false
+
+config-version: 3
