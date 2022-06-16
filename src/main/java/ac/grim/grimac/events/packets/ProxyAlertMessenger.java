@@ -29,7 +29,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
                 || ProxyAlertMessenger.getBooleanFromFile("paper.yml", "settings.velocity-support.enabled"));
 
         if (ProxyAlertMessenger.isUsingProxy()) {
-            LogUtil.info("Registering outgoing plugin channel...");
+            LogUtil.info("Registering an outgoing plugin channel...");
             GrimAPI.INSTANCE.getPlugin().getServer().getMessenger().registerOutgoingPluginChannel(GrimAPI.INSTANCE.getPlugin(), "BungeeCord");
         }
     }
@@ -55,6 +55,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         try {
             alert = new DataInputStream(new ByteArrayInputStream(messageBytes)).readUTF();
         } catch (IOException exception) {
+            LogUtil.error("Error whilst reading an alert forwarded from another server!");
             exception.printStackTrace();
             return;
         }
@@ -76,6 +77,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         try {
             new DataOutputStream(messageBytes).writeUTF(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-proxy", message)).replace("%alert%", message));
         } catch (IOException exception) {
+            LogUtil.error("Error whilst forwarding an alert to proxy!");
             exception.printStackTrace();
             return;
         }

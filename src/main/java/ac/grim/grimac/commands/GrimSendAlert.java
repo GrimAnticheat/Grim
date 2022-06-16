@@ -1,7 +1,5 @@
 package ac.grim.grimac.commands;
 
-import org.bukkit.entity.Player;
-
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.events.packets.ProxyAlertMessenger;
 import ac.grim.grimac.utils.anticheat.LogUtil;
@@ -10,6 +8,7 @@ import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandPermission;
 import co.aikar.commands.annotation.Subcommand;
+import org.bukkit.entity.Player;
 
 @CommandAlias("grim|grimac")
 public class GrimSendAlert extends BaseCommand {
