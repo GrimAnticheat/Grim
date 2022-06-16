@@ -7,10 +7,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPl
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class SpectateManager implements Initable {
@@ -34,7 +31,7 @@ public class SpectateManager implements Initable {
 
     public boolean shouldHidePlayer(GrimPlayer receiver, WrapperPlayServerPlayerInfo.PlayerData playerData) {
         return playerData.getUser() != null
-                && !playerData.getUser().getUUID().equals(receiver.playerUUID) // don't hide to yourself
+                && !Objects.equals(playerData.getUser().getUUID(), receiver.playerUUID) // don't hide to yourself
                 && (spectatingPlayers.containsKey(playerData.getUser().getUUID()) || hiddenPlayers.contains(playerData.getUser().getUUID())) //hide if you are a spectator
                 && !(spectatingPlayers.containsKey(receiver.playerUUID) || hiddenPlayers.contains(receiver.playerUUID)) // don't hide to other spectators
                 && (!checkWorld || (receiver.bukkitPlayer != null && allowedWorlds.contains(receiver.bukkitPlayer.getWorld().getName()))); // hide if you are in a specific world
