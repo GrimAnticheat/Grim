@@ -37,6 +37,8 @@ public class BlockBreakSpeed {
             isBestTool = BlockTags.MINEABLE_WITH_PICKAXE.contains(block.getType());
         } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.SHOVEL)) {
             isBestTool = BlockTags.MINEABLE_WITH_SHOVEL.contains(block.getType());
+        } else if (tool.getType().hasAttribute(ItemTypes.ItemAttribute.HOE)) {
+            isBestTool = BlockTags.MINEABLE_WITH_HOE.contains(block.getType());
         }
 
         if (isBestTool) {
