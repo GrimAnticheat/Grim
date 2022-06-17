@@ -10,18 +10,18 @@ player-not-this-server: "%prefix% &cCe joueur n'est pas sur ce serveur!"
 spectate-return: "\n%prefix% &fCliquez ici pour retourner à votre ancienne position\n"
 cannot-spectate-return: "%prefix% &cVous pouvez faire ceci uniquement après avoir regardé un joueur"
 
-# Valid placeholders:
+# Placeholders valide:
 # %prefix%
 # %player%
 # %check_name%
 # %vl% - violations
-# %verbose% - extra information from the check such as offsets, not all checks will add information
+# %verbose% - informations supplémentaires du check comme les offset, pas tous les check ajoutent des informations
 alerts-format: "%prefix% &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
   - "&7======================"
   - "%prefix% &bProfil de &f%player%"
-  - "&bPing: &f%ping%ms"
+  - "&bLatence: &f%ping%ms"
   - "&bVersion: &f%version%"
   - "&bClient: &f%brand%"
   - "&bSensibilité horizontal: &f%h_sensitivity%%"
@@ -33,8 +33,8 @@ help:
   - "/grim alerts &f- &7Activer/désactiver les alertes"
   - "/grim profile &f- &7Voir les informations du joueur"
   - "/grim help &f- &7Voir ce message"
-  - "/grim debug <player> &f- &7Sortie des prédictions développeur"
+  - "/grim debug <player> &f- &7Affichage des prédictions"
   - "/grim perf &f- &7Prédiction/ms développeur"
-  - "/grim reload &f- &7Recharge la config"
-  - "/grim spectate <player> &f- &7Regarde un joueur"
+  - "/grim reload &f- &7Recharger la config"
+  - "/grim spectate <player> &f- &7Regarder un joueur"
   - "&7======================"
