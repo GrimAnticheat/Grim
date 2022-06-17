@@ -31,7 +31,6 @@ import java.util.function.Predicate;
 
 public class Collisions {
     private static final double COLLISION_EPSILON = 1.0E-7;
-    private static final int ABSOLUTE_MAX_SIZE = 29999984;
 
     private static final boolean IS_FOURTEEN; // Optimization for chunks with empty block count
 
@@ -166,26 +165,29 @@ public class Collisions {
 
             // For some reason, the game limits the border to 29999984 blocks wide
             double size = border.getCurrentDiameter() / 2;
+            double absoluteMaxSize = border.getAbsoluteMaxSize();
+
+            double minX = Math.floor(GrimMath.clamp(centerX - size, -absoluteMaxSize, absoluteMaxSize));
+            double minZ = Math.floor(GrimMath.clamp(centerZ - size, -absoluteMaxSize, absoluteMaxSize));
+            double maxX = Math.ceil(GrimMath.clamp(centerX + size, -absoluteMaxSize, absoluteMaxSize));
+            double maxZ = Math.ceil(GrimMath.clamp(centerZ + size, -absoluteMaxSize, absoluteMaxSize));
+
+            // If the player is fully within the worldborder
+            double maxWorldBorderSize = Math.max(Math.max(maxX - minX, maxZ - minZ), 1.0D);
+
+            double toMinX = player.lastX - minX;
+            double toMaxX = maxX - player.lastX;
+            double minimumInXDirection = Math.min(toMinX, toMaxX);
+
+            double toMinZ = player.lastZ - minZ;
+            double toMaxZ = maxZ - player.lastZ;
+            double minimumInZDirection = Math.min(toMinZ, toMaxZ);
+
+            double distanceToBorder = Math.min(minimumInXDirection, minimumInZDirection);
 
             // If the player's is within 16 blocks of the worldborder, add the worldborder to the collisions (optimization)
-            if (Math.abs(Math.abs(player.x - centerX) - size) < 16 || Math.abs(Math.abs(player.z - centerZ) - size) < 16) {
-                double minX = Math.floor(GrimMath.clamp(centerX - size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
-                double minZ = Math.floor(GrimMath.clamp(centerZ - size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
-                double maxX = Math.ceil(GrimMath.clamp(centerX + size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
-                double maxZ = Math.ceil(GrimMath.clamp(centerZ + size, -ABSOLUTE_MAX_SIZE, ABSOLUTE_MAX_SIZE));
-
-                // If the player is fully within the worldborder
-                double maxMax = Math.max(Math.max(maxX - minX, maxZ - minZ), 1.0D);
-
-                double d0 = player.lastZ - minZ;
-                double d1 = maxZ - player.lastZ;
-                double d2 = player.lastX - minX;
-                double d3 = maxX - player.lastX;
-                double d4 = Math.min(d2, d3);
-                d4 = Math.min(d4, d0);
-                double distanceToBorder = Math.min(d4, d1);
-
-                if (distanceToBorder < maxMax * 2.0D && player.lastX > minX - maxMax && player.lastX < maxX + maxMax && player.lastZ > minZ - maxMax && player.lastZ < maxZ + maxMax) {
+            if (distanceToBorder < 16) {
+                if (distanceToBorder < maxWorldBorderSize * 2.0D && player.lastX > minX - maxWorldBorderSize && player.lastX < maxX + maxWorldBorderSize && player.lastZ > minZ - maxWorldBorderSize && player.lastZ < maxZ + maxWorldBorderSize) {
                     if (listOfBlocks == null) listOfBlocks = new ArrayList<>();
 
                     // South border
