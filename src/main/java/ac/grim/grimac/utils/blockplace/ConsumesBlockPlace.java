@@ -75,10 +75,8 @@ public class ConsumesBlockPlace {
         }
         if (state.getType() == StateTypes.COMMAND_BLOCK || state.getType() == StateTypes.CHAIN_COMMAND_BLOCK ||
                 state.getType() == StateTypes.REPEATING_COMMAND_BLOCK || state.getType() == StateTypes.JIGSAW
-                || state.getType() == StateTypes.JIGSAW) {
-            // Where is the permission level???? Check for >= 2 level eventually... no API for this.
-            // Only affects OP players, will fix eventually (also few desyncs from no minecraft lag compensation)
-            return player.bukkitPlayer != null && player.bukkitPlayer.isOp() && player.gamemode == GameMode.CREATIVE;
+                || state.getType() == StateTypes.STRUCTURE_BLOCK) {
+            return player.canUseGameMasterBlocks();
         }
         if (state.getType() == StateTypes.COMPOSTER) {
             if (Materials.isCompostable(place.getItemStack().getType()) && state.getLevel() < 8) {

@@ -1059,6 +1059,13 @@ public enum BlockPlaceResult {
             ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
             ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.GRASS),
 
+    GAME_MASTER((player, place) -> {
+        if (player.canUseGameMasterBlocks()) {
+            place.set();
+        }
+    }, ItemTypes.COMMAND_BLOCK, ItemTypes.CHAIN_COMMAND_BLOCK, ItemTypes.REPEATING_COMMAND_BLOCK,
+            ItemTypes.JIGSAW, ItemTypes.STRUCTURE_BLOCK),
+
     NO_DATA((player, place) -> {
         place.set(place.getMaterial());
     }, ItemTypes.AIR);

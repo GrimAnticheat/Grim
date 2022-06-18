@@ -4,6 +4,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 
@@ -11,6 +13,9 @@ public class PacketEntitySelf extends PacketEntity {
     public WrapperPlayServerEntityProperties.Property playerSpeed = new WrapperPlayServerEntityProperties.Property("MOVEMENT_SPEED", 0.1f, new ArrayList<>());
 
     private final GrimPlayer player;
+    @Getter
+    @Setter
+    int opLevel;
 
     public PacketEntitySelf(GrimPlayer player) {
         super(EntityTypes.PLAYER);

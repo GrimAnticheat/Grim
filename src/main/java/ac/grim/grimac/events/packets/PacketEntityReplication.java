@@ -202,6 +202,10 @@ public class PacketEntityReplication extends PacketCheck {
                     player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.uncertaintyHandler.fishingRodPulls.add(hookEntity.owner));
                 }
             }
+
+            if (status.getStatus() >= 24 && status.getStatus() <= 28 && status.getEntityId() == player.entityID) {
+                player.compensatedEntities.getSelf().setOpLevel(status.getStatus() - 24);
+            }
         }
 
         if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {

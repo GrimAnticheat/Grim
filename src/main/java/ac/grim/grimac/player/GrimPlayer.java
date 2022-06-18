@@ -573,4 +573,10 @@ public class GrimPlayer {
             }
         });
     }
+
+    public boolean canUseGameMasterBlocks() {
+        // This check was added in 1.11
+        // 1.11+ players must be in creative and have a permission level at or above 2
+        return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.getSelf().getOpLevel() >= 2);
+    }
 }
