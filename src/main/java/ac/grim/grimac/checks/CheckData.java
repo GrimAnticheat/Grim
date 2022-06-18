@@ -10,6 +10,8 @@ import java.lang.annotation.Target;
 public @interface CheckData {
     String name() default "UNKNOWN";
 
+    String alternativeName() default "UNKNOWN";
+
     String configName() default "DEFAULT";
 
     double decay() default 0.05;
