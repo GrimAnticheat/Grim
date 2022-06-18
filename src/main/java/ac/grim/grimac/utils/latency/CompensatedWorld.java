@@ -1,5 +1,7 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -32,10 +34,12 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
 import com.github.retrooper.packetevents.util.Vector3i;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
@@ -51,9 +55,43 @@ public class CompensatedWorld {
     private int minHeight = 0;
     private int maxHeight = 256;
 
+    // When the player changes the blocks, they track what the server thinks the blocks are,
+    // Then when the server
+    private final Object2IntMap<Vector3i> originalServerBlocks = new Object2IntArrayMap<>();
+    // Blocks the client changed while placing or breaking blocks
+    private List<Vector3i> currentlyChangedBlocks = new LinkedList<>();
+    private boolean isCurrentlyPredicting = false;
+
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
         chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
+    }
+
+    public void startPredicting() {
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
+        this.isCurrentlyPredicting = true;
+    }
+
+    public void stopPredicting() {
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
+        this.isCurrentlyPredicting = false; // We aren't in a block place or use item
+
+        if (this.currentlyChangedBlocks.isEmpty()) return; // Nothing to change
+
+        List<Vector3i> toApplyBlocks = this.currentlyChangedBlocks; // We must now track the client applying the server predicted blocks
+        this.currentlyChangedBlocks = new LinkedList<>(); // Reset variable without changing original
+
+        int transaction = player.lastTransactionSent.get() + 1; // Required when sending packets async
+        player.sendTransaction(true); // Apply after fetching transaction (don't block main thread)
+
+        if (!ViaBackwardsManager.didViaBreakBlockPredictions) {
+            // ViaVersion is updated and runs tasks with bukkit which is correct (or we are 1.19 server)
+            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                player.latencyUtils.addRealTimeTask(transaction, () -> toApplyBlocks.forEach(vector3i -> updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalServerBlocks.get(vector3i))));
+            });
+        } else { // ViaVersion is being stupid and sending acks immediately
+            player.latencyUtils.addRealTimeTask(transaction, () -> toApplyBlocks.forEach(vector3i -> updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalServerBlocks.get(vector3i))));
+        }
     }
 
     public static long chunkPositionToLong(int x, int z) {
@@ -100,6 +138,19 @@ public class CompensatedWorld {
     }
 
     public void updateBlock(int x, int y, int z, int combinedID) {
+        Vector3i asVector = new Vector3i(x, y, z);
+        if (isCurrentlyPredicting) {
+            originalServerBlocks.put(asVector, getWrappedBlockStateAt(asVector).getGlobalId()); // Remember server controlled block type
+            currentlyChangedBlocks.add(asVector);
+        }
+
+        if (!isCurrentlyPredicting && originalServerBlocks.containsKey(asVector)) {
+            // Server has a more up-to-date block, that isn't truly up to date
+            // This will be replaced when the map
+            originalServerBlocks.put(asVector, combinedID);
+            return;
+        }
+
         Column column = getChunk(x >> 4, z >> 4);
 
         // Apply 1.17 expanded world offset

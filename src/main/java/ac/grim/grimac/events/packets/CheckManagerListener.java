@@ -196,7 +196,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.yRot = pitch;
             }
 
+            player.compensatedWorld.startPredicting();
             handleBlockPlaceOrUseItem(packet, player);
+            player.compensatedWorld.stopPredicting();
 
             player.x = lastX;
             player.y = lastY;
@@ -386,7 +388,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 //Instant breaking, no damage means it is unbreakable by creative players (with swords)
                 if (damage > 1 || (player.gamemode == GameMode.CREATIVE && damage != 0)) {
+                    player.compensatedWorld.startPredicting();
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(),0);
+                    player.compensatedWorld.stopPredicting();
                 }
             }
         }
