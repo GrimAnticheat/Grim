@@ -36,8 +36,7 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player == null) return;
 
-            List<Runnable> tasks = event.getPostTasks();
-            tasks.add(player::sendTransaction);
+            player.sendTransaction();
 
             if (health.getFood() == 20) { // Split so transaction before packet
                 player.latencyUtils.addRealTimeTask(player.lastTransactionReceived.get(), () -> player.food = 20);
@@ -46,12 +45,14 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             }
 
             if (health.getHealth() <= 0) {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.isDead = true);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.compensatedEntities.getSelf().isDead = true);
             } else {
-                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.isDead = false);
+                player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.compensatedEntities.getSelf().isDead = false);
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.packetStateData.slowedByUsingItem = false);
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.packetStateData.slowedByUsingItem = false);
             }
+
+            event.getPostTasks().add(player::sendTransaction);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.JOIN_GAME) {
@@ -82,7 +83,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
             // TODO: What does keep all metadata do?
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> {
                 // Client creates a new entity on respawn
-                player.isDead = false;
                 player.isSneaking = false;
                 player.lastOnGround = false;
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues

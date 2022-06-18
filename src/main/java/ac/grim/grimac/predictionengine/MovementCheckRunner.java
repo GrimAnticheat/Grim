@@ -421,8 +421,8 @@ public class MovementCheckRunner extends PositionCheck {
 
         boolean wasChecked = false;
 
-        // Exempt if the player is offline
-        if (player.isDead || (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().isDead)) {
+        // Exempt if the player is dead or is riding a dead entity
+        if (player.compensatedEntities.getSelf().isDead || (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
