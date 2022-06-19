@@ -106,6 +106,14 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     private void check(PositionUpdate update) {
+        // Update knockback and explosions after getting the vehicle
+        int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
+        player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
+        player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get());
+
+        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
+        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
+
         if (update.isTeleport()) {
             handleTeleport(update);
             return;
@@ -148,17 +156,9 @@ public class MovementCheckRunner extends PositionCheck {
             }
         }
 
-        // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickPlayerInPistonPushingArea();
         player.compensatedEntities.tick();
 
-        // Update knockback and explosions after getting the vehicle
-        int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
-        player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
-        player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get());
-
-        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
-        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
 
         // The game's movement is glitchy when switching between vehicles
         // This is due to mojang not telling us where the new vehicle's location is
