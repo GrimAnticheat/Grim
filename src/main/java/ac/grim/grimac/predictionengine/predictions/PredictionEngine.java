@@ -158,12 +158,13 @@ public class PredictionEngine {
                 player.skippedTickInActualMovement = true;
             }
 
+            boolean wasVelocityPointThree = false;
             // This allows us to always check the percentage of knockback taken
             // A player cannot simply ignore knockback without us measuring how off it was
             //
             // Exempt if the player
             if ((clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) && !clientVelAfterInput.isZeroPointZeroThree()) {
-                boolean wasPointThree = player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput)));
+                wasVelocityPointThree = player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput)));
 
                 // Check ONLY the knockback vectors for 0.03
                 // The first being the one without uncertainty
@@ -173,22 +174,12 @@ public class PredictionEngine {
                 // There's much larger performance design issues than losing a few nanoseconds here and there.
                 if (clientVelAfterInput.isKnockback()) {
                     player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
-                    player.checkManager.getKnockbackHandler().setPointThree(wasPointThree);
+                    player.checkManager.getKnockbackHandler().setPointThree(wasVelocityPointThree);
                 }
 
                 if (clientVelAfterInput.isExplosion()) {
                     player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
-                    player.checkManager.getExplosionHandler().setPointThree(wasPointThree);
-                }
-
-                if (wasPointThree) {
-                    // Loop again, without incrementing the loop, but as 0.03
-                    // We must re-run the previous code again, and I don't want to repeat myself
-                    // I'm lazily determining 0.03 because 0.03 is expensive to determine
-                    // We can't add to the end of the list because the order of predictions ran matters
-                    // as we must try knockback possibilities before non-knockback possibilities
-                    clientVelAfterInput = clientVelAfterInput.returnNewModified(clientVelAfterInput.vector, VectorData.VectorType.ZeroPointZeroThree);
-                    continue;
+                    player.checkManager.getExplosionHandler().setPointThree(wasVelocityPointThree);
                 }
             }
 
@@ -216,7 +207,17 @@ public class PredictionEngine {
                 break;
             }
 
-            if (++i < possibleVelocities.size()) clientVelAfterInput = possibleVelocities.get(i);
+            if (wasVelocityPointThree) {
+                // Loop again, without incrementing the loop, but as 0.03
+                // We must re-run the previous code again, and I don't want to repeat myself
+                // I'm lazily determining 0.03 because 0.03 is expensive to determine
+                // We can't add to the end of the list because the order of predictions ran matters
+                // as we must try knockback possibilities before non-knockback possibilities
+                clientVelAfterInput = clientVelAfterInput.returnNewModified(clientVelAfterInput.vector, VectorData.VectorType.ZeroPointZeroThree);
+            } else if (++i < possibleVelocities.size()) {
+                 clientVelAfterInput = possibleVelocities.get(i);
+            }
+
         }
 
         assert beforeCollisionMovement != null;
