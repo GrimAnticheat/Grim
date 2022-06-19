@@ -97,20 +97,23 @@ public class CompensatedWorld {
             if (predictionData.getForBlockUpdate() == toApplyBlocks) { // We are the last to care about this prediction, remove it to stop memory leak
                 originalServerBlocks.remove(vector3i.getSerializedPosition());
 
-                WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, predictionData.getOriginalBlockId());
+                // If we need to change the world block state
+                if (getWrappedBlockStateAt(vector3i).getGlobalId() != predictionData.getOriginalBlockId()) {
+                    WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, predictionData.getOriginalBlockId());
 
-                // The player will teleport themselves if they get stuck in the reverted block
-                if (CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
-                    player.lastX = player.x;
-                    player.lastY = player.y;
-                    player.lastZ = player.z;
-                    player.x = predictionData.getPlayerPosition().getX();
-                    player.y = predictionData.getPlayerPosition().getY();
-                    player.z = predictionData.getPlayerPosition().getZ();
-                    player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+                    // The player will teleport themselves if they get stuck in the reverted block
+                    if (CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
+                        player.lastX = player.x;
+                        player.lastY = player.y;
+                        player.lastZ = player.z;
+                        player.x = predictionData.getPlayerPosition().getX();
+                        player.y = predictionData.getPlayerPosition().getY();
+                        player.z = predictionData.getPlayerPosition().getZ();
+                        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+                    }
+
+                    updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), predictionData.getOriginalBlockId());
                 }
-
-                updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), predictionData.getOriginalBlockId());
             }
         }));
     }
