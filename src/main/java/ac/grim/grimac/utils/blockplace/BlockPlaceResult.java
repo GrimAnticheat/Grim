@@ -844,8 +844,7 @@ public enum BlockPlaceResult {
         }
 
         place.set(gate);
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("FENCE") && mat.getName().getKey().contains("GATE"))
-            .toArray(ItemType[]::new)),
+    }, BlockTags.FENCE_GATES),
 
     TRAPDOOR((player, place) -> {
         WrappedBlockState door = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
@@ -1095,6 +1094,16 @@ public enum BlockPlaceResult {
 
     BlockPlaceResult(BlockPlaceFactory data, ItemTags tags) {
         this(data, tags.getStates().toArray(new ItemType[0]));
+    }
+
+    BlockPlaceResult(BlockPlaceFactory data, BlockTags tag) {
+        List<ItemType> types = new ArrayList<>();
+        for (StateType state : tag.getStates()) {
+            types.add(ItemTypes.getTypePlacingState(state));
+        }
+
+        this.data = data;
+        this.materials = types.toArray(new ItemType[0]);
     }
 
     public static BlockPlaceFactory getMaterialData(ItemType placed) {

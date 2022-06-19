@@ -58,6 +58,14 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
             handleMultiBlockChange(player, event);
         }
+
+        if (event.getPacketType() == PacketType.Play.Server.ACKNOWLEDGE_BLOCK_CHANGES) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            WrapperPlayServerAcknowledgeBlockChanges changes = new WrapperPlayServerAcknowledgeBlockChanges(event);
+            player.compensatedWorld.handlePredictionConfirmation(changes.getSequence());
+        }
     }
 
     public void handleMapChunkBulk(GrimPlayer player, PacketSendEvent event) {

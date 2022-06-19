@@ -4,16 +4,21 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.BlockPrediction;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
@@ -32,10 +37,13 @@ import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
@@ -55,11 +63,14 @@ public class CompensatedWorld {
     private int minHeight = 0;
     private int maxHeight = 256;
 
-    // When the player changes the blocks, they track what the server thinks the blocks are,
-    // Then when the server
-    private final Object2IntMap<Vector3i> originalServerBlocks = new Object2IntArrayMap<>();
+    // When the player changes the blocks, they track what the server thinks the blocks are
+    //
+    // Pair of the block position and the owning list TO the actual block
+    // The owning list is so that this info can be removed when the final list is processed
+    private final Long2ObjectOpenHashMap<BlockPrediction> originalServerBlocks = new Long2ObjectOpenHashMap<>();
     // Blocks the client changed while placing or breaking blocks
     private List<Vector3i> currentlyChangedBlocks = new LinkedList<>();
+    private final Map<Integer, List<Vector3i>> serverIsCurrentlyProcessingThesePredictions = new HashMap<>();
     private boolean isCurrentlyPredicting = false;
 
     public CompensatedWorld(GrimPlayer player) {
@@ -72,7 +83,39 @@ public class CompensatedWorld {
         this.isCurrentlyPredicting = true;
     }
 
-    public void stopPredicting() {
+    public void handlePredictionConfirmation(int prediction) {
+        List<Vector3i> changes = serverIsCurrentlyProcessingThesePredictions.remove(prediction);
+        if (changes == null) return;
+        applyBlockChanges(changes);
+    }
+
+    private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
+        player.sendTransaction();
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
+            BlockPrediction predictionData = originalServerBlocks.get(vector3i.getSerializedPosition());
+
+            if (predictionData.getForBlockUpdate() == toApplyBlocks) { // We are the last to care about this prediction, remove it to stop memory leak
+                originalServerBlocks.remove(vector3i.getSerializedPosition());
+            }
+
+            WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, predictionData.getOriginalBlockId());
+
+            // The player will teleport themselves if they get stuck in the reverted block
+            if (CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
+                player.lastX = player.x;
+                player.lastY = player.y;
+                player.lastZ = player.z;
+                player.x = predictionData.getPlayerPosition().getX();
+                player.y = predictionData.getPlayerPosition().getY();
+                player.z = predictionData.getPlayerPosition().getZ();
+                player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+            }
+
+            updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), predictionData.getOriginalBlockId());
+        }));
+    }
+
+    public void stopPredicting(PacketWrapper<?> wrapper) {
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
         this.isCurrentlyPredicting = false; // We aren't in a block place or use item
 
@@ -81,16 +124,28 @@ public class CompensatedWorld {
         List<Vector3i> toApplyBlocks = this.currentlyChangedBlocks; // We must now track the client applying the server predicted blocks
         this.currentlyChangedBlocks = new LinkedList<>(); // Reset variable without changing original
 
-        int transaction = player.lastTransactionSent.get() + 1; // Required when sending packets async
-        player.sendTransaction(true); // Apply after fetching transaction (don't block main thread)
+        // We don't need to simulate any packets, it is native to the version we are on
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
+            // Pull the confirmation ID out of the packet
+            int confirmationId = 0;
+            if (wrapper instanceof WrapperPlayClientPlayerBlockPlacement) {
+                confirmationId = ((WrapperPlayClientPlayerBlockPlacement) wrapper).getSequence();
+            } else if (wrapper instanceof WrapperPlayClientUseItem) {
+                confirmationId = ((WrapperPlayClientUseItem) wrapper).getSequence();
+            } else if (wrapper instanceof WrapperPlayClientPlayerDigging) {
+                confirmationId = ((WrapperPlayClientPlayerDigging) wrapper).getSequence();
+            }
 
-        if (!ViaBackwardsManager.didViaBreakBlockPredictions) {
+            serverIsCurrentlyProcessingThesePredictions.put(confirmationId, toApplyBlocks);
+        } else if (!ViaBackwardsManager.didViaBreakBlockPredictions) {
             // ViaVersion is updated and runs tasks with bukkit which is correct (or we are 1.19 server)
+            // So we must wait for the bukkit thread to start ticking so the server can confirm it
             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
-                player.latencyUtils.addRealTimeTask(transaction, () -> toApplyBlocks.forEach(vector3i -> updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalServerBlocks.get(vector3i))));
+                // And then we jump back to the netty thread to simulate that Via sent the confirmation
+                ChannelHelper.runInEventLoop(player.user.getChannel(), () -> applyBlockChanges(toApplyBlocks));
             });
         } else { // ViaVersion is being stupid and sending acks immediately
-            player.latencyUtils.addRealTimeTask(transaction, () -> toApplyBlocks.forEach(vector3i -> updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), originalServerBlocks.get(vector3i))));
+            applyBlockChanges(toApplyBlocks);
         }
     }
 
@@ -139,15 +194,15 @@ public class CompensatedWorld {
 
     public void updateBlock(int x, int y, int z, int combinedID) {
         Vector3i asVector = new Vector3i(x, y, z);
+
         if (isCurrentlyPredicting) {
-            originalServerBlocks.put(asVector, getWrappedBlockStateAt(asVector).getGlobalId()); // Remember server controlled block type
+            originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getWrappedBlockStateAt(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
             currentlyChangedBlocks.add(asVector);
         }
 
-        if (!isCurrentlyPredicting && originalServerBlocks.containsKey(asVector)) {
-            // Server has a more up-to-date block, that isn't truly up to date
-            // This will be replaced when the map
-            originalServerBlocks.put(asVector, combinedID);
+        if (!isCurrentlyPredicting && originalServerBlocks.containsKey(asVector.getSerializedPosition())) {
+            // Server has a more up-to-date block, replace the original serialized position
+            originalServerBlocks.get(asVector.getSerializedPosition()).setOriginalBlockId(combinedID);
             return;
         }
 

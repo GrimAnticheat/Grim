@@ -171,7 +171,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     public static void handleQueuedPlaces(GrimPlayer player, boolean hasLook, float pitch, float yaw, long now) {
         // Handle queue'd block places
-        PacketWrapper packet;
+        PacketWrapper<?> packet;
         while ((packet = player.placeUseItemPackets.poll()) != null) {
             double lastX = player.x;
             double lastY = player.y;
@@ -198,7 +198,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             player.compensatedWorld.startPredicting();
             handleBlockPlaceOrUseItem(packet, player);
-            player.compensatedWorld.stopPredicting();
+            player.compensatedWorld.stopPredicting(packet);
 
             player.x = lastX;
             player.y = lastY;
@@ -390,7 +390,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 if (damage > 1 || (player.gamemode == GameMode.CREATIVE && damage != 0)) {
                     player.compensatedWorld.startPredicting();
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(),0);
-                    player.compensatedWorld.stopPredicting();
+                    player.compensatedWorld.stopPredicting(dig);
                 }
             }
         }

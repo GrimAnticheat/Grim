@@ -130,7 +130,6 @@ public class GrimPlayer {
     public boolean isSlowMovement = false;
     public boolean isInBed = false;
     public boolean lastInBed = false;
-    public boolean isDead = false;
     public int food = 20;
     public float depthStriderLevel;
     public float sneakingSpeedMultiplier = 0.3f;
@@ -184,7 +183,7 @@ public class GrimPlayer {
     public Dimension dimension;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
-    public Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
+    public Queue<PacketWrapper<?>> placeUseItemPackets = new LinkedBlockingQueue<>();
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
