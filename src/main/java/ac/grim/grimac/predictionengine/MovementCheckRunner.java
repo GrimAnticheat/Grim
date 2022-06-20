@@ -84,13 +84,20 @@ public class MovementCheckRunner extends PositionCheck {
         // Reset velocities
         // Teleporting a vehicle does not reset its velocity
         if (!player.compensatedEntities.getSelf().inVehicle()) {
-            player.clientVelocity = new Vector();
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeX()) {
+                player.clientVelocity.setX(0);
+            }
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeY()) {
+                player.clientVelocity.setY(0);
+                player.lastWasClimbing = 0; // Vertical movement reset
+                player.canSwimHop = false; // Vertical movement reset
+            }
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeZ()) {
+                player.clientVelocity.setZ(0);
+            }
         }
 
         player.uncertaintyHandler.lastTeleportTicks.reset();
-        player.lastWasClimbing = 0;
-        player.fallDistance = 0;
-        player.canSwimHop = false;
 
         // Teleports OVERRIDE explosions and knockback
         player.checkManager.getExplosionHandler().onTeleport();
@@ -159,7 +166,6 @@ public class MovementCheckRunner extends PositionCheck {
         player.compensatedWorld.tickPlayerInPistonPushingArea();
         player.compensatedEntities.tick();
 
-
         // The game's movement is glitchy when switching between vehicles
         // This is due to mojang not telling us where the new vehicle's location is
         // meaning the first move gets hidden... beautiful
@@ -180,7 +186,6 @@ public class MovementCheckRunner extends PositionCheck {
 
             player.vehicleData.lastDummy = false;
             player.vehicleData.wasVehicleSwitch = false;
-
 
             if (player.compensatedEntities.getSelf().getRiding() != null) {
                 Vector pos = new Vector(player.x, player.y, player.z);
