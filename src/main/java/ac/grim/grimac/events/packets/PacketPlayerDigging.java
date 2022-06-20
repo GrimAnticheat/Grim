@@ -160,8 +160,8 @@ public class PacketPlayerDigging extends PacketListenerAbstract {
             if (slot.getSlot() > 8) return;
 
             if (player.packetStateData.lastSlotSelected != slot.getSlot()) {
-                player.packetStateData.slowedByUsingItem = false;
-                player.checkManager.getPostPredictionCheck(NoSlow.class).fuckLegacyVersions = true;
+                player.packetStateData.slowedByUsingItem = false; // TODO: Send a STOP_USE_ITEM on behalf of the player
+                player.checkManager.getPostPredictionCheck(NoSlow.class).didSlotChangeLastTick = true;
             }
             player.packetStateData.lastSlotSelected = slot.getSlot();
         }

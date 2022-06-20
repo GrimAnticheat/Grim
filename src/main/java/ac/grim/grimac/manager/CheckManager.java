@@ -15,7 +15,6 @@ import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.checks.impl.misc.FastBreak;
 import ac.grim.grimac.checks.impl.movement.*;
 import ac.grim.grimac.checks.impl.badpackets.BadPacketsO;
-import ac.grim.grimac.checks.impl.badpackets.BadPacketsP;
 import ac.grim.grimac.checks.impl.post.PostCheck;
 import ac.grim.grimac.checks.impl.prediction.DebugHandler;
 import ac.grim.grimac.checks.impl.prediction.NoFallB;
@@ -67,7 +66,6 @@ public class CheckManager {
                 .put(ClientBrand.class, new ClientBrand(player))
                 .put(NoFallA.class, new NoFallA(player))
                 .put(BadPacketsO.class, new BadPacketsO(player))
-                .put(BadPacketsP.class, new BadPacketsP(player))
                 .put(BadPacketsA.class, new BadPacketsA(player))
                 .put(BadPacketsB.class, new BadPacketsB(player))
                 .put(BadPacketsC.class, new BadPacketsC(player))

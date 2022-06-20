@@ -130,7 +130,6 @@ public class GrimPlayer {
     public boolean isSlowMovement = false;
     public boolean isInBed = false;
     public boolean lastInBed = false;
-    public boolean isDead = false;
     public int food = 20;
     public float depthStriderLevel;
     public float sneakingSpeedMultiplier = 0.3f;
@@ -184,7 +183,7 @@ public class GrimPlayer {
     public Dimension dimension;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
-    public Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
+    public Queue<PacketWrapper<?>> placeUseItemPackets = new LinkedBlockingQueue<>();
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
@@ -518,7 +517,7 @@ public class GrimPlayer {
         return compensatedEntities.getSelf().inVehicle()
                 || Collections.max(uncertaintyHandler.pistonX) != 0 || Collections.max(uncertaintyHandler.pistonY) != 0
                 || Collections.max(uncertaintyHandler.pistonZ) != 0 || uncertaintyHandler.isStepMovement
-                || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(30)
+                || isFlying || compensatedEntities.getSelf().isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(30)
                 || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || uncertaintyHandler.isOrWasNearGlitchyBlock;
     }
 
@@ -572,5 +571,11 @@ public class GrimPlayer {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
+    }
+
+    public boolean canUseGameMasterBlocks() {
+        // This check was added in 1.11
+        // 1.11+ players must be in creative and have a permission level at or above 2
+        return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.getSelf().getOpLevel() >= 2);
     }
 }

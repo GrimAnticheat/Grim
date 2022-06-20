@@ -8,4 +8,5 @@ import lombok.Setter;
 public class TeleportAcceptData {
     boolean isTeleport;
     SetBackData setback;
+    TeleportData teleportData;
 }

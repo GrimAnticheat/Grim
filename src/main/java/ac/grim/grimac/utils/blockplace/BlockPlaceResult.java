@@ -542,6 +542,8 @@ public enum BlockPlaceResult {
         boolean isHead = place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL");
         boolean isWallSign = !isTorch && !isHead;
 
+        if (isHead && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) return; // 1.12- players don't predict head places
+
         if (isTorch) {
             dir = StateTypes.WALL_TORCH.createBlockState(CompensatedWorld.blockVersion);
         } else if (place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL")) {
@@ -842,8 +844,7 @@ public enum BlockPlaceResult {
         }
 
         place.set(gate);
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("FENCE") && mat.getName().getKey().contains("GATE"))
-            .toArray(ItemType[]::new)),
+    }, BlockTags.FENCE_GATES),
 
     TRAPDOOR((player, place) -> {
         WrappedBlockState door = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
@@ -1059,6 +1060,13 @@ public enum BlockPlaceResult {
             ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
             ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.GRASS),
 
+    GAME_MASTER((player, place) -> {
+        if (player.canUseGameMasterBlocks()) {
+            place.set();
+        }
+    }, ItemTypes.COMMAND_BLOCK, ItemTypes.CHAIN_COMMAND_BLOCK, ItemTypes.REPEATING_COMMAND_BLOCK,
+            ItemTypes.JIGSAW, ItemTypes.STRUCTURE_BLOCK),
+
     NO_DATA((player, place) -> {
         place.set(place.getMaterial());
     }, ItemTypes.AIR);
@@ -1086,6 +1094,16 @@ public enum BlockPlaceResult {
 
     BlockPlaceResult(BlockPlaceFactory data, ItemTags tags) {
         this(data, tags.getStates().toArray(new ItemType[0]));
+    }
+
+    BlockPlaceResult(BlockPlaceFactory data, BlockTags tag) {
+        List<ItemType> types = new ArrayList<>();
+        for (StateType state : tag.getStates()) {
+            types.add(ItemTypes.getTypePlacingState(state));
+        }
+
+        this.data = data;
+        this.materials = types.toArray(new ItemType[0]);
     }
 
     public static BlockPlaceFactory getMaterialData(ItemType placed) {

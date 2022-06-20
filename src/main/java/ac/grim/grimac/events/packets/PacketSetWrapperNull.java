@@ -62,7 +62,7 @@ public class PacketSetWrapperNull extends PacketListenerAbstract {
                     event.setLastUsedWrapper(null);
                 }
             }
-        } else {
+        } else if (event.getPacketType() != PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
             event.setLastUsedWrapper(null);
         }
     }

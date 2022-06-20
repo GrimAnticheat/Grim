@@ -77,14 +77,14 @@ Knockback:
   # By default this is 1e-5, which is safe and sane
   # Measured in blocks from the correct movement
   threshold: 0.00001
-  setbackvl: 10
+  setbackvl: 3
   decay: 0.025
   dont-alert-until: 8
   alert-interval: 5
 
 Explosion:
   threshold: 0.00001
-  setbackvl: 10
+  setbackvl: 3
   decay: 0.025
   dont-alert-until: 8
   alert-interval: 5

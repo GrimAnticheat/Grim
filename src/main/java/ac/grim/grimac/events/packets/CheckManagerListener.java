@@ -171,7 +171,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
     public static void handleQueuedPlaces(GrimPlayer player, boolean hasLook, float pitch, float yaw, long now) {
         // Handle queue'd block places
-        PacketWrapper packet;
+        PacketWrapper<?> packet;
         while ((packet = player.placeUseItemPackets.poll()) != null) {
             double lastX = player.x;
             double lastY = player.y;
@@ -196,7 +196,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.yRot = pitch;
             }
 
+            player.compensatedWorld.startPredicting();
             handleBlockPlaceOrUseItem(packet, player);
+            player.compensatedWorld.stopPredicting(packet);
 
             player.x = lastX;
             player.y = lastY;
@@ -386,7 +388,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
                 //Instant breaking, no damage means it is unbreakable by creative players (with swords)
                 if (damage > 1 || (player.gamemode == GameMode.CREATIVE && damage != 0)) {
+                    player.compensatedWorld.startPredicting();
                     player.compensatedWorld.updateBlock(dig.getBlockPosition().getX(), dig.getBlockPosition().getY(), dig.getBlockPosition().getZ(),0);
+                    player.compensatedWorld.stopPredicting(dig);
                 }
             }
         }
@@ -629,7 +633,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (hasPosition) {
             Vector3d position = new Vector3d(x, y, z);
             Vector3d clampVector = VectorUtils.clampVector(position);
-            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.isTeleport());
+            final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
 
             player.filterMojangStupidityOnMojangStupidity = clampVector;
 

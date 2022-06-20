@@ -84,13 +84,20 @@ public class MovementCheckRunner extends PositionCheck {
         // Reset velocities
         // Teleporting a vehicle does not reset its velocity
         if (!player.compensatedEntities.getSelf().inVehicle()) {
-            player.clientVelocity = new Vector();
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeX()) {
+                player.clientVelocity.setX(0);
+            }
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeY()) {
+                player.clientVelocity.setY(0);
+                player.lastWasClimbing = 0; // Vertical movement reset
+                player.canSwimHop = false; // Vertical movement reset
+            }
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeZ()) {
+                player.clientVelocity.setZ(0);
+            }
         }
 
         player.uncertaintyHandler.lastTeleportTicks.reset();
-        player.lastWasClimbing = 0;
-        player.fallDistance = 0;
-        player.canSwimHop = false;
 
         // Teleports OVERRIDE explosions and knockback
         player.checkManager.getExplosionHandler().onTeleport();
@@ -106,6 +113,14 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     private void check(PositionUpdate update) {
+        // Update knockback and explosions after getting the vehicle
+        int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
+        player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
+        player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get());
+
+        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
+        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
+
         if (update.isTeleport()) {
             handleTeleport(update);
             return;
@@ -148,17 +163,8 @@ public class MovementCheckRunner extends PositionCheck {
             }
         }
 
-        // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickPlayerInPistonPushingArea();
         player.compensatedEntities.tick();
-
-        // Update knockback and explosions after getting the vehicle
-        int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
-        player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
-        player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get());
-
-        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
-        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
 
         // The game's movement is glitchy when switching between vehicles
         // This is due to mojang not telling us where the new vehicle's location is
@@ -180,7 +186,6 @@ public class MovementCheckRunner extends PositionCheck {
 
             player.vehicleData.lastDummy = false;
             player.vehicleData.wasVehicleSwitch = false;
-
 
             if (player.compensatedEntities.getSelf().getRiding() != null) {
                 Vector pos = new Vector(player.x, player.y, player.z);
@@ -421,8 +426,8 @@ public class MovementCheckRunner extends PositionCheck {
 
         boolean wasChecked = false;
 
-        // Exempt if the player is offline
-        if (player.isDead || (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().isDead)) {
+        // Exempt if the player is dead or is riding a dead entity
+        if (player.compensatedEntities.getSelf().isDead || (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();

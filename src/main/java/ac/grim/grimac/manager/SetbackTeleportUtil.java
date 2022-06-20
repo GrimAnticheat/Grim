@@ -10,10 +10,7 @@ import ac.grim.grimac.predictionengine.predictions.PredictionEngineWater;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.Pair;
-import ac.grim.grimac.utils.data.SetBackData;
-import ac.grim.grimac.utils.data.SetbackLocationVelocity;
-import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
 import ac.grim.grimac.utils.nmsutil.Collisions;
@@ -21,6 +18,7 @@ import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
 import org.bukkit.Bukkit;
@@ -33,7 +31,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class SetbackTeleportUtil extends PostPredictionCheck {
     // Sync to netty
-    public final ConcurrentLinkedQueue<Pair<Integer, Location>> teleports = new ConcurrentLinkedQueue<>();
+    public final ConcurrentLinkedQueue<TeleportData> teleports = new ConcurrentLinkedQueue<>();
     // Sync to netty, a player MUST accept a teleport to spawn into the world
     // A teleport is used to end the loading screen.  Some cheats pretend to never end the loading screen
     // in an attempt to disable the anticheat.  Be careful.
@@ -193,13 +191,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             clientVel = null;
         }
 
-        SetBackData data = new SetBackData(position, player.xRot, player.yRot, clientVel, player.compensatedEntities.getSelf().getRiding() != null, false);
+        SetBackData data = new SetBackData(new TeleportData(position, new RelativeFlag(0b11000), player.lastTransactionSent.get()), player.xRot, player.yRot, clientVel, player.compensatedEntities.getSelf().getRiding() != null, false);
         sendSetback(data);
     }
 
     private void sendSetback(SetBackData data) {
         isSendingSetback = true;
-        Location position = data.getPosition();
+        Location position = data.getTeleportData().getLocation();
 
         try {
             // Player is in a vehicle
@@ -233,11 +231,11 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_7_10)) {
                 y += 1.62; // 1.7 teleport offset if grim ever supports 1.7 again
             }
-            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), player.lastTransactionSent.get(), false);
+            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), player.lastTransactionSent.get(), new RelativeFlag(0b11000), false);
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
-            PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, (byte) 0b11000, new Random().nextInt(), false));
+            PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, data.getTeleportData().getFlags().getMask(), new Random().nextInt(), false));
             player.sendTransaction();
 
             if (data.getVelocity() != null) {
@@ -261,36 +259,43 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
         while (true) {
-            Pair<Integer, Location> teleportPos = teleports.peek();
+            TeleportData teleportPos = teleports.peek();
             if (teleportPos == null) break;
 
-            Location position = teleportPos.getSecond();
+            double trueTeleportX = (requiredSetBack.getTeleportData().isRelativeX() ? player.x : 0) + requiredSetBack.getTeleportData().getLocation().getX();
+            double trueTeleportY = (requiredSetBack.getTeleportData().isRelativeY() ? player.y : 0) + requiredSetBack.getTeleportData().getLocation().getY();
+            double trueTeleportZ = (requiredSetBack.getTeleportData().isRelativeZ() ? player.z : 0) + requiredSetBack.getTeleportData().getLocation().getZ();
 
-            if (lastTransaction < teleportPos.getFirst()) {
+            if (lastTransaction < teleportPos.getTransaction()) {
                 break;
             }
 
             // There seems to be a version difference in teleports past 30 million... just clamp the vector
-            Vector3d clamped = VectorUtils.clampVector(new Vector3d(position.getX(), position.getY(), position.getZ()));
+            Vector3d clamped = VectorUtils.clampVector(new Vector3d(trueTeleportX, trueTeleportY, trueTeleportZ));
+            double threshold = requiredSetBack.getTeleportData().isRelativeX() ? player.getMovementThreshold() : 0;
+            boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
 
-            boolean closeEnoughY = Math.abs(clamped.getY() - y) < 1e-7; // 1.7 rounding
-            if (clamped.getX() == x && closeEnoughY && clamped.getZ() == z) {
+            if (Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold) {
                 teleports.poll();
                 hasAcceptedSpawnTeleport = true;
 
                 // Player has accepted their setback!
-                if (requiredSetBack != null && requiredSetBack.getPosition().getX() == teleportPos.getSecond().getX()
-                        && Math.abs(requiredSetBack.getPosition().getY() - teleportPos.getSecond().getY()) < 1e-7
-                        && requiredSetBack.getPosition().getZ() == teleportPos.getSecond().getZ()) {
+                if (requiredSetBack != null
+                        && Math.abs(trueTeleportX - teleportPos.getLocation().getX()) <= threshold
+                        && Math.abs(trueTeleportY - teleportPos.getLocation().getY()) <= 1e-7 + threshold
+                        && Math.abs(trueTeleportZ - teleportPos.getLocation().getZ()) <= threshold) {
+
                     if (!player.compensatedEntities.getSelf().inVehicle()) {
                         player.lastOnGround = player.packetStateData.packetPlayerOnGround;
                     }
+
                     teleportData.setSetback(requiredSetBack);
                     requiredSetBack.setComplete(true);
                 }
 
+                teleportData.setTeleportData(teleportPos);
                 teleportData.setTeleport(true);
-            } else if (lastTransaction > teleportPos.getFirst()) { // The player ignored the teleport
+            } else if (lastTransaction > teleportPos.getTransaction()) { // The player ignored the teleport
                 // Stop a permanent desync from people ping spoofing
                 // Mainly so people stop reporting "disablers" when they just enable ping spoof
                 // And for debugging purposes... so misbehaving clients can be tested
@@ -395,9 +400,24 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
      * This means we have to discard teleports from the vanilla anticheat, as otherwise
      * it would allow the player to bypass our own setbacks
      */
-    public void addSentTeleport(Location position, int transaction, boolean plugin) {
-        requiredSetBack = new SetBackData(position, player.xRot, player.yRot, null, false, plugin);
-        teleports.add(new Pair<>(transaction, new Location(null, position.getX(), position.getY(), position.getZ())));
-        setSafeSetbackLocation(new Vector3d(position.getX(), position.getY(), position.getZ()));
+    public void addSentTeleport(Location position, int transaction, RelativeFlag flags, boolean plugin) {
+        TeleportData data = new TeleportData(new Location(null, position.getX(), position.getY(), position.getZ()), flags, transaction);
+        requiredSetBack = new SetBackData(data, player.xRot, player.yRot, null, false, plugin);
+
+        teleports.add(data);
+
+        Vector3d realPosition = new Vector3d(position.getX(), position.getY(), position.getZ());
+
+        if (data.isRelativeX()) {
+            realPosition = realPosition.add(player.x, 0, 0);
+        }
+        if (data.isRelativeY()) {
+            realPosition = realPosition.add(0, player.y, 0);
+        }
+        if (data.isRelativeZ()) {
+            realPosition = realPosition.add(0, 0, player.z);
+        }
+
+        setSafeSetbackLocation(realPosition);
     }
 }
