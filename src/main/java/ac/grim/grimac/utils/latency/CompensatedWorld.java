@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -48,7 +49,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
@@ -57,8 +57,8 @@ public class CompensatedWorld {
     public final GrimPlayer player;
     public final Map<Long, Column> chunks;
     // Packet locations for blocks
-    public Set<PistonData> activePistons = ConcurrentHashMap.newKeySet();
-    public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
+    public Set<PistonData> activePistons = new HashSet<>();
+    public Set<ShulkerData> openShulkerBoxes = new HashSet<>();
     // 1.17 with datapacks, and 1.18, have negative world offset values
     private int minHeight = 0;
     private int maxHeight = 256;
@@ -94,7 +94,11 @@ public class CompensatedWorld {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
             BlockPrediction predictionData = originalServerBlocks.get(vector3i.getSerializedPosition());
 
-            if (predictionData.getForBlockUpdate() == toApplyBlocks) { // We are the last to care about this prediction, remove it to stop memory leak
+            if (predictionData == null) { // This shouldn't happen...
+                LogUtil.warn("Tried to revert predicted block place, but found no data");
+            }
+
+            if (predictionData != null && predictionData.getForBlockUpdate() == toApplyBlocks) { // We are the last to care about this prediction, remove it to stop memory leak
                 originalServerBlocks.remove(vector3i.getSerializedPosition());
 
                 // If we need to change the world block state
