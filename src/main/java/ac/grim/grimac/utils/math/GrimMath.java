@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.math;
 import ac.grim.grimac.utils.data.Pair;
 import com.google.common.collect.Lists;
 import lombok.experimental.UtilityClass;
+import org.bukkit.Bukkit;
 
 import java.util.*;
 
@@ -185,18 +186,27 @@ public class GrimMath {
     /**
      * @param current  - The current value
      * @param previous - The previous value
+     *
      * @return - The GCD of those two values
      */
-    public long getGcd(final long current, final long previous) {
-        try {
-            try {
-                return (previous <= 16384L) ? current : getGcd(previous, current % previous);
-            } catch (StackOverflowError ignored2) {
-                return 100000000000L;
-            }
-        } catch (Exception ignored) {
-            return 100000000000L;
+    // Non-recursive to avoid repeated allocations on the stack, MIT licensed method
+    public long getGcd(long current, long previous) {
+        long temp;
+
+        // Current needs to be larger than previous
+        if (previous > current) {
+            temp = current;
+            current = previous;
+            previous = temp;
         }
+
+        while (previous > 16384L) {
+            temp = current % previous;
+            current = previous;
+            previous = temp;
+        }
+
+        return current;
     }
 
     public static int floor(double d) {

@@ -44,7 +44,7 @@ public class NoFallA extends PacketCheck {
                     if (!GhostBlockDetector.isGhostBlock(player)) {
                         flagWithSetback();
                     }
-                    wrapper.setOnGround(false);
+                    if (!player.disableGrim) wrapper.setOnGround(false);
                 }
             }
         }
@@ -60,10 +60,10 @@ public class NoFallA extends PacketCheck {
             // Also flip teleports because I don't trust vanilla's handling of teleports and ground
             if (flipPlayerGroundStatus) {
                 flipPlayerGroundStatus = false;
-                wrapper.setOnGround(!wrapper.isOnGround());
+                if (!player.disableGrim) wrapper.setOnGround(!wrapper.isOnGround());
             }
             if (player.packetStateData.lastPacketWasTeleport) {
-                wrapper.setOnGround(false);
+                if (!player.disableGrim) wrapper.setOnGround(false);
             }
         }
     }

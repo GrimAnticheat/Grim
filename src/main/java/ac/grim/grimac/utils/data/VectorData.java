@@ -89,7 +89,7 @@ public class VectorData {
     @Override
     public String toString() {
         return "VectorData{" +
-                "vectorType=" + vectorType +
+                "pointThree=" + isZeroPointZeroThree +
                 ", vector=" + vector +
                 '}';
     }

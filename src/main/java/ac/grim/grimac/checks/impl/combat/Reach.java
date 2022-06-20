@@ -44,15 +44,14 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 public class Reach extends PacketCheck {
     // Concurrent to support weird entity trackers
     private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
-    private static final List<EntityType> exempt = Arrays.asList(
+    private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
-            EntityTypes.SHULKER,
-            EntityTypes.ITEM_FRAME,
-            EntityTypes.GLOW_ITEM_FRAME,
-            EntityTypes.PAINTING);
+            EntityTypes.CHEST_BOAT,
+            EntityTypes.SHULKER);
 
     private boolean cancelImpossibleHits;
     private double threshold;
+    private double cancelBuffer; // For the next 4 hits after using reach, we aggressively cancel reach
 
     public Reach(GrimPlayer player) {
         super(player);
@@ -84,7 +83,7 @@ public class Reach extends PacketCheck {
             if (player.compensatedEntities.getSelf().inVehicle()) return;
             if (entity.riding != null) return;
 
-            checkReach(action.getEntityId());
+            playerAttackQueue.add(action.getEntityId()); // Queue for next tick for very precise check
 
             if (cancelImpossibleHits && isKnownInvalid(entity)) {
                 event.setCancelled(true);
@@ -99,11 +98,6 @@ public class Reach extends PacketCheck {
         }
     }
 
-    public void checkReach(int entityID) {
-        if (player.compensatedEntities.entityMap.containsKey(entityID))
-            playerAttackQueue.add(entityID);
-    }
-
     // This method finds the most optimal point at which the user should be aiming at
     // and then measures the distance between the player's eyes and this target point
     //
@@ -116,58 +110,80 @@ public class Reach extends PacketCheck {
         boolean giveMovementThresholdLenience = player.packetStateData.didLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
 
         // If the entity doesn't exist, or if it is exempt, or if it is dead
-        if (exempt.contains(reachEntity.type) || !reachEntity.isLivingEntity())
+        if ((blacklisted.contains(reachEntity.type) || !reachEntity.isLivingEntity()) && reachEntity.type != EntityTypes.END_CRYSTAL)
             return false; // exempt
 
         if (player.gamemode == GameMode.CREATIVE) return false;
         if (player.compensatedEntities.getSelf().inVehicle()) return false;
 
         double lowest = 6;
-        for (double eyes : player.getPossibleEyeHeights()) {
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-            Vector from = new Vector(player.x, player.y + eyes, player.z);
-            Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
-            lowest = Math.min(lowest, closestPoint.distance(from));
+        // Filter out what we assume to be cheats
+        if (cancelBuffer != 0) {
+            return checkReach(reachEntity, true) != null; // If they flagged
+        } else {
+            // Don't allow blatant cheats to get first hit
+            for (double eyes : player.getPossibleEyeHeights()) {
+                SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
+                if (reachEntity.type == EntityTypes.END_CRYSTAL) {
+                    targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
+                }
+                Vector from = new Vector(player.x, player.y + eyes, player.z);
+                Vector closestPoint = VectorUtils.cutBoxToVector(from, targetBox);
+                lowest = Math.min(lowest, closestPoint.distance(from));
+            }
         }
 
         return lowest > 3 + (giveMovementThresholdLenience ? player.getMovementThreshold() : 0);
     }
 
     private void tickFlying() {
-        double maxReach = 3;
-
         Integer attackQueue = playerAttackQueue.poll();
         while (attackQueue != null) {
             PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attackQueue);
 
-            if (reachEntity == null) return;
-
-            SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
-
-            // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
-            // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
-            if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
-                targetBox.expand(0.1f);
+            if (reachEntity != null) {
+                String result = checkReach(reachEntity, false);
+                if (result != null) {
+                    flagAndAlert(result);
+                }
             }
 
-            targetBox.expand(threshold);
+            attackQueue = playerAttackQueue.poll();
+        }
+    }
 
-            // This is better than adding to the reach, as 0.03 can cause a player to miss their target
-            // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
-            //
-            // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
-            if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9))
-                targetBox.expand(player.getMovementThreshold());
+    private String checkReach(PacketEntity reachEntity, boolean isPrediction) {
+        SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
-            Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
+        if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
+            targetBox = new SimpleCollisionBox(reachEntity.desyncClientPos.subtract(1, 0, 1), reachEntity.desyncClientPos.add(1, 2, 1));
+        }
 
-            double minDistance = Double.MAX_VALUE;
+        // 1.7 and 1.8 players get a bit of extra hitbox (this is why you should use 1.8 on cross version servers)
+        // Yes, this is vanilla and not uncertainty.  All reach checks have this or they are wrong.
+        if (player.getClientVersion().isOlderThan(ClientVersion.V_1_9)) {
+            targetBox.expand(0.1f);
+        }
 
-            // https://bugs.mojang.com/browse/MC-67665
-            List<Vector> possibleLookDirs = new ArrayList<>(Arrays.asList(
-                    ReachUtils.getLook(player, player.lastXRot, player.yRot),
-                    ReachUtils.getLook(player, player.xRot, player.yRot)
-            ));
+        targetBox.expand(threshold);
+
+        // This is better than adding to the reach, as 0.03 can cause a player to miss their target
+        // Adds some more than 0.03 uncertainty in some cases, but a good trade off for simplicity
+        //
+        // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
+        if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9))
+            targetBox.expand(player.getMovementThreshold());
+
+        Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
+
+        double minDistance = Double.MAX_VALUE;
+
+        // https://bugs.mojang.com/browse/MC-67665
+        List<Vector> possibleLookDirs = new ArrayList<>(Arrays.asList(ReachUtils.getLook(player, player.xRot, player.yRot)));
+
+        // If we are a tick behind, we don't know their next look so don't bother doing this
+        if (!isPrediction) {
+            possibleLookDirs.add(ReachUtils.getLook(player, player.lastXRot, player.yRot));
 
             // 1.9+ players could be a tick behind because we don't get skipped ticks
             if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
@@ -178,38 +194,40 @@ public class Reach extends PacketCheck {
             if (player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) {
                 possibleLookDirs = Collections.singletonList(ReachUtils.getLook(player, player.xRot, player.yRot));
             }
-
-            for (Vector lookVec : possibleLookDirs) {
-                for (double eye : player.getPossibleEyeHeights()) {
-                    Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
-                    Vector endReachPos = eyePos.clone().add(new Vector(lookVec.getX() * 6, lookVec.getY() * 6, lookVec.getZ() * 6));
-
-                    Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).getFirst();
-
-                    if (ReachUtils.isVecInside(targetBox, eyePos)) {
-                        minDistance = 0;
-                        break;
-                    }
-
-                    if (intercept != null) {
-                        minDistance = Math.min(eyePos.distance(intercept), minDistance);
-                    }
-                }
-            }
-
-            // if the entity is not exempt and the entity is alive
-            if (!exempt.contains(reachEntity.type) && reachEntity.isLivingEntity()) {
-                if (minDistance == Double.MAX_VALUE) {
-                    flag();
-                    alert("Missed hitbox");
-                } else if (minDistance > maxReach) {
-                    flag();
-                    alert(String.format("%.5f", minDistance) + " blocks");
-                }
-            }
-
-            attackQueue = playerAttackQueue.poll();
         }
+
+        for (Vector lookVec : possibleLookDirs) {
+            for (double eye : player.getPossibleEyeHeights()) {
+                Vector eyePos = new Vector(from.getX(), from.getY() + eye, from.getZ());
+                Vector endReachPos = eyePos.clone().add(new Vector(lookVec.getX() * 6, lookVec.getY() * 6, lookVec.getZ() * 6));
+
+                Vector intercept = ReachUtils.calculateIntercept(targetBox, eyePos, endReachPos).getFirst();
+
+                if (ReachUtils.isVecInside(targetBox, eyePos)) {
+                    minDistance = 0;
+                    break;
+                }
+
+                if (intercept != null) {
+                    minDistance = Math.min(eyePos.distance(intercept), minDistance);
+                }
+            }
+        }
+
+        // if the entity is not exempt and the entity is alive
+        if ((!blacklisted.contains(reachEntity.type) && reachEntity.isLivingEntity()) || reachEntity.type == EntityTypes.END_CRYSTAL) {
+            if (minDistance == Double.MAX_VALUE) {
+                cancelBuffer = 1;
+                return "Missed hitbox";
+            } else if (minDistance > 3) {
+                cancelBuffer = 1;
+                return String.format("%.5f", minDistance) + " blocks";
+            } else {
+                cancelBuffer = Math.max(0, cancelBuffer - 0.25);
+            }
+        }
+
+        return null;
     }
 
     @Override

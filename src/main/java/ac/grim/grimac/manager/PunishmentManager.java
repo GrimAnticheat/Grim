@@ -42,7 +42,9 @@ public class PunishmentManager {
                 for (String command : checks) {
                     command = command.toLowerCase(Locale.ROOT);
                     for (Check check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
-                        if (check.getCheckName() != null && check.getCheckName().toLowerCase(Locale.ROOT).contains(command)) {
+                        if (check.getCheckName() != null &&
+                                (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
+                                        || check.getAlernativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
                             checksList.add(check);
                         }
                     }

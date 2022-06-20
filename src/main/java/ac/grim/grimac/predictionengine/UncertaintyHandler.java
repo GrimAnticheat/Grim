@@ -2,6 +2,7 @@ package ac.grim.grimac.predictionengine;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.LastInstance;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
@@ -19,9 +20,9 @@ public class UncertaintyHandler {
     private final GrimPlayer player;
     // Handles uncertainty when a piston could have pushed a player in a direction
     // Only the required amount of uncertainty is given
-    public double pistonX;
-    public double pistonY;
-    public double pistonZ;
+    public EvictingList<Double> pistonX = new EvictingList<>(5);
+    public EvictingList<Double> pistonY = new EvictingList<>(5);
+    public EvictingList<Double> pistonZ = new EvictingList<>(5);
     // Did the player step onto a block?
     // This is needed because we don't know if a player jumped onto the step block or not
     // Jumping would set onGround to false while not would set it to true
@@ -43,8 +44,6 @@ public class UncertaintyHandler {
     public boolean onGroundUncertain = false;
     // Marks previous didGroundStatusChangeWithoutPositionPacket from last tick
     public boolean lastPacketWasGroundPacket = false;
-    // Marks previous lastPacketWasGroundPacket from last tick
-    public boolean lastLastPacketWasGroundPacket = false;
     // Slime sucks in terms of bouncing and stuff.  Trust client onGround when on slime
     public boolean isSteppingOnSlime = false;
     public boolean isSteppingOnIce = false;
@@ -57,11 +56,6 @@ public class UncertaintyHandler {
     public boolean isOrWasNearGlitchyBlock = false;
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
     public boolean claimingLeftStuckSpeed = false;
-    public int stuckOnEdge = 100;
-    public int lastStuckNorth = 100;
-    public int lastStuckSouth = 100;
-    public int lastStuckWest = 100;
-    public int lastStuckEast = 100;
     // Give horizontal lenience if the previous movement was 0.03 because their velocity is unknown
     public boolean lastMovementWasZeroPointZeroThree = false;
     // Give horizontal lenience if the last movement reset velocity because 0.03 becomes unknown then
@@ -70,40 +64,59 @@ public class UncertaintyHandler {
     public boolean wasZeroPointThreeVertically = false;
     // How many entities are within 0.5 blocks of the player's bounding box?
     public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
-    public EvictingList<Double> pistonPushing = new EvictingList<>(20);
     // Fishing rod pulling is another method of adding to a player's velocity
     public List<Integer> fishingRodPulls = new ArrayList<>();
     public SimpleCollisionBox fireworksBox = null;
     public SimpleCollisionBox fishingRodPullBox = null;
 
-    public int lastFlyingTicks = -100;
-    // TODO: Make this a better class (LastTickAction) instead of an integer that counts up or down inconsistently
-    public int lastFlyingStatusChange = -100;
-    public int lastUnderwaterFlyingHack = -100;
-    public int lastStuckSpeedMultiplier = -100;
-    public int lastHardCollidingLerpingEntity = -100;
-    public int lastThirtyMillionHardBorder = -100;
-    public int lastTeleportTicks = 0; // You spawn with a teleport
+    public LastInstance lastFlyingTicks;
+    public LastInstance lastFlyingStatusChange;
+    public LastInstance lastUnderwaterFlyingHack;
+    public LastInstance lastStuckSpeedMultiplier;
+    public LastInstance lastHardCollidingLerpingEntity;
+    public LastInstance lastThirtyMillionHardBorder;
+    public LastInstance lastTeleportTicks;
+    public LastInstance lastPointThree;
 
+    public LastInstance stuckOnEdge;
+    public LastInstance lastStuckNorth;
+    public LastInstance lastStuckSouth;
+    public LastInstance lastStuckWest;
+    public LastInstance lastStuckEast;
+    public LastInstance lastVehicleSwitch;
     public double lastHorizontalOffset = 0;
     public double lastVerticalOffset = 0;
 
     public UncertaintyHandler(GrimPlayer player) {
         this.player = player;
+        this.lastFlyingTicks = new LastInstance(player);
+        this.lastFlyingStatusChange = new LastInstance(player);
+        this.lastUnderwaterFlyingHack = new LastInstance(player);
+        this.lastStuckSpeedMultiplier = new LastInstance(player);
+        this.lastHardCollidingLerpingEntity = new LastInstance(player);
+        this.lastThirtyMillionHardBorder = new LastInstance(player);
+        this.lastTeleportTicks = new LastInstance(player);
+        this.lastPointThree = new LastInstance(player);
+        this.stuckOnEdge = new LastInstance(player);
+        this.lastStuckNorth = new LastInstance(player);
+        this.lastStuckSouth = new LastInstance(player);
+        this.lastStuckWest = new LastInstance(player);
+        this.lastStuckEast = new LastInstance(player);
+        this.lastVehicleSwitch = new LastInstance(player);
         tick();
     }
 
     public void tick() {
-        pistonX = 0;
-        pistonY = 0;
-        pistonZ = 0;
+        pistonX.add(0d);
+        pistonY.add(0d);
+        pistonZ.add(0d);
         isStepMovement = false;
         slimePistonBounces = new HashSet<>();
         tickFireworksBox();
     }
 
     public boolean wasAffectedByStuckSpeed() {
-        return lastStuckSpeedMultiplier > -5;
+        return lastStuckSpeedMultiplier.hasOccurredSince(5);
     }
 
     public void tickFireworksBox() {
@@ -214,11 +227,8 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             pointThree = 0.15;
 
-        if (lastThirtyMillionHardBorder > -3)
+        if (lastThirtyMillionHardBorder.hasOccurredSince(3))
             pointThree = 0.15;
-
-        if (player.vehicleData.lastVehicleSwitch < 3)
-            pointThree = Math.max(pointThree, player.speed * 2);
 
         return pointThree;
     }
@@ -228,21 +238,18 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
-        if (lastThirtyMillionHardBorder > -3)
+        if (lastThirtyMillionHardBorder.hasOccurredSince(3))
             return 0.15;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             return 0.06;
-
-        if (player.vehicleData.lastVehicleSwitch < 3)
-            return 0.1;
 
         // We don't know if the player was pressing jump or not
         if (player.uncertaintyHandler.wasSteppingOnBouncyBlock && (player.wasTouchingWater || player.wasTouchingLava))
             return 0.06;
 
         // Not worth my time to fix this because checking flying generally sucks - if player was flying in last 2 ticks
-        if ((lastFlyingTicks < 5) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
+        if ((lastFlyingTicks.hasOccurredSince(5)) && Math.abs(data.vector.getY()) < (4.5 * player.flySpeed - 0.25))
             return 0.06;
 
         double pointThree = player.getMovementThreshold();
@@ -257,30 +264,20 @@ public class UncertaintyHandler {
         if (player.pointThreeEstimator.controlsVerticalMovement()) {
             // Yeah, the second 0.06 isn't mathematically correct but 0.03 messes everything up...
             // Water pushing, elytras, EVERYTHING vertical movement gets messed up.
-            if (data.isZeroPointZeroThree()) return pointThree * 2;
-            if (lastMovementWasZeroPointZeroThree) return pointThree * 2;
-            if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
-                return pointThree;
-            return 0;
+            if (data.isZeroPointZeroThree() || lastMovementWasZeroPointZeroThree) return pointThree * 2;
         }
 
-        if (wasZeroPointThreeVertically || player.uncertaintyHandler.lastPacketWasGroundPacket)
-            return pointThree;
-
+        // Handle the player landing on this tick or the next tick
+        if (wasZeroPointThreeVertically || player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) return pointThree;
 
         return 0;
     }
 
     public double reduceOffset(double offset) {
-        // Exempt players from piston checks by giving them 1 block of lenience for any piston pushing
-        if (Collections.max(player.uncertaintyHandler.pistonPushing) > 0) {
-            offset -= 1;
-        }
-
         // Boats are too glitchy to check.
         // Yes, they have caused an insane amount of uncertainty!
         // Even 1 block offset reduction isn't enough... damn it mojang
-        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3) {
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3)) {
             offset -= 1.2;
         }
 
@@ -289,7 +286,7 @@ public class UncertaintyHandler {
         }
 
         // Exempt flying status change
-        if (player.uncertaintyHandler.lastFlyingStatusChange > -20) {
+        if (player.uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(20)) {
             offset = 0;
         }
 
@@ -315,8 +312,7 @@ public class UncertaintyHandler {
 
     public void checkForHardCollision() {
         // Look for boats the player could collide with
-        player.uncertaintyHandler.lastHardCollidingLerpingEntity--;
-        if (hasHardCollision()) player.uncertaintyHandler.lastHardCollidingLerpingEntity = 0;
+        if (hasHardCollision()) player.uncertaintyHandler.lastHardCollidingLerpingEntity.reset();
     }
 
     private boolean hasHardCollision() {
@@ -328,7 +324,7 @@ public class UncertaintyHandler {
 
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.type == EntityTypes.BOAT || entity.type == EntityTypes.SHULKER) && entity != player.compensatedEntities.getSelf().getRiding() &&
+            if ((EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) || entity.type == EntityTypes.SHULKER) && entity != player.compensatedEntities.getSelf().getRiding() &&
                     entity.getPossibleCollisionBoxes().isIntersected(expandedBB)) {
                 return true;
             }
@@ -354,7 +350,7 @@ public class UncertaintyHandler {
 
     private boolean boatCollision(SimpleCollisionBox expandedBB) {
         // Boats can collide with quite literally anything
-        if (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT) {
+        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
             for (Map.Entry<Integer, PacketEntity> entityPair : player.compensatedEntities.entityMap.int2ObjectEntrySet()) {
                 PacketEntity entity = entityPair.getValue();
                 if (entity != player.compensatedEntities.getSelf().getRiding() && (player.compensatedEntities.getSelf().getRiding() == null || !player.compensatedEntities.getSelf().getRiding().hasPassenger(entityPair.getValue())) &&

@@ -111,12 +111,12 @@ public class PacketEntity {
     }
 
     // If the old and new packet location are split, we need to combine bounding boxes
-    public void onMovement(boolean highBound) {
-        newPacketLocation.tickMovement(oldPacketLocation == null, highBound);
+    public void onMovement(boolean tickingReliably) {
+        newPacketLocation.tickMovement(oldPacketLocation == null, tickingReliably);
 
         // Handle uncertainty of second transaction spanning over multiple ticks
         if (oldPacketLocation != null) {
-            oldPacketLocation.tickMovement(true, highBound);
+            oldPacketLocation.tickMovement(true, tickingReliably);
             newPacketLocation.updatePossibleStartingLocation(oldPacketLocation.getPossibleLocationCombined());
         }
     }

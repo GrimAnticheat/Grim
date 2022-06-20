@@ -4,7 +4,8 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.math.GrimMath;
+import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.TeleportData;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
@@ -12,6 +13,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
+import org.bukkit.Location;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
 
@@ -57,6 +59,14 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
 
             handleMultiBlockChange(player, event);
         }
+
+        if (event.getPacketType() == PacketType.Play.Server.ACKNOWLEDGE_BLOCK_CHANGES) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            WrapperPlayServerAcknowledgeBlockChanges changes = new WrapperPlayServerAcknowledgeBlockChanges(event);
+            player.compensatedWorld.handlePredictionConfirmation(changes.getSequence());
+        }
     }
 
     public void handleMapChunkBulk(GrimPlayer player, PacketSendEvent event) {
@@ -74,18 +84,30 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
     }
 
     public void addChunkToCache(PacketSendEvent event, GrimPlayer player, BaseChunk[] chunks, boolean isGroundUp, int chunkX, int chunkZ) {
-        boolean shouldPostTrans = GrimMath.floor(player.x) >> 4 == chunkX && GrimMath.floor(player.z) >> 4 == chunkZ;
+        double chunkCenterX = (chunkX << 4) + 8;
+        double chunkCenterZ = (chunkZ << 4) + 8;
+        boolean shouldPostTrans = Math.abs(player.x - chunkCenterX) < 16 && Math.abs(player.z - chunkCenterZ) < 16;
+
+        for (TeleportData teleports : player.getSetbackTeleportUtil().teleports) {
+            if (teleports.getFlags().getMask() != 0) continue; // Worse that will happen is people will get an extra setback... relative teleports aren't good for long distance teleports anyways
+            shouldPostTrans = shouldPostTrans || (Math.abs(teleports.getLocation().getX() - chunkCenterX) < 16 && Math.abs(teleports.getLocation().getZ() - chunkCenterZ) < 16);
+        }
+
         if (shouldPostTrans) {
             event.getPostTasks().add(player::sendTransaction); // Player is in this unloaded chunk
         }
         if (isGroundUp) {
-            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get() + (shouldPostTrans ? 1 : 0));
+            Column column = new Column(chunkX, chunkZ, chunks, player.lastTransactionSent.get());
             player.compensatedWorld.addToCache(column, chunkX, chunkZ);
         } else {
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
                 Column existingColumn = player.compensatedWorld.getChunk(chunkX, chunkZ);
                 if (existingColumn == null) {
-                    LogUtil.warn("Invalid non-ground up continuous sent for empty chunk " + chunkX + " " + chunkZ + " for " + player.user.getProfile().getName() + "! This corrupts the player's empty chunk!");
+                    // Corrupting the player's empty chunk is actually quite meaningless
+                    // You are able to set blocks inside it, and they do apply, it just always returns air despite what its data says
+                    // So go ahead, corrupt the player's empty chunk and make it no longer all air, it doesn't matter
+                    //
+                    // LogUtil.warn("Invalid non-ground up continuous sent for empty chunk " + chunkX + " " + chunkZ + " for " + player.user.getProfile().getName() + "! This corrupts the player's empty chunk!");
                     return;
                 }
                 existingColumn.mergeChunks(chunks);

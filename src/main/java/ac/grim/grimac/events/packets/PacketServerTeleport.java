@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
@@ -24,7 +25,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
     @Override
     public void onPacketSend(PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.PLAYER_POSITION_AND_LOOK) {
-            WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
+           WrapperPlayServerPlayerPositionAndLook teleport = new WrapperPlayServerPlayerPositionAndLook(event);
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
 
@@ -59,26 +60,30 @@ public class PacketServerTeleport extends PacketListenerAbstract {
             // The added complexity isn't worth a feature that I have never seen used
             //
             // If you do actually need this make an issue on GitHub with an explanation for why
-            if (teleport.isRelativeFlag(RelativeFlag.X))
-                pos = pos.add(new Vector3d(player.x, 0, 0));
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8)) {
+                if (teleport.isRelativeFlag(RelativeFlag.X)) {
+                    pos = pos.add(new Vector3d(player.x, 0, 0));
+                }
 
-            if (teleport.isRelativeFlag(RelativeFlag.Y))
-                pos = pos.add(new Vector3d(0, player.y, 0));
+                if (teleport.isRelativeFlag(RelativeFlag.Y)) {
+                    pos = pos.add(new Vector3d(0, player.y, 0));
+                }
 
-            if (teleport.isRelativeFlag(RelativeFlag.Z))
-                pos = pos.add(new Vector3d(0, 0, player.z));
+                if (teleport.isRelativeFlag(RelativeFlag.Z)) {
+                    pos = pos.add(new Vector3d(0, 0, player.z));
+                }
 
-            teleport.setX(pos.getX());
-            teleport.setY(pos.getY());
-            teleport.setZ(pos.getZ());
-            teleport.setRelativeMask((byte) 0);
+                teleport.setX(pos.getX());
+                teleport.setY(pos.getY());
+                teleport.setZ(pos.getZ());
+                teleport.setRelativeMask((byte) 0);
+            }
 
             player.sendTransaction();
             final int lastTransactionSent = player.lastTransactionSent.get();
             event.getPostTasks().add(player::sendTransaction);
 
             if (teleport.isDismountVehicle()) {
-                GrimPlayer finalPlayer = player;
                 // Remove player from vehicle
                 event.getPostTasks().add(() -> {
                     player.compensatedEntities.getSelf().eject();
@@ -90,7 +95,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 pos = pos.withY(pos.getY() - 1.62);
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
-            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, true);
+            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, teleport.getRelativeFlags(), true);
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {

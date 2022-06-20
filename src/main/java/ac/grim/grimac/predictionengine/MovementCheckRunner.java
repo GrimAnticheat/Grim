@@ -20,6 +20,7 @@ import ac.grim.grimac.utils.data.packetentity.PacketEntityTrackXRot;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.VectorUtils;
+import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.Collisions;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Riptide;
@@ -83,13 +84,20 @@ public class MovementCheckRunner extends PositionCheck {
         // Reset velocities
         // Teleporting a vehicle does not reset its velocity
         if (!player.compensatedEntities.getSelf().inVehicle()) {
-            player.clientVelocity = new Vector();
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeX()) {
+                player.clientVelocity.setX(0);
+            }
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeY()) {
+                player.clientVelocity.setY(0);
+                player.lastWasClimbing = 0; // Vertical movement reset
+                player.canSwimHop = false; // Vertical movement reset
+            }
+            if (update.getTeleportData() == null || !update.getTeleportData().isRelativeZ()) {
+                player.clientVelocity.setZ(0);
+            }
         }
 
-        player.uncertaintyHandler.lastTeleportTicks = 0;
-        player.lastWasClimbing = 0;
-        player.fallDistance = 0;
-        player.canSwimHop = false;
+        player.uncertaintyHandler.lastTeleportTicks.reset();
 
         // Teleports OVERRIDE explosions and knockback
         player.checkManager.getExplosionHandler().onTeleport();
@@ -105,13 +113,16 @@ public class MovementCheckRunner extends PositionCheck {
     }
 
     private void check(PositionUpdate update) {
+        // Update knockback and explosions after getting the vehicle
+        int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
+        player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
+        player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get());
+
+        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
+        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
+
         if (update.isTeleport()) {
             handleTeleport(update);
-            return;
-        }
-
-        // Stop people from crashing predictions with timer
-        if (player.getSetbackTeleportUtil().blockPredictions) {
             return;
         }
 
@@ -119,20 +130,18 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.onGround = update.isOnGround();
 
-        player.uncertaintyHandler.lastStuckEast++;
-        player.uncertaintyHandler.lastStuckWest++;
-        player.uncertaintyHandler.lastStuckNorth++;
-        player.uncertaintyHandler.lastStuckSouth++;
-        player.uncertaintyHandler.stuckOnEdge++;
         // This is here to prevent abuse of sneaking
         // Without this, players could sneak on a flat plane to avoid velocity
         // That would be bad so this prevents it
         if (!player.isFlying && player.isSneaking && Collisions.isAboveGround(player)) {
             // 16 - Magic number to stop people from crashing the server
-            double posX = Math.max(0.1, GrimMath.clamp(player.actualMovement.getX(), -16, 16) + 0.1);
-            double posZ = Math.max(0.1, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) + 0.1);
-            double negX = Math.min(-0.1, GrimMath.clamp(player.actualMovement.getX(), -16, 16) - 0.1);
-            double negZ = Math.min(-0.1, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) - 0.1);
+            // 0.05 - Mojang's magic value that they use to calculate precision of sneaking
+            // They move the position back by 0.05 blocks repeatedly until they are above ground
+            // So by going forwards 0.05 blocks, we can determine if the player was influenced by this
+            double posX = Math.max(0.05, GrimMath.clamp(player.actualMovement.getX(), -16, 16) + 0.05);
+            double posZ = Math.max(0.05, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) + 0.05);
+            double negX = Math.min(-0.05, GrimMath.clamp(player.actualMovement.getX(), -16, 16) - 0.05);
+            double negZ = Math.min(-0.05, GrimMath.clamp(player.actualMovement.getZ(), -16, 16) - 0.05);
 
             Vector NE = Collisions.maybeBackOffFromEdge(new Vector(posX, 0, negZ), player, true);
             Vector NW = Collisions.maybeBackOffFromEdge(new Vector(negX, 0, negZ), player, true);
@@ -144,27 +153,18 @@ public class MovementCheckRunner extends PositionCheck {
             boolean isNorth = NE.getZ() != negZ || NW.getZ() != negZ;
             boolean isSouth = SE.getZ() != posZ || SW.getZ() != posZ;
 
-            if (isEast) player.uncertaintyHandler.lastStuckEast = 0;
-            if (isWest) player.uncertaintyHandler.lastStuckWest = 0;
-            if (isNorth) player.uncertaintyHandler.lastStuckNorth = 0;
-            if (isSouth) player.uncertaintyHandler.lastStuckSouth = 0;
+            if (isEast) player.uncertaintyHandler.lastStuckEast.reset();
+            if (isWest) player.uncertaintyHandler.lastStuckWest.reset();
+            if (isNorth) player.uncertaintyHandler.lastStuckNorth.reset();
+            if (isSouth) player.uncertaintyHandler.lastStuckSouth.reset();
 
             if (isEast || isWest || isSouth || isNorth) {
-                player.uncertaintyHandler.stuckOnEdge = 0;
+                player.uncertaintyHandler.stuckOnEdge.reset();
             }
         }
 
-        // Tick updates AFTER updating bounding box and actual movement
         player.compensatedWorld.tickPlayerInPistonPushingArea();
         player.compensatedEntities.tick();
-
-        // Update knockback and explosions after getting the vehicle
-        int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
-        player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
-        player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get());
-
-        player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
-        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
 
         // The game's movement is glitchy when switching between vehicles
         // This is due to mojang not telling us where the new vehicle's location is
@@ -173,14 +173,8 @@ public class MovementCheckRunner extends PositionCheck {
         // Exiting vehicles does not suffer the same issue
         //
         // It is also glitchy when switching between client vs server vehicle control
-        player.vehicleData.lastVehicleSwitch++;
         if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
-            player.vehicleData.lastVehicleSwitch = 0;
-        }
-
-        if (player.vehicleData.lastVehicleSwitch < 5) {
-            player.checkManager.getExplosionHandler().forceExempt();
-            player.checkManager.getKnockbackHandler().forceExempt();
+            player.uncertaintyHandler.lastVehicleSwitch.reset();
         }
 
         if (player.vehicleData.lastDummy) {
@@ -190,55 +184,50 @@ public class MovementCheckRunner extends PositionCheck {
         if (player.vehicleData.wasVehicleSwitch || player.vehicleData.lastDummy) {
             update.setTeleport(true);
 
-            if (player.compensatedEntities.getSelf().getRiding() != null) {
-                Vector pos = new Vector(player.x, player.y, player.z);
-                Vector cutTo = VectorUtils.cutBoxToVector(pos, player.compensatedEntities.getSelf().getRiding().getPossibleCollisionBoxes());
-
-                // Stop players from teleporting when they enter a vehicle
-                // Is this a cheat?  Do we have to lower this threshold?
-                // Until I see evidence that this cheat exists, I am keeping this lenient.
-                if (cutTo.distanceSquared(pos) > 1) {
-                    player.getSetbackTeleportUtil().executeForceResync();
-                }
-            }
-
-            player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
-            player.isClimbing = Collisions.onClimbable(player, player.x, player.y, player.z);
-
             player.vehicleData.lastDummy = false;
             player.vehicleData.wasVehicleSwitch = false;
 
-            // Mojang is dumb and combines two movements when starting vehicle movement
-            if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
-                if (((PacketEntityRideable) player.compensatedEntities.getSelf().getRiding()).currentBoostTime < ((PacketEntityRideable) player.compensatedEntities.getSelf().getRiding()).boostTimeMax) {
-                    // This is not a value hack, please do not change this.
-                    // Any other value will false.
-                    ((PacketEntityRideable) player.compensatedEntities.getSelf().getRiding()).currentBoostTime++;
+            if (player.compensatedEntities.getSelf().getRiding() != null) {
+                Vector pos = new Vector(player.x, player.y, player.z);
+                SimpleCollisionBox interTruePositions = player.compensatedEntities.getSelf().getRiding().getPossibleCollisionBoxes();
+
+                // We shrink the expanded bounding box to what the packet positions can be, for a smaller box
+                float width = BoundingBoxSize.getWidth(player, player.compensatedEntities.getSelf().getRiding());
+                float height = BoundingBoxSize.getHeight(player, player.compensatedEntities.getSelf().getRiding());
+                interTruePositions.expand(-width, 0, -width);
+                interTruePositions.expandMax(0, -height, 0);
+
+                Vector cutTo = VectorUtils.cutBoxToVector(pos, interTruePositions);
+
+                // Now we need to simulate a tick starting at the most optimal position
+                // The start position is never sent, so we assume the most optimal start position
+                //
+                // Value patching this is not allowed.
+                // NoCheatPlus suffers from this type of exploit, so attacks against
+                // their similar code may also work on grim.
+                //
+                // This is the best I can do, but I think it might just work.
+                player.lastX = cutTo.getX();
+                player.lastY = cutTo.getY();
+                player.lastZ = cutTo.getZ();
+
+                player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.lastX, player.lastY, player.lastZ);
+            } else {
+                // Server always teleports the player when they eject anyways,
+                // so just let the player control where they eject within reason, they get set back anyways
+                if (new Vector(player.lastX, player.lastY, player.lastZ).distance(new Vector(player.x, player.y, player.z)) > 3) {
+                    player.getSetbackTeleportUtil().executeForceResync(); // Too far! (I think this value is sane)
                 }
+
+                handleTeleport(update);
+
+                if (player.isClimbing) {
+                    Vector ladder = player.clientVelocity.clone().setY(0.2);
+                    PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
+                    player.lastWasClimbing = ladder.getY();
+                }
+                return;
             }
-
-            // The server sets vehicle velocity when entering
-            // Grim also does this, although the server
-            // overrides Grim due to packet order.
-            // This is intentional!  We don't want to modify
-            // vanilla behavior if it's not a bug.
-            if (player.likelyKB != null) {
-                player.clientVelocity = player.likelyKB.vector;
-            }
-
-            if (player.firstBreadKB != null) {
-                player.clientVelocity = player.firstBreadKB.vector;
-            }
-
-            handleTeleport(update);
-
-            if (player.isClimbing) {
-                Vector ladder = player.clientVelocity.clone().setY(0.2);
-                PredictionEngineNormal.staticVectorEndOfTick(player, ladder);
-                player.lastWasClimbing = ladder.getY();
-            }
-
-            return;
         }
 
         if (player.isInBed != player.lastInBed) {
@@ -304,10 +293,9 @@ public class MovementCheckRunner extends PositionCheck {
             }
         }
 
-        player.uncertaintyHandler.lastFlyingTicks++;
         if (player.isFlying) {
             player.fallDistance = 0;
-            player.uncertaintyHandler.lastFlyingTicks = 0;
+            player.uncertaintyHandler.lastFlyingTicks.reset();
         }
 
         player.isClimbing = Collisions.onClimbable(player, player.lastX, player.lastY, player.lastZ);
@@ -409,24 +397,21 @@ public class MovementCheckRunner extends PositionCheck {
         boolean isGlitchy = player.uncertaintyHandler.isNearGlitchyBlock;
 
         player.uncertaintyHandler.isNearGlitchyBlock = player.getClientVersion().isOlderThan(ClientVersion.V_1_9)
-                && Collisions.hasMaterial(player, expandedBB.copy().expand(0.03),
+                && Collisions.hasMaterial(player, expandedBB.copy().expand(0.2),
                 checkData -> BlockTags.ANVIL.contains(checkData.getFirst().getType())
                         || checkData.getFirst().getType() == StateTypes.CHEST || checkData.getFirst().getType() == StateTypes.TRAPPED_CHEST);
 
         player.uncertaintyHandler.isOrWasNearGlitchyBlock = isGlitchy || player.uncertaintyHandler.isNearGlitchyBlock;
         player.uncertaintyHandler.checkForHardCollision();
 
-        player.uncertaintyHandler.lastFlyingStatusChange--;
-        if (player.isFlying != player.wasFlying) player.uncertaintyHandler.lastFlyingStatusChange = 0;
+        if (player.isFlying != player.wasFlying) player.uncertaintyHandler.lastFlyingStatusChange.reset();
 
-        player.uncertaintyHandler.lastThirtyMillionHardBorder--;
         if (!player.compensatedEntities.getSelf().inVehicle() && (Math.abs(player.x) == 2.9999999E7D || Math.abs(player.z) == 2.9999999E7D)) {
-            player.uncertaintyHandler.lastThirtyMillionHardBorder = 0;
+            player.uncertaintyHandler.lastThirtyMillionHardBorder.reset();
         }
 
-        player.uncertaintyHandler.lastUnderwaterFlyingHack--;
         if (player.isFlying && player.getClientVersion().isOlderThan(ClientVersion.V_1_13) && player.compensatedWorld.containsLiquid(player.boundingBox)) {
-            player.uncertaintyHandler.lastUnderwaterFlyingHack = 0;
+            player.uncertaintyHandler.lastUnderwaterFlyingHack.reset();
         }
 
         boolean couldBeStuckSpeed = Collisions.checkStuckSpeed(player, 0.03);
@@ -434,15 +419,15 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.claimingLeftStuckSpeed = !player.compensatedEntities.getSelf().inVehicle() && player.stuckSpeedMultiplier.getX() < 1 && !couldLeaveStuckSpeed;
 
         if (couldBeStuckSpeed) {
-            player.uncertaintyHandler.lastStuckSpeedMultiplier = 0;
+            player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
         Vector oldClientVel = player.clientVelocity;
 
         boolean wasChecked = false;
 
-        // Exempt if the player is offline
-        if (player.isDead || (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().isDead)) {
+        // Exempt if the player is dead or is riding a dead entity
+        if (player.compensatedEntities.getSelf().isDead || (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
             player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
@@ -465,6 +450,13 @@ public class MovementCheckRunner extends PositionCheck {
                 player.depthStriderLevel = boots.getEnchantmentLevel(EnchantmentTypes.DEPTH_STRIDER, PacketEvents.getAPI().getServerManager().getVersion().toClientVersion());
             } else {
                 player.depthStriderLevel = 0;
+            }
+
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_19)) {
+                ItemStack leggings = player.getInventory().getLeggings();
+                player.sneakingSpeedMultiplier = GrimMath.clampFloat(0.3F + (leggings.getEnchantmentLevel(EnchantmentTypes.SWIFT_SNEAK, player.getClientVersion()) * 0.15F), 0f, 1f);
+            } else {
+                player.sneakingSpeedMultiplier = 0.3F;
             }
 
             // This is wrong and the engine was not designed around stuff like this
@@ -503,7 +495,7 @@ public class MovementCheckRunner extends PositionCheck {
             // The player and server are both on a version with client controlled entities
             // If either or both of the client server version has server controlled entities
             // The player can't use entities (or the server just checks the entities)
-            if (player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT) {
+            if (EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
                 new PlayerBaseTick(player).doBaseTick();
                 // Speed doesn't affect anything with boat movement
                 new BoatPredictionEngine(player).guessBestMovement(0.1f, player);
@@ -544,8 +536,13 @@ public class MovementCheckRunner extends PositionCheck {
         // If the player is abusing a setback in order to gain the onGround status of true.
         // and the player then jumps from this position in the air.
         // Fixes LiquidBounce Jesus NCP, and theoretically AirJump bypass
+        //
+        // Checking for oldClientVel being too high fixes BleachHack vertical scaffold
         if (player.getSetbackTeleportUtil().setbackConfirmTicksAgo == 1) {
-            if (player.predictedVelocity.isJump() && !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ)) {
+            Vector setbackVel = player.getSetbackTeleportUtil().getRequiredSetBack().getVelocity();
+            // A player must have velocity going INTO the ground to be able to jump
+            // Otherwise they could ignore upwards velocity that isn't useful into more useful upwards velocity (towering)
+            if (player.predictedVelocity.isJump() && ((setbackVel != null && setbackVel.getY() >= 0) || !Collisions.slowCouldPointThreeHitGround(player, player.lastX, player.lastY, player.lastZ))) {
                 player.getSetbackTeleportUtil().executeForceResync();
             }
             SetBackData data = player.getSetbackTeleportUtil().getRequiredSetBack();
@@ -579,7 +576,10 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = !player.compensatedEntities.getSelf().inVehicle() && player.skippedTickInActualMovement;
         player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.compensatedEntities.getSelf().inVehicle() && player.couldSkipTick && player.predictedVelocity.isKnockback();
-        player.uncertaintyHandler.lastTeleportTicks--;
+
+        if (player.skippedTickInActualMovement) {
+            player.uncertaintyHandler.lastPointThree.reset();
+        }
 
         // Logic is if the player was directly 0.03 and the player could control vertical movement in 0.03
         // Or some state of the player changed, so we can no longer predict this vertical movement
@@ -589,7 +589,6 @@ public class MovementCheckRunner extends PositionCheck {
                 ((player.uncertaintyHandler.lastMovementWasZeroPointZeroThree && player.pointThreeEstimator.controlsVerticalMovement())
                         || !player.pointThreeEstimator.canPredictNextVerticalMovement() || !player.pointThreeEstimator.isWasAlwaysCertain());
 
-        player.uncertaintyHandler.lastLastPacketWasGroundPacket = player.uncertaintyHandler.lastPacketWasGroundPacket;
         player.uncertaintyHandler.lastPacketWasGroundPacket = player.uncertaintyHandler.onGroundUncertain;
         player.uncertaintyHandler.onGroundUncertain = false;
 

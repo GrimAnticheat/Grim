@@ -12,7 +12,7 @@ public class NoSlow extends PostPredictionCheck {
     double bestOffset = 1;
     // The player sends that they switched items the next tick if they switch from an item that can be used
     // to another item that can be used.  What the fuck mojang.  Affects 1.8 (and most likely 1.7) clients.
-    public boolean fuckLegacyVersions = false;
+    public boolean didSlotChangeLastTick = false;
     public boolean flaggedLastTick = false;
 
     public NoSlow(GrimPlayer player) {
@@ -24,8 +24,8 @@ public class NoSlow extends PostPredictionCheck {
         // If the player was using an item for certain, and their predicted velocity had a flipped item
         if (player.packetStateData.slowedByUsingItem) {
             // 1.8 users are not slowed the first tick they use an item, strangely
-            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && fuckLegacyVersions) {
-                fuckLegacyVersions = false;
+            if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_8) && didSlotChangeLastTick) {
+                didSlotChangeLastTick = false;
                 flaggedLastTick = false;
             }
 

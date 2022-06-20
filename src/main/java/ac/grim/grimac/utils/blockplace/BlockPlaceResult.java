@@ -542,6 +542,8 @@ public enum BlockPlaceResult {
         boolean isHead = place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL");
         boolean isWallSign = !isTorch && !isHead;
 
+        if (isHead && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) return; // 1.12- players don't predict head places
+
         if (isTorch) {
             dir = StateTypes.WALL_TORCH.createBlockState(CompensatedWorld.blockVersion);
         } else if (place.getMaterial().getName().contains("HEAD") || place.getMaterial().getName().contains("SKULL")) {
@@ -577,61 +579,63 @@ public enum BlockPlaceResult {
                             || mat.getName().getKey().contains("SIGN")) // And signs
             .toArray(ItemType[]::new)),
 
-    GLOW_LICHEN((player, place) -> {
-        WrappedBlockState lichen = place.getExistingBlockData();
-        if (lichen.getType() != StateTypes.GLOW_LICHEN) {
-            lichen = StateTypes.GLOW_LICHEN.createBlockState(CompensatedWorld.blockVersion);
+    MULTI_FACE_BLOCK((player, place) -> {
+        StateType placedType = place.getMaterial();
+
+        WrappedBlockState multiFace = place.getExistingBlockData();
+        if (multiFace.getType() != placedType) {
+            multiFace = placedType.createBlockState(CompensatedWorld.blockVersion);
         }
 
         for (BlockFace face : place.getNearestPlacingDirections()) {
             switch (face) {
                 case UP:
-                    if (lichen.isUp()) continue;
+                    if (multiFace.isUp()) continue;
                     if (place.isFullFace(face)) {
-                        lichen.setUp(true);
+                        multiFace.setUp(true);
                         break;
                     }
                     continue;
                 case DOWN:
-                    if (lichen.isDown()) continue;
+                    if (multiFace.isDown()) continue;
                     if (place.isFullFace(face)) {
-                        lichen.setDown(true);
+                        multiFace.setDown(true);
                         break;
                     }
                     continue;
                 case NORTH:
-                    if (lichen.getNorth() == North.TRUE) continue;
+                    if (multiFace.getNorth() == North.TRUE) continue;
                     if (place.isFullFace(face)) {
-                        lichen.setNorth(North.TRUE);
+                        multiFace.setNorth(North.TRUE);
                         break;
                     }
                     continue;
                 case SOUTH:
-                    if (lichen.getSouth() == South.TRUE) continue;
+                    if (multiFace.getSouth() == South.TRUE) continue;
                     if (place.isFullFace(face)) {
-                        lichen.setSouth(South.TRUE);
+                        multiFace.setSouth(South.TRUE);
                         break;
                     }
                     continue;
                 case EAST:
-                    if (lichen.getEast() == East.TRUE) continue;
+                    if (multiFace.getEast() == East.TRUE) continue;
                     if (place.isFullFace(face)) {
-                        lichen.setEast(East.TRUE);
+                        multiFace.setEast(East.TRUE);
                         return;
                     }
                     continue;
                 case WEST:
-                    if (lichen.getWest() == West.TRUE) continue;
+                    if (multiFace.getWest() == West.TRUE) continue;
                     if (place.isFullFace(face)) {
-                        lichen.setWest(West.TRUE);
+                        multiFace.setWest(West.TRUE);
                         break;
                     }
                     continue;
             }
         }
 
-        place.set(lichen);
-    }, ItemTypes.GLOW_LICHEN),
+        place.set(multiFace);
+    }, ItemTypes.GLOW_LICHEN, ItemTypes.SCULK_VEIN),
 
     FACE_ATTACHED_HORIZONTAL_DIRECTIONAL((player, place) -> {
         for (BlockFace face : place.getNearestPlacingDirections()) {
@@ -840,8 +844,7 @@ public enum BlockPlaceResult {
         }
 
         place.set(gate);
-    }, ItemTypes.values().stream().filter(mat -> mat.getName().getKey().contains("FENCE") && mat.getName().getKey().contains("GATE"))
-            .toArray(ItemType[]::new)),
+    }, BlockTags.FENCE_GATES),
 
     TRAPDOOR((player, place) -> {
         WrappedBlockState door = place.getMaterial().createBlockState(CompensatedWorld.blockVersion);
@@ -1027,6 +1030,21 @@ public enum BlockPlaceResult {
         }
     }, ItemTypes.BROWN_MUSHROOM, ItemTypes.RED_MUSHROOM),
 
+    MANGROVE_PROPAGULE((player, place) -> {
+        // Must be hanging below mangrove leaves
+        if (place.getAboveState().getType() != StateTypes.MANGROVE_LEAVES) return;
+        // Fall back to BUSH_BLOCK_TYPE
+        if (place.isOnDirt() || place.isOn(StateTypes.FARMLAND)) {
+            place.set();
+        }
+    }, ItemTypes.MANGROVE_PROPAGULE),
+
+    FROGSPAWN((player, place) -> {
+        if (Materials.isWater(player.getClientVersion(), place.getExistingBlockData()) && Materials.isWater(player.getClientVersion(), place.getAboveState())) {
+            place.set();
+        }
+    }, ItemTypes.FROGSPAWN),
+
     BUSH_BLOCK_TYPE((player, place) -> {
         if (place.isOnDirt() || place.isOn(StateTypes.FARMLAND)) {
             place.set();
@@ -1041,6 +1059,13 @@ public enum BlockPlaceResult {
             ItemTypes.WHITE_TULIP, ItemTypes.PINK_TULIP,
             ItemTypes.OXEYE_DAISY, ItemTypes.CORNFLOWER,
             ItemTypes.LILY_OF_THE_VALLEY, ItemTypes.GRASS),
+
+    GAME_MASTER((player, place) -> {
+        if (player.canUseGameMasterBlocks()) {
+            place.set();
+        }
+    }, ItemTypes.COMMAND_BLOCK, ItemTypes.CHAIN_COMMAND_BLOCK, ItemTypes.REPEATING_COMMAND_BLOCK,
+            ItemTypes.JIGSAW, ItemTypes.STRUCTURE_BLOCK),
 
     NO_DATA((player, place) -> {
         place.set(place.getMaterial());
@@ -1069,6 +1094,16 @@ public enum BlockPlaceResult {
 
     BlockPlaceResult(BlockPlaceFactory data, ItemTags tags) {
         this(data, tags.getStates().toArray(new ItemType[0]));
+    }
+
+    BlockPlaceResult(BlockPlaceFactory data, BlockTags tag) {
+        List<ItemType> types = new ArrayList<>();
+        for (StateType state : tag.getStates()) {
+            types.add(ItemTypes.getTypePlacingState(state));
+        }
+
+        this.data = data;
+        this.materials = types.toArray(new ItemType[0]);
     }
 
     public static BlockPlaceFactory getMaterialData(ItemType placed) {

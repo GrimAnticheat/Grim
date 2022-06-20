@@ -1,35 +1,53 @@
 package ac.grim.grimac.utils.latency;
 
+import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.chunks.Column;
+import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
+import ac.grim.grimac.utils.data.BlockPrediction;
 import ac.grim.grimac.utils.data.PistonData;
 import ac.grim.grimac.utils.data.ShulkerData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityShulker;
 import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.nmsutil.Collisions;
+import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import ac.grim.grimac.utils.nmsutil.Materials;
 import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.nbt.NBTCompound;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
+import com.github.retrooper.packetevents.protocol.world.chunk.impl.v1_16.Chunk_v1_9;
+import com.github.retrooper.packetevents.protocol.world.chunk.impl.v_1_18.Chunk_v1_18;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.DataPalette;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.ListPalette;
+import com.github.retrooper.packetevents.protocol.world.chunk.palette.PaletteType;
+import com.github.retrooper.packetevents.protocol.world.chunk.storage.LegacyFlexibleStorage;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateValue;
+import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.util.Vector3i;
+import com.github.retrooper.packetevents.wrapper.PacketWrapper;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerBlockPlacement;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientUseItem;
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
@@ -45,9 +63,93 @@ public class CompensatedWorld {
     private int minHeight = 0;
     private int maxHeight = 256;
 
+    // When the player changes the blocks, they track what the server thinks the blocks are
+    //
+    // Pair of the block position and the owning list TO the actual block
+    // The owning list is so that this info can be removed when the final list is processed
+    private final Long2ObjectOpenHashMap<BlockPrediction> originalServerBlocks = new Long2ObjectOpenHashMap<>();
+    // Blocks the client changed while placing or breaking blocks
+    private List<Vector3i> currentlyChangedBlocks = new LinkedList<>();
+    private final Map<Integer, List<Vector3i>> serverIsCurrentlyProcessingThesePredictions = new HashMap<>();
+    private boolean isCurrentlyPredicting = false;
+
     public CompensatedWorld(GrimPlayer player) {
         this.player = player;
         chunks = new Long2ObjectOpenHashMap<>(81, 0.5f);
+    }
+
+    public void startPredicting() {
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
+        this.isCurrentlyPredicting = true;
+    }
+
+    public void handlePredictionConfirmation(int prediction) {
+        List<Vector3i> changes = serverIsCurrentlyProcessingThesePredictions.remove(prediction);
+        if (changes == null) return;
+        applyBlockChanges(changes);
+    }
+
+    private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
+        player.sendTransaction();
+        player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
+            BlockPrediction predictionData = originalServerBlocks.get(vector3i.getSerializedPosition());
+
+            if (predictionData.getForBlockUpdate() == toApplyBlocks) { // We are the last to care about this prediction, remove it to stop memory leak
+                originalServerBlocks.remove(vector3i.getSerializedPosition());
+
+                // If we need to change the world block state
+                if (getWrappedBlockStateAt(vector3i).getGlobalId() != predictionData.getOriginalBlockId()) {
+                    WrappedBlockState state = WrappedBlockState.getByGlobalId(blockVersion, predictionData.getOriginalBlockId());
+
+                    // The player will teleport themselves if they get stuck in the reverted block
+                    if (CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, vector3i.getX(), vector3i.getY(), vector3i.getZ()).isIntersected(player.boundingBox)) {
+                        player.lastX = player.x;
+                        player.lastY = player.y;
+                        player.lastZ = player.z;
+                        player.x = predictionData.getPlayerPosition().getX();
+                        player.y = predictionData.getPlayerPosition().getY();
+                        player.z = predictionData.getPlayerPosition().getZ();
+                        player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
+                    }
+
+                    updateBlock(vector3i.getX(), vector3i.getY(), vector3i.getZ(), predictionData.getOriginalBlockId());
+                }
+            }
+        }));
+    }
+
+    public void stopPredicting(PacketWrapper<?> wrapper) {
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_18_2)) return; // No predictions
+        this.isCurrentlyPredicting = false; // We aren't in a block place or use item
+
+        if (this.currentlyChangedBlocks.isEmpty()) return; // Nothing to change
+
+        List<Vector3i> toApplyBlocks = this.currentlyChangedBlocks; // We must now track the client applying the server predicted blocks
+        this.currentlyChangedBlocks = new LinkedList<>(); // Reset variable without changing original
+
+        // We don't need to simulate any packets, it is native to the version we are on
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_19)) {
+            // Pull the confirmation ID out of the packet
+            int confirmationId = 0;
+            if (wrapper instanceof WrapperPlayClientPlayerBlockPlacement) {
+                confirmationId = ((WrapperPlayClientPlayerBlockPlacement) wrapper).getSequence();
+            } else if (wrapper instanceof WrapperPlayClientUseItem) {
+                confirmationId = ((WrapperPlayClientUseItem) wrapper).getSequence();
+            } else if (wrapper instanceof WrapperPlayClientPlayerDigging) {
+                confirmationId = ((WrapperPlayClientPlayerDigging) wrapper).getSequence();
+            }
+
+            serverIsCurrentlyProcessingThesePredictions.put(confirmationId, toApplyBlocks);
+        } else if (!ViaBackwardsManager.didViaBreakBlockPredictions) {
+            // ViaVersion is updated and runs tasks with bukkit which is correct (or we are 1.19 server)
+            // So we must wait for the bukkit thread to start ticking so the server can confirm it
+            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> {
+                // And then we jump back to the netty thread to simulate that Via sent the confirmation
+                ChannelHelper.runInEventLoop(player.user.getChannel(), () -> applyBlockChanges(toApplyBlocks));
+            });
+        } else { // ViaVersion is being stupid and sending acks immediately
+            applyBlockChanges(toApplyBlocks);
+        }
     }
 
     public static long chunkPositionToLong(int x, int z) {
@@ -56,7 +158,7 @@ public class CompensatedWorld {
 
     public boolean isNearHardEntity(SimpleCollisionBox playerBox) {
         for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            if ((entity.type == EntityTypes.BOAT || entity.type == EntityTypes.SHULKER) && player.compensatedEntities.getSelf().getRiding() != entity) {
+            if ((EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) || entity.type == EntityTypes.SHULKER) && player.compensatedEntities.getSelf().getRiding() != entity) {
                 SimpleCollisionBox box = entity.getPossibleCollisionBoxes();
                 if (box.isIntersected(playerBox)) {
                     return true;
@@ -84,34 +186,53 @@ public class CompensatedWorld {
         return false;
     }
 
+    private static BaseChunk create() {
+        if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_18)) {
+            return new Chunk_v1_18();
+        } else if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_16)) {
+            return new Chunk_v1_9(0, DataPalette.createForChunk());
+        }
+        return new Chunk_v1_9(0, new DataPalette(new ListPalette(4), new LegacyFlexibleStorage(4, 4096), PaletteType.CHUNK));
+    }
+
     public void updateBlock(int x, int y, int z, int combinedID) {
+        Vector3i asVector = new Vector3i(x, y, z);
+
+        if (isCurrentlyPredicting) {
+            originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getWrappedBlockStateAt(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+            currentlyChangedBlocks.add(asVector);
+        }
+
+        if (!isCurrentlyPredicting && originalServerBlocks.containsKey(asVector.getSerializedPosition())) {
+            // Server has a more up-to-date block, replace the original serialized position
+            originalServerBlocks.get(asVector.getSerializedPosition()).setOriginalBlockId(combinedID);
+            return;
+        }
+
         Column column = getChunk(x >> 4, z >> 4);
 
         // Apply 1.17 expanded world offset
         int offsetY = y - minHeight;
 
-        try {
-            if (column != null) {
-                if (column.getChunks().length <= (offsetY >> 4)) return;
+        if (column != null) {
+            if (column.getChunks().length <= (offsetY >> 4)) return;
 
-                BaseChunk chunk = column.getChunks()[offsetY >> 4];
+            BaseChunk chunk = column.getChunks()[offsetY >> 4];
 
-                if (chunk == null) {
-                    chunk = BaseChunk.create();
-                    column.getChunks()[offsetY >> 4] = chunk;
+            if (chunk == null) {
+                chunk = create();
+                column.getChunks()[offsetY >> 4] = chunk;
 
-                    // Sets entire chunk to air
-                    // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
-                    // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
-                    chunk.set(null, 0, 0, 0, 0);
-                }
-
-                chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
-
-                // Handle stupidity such as fluids changing in idle ticks.
-                player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(blockVersion, combinedID));
+                // Sets entire chunk to air
+                // This glitch/feature occurs due to the palette size being 0 when we first create a chunk section
+                // Meaning that all blocks in the chunk will refer to palette #0, which we are setting to air
+                chunk.set(null, 0, 0, 0, 0);
             }
-        } catch (Exception ignored) {
+
+            chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
+
+            // Handle stupidity such as fluids changing in idle ticks.
+            player.pointThreeEstimator.handleChangeBlock(x, y, z, WrappedBlockState.getByGlobalId(blockVersion, combinedID));
         }
     }
 
@@ -154,18 +275,18 @@ public class CompensatedWorld {
         player.uncertaintyHandler.tick();
         // Occurs on player login
         if (player.boundingBox == null) return;
-        SimpleCollisionBox playerBox = player.boundingBox.copy().expand(0.03);
+        SimpleCollisionBox playerBox = player.boundingBox.copy();
+
+        double modX = 0;
+        double modY = 0;
+        double modZ = 0;
 
         for (PistonData data : activePistons) {
-            double modX = 0;
-            double modY = 0;
-            double modZ = 0;
-
             for (SimpleCollisionBox box : data.boxes) {
                 if (playerBox.isCollided(box)) {
-                    modX = Math.abs(data.direction.getModX()) * 0.51D;
-                    modY = Math.abs(data.direction.getModY()) * 0.51D;
-                    modZ = Math.abs(data.direction.getModZ()) * 0.51D;
+                    modX = Math.max(modX, Math.abs(data.direction.getModX() * 0.51D));
+                    modY = Math.max(modY, Math.abs(data.direction.getModY() * 0.51D));
+                    modZ = Math.max(modZ, Math.abs(data.direction.getModZ() * 0.51D));
 
                     playerBox.expandMax(modX, modY, modZ);
                     playerBox.expandMin(modX * -1, modY * -1, modZ * -1);
@@ -177,17 +298,9 @@ public class CompensatedWorld {
                     break;
                 }
             }
-
-            player.uncertaintyHandler.pistonX = Math.max(modX, player.uncertaintyHandler.pistonX);
-            player.uncertaintyHandler.pistonY = Math.max(modY, player.uncertaintyHandler.pistonY);
-            player.uncertaintyHandler.pistonZ = Math.max(modZ, player.uncertaintyHandler.pistonZ);
         }
 
         for (ShulkerData data : openShulkerBoxes) {
-            double modX = 0;
-            double modY = 0;
-            double modZ = 0;
-
             SimpleCollisionBox shulkerCollision = data.getCollision();
 
             BlockFace direction;
@@ -210,27 +323,18 @@ public class CompensatedWorld {
             }
 
             if (playerBox.isCollided(shulkerCollision)) {
-                modX = Math.abs(direction.getModX());
-                modY = Math.abs(direction.getModY());
-                modZ = Math.abs(direction.getModZ());
+                modX = Math.max(modX, Math.abs(direction.getModX() * 0.51D));
+                modY = Math.max(modY, Math.abs(direction.getModY() * 0.51D));
+                modZ = Math.max(modZ, Math.abs(direction.getModZ() * 0.51D));
 
                 playerBox.expandMax(modX, modY, modZ);
                 playerBox.expandMin(modX, modY, modZ);
             }
-
-            player.uncertaintyHandler.pistonX = Math.max(modX, player.uncertaintyHandler.pistonX);
-            player.uncertaintyHandler.pistonY = Math.max(modY, player.uncertaintyHandler.pistonY);
-            player.uncertaintyHandler.pistonZ = Math.max(modZ, player.uncertaintyHandler.pistonZ);
         }
 
-        if (activePistons.isEmpty() && openShulkerBoxes.isEmpty()) {
-            player.uncertaintyHandler.pistonX = 0;
-            player.uncertaintyHandler.pistonY = 0;
-            player.uncertaintyHandler.pistonZ = 0;
-        }
-
-        // Reduce effects of piston pushing by 0.5 per tick
-        player.uncertaintyHandler.pistonPushing.add(Math.max(Math.max(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY), player.uncertaintyHandler.pistonZ) * (player.uncertaintyHandler.slimePistonBounces.isEmpty() ? 1 : 2));
+        player.uncertaintyHandler.pistonX.add(modX);
+        player.uncertaintyHandler.pistonY.add(modY);
+        player.uncertaintyHandler.pistonZ.add(modZ);
 
         // Tick the pistons and remove them if they can no longer exist
         activePistons.removeIf(PistonData::tickIfGuaranteedFinished);

@@ -3,22 +3,21 @@ package ac.grim.grimac.utils.data;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
-import org.bukkit.Location;
 import org.bukkit.util.Vector;
 
 @Getter
 @Setter
 @ToString
 public class SetBackData {
-    Location position;
+    TeleportData teleportData;
     float xRot, yRot;
     Vector velocity;
-    Integer vehicle;
+    boolean vehicle;
     boolean isComplete = false;
     boolean isPlugin = false;
 
-    public SetBackData(Location position, float xRot, float yRot, Vector velocity, Integer vehicle, boolean isPlugin) {
-        this.position = position;
+    public SetBackData(TeleportData teleportData, float xRot, float yRot, Vector velocity, boolean vehicle, boolean isPlugin) {
+        this.teleportData = teleportData;
         this.xRot = xRot;
         this.yRot = yRot;
         this.velocity = velocity;

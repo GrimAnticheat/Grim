@@ -40,8 +40,8 @@ public class PredictionEngine {
 
         // Slow movement was determined by the previous pose
         if (player.isSlowMovement) {
-            bestPossibleX = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getX() / 0.3)), 1f) * 0.3d);
-            bestPossibleZ = (float) (Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ() / 0.3)), 1f) * 0.3d);
+            bestPossibleX = (float) (theoreticalInput.getX() * player.sneakingSpeedMultiplier);
+            bestPossibleZ = (float) (theoreticalInput.getZ() * player.sneakingSpeedMultiplier);
         } else {
             bestPossibleX = Math.min(Math.max(-1f, Math.round(theoreticalInput.getX())), 1f);
             bestPossibleZ = Math.min(Math.max(-1f, Math.round(theoreticalInput.getZ())), 1f);
@@ -129,15 +129,18 @@ public class PredictionEngine {
 
         player.skippedTickInActualMovement = false;
 
-        for (VectorData clientVelAfterInput : possibleVelocities) {
-            Vector backOff = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
-            Vector primaryPushMovement = handlePushMovementThatDoesntAffectNextTickVel(player, backOff);
+        VectorData clientVelAfterInput = possibleVelocities.get(0);
+
+        for (int i = 0; i < possibleVelocities.size();) {
+            Vector primaryPushMovement = handleStartingVelocityUncertainty(player, clientVelAfterInput, player.actualMovement);
 
             Vector bestTheoreticalCollisionResult = VectorUtils.cutBoxToVector(player.actualMovement, new SimpleCollisionBox(0, Math.min(0, primaryPushMovement.getY()), 0, primaryPushMovement.getX(), Math.max(0.6, primaryPushMovement.getY()), primaryPushMovement.getZ()).sort());
             // Check if this vector could ever possible beat the last vector in terms of accuracy
             // This is quite a good optimization :)
-            if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion())
+            if (bestTheoreticalCollisionResult.distanceSquared(player.actualMovement) > bestInput && !clientVelAfterInput.isKnockback() && !clientVelAfterInput.isExplosion()) {
+                if (++i < possibleVelocities.size()) clientVelAfterInput = possibleVelocities.get(i);
                 continue;
+            }
 
             if (clientVelAfterInput.isZeroPointZeroThree()) {
                 player.boundingBox = pointThreeThanksMojang;
@@ -145,50 +148,24 @@ public class PredictionEngine {
                 player.boundingBox = originalBB;
             }
 
-            boolean vehicleKB = player.compensatedEntities.getSelf().inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
-            // Extra collision epsilon required for vehicles to be accurate
-            double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
-            // The server likes sending y=0 kb "lifting" the player off the ground.
-            // The client doesn't send the vehicles onGround status, so we can't check for ground like normal.
-            double yAdditional = vehicleKB ? 0 : (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON;
-            double zAdditional = Math.signum(primaryPushMovement.getZ()) * SimpleCollisionBox.COLLISION_EPSILON;
+            Vector outputVel = doSeekingWallCollisions(player, primaryPushMovement, originalClientVel, clientVelAfterInput);
+            outputVel =  clampMovementToHardBorder(player, outputVel, outputVel);
 
-            // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
-            double testX = primaryPushMovement.getX() + xAdditional;
-            double testY = primaryPushMovement.getY() + yAdditional;
-            double testZ = primaryPushMovement.getZ() + zAdditional;
-            primaryPushMovement = new Vector(testX, testY, testZ);
-
-            Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY(), clientVelAfterInput);
-
-            if (testX == outputVel.getX()) { // the player didn't have X collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setX(primaryPushMovement.getX() - xAdditional);
-                outputVel.setX(outputVel.getX() - xAdditional);
-            }
-
-            if (testY == outputVel.getY()) { // the player didn't have Y collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setY(primaryPushMovement.getY() - yAdditional);
-                outputVel.setY(outputVel.getY() - yAdditional);
-            }
-
-            if (testZ == outputVel.getZ()) { // the player didn't have Z collision, don't ruin offset by collision epsilon
-                primaryPushMovement.setZ(primaryPushMovement.getZ() - zAdditional);
-                outputVel.setZ(outputVel.getZ() - zAdditional);
-            }
-
-            Vector handleHardCodedBorder = outputVel;
-            handleHardCodedBorder = clampMovementToHardBorder(player, outputVel, handleHardCodedBorder);
-
-            double resultAccuracy = handleHardCodedBorder.distanceSquared(player.actualMovement);
+            double resultAccuracy = outputVel.distanceSquared(player.actualMovement);
 
             // Check if this possiblity is zero point zero three and is "close enough" to the player's actual movement
             if (clientVelAfterInput.isZeroPointZeroThree() && resultAccuracy < 0.001 * 0.001) {
                 player.skippedTickInActualMovement = true;
             }
 
+            boolean wasVelocityPointThree = false;
             // This allows us to always check the percentage of knockback taken
             // A player cannot simply ignore knockback without us measuring how off it was
-            if (clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) {
+            //
+            // Exempt if the player
+            if ((clientVelAfterInput.isKnockback() || clientVelAfterInput.isExplosion()) && !clientVelAfterInput.isZeroPointZeroThree()) {
+                wasVelocityPointThree = player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput)));
+
                 // Check ONLY the knockback vectors for 0.03
                 // The first being the one without uncertainty
                 // And the last having uncertainty to deal with 0.03
@@ -197,12 +174,12 @@ public class PredictionEngine {
                 // There's much larger performance design issues than losing a few nanoseconds here and there.
                 if (clientVelAfterInput.isKnockback()) {
                     player.checkManager.getKnockbackHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
-                    player.checkManager.getKnockbackHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
+                    player.checkManager.getKnockbackHandler().setPointThree(wasVelocityPointThree);
                 }
 
                 if (clientVelAfterInput.isExplosion()) {
                     player.checkManager.getExplosionHandler().handlePredictionAnalysis(Math.sqrt(player.uncertaintyHandler.reduceOffset(resultAccuracy)));
-                    player.checkManager.getExplosionHandler().setPointThree(player.pointThreeEstimator.determineCanSkipTick(speed, new HashSet<>(Collections.singletonList(clientVelAfterInput))));
+                    player.checkManager.getExplosionHandler().setPointThree(wasVelocityPointThree);
                 }
             }
 
@@ -229,6 +206,18 @@ public class PredictionEngine {
             if (bestInput < 1e-5 * 1e-5) {
                 break;
             }
+
+            if (wasVelocityPointThree) {
+                // Loop again, without incrementing the loop, but as 0.03
+                // We must re-run the previous code again, and I don't want to repeat myself
+                // I'm lazily determining 0.03 because 0.03 is expensive to determine
+                // We can't add to the end of the list because the order of predictions ran matters
+                // as we must try knockback possibilities before non-knockback possibilities
+                clientVelAfterInput = clientVelAfterInput.returnNewModified(clientVelAfterInput.vector, VectorData.VectorType.ZeroPointZeroThree);
+            } else if (++i < possibleVelocities.size()) {
+                 clientVelAfterInput = possibleVelocities.get(i);
+            }
+
         }
 
         assert beforeCollisionMovement != null;
@@ -241,6 +230,41 @@ public class PredictionEngine {
         if (player.predictedVelocity.isZeroPointZeroThree()) {
             player.skippedTickInActualMovement = true;
         }
+    }
+
+    private Vector doSeekingWallCollisions(GrimPlayer player, Vector primaryPushMovement, Vector originalClientVel, VectorData clientVelAfterInput) {
+        boolean vehicleKB = player.compensatedEntities.getSelf().inVehicle() && clientVelAfterInput.isKnockback() && clientVelAfterInput.vector.getY() == 0;
+        // Extra collision epsilon required for vehicles to be accurate
+        double xAdditional = Math.signum(primaryPushMovement.getX()) * SimpleCollisionBox.COLLISION_EPSILON;
+        // The server likes sending y=0 kb "lifting" the player off the ground.
+        // The client doesn't send the vehicles onGround status, so we can't check for ground like normal.
+        double yAdditional = vehicleKB ? 0 : (primaryPushMovement.getY() > 0 ? 1 : -1) * SimpleCollisionBox.COLLISION_EPSILON;
+        double zAdditional = Math.signum(primaryPushMovement.getZ()) * SimpleCollisionBox.COLLISION_EPSILON;
+
+        // Expand by the collision epsilon to test if the player collided with a block (as this resets the velocity in that direction)
+        double testX = primaryPushMovement.getX() + xAdditional;
+        double testY = primaryPushMovement.getY() + yAdditional;
+        double testZ = primaryPushMovement.getZ() + zAdditional;
+        primaryPushMovement = new Vector(testX, testY, testZ);
+
+        Vector outputVel = Collisions.collide(player, primaryPushMovement.getX(), primaryPushMovement.getY(), primaryPushMovement.getZ(), originalClientVel.getY(), clientVelAfterInput);
+
+        if (testX == outputVel.getX()) { // the player didn't have X collision, don't ruin offset by collision epsilon
+            primaryPushMovement.setX(primaryPushMovement.getX() - xAdditional);
+            outputVel.setX(outputVel.getX() - xAdditional);
+        }
+
+        if (testY == outputVel.getY()) { // the player didn't have Y collision, don't ruin offset by collision epsilon
+            primaryPushMovement.setY(primaryPushMovement.getY() - yAdditional);
+            outputVel.setY(outputVel.getY() - yAdditional);
+        }
+
+        if (testZ == outputVel.getZ()) { // the player didn't have Z collision, don't ruin offset by collision epsilon
+            primaryPushMovement.setZ(primaryPushMovement.getZ() - zAdditional);
+            outputVel.setZ(outputVel.getZ() - zAdditional);
+        }
+
+        return outputVel;
     }
 
     // 0.03 has some quite bad interactions with velocity + explosions (one extremely stupid line of code... thanks mojang)
@@ -447,6 +471,10 @@ public class PredictionEngine {
         double additionHorizontal = player.uncertaintyHandler.getOffsetHorizontal(vector);
         double additionVertical = player.uncertaintyHandler.getVerticalOffset(vector);
 
+        double pistonX = Collections.max(player.uncertaintyHandler.pistonX);
+        double pistonY = Collections.max(player.uncertaintyHandler.pistonY);
+        double pistonZ = Collections.max(player.uncertaintyHandler.pistonZ);
+
         additionHorizontal += player.uncertaintyHandler.lastHorizontalOffset;
         additionVertical += player.uncertaintyHandler.lastVerticalOffset;
 
@@ -455,28 +483,25 @@ public class PredictionEngine {
             originalVec = originalVec.lastVector;
         }
 
-        double uncertainPiston = 0;
-        for (int x = 0; x < player.uncertaintyHandler.pistonPushing.size(); x++) {
-            double value = player.uncertaintyHandler.pistonPushing.get(x);
-            if (value == 0) continue;
-            value *= (Math.pow(0.8, x));
-            uncertainPiston = Math.max(uncertainPiston, value);
-        }
-
         // "temporary" workaround for when player toggles flight
         // Difficult as there are a ton of edge cases and version differences with flying
         // For example, try toggling not using elytra to flying without this hack
         double bonusY = 0;
-        if (player.uncertaintyHandler.lastFlyingStatusChange > -5) {
+        if (player.uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(4)) {
             additionHorizontal += 0.3;
             bonusY += 0.3;
         }
 
-        if (player.uncertaintyHandler.lastUnderwaterFlyingHack > -10) {
+        if (player.uncertaintyHandler.lastUnderwaterFlyingHack.hasOccurredSince(9)) {
             bonusY += 0.2;
         }
 
-        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3) {
+        if (player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(2)) {
+            additionHorizontal += 0.1;
+            bonusY += 0.1;
+        }
+
+        if (pistonX != 0 || pistonY != 0 || pistonZ != 0) {
             additionHorizontal += 0.1;
             bonusY += 0.1;
         }
@@ -491,15 +516,15 @@ public class PredictionEngine {
         // 0.075 seems safe?
         //
         // Be somewhat careful as there is an antikb (for horizontal) that relies on this lenience
-        Vector uncertainty = new Vector(avgColliding * 0.08 + uncertainPiston, additionVertical + uncertainPiston, avgColliding * 0.08 + uncertainPiston);
+        Vector uncertainty = new Vector(avgColliding * 0.08, additionVertical, avgColliding * 0.08);
         Vector min = new Vector(player.uncertaintyHandler.xNegativeUncertainty - additionHorizontal, -bonusY + player.uncertaintyHandler.yNegativeUncertainty, player.uncertaintyHandler.zNegativeUncertainty - additionHorizontal);
-        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty + (player.uncertaintyHandler.lastLastPacketWasGroundPacket ? 0.03 : 0), player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
+        Vector max = new Vector(player.uncertaintyHandler.xPositiveUncertainty + additionHorizontal, bonusY + player.uncertaintyHandler.yPositiveUncertainty, player.uncertaintyHandler.zPositiveUncertainty + additionHorizontal);
 
         Vector minVector = vector.vector.clone().add(min.subtract(uncertainty));
         Vector maxVector = vector.vector.clone().add(max.add(uncertainty));
 
-        // Handle the player landing within 0.03 movement
-        if ((player.uncertaintyHandler.onGroundUncertain || player.uncertaintyHandler.lastPacketWasGroundPacket) && vector.vector.getY() < 0) {
+        // Handle the player landing within 0.03 movement, which resets Y velocity
+        if (player.uncertaintyHandler.onGroundUncertain && vector.vector.getY() < 0) {
             maxVector.setY(0);
         }
 
@@ -571,7 +596,7 @@ public class PredictionEngine {
         // a Y velocity of 0 to 0.1.  Because 0.03 we don't know this so just give lenience here
         //
         // Stuck on edge also reduces the player's movement.  It's wrong by 0.05 so hard to implement.
-        if (player.uncertaintyHandler.stuckOnEdge == 0 || player.uncertaintyHandler.isSteppingOnSlime) {
+        if (player.uncertaintyHandler.stuckOnEdge.hasOccurredSince(0) || player.uncertaintyHandler.isSteppingOnSlime) {
             // Avoid changing Y axis
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
         }
@@ -606,55 +631,59 @@ public class PredictionEngine {
         // jumps upwards and collides with a block, which you don't actually see because mojang removed the idle
         // packet and sneaking poses take 2 full ticks to apply
         //
-         if (player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
+        // Or the player is switching in and out of controlling a vehicle, in which friction messes it up
+        //
+        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(0) || player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && vector.vector.getY() > 0 && vector.isZeroPointZeroThree() && !Collisions.isEmpty(player, GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, vector.vector.getY() + player.lastY + 0.6, player.lastZ, 0.6f, 1.26f)))) {
             box.expandToAbsoluteCoordinates(0, 0, 0);
+        }
+
+        // Handle missing a tick with friction in vehicles
+        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(1) && !player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(0)) {
+            double trueFriction = player.lastOnGround ? player.friction * 0.91 : 0.91;
+            if (player.wasTouchingLava) trueFriction = 0.5;
+            if (player.wasTouchingWater) trueFriction = 0.96;
+
+            double maxY = Math.max(box.maxY, box.maxY + ((box.maxY - player.gravity) * 0.91));
+            double minY = Math.min(box.minY, box.minY + ((box.minY - player.gravity) * 0.91));
+            double minX = Math.min(box.minX, box.minX + (-player.speed * trueFriction));
+            double minZ = Math.min(box.minZ, box.minZ + (-player.speed * trueFriction));
+            double maxX = Math.max(box.maxX, box.maxX + (player.speed * trueFriction));
+            double maxZ = Math.max(box.maxZ, box.maxZ + (player.speed * trueFriction));
+
+            box = new SimpleCollisionBox(minX, minY, minZ, maxX, maxY, maxZ);
+            box.expand(0.05, 0, 0.05); // Try value patching out any issues
+        }
+
+        if (player.uncertaintyHandler.lastVehicleSwitch.hasOccurredSince(10)) {
+            box.expand(0.001); // Ignore 1e-3 offsets as we don't know starting vel
         }
 
         minVector = box.min();
         maxVector = box.max();
 
-        Vector cut = VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
-
-        if (player.clientControlledVerticalCollision && player.actualMovement.getY() > 0 && vector.vector.getY() < 0) {
-            cut.setY(vector.vector.getY()); // Likely stepping movement, avoid changing 0.03 related movement
+        // Likely stepping movement, avoid changing 0.03 related movement
+        // Piston gets priority over this code
+        //
+        // This shouldn't matter if the vector is going upwards or at precisely 0 because then
+        // the player couldn't be on the ground anyways...
+        if (player.clientControlledVerticalCollision && vector.vector.getY() < 0) {
+            minVector.setY(vector.vector.getY());
+            maxVector.setY(vector.vector.getY());
         }
 
-        return cut;
-    }
-
-    public Vector handlePushMovementThatDoesntAffectNextTickVel(GrimPlayer player, Vector vector) {
-        Vector uncertainty = new Vector(player.uncertaintyHandler.pistonX, player.uncertaintyHandler.pistonY, player.uncertaintyHandler.pistonZ);
-
-        Vector min = vector.clone().add(new Vector(0, player.uncertaintyHandler.onGroundUncertain ? -0.03 : 0, 0));
-        Vector max = vector.clone();
-
-        // Hack around pistons resetting player velocity
-        if (player.uncertaintyHandler.pistonX != 0) {
-            if (player.actualMovement.getX() > 0) {
-                max.setX(Math.max(max.getX(), 0));
-            } else {
-                min.setX(Math.min(min.getX(), 0));
-            }
+        if (pistonX != 0) {
+            minVector.setX(Math.min(minVector.getX() - pistonX, pistonX));
+            maxVector.setX(Math.max(maxVector.getX() + pistonX, pistonX));
         }
-        if (player.uncertaintyHandler.pistonY != 0) {
-            if (player.actualMovement.getY() > 0) {
-                max.setY(Math.max(max.getY(), 0));
-            } else {
-                min.setY(Math.min(min.getY(), 0));
-            }
+        if (pistonY != 0) {
+            minVector.setY(Math.min(minVector.getY() - pistonY, pistonY));
+            maxVector.setY(Math.max(maxVector.getY() + pistonY, pistonY));
         }
-        if (player.uncertaintyHandler.pistonZ != 0) {
-            if (player.actualMovement.getZ() > 0) {
-                max.setZ(Math.max(max.getZ(), 0));
-            } else {
-                min.setZ(Math.min(min.getZ(), 0));
-            }
+        if (pistonZ != 0) {
+            minVector.setZ(Math.min(minVector.getZ() - pistonZ, pistonZ));
+            maxVector.setZ(Math.max(maxVector.getZ() + pistonZ, pistonZ));
         }
-
-        min.subtract(uncertainty);
-        max.add(uncertainty);
-
-        return VectorUtils.cutBoxToVector(player.actualMovement, min, max);
+        return VectorUtils.cutBoxToVector(targetVec, minVector, maxVector);
     }
 
     public void endOfTick(GrimPlayer player, double d) {
@@ -703,7 +732,7 @@ public class PredictionEngine {
 
     public boolean canSwimHop(GrimPlayer player) {
         // Boats cannot swim hop, all other living entities should be able to.
-        if (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT)
+        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT))
             return false;
 
         // Vanilla system ->
@@ -743,7 +772,7 @@ public class PredictionEngine {
         SimpleCollisionBox newBox = player.compensatedEntities.getSelf().inVehicle() ? GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z) :
                 GetBoundingBox.getBoundingBoxFromPosAndSize(player.x, player.y, player.z, 0.6f, 1.8f);
 
-        return player.uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
+        return player.uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || !Collisions.isEmpty(player, newBox.expand(player.clientVelocity.getX(), -1 * pointThreeToGround, player.clientVelocity.getZ()).expand(0.5, 0.03, 0.5));
     }
 
     // This is just the vanilla equation, which accepts invalid inputs greater than 1

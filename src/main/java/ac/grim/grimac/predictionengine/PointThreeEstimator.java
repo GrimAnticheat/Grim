@@ -72,7 +72,7 @@ import java.util.Set;
  * <p>
  * Call me out for the code (in this class) - but please put the blame on Mojang instead.  None of this would be needed
  * if Minecraft's netcode wasn't so terrible.
- *
+ * <p>
  * 1.18.2 fixes this issue.  However, this code must now be applied to tick skipping,
  * and I don't feel like writing another rant about tick skipping as mojang will never fix it, as it would
  * increase bandwidth usage.  At least it only causes falses occasionally, and not bypasses.
@@ -105,10 +105,6 @@ public class PointThreeEstimator {
     private boolean hasNegativeLevitation = false; // Negative potion effects [-127, -1]
     private boolean didLevitationChange = false; // We can't predict with an unknown amount of ticks between a levitation change
 
-    // If the world changed in a way that allowed the player to skip a tick between ticks
-    // Just pillar upwards with high latency to see this happen... it happens a lot due to netcode
-    private boolean sneakyPointThree = false;
-
     @Setter
     @Getter
     private boolean isPushing = false;
@@ -127,7 +123,8 @@ public class PointThreeEstimator {
 
         // Calculate head hitters.  Take a shortcut by checking if the player doesn't intersect with this block, but does
         // when the player vertically moves upwards by 0.03!  This is equivalent to the move method, but MUCH faster.
-        if (!normalBox.copy().expand(0.03, 0, 0.03).isIntersected(data) && normalBox.copy().expand(0.03, 0.03, 0.03).isIntersected(data)) {
+        SimpleCollisionBox slightlyExpanded = normalBox.copy().expand(0.03, 0, 0.03);
+        if (!slightlyExpanded.isIntersected(data) && slightlyExpanded.offset(0, 0.03, 0).isIntersected(data)) {
             headHitter = true;
         }
 
@@ -151,10 +148,9 @@ public class PointThreeEstimator {
         }
 
         if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
-            if (!sneakyPointThree && !player.couldSkipTick && !isPushing) {
+            if (!player.couldSkipTick) {
                 player.couldSkipTick = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
             }
-            sneakyPointThree = sneakyPointThree || isPushing || player.couldSkipTick;
         }
 
         if (!player.compensatedEntities.getSelf().inVehicle() && (state.getType() == StateTypes.POWDER_SNOW || Materials.isClimbable(state.getType())) && pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
@@ -227,7 +223,6 @@ public class PointThreeEstimator {
         isGliding = player.isGliding;
         gravityChanged = false;
         wasAlwaysCertain = true;
-        sneakyPointThree = false;
         isPushing = false;
     }
 
@@ -320,7 +315,7 @@ public class PointThreeEstimator {
             return false;
         }
 
-        if (isNearClimbable() || sneakyPointThree || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
+        if (isNearClimbable() || isPushing || player.uncertaintyHandler.wasAffectedByStuckSpeed() || player.compensatedFireworks.getMaxFireworksAppliedPossible() > 0) {
             return true;
         }
 

@@ -41,6 +41,7 @@ import java.util.List;
 public class BlockPlace {
     protected static final BlockFace[] UPDATE_SHAPE_ORDER = new BlockFace[]{BlockFace.WEST, BlockFace.EAST, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.DOWN, BlockFace.UP};
     private static final BlockFace[] BY_2D = new BlockFace[]{BlockFace.SOUTH, BlockFace.WEST, BlockFace.NORTH, BlockFace.EAST};
+    static final BlockFace[] BY_3D = new BlockFace[]{BlockFace.DOWN, BlockFace.UP, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
     @Setter
     Vector3i blockPosition;
     @Getter
@@ -373,7 +374,7 @@ public class BlockPlace {
     public boolean isBlockPlacedPowered() {
         Vector3i placed = getPlacedBlockPos();
 
-        for (BlockFace face : BlockFace.CARTESIAN_VALUES) {
+        for (BlockFace face : BY_3D) {
             Vector3i modified = placed.add(face.getModX(), face.getModY(), face.getModZ());
 
             // A block next to the player is providing power.  Therefore the block is powered
@@ -399,7 +400,7 @@ public class BlockPlace {
 
             // There's a better way to do this, but this is "good enough"
             // Mojang probably does it in a worse way than this.
-            for (BlockFace recursive : BlockFace.CARTESIAN_VALUES) {
+            for (BlockFace recursive : BY_3D) {
                 Vector3i poweredRecursive = placed.add(recursive.getModX(), recursive.getModY(), recursive.getModZ());
 
                 // A block next to the player is directly powered.  Therefore, the block is powered
@@ -535,34 +536,46 @@ public class BlockPlace {
     }
 
     public void set(Vector3i position, WrappedBlockState state) {
+        // Hack for scaffolding to be the correct bounding box
         CollisionBox box = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, position.getX(), position.getY(), position.getZ());
 
-        // A player cannot place a block in themselves.  THANKS MOJANG THIS CAN DESYNC BECAUSE OF 0.03
-        // Great job!  It's only been an issue for years!  One second to fix but you are too incompetent to change a single value.
-        if (box.isIntersected(player.boundingBox)) {
-            return;
-        }
 
-        // Other entities can also block block-placing
-        // This sucks and desyncs constantly, but what can you do?
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
-
-            double width = BoundingBoxSize.getWidth(player, entity);
-            double height = BoundingBoxSize.getHeight(player, entity);
-            double interpWidth = Math.max(interpBox.maxX - interpBox.minX, interpBox.maxZ - interpBox.minZ);
-            double interpHeight = interpBox.maxY - interpBox.minY;
-
-            // If not accurate, fall back to desync pos
-            // This happens due to the lack of an idle packet on 1.9+ clients
-            // On 1.8 clients this should practically never happen
-            if (interpWidth - width > 0.05 || interpHeight - height > 0.05) {
-                Vector3d entityPos = entity.desyncClientPos;
-                interpBox = GetBoundingBox.getPacketEntityBoundingBox(player, entityPos.getX(), entityPos.getY(), entityPos.getZ(), entity);
+        // Note scaffolding is a special case because it can never intersect with the player's bounding box,
+        // and we fetch it with lastY instead of y which is wrong, so it is easier to just ignore scaffolding here
+        if (state.getType() != StateTypes.SCAFFOLDING) {
+            // A player cannot place a block in themselves.
+            // 0.03 can desync quite easily
+            // 0.002 desync must be done with teleports, it is very difficult to do with slightly moving.
+            if (box.isIntersected(player.boundingBox)) {
+                return;
             }
 
-            if (box.isIntersected(interpBox)) {
-                return; // Blocking the block placement
+            // Other entities can also block block-placing
+            // This sucks and desyncs constantly, but what can you do?
+            //
+            // 1.9+ introduced the mechanic where both the client and server must agree upon a block place
+            // 1.8 clients will simply not send the place when it fails, thanks mojang.
+            if (player.getClientVersion().isNewerThan(ClientVersion.V_1_8)) {
+                for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                    SimpleCollisionBox interpBox = entity.getPossibleCollisionBoxes();
+
+                    double width = BoundingBoxSize.getWidth(player, entity);
+                    double height = BoundingBoxSize.getHeight(player, entity);
+                    double interpWidth = Math.max(interpBox.maxX - interpBox.minX, interpBox.maxZ - interpBox.minZ);
+                    double interpHeight = interpBox.maxY - interpBox.minY;
+
+                    // If not accurate, fall back to desync pos
+                    // This happens due to the lack of an idle packet on 1.9+ clients
+                    // On 1.8 clients this should practically never happen
+                    if (interpWidth - width > 0.05 || interpHeight - height > 0.05) {
+                        Vector3d entityPos = entity.desyncClientPos;
+                        interpBox = GetBoundingBox.getPacketEntityBoundingBox(player, entityPos.getX(), entityPos.getY(), entityPos.getZ(), entity);
+                    }
+
+                    if (box.isIntersected(interpBox)) {
+                        return; // Blocking the block placement
+                    }
+                }
             }
         }
 

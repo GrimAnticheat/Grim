@@ -7,6 +7,8 @@ client-brand-format: "%prefix% &f%player% joined using %brand%"
 console-specify-target: "%prefix% &cYou must specify a target as the console!"
 player-not-found: "%prefix% &cPlayer is exempt or offline!"
 player-not-this-server: "%prefix% &cPlayer is not on this server!"
+spectate-return: "\n%prefix% &fClick here to return to previous location\n"
+cannot-spectate-return: "%prefix% &cYou can only do this after spectating a player"
 
 # Valid placeholders:
 # %prefix%
@@ -19,6 +21,7 @@ alerts-format: "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%ver
 profile:
   - "&7======================"
   - "%prefix% &bProfile for &f%player%"
+  - "&bPing: &f%ping%"
   - "&bVersion: &f%version%"
   - "&bClient Brand: &f%brand%"
   - "&bHorizontal Sensitivity: &f%h_sensitivity%%"
@@ -28,9 +31,10 @@ profile:
 help:
   - "&7======================"
   - "/grim alerts &f- &7Toggle alerts"
-  - "/grim profile &f- &7View player info"
+  - "/grim profile <player> &f- &7View player info"
   - "/grim help &f- &7View this help message"
   - "/grim debug <player> &f- &7Developer Prediction output"
   - "/grim perf &f- &7Developer ms/prediction"
   - "/grim reload &f- &7Reloads the config"
+  - "/grim spectate <player> &f- &7Spectate a player"
   - "&7======================"

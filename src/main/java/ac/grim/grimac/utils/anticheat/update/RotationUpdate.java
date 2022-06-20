@@ -1,5 +1,6 @@
 package ac.grim.grimac.utils.anticheat.update;
 
+import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.utils.data.HeadRotation;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,6 +9,7 @@ import lombok.Setter;
 @Setter
 public final class RotationUpdate {
     private HeadRotation from, to;
+    private AimProcessor processor;
     private float deltaPitch, deltaYaw;
     private boolean isCinematic;
     private double sensitivityX, sensitivityY;

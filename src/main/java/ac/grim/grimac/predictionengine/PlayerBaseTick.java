@@ -54,19 +54,23 @@ public class PlayerBaseTick {
             player.baseTickAddVector(new Vector(0, -0.04f, 0));
         }
 
-        // LocalPlayer:aiStep determining crouching
-        // Tick order is entityBaseTick and then the aiStep stuff
-        // This code is in the wrong place, I'll fix it later
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
+            // 1.13.2 and below logic: If crouching, then slow movement, simple!
+            player.isSlowMovement = player.isSneaking;
+        } else {
+            player.isSlowMovement =
+                    !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
+                    && (player.wasSneaking || !player.isInBed && !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ)) ||
+                    // If the player is in the swimming pose
+                    // Or if the player is not gliding, and the player's pose is fall flying
+                    // and the player is not touching water (yes, this also can override the gliding slowness)
+                    ((player.pose == Pose.SWIMMING || (!player.isGliding && player.pose == Pose.FALL_FLYING)) && !player.wasTouchingWater);
 
-        player.isCrouching = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) ?
-                !player.wasFlying && !player.isSwimming && canEnterPose(player, Pose.CROUCHING, player.lastX, player.lastY, player.lastZ)
-                        && (player.wasSneaking || !player.isInBed && !canEnterPose(player, Pose.STANDING, player.lastX, player.lastY, player.lastZ))
-                : player.isSneaking; // Sneaking on 1.7-1.13 is just the status the player sends us.  Nothing complicated.
-        player.isSlowMovement = player.isCrouching || (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) &&
-                // If the player is in the swimming pose
-                // Or if the player is not gliding, and the player's pose is fall flying
-                // and the player is not touching water (yes, this also can override the gliding slowness)
-                (player.pose == Pose.SWIMMING || (!player.isGliding && player.pose == Pose.FALL_FLYING)) && !player.wasTouchingWater);
+            // Mojang also accidentally left this in with 1.14-1.14.4
+            if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_14) && player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_14_4)) {
+                player.isSlowMovement = player.isSlowMovement || player.isSneaking;
+            }
+        }
 
         if (player.compensatedEntities.getSelf().inVehicle()) player.isSlowMovement = false;
 
@@ -94,7 +98,7 @@ public class PlayerBaseTick {
 
         double d0 = player.lastY + player.getEyeHeight() - 0.1111111119389534D;
 
-        if (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
+        if (player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT) && !player.vehicleData.boatUnderwater && player.boundingBox.maxY >= d0 && player.boundingBox.minY <= d0) {
             return;
         }
 
@@ -371,7 +375,7 @@ public class PlayerBaseTick {
     }
 
     public void updateInWaterStateAndDoWaterCurrentPushing() {
-        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT);
+        player.wasTouchingWater = this.updateFluidHeightAndDoFluidPushing(FluidTag.WATER, 0.014) && !(player.compensatedEntities.getSelf().getRiding() != null && EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT));
         if (player.wasTouchingWater)
             player.fallDistance = 0;
     }

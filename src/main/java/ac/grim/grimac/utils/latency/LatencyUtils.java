@@ -37,8 +37,14 @@ public class LatencyUtils {
                 if (transaction == pair.getFirst() - 1)
                     continue;
 
-                // Run the task
-                pair.getSecond().run();
+
+                try {
+                    // Run the task
+                    pair.getSecond().run();
+                } catch (Exception e) {
+                    System.out.println("An error has occurred when running transactions for player: " + player.user.getName());
+                    e.printStackTrace();
+                }
                 // We ran a task, remove it from the list
                 iterator.remove();
             }

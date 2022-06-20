@@ -26,6 +26,8 @@ public class ConfigManager {
     private final File discordFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "discord.yml");
     @Getter
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+    @Getter
+    private int maxPingTransaction = 120; // This is just a really hot variable so cache it.
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
@@ -70,7 +72,7 @@ public class ConfigManager {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load config", e);
         }
-        //
+        maxPingTransaction = config.getIntElse("max-ping.transaction", 120);
         ignoredClientPatterns.clear();
         for (String string : config.getStringList("client-brand.ignored-clients")) {
             try {
@@ -103,7 +105,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 2");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 3");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -123,6 +125,9 @@ public class ConfigManager {
         }
         if (configVersion < 2) {
             addMissingPunishments();
+        }
+        if (configVersion < 3) {
+            addBaritoneCheck();
         }
     }
 
@@ -168,6 +173,19 @@ public class ConfigManager {
                             "      - \"20:40 [alert]\"\n";
                 }
 
+                Files.write(config.toPath(), configString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private void addBaritoneCheck() {
+        File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+        String configString;
+        if (config.exists()) {
+            try {
+                configString = new String(Files.readAllBytes(config.toPath()));
+                configString = configString.replace("      - \"EntityControl\"\n", "      - \"EntityControl\"\n      - \"Baritone\"\n      - \"FastBreak\"\n");
                 Files.write(config.toPath(), configString.getBytes());
             } catch (IOException ignored) {
             }

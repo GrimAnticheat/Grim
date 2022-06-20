@@ -15,18 +15,21 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
+import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import ac.grim.grimac.utils.latency.*;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import com.github.retrooper.packetevents.protocol.ConnectionState;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.player.User;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
+import com.github.retrooper.packetevents.protocol.world.Dimension;
 import com.github.retrooper.packetevents.util.Vector3d;
 import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
@@ -38,7 +41,6 @@ import io.github.retrooper.packetevents.util.viaversion.ViaVersionUtil;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
@@ -67,6 +69,12 @@ public class GrimPlayer {
     public AtomicInteger lastTransactionSent = new AtomicInteger(0);
     public AtomicInteger lastTransactionReceived = new AtomicInteger(0);
     // End transaction handling stuff
+    // Manager like classes
+    public CheckManager checkManager;
+    public ActionManager actionManager;
+    public PunishmentManager punishmentManager;
+    public MovementCheckRunner movementCheckRunner;
+    // End manager like classes
     public Vector clientVelocity = new Vector();
     PacketTracker packetTracker;
     private int transactionPing = 0;
@@ -101,7 +109,6 @@ public class GrimPlayer {
     public boolean lastOnGround;
     public boolean isSneaking;
     public boolean wasSneaking;
-    public boolean isCrouching;
     public boolean isSprinting;
     public boolean lastSprinting;
     // The client updates sprinting attribute at end of each tick
@@ -123,9 +130,9 @@ public class GrimPlayer {
     public boolean isSlowMovement = false;
     public boolean isInBed = false;
     public boolean lastInBed = false;
-    public boolean isDead = false;
     public int food = 20;
     public float depthStriderLevel;
+    public float sneakingSpeedMultiplier = 0.3f;
     public float flySpeed;
     public VehicleData vehicleData = new VehicleData();
     // The client claims this
@@ -169,17 +176,14 @@ public class GrimPlayer {
     public VelocityData likelyKB = null;
     public VelocityData firstBreadExplosion = null;
     public VelocityData likelyExplosions = null;
-    public CheckManager checkManager;
-    public ActionManager actionManager;
-    public PunishmentManager punishmentManager;
-    public MovementCheckRunner movementCheckRunner;
     public boolean tryingToRiptide = false;
     public int minPlayerAttackSlow = 0;
     public int maxPlayerAttackSlow = 0;
     public GameMode gamemode;
+    public Dimension dimension;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
-    public Queue<PacketWrapper> placeUseItemPackets = new LinkedBlockingQueue<>();
+    public Queue<PacketWrapper<?>> placeUseItemPackets = new LinkedBlockingQueue<>();
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!
     public boolean disableGrim = false;
@@ -201,22 +205,22 @@ public class GrimPlayer {
 
         boundingBox = GetBoundingBox.getBoundingBoxFromPosAndSize(x, y, z, 0.6f, 1.8f);
 
-        compensatedWorld = new CompensatedWorld(this);
-        compensatedFireworks = new CompensatedFireworks(this);
-        compensatedEntities = new CompensatedEntities(this);
-        latencyUtils = new LatencyUtils(this);
-        trigHandler = new TrigHandler(this);
-        uncertaintyHandler = new UncertaintyHandler(this);
-        pointThreeEstimator = new PointThreeEstimator(this);
-
-        packetStateData = new PacketStateData();
+        compensatedFireworks = new CompensatedFireworks(this); // Must be before checkmanager
 
         checkManager = new CheckManager(this);
         actionManager = new ActionManager(this);
         punishmentManager = new PunishmentManager(this);
         movementCheckRunner = new MovementCheckRunner(this);
 
-        uncertaintyHandler.pistonPushing.add(0d);
+        compensatedWorld = new CompensatedWorld(this);
+        compensatedEntities = new CompensatedEntities(this);
+        latencyUtils = new LatencyUtils(this);
+        trigHandler = new TrigHandler(this);
+        uncertaintyHandler = new UncertaintyHandler(this); // must be after checkmanager
+        pointThreeEstimator = new PointThreeEstimator(this);
+
+        packetStateData = new PacketStateData();
+
         uncertaintyHandler.collidingEntities.add(0);
 
         GrimAPI.INSTANCE.getPlayerDataManager().addPlayer(user, this);
@@ -281,11 +285,6 @@ public class GrimPlayer {
     // But if some error made a client miss a packet, then it won't hurt them too bad.
     // Also it forces players to take knockback
     public boolean addTransactionResponse(short id) {
-        // Disable ViaVersion packet limiter
-        // Required as ViaVersion listens before us for converting packets between game versions
-        if (packetTracker != null)
-            packetTracker.setIntervalPackets(0);
-
         Pair<Short, Long> data = null;
         boolean hasID = false;
         for (Pair<Short, Long> iterator : transactionsSent) {
@@ -301,6 +300,9 @@ public class GrimPlayer {
         }
 
         if (hasID) {
+            // Transactions that we send don't count towards total limit
+            if (packetTracker != null) packetTracker.setIntervalPackets(packetTracker.getIntervalPackets() - 1);
+
             do {
                 data = transactionsSent.poll();
                 if (data == null)
@@ -332,7 +334,7 @@ public class GrimPlayer {
     public float getMaxUpStep() {
         if (compensatedEntities.getSelf().getRiding() == null) return 0.6f;
 
-        if (compensatedEntities.getSelf().getRiding().type == EntityTypes.BOAT) {
+        if (EntityTypes.isTypeInstanceOf(compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT)) {
             return 0f;
         }
 
@@ -349,7 +351,7 @@ public class GrimPlayer {
         if (user.getConnectionState() != ConnectionState.PLAY) return;
 
         // Send a packet once every 15 seconds to avoid any memory leaks
-        if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9 ) {
+        if (disableGrim && (System.nanoTime() - getPlayerClockAtLeast()) > 15e9) {
             return;
         }
 
@@ -366,7 +368,7 @@ public class GrimPlayer {
             }
 
             if (async) {
-                PacketEvents.getAPI().getProtocolManager().writePacketAsync(user.getChannel(), packet);
+                ChannelHelper.runInEventLoop(user.getChannel(), () -> user.writePacket(packet));
             } else {
                 user.writePacket(packet);
             }
@@ -396,7 +398,7 @@ public class GrimPlayer {
         if (lastTransSent != 0 && lastTransSent + 80 < System.currentTimeMillis()) {
             sendTransaction(true); // send on netty thread
         }
-        if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getConfig().getIntElse("max-ping.transaction", 120) * 1e9) {
+        if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getMaxPingTransaction() * 1e9) {
             try {
                 user.sendPacket(new WrapperPlayServerDisconnect(Component.text("Timed out!")));
             } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
@@ -408,7 +410,8 @@ public class GrimPlayer {
             this.playerUUID = user.getUUID();
             if (this.playerUUID != null) {
                 // Geyser players don't have Java movement
-                if (GeyserUtil.isGeyserPlayer(playerUUID)) {
+                // Floodgate is the authentication system for Geyser on servers that use Geyser as a proxy instead of installing it as a plugin directly on the server
+                if (GeyserUtil.isGeyserPlayer(playerUUID) || FloodgateUtil.isFloodgatePlayer(playerUUID)) {
                     GrimAPI.INSTANCE.getPlayerDataManager().remove(user);
                     return true;
                 }
@@ -453,6 +456,23 @@ public class GrimPlayer {
         return ver;
     }
 
+    // Alright, someone at mojang decided to not send a flying packet every tick with 1.9
+    // Thanks for wasting my time to save 1 MB an hour
+    //
+    // MEANING, to get an "acceptable" 1.9+ reach check, we must only treat it like a 1.8 clients
+    // when it is acting like one and sending a packet every tick.
+    //
+    // There are two predictable scenarios where this happens:
+    // 1. The player moves more than 0.03/0.0002 blocks every tick
+    //     - This code runs after the prediction engine to prevent a false when immediately switching back to 1.9-like movements
+    //     - 3 ticks is a magic value, but it should buffer out incorrect predictions somewhat.
+    // 2. The player is in a vehicle
+    public boolean isTickingReliablyFor(int ticks) {
+        return (!uncertaintyHandler.lastPointThree.hasOccurredSince(ticks))
+                || compensatedEntities.getSelf().inVehicle()
+                || getClientVersion().isOlderThan(ClientVersion.V_1_9);
+    }
+
     public CompensatedInventory getInventory() {
         return (CompensatedInventory) checkManager.getPacketCheck(CompensatedInventory.class);
     }
@@ -495,10 +515,10 @@ public class GrimPlayer {
 
     public boolean exemptOnGround() {
         return compensatedEntities.getSelf().inVehicle()
-                || uncertaintyHandler.pistonX != 0 || uncertaintyHandler.pistonY != 0
-                || uncertaintyHandler.pistonZ != 0 || uncertaintyHandler.isStepMovement
-                || isFlying || isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange > -30
-                || uncertaintyHandler.lastHardCollidingLerpingEntity > -3 || uncertaintyHandler.isOrWasNearGlitchyBlock;
+                || Collections.max(uncertaintyHandler.pistonX) != 0 || Collections.max(uncertaintyHandler.pistonY) != 0
+                || Collections.max(uncertaintyHandler.pistonZ) != 0 || uncertaintyHandler.isStepMovement
+                || isFlying || compensatedEntities.getSelf().isDead || isInBed || lastInBed || uncertaintyHandler.lastFlyingStatusChange.hasOccurredSince(30)
+                || uncertaintyHandler.lastHardCollidingLerpingEntity.hasOccurredSince(3) || uncertaintyHandler.isOrWasNearGlitchyBlock;
     }
 
     public void handleMountVehicle(int vehicleID) {
@@ -509,7 +529,7 @@ public class GrimPlayer {
             // If we actually need to check vehicle movement
             if (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9) && getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
                 // And if the vehicle is a type of vehicle that we track
-                if (data.getEntityType() == EntityTypes.BOAT || EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) || data.getEntityType() == EntityTypes.PIG || data.getEntityType() == EntityTypes.STRIDER) {
+                if (EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.BOAT) || EntityTypes.isTypeInstanceOf(data.getEntityType(), EntityTypes.ABSTRACT_HORSE) || data.getEntityType() == EntityTypes.PIG || data.getEntityType() == EntityTypes.STRIDER) {
                     // We need to set its velocity otherwise it will jump a bit on us, flagging the anticheat
                     // The server does override this with some vehicles. This is intentional.
                     user.writePacket(new WrapperPlayServerEntityVelocity(vehicleID, new Vector3d()));
@@ -551,5 +571,11 @@ public class GrimPlayer {
                 compensatedEntities.hasSprintingAttributeEnabled = false;
             }
         });
+    }
+
+    public boolean canUseGameMasterBlocks() {
+        // This check was added in 1.11
+        // 1.11+ players must be in creative and have a permission level at or above 2
+        return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.getSelf().getOpLevel() >= 2);
     }
 }
