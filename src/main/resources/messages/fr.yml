@@ -1,21 +1,21 @@
 # \u00BB est le code ANSI de » (double >>), et UTF-8 interprete différemment...
 prefix: "&bGrim &8\u00BB"
 
-alerts-enabled: "%prefix% &fAlertes activé"
-alerts-disabled: "%prefix% &fAlertes désactivé"
+alerts-enabled: "%prefix% &fAlertes activés"
+alerts-disabled: "%prefix% &fAlertes désactivés"
 client-brand-format: "%prefix% &f%player% a rejoint en utilisant %brand%"
-console-specify-target: "%prefix% &cEn tant que console, vous devez spécifier un joueur!"
-player-not-found: "%prefix% &cCe joueur est exempté ou hors-ligne!"
-player-not-this-server: "%prefix% &cCe joueur n'est pas sur ce serveur!"
+console-specify-target: "%prefix% &cEn tant que console, vous devez spécifier un joueur !"
+player-not-found: "%prefix% &cCe joueur est exempté ou hors-ligne !"
+player-not-this-server: "%prefix% &cCe joueur n'est pas sur ce serveur !"
 spectate-return: "\n%prefix% &fCliquez ici pour retourner à votre ancienne position\n"
 cannot-spectate-return: "%prefix% &cVous pouvez faire ceci uniquement après avoir regardé un joueur"
 
-# Placeholders valide:
+# Placeholders valides:
 # %prefix%
 # %player%
 # %check_name%
 # %vl% - violations
-# %verbose% - informations supplémentaires du check comme les offset, pas tous les check ajoutent des informations
+# %verbose% - informations supplémentaires du check comme les offsets, pas tous les check ajoutent des informations
 alerts-format: "%prefix% &f%player% &ba échoué &f%check_name% &f(x&c%vl%&f) &7%verbose%"
 
 profile:
