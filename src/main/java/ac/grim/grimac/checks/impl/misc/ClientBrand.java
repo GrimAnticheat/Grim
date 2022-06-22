@@ -25,11 +25,11 @@ public class ClientBrand extends PacketCheck {
             WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
 
             String channelName;
-            Object chanelObject = packet.getChannelName();
-            if (chanelObject instanceof String) {
-                channelName = (String) chanelObject;
+            Object channelObject = packet.getChannelName();
+            if (channelObject instanceof String) {
+                channelName = (String) channelObject;
             } else {
-                ResourceLocation resourceLocation = (ResourceLocation) chanelObject;
+                ResourceLocation resourceLocation = (ResourceLocation) channelObject;
                 channelName = resourceLocation.getNamespace() + ":" + resourceLocation.getKey();
             }
 
