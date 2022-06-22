@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.math.GrimMath;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
@@ -36,17 +37,18 @@ public class GrimProfile extends BaseCommand {
             return;
         }
 
-        ClientBrand brand = (ClientBrand) grimPlayer.checkManager.getPacketCheck(ClientBrand.class);
-        AimProcessor aimProcessor = (AimProcessor) grimPlayer.checkManager.getRotationCheck(AimProcessor.class);
+        ClientBrand brand = grimPlayer.checkManager.getPacketCheck(ClientBrand.class);
+        AimProcessor aimProcessor = grimPlayer.checkManager.getRotationCheck(AimProcessor.class);
 
 
         String hSens = ((int) Math.round(aimProcessor.sensitivityX * 200)) + "";
         String vSens = ((int) Math.round(aimProcessor.sensitivityY * 200)) + "";
         String fastMath = !grimPlayer.trigHandler.isVanillaMath() + "";
+        String formattedPing = "" + GrimMath.floor(grimPlayer.getTransactionPing() / 1e6);
 
         for (String message : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("profile")) {
             message = MessageUtil.format(message);
-            message = message.replace("%ping%", (grimPlayer.getTransactionPing() / 1000000) + "");
+            message = message.replace("%ping%", formattedPing);
             message = message.replace("%player%", target.getPlayer().getName());
             message = message.replace("%version%", grimPlayer.getClientVersion().getReleaseName());
             message = message.replace("%brand%", brand.getBrand());
