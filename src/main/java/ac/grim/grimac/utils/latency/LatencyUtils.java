@@ -2,6 +2,7 @@ package ac.grim.grimac.utils.latency;
 
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.data.Pair;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 
 import java.util.LinkedList;
 import java.util.ListIterator;
@@ -16,7 +17,7 @@ public class LatencyUtils {
 
     public void addRealTimeTask(int transaction, Runnable runnable) {
         if (player.lastTransactionReceived.get() >= transaction) { // If the player already responded to this transaction
-            runnable.run();
+            ChannelHelper.runInEventLoop(player.user.getChannel(), runnable); // Run it sync to player channel
             return;
         }
         synchronized (this) {

@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.latency;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunks.Column;
 import ac.grim.grimac.utils.collisions.CollisionData;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
@@ -48,7 +49,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 // Inspired by https://github.com/GeyserMC/Geyser/blob/master/connector/src/main/java/org/geysermc/connector/network/session/cache/ChunkCache.java
 public class CompensatedWorld {
@@ -57,8 +57,8 @@ public class CompensatedWorld {
     public final GrimPlayer player;
     public final Map<Long, Column> chunks;
     // Packet locations for blocks
-    public Set<PistonData> activePistons = ConcurrentHashMap.newKeySet();
-    public Set<ShulkerData> openShulkerBoxes = ConcurrentHashMap.newKeySet();
+    public Set<PistonData> activePistons = new HashSet<>();
+    public Set<ShulkerData> openShulkerBoxes = new HashSet<>();
     // 1.17 with datapacks, and 1.18, have negative world offset values
     private int minHeight = 0;
     private int maxHeight = 256;
@@ -84,9 +84,15 @@ public class CompensatedWorld {
     }
 
     public void handlePredictionConfirmation(int prediction) {
-        List<Vector3i> changes = serverIsCurrentlyProcessingThesePredictions.remove(prediction);
-        if (changes == null) return;
-        applyBlockChanges(changes);
+        for (Iterator<Map.Entry<Integer, List<Vector3i>>> it = serverIsCurrentlyProcessingThesePredictions.entrySet().iterator(); it.hasNext(); ) {
+            Map.Entry<Integer, List<Vector3i>> iter = it.next();
+            if (iter.getKey() <= prediction) {
+                applyBlockChanges(iter.getValue());
+                it.remove();
+            } else {
+                break;
+            }
+        }
     }
 
     private void applyBlockChanges(List<Vector3i> toApplyBlocks) {
@@ -94,7 +100,9 @@ public class CompensatedWorld {
         player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> toApplyBlocks.forEach(vector3i -> {
             BlockPrediction predictionData = originalServerBlocks.get(vector3i.getSerializedPosition());
 
-            if (predictionData.getForBlockUpdate() == toApplyBlocks) { // We are the last to care about this prediction, remove it to stop memory leak
+            // We are the last to care about this prediction, remove it to stop memory leak
+            // Block changes are allowed to execute out of order, because it actually doesn't matter
+            if (predictionData != null && predictionData.getForBlockUpdate() == toApplyBlocks) {
                 originalServerBlocks.remove(vector3i.getSerializedPosition());
 
                 // If we need to change the world block state
@@ -197,15 +205,20 @@ public class CompensatedWorld {
 
     public void updateBlock(int x, int y, int z, int combinedID) {
         Vector3i asVector = new Vector3i(x, y, z);
+        BlockPrediction prediction = originalServerBlocks.get(asVector.getSerializedPosition());
 
         if (isCurrentlyPredicting) {
-            originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getWrappedBlockStateAt(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+            if (prediction == null) {
+                originalServerBlocks.put(asVector.getSerializedPosition(), new BlockPrediction(currentlyChangedBlocks, asVector, getWrappedBlockStateAt(asVector).getGlobalId(), new Vector3d(player.x, player.y, player.z))); // Remember server controlled block type
+            } else {
+                prediction.setForBlockUpdate(currentlyChangedBlocks); // Block existing there was placed by client, mark block to have a new prediction
+            }
             currentlyChangedBlocks.add(asVector);
         }
 
-        if (!isCurrentlyPredicting && originalServerBlocks.containsKey(asVector.getSerializedPosition())) {
-            // Server has a more up-to-date block, replace the original serialized position
-            originalServerBlocks.get(asVector.getSerializedPosition()).setOriginalBlockId(combinedID);
+        if (!isCurrentlyPredicting && prediction != null) {
+            // Server has a more up-to-date block, although client is more recent, replace the original serialized position
+            prediction.setOriginalBlockId(combinedID);
             return;
         }
 
