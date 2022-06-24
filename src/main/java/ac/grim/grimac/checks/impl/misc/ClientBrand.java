@@ -6,6 +6,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.resources.ResourceLocation;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPluginMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -23,7 +24,16 @@ public class ClientBrand extends PacketCheck {
         if (event.getPacketType() == PacketType.Play.Client.PLUGIN_MESSAGE) {
             WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
 
-            if (packet.getChannelName().equalsIgnoreCase("minecraft:brand") || // 1.13+
+            String channelName;
+            Object channelObject = packet.getChannelName();
+            if (channelObject instanceof String) {
+                channelName = (String) channelObject;
+            } else {
+                ResourceLocation resourceLocation = (ResourceLocation) channelObject;
+                channelName = resourceLocation.getNamespace() + ":" + resourceLocation.getKey();
+            }
+
+            if (channelName.equalsIgnoreCase("minecraft:brand") || // 1.13+
                     packet.getChannelName().equals("MC|Brand")) { // 1.12
 
                 byte[] data = packet.getData();
