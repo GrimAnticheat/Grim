@@ -42,7 +42,7 @@ public class MovementTicker {
                     // Players can only push living entities
                     // Players can also push boats or minecarts
                     // The one exemption to a living entity is an armor stand
-                    if (!entity.isLivingEntity() && entity.type != EntityTypes.BOAT && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
+                    if (!entity.isLivingEntity() && !EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) && !entity.isMinecart() || entity.type == EntityTypes.ARMOR_STAND)
                         continue;
 
                     SimpleCollisionBox entityBox = entity.getPossibleCollisionBoxes();
@@ -112,7 +112,7 @@ public class MovementTicker {
         player.boundingBox = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z);
         // This is how the player checks for fall damage
         // By running fluid pushing for the player
-        if (!player.wasTouchingWater && (player.compensatedEntities.getSelf().getRiding() == null || player.compensatedEntities.getSelf().getRiding().type != EntityTypes.BOAT)) {
+        if (!player.wasTouchingWater && (player.compensatedEntities.getSelf().getRiding() == null || !EntityTypes.isTypeInstanceOf(player.compensatedEntities.getSelf().getRiding().type, EntityTypes.BOAT))) {
             new PlayerBaseTick(player).updateInWaterStateAndDoWaterCurrentPushing();
         }
 
@@ -166,9 +166,8 @@ public class MovementTicker {
         player.clientVelocity.multiply(player.blockSpeedMultiplier);
 
         // Reset stuck speed so it can update
-        player.uncertaintyHandler.lastStuckSpeedMultiplier--;
         if (player.stuckSpeedMultiplier.getX() < 0.99) {
-            player.uncertaintyHandler.lastStuckSpeedMultiplier = 0;
+            player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
         player.stuckSpeedMultiplier = new Vector(1, 1, 1);
@@ -209,7 +208,7 @@ public class MovementTicker {
         player.uncertaintyHandler.zPositiveUncertainty = 0;
 
         // A 1.8 player may spawn and get -0.1 gravity instead of -0.08 gravity
-        if (player.uncertaintyHandler.lastTeleportTicks == 0) {
+        if (player.uncertaintyHandler.lastTeleportTicks.hasOccurredSince(0)) {
             player.uncertaintyHandler.yNegativeUncertainty -= 0.02;
         }
 

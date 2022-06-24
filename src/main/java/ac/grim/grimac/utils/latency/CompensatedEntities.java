@@ -36,7 +36,7 @@ public class CompensatedEntities {
 
     public CompensatedEntities(GrimPlayer player) {
         this.player = player;
-        this.playerEntity = new PacketEntitySelf();
+        this.playerEntity = new PacketEntitySelf(player);
         this.selfTrackedEntity = new TrackerData(0, 0, 0, 0, 0, EntityTypes.PLAYER, player.lastTransactionSent.get());
     }
 
@@ -195,7 +195,7 @@ public class CompensatedEntities {
                 packetEntity = new PacketEntityShulker(player, entityType, position.getX(), position.getY(), position.getZ());
             } else if (EntityTypes.STRIDER.equals(entityType)) {
                 packetEntity = new PacketEntityStrider(player, entityType, position.getX(), position.getY(), position.getZ());
-            } else if (EntityTypes.BOAT.equals(entityType) || EntityTypes.CHICKEN.equals(entityType)) {
+            } else if (EntityTypes.isTypeInstanceOf(entityType, EntityTypes.BOAT) || EntityTypes.CHICKEN.equals(entityType)) {
                 packetEntity = new PacketEntityTrackXRot(player, entityType, position.getX(), position.getY(), position.getZ(), xRot);
             } else if (EntityTypes.FISHING_BOBBER.equals(entityType)) {
                 packetEntity = new PacketEntityHook(player, entityType, position.getX(), position.getY(), position.getZ(), data);

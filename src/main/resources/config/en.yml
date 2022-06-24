@@ -21,6 +21,16 @@ client-brand:
   # This means it won't broadcast their brand to operators if the brand matches the following regexes
   ignored-clients:
     - "^vanilla$"
+    - "^fabric$"
+    - "^lunarclient:[a-z0-9]{7}"
+    - "^Feather Fabric$"
+
+spectators:
+  # Hide all spectators with the grim.spectator permission regardless if they are actually actively spectating
+  hide-regardless: false
+  # Will make spectators hidden only in these worlds, keep blank to allow all worlds
+  allowed-worlds:
+    - ""
 
 # How long should players have until we keep them for timing out? Default = 2 minutes
 max-ping: 120
@@ -74,14 +84,14 @@ Knockback:
   # By default this is 1e-5, which is safe and sane
   # Measured in blocks from the correct movement
   threshold: 0.00001
-  setbackvl: 10
+  setbackvl: 3
   decay: 0.025
   dont-alert-until: 8
   alert-interval: 5
 
 Explosion:
   threshold: 0.00001
-  setbackvl: 10
+  setbackvl: 3
   decay: 0.025
   dont-alert-until: 8
   alert-interval: 5
@@ -131,4 +141,4 @@ Reach:
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 
-config-version: 2
+config-version: 3

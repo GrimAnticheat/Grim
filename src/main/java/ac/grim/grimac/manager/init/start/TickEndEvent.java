@@ -28,7 +28,7 @@ public class TickEndEvent implements Initable {
 
     @Override
     public void start() {
-        if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("reach.enable-post-packet", false)) {
+        if (!GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("Reach.enable-post-packet", false)) {
             return;
         }
 

@@ -57,7 +57,7 @@ public class SneakingEstimator extends PostPredictionCheck {
         // START HACKERY
 
         // Avoid calling the method if the player isn't sneaking
-        if (player.uncertaintyHandler.stuckOnEdge != 0) {
+        if (!player.uncertaintyHandler.stuckOnEdge.hasOccurredSince(0)) {
             sneakingPotentialHiddenVelocity = new SimpleCollisionBox();
             return;
         }
@@ -68,12 +68,12 @@ public class SneakingEstimator extends PostPredictionCheck {
                     && data.isExplosion() == player.predictedVelocity.isExplosion()) {
                 // Fuck, we are compounding this which is very dangerous. After light testing seems fine... can we do better?
                 Vector toMin = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(-100000, 0, -100000));
-                if (player.uncertaintyHandler.lastStuckWest != 0 || player.uncertaintyHandler.lastStuckNorth != 0) {
+                if (player.uncertaintyHandler.lastStuckWest.hasOccurredSince(0) || player.uncertaintyHandler.lastStuckNorth.hasOccurredSince(0)) {
                     sneakingPotentialHiddenVelocity.minX = Math.min(sneakingPotentialHiddenVelocity.minX, toMin.getX());
                     sneakingPotentialHiddenVelocity.minZ = Math.min(sneakingPotentialHiddenVelocity.minZ, toMin.getZ());
                 }
 
-                if (player.uncertaintyHandler.lastStuckEast != 0 || player.uncertaintyHandler.lastStuckSouth != 0) {
+                if (player.uncertaintyHandler.lastStuckEast.hasOccurredSince(0) || player.uncertaintyHandler.lastStuckSouth.hasOccurredSince(0)) {
                     Vector toMax = new PredictionEngine().handleStartingVelocityUncertainty(player, data, new Vector(100000, 0, 100000));
                     sneakingPotentialHiddenVelocity.maxX = Math.max(sneakingPotentialHiddenVelocity.maxX, toMax.getX());
                     sneakingPotentialHiddenVelocity.maxZ = Math.max(sneakingPotentialHiddenVelocity.maxZ, toMax.getZ());
@@ -83,16 +83,16 @@ public class SneakingEstimator extends PostPredictionCheck {
         // END HACKERY
 
         // Now we just have to handle reducing this velocity over ticks so we know when it's being abused
-        if (player.uncertaintyHandler.lastStuckEast != 0) {
+        if (!player.uncertaintyHandler.lastStuckEast.hasOccurredSince(0)) {
             sneakingPotentialHiddenVelocity.maxX = 0;
         }
-        if (player.uncertaintyHandler.lastStuckWest != 0) {
+        if (!player.uncertaintyHandler.lastStuckWest.hasOccurredSince(0)) {
             sneakingPotentialHiddenVelocity.minX = 0;
         }
-        if (player.uncertaintyHandler.lastStuckNorth != 0) {
+        if (!player.uncertaintyHandler.lastStuckNorth.hasOccurredSince(0)) {
             sneakingPotentialHiddenVelocity.minZ = 0;
         }
-        if (player.uncertaintyHandler.lastStuckSouth != 0) {
+        if (!player.uncertaintyHandler.lastStuckSouth.hasOccurredSince(0)) {
             sneakingPotentialHiddenVelocity.maxZ = 0;
         }
 

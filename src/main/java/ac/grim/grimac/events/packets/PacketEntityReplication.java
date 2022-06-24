@@ -50,20 +50,25 @@ public class PacketEntityReplication extends PacketCheck {
         super(player);
     }
 
-    public void tickFlying() {
-        boolean setHighBound = !player.compensatedEntities.getSelf().inVehicle() && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9);
-        for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
-            entity.onMovement(setHighBound);
-        }
-    }
-
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
             // Teleports don't interpolate, duplicate 1.17 packets don't interpolate
             if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate)
                 return;
-            tickFlying();
+
+            boolean isTickingReliably = player.isTickingReliablyFor(3);
+
+            PacketEntity playerVehicle = player.compensatedEntities.getSelf().getRiding();
+            for (PacketEntity entity : player.compensatedEntities.entityMap.values()) {
+                if (entity == playerVehicle && !player.vehicleData.lastDummy) {
+                    // The player has this as their vehicle, so they aren't interpolating it.
+                    // And it isn't a dummy position
+                    entity.setPositionRaw(entity.getPossibleCollisionBoxes());
+                } else {
+                    entity.onMovement(isTickingReliably);
+                }
+            }
         }
 
         if (event.getPacketType() == PacketType.Play.Server.PING || event.getPacketType() == PacketType.Play.Server.WINDOW_CONFIRMATION) {
@@ -196,6 +201,10 @@ public class PacketEntityReplication extends PacketCheck {
                     // We don't transaction sandwich this, it's too rare to be a real problem.
                     player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> player.uncertaintyHandler.fishingRodPulls.add(hookEntity.owner));
                 }
+            }
+
+            if (status.getStatus() >= 24 && status.getStatus() <= 28 && status.getEntityId() == player.entityID) {
+                player.compensatedEntities.getSelf().setOpLevel(status.getStatus() - 24);
             }
         }
 
@@ -347,12 +356,22 @@ public class PacketEntityReplication extends PacketCheck {
         if (data != null) {
             // Update the tracked server's entity position
             if (isRelative) {
+                // There is a bug where vehicles may start flying due to mojang setting packet position on the client
+                // (Works at 0 ping but causes funny bugs at any higher ping)
+                // As we don't want vehicles to fly, we need to replace it with a teleport if it is player vehicle
+                //
+                // Don't bother with client controlled vehicles though
+                boolean vanillaVehicleFlight = player.compensatedEntities.serverPlayerVehicle != null && player.compensatedEntities.serverPlayerVehicle == entityId
+                        && player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) &&
+                        PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9);
+
                 // ViaVersion sends two relative packets when moving more than 4 blocks
                 // This is broken and causes the client to interpolate like (0, 4) and (1, 3) instead of (1, 7)
                 // This causes impossible hits, so grim must replace this with a teleport entity packet
                 // Not ideal, but neither is 1.8 players on a 1.9+ server.
-                if ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
-                    player.user.writePacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY(), data.getZ()), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
+                if (vanillaVehicleFlight ||
+                        ((Math.abs(deltaX) >= 3.9375 || Math.abs(deltaY) >= 3.9375 || Math.abs(deltaZ) >= 3.9375) && player.getClientVersion().isOlderThan(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9))) {
+                    player.user.writePacket(new WrapperPlayServerEntityTeleport(entityId, new Vector3d(data.getX() + deltaX, data.getY() + deltaY, data.getZ() + deltaZ), yaw == null ? data.getXRot() : yaw, pitch == null ? data.getYRot() : pitch, false));
                     event.setCancelled(true);
                     return;
                 }
@@ -385,7 +404,7 @@ public class PacketEntityReplication extends PacketCheck {
             if (entity instanceof PacketEntityTrackXRot && yaw != null) {
                 PacketEntityTrackXRot xRotEntity = (PacketEntityTrackXRot) entity;
                 xRotEntity.packetYaw = yaw;
-                xRotEntity.steps = xRotEntity.type == EntityTypes.BOAT ? 10 : 3;
+                xRotEntity.steps = EntityTypes.isTypeInstanceOf(entity.type, EntityTypes.BOAT) ? 10 : 3;
             }
             entity.onFirstTransaction(isRelative, hasPos, deltaX, deltaY, deltaZ, player);
         });

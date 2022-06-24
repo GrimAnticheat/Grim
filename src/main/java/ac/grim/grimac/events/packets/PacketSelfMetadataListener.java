@@ -184,7 +184,6 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                         // - Server: Okay, I will not make you eat or stop eating because it makes sense that the server doesn't control a player's eating.
                         //
                         // This was added for stuff like shields, but IMO it really should be all client sided
-                        // TODO: 1.8 servers are also affected or is this metadata missing?
                         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) && PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_9)) {
                             boolean isActive = (((byte) riptide.getValue()) & 0x01) == 0x01;
                             boolean isOffhand = (((byte) riptide.getValue()) & 0x01) == 0x01;
@@ -204,8 +203,8 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
                                 // Grim update order: Process new interacts -> receive this
                                 if (player.packetStateData.slowedByUsingItemTransaction < markedTransaction) {
                                     PacketPlayerDigging.handleUseItem(player, item, isOffhand ? InteractionHand.OFF_HAND : InteractionHand.MAIN_HAND);
-                                    // The above line is a hack to fake activate use item TODO: Check vanilla code
-                                    player.packetStateData.slowedByUsingItem = isActive && player.packetStateData.slowedByUsingItem;
+                                    // The above line is a hack to fake activate use item
+                                    player.packetStateData.slowedByUsingItem = isActive;
 
                                     if (isActive) {
                                         player.packetStateData.eatingHand = isOffhand ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
@@ -239,7 +238,7 @@ public class PacketSelfMetadataListener extends PacketListenerAbstract {
 
             GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
             if (player != null && player.entityID == animation.getEntityId()
-                    && animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.LEAVE_BED) {
+                    && animation.getType() == WrapperPlayServerEntityAnimation.EntityAnimationType.WAKE_UP) {
                 // Split so packet received before transaction
                 player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get() + 1, () -> player.isInBed = false);
                 event.getPostTasks().add(player::sendTransaction);

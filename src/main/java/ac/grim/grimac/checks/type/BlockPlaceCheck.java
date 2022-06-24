@@ -22,7 +22,12 @@ public class BlockPlaceCheck extends Check<BlockPlace> {
         super(player);
     }
 
+    // Method called immediately after a block is placed, before forwarding block place to server
     public void onBlockPlace(final BlockPlace place) {
+    }
+
+    // Method called the flying packet after the block place
+    public void onPostFlyingBlockPlace(BlockPlace place) {
     }
 
     static {
@@ -44,6 +49,7 @@ public class BlockPlaceCheck extends Check<BlockPlace> {
         buggyBoxes.add(StateTypes.TWISTING_VINES_PLANT);
         buggyBoxes.add(StateTypes.WEEPING_VINES);
         buggyBoxes.add(StateTypes.WEEPING_VINES_PLANT);
+        buggyBoxes.add(StateTypes.REDSTONE_WIRE);
     }
 
     protected SimpleCollisionBox getCombinedBox(final BlockPlace place) {

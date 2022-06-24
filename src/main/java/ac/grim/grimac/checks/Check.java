@@ -18,6 +18,7 @@ public class Check<T> {
 
     private String checkName;
     private String configName;
+    private String alernativeName;
 
     public Check(final GrimPlayer player) {
         this.player = player;
@@ -32,6 +33,7 @@ public class Check<T> {
             if (this.configName.equals("DEFAULT")) this.configName = this.checkName;
             this.decay = checkData.decay();
             this.setbackVL = checkData.setback();
+            this.alernativeName = checkData.alternativeName();
         }
 
         reload();

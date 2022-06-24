@@ -26,6 +26,9 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
         if (player.hasPermission("grim.alerts") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.enable-on-join", true)) {
             GrimAPI.INSTANCE.getAlertManager().toggle(player);
         }
+        if (player.hasPermission("grim.spectate") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("spectators.hide-regardless", false)) {
+            GrimAPI.INSTANCE.getSpectateManager().onLogin(player);
+        }
     }
 
     @Override
@@ -35,7 +38,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
         Player player = Bukkit.getPlayer(event.getUser().getProfile().getUUID());
         if (player != null) {
             GrimAPI.INSTANCE.getAlertManager().handlePlayerQuit(player);
-            GrimAPI.INSTANCE.getSpectateManager().handlePlayerStopSpectating(player.getUniqueId());
+            GrimAPI.INSTANCE.getSpectateManager().onQuit(player);
         }
     }
 }

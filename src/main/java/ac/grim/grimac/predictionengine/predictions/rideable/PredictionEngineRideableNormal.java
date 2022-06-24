@@ -22,12 +22,6 @@ public class PredictionEngineRideableNormal extends PredictionEngineNormal {
     }
 
     @Override
-    public Set<VectorData> fetchPossibleStartTickVectors(GrimPlayer player) {
-        Set<VectorData> vectors = super.fetchPossibleStartTickVectors(player);
-        return PredictionEngineRideableUtils.fetchPossibleStartTickVectors(player, vectors);
-    }
-
-    @Override
     public List<VectorData> applyInputsToVelocityPossibilities(GrimPlayer player, Set<VectorData> possibleVectors, float speed) {
         return PredictionEngineRideableUtils.applyInputsToVelocityPossibilities(movementVector, player, possibleVectors, speed);
     }

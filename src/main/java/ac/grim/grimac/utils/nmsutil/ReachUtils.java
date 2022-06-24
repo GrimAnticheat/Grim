@@ -4,6 +4,7 @@ package ac.grim.grimac.utils.nmsutil;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.Pair;
+import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import org.bukkit.util.Vector;
 
@@ -150,15 +151,23 @@ public class ReachUtils {
         return vec != null && vec.getX() >= self.minX && vec.getX() <= self.maxX && vec.getY() >= self.minY && vec.getY() <= self.maxY;
     }
 
-    // Look vector accounting for optifine FastMath
+    // Look vector accounting for optifine FastMath, and client version differences
     public static Vector getLook(GrimPlayer player, float yaw, float pitch) {
-        float f = pitch * ((float) Math.PI / 180F);
-        float f1 = -yaw * ((float) Math.PI / 180F);
-        float f2 = player.trigHandler.cos(f1);
-        float f3 = player.trigHandler.sin(f1);
-        float f4 = player.trigHandler.cos(f);
-        float f5 = player.trigHandler.sin(f);
-        return new Vector(f3 * f4, -f5, (double) (f2 * f4));
+        if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+            float f = player.trigHandler.cos(-yaw * 0.017453292F - (float)Math.PI);
+            float f1 = player.trigHandler.sin(-yaw * 0.017453292F - (float)Math.PI);
+            float f2 = -player.trigHandler.cos(-pitch * 0.017453292F);
+            float f3 = player.trigHandler.sin(-pitch * 0.017453292F);
+            return new Vector(f1 * f2, f3, f * f2);
+        } else {
+            float f = pitch * ((float) Math.PI / 180F);
+            float f1 = -yaw * ((float) Math.PI / 180F);
+            float f2 = player.trigHandler.cos(f1);
+            float f3 = player.trigHandler.sin(f1);
+            float f4 = player.trigHandler.cos(f);
+            float f5 = player.trigHandler.sin(f);
+            return new Vector(f3 * f4, -f5, (double) (f2 * f4));
+        }
     }
 
     public static boolean isVecInside(SimpleCollisionBox self, Vector vec) {

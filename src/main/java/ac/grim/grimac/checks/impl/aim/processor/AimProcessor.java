@@ -6,11 +6,13 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.data.HeadRotation;
 import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
+import lombok.Getter;
 
 // From OverFlow V2 AntiCheat, modified from o(n^2) to best case o(1) worst case o(n) time.
 public class AimProcessor extends RotationCheck {
     private final RunningMode<Double> yawSamples = new RunningMode<>(50);
     private final RunningMode<Double> pitchSamples = new RunningMode<>(50);
+    @Getter
     public double sensitivityX, sensitivityY, deltaX, deltaY;
     private float lastDeltaYaw, lastDeltaPitch;
 
@@ -43,6 +45,8 @@ public class AimProcessor extends RotationCheck {
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
+        rotationUpdate.setProcessor(this);
+
         final HeadRotation from = rotationUpdate.getFrom();
         final HeadRotation to = rotationUpdate.getTo();
 
