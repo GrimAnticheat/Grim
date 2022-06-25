@@ -1,6 +1,7 @@
 package ac.grim.grimac.utils.collisions;
 
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicFence;
 import ac.grim.grimac.utils.collisions.blocks.connecting.DynamicWall;
 import ac.grim.grimac.utils.collisions.datatypes.*;
 import ac.grim.grimac.utils.nmsutil.Materials;
@@ -8,8 +9,7 @@ import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.world.BlockFace;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Half;
-import com.github.retrooper.packetevents.protocol.world.states.enums.Tilt;
+import com.github.retrooper.packetevents.protocol.world.states.enums.*;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateType;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 
@@ -89,8 +89,27 @@ public enum HitboxData {
         return isXAxis ? new HexCollisionBox(6.0D, 0.0D, 0.0D, 10.0D, 16.0D, 16.0D) : new HexCollisionBox(0.0D, 0.0D, 6.0D, 16.0D, 16.0D, 10.0D);
     }, BlockTags.FENCE_GATES.getStates().toArray(new StateType[0])),
 
+
     FENCE((player, item, version, data, x, y, z) -> {
         WrappedBlockState state = player.compensatedWorld.getWrappedBlockStateAt(x, y, z);
+
+        if (version.isOlderThanOrEquals(ClientVersion.V_1_12_2)) {
+            int i = 0;
+            if (data.getSouth() == South.TRUE) {
+                i |= 0b1;
+            }
+            if (data.getWest() == West.TRUE) {
+                i |= 0b10;
+            }
+            if (data.getNorth() == North.TRUE) {
+                i |= 0b100;
+            }
+            if (data.getEast() == East.TRUE) {
+                i |= 0b1000;
+            }
+
+            return DynamicFence.LEGACY_BOUNDING_BOXES[i].copy();
+        }
 
         List<SimpleCollisionBox> boxes = new ArrayList<>();
         CollisionData.getData(state.getType()).getMovementCollisionBox(player, version, state, x, y, z).downCast(boxes);
