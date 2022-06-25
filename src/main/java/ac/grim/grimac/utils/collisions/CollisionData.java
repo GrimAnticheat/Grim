@@ -351,7 +351,7 @@ public enum CollisionData {
         if (version.isOlderThanOrEquals(ClientVersion.V_1_13_2))
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
-        if (player.lastY > y + 1 - 1.0E-5F && !player.isSneaking) {
+        if (player.lastY > y + 1 - 1e-6 && !player.isSneaking) {
             return new ComplexCollisionBox(new HexCollisionBox(0.0D, 14.0D, 0.0D, 16.0D, 16.0D, 16.0D),
                     new HexCollisionBox(0.0D, 0.0D, 0.0D, 2.0D, 16.0D, 2.0D),
                     new HexCollisionBox(14.0D, 0.0D, 0.0D, 16.0D, 16.0D, 2.0D),
@@ -359,7 +359,7 @@ public enum CollisionData {
                     new HexCollisionBox(14.0D, 0.0D, 14.0D, 16.0D, 16.0D, 16.0D));
         }
 
-        return data.getDistance() != 0 && data.isBottom() && player.lastY > y - (double) 1.0E-5F ?
+        return data.getDistance() != 0 && data.isBottom() && player.lastY > y - 1e-6 ?
                 new HexCollisionBox(0.0D, 0.0D, 0.0D, 16.0D, 2.0D, 16.0D) :
                 NoCollisionBox.INSTANCE;
     }, StateTypes.SCAFFOLDING),
@@ -1045,7 +1045,7 @@ public enum CollisionData {
         }
 
         ItemStack boots = player.getInventory().getBoots();
-        if (player.lastY > y + 1 - 9.999999747378752E-6 && boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS && !player.isSneaking && !player.compensatedEntities.getSelf().inVehicle())
+        if (player.lastY > y + 1 - 1e-6 && boots != null && boots.getType() == ItemTypes.LEATHER_BOOTS && !player.isSneaking && !player.compensatedEntities.getSelf().inVehicle())
             return new SimpleCollisionBox(0, 0, 0, 1, 1, 1, true);
 
         return NoCollisionBox.INSTANCE;
