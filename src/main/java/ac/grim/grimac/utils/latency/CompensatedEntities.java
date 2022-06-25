@@ -429,13 +429,19 @@ public class CompensatedEntities {
             }
 
             EntityData fireworkWatchableObject = WatchableIndexUtil.getIndex(watchableObjects, 9 - offset);
-
             if (fireworkWatchableObject == null) return;
 
-            Optional<Integer> attachedEntityID = (Optional<Integer>) fireworkWatchableObject.getValue();
+            if (fireworkWatchableObject.getValue() instanceof Integer) { // Pre 1.14
+                int attachedEntityID = (Integer) fireworkWatchableObject.getValue();
+                if (attachedEntityID == player.entityID) {
+                    player.compensatedFireworks.addNewFirework(entityID);
+                }
+            } else { // 1.14+
+                Optional<Integer> attachedEntityID = (Optional<Integer>) fireworkWatchableObject.getValue();
 
-            if (attachedEntityID.isPresent() && attachedEntityID.get().equals(player.entityID)) {
-                player.compensatedFireworks.addNewFirework(entityID);
+                if (attachedEntityID.isPresent() && attachedEntityID.get().equals(player.entityID)) {
+                    player.compensatedFireworks.addNewFirework(entityID);
+                }
             }
         }
 
