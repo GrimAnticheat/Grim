@@ -72,6 +72,7 @@ public class DiscordManager implements Initable {
             String name = (player.bukkitPlayer != null ? player.bukkitPlayer.getName() : player.user.getProfile().getName()).replace("_", "\\_");
 
             String content = staticContent + "";
+            content = content.replace("%uuid%", player.user.getProfile().getUUID().toString());
             content = content.replace("%player%", name);
             content = content.replace("%check%", checkName);
             content = content.replace("%violations%", violations);
@@ -82,7 +83,7 @@ public class DiscordManager implements Initable {
 
             WebhookEmbedBuilder embed = new WebhookEmbedBuilder()
                     .setImageUrl("https://i.stack.imgur.com/Fzh0w.png") // Constant width
-                    .setThumbnailUrl("https://crafthead.net/avatar/" + player.user.getProfile().getUUID())
+                    .setThumbnailUrl("https://crafthead.net/helm/" + player.user.getProfile().getUUID())
                     .setColor(embedColor)
                     .setTitle(new WebhookEmbed.EmbedTitle("**Grim Alert**", null))
                     .setDescription(content)
