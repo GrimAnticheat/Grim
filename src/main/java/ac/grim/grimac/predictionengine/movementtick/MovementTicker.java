@@ -78,7 +78,6 @@ public class MovementTicker {
             player.clientVelocity.setZ(0);
         }
 
-        player.horizontalCollision = !GrimMath.isCloseEnoughEquals(inputVel.getX(), collide.getX()) || !GrimMath.isCloseEnoughEquals(inputVel.getZ(), collide.getZ());
         player.verticalCollision = inputVel.getY() != collide.getY();
 
         // Avoid order of collisions being wrong because 0.03 movements
@@ -153,7 +152,7 @@ public class MovementTicker {
             }
         }
 
-        collide = PredictionEngine.clampMovementToHardBorder(player, collide, collide);
+        collide = PredictionEngine.clampMovementToHardBorder(player, collide);
 
         // The game disregards movements smaller than 1e-7 (such as in boats)
         if (collide.lengthSquared() < 1e-7) {
