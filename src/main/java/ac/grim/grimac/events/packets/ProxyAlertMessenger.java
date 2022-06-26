@@ -41,7 +41,9 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
 
         WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
 
-        if (!packet.getChannelName().equals("BungeeCord")) return;
+        String channelName = packet.getChannelName().toString();
+
+        if (!channelName.equals("BungeeCord") && !channelName.equals("bungeecord:main")) return;
 
         ByteArrayDataInput in = ByteStreams.newDataInput(packet.getData());
 
@@ -55,7 +57,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         try {
             alert = new DataInputStream(new ByteArrayInputStream(messageBytes)).readUTF();
         } catch (IOException exception) {
-            LogUtil.error("Error whilst reading an alert forwarded from another server!");
+            LogUtil.error("Something went wrong whilst reading an alert forwarded from another server!");
             exception.printStackTrace();
             return;
         }
@@ -77,7 +79,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
         try {
             new DataOutputStream(messageBytes).writeUTF(MessageUtil.format(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format-proxy", message)).replace("%alert%", message));
         } catch (IOException exception) {
-            LogUtil.error("Error whilst forwarding an alert to other servers!");
+            LogUtil.error("Something went wrong whilst forwarding an alert to other servers!");
             exception.printStackTrace();
             return;
         }
@@ -96,7 +98,8 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
 
     public static boolean canReceiveAlerts() {
         return ProxyAlertMessenger.isUsingProxy()
-                && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.receive", false);
+                && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.proxy.receive", false)
+                && GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts().size() > 0;
     }
 
     private static boolean getBooleanFromFile(String pathToFile, String pathToValue) {
