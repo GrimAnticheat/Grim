@@ -48,7 +48,7 @@ public class TrigHandler {
             return;
         }
 
-        if (player.checkManager.getOffsetHandler().doesOffsetFlag(offset)) {
+        if (offset > 1e-5) {
             Vector trueMovement = player.actualMovement.clone().subtract(oldVel);
             Vector correctMath = getVanillaMathMovement(trueMovement, 0.1f, player.xRot);
             Vector fastMath = getShitMathMovement(trueMovement, 0.1f, player.xRot);
