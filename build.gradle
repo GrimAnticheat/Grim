@@ -38,7 +38,8 @@ dependencies {
     implementation 'github.scarsz:configuralize:1.4.0'
     implementation 'com.github.puregero:multilib:1.1.3'
 
-    implementation 'ac.grim.grimac:GrimAPI:1.0' //grim api
+    //Use implementation 'ac.grim.grimac:GrimAPI:1.0` when using local maven
+    implementation 'com.github.MWHunter:GrimAPI:90f5a9cb20'
 
     compileOnly 'org.geysermc.floodgate:api:2.0-SNAPSHOT'
     compileOnly 'org.spigotmc:spigot-api:1.18-R0.1-SNAPSHOT'
