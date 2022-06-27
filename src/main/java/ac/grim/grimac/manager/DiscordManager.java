@@ -23,8 +23,8 @@ public class DiscordManager implements Initable {
     private int embedColor;
     private String staticContent = "";
 
-    //TODO: Implement this
-    @Setter private String serverName = null;
+    @Setter
+    private String serverName = "Unknown";
 
     @Override
     public void start() {
@@ -84,6 +84,7 @@ public class DiscordManager implements Initable {
             content = content.replace("%brand%", brand);
             content = content.replace("%ping%", formattedPing);
             content = content.replace("%tps%", tps);
+            content = content.replace("%server%", serverName);
 
             WebhookEmbedBuilder embed = new WebhookEmbedBuilder()
                     .setImageUrl("https://i.stack.imgur.com/Fzh0w.png") // Constant width
