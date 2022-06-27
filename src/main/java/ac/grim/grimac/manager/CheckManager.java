@@ -50,7 +50,7 @@ public class CheckManager {
     ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
     ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
 
-    public ClassToInstanceMap<Check<?>> allChecks;
+    public ClassToInstanceMap<Check> allChecks;
 
     public CheckManager(GrimPlayer player) {
         // Include post checks in the packet check too
@@ -129,7 +129,7 @@ public class CheckManager {
                 .put(VehicleTimer.class, new VehicleTimer(player))
                 .build();
 
-        allChecks = new ImmutableClassToInstanceMap.Builder<Check<?>>()
+        allChecks = new ImmutableClassToInstanceMap.Builder<Check>()
                 .putAll(packetChecks)
                 .putAll(positionCheck)
                 .putAll(rotationCheck)

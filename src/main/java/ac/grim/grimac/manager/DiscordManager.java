@@ -10,6 +10,7 @@ import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
+import lombok.Setter;
 
 import java.awt.*;
 import java.time.LocalDateTime;
@@ -21,6 +22,9 @@ public class DiscordManager implements Initable {
     private static WebhookClient client;
     private int embedColor;
     private String staticContent = "";
+
+    //TODO: Implement this
+    @Setter private String serverName = null;
 
     @Override
     public void start() {

@@ -14,7 +14,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockPlaceCheck extends Check<BlockPlace> {
+public class BlockPlaceCheck extends Check {
     private static final List<StateType> weirdBoxes = new ArrayList<>();
     private static final List<StateType> buggyBoxes = new ArrayList<>();
 
