@@ -20,9 +20,9 @@ public class GrimSendAlert extends BaseCommand {
         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledAlerts()) {
             bukkitPlayer.sendMessage(string);
         }
-        
+
         if (ProxyAlertMessenger.canSendAlerts()) {
-        	ProxyAlertMessenger.sendPluginMessage(string);
+            ProxyAlertMessenger.sendPluginMessage(string);
         }
 
         if (GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.print-to-console", true)) {

@@ -41,9 +41,7 @@ public class ProxyAlertMessenger extends PacketListenerAbstract {
 
         WrapperPlayClientPluginMessage packet = new WrapperPlayClientPluginMessage(event);
 
-        String channelName = packet.getChannelName().toString();
-
-        if (!channelName.equals("BungeeCord") && !channelName.equals("bungeecord:main")) return;
+        if (!packet.getChannelName().equals("BungeeCord") && !packet.getChannelName().equals("bungeecord:main")) return;
 
         ByteArrayDataInput in = ByteStreams.newDataInput(packet.getData());
 
