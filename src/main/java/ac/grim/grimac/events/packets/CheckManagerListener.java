@@ -88,9 +88,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         double xDiff = endX - startX;
         double yDiff = endY - startY;
         double zDiff = endZ - startZ;
-        int xSign = GrimMath.sign(xDiff);
-        int ySign = GrimMath.sign(yDiff);
-        int zSign = GrimMath.sign(zDiff);
+        double xSign = Math.signum(xDiff);
+        double ySign = Math.signum(yDiff);
+        double zSign = Math.signum(zDiff);
 
         double posXInverse = xSign == 0 ? Double.MAX_VALUE : xSign / xDiff;
         double posYInverse = ySign == 0 ? Double.MAX_VALUE : ySign / yDiff;

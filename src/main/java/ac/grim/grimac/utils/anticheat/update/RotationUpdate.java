@@ -10,16 +10,22 @@ import lombok.Setter;
 public final class RotationUpdate {
     private HeadRotation from, to;
     private AimProcessor processor;
-    private float deltaPitch, deltaYaw;
+    private float deltaYRot, deltaXRot;
     private boolean isCinematic;
     private double sensitivityX, sensitivityY;
 
-    public RotationUpdate(HeadRotation from, HeadRotation to, float deltaPitch, float deltaYaw) {
+    public RotationUpdate(HeadRotation from, HeadRotation to, float deltaPitch, float deltaXRot) {
         this.from = from;
         this.to = to;
-        this.deltaPitch = deltaPitch;
-        this.deltaYaw = deltaYaw;
+        this.deltaYRot = deltaPitch;
+        this.deltaXRot = deltaXRot;
     }
 
-    // TODO: Math.abs stuff
+    public float getDeltaXRotABS() {
+        return Math.abs(getDeltaXRot());
+    }
+
+    public float getDeltaYRotABS() {
+        return Math.abs(getDeltaYRot());
+    }
 }
