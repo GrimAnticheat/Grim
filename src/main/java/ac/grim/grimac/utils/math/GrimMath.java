@@ -2,6 +2,8 @@ package ac.grim.grimac.utils.math;
 
 import lombok.experimental.UtilityClass;
 
+import java.util.List;
+
 @UtilityClass
 public class GrimMath {
     public static final double MINIMUM_DIVISOR = (Math.pow(0.2f, 3) * 8) - 1e-3; // 1e-3 for float imprecision
@@ -23,6 +25,23 @@ public class GrimMath {
         }
 
         return a;
+    }
+
+    public static double calculateSD(List<Double> numbers) {
+        double sum = 0.0;
+        double standardDeviation = 0.0;
+
+        for (double rotation : numbers) {
+            sum += rotation;
+        }
+
+        double mean = sum / numbers.size();
+
+        for (double num : numbers) {
+            standardDeviation += Math.pow(num - mean, 2);
+        }
+
+        return Math.sqrt(standardDeviation / numbers.size());
     }
 
     public static int floor(double d) {

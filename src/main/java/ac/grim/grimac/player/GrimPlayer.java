@@ -4,10 +4,7 @@ import ac.grim.grimac.AbstractCheck;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.GrimUser;
 import ac.grim.grimac.events.packets.CheckManagerListener;
-import ac.grim.grimac.manager.ActionManager;
-import ac.grim.grimac.manager.CheckManager;
-import ac.grim.grimac.manager.PunishmentManager;
-import ac.grim.grimac.manager.SetbackTeleportUtil;
+import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
@@ -161,6 +158,7 @@ public class GrimPlayer implements GrimUser {
     // This determines if the
     public boolean skippedTickInActualMovement = false;
     // You cannot initialize everything here for some reason
+    public LastInstanceManager lastInstanceManager;
     public CompensatedFireworks compensatedFireworks;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
@@ -208,6 +206,7 @@ public class GrimPlayer implements GrimUser {
 
         compensatedFireworks = new CompensatedFireworks(this); // Must be before checkmanager
 
+        lastInstanceManager = new LastInstanceManager(this);
         checkManager = new CheckManager(this);
         actionManager = new ActionManager(this);
         punishmentManager = new PunishmentManager(this);

@@ -111,7 +111,7 @@ public class CheckManager {
                 .put(SetbackTeleportUtil.class, new SetbackTeleportUtil(player)) // Avoid teleporting to new position, update safe pos last
                 .put(CompensatedFireworks.class, player.compensatedFireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
-                .put(LastInstanceManager.class, new LastInstanceManager(player))
+                .put(LastInstanceManager.class, player.lastInstanceManager)
                 .build();
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()

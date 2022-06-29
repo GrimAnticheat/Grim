@@ -14,18 +14,18 @@ public final class RotationUpdate {
     private boolean isCinematic;
     private double sensitivityX, sensitivityY;
 
-    public RotationUpdate(HeadRotation from, HeadRotation to, float deltaPitch, float deltaXRot) {
+    public RotationUpdate(HeadRotation from, HeadRotation to, float deltaXRot, float deltaYRot) {
         this.from = from;
         this.to = to;
-        this.deltaYRot = deltaPitch;
         this.deltaXRot = deltaXRot;
+        this.deltaYRot = deltaYRot;
     }
 
     public float getDeltaXRotABS() {
-        return Math.abs(getDeltaXRot());
+        return Math.abs(deltaXRot);
     }
 
     public float getDeltaYRotABS() {
-        return Math.abs(getDeltaYRot());
+        return Math.abs(deltaYRot);
     }
 }
