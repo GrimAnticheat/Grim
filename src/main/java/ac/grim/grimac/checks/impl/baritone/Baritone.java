@@ -25,7 +25,7 @@ public class Baritone extends RotationCheck {
 
         // Baritone works with small degrees, limit to 1 degrees to pick up on baritone slightly moving aim to bypass anticheats
         if (rotationUpdate.getDeltaXRot() == 0 && deltaPitch > 0 && deltaPitch < 1 && Math.abs(to.getPitch()) != 90.0f) {
-            if (rotationUpdate.getProcessor().divisorX < GrimMath.MINIMUM_DIVISOR) {
+            if (rotationUpdate.getProcessor().divisorY < GrimMath.MINIMUM_DIVISOR) {
                 verbose++;
                 if (verbose > 8) {
                     flagAndAlert("Divisor " + AimProcessor.convertToSensitivity(rotationUpdate.getProcessor().divisorX));
