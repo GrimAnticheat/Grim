@@ -27,11 +27,12 @@ public class AimProcessor extends RotationCheck {
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
+        rotationUpdate.setProcessor(this);
+
         float deltaXRot = rotationUpdate.getDeltaXRotABS();
         float deltaYRot = rotationUpdate.getDeltaYRotABS();
 
         this.divisorX = GrimMath.gcd(deltaXRot, lastXRot);
-
         if (deltaXRot > 0 && deltaXRot < 5) {
             if (divisorX > GrimMath.MINIMUM_DIVISOR) {
                 this.xRotMode.add(divisorX);
@@ -40,7 +41,6 @@ public class AimProcessor extends RotationCheck {
         }
 
         this.divisorY = GrimMath.gcd(deltaYRot, lastYRot);
-
         if (deltaYRot > 0 && deltaYRot < 5) {
             if (divisorY > GrimMath.MINIMUM_DIVISOR) {
                 this.yRotMode.add(divisorY);
@@ -48,11 +48,14 @@ public class AimProcessor extends RotationCheck {
             }
         }
 
-        double modeX = this.xRotMode.getMode();
-        double modeY = this.yRotMode.getMode();
-
-        this.sensitivityX = convertToSensitivity(modeX);
-        this.sensitivityY = convertToSensitivity(modeY);
+        if (this.xRotMode.size() == 50) {
+            double modeX = this.xRotMode.getMode();
+            this.sensitivityX = convertToSensitivity(modeX);
+        }
+        if (this.yRotMode.size() == 50) {
+            double modeY = this.yRotMode.getMode();
+            this.sensitivityY = convertToSensitivity(modeY);
+        }
     }
 
     public static double convertToSensitivity(double var13) {
