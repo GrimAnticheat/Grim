@@ -7,6 +7,7 @@ import ac.grim.grimac.utils.data.LastInstance;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
+import org.bukkit.Bukkit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +68,7 @@ public class AimProcessor extends RotationCheck {
         }
 
         // Cinematic detection
-        if (deltaXRot > 0) {
+        if (deltaYRot > 0) {
             xRotQueue.add(rotationUpdate.getDeltaYRot());
             double stdDevAccelerationX = calculateStdDevAcceleration(xRotQueue);
 
