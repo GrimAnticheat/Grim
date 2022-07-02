@@ -91,7 +91,7 @@ public class Check implements AbstractCheck {
 
     public boolean setbackIfAboveSetbackVL() {
         if (getViolations() > setbackVL) {
-            return player.getSetbackTeleportUtil().executeViolationSetback();
+            return player.getSetbackTeleportUtil().executeViolationSetback(false);
         }
         return false;
     }

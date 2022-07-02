@@ -40,7 +40,7 @@ public class OffsetHandler extends PostPredictionCheck {
             giveOffsetLenienceNextTick(offset);
 
             if (isSetback) {
-                player.getSetbackTeleportUtil().executeViolationSetback();
+                player.getSetbackTeleportUtil().executeViolationSetback(false);
             }
 
             violations++;
