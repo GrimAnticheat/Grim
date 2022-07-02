@@ -19,6 +19,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
+import com.github.retrooper.packetevents.protocol.window.WindowClickType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientHeldItemChange;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerDigging;
@@ -165,7 +166,7 @@ public class CompensatedInventory extends PacketCheck {
             // Is -999 when clicking off the screen
             int slot = click.getSlot();
             // Self-explanatory, look at the enum's values
-            WrapperPlayClientClickWindow.WindowClickType clickType = click.getWindowClickType();
+            WindowClickType clickType = click.getWindowClickType();
 
             menu.doClick(button, slot, clickType);
         }
