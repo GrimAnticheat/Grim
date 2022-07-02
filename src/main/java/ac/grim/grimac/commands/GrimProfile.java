@@ -33,7 +33,8 @@ public class GrimProfile extends BaseCommand {
 
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getPlayer());
         if (grimPlayer == null) {
-            sender.sendMessage(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!"));
+            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!");
+            sender.sendMessage(MessageUtil.format(message));
             return;
         }
 
