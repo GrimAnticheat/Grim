@@ -10,6 +10,7 @@ import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 
 import java.util.*;
 
@@ -103,11 +104,11 @@ public class PunishmentManager {
                             }
 
                             if (player.bukkitPlayer != null) {
-                                cmd = cmd.replace("%player%", player.bukkitPlayer.getName());
+                                cmd = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, cmd, false);
                             }
 
                             if (testMode && cmd.contains("grim sendalert")) { // secret test mode
-                                cmd = MessageUtil.format(cmd);
+                                cmd = ChatColor.translateAlternateColorCodes('&', cmd);
                                 player.user.sendMessage(cmd.replace("grim sendalert ", ""));
                                 continue;
                             }

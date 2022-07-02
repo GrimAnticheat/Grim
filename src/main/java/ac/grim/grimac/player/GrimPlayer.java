@@ -3,6 +3,8 @@ package ac.grim.grimac.player;
 import ac.grim.grimac.AbstractCheck;
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.GrimUser;
+import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
+import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.events.packets.CheckManagerListener;
 import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
@@ -16,6 +18,7 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import ac.grim.grimac.utils.latency.*;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -489,7 +492,13 @@ public class GrimPlayer implements GrimUser {
     }
 
     public int getTransactionPing() {
-        return transactionPing;
+        return GrimMath.floor(transactionPing / 1e6);
+    }
+
+    @Override
+    public int getKeepAlivePing() {
+        if (bukkitPlayer == null) return -1;
+        return PacketEvents.getAPI().getPlayerManager().getPing(bukkitPlayer);
     }
 
     public long getPlayerClockAtLeast() {
@@ -596,7 +605,33 @@ public class GrimPlayer implements GrimUser {
     }
 
     @Override
+    public String getBrand() {
+        return checkManager.getPacketCheck(ClientBrand.class).getBrand();
+    }
+
+    @Override
+    public String getVersionName() {
+        return getClientVersion().getReleaseName();
+    }
+
+    @Override
+    public double getHorizontalSensitivity() {
+        return checkManager.getRotationCheck(AimProcessor.class).sensitivityX;
+    }
+
+    @Override
+    public double getVerticalSensitivity() {
+        return checkManager.getRotationCheck(AimProcessor.class).sensitivityY;
+    }
+
+    @Override
+    public boolean isVanillaMath() {
+        return trigHandler.isVanillaMath();
+    }
+
+    @Override
     public Collection<? extends AbstractCheck> getChecks() {
         return checkManager.allChecks.values();
     }
+
 }

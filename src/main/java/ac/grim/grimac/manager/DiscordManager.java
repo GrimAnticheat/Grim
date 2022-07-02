@@ -1,16 +1,12 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
-import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.math.GrimMath;
 import club.minnced.discord.webhook.WebhookClient;
 import club.minnced.discord.webhook.send.WebhookEmbed;
 import club.minnced.discord.webhook.send.WebhookEmbedBuilder;
-import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
-import lombok.Setter;
 
 import java.awt.*;
 import java.time.Instant;
@@ -21,9 +17,6 @@ public class DiscordManager implements Initable {
     private static WebhookClient client;
     private int embedColor;
     private String staticContent = "";
-
-    @Setter
-    private String serverName = "Unknown";
 
     @Override
     public void start() {
@@ -67,23 +60,11 @@ public class DiscordManager implements Initable {
 
     public void sendAlert(GrimPlayer player, String verbose, String checkName, String violations) {
         if (client != null) {
-            String tps = String.format("%.2f", SpigotReflectionUtil.getTPS());
-            String formattedPing = "" + GrimMath.floor(player.getTransactionPing() / 1e6);
-            String formattedVer = player.getClientVersion().getReleaseName();
-            String brand = player.checkManager.getPacketCheck(ClientBrand.class).getBrand().replace("_", "\\_");
-            String name = (player.bukkitPlayer != null ? player.bukkitPlayer.getName() : player.user.getProfile().getName()).replace("_", "\\_");
-            String uuidString = player.user.getProfile().getUUID().toString();
 
             String content = staticContent + "";
-            content = content.replace("%uuid%", uuidString);
-            content = content.replace("%player%", name);
             content = content.replace("%check%", checkName);
             content = content.replace("%violations%", violations);
-            content = content.replace("%version%", formattedVer);
-            content = content.replace("%brand%", brand);
-            content = content.replace("%ping%", formattedPing);
-            content = content.replace("%tps%", tps);
-            content = content.replace("%server%", serverName);
+            content = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, content, false);
 
             WebhookEmbedBuilder embed = new WebhookEmbedBuilder()
                     .setImageUrl("https://i.stack.imgur.com/Fzh0w.png") // Constant width

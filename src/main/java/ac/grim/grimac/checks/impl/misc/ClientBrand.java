@@ -52,10 +52,7 @@ public class ClientBrand extends PacketCheck {
                     hasBrand = true;
                     if (!GrimAPI.INSTANCE.getConfigManager().isIgnoredClient(brand)) {
                         String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("client-brand-format", "%prefix% &f%player% joined using %brand%");
-                        message = MessageUtil.format(message);
-                        message = message.replace("%brand%", brand);
-                        message = message.replace("%player%", player.user.getProfile().getName());
-
+                        message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(getPlayer(), message, true);
                         // sendMessage is async safe while broadcast isn't due to adventure
                         for (Player player : Bukkit.getOnlinePlayers()) {
                             if (player.hasPermission("grim.brand")) {
