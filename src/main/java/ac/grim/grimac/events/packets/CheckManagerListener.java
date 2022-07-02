@@ -298,9 +298,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // At this point, it is too late to cancel, so we can only flag, and cancel subsequent block places more aggressively
             player.checkManager.onPostFlyingBlockPlace(blockPlace);
 
-            if (place.getInsideBlock().isPresent()) {
-                blockPlace.setInside(place.getInsideBlock().get());
-            }
+            blockPlace.setInside(place.getInsideBlock());
 
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
                 BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
