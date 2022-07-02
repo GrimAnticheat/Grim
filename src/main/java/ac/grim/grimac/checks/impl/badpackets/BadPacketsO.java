@@ -13,7 +13,7 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerKe
 import java.util.LinkedList;
 import java.util.Queue;
 
-@CheckData(name = "BadPacketsP")
+@CheckData(name = "BadPacketsO")
 public class BadPacketsO extends PacketCheck {
     Queue<Pair<Long, Long>> keepaliveMap = new LinkedList<>();
 

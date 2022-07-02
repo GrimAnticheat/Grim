@@ -105,7 +105,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 4");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 5");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -131,6 +131,9 @@ public class ConfigManager {
         }
         if (configVersion < 4) {
             newOffsetNewDiscordConf(config, configString);
+        }
+        if (configVersion < 5) {
+            fixBadPacketsConfig();
         }
     }
 
@@ -176,6 +179,19 @@ public class ConfigManager {
                             "      - \"20:40 [alert]\"\n";
                 }
 
+                Files.write(config.toPath(), configString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private void fixBadPacketsConfig() {
+        File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+        String configString;
+        if (config.exists()) {
+            try {
+                configString = new String(Files.readAllBytes(config.toPath()));
+                configString = configString.replace("command:", "commands:");
                 Files.write(config.toPath(), configString.getBytes());
             } catch (IOException ignored) {
             }

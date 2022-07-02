@@ -5,7 +5,6 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.events.CommandExecuteEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
 import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import lombok.Setter;
@@ -78,11 +77,9 @@ public class PunishmentManager {
         for (PunishGroup group : groups) {
             if (group.getChecks().contains(check)) {
                 int violationCount = group.getViolations().size();
-
                 for (ParsedCommand command : group.getCommands()) {
                     if (violationCount >= command.getThreshold()) {
                         boolean inInterval = command.getInterval() == 0 || violationCount % command.getInterval() == 0;
-
                         if (inInterval) {
                             String cmd = command.getCommand();
 
