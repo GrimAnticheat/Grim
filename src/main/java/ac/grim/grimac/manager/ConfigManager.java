@@ -27,7 +27,7 @@ public class ConfigManager {
     @Getter
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
     @Getter
-    private int maxPingTransaction = 120; // This is just a really hot variable so cache it.
+    private int maxPingTransaction = 60; // This is just a really hot variable so cache it.
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
@@ -72,7 +72,7 @@ public class ConfigManager {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load config", e);
         }
-        maxPingTransaction = config.getIntElse("max-ping.transaction", 120);
+        maxPingTransaction = config.getIntElse("max-transaction-time", 60);
         ignoredClientPatterns.clear();
         for (String string : config.getStringList("client-brand.ignored-clients")) {
             try {
@@ -133,7 +133,7 @@ public class ConfigManager {
             newOffsetNewDiscordConf(config, configString);
         }
         if (configVersion < 5) {
-            fixBadPacketsConfig();
+            fixBadPacketsAndAdjustPingConfig(config, configString);
         }
     }
 
@@ -185,14 +185,19 @@ public class ConfigManager {
         }
     }
 
-    private void fixBadPacketsConfig() {
-        File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
-        String configString;
-        if (config.exists()) {
+    private void fixBadPacketsAndAdjustPingConfig(File config, String configString) {
+        try {
+            configString = configString.replaceAll("max-ping: \\d+", "max-transaction-time: 60");
+            Files.write(config.toPath(), configString.getBytes());
+        } catch (IOException ignored) {}
+
+        File punishConfig = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+        String punishConfigString;
+        if (punishConfig.exists()) {
             try {
-                configString = new String(Files.readAllBytes(config.toPath()));
-                configString = configString.replace("command:", "commands:");
-                Files.write(config.toPath(), configString.getBytes());
+                punishConfigString = new String(Files.readAllBytes(punishConfig.toPath()));
+                punishConfigString = punishConfigString.replace("command:", "commands:");
+                Files.write(punishConfig.toPath(), punishConfigString.getBytes());
             } catch (IOException ignored) {
             }
         }
