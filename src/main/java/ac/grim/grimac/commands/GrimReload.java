@@ -17,29 +17,13 @@ public class GrimReload extends BaseCommand {
     @Subcommand("reload")
     @CommandPermission("grim.reload")
     public void onReload(CommandSender sender) {
-
         //reload config
         try {
-            GrimAPI.INSTANCE.getConfigManager().reload();
+            GrimAPI.INSTANCE.getExternalAPI().reload();
         } catch (RuntimeException e) {
             sender.sendMessage(ChatColor.RED + e.getMessage());
             return;
         }
-
-        //Reload checks for all players
-        for (GrimPlayer grimPlayer : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
-            ChannelHelper.runInEventLoop(grimPlayer.user.getChannel(), () -> {
-                grimPlayer.punishmentManager.reload();
-                for (Check value : grimPlayer.checkManager.allChecks.values()) {
-                    value.reload();
-                }
-            });
-        }
-
-        //restart discord manager
-        GrimAPI.INSTANCE.getDiscordManager().start();
-        //
-        GrimAPI.INSTANCE.getSpectateManager().start();
 
         sender.sendMessage(MessageUtil.format("%prefix% &fConfig has been reloaded."));
     }

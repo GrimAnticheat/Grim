@@ -1,6 +1,9 @@
 package ac.grim.grimac;
 
+import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.manager.init.Initable;
+import ac.grim.grimac.player.GrimPlayer;
+import com.github.retrooper.packetevents.netty.channel.ChannelHelper;
 import io.github.retrooper.packetevents.util.SpigotReflectionUtil;
 import lombok.Getter;
 import org.bukkit.ChatColor;
@@ -47,6 +50,24 @@ public class GrimExternalAPI implements GrimAbstractAPI, Initable {
     @Override
     public void registerVariable(String string, Function<GrimUser, String> replacement) {
         variableReplacements.put(string, replacement);
+    }
+
+    @Override
+    public void reload() {
+        GrimAPI.INSTANCE.getConfigManager().reload();
+        //Reload checks for all players
+        for (GrimPlayer grimPlayer : GrimAPI.INSTANCE.getPlayerDataManager().getEntries()) {
+            ChannelHelper.runInEventLoop(grimPlayer.user.getChannel(), () -> {
+                grimPlayer.punishmentManager.reload();
+                for (Check value : grimPlayer.checkManager.allChecks.values()) {
+                    value.reload();
+                }
+            });
+        }
+        //Restart
+        GrimAPI.INSTANCE.getDiscordManager().start();
+        GrimAPI.INSTANCE.getSpectateManager().start();
+        GrimAPI.INSTANCE.getExternalAPI().start();
     }
 
     @Override

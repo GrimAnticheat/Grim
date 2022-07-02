@@ -16,8 +16,8 @@ public enum GrimAPI {
     private final DiscordManager discordManager = new DiscordManager();
     private final PlayerDataManager playerDataManager = new PlayerDataManager();
     private final TickManager tickManager = new TickManager();
+    private final GrimExternalAPI externalAPI = new GrimExternalAPI(this);
     private InitManager initManager;
-    private GrimExternalAPI externalAPI;
     private ConfigManager configManager;
     private JavaPlugin plugin;
 
@@ -31,7 +31,6 @@ public enum GrimAPI {
     public void start(final JavaPlugin plugin) {
         this.plugin = plugin;
         initManager.start();
-        externalAPI = new GrimExternalAPI(this);
         Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, plugin, ServicePriority.Normal);
     }
 

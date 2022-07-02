@@ -1,6 +1,7 @@
 package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.GrimExternalAPI;
 import ac.grim.grimac.manager.init.Initable;
 import ac.grim.grimac.manager.init.load.PacketEventsInit;
 import ac.grim.grimac.manager.init.start.*;
@@ -28,6 +29,7 @@ public class InitManager {
                 .put(BStats.class, new BStats())
                 .put(DiscordManager.class, GrimAPI.INSTANCE.getDiscordManager())
                 .put(SpectateManager.class, GrimAPI.INSTANCE.getSpectateManager())
+                .put(GrimExternalAPI.class, GrimAPI.INSTANCE.getExternalAPI())
                 .build();
 
         initializersOnStop = new ImmutableClassToInstanceMap.Builder<Initable>()
