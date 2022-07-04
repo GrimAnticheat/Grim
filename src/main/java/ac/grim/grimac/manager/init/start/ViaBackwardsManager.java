@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 public class ViaBackwardsManager implements Initable {
     public static boolean isViaLegacyUpdated = true;
-    public static boolean didViaBreakBlockPredictions = true;
+    public static boolean didViaBreakBlockPredictions = false;
 
     @Override
     public void start() {
