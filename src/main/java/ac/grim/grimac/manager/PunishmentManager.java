@@ -80,7 +80,7 @@ public class PunishmentManager {
                 for (ParsedCommand command : group.getCommands()) {
                     if (violationCount >= command.getThreshold()) {
                         boolean inInterval = command.getInterval() == 0 || violationCount % command.getInterval() == 0;
-                        if (inInterval) {
+                        if (inInterval || violationCount == command.getThreshold()) {
                             String cmd = command.getCommand();
 
                             // Streams are slow but this isn't a hot path... it's fine.
