@@ -7,7 +7,6 @@ import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
-import com.github.retrooper.packetevents.protocol.entity.InteractAction;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.item.enchantment.type.EnchantmentTypes;
@@ -32,7 +31,7 @@ public class PacketPlayerAttack extends PacketListenerAbstract {
 
             if (player == null) return;
 
-            if (interact.getInteractAction() == InteractAction.ATTACK) {
+            if (interact.getAction() == WrapperPlayClientInteractEntity.InteractAction.ATTACK) {
                 ItemStack heldItem = player.getInventory().getHeldItem();
                 PacketEntity entity = player.compensatedEntities.getEntity(interact.getEntityId());
 

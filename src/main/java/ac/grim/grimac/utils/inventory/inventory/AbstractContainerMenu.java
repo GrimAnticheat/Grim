@@ -8,7 +8,6 @@ import ac.grim.grimac.utils.inventory.slot.Slot;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
 import com.github.retrooper.packetevents.protocol.player.GameMode;
-import com.github.retrooper.packetevents.protocol.window.WindowClickType;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientClickWindow;
 import com.google.common.collect.Sets;
 import lombok.Getter;
@@ -127,8 +126,8 @@ public abstract class AbstractContainerMenu {
         playerInventory.getInventoryStorage().setItem(slot, stack);
     }
 
-    public void doClick(int button, int slotID, WindowClickType clickType) {
-        if (clickType == WindowClickType.QUICK_CRAFT) {
+    public void doClick(int button, int slotID, WrapperPlayClientClickWindow.WindowClickType clickType) {
+        if (clickType == WrapperPlayClientClickWindow.WindowClickType.QUICK_CRAFT) {
             int i = this.quickcraftStatus;
             this.quickcraftStatus = calculateQuickcraftHeader(button);
             if ((i != 1 || this.quickcraftStatus != 2) && i != this.quickcraftStatus) {
@@ -154,7 +153,7 @@ public abstract class AbstractContainerMenu {
                     if (this.quickcraftSlots.size() == 1) {
                         int l = (this.quickcraftSlots.iterator().next()).slotListIndex;
                         this.resetQuickCraft();
-                        this.doClick(this.quickcraftType, l, WindowClickType.PICKUP);
+                        this.doClick(this.quickcraftType, l, WrapperPlayClientClickWindow.WindowClickType.PICKUP);
                         return;
                     }
 
@@ -187,7 +186,7 @@ public abstract class AbstractContainerMenu {
             }
         } else if (this.quickcraftStatus != 0) {
             this.resetQuickCraft();
-        } else if ((clickType == WindowClickType.PICKUP || clickType == WindowClickType.QUICK_MOVE) && (button == 0 || button == 1)) {
+        } else if ((clickType == WrapperPlayClientClickWindow.WindowClickType.PICKUP || clickType == WrapperPlayClientClickWindow.WindowClickType.QUICK_MOVE) && (button == 0 || button == 1)) {
             ClickAction clickAction = ClickAction.values()[button];
             if (slotID == -999) { // Drop item
                 if (!getCarried().isEmpty()) {
@@ -197,7 +196,7 @@ public abstract class AbstractContainerMenu {
                         getCarried().split(1);
                     }
                 }
-            } else if (clickType == WindowClickType.QUICK_MOVE) {
+            } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.QUICK_MOVE) {
                 if (slotID < 0) return;
 
                 Slot stack = getSlot(slotID);
@@ -253,7 +252,7 @@ public abstract class AbstractContainerMenu {
                 }
                 //}
             }
-        } else if (clickType == WindowClickType.SWAP) {
+        } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.SWAP) {
             Slot hoveringSlot = slots.get(slotID);
 
             button = button == 40 ? Inventory.SLOT_OFFHAND : button + Inventory.HOTBAR_OFFSET;
@@ -292,18 +291,18 @@ public abstract class AbstractContainerMenu {
                     }
                 }
             }
-        } else if (clickType == WindowClickType.CLONE && player.gamemode == GameMode.CREATIVE && slotID >= 0 && carriedItem.isEmpty()) {
+        } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.CLONE && player.gamemode == GameMode.CREATIVE && slotID >= 0 && carriedItem.isEmpty()) {
             Slot slot5 = getSlot(slotID);
             if (slot5.hasItem()) {
                 ItemStack itemstack6 = slot5.getItem().copy();
                 itemstack6.setAmount(itemstack6.getMaxStackSize());
                 this.setCarried(itemstack6);
             }
-        } else if (clickType == WindowClickType.THROW && getCarried().isEmpty() && slotID >= 0) {
+        } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.THROW && getCarried().isEmpty() && slotID >= 0) {
             Slot slot4 = getSlot(slotID);
             int i1 = button == 0 ? 1 : slot4.getItem().getAmount();
             ItemStack itemstack8 = slot4.safeTake(i1, Integer.MAX_VALUE, player);
-        } else if (clickType == WindowClickType.PICKUP_ALL && slotID >= 0) {
+        } else if (clickType == WrapperPlayClientClickWindow.WindowClickType.PICKUP_ALL && slotID >= 0) {
             Slot slot3 = getSlot(slotID);
 
             if (!getCarried().isEmpty() && (!slot3.hasItem() || !slot3.mayPickup(player))) {
