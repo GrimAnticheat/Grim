@@ -67,6 +67,14 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
             WrapperPlayServerAcknowledgeBlockChanges changes = new WrapperPlayServerAcknowledgeBlockChanges(event);
             player.compensatedWorld.handlePredictionConfirmation(changes.getSequence());
         }
+
+        if (event.getPacketType() == PacketType.Play.Server.ACKNOWLEDGE_PLAYER_DIGGING) {
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            WrapperPlayServerAcknowledgePlayerDigging ack = new WrapperPlayServerAcknowledgePlayerDigging(event);
+            player.compensatedWorld.handleBlockBreakAck(ack.getBlockPosition(), ack.getBlockId(), ack.getAction(), ack.isSuccessful());
+        }
     }
 
     public void handleMapChunkBulk(GrimPlayer player, PacketSendEvent event) {

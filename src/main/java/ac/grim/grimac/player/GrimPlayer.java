@@ -1,11 +1,12 @@
 package ac.grim.grimac.player;
 
+import ac.grim.grimac.AbstractCheck;
 import ac.grim.grimac.GrimAPI;
+import ac.grim.grimac.GrimUser;
+import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
+import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.events.packets.CheckManagerListener;
-import ac.grim.grimac.manager.ActionManager;
-import ac.grim.grimac.manager.CheckManager;
-import ac.grim.grimac.manager.PunishmentManager;
-import ac.grim.grimac.manager.SetbackTeleportUtil;
+import ac.grim.grimac.manager.*;
 import ac.grim.grimac.manager.init.start.ViaBackwardsManager;
 import ac.grim.grimac.predictionengine.MovementCheckRunner;
 import ac.grim.grimac.predictionengine.PointThreeEstimator;
@@ -17,6 +18,7 @@ import ac.grim.grimac.utils.enums.FluidTag;
 import ac.grim.grimac.utils.enums.Pose;
 import ac.grim.grimac.utils.floodgate.FloodgateUtil;
 import ac.grim.grimac.utils.latency.*;
+import ac.grim.grimac.utils.math.GrimMath;
 import ac.grim.grimac.utils.math.TrigHandler;
 import ac.grim.grimac.utils.nmsutil.GetBoundingBox;
 import com.github.retrooper.packetevents.PacketEvents;
@@ -54,7 +56,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 // Put variables sync'd to the netty thread in PacketStateData
 // Variables that need lag compensation should have their own class
 // Soon there will be a generic class for lag compensation
-public class GrimPlayer {
+public class GrimPlayer implements GrimUser {
     public UUID playerUUID;
     public final User user;
     public int entityID;
@@ -146,7 +148,6 @@ public class GrimPlayer {
     public boolean slightlyTouchingWater = false;
     public boolean wasEyeInWater = false;
     public FluidTag fluidOnEyes;
-    public boolean horizontalCollision;
     public boolean verticalCollision;
     public boolean clientControlledHorizontalCollision;
     public boolean clientControlledVerticalCollision;
@@ -160,6 +161,7 @@ public class GrimPlayer {
     // This determines if the
     public boolean skippedTickInActualMovement = false;
     // You cannot initialize everything here for some reason
+    public LastInstanceManager lastInstanceManager;
     public CompensatedFireworks compensatedFireworks;
     public CompensatedWorld compensatedWorld;
     public CompensatedEntities compensatedEntities;
@@ -207,6 +209,7 @@ public class GrimPlayer {
 
         compensatedFireworks = new CompensatedFireworks(this); // Must be before checkmanager
 
+        lastInstanceManager = new LastInstanceManager(this);
         checkManager = new CheckManager(this);
         actionManager = new ActionManager(this);
         punishmentManager = new PunishmentManager(this);
@@ -372,7 +375,8 @@ public class GrimPlayer {
             } else {
                 user.writePacket(packet);
             }
-        } catch (Exception ignored) { // Fix protocollib + viaversion support by ignoring any errors :) // TODO: Fix this
+        } catch (
+                Exception ignored) { // Fix protocollib + viaversion support by ignoring any errors :) // TODO: Fix this
             // recompile
         }
     }
@@ -400,7 +404,7 @@ public class GrimPlayer {
         }
         if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getMaxPingTransaction() * 1e9) {
             try {
-                user.sendPacket(new WrapperPlayServerDisconnect(Component.text("Timed out!")));
+                user.sendPacket(new WrapperPlayServerDisconnect(Component.translatable("disconnect.timeout")));
             } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
                 LogUtil.warn("Failed to send disconnect packet to time out " + user.getProfile().getName() + "! Disconnecting anyways.");
             }
@@ -488,7 +492,13 @@ public class GrimPlayer {
     }
 
     public int getTransactionPing() {
-        return transactionPing;
+        return GrimMath.floor(transactionPing / 1e6);
+    }
+
+    @Override
+    public int getKeepAlivePing() {
+        if (bukkitPlayer == null) return -1;
+        return PacketEvents.getAPI().getPlayerManager().getPing(bukkitPlayer);
     }
 
     public long getPlayerClockAtLeast() {
@@ -578,4 +588,50 @@ public class GrimPlayer {
         // 1.11+ players must be in creative and have a permission level at or above 2
         return getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_10) || (gamemode == GameMode.CREATIVE && compensatedEntities.getSelf().getOpLevel() >= 2);
     }
+
+    @Override
+    public void runSafely(Runnable runnable) {
+        ChannelHelper.runInEventLoop(this.user.getChannel(), runnable);
+    }
+
+    @Override
+    public String getName() {
+        return user.getName();
+    }
+
+    @Override
+    public UUID getUniqueId() {
+        return user.getProfile().getUUID();
+    }
+
+    @Override
+    public String getBrand() {
+        return checkManager.getPacketCheck(ClientBrand.class).getBrand();
+    }
+
+    @Override
+    public String getVersionName() {
+        return getClientVersion().getReleaseName();
+    }
+
+    @Override
+    public double getHorizontalSensitivity() {
+        return checkManager.getRotationCheck(AimProcessor.class).sensitivityX;
+    }
+
+    @Override
+    public double getVerticalSensitivity() {
+        return checkManager.getRotationCheck(AimProcessor.class).sensitivityY;
+    }
+
+    @Override
+    public boolean isVanillaMath() {
+        return trigHandler.isVanillaMath();
+    }
+
+    @Override
+    public Collection<? extends AbstractCheck> getChecks() {
+        return checkManager.allChecks.values();
+    }
+
 }

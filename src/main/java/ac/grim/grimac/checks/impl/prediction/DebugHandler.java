@@ -5,13 +5,12 @@ import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
-import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.lists.EvictingQueue;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -24,9 +23,9 @@ public class DebugHandler extends PostPredictionCheck {
     boolean enabledFlags = false;
     boolean lastMovementIsFlag = false;
 
-    List<String> predicted = new EvictingList<>(5);
-    List<String> actually = new EvictingList<>(5);
-    List<String> offset = new EvictingList<>(5);
+    EvictingQueue<String> predicted = new EvictingQueue<>(5);
+    EvictingQueue<String> actually = new EvictingQueue<>(5);
+    EvictingQueue<String> offset = new EvictingQueue<>(5);
 
     public DebugHandler(GrimPlayer player) {
         super(player);

@@ -61,6 +61,19 @@ public class RotationPlace extends BlockPlaceCheck {
                 new Vector3f(player.xRot, player.yRot, 0)
         ));
 
+        // Start checking if player is in the block
+        double minEyeHeight = Collections.min(player.getPossibleEyeHeights());
+        double maxEyeHeight = Collections.max(player.getPossibleEyeHeights());
+
+        SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
+        eyePositions.expand(player.getMovementThreshold());
+
+        // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
+        if (eyePositions.isIntersected(box)) {
+            return true;
+        }
+        // End checking if the player is in the block
+
         // 1.9+ players could be a tick behind because we don't get skipped ticks
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             possibleLookDirs.add(new Vector3f(player.lastXRot, player.lastYRot, 0));

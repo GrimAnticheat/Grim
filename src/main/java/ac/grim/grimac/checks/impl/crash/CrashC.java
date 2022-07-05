@@ -4,9 +4,9 @@ import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
 
-@CheckData(name = "CrashD")
-public class CrashD extends PacketCheck {
-    public CrashD(GrimPlayer playerData) {
+@CheckData(name = "CrashC")
+public class CrashC extends PacketCheck {
+    public CrashC(GrimPlayer playerData) {
         super(playerData);
     }
 }

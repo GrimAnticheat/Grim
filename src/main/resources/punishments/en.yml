@@ -42,7 +42,7 @@ Punishments:
     checks:
       - "BadPackets"
       - "Crash"
-    command:
+    commands:
       - "20:20 [alert]"
       - "40:40 [webhook]"
   Reach:

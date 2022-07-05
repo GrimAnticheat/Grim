@@ -23,6 +23,8 @@ public class CrashA extends PacketCheck {
             if (!packet.hasPositionChanged()) return;
             if (Math.abs(packet.getLocation().getX()) > HARD_CODED_BORDER || Math.abs(packet.getLocation().getZ()) > HARD_CODED_BORDER) {
                 flagAndAlert(); // Ban
+                player.getSetbackTeleportUtil().executeViolationSetback(false);
+                event.setCancelled(true);
             }
         }
     }

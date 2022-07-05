@@ -168,10 +168,10 @@ public class KnockbackHandler extends PacketCheck {
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
                 if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
-                    player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, !player.likelyKB.hasSetbackForThis);
+                    player.getSetbackTeleportUtil().executeViolationSetback(!player.likelyKB.hasSetbackForThis);
                 } else if (flag()) { // This velocity was sent by the server.
                     if (getViolations() > setbackVL) {
-                        player.getSetbackTeleportUtil().blockMovementsUntilResync(player.getSetbackTeleportUtil().safeTeleportPosition.position, !player.likelyKB.hasSetbackForThis);
+                        player.getSetbackTeleportUtil().executeViolationSetback(!player.likelyKB.hasSetbackForThis);
                     }
 
                     String formatOffset = "o: " + formatOffset(player.likelyKB.offset);

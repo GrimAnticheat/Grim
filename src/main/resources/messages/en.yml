@@ -9,6 +9,7 @@ player-not-found: "%prefix% &cPlayer is exempt or offline!"
 player-not-this-server: "%prefix% &cPlayer is not on this server!"
 spectate-return: "\n%prefix% &fClick here to return to previous location\n"
 cannot-spectate-return: "%prefix% &cYou can only do this after spectating a player"
+cannot-run-on-self: "%prefix% &cYou cannot use this command on yourself!"
 
 # Valid placeholders:
 # %prefix%

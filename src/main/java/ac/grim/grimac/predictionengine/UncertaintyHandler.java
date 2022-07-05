@@ -7,7 +7,7 @@ import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityRideable;
 import ac.grim.grimac.utils.data.packetentity.PacketEntityStrider;
-import ac.grim.grimac.utils.lists.EvictingList;
+import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.nmsutil.BoundingBoxSize;
 import ac.grim.grimac.utils.nmsutil.ReachUtils;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
@@ -20,9 +20,9 @@ public class UncertaintyHandler {
     private final GrimPlayer player;
     // Handles uncertainty when a piston could have pushed a player in a direction
     // Only the required amount of uncertainty is given
-    public EvictingList<Double> pistonX = new EvictingList<>(5);
-    public EvictingList<Double> pistonY = new EvictingList<>(5);
-    public EvictingList<Double> pistonZ = new EvictingList<>(5);
+    public EvictingQueue<Double> pistonX = new EvictingQueue<>(5);
+    public EvictingQueue<Double> pistonY = new EvictingQueue<>(5);
+    public EvictingQueue<Double> pistonZ = new EvictingQueue<>(5);
     // Did the player step onto a block?
     // This is needed because we don't know if a player jumped onto the step block or not
     // Jumping would set onGround to false while not would set it to true
@@ -63,7 +63,7 @@ public class UncertaintyHandler {
     // Handles 0.03 vertical false where actual velocity is greater than predicted because of previous lenience
     public boolean wasZeroPointThreeVertically = false;
     // How many entities are within 0.5 blocks of the player's bounding box?
-    public EvictingList<Integer> collidingEntities = new EvictingList<>(3);
+    public EvictingQueue<Integer> collidingEntities = new EvictingQueue<>(3);
     // Fishing rod pulling is another method of adding to a player's velocity
     public List<Integer> fishingRodPulls = new ArrayList<>();
     public SimpleCollisionBox fireworksBox = null;

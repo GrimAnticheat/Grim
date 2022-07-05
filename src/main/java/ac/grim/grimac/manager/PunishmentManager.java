@@ -2,14 +2,14 @@ package ac.grim.grimac.manager;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.Check;
+import ac.grim.grimac.events.CommandExecuteEvent;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.LogUtil;
-import ac.grim.grimac.utils.anticheat.MessageUtil;
-import ac.grim.grimac.utils.events.CommandExecuteEvent;
 import github.scarsz.configuralize.DynamicConfig;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 
 import java.util.*;
 
@@ -44,7 +44,7 @@ public class PunishmentManager {
                     for (Check check : player.checkManager.allChecks.values()) { // o(n) * o(n)?
                         if (check.getCheckName() != null &&
                                 (check.getCheckName().toLowerCase(Locale.ROOT).contains(command)
-                                        || check.getAlernativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
+                                        || check.getAlternativeName().toLowerCase(Locale.ROOT).contains(command))) { // Some checks have equivalent names like AntiKB and AntiKnockback
                             checksList.add(check);
                         }
                     }
@@ -77,11 +77,9 @@ public class PunishmentManager {
         for (PunishGroup group : groups) {
             if (group.getChecks().contains(check)) {
                 int violationCount = group.getViolations().size();
-
                 for (ParsedCommand command : group.getCommands()) {
                     if (violationCount >= command.getThreshold()) {
                         boolean inInterval = command.getInterval() == 0 || violationCount % command.getInterval() == 0;
-
                         if (inInterval) {
                             String cmd = command.getCommand();
 
@@ -93,7 +91,7 @@ public class PunishmentManager {
                             cmd = cmd.replace("%vl%", vl);
                             cmd = cmd.replace("%verbose%", verbose);
 
-                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(check, cmd);
+                            CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, cmd);
                             Bukkit.getPluginManager().callEvent(executeEvent);
                             if (executeEvent.isCancelled()) continue;
 
@@ -103,11 +101,11 @@ public class PunishmentManager {
                             }
 
                             if (player.bukkitPlayer != null) {
-                                cmd = cmd.replace("%player%", player.bukkitPlayer.getName());
+                                cmd = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, cmd, false);
                             }
 
                             if (testMode && cmd.contains("grim sendalert")) { // secret test mode
-                                cmd = MessageUtil.format(cmd);
+                                cmd = ChatColor.translateAlternateColorCodes('&', cmd);
                                 player.user.sendMessage(cmd.replace("grim sendalert ", ""));
                                 continue;
                             }

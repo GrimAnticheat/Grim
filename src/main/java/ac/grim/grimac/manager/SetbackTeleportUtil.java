@@ -89,12 +89,12 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         if (player.gamemode == GameMode.SPECTATOR || player.disableGrim) return; // We don't care about spectators, they don't flag
         blockOffsets = true;
         if (safeTeleportPosition == null) return; // Player hasn't spawned yet
-        blockMovementsUntilResync(safeTeleportPosition.position);
+        blockMovementsUntilResync(safeTeleportPosition.position, false, true);
     }
 
-    public boolean executeViolationSetback() {
+    public boolean executeViolationSetback(boolean force) {
         if (isExempt()) return false;
-        blockMovementsUntilResync(safeTeleportPosition.position);
+        blockMovementsUntilResync(safeTeleportPosition.position, force, true);
         return true;
     }
 
@@ -109,15 +109,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return false;
     }
 
-    public void blockMovementsUntilResync(Location position) {
-        blockMovementsUntilResync(position, false);
-    }
-
-    public void blockMovementsUntilResync(Location position, boolean force) {
-        blockMovementsUntilResync(position, force, true);
-    }
-
-    public void blockMovementsUntilResync(Location position, boolean force, boolean simulateNextTickPosition) {
+    private void blockMovementsUntilResync(Location position, boolean force, boolean simulateNextTickPosition) {
         if (requiredSetBack == null || player.bukkitPlayer == null)
             return; // Player hasn't gotten a single teleport yet.
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override

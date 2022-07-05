@@ -5,6 +5,7 @@ import ac.grim.grimac.checks.impl.aim.processor.AimProcessor;
 import ac.grim.grimac.checks.impl.misc.ClientBrand;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.MessageUtil;
+import ac.grim.grimac.utils.math.GrimMath;
 import co.aikar.commands.BaseCommand;
 import co.aikar.commands.annotation.CommandAlias;
 import co.aikar.commands.annotation.CommandCompletion;
@@ -32,28 +33,13 @@ public class GrimProfile extends BaseCommand {
 
         GrimPlayer grimPlayer = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(target.getPlayer());
         if (grimPlayer == null) {
-            sender.sendMessage(GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!"));
+            String message = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("player-not-found", "%prefix% &cPlayer is exempt or offline!");
+            sender.sendMessage(MessageUtil.format(message));
             return;
         }
 
-        ClientBrand brand = (ClientBrand) grimPlayer.checkManager.getPacketCheck(ClientBrand.class);
-        AimProcessor aimProcessor = (AimProcessor) grimPlayer.checkManager.getRotationCheck(AimProcessor.class);
-
-
-        String hSens = ((int) Math.round(aimProcessor.sensitivityX * 200)) + "";
-        String vSens = ((int) Math.round(aimProcessor.sensitivityY * 200)) + "";
-        String fastMath = !grimPlayer.trigHandler.isVanillaMath() + "";
-
         for (String message : GrimAPI.INSTANCE.getConfigManager().getConfig().getStringList("profile")) {
-            message = MessageUtil.format(message);
-            message = message.replace("%ping%", (grimPlayer.getTransactionPing() / 1000000) + "");
-            message = message.replace("%player%", target.getPlayer().getName());
-            message = message.replace("%version%", grimPlayer.getClientVersion().getReleaseName());
-            message = message.replace("%brand%", brand.getBrand());
-            message = message.replace("%h_sensitivity%", hSens);
-            message = message.replace("%v_sensitivity%", vSens);
-            message = message.replace("%fast_math%", fastMath);
-
+            message = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(grimPlayer, message, true);
             sender.sendMessage(message);
         }
     }

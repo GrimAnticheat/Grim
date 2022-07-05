@@ -20,6 +20,12 @@ public class PredictionEngineElytra extends PredictionEngine {
         for (VectorData data : possibleVectors) {
             Vector elytraResult = getElytraMovement(player, data.vector.clone(), currentLook).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99F, 0.98F, 0.99F));
             results.add(data.returnNewModified(elytraResult, VectorData.VectorType.InputResult));
+
+            // We must bruteforce Optifine ShitMath
+            player.trigHandler.toggleShitMath();
+            elytraResult = getElytraMovement(player, data.vector.clone(), ReachUtils.getLook(player, player.xRot, player.yRot)).multiply(player.stuckSpeedMultiplier).multiply(new Vector(0.99F, 0.98F, 0.99F));
+            player.trigHandler.toggleShitMath();
+            results.add(data.returnNewModified(elytraResult, VectorData.VectorType.InputResult));
         }
 
         return results;

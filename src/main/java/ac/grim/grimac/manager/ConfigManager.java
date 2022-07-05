@@ -27,7 +27,7 @@ public class ConfigManager {
     @Getter
     private final File punishFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
     @Getter
-    private int maxPingTransaction = 120; // This is just a really hot variable so cache it.
+    private int maxPingTransaction = 60; // This is just a really hot variable so cache it.
 
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
@@ -72,7 +72,7 @@ public class ConfigManager {
         } catch (Exception e) {
             throw new RuntimeException("Failed to load config", e);
         }
-        maxPingTransaction = config.getIntElse("max-ping.transaction", 120);
+        maxPingTransaction = config.getIntElse("max-transaction-time", 60);
         ignoredClientPatterns.clear();
         for (String string : config.getStringList("client-brand.ignored-clients")) {
             try {
@@ -105,7 +105,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 3");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 5");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -128,6 +128,12 @@ public class ConfigManager {
         }
         if (configVersion < 3) {
             addBaritoneCheck();
+        }
+        if (configVersion < 4) {
+            newOffsetNewDiscordConf(config, configString);
+        }
+        if (configVersion < 5) {
+            fixBadPacketsAndAdjustPingConfig(config, configString);
         }
     }
 
@@ -179,6 +185,24 @@ public class ConfigManager {
         }
     }
 
+    private void fixBadPacketsAndAdjustPingConfig(File config, String configString) {
+        try {
+            configString = configString.replaceAll("max-ping: \\d+", "max-transaction-time: 60");
+            Files.write(config.toPath(), configString.getBytes());
+        } catch (IOException ignored) {}
+
+        File punishConfig = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
+        String punishConfigString;
+        if (punishConfig.exists()) {
+            try {
+                punishConfigString = new String(Files.readAllBytes(punishConfig.toPath()));
+                punishConfigString = punishConfigString.replace("command:", "commands:");
+                Files.write(punishConfig.toPath(), punishConfigString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
     private void addBaritoneCheck() {
         File config = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
         String configString;
@@ -187,6 +211,31 @@ public class ConfigManager {
                 configString = new String(Files.readAllBytes(config.toPath()));
                 configString = configString.replace("      - \"EntityControl\"\n", "      - \"EntityControl\"\n      - \"Baritone\"\n      - \"FastBreak\"\n");
                 Files.write(config.toPath(), configString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private void newOffsetNewDiscordConf(File config, String configString) throws IOException {
+        configString = configString.replace("threshold: 0.0001", "threshold: 0.001"); // 1e-5 -> 1e-4 default flag level
+        configString = configString.replace("threshold: 0.00001", "threshold: 0.001"); // 1e-6 -> 1e-4 antikb flag
+        Files.write(config.toPath(), configString.getBytes());
+
+        File discordFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "discord.yml");
+
+        if (discordFile.exists()) {
+            try {
+                String discordString = new String(Files.readAllBytes(discordFile.toPath()));
+                discordString += "\nembed-color: \"#00FFFF\"\n" +
+                        "violation-content:\n" +
+                        "  - \"**Player**: %player%\"\n" +
+                        "  - \"**Check**: %check%\"\n" +
+                        "  - \"**Violations**: %violations%\"\n" +
+                        "  - \"**Client Version**: %version%\"\n" +
+                        "  - \"**Brand**: %brand%\"\n" +
+                        "  - \"**Ping**: %ping%\"\n" +
+                        "  - \"**TPS**: %tps%\"\n";
+                Files.write(discordFile.toPath(), discordString.getBytes());
             } catch (IOException ignored) {
             }
         }
