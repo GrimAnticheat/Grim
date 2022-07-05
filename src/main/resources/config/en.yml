@@ -112,4 +112,4 @@ Reach:
 # Enable logging plugins who have injected into netty on join to debug compatibility issues
 debug-pipeline-on-join: false
 
-config-version: 4
+config-version: 5

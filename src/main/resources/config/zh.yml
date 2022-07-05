@@ -24,8 +24,8 @@ spectators:
   allowed-worlds:
     - ""
 
-# 在我们让他们超时之前，玩家应该有多长时间？ 120秒 = 2分钟
-max-ping: 120
+# 在我们让他们超时之前，玩家应该有多长时间？ 60秒 = 1分钟
+max-transaction-time: 60
 
 Simulation:
   # 当玩家合法时，我们应该将总优势乘以多少
@@ -35,7 +35,7 @@ Simulation:
   # 从可能的移动中以块为单位测量
   # 我们通过另一种方式来计算 Optifine，但将其降低到 0.001 会降低 FastMath
   # 如果此补偿不起作用，则标记反作弊...
-  threshold: 0.0001
+  threshold: 0.001
   # 在玩家立即受到回弹之前，1ticks的违规行为有多大？
   # -1 关闭
   immediate-setback-threshold: 0.1
@@ -75,14 +75,14 @@ Knockback:
   # 有多少反击退是“作弊”
   # 默认情况下这是 1e-5，这是安全和理智的
   # 以正确移动的块为单位测量
-  threshold: 0.00001
+  threshold: 0.001
   setbackvl: 10
   decay: 0.025
   dont-alert-until: 8
   alert-interval: 5
 
 Explosion:
-  threshold: 0.00001
+  threshold: 0.001
   setbackvl: 10
   decay: 0.025
   dont-alert-until: 8
@@ -133,4 +133,4 @@ Reach:
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false
 
-config-version: 3
+config-version: 5
