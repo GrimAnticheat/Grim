@@ -297,7 +297,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // At this point, it is too late to cancel, so we can only flag, and cancel subsequent block places more aggressively
             player.checkManager.onPostFlyingBlockPlace(blockPlace);
 
-            blockPlace.setInside(place.getInsideBlock());
+            blockPlace.setInside(place.getInsideBlock().orElse(false));
 
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE) {
                 BlockPlaceResult.getMaterialData(placedWith.getType()).applyBlockPlaceToWorld(player, blockPlace);
@@ -335,6 +335,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                         Float.isNaN(pos.getYaw()) || Float.isNaN(pos.getPitch()) ||
                         Float.isInfinite(pos.getYaw()) || Float.isInfinite(pos.getPitch())) {
                     player.checkManager.getPacketCheck(CrashC.class).flagAndAlert("xyzYP: " + pos.getX() + ", " + pos.getY() + ", " + pos.getZ() + ", " + pos.getYaw() + ", " + pos.getPitch());
+                    player.getSetbackTeleportUtil().executeViolationSetback(false);
                     event.setCancelled(true);
                     return;
                 }
