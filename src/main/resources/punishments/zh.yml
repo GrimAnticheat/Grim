@@ -6,49 +6,63 @@
 # [webhook] - 警告discord webhook 的特殊命令
 Punishments:
   Simulation:
-    # 应该在几秒后删除违规行为？
+    # 当达到多少VL时移除玩家
     remove-violations-after: 300
     checks:
       - "Simulation"
       - "GroundSpoof"
-      - "Knockback"
-      - "Explosion"
       - "Timer"
       - "NoFall"
+    # Threshold:Interval Command
     #
-    # 例如，用“incorrect！”消息踢出玩家,100 次违规后，没有间隔
+    # 这是个例子, 当到达100VL时为了以 "incorrect movement!" 为理由踢出玩家
     # commands:
     # - "100:0 kick %player% incorrect movement!"
     #
     commands:
       - "100:40 [alert]"
+      - "100:100 [webhook]"
+  Knockback:
+    remove-violations-after: 300
+    checks:
+      - "Knockback"
+      - "Explosion"
+    commands:
+      - "5:5 [alert]"
+      - "20:20 [webhook]"
   Post:
     remove-violations-after: 300
     checks:
       - "Post"
     commands:
       - "20:20 [alert]"
+      - "40:40 [webhook]"
   BadPackets:
     remove-violations-after: 300
     checks:
       - "BadPackets"
       - "Crash"
-    command:
+    commands:
       - "20:20 [alert]"
+      - "40:40 [webhook]"
   Reach:
     remove-violations-after: 300
     checks:
       - "Reach"
     commands:
       - "5:5 [alert]"
+      - "5:5 [webhook]"
   Misc:
     remove-violations-after: 300
     checks:
       - "EntityControl"
       - "NoSlow"
       - "Place"
+      - "Baritone"
+      - "FastBreak"
     commands:
       - "10:5 [alert]"
+      - "20:10 [webhook]"
   Combat:
     remove-violations-after: 300
     checks:
@@ -56,7 +70,7 @@ Punishments:
       - "Aim"
     commands:
       - "20:40 [alert]"
-  # 从 2.2.10 开始，Grim没有 AutoClicker 检查，这是一个占位符。 Grim 将在未来包括 AutoClicker 检查。
+  # Grim2.0.10版本 没有连点器检查，Grim将在未来添加
   Autoclicker:
     remove-violations-after: 300
     checks:
