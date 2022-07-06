@@ -590,7 +590,7 @@ public class GrimPlayer implements GrimUser {
     }
 
     public boolean shouldModifyPackets() {
-        return !disableGrim && (bukkitPlayer == null || !bukkitPlayer.hasPermission("grim.nomodifypackets"));
+        return !disableGrim && (bukkitPlayer == null || !bukkitPlayer.hasPermission("grim.nomodifypacket"));
     }
 
     @Override
