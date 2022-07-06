@@ -311,9 +311,11 @@ public class CompensatedEntities {
             if (height != null) {
                 if ((byte) height.getValue() == 0) {
                     ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), true);
+                    player.compensatedWorld.openShulkerBoxes.remove(data);
                     player.compensatedWorld.openShulkerBoxes.add(data);
                 } else {
                     ShulkerData data = new ShulkerData(entity, player.lastTransactionSent.get(), false);
+                    player.compensatedWorld.openShulkerBoxes.remove(data);
                     player.compensatedWorld.openShulkerBoxes.add(data);
                 }
             }

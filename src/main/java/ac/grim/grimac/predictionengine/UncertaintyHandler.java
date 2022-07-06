@@ -52,6 +52,7 @@ public class UncertaintyHandler {
     public boolean isSteppingOnBouncyBlock = false;
     public boolean isSteppingNearBubbleColumn = false;
     public boolean isSteppingNearScaffolding = false;
+    public boolean isSteppingNearShulker = false;
     public boolean isNearGlitchyBlock = false;
     public boolean isOrWasNearGlitchyBlock = false;
     // Did the player claim to leave stuck speed? (0.03 messes these calculations up badly)
@@ -111,6 +112,16 @@ public class UncertaintyHandler {
         pistonY.add(0d);
         pistonZ.add(0d);
         isStepMovement = false;
+
+        isSteppingNearShulker = false;
+        wasSteppingOnBouncyBlock = isSteppingOnBouncyBlock;
+        isSteppingOnSlime = false;
+        isSteppingOnBouncyBlock = false;
+        isSteppingOnIce = false;
+        isSteppingOnHoney = false;
+        isSteppingNearBubbleColumn = false;
+        isSteppingNearScaffolding = false;
+
         slimePistonBounces = new HashSet<>();
         tickFireworksBox();
     }
@@ -319,7 +330,7 @@ public class UncertaintyHandler {
         // This bounding box can be infinitely large without crashing the server.
         // This works by the proof that if you collide with an object, you will stop near the object
         SimpleCollisionBox expandedBB = player.boundingBox.copy().expand(1);
-        return regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
+        return isSteppingNearShulker || regularHardCollision(expandedBB) || striderCollision(expandedBB) || boatCollision(expandedBB);
     }
 
     private boolean regularHardCollision(SimpleCollisionBox expandedBB) {

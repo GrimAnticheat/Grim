@@ -101,19 +101,7 @@ public class CompensatedWorld {
         if (!accepted || action != DiggingAction.START_DIGGING || !unackedActions.containsKey(new Pair<>(blockPos, action))) {
             player.sendTransaction(); // This packet actually matters
             player.latencyUtils.addRealTimeTask(player.lastTransactionSent.get(), () -> {
-                Pair<Vector3i, DiggingAction> correctPair = null;
-                Pair<Vector3i, DiggingAction> currentPair = new Pair<>(blockPos, action);
-
-                // TODO: What the fuck is this code, why can't we simply call remove with the new pair? Why are objects like this?
-                // please PR a fix...
-                for (Pair<Vector3i, DiggingAction> pair : unackedActions.keySet()) {
-                    if (pair.equals(currentPair)) {
-                        correctPair = pair;
-                        break;
-                    }
-                }
-
-                Vector3d playerPos = correctPair == null ? null : unackedActions.remove(correctPair);
+                Vector3d playerPos = unackedActions.remove(new Pair<>(blockPos, action));
                 handleAck(blockPos, blockState, playerPos);
             });
         } else {
@@ -331,7 +319,10 @@ public class CompensatedWorld {
         player.uncertaintyHandler.tick();
         // Occurs on player login
         if (player.boundingBox == null) return;
-        SimpleCollisionBox playerBox = player.boundingBox.copy();
+
+        SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001f, 0.001f);
+        expandedBB.expandToAbsoluteCoordinates(player.x, player.y, player.z);
+        SimpleCollisionBox playerBox = expandedBB.copy().expand(1);
 
         double modX = 0;
         double modY = 0;
@@ -385,6 +376,8 @@ public class CompensatedWorld {
 
                 playerBox.expandMax(modX, modY, modZ);
                 playerBox.expandMin(modX, modY, modZ);
+
+                player.uncertaintyHandler.isSteppingNearShulker = true;
             }
         }
 

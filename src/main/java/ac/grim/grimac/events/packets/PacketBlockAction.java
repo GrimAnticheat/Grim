@@ -40,10 +40,12 @@ public class PacketBlockAction extends PacketListenerAbstract {
                     // Hashset with .equals() set to be position
                     if (blockAction.getActionData() >= 1) {
                         ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), false);
+                        player.compensatedWorld.openShulkerBoxes.remove(data);
                         player.compensatedWorld.openShulkerBoxes.add(data);
                     } else {
                         // The shulker box is closing
                         ShulkerData data = new ShulkerData(blockPos, player.lastTransactionSent.get(), true);
+                        player.compensatedWorld.openShulkerBoxes.remove(data);
                         player.compensatedWorld.openShulkerBoxes.add(data);
                     }
                 }
