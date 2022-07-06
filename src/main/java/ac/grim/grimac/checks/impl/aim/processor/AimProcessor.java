@@ -6,6 +6,7 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
+import lombok.Getter;
 
 
 public class AimProcessor extends RotationCheck {
@@ -28,6 +29,8 @@ public class AimProcessor extends RotationCheck {
 
     public double divisorX;
     public double divisorY;
+
+    @Getter private boolean recentlyTeleportingOrRiding;
 
     @Override
     public void process(final RotationUpdate rotationUpdate) {
@@ -64,6 +67,16 @@ public class AimProcessor extends RotationCheck {
                 this.sensitivityY = convertToSensitivity(modeY.getFirst());
             }
         }
+
+        if (player.packetStateData.lastPacketWasTeleport || player.compensatedEntities.getSelf().getRiding() != null) {
+            recentlyTeleportingOrRiding = true;
+            return;
+        }
+
+        if (recentlyTeleportingOrRiding) { // Exempt for a tick on teleport
+            recentlyTeleportingOrRiding = false;
+        }
+
     }
 
     public static double convertToSensitivity(double var13) {

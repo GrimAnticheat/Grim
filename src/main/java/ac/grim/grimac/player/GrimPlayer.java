@@ -185,6 +185,8 @@ public class GrimPlayer implements GrimUser {
     public Dimension dimension;
     public Vector3d bedPosition;
     public long lastBlockPlaceUseItem = 0;
+
+    public int attackTicks;
     public Queue<PacketWrapper<?>> placeUseItemPackets = new LinkedBlockingQueue<>();
     // This variable is for support with test servers that want to be able to disable grim
     // Grim disabler 2022 still working!

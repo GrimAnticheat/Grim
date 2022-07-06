@@ -92,4 +92,12 @@ public class GrimMath {
     public static double distanceToHorizontalCollision(double position) {
         return Math.min(Math.abs(position % (1 / 640d)), Math.abs(Math.abs(position % (1 / 640d)) - (1 / 640d)));
     }
+
+    public static boolean betweenRange(double value, double min, double max) {
+        return value > min && value < max;
+    }
+
+    public static boolean inRange(double value, double min, double max) {
+        return value >= min && value <= max;
+    }
 }
