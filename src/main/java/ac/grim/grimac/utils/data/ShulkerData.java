@@ -4,6 +4,8 @@ import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import ac.grim.grimac.utils.data.packetentity.PacketEntity;
 import com.github.retrooper.packetevents.util.Vector3i;
 
+import java.util.Objects;
+
 public class ShulkerData {
     public final int lastTransactionSent;
     private final boolean isClosing;
@@ -39,5 +41,18 @@ public class ShulkerData {
             return new SimpleCollisionBox(blockPos);
         }
         return entity.getPossibleCollisionBoxes();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ShulkerData that = (ShulkerData) o;
+        return Objects.equals(entity, that.entity) && Objects.equals(blockPos, that.blockPos);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(entity, blockPos);
     }
 }

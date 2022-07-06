@@ -584,6 +584,18 @@ public class PredictionEngine {
             box.expandToAbsoluteCoordinates(0, box.maxY, 0);
         }
 
+
+        // Likely stepping movement, avoid changing 0.03 related movement
+        // Piston gets priority over this code
+        //
+        //
+        // This shouldn't matter if the vector is going upwards or at precisely 0 because then
+        // the player couldn't be on the ground anyways...
+        if (player.clientControlledVerticalCollision && vector.vector.getY() < 0) {
+            box.minY = vector.vector.getY();
+            box.maxY = vector.vector.getY();
+        }
+
         // Alright, so hard lerping entities are a pain to support.
         // A transaction splits with interpolation and suddenly your predictions are off by 20 blocks due to a collision not being seen
         // Or the player is on 1.9+ so you have no idea where the entity actually is.
@@ -643,16 +655,6 @@ public class PredictionEngine {
 
         minVector = box.min();
         maxVector = box.max();
-
-        // Likely stepping movement, avoid changing 0.03 related movement
-        // Piston gets priority over this code
-        //
-        // This shouldn't matter if the vector is going upwards or at precisely 0 because then
-        // the player couldn't be on the ground anyways...
-        if (player.clientControlledVerticalCollision && vector.vector.getY() < 0) {
-            minVector.setY(vector.vector.getY());
-            maxVector.setY(vector.vector.getY());
-        }
 
         if (pistonX != 0) {
             minVector.setX(Math.min(minVector.getX() - pistonX, pistonX));

@@ -32,6 +32,9 @@ permissions:
   grim.nosetback:
     description: Disable setback
     default: false
+  grim.nomodifypacket:
+    description: Disable modifying packets
+    default: false
   grim.exempt:
     description: Exempt from all checks
     default: false

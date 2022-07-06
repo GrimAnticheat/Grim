@@ -69,7 +69,7 @@ public class TimerCheck extends PacketCheck {
         if (timerBalanceRealTime > System.nanoTime()) {
             if (flag()) {
                 // Cancel the packet
-                if (!player.disableGrim) event.setCancelled(true);
+                if (player.shouldModifyPackets()) event.setCancelled(true);
                 alert("");
             }
 

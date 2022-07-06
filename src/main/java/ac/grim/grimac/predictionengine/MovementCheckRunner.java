@@ -275,7 +275,7 @@ public class MovementCheckRunner extends PositionCheck {
 
             // For whatever reason the vehicle move packet occurs AFTER the player changes slots...
             if (player.compensatedEntities.getSelf().getRiding() instanceof PacketEntityRideable) {
-                EntityControl control = ((EntityControl) player.checkManager.getPostPredictionCheck(EntityControl.class));
+                EntityControl control = player.checkManager.getPostPredictionCheck(EntityControl.class);
 
                 ItemType requiredItem = player.compensatedEntities.getSelf().getRiding().type == EntityTypes.PIG ? ItemTypes.CARROT_ON_A_STICK : ItemTypes.WARPED_FUNGUS_ON_A_STICK;
                 ItemStack mainHand = player.getInventory().getHeldItem();
@@ -341,13 +341,6 @@ public class MovementCheckRunner extends PositionCheck {
             player.speed += player.compensatedEntities.hasSprintingAttributeEnabled ? player.speed * 0.3f : 0;
         }
 
-        player.uncertaintyHandler.wasSteppingOnBouncyBlock = player.uncertaintyHandler.isSteppingOnBouncyBlock;
-        player.uncertaintyHandler.isSteppingOnSlime = false;
-        player.uncertaintyHandler.isSteppingOnBouncyBlock = false;
-        player.uncertaintyHandler.isSteppingOnIce = false;
-        player.uncertaintyHandler.isSteppingOnHoney = false;
-        player.uncertaintyHandler.isSteppingNearBubbleColumn = false;
-        player.uncertaintyHandler.isSteppingNearScaffolding = false;
 
         SimpleCollisionBox steppingOnBB = GetBoundingBox.getCollisionBoxForPlayer(player, player.x, player.y, player.z).expand(0.03).offset(0, -1, 0);
         Collisions.hasMaterial(player, steppingOnBB, (pair) -> {

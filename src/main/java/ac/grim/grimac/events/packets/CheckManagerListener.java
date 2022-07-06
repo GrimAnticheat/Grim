@@ -430,7 +430,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             if (placedWith.getType().getPlacedType() != null || placedWith.getType() == ItemTypes.FIRE_CHARGE)
                 player.checkManager.onBlockPlace(blockPlace);
 
-            if (blockPlace.isCancelled() && !player.disableGrim) { // The player tried placing blocks in air/water
+            if (blockPlace.isCancelled() && player.shouldModifyPackets()) { // The player tried placing blocks in air/water
                 event.setCancelled(true);
 
                 Vector3i facePos = new Vector3i(packet.getBlockPosition().getX() + packet.getFace().getModX(), packet.getBlockPosition().getY() + packet.getFace().getModY(), packet.getBlockPosition().getZ() + packet.getFace().getModZ());
@@ -575,7 +575,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
             // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
             // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) &&
-                    new Vector(player.x, player.y, player.z).equals(new Vector(x, y, z)) && !player.disableGrim) {
+                    new Vector(player.x, player.y, player.z).equals(new Vector(x, y, z)) && player.shouldModifyPackets()) {
                 event.setCancelled(true);
             }
             return;
