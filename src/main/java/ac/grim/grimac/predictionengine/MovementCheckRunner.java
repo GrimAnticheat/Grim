@@ -116,10 +116,10 @@ public class MovementCheckRunner extends PositionCheck {
         // Update knockback and explosions after getting the vehicle
         int kbEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
         player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(kbEntityId, player.lastTransactionReceived.get());
-        player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get());
+        player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(kbEntityId, player.lastTransactionReceived.get(), true);
 
         player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
-        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get());
+        player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), true);
 
         if (update.isTeleport()) {
             handleTeleport(update);
@@ -373,7 +373,6 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.thisTickSlimeBlockUncertainty = player.uncertaintyHandler.nextTickSlimeBlockUncertainty;
         player.uncertaintyHandler.nextTickSlimeBlockUncertainty = 0;
-        player.couldSkipTick = false;
 
         SimpleCollisionBox expandedBB = GetBoundingBox.getBoundingBoxFromPosAndSize(player.lastX, player.lastY, player.lastZ, 0.001f, 0.001f);
 

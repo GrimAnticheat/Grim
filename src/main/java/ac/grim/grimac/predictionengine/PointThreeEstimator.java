@@ -17,6 +17,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.util.Vector;
 
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -148,6 +149,24 @@ public class PointThreeEstimator {
         }
 
         if (pointThreeBox.isIntersected(new SimpleCollisionBox(x, y, z))) {
+            // https://github.com/MWHunter/Grim/issues/613
+            int controllingEntityId = player.compensatedEntities.getSelf().inVehicle() ? player.getRidingVehicleId() : player.entityID;
+            player.firstBreadKB = player.checkManager.getKnockbackHandler().calculateFirstBreadKnockback(controllingEntityId, player.lastTransactionReceived.get());
+            player.likelyKB = player.checkManager.getKnockbackHandler().calculateRequiredKB(controllingEntityId, player.lastTransactionReceived.get(), false);
+
+            player.firstBreadExplosion = player.checkManager.getExplosionHandler().getFirstBreadAddedExplosion(player.lastTransactionReceived.get());
+            player.likelyExplosions = player.checkManager.getExplosionHandler().getPossibleExplosions(player.lastTransactionReceived.get(), false);
+
+            Set<VectorData> knockback = new HashSet<>();
+            if (player.firstBreadKB != null) knockback.add(new VectorData(player.firstBreadKB.vector, VectorData.VectorType.Knockback));
+            if (player.likelyKB != null) knockback.add(new VectorData(player.likelyKB.vector, VectorData.VectorType.Knockback));
+            player.checkManager.getKnockbackHandler().setPointThree(determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), knockback));
+
+            Set<VectorData> explosion = new HashSet<>();
+            if (player.firstBreadExplosion != null) explosion.add(new VectorData(player.firstBreadExplosion.vector, VectorData.VectorType.Explosion));
+            if (player.likelyExplosions != null) explosion.add(new VectorData(player.likelyExplosions.vector, VectorData.VectorType.Explosion));
+            player.checkManager.getExplosionHandler().setPointThree(determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), explosion));
+
             if (!player.couldSkipTick) {
                 player.couldSkipTick = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
             }

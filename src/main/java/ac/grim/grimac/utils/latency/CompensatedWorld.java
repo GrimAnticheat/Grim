@@ -273,6 +273,9 @@ public class CompensatedWorld {
                 chunk.set(null, 0, 0, 0, 0);
             }
 
+            // The method also gets called for the previous state before replacement
+            player.pointThreeEstimator.handleChangeBlock(x, y, z, chunk.get(blockVersion, x & 0xF, offsetY & 0xF, z & 0xF));
+
             chunk.set(null, x & 0xF, offsetY & 0xF, z & 0xF, combinedID);
 
             // Handle stupidity such as fluids changing in idle ticks.
