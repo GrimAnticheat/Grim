@@ -9,7 +9,10 @@ import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.*;
+import ac.grim.grimac.utils.data.HeadRotation;
+import ac.grim.grimac.utils.data.HitData;
+import ac.grim.grimac.utils.data.Pair;
+import ac.grim.grimac.utils.data.TeleportAcceptData;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -43,7 +46,6 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -360,6 +362,11 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
             // Teleports can't be stupidity packets
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = !player.packetStateData.lastPacketWasTeleport && isMojangStupid(player, flying);
+
+            if (!player.packetStateData.lastPacketWasTeleport && flying.hasRotationChanged()) {
+                player.packetStateData.lastClientXRot = flying.getLocation().getYaw();
+                player.packetStateData.lastClientYRot = flying.getLocation().getPitch();
+            }
         }
 
         player.checkManager.onPrePredictionReceivePacket(event);
@@ -394,9 +401,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.checkManager.onRotationUpdate(update);
             }
 
-            if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
-                handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
-            }
+            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
         }
 
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
@@ -642,6 +647,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (hasLook) {
             player.xRot = yaw;
             player.yRot = pitch;
+        } else { // Fix teleports causing player look to desync
+            player.xRot = player.packetStateData.lastClientXRot;
+            player.yRot = player.packetStateData.lastClientYRot;
         }
 
         if (hasPosition) {
@@ -653,7 +661,7 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.filterMojangStupidityOnMojangStupidity = clampVector;
             }
 
-            if (!player.compensatedEntities.getSelf().inVehicle()) {
+            if (!player.compensatedEntities.getSelf().inVehicle() && !player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
                 player.x = clampVector.getX();
                 player.y = clampVector.getY();
                 player.z = clampVector.getZ();
