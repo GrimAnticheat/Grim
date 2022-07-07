@@ -160,15 +160,23 @@ public class PointThreeEstimator {
             Set<VectorData> knockback = new HashSet<>();
             if (player.firstBreadKB != null) knockback.add(new VectorData(player.firstBreadKB.vector, VectorData.VectorType.Knockback));
             if (player.likelyKB != null) knockback.add(new VectorData(player.likelyKB.vector, VectorData.VectorType.Knockback));
-            player.checkManager.getKnockbackHandler().setPointThree(determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), knockback));
+
+            boolean kbPointThree = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), knockback);
+            player.checkManager.getKnockbackHandler().setPointThree(kbPointThree);
 
             Set<VectorData> explosion = new HashSet<>();
             if (player.firstBreadExplosion != null) explosion.add(new VectorData(player.firstBreadExplosion.vector, VectorData.VectorType.Explosion));
             if (player.likelyExplosions != null) explosion.add(new VectorData(player.likelyExplosions.vector, VectorData.VectorType.Explosion));
-            player.checkManager.getExplosionHandler().setPointThree(determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), explosion));
+
+            boolean explosionPointThree = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), explosion);
+            player.checkManager.getExplosionHandler().setPointThree(explosionPointThree);
 
             if (!player.couldSkipTick) {
                 player.couldSkipTick = determineCanSkipTick(BlockProperties.getFrictionInfluencedSpeed((float) (player.speed * (player.isSprinting ? 1.3 : 1)), player), player.getPossibleVelocitiesMinusKnockback());
+            }
+
+            if (kbPointThree || explosionPointThree || player.couldSkipTick) {
+                player.uncertaintyHandler.lastPointThree.reset();
             }
         }
 
