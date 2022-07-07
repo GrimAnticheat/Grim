@@ -21,6 +21,8 @@ public class Check implements AbstractCheck {
     private String configName;
     private String alternativeName;
 
+    private boolean experimental;
+
     public Check(final GrimPlayer player) {
         this.player = player;
 
@@ -35,6 +37,7 @@ public class Check implements AbstractCheck {
             this.decay = checkData.decay();
             this.setbackVL = checkData.setback();
             this.alternativeName = checkData.alternativeName();
+            this.experimental = checkData.experimental();
         }
 
         reload();
@@ -51,7 +54,7 @@ public class Check implements AbstractCheck {
     }
 
     public final boolean flag() {
-        if (player.disableGrim) return false; // Avoid calling event if disabled
+        if (player.disableGrim || (experimental && !GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks())) return false; // Avoid calling event if disabled
 
         FlagEvent event = new FlagEvent(player, this);
         Bukkit.getPluginManager().callEvent(event);

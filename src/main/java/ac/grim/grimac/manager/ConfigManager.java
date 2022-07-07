@@ -29,6 +29,9 @@ public class ConfigManager {
     @Getter
     private int maxPingTransaction = 60; // This is just a really hot variable so cache it.
 
+    @Getter
+    private boolean experimentalChecks = false;
+
     private final List<Pattern> ignoredClientPatterns = new ArrayList<>();
 
     public ConfigManager() {
@@ -81,6 +84,7 @@ public class ConfigManager {
                 throw new RuntimeException("Failed to compile client pattern", e);
             }
         }
+        experimentalChecks = config.getBooleanElse("experimental-checks", false);
     }
 
     public boolean isIgnoredClient(String brand) {
