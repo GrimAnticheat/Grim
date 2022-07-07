@@ -30,6 +30,10 @@ public class AimProcessor extends RotationCheck {
     public double divisorX;
     public double divisorY;
 
+    public double modeX, modeY;
+
+    public double deltaDotsX, deltaDotsY;
+
     @Override
     public void process(final RotationUpdate rotationUpdate) {
         rotationUpdate.setProcessor(this);
@@ -56,15 +60,20 @@ public class AimProcessor extends RotationCheck {
         if (this.xRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
             Pair<Double, Integer> modeX = this.xRotMode.getMode();
             if (modeX.getSecond() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-                this.sensitivityX = convertToSensitivity(modeX.getFirst());
+                this.modeX = modeX.getFirst();
+                this.sensitivityX = convertToSensitivity(this.modeX);
             }
         }
         if (this.yRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
             Pair<Double, Integer> modeY = this.yRotMode.getMode();
             if (modeY.getSecond() > SIGNIFICANT_SAMPLES_THRESHOLD) {
-                this.sensitivityY = convertToSensitivity(modeY.getFirst());
+                this.modeY = modeY.getFirst();
+                this.sensitivityY = convertToSensitivity(this.modeY);
             }
         }
+
+        this.deltaDotsX = deltaXRot / modeX;
+        this.deltaDotsY = deltaYRot / modeY;
     }
 
     public static double convertToSensitivity(double var13) {
