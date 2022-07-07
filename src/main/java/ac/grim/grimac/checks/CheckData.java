@@ -17,4 +17,7 @@ public @interface CheckData {
     double decay() default 0.05;
 
     double setback() default 25;
+
+    boolean experimental() default false;
+
 }

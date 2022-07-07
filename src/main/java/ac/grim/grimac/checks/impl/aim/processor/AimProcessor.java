@@ -30,8 +30,6 @@ public class AimProcessor extends RotationCheck {
     public double divisorX;
     public double divisorY;
 
-    @Getter private boolean recentlyTeleportingOrRiding;
-
     @Override
     public void process(final RotationUpdate rotationUpdate) {
         rotationUpdate.setProcessor(this);
@@ -49,11 +47,11 @@ public class AimProcessor extends RotationCheck {
         float deltaYRot = rotationUpdate.getDeltaYRotABS();
 
         this.divisorY = GrimMath.gcd(deltaYRot, lastYRot);
+
         if (deltaYRot > 0 && deltaYRot < 5 && divisorY > GrimMath.MINIMUM_DIVISOR) {
             this.yRotMode.add(divisorY);
             this.lastYRot = deltaYRot;
         }
-
 
         if (this.xRotMode.size() > SIGNIFICANT_SAMPLES_THRESHOLD) {
             Pair<Double, Integer> modeX = this.xRotMode.getMode();
@@ -67,16 +65,6 @@ public class AimProcessor extends RotationCheck {
                 this.sensitivityY = convertToSensitivity(modeY.getFirst());
             }
         }
-
-        if (player.packetStateData.lastPacketWasTeleport || player.compensatedEntities.getSelf().getRiding() != null) {
-            recentlyTeleportingOrRiding = true;
-            return;
-        }
-
-        if (recentlyTeleportingOrRiding) { // Exempt for a tick on teleport
-            recentlyTeleportingOrRiding = false;
-        }
-
     }
 
     public static double convertToSensitivity(double var13) {
