@@ -100,9 +100,7 @@ public class PunishmentManager {
                                 continue;
                             }
 
-                            if (player.bukkitPlayer != null) {
-                                cmd = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, cmd, false);
-                            }
+                            cmd = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, cmd, false);
 
                             if (testMode && cmd.contains("grim sendalert")) { // secret test mode
                                 cmd = ChatColor.translateAlternateColorCodes('&', cmd);

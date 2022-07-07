@@ -6,7 +6,6 @@ import ac.grim.grimac.utils.anticheat.update.RotationUpdate;
 import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.lists.RunningMode;
 import ac.grim.grimac.utils.math.GrimMath;
-import lombok.Getter;
 
 
 public class AimProcessor extends RotationCheck {
