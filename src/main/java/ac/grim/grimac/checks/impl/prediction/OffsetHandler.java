@@ -31,9 +31,8 @@ public class OffsetHandler extends PostPredictionCheck {
 
         if (completePredictionEvent.isCancelled()) return;
 
-        if (offset >= threshold || offset >= immediateSetbackThreshold) {
-            flag();
-
+        // Short circuit out flag call
+        if ((offset >= threshold || offset >= immediateSetbackThreshold) && flag()) {
             advantageGained += offset;
 
             boolean isSetback = advantageGained >= maxAdvantage || offset >= immediateSetbackThreshold;
