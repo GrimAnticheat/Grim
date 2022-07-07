@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.util.Vector3f;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerExplosion;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -57,6 +58,10 @@ public class ExplosionHandler extends PacketCheck {
                 event.getPostTasks().add(player::sendTransaction);
             }
         }
+    }
+
+    public boolean wouldFlag() {
+        return (player.likelyExplosions != null && player.likelyExplosions.offset > offsetToFlag) || (player.firstBreadExplosion != null && player.firstBreadExplosion.offset > offsetToFlag);
     }
 
     public void addPlayerExplosion(int breadOne, Vector3f explosion) {

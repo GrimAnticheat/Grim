@@ -197,8 +197,8 @@ public class PredictionEngine {
                 bestInput = resultAccuracy;
             }
 
-            // Close enough, there's no reason to continue our predictions.
-            if (bestInput < 1e-5 * 1e-5) {
+            // Close enough, there's no reason to continue our predictions (if either kb or explosion will flag, continue searching)
+            if (bestInput < 1e-5 * 1e-5 && !player.checkManager.getKnockbackHandler().wouldFlag() && !player.checkManager.getExplosionHandler().wouldFlag()) {
                 break;
             }
         }

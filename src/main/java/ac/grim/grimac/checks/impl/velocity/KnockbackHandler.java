@@ -188,6 +188,10 @@ public class KnockbackHandler extends PacketCheck {
         }
     }
 
+    public boolean wouldFlag() {
+        return (player.likelyKB != null && player.likelyKB.offset > offsetToFlag) || (player.firstBreadKB != null && player.firstBreadKB.offset > offsetToFlag);
+    }
+
     public VelocityData calculateFirstBreadKnockback(int entityID, int transaction) {
         tickKnockback(transaction);
         if (firstBreadOnlyKnockback != null && firstBreadOnlyKnockback.entityID == entityID)
