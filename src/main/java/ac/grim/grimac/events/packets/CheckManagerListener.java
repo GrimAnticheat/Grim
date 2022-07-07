@@ -392,15 +392,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            // We always should run this code, no matter how stupid mojang is
-            if (flying.hasRotationChanged()) {
-                float deltaXRot = player.xRot - player.lastXRot;
-                float deltaYRot = player.yRot - player.lastYRot;
-
-                final RotationUpdate update = new RotationUpdate(new HeadRotation(player.lastXRot, player.lastYRot), new HeadRotation(player.xRot, player.yRot), deltaXRot, deltaYRot);
-                player.checkManager.onRotationUpdate(update);
-            }
-
             handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
         }
 
@@ -647,6 +638,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
         if (hasLook) {
             player.xRot = yaw;
             player.yRot = pitch;
+
+            float deltaXRot = player.xRot - player.lastXRot;
+            float deltaYRot = player.yRot - player.lastYRot;
+
+            final RotationUpdate update = new RotationUpdate(new HeadRotation(player.lastXRot, player.lastYRot), new HeadRotation(player.xRot, player.yRot), deltaXRot, deltaYRot);
+            player.checkManager.onRotationUpdate(update);
+
         } else { // Fix teleports causing player look to desync
             player.xRot = player.packetStateData.lastClientXRot;
             player.yRot = player.packetStateData.lastClientYRot;
