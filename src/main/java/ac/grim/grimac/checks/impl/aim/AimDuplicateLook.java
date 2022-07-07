@@ -11,9 +11,21 @@ public class AimDuplicateLook extends RotationCheck {
         super(playerData);
     }
 
+    boolean exempt = false;
+
     @Override
     public void process(final RotationUpdate rotationUpdate) {
-        if (!rotationUpdate.getProcessor().isRecentlyTeleportingOrRiding() && rotationUpdate.getFrom().equals(rotationUpdate.getTo())) {
+        if (player.packetStateData.lastPacketWasTeleport || player.packetStateData.lastPacketWasOnePointSeventeenDuplicate || player.compensatedEntities.getSelf().getRiding() != null) {
+            exempt = true;
+            return;
+        }
+
+        if (exempt) { // Exempt for a tick on teleport
+            exempt = false;
+            return;
+        }
+
+        if (rotationUpdate.getFrom().equals(rotationUpdate.getTo())) {
             flagAndAlert();
         }
     }

@@ -9,10 +9,7 @@ import ac.grim.grimac.utils.blockplace.ConsumesBlockPlace;
 import ac.grim.grimac.utils.collisions.HitboxData;
 import ac.grim.grimac.utils.collisions.datatypes.CollisionBox;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
-import ac.grim.grimac.utils.data.HeadRotation;
-import ac.grim.grimac.utils.data.HitData;
-import ac.grim.grimac.utils.data.Pair;
-import ac.grim.grimac.utils.data.TeleportAcceptData;
+import ac.grim.grimac.utils.data.*;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.latency.CompensatedWorld;
 import ac.grim.grimac.utils.math.GrimMath;
@@ -46,6 +43,7 @@ import com.github.retrooper.packetevents.wrapper.PacketWrapper;
 import com.github.retrooper.packetevents.wrapper.play.client.*;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerBlockChange;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
+import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
@@ -305,6 +303,39 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
+    private boolean isMojangStupid(GrimPlayer player, WrapperPlayClientPlayerFlying flying) {
+        double threshold = player.getMovementThreshold();
+        // Don't check duplicate 1.17 packets (Why would you do this mojang?)
+        // Don't check rotation since it changes between these packets, with the second being irrelevant.
+        //
+        // removed a large rant, but I'm keeping this out of context insult below
+        // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
+        if (!player.packetStateData.lastPacketWasTeleport && flying.hasPositionChanged() && flying.hasRotationChanged() &&
+                // Ground status will never change in this stupidity packet
+                ((flying.isOnGround() == player.packetStateData.packetPlayerOnGround
+                        // Mojang added this stupid mechanic in 1.17
+                        && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
+                        // Due to 0.03, we can't check exact position, only within 0.03
+                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(flying.getLocation().getPosition()) < threshold * threshold))
+                        // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
+                        || player.compensatedEntities.getSelf().inVehicle())) {
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
+
+            if (player.xRot != flying.getLocation().getYaw() || player.yRot != flying.getLocation().getPitch()) {
+                player.lastXRot = player.xRot;
+                player.lastYRot = player.yRot;
+            }
+
+            // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
+            player.xRot = flying.getLocation().getYaw();
+            player.yRot = flying.getLocation().getPitch();
+
+            player.packetStateData.lastClaimedPosition = flying.getLocation().getPosition();
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
         if (event.getConnectionState() != ConnectionState.PLAY) return;
@@ -316,6 +347,19 @@ public class CheckManagerListener extends PacketListenerAbstract {
             WrapperPlayClientVehicleMove move = new WrapperPlayClientVehicleMove(event);
             Vector3d position = move.getPosition();
             player.packetStateData.lastPacketWasTeleport = player.getSetbackTeleportUtil().checkVehicleTeleportQueue(position.getX(), position.getY(), position.getZ());
+        }
+
+        TeleportAcceptData teleportData = null;
+
+        if (WrapperPlayClientPlayerFlying.isFlying(event.getPacketType())) {
+            WrapperPlayClientPlayerFlying flying = new WrapperPlayClientPlayerFlying(event);
+
+            Vector3d position = VectorUtils.clampVector(flying.getLocation().getPosition());
+            // Teleports must be POS LOOK
+            teleportData = flying.hasPositionChanged() && flying.hasRotationChanged() ? player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ()) : new TeleportAcceptData();
+            player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
+            // Teleports can't be stupidity packets
+            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = !player.packetStateData.lastPacketWasTeleport && isMojangStupid(player, flying);
         }
 
         player.checkManager.onPrePredictionReceivePacket(event);
@@ -341,7 +385,18 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 }
             }
 
-            handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), event);
+            // We always should run this code, no matter how stupid mojang is
+            if (flying.hasRotationChanged()) {
+                float deltaXRot = player.xRot - player.lastXRot;
+                float deltaYRot = player.yRot - player.lastYRot;
+
+                final RotationUpdate update = new RotationUpdate(new HeadRotation(player.lastXRot, player.lastYRot), new HeadRotation(player.xRot, player.yRot), deltaXRot, deltaYRot);
+                player.checkManager.onRotationUpdate(update);
+            }
+
+            if (!player.packetStateData.lastPacketWasOnePointSeventeenDuplicate) {
+                handleFlying(player, pos.getX(), pos.getY(), pos.getZ(), pos.getYaw(), pos.getPitch(), flying.hasPositionChanged(), flying.hasRotationChanged(), flying.isOnGround(), teleportData, event);
+            }
         }
 
         if (event.getPacketType() == PacketType.Play.Client.VEHICLE_MOVE) {
@@ -460,6 +515,10 @@ public class CheckManagerListener extends PacketListenerAbstract {
         // Call the packet checks last as they can modify the contents of the packet
         // Such as the NoFall check setting the player to not be on the ground
         player.checkManager.onPacketReceive(event);
+
+        // Finally, remove the packet state variables on this packet
+        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
+        player.packetStateData.lastPacketWasTeleport = false;
     }
 
     private static void placeBucket(GrimPlayer player, InteractionHand hand) {
@@ -529,56 +588,13 @@ public class CheckManagerListener extends PacketListenerAbstract {
         }
     }
 
-    private void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, PacketReceiveEvent event) {
+    private void handleFlying(GrimPlayer player, double x, double y, double z, float yaw, float pitch, boolean hasPosition, boolean hasLook, boolean onGround, TeleportAcceptData teleportData, PacketReceiveEvent event) {
         long now = System.currentTimeMillis();
 
-        player.packetStateData.lastPacketWasTeleport = false;
-        TeleportAcceptData teleportData = null;
-        if (hasPosition) {
-            Vector3d position = VectorUtils.clampVector(new Vector3d(x, y, z));
-            teleportData = player.getSetbackTeleportUtil().checkTeleportQueue(position.getX(), position.getY(), position.getZ());
-            player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
-        } else {
+        if (!hasPosition) {
             // This may need to be secured later, although nothing that is very important relies on this
             // 1.8 ghost clients can't abuse this anyway
             player.uncertaintyHandler.lastPointThree.reset();
-        }
-
-        double threshold = player.getMovementThreshold();
-        // Don't check duplicate 1.17 packets (Why would you do this mojang?)
-        // Don't check rotation since it changes between these packets, with the second being irrelevant.
-        //
-        // removed a large rant, but I'm keeping this out of context insult below
-        // EVEN A BUNCH OF MONKEYS ON A TYPEWRITER COULDNT WRITE WORSE NETCODE THAN MOJANG
-        if (!player.packetStateData.lastPacketWasTeleport && hasPosition && hasLook &&
-                // Ground status will never change in this stupidity packet
-                ((onGround == player.packetStateData.packetPlayerOnGround
-                        // Mojang added this stupid mechanic in 1.17
-                        && (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_17) &&
-                        // Due to 0.03, we can't check exact position, only within 0.03
-                        player.filterMojangStupidityOnMojangStupidity.distanceSquared(new Vector3d(x, y, z)) < threshold * threshold))
-                        // If the player was in a vehicle, has position and look, and wasn't a teleport, then it was this stupid packet
-                        || player.compensatedEntities.getSelf().inVehicle())) {
-            player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = true;
-
-            if (player.xRot != yaw || player.yRot != pitch) {
-                player.lastXRot = player.xRot;
-                player.lastYRot = player.yRot;
-            }
-
-            // Take the pitch and yaw, just in case we were wrong about this being a stupidity packet
-            player.xRot = yaw;
-            player.yRot = pitch;
-
-            player.packetStateData.lastClaimedPosition = new Vector3d(x, y, z);
-
-            // Don't let players on 1.17+ clients on 1.8- servers FastHeal by right-clicking
-            // the ground with a bucket... ViaVersion marked this as a WONTFIX, so I'll include the fix.
-            if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_8_8) &&
-                    new Vector(player.x, player.y, player.z).equals(new Vector(x, y, z)) && player.shouldModifyPackets()) {
-                event.setCancelled(true);
-            }
-            return;
         }
 
         // We can't set the look if this is actually the stupidity packet
@@ -633,7 +649,9 @@ public class CheckManagerListener extends PacketListenerAbstract {
             Vector3d clampVector = VectorUtils.clampVector(position);
             final PositionUpdate update = new PositionUpdate(new Vector3d(player.x, player.y, player.z), position, onGround, teleportData.getSetback(), teleportData.getTeleportData(), teleportData.isTeleport());
 
-            player.filterMojangStupidityOnMojangStupidity = clampVector;
+            if (!player.packetStateData.lastPacketWasTeleport) { // Mojang fucked up 0.03 and doesn't include teleports with them
+                player.filterMojangStupidityOnMojangStupidity = clampVector;
+            }
 
             if (!player.compensatedEntities.getSelf().inVehicle()) {
                 player.x = clampVector.getX();
@@ -645,16 +663,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
                 player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
             }
         }
-
-        if (hasLook) {
-            float deltaXRot = player.xRot - player.lastXRot;
-            float deltaYRot = player.yRot - player.lastYRot;
-
-            final RotationUpdate update = new RotationUpdate(new HeadRotation(player.lastXRot, player.lastYRot), new HeadRotation(player.xRot, player.yRot), deltaXRot, deltaYRot);
-            player.checkManager.onRotationUpdate(update);
-        }
-
-        player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = false;
 
         player.packetStateData.didLastLastMovementIncludePosition = player.packetStateData.didLastMovementIncludePosition;
         player.packetStateData.didLastMovementIncludePosition = hasPosition;
