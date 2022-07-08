@@ -534,6 +534,7 @@ public class PredictionEngine {
             minVector.setY(minVector.getY() - 0.08);
         }
 
+
         // Hidden slime block bounces by missing idle tick and 0.03
         if (player.actualMovement.getY() >= 0 && player.uncertaintyHandler.influencedByBouncyBlock()) {
             if (player.uncertaintyHandler.thisTickSlimeBlockUncertainty != 0 && !vector.isJump()) { // jumping overrides slime block
@@ -550,6 +551,19 @@ public class PredictionEngine {
 
         SimpleCollisionBox box = new SimpleCollisionBox(minVector, maxVector);
         box.sort();
+
+        // https://github.com/MWHunter/Grim/issues/398
+        // Thank mojang for removing the idle packet resulting in this hacky mess
+
+        double levitation = player.pointThreeEstimator.positiveLevitation(maxVector.getY());
+        box.combineToMinimum(box.minX, levitation, box.minZ);
+        levitation = player.pointThreeEstimator.positiveLevitation(minVector.getY());
+        box.combineToMinimum(box.minX, levitation, box.minZ);
+        levitation = player.pointThreeEstimator.negativeLevitation(maxVector.getY());
+        box.combineToMinimum(box.minX, levitation, box.minZ);
+        levitation = player.pointThreeEstimator.negativeLevitation(minVector.getY());
+        box.combineToMinimum(box.minX, levitation, box.minZ);
+
 
         SneakingEstimator sneaking = player.checkManager.getPostPredictionCheck(SneakingEstimator.class);
         box.minX += sneaking.getSneakingPotentialHiddenVelocity().minX;

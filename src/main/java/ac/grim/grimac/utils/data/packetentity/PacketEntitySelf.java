@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.data.packetentity;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.collisions.datatypes.SimpleCollisionBox;
 import com.github.retrooper.packetevents.protocol.entity.type.EntityTypes;
+import com.github.retrooper.packetevents.protocol.potion.PotionType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerEntityProperties;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,6 +25,18 @@ public class PacketEntitySelf extends PacketEntity {
 
     public boolean inVehicle() {
         return getRiding() != null;
+    }
+
+    @Override
+    public void addPotionEffect(PotionType effect, int amplifier) {
+        player.pointThreeEstimator.updatePlayerPotions(effect, amplifier);
+        super.addPotionEffect(effect, amplifier);
+    }
+
+    @Override
+    public void removePotionEffect(PotionType effect) {
+        player.pointThreeEstimator.updatePlayerPotions(effect, null);
+        super.removePotionEffect(effect);
     }
 
     @Override

@@ -102,9 +102,8 @@ public class PointThreeEstimator {
     private boolean isNearVerticalFlowingLiquid = false; // We can't calculate exact values, once again a toggle
     private boolean isNearBubbleColumn = false; // We can't calculate exact values once again
 
-    private boolean hasPositiveLevitation = false; // Positive potion effects [0, 128]
-    private boolean hasNegativeLevitation = false; // Negative potion effects [-127, -1]
-    private boolean didLevitationChange = false; // We can't predict with an unknown amount of ticks between a levitation change
+    private int maxPositiveLevitation = Integer.MIN_VALUE; // Positive potion effects [0, 128]
+    private int minNegativeLevitation = Integer.MAX_VALUE; // Negative potion effects [-127, -1]r
 
     @Setter
     @Getter
@@ -190,7 +189,17 @@ public class PointThreeEstimator {
      * and to just give them lenience
      */
     public boolean canPredictNextVerticalMovement() {
-        return !gravityChanged && !didLevitationChange;
+        return !gravityChanged && maxPositiveLevitation == Integer.MIN_VALUE && minNegativeLevitation == Integer.MAX_VALUE;
+    }
+
+    public double positiveLevitation(double y) {
+        if (maxPositiveLevitation == Integer.MIN_VALUE) return y;
+        return (0.05 * (maxPositiveLevitation + 1) - y * 0.2);
+    }
+
+    public double negativeLevitation(double y) {
+        if (minNegativeLevitation == Integer.MAX_VALUE) return y;
+        return (0.05 * (minNegativeLevitation + 1) - y * 0.2);
     }
 
     public boolean controlsVerticalMovement() {
@@ -199,15 +208,8 @@ public class PointThreeEstimator {
 
     public void updatePlayerPotions(PotionType potion, Integer level) {
         if (potion == PotionTypes.LEVITATION) {
-            boolean oldPositiveLevitation = hasPositiveLevitation;
-            boolean oldNegativeLevitation = hasNegativeLevitation;
-
-            hasPositiveLevitation = hasPositiveLevitation || (level != null && level >= 0);
-            hasNegativeLevitation = hasNegativeLevitation || (level != null && level < 0);
-
-            if (oldPositiveLevitation != hasPositiveLevitation || oldNegativeLevitation != hasNegativeLevitation) {
-                didLevitationChange = true;
-            }
+            maxPositiveLevitation = Math.max(level == null ? Integer.MIN_VALUE : level, maxPositiveLevitation);
+            minNegativeLevitation = Math.min(level == null ? Integer.MAX_VALUE : level, minNegativeLevitation);
         }
     }
 
@@ -237,15 +239,8 @@ public class PointThreeEstimator {
 
         checkNearbyBlocks(pointThreeBox);
 
-        Integer levitationAmplifier = player.compensatedEntities.getLevitationAmplifier();
-
-        boolean oldPositiveLevitation = hasPositiveLevitation;
-        boolean oldNegativeLevitation = hasNegativeLevitation;
-
-        hasPositiveLevitation = levitationAmplifier != null && levitationAmplifier >= 0;
-        hasNegativeLevitation = levitationAmplifier != null && levitationAmplifier < 0;
-
-        didLevitationChange = oldPositiveLevitation != hasPositiveLevitation || oldNegativeLevitation != hasNegativeLevitation;
+        maxPositiveLevitation = Integer.MIN_VALUE;
+        minNegativeLevitation = Integer.MAX_VALUE;
 
         isGliding = player.isGliding;
         gravityChanged = false;
