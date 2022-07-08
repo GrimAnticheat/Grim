@@ -389,7 +389,7 @@ public class PointThreeEstimator {
         return isNearBubbleColumn && vectorData.isZeroPointZeroThree() ? 0.35 : 0;
     }
 
-    public double getAdditionalVerticalUncertainty(VectorData vector) {
+    public double getAdditionalVerticalUncertainty(VectorData vector, double minY, double maxY) {
         double fluidAddition = vector.isZeroPointZeroThree() ? 0.014 : 0;
 
         if (player.compensatedEntities.getSelf().inVehicle()) return 0; // No 0.03
@@ -407,7 +407,7 @@ public class PointThreeEstimator {
         }
 
         // The player couldn't have skipped their Y tick here... no point to simulate (and stop a bypass)
-        if (!vector.isZeroPointZeroThree()) return 0;
+        if (!vector.isZeroPointZeroThree() && !(player.couldSkipTick && vector.isKnockback())) return 0;
 
         double minMovement = player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9) ? 0.003 : 0.005;
 
@@ -430,7 +430,7 @@ public class PointThreeEstimator {
 
             // We aren't making progress, avoid infinite loop (This can be due to the player not having gravity)
             if (yVel == 0) break;
-        } while (Math.abs(maxYTraveled + vector.vector.getY()) < player.getMovementThreshold());
+        } while (Math.abs(maxYTraveled + vector.vector.getY()) < player.getMovementThreshold() + (maxY - minY)); // Account for uncertainty, don't stop until we simulate past uncertainty point
 
         if (maxYTraveled != 0) {
             wasAlwaysCertain = false;

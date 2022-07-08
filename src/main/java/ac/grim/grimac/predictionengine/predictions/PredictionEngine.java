@@ -512,7 +512,7 @@ public class PredictionEngine {
         }
 
         // Handles stuff like missing idle packet causing gravity to be missed (plus 0.03 of course)
-        double gravityOffset = player.pointThreeEstimator.getAdditionalVerticalUncertainty(vector);
+        double gravityOffset = player.pointThreeEstimator.getAdditionalVerticalUncertainty(vector, min.getY(), max.getY());
         if (gravityOffset > 0) {
             maxVector.setY(maxVector.getY() + gravityOffset);
         } else {
