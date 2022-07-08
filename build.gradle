@@ -66,6 +66,7 @@ shadowJar {
     relocate 'club.minnced', 'ac.grim.grimac.shaded.discord-webhooks'
     relocate 'github.scarsz.configuralize', 'ac.grim.grimac.shaded.configuralize'
     relocate 'com.github.puregero', 'ac.grim.grimac.shaded.com.github.puregero'
+    archiveFileName = "${project.name}-${project.version}.jar"
 }
 
 tasks.withType(JavaCompile) {
