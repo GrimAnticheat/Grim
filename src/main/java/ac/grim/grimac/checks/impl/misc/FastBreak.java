@@ -120,8 +120,9 @@ public class FastBreak extends PacketCheck {
                         }
                     });
 
-                    event.setCancelled(true);
-                    flagAndAlert("Diff=" + diff + ",Balance=" + blockBreakBalance);
+                    if (flagAndAlert("Diff=" + diff + ",Balance=" + blockBreakBalance)) {
+                        event.setCancelled(true);
+                    }
                 }
 
                 lastFinishBreak = System.currentTimeMillis();

@@ -35,11 +35,12 @@ public class FarPlace extends BlockPlaceCheck {
         double maxReach = player.gamemode == GameMode.CREATIVE ? 6.0 : 4.5D;
         double threshold = player.getMovementThreshold();
         maxReach += Math.hypot(threshold, threshold);
-        
+
 
         if (min > maxReach * maxReach) { // fail
-            flagAndAlert();
-            place.resync();
+            if (flagAndAlert()) {
+                place.resync();
+            }
         }
     }
 }

@@ -43,18 +43,21 @@ public class Check implements AbstractCheck {
         reload();
     }
 
-    public void flagAndAlert(String verbose) {
+    public final boolean flagAndAlert(String verbose) {
         if (flag()) {
             alert(verbose);
+            return true;
         }
+        return false;
     }
 
-    public void flagAndAlert() {
-        flagAndAlert("");
+    public final boolean flagAndAlert() {
+        return flagAndAlert("");
     }
 
     public final boolean flag() {
-        if (player.disableGrim || (experimental && !GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks())) return false; // Avoid calling event if disabled
+        if (player.disableGrim || (experimental && !GrimAPI.INSTANCE.getConfigManager().isExperimentalChecks()))
+            return false; // Avoid calling event if disabled
 
         FlagEvent event = new FlagEvent(player, this);
         Bukkit.getPluginManager().callEvent(event);
@@ -67,10 +70,12 @@ public class Check implements AbstractCheck {
         return true;
     }
 
-    public final void flagWithSetback() {
+    public final boolean flagWithSetback() {
         if (flag()) {
             setbackIfAboveSetbackVL();
+            return true;
         }
+        return false;
     }
 
     public final void reward() {

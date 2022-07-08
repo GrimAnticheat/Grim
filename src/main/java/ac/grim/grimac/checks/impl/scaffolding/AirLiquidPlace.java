@@ -20,7 +20,9 @@ public class AirLiquidPlace extends BlockPlaceCheck {
         StateType placeAgainst = player.compensatedWorld.getStateTypeAt(blockPos.getX(), blockPos.getY(), blockPos.getZ());
 
         if (placeAgainst.isAir() || Materials.isNoPlaceLiquid(placeAgainst)) { // fail
-            place.resync();
+            if (flag()) {
+                place.resync();
+            }
         }
     }
 }
