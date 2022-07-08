@@ -26,7 +26,7 @@ public class OffsetHandler extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         double offset = predictionComplete.getOffset();
 
-        CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(getPlayer(), predictionComplete.getOffset());
+        CompletePredictionEvent completePredictionEvent = new CompletePredictionEvent(getPlayer(), this, predictionComplete.getOffset());
         Bukkit.getPluginManager().callEvent(completePredictionEvent);
 
         if (completePredictionEvent.isCancelled()) return;
