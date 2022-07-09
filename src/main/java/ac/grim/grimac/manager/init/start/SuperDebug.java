@@ -40,6 +40,8 @@ public final class SuperDebug extends PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        if (client == null) return;
+
         predicted.add(player.predictedVelocity);
         actually.add(player.actualMovement);
         positions.add(new Vector(player.x, player.y, player.z));
