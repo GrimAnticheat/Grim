@@ -176,7 +176,7 @@ public final class SuperDebug extends PostPredictionCheck {
             sb.append("\n\n\n");
         }
 
-        flags[predictionComplete.getIdentifier() - 1] = sb;
+        flags[predictionComplete.getIdentifier()] = sb;
         continuedDebug.put(sb, 40);
     }
 
