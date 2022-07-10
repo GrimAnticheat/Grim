@@ -59,7 +59,7 @@ public final class SuperDebug extends PostPredictionCheck {
         sb.append(player.user.getName());
         sb.append("\nClient Version: ");
         sb.append(player.getClientVersion().getReleaseName());
-        sb.append("\nClient Brand:");
+        sb.append("\nClient Brand: ");
         sb.append(player.getBrand());
         sb.append("\nServer Version: ");
         sb.append(PacketEvents.getAPI().getServerManager().getVersion().getReleaseName());

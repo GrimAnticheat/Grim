@@ -24,7 +24,7 @@ public class GrimLog extends BaseCommand {
 
         if (builder == null) {
             String failure = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-not-found", "%prefix% &cUnable to find that log");
-            sender.sendMessage(failure);
+            sender.sendMessage(MessageUtil.format(failure));
         } else {
             String uploading = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log-start", "%prefix% &fUploading log... please wait");
             String success = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("upload-log", "%prefix% &fUploaded debug to: %url%");
