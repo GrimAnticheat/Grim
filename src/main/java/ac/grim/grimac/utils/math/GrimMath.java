@@ -8,6 +8,7 @@ import java.util.List;
 public class GrimMath {
     public static final double MINIMUM_DIVISOR = ((Math.pow(0.2f, 3) * 8) * 0.15) - 1e-3; // 1e-3 for float imprecision
 
+
     public static double gcd(double a, double b) {
         if (a == 0) return 0;
 
@@ -18,7 +19,7 @@ public class GrimMath {
             b = temp;
         }
 
-        while (b > MINIMUM_DIVISOR) { // Minimum minecraft sensitivity
+        while (a > MINIMUM_DIVISOR) { // Minimum minecraft sensitivity
             double temp = a - (Math.floor(a / b) * b);
             a = b;
             b = temp;
