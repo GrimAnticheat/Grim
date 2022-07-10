@@ -33,7 +33,7 @@ public final class SuperDebug extends PostPredictionCheck {
 
     public static StringBuilder getFlag(int identifier) {
         identifier--;
-        if (identifier >= flags.length) return null;
+        if (identifier >= flags.length || identifier < 0) return null;
         return flags[identifier];
     }
 
