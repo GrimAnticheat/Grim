@@ -48,11 +48,16 @@ public class OffsetHandler extends PostPredictionCheck {
 
             violations++;
 
-            int flagId = (flags.getAndIncrement() % 999) + 1; // 1-999 as possible values
-            predictionComplete.setIdentifier(flagId);
+            synchronized (flags) {
+                int flagId = (flags.get() % 999) + 1; // 1-999 as possible values
 
-            String humanFormatted = String.format("%03d", flagId);
-            alert("/gl " + humanFormatted);
+                String humanFormatted = String.format("%03d", flagId);
+                if(alert("/gl " + humanFormatted)) {
+                    flags.incrementAndGet(); // This debug was sent somewhere
+                    predictionComplete.setIdentifier(flagId);
+                }
+            }
+
 
             advantageGained = Math.min(advantageGained, maxCeiling);
         } else {

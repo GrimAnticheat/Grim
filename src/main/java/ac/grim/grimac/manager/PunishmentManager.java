@@ -85,9 +85,10 @@ public class PunishmentManager {
         return original;
     }
 
-    public void handleAlert(GrimPlayer player, String verbose, Check check) {
+    public boolean handleAlert(GrimPlayer player, String verbose, Check check) {
         String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-format", "%prefix% &f%player% &bfailed &f%check_name% &f(x&c%vl%&f) &7%verbose%");
         boolean testMode = GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("test-mode", false);
+        boolean sentDebug = false;
 
         // Check commands
         for (PunishGroup group : groups) {
@@ -98,6 +99,7 @@ public class PunishmentManager {
 
                     // Verbose that prints all flags
                     if (GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose().size() > 0 && command.command.equals("[alert]")) {
+                        sentDebug = true;
                         for (Player bukkitPlayer : GrimAPI.INSTANCE.getAlertManager().getEnabledVerbose()) {
                             bukkitPlayer.sendMessage(cmd);
                         }
@@ -119,9 +121,12 @@ public class PunishmentManager {
                                 continue;
                             }
 
-                            if (testMode && cmd.contains("sendalert")) { // secret test mode
-                                player.user.sendMessage(cmd);
-                                continue;
+                            if (cmd.contains("sendalert")) {
+                                sentDebug = true;
+                                if (testMode) { // secret test mode
+                                    player.user.sendMessage(cmd);
+                                    continue;
+                                }
                             }
 
                             Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd));
@@ -132,6 +137,7 @@ public class PunishmentManager {
                 }
             }
         }
+        return sentDebug;
     }
 
     public void handleViolation(Check check) {

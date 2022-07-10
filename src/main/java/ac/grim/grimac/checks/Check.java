@@ -89,8 +89,8 @@ public class Check implements AbstractCheck {
         if (setbackVL == -1) setbackVL = Double.MAX_VALUE;
     }
 
-    public void alert(String verbose) {
-        player.punishmentManager.handleAlert(player, verbose, this);
+    public boolean alert(String verbose) {
+        return player.punishmentManager.handleAlert(player, verbose, this);
     }
 
     public DynamicConfig getConfig() {
