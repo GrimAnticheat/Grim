@@ -12,8 +12,11 @@ import java.util.concurrent.CopyOnWriteArraySet;
 public class AlertManager {
     @Getter
     private final Set<Player> enabledAlerts = new CopyOnWriteArraySet<>(new HashSet<>());
+    @Getter
+    private final Set<Player> enabledVerbose = new CopyOnWriteArraySet<>(new HashSet<>());
 
-    public void toggle(Player player) {
+
+    public void toggleAlerts(Player player) {
         if (!enabledAlerts.remove(player)) {
             String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("alerts-enabled", "%prefix% &fAlerts enabled");
             alertString = MessageUtil.format(alertString);
@@ -27,7 +30,22 @@ public class AlertManager {
         }
     }
 
+    public void toggleVerbose(Player player) {
+        if (!enabledVerbose.remove(player)) {
+            String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-enabled", "%prefix% &fVerbose enabled");
+            alertString = MessageUtil.format(alertString);
+            player.sendMessage(alertString);
+
+            enabledVerbose.add(player);
+        } else {
+            String alertString = GrimAPI.INSTANCE.getConfigManager().getConfig().getStringElse("verbose-disabled", "%prefix% &fVerbose disabled");
+            alertString = MessageUtil.format(alertString);
+            player.sendMessage(alertString);
+        }
+    }
+
     public void handlePlayerQuit(Player player) {
         enabledAlerts.remove(player);
+        enabledVerbose.remove(player);
     }
 }

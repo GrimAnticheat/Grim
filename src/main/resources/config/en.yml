@@ -10,6 +10,9 @@ alerts:
   # In addition to broadcasting alerts to players, should they also be sent to the console?
   print-to-console: true
 
+verbose:
+  print-to-console: false
+
 client-brand:
   # This means it won't broadcast their brand to operators if the brand matches the following regexes
   ignored-clients:
@@ -36,7 +39,7 @@ Simulation:
   # Measured in blocks from the possible movement
   # We account for Optifine by switching trig tables but dropping this to 0.001 will reduce FastMath
   # flagging the anticheat if this compensation doesn't work...
-  threshold: 0.0001
+  threshold: 0.001
   # How large of a violation in a tick before the player gets immediately setback?
   # -1 to disable
   immediate-setback-threshold: 0.1
@@ -115,4 +118,4 @@ debug-pipeline-on-join: false
 # Enables experimental checks
 experimental-checks: false
 
-config-version: 5
+config-version: 6

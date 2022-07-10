@@ -9,6 +9,9 @@ alerts:
   # 是否在控制台显示警告？
   print-to-console: true
 
+verbose:
+  print-to-console: false
+
 client-brand:
   # 这意味着如果客户端型号匹配以下正则表达式，它将不会将其客户端版本显示在聊天栏中
   ignored-clients:
@@ -132,4 +135,7 @@ Reach:
 # 启用在加入时注入 netty 的日志插件以调试兼容性问题
 debug-pipeline-on-join: false
 
-config-version: 5
+# Enables experimental checks
+experimental-checks: false
+
+config-version: 6

@@ -10,6 +10,10 @@ player-not-this-server: "%prefix% &cPlayer is not on this server!"
 spectate-return: "\n%prefix% &fClick here to return to previous location\n"
 cannot-spectate-return: "%prefix% &cYou can only do this after spectating a player"
 cannot-run-on-self: "%prefix% &cYou cannot use this command on yourself!"
+upload-log: "%prefix% &fUploaded debug to: %url%"
+upload-log-start: "%prefix% &fUploading log... please wait"
+upload-log-not-found: "%prefix% &cUnable to find that log"
+upload-log-upload-failure: "%prefix% &cSomething went wrong while uploading this log, see console for more info"
 
 # Valid placeholders:
 # %prefix%
@@ -38,4 +42,6 @@ help:
   - "/grim perf &f- &7Developer ms/prediction"
   - "/grim reload &f- &7Reloads the config"
   - "/grim spectate <player> &f- &7Spectate a player"
+  - "/grim verbose &f- &Show every flag to you, without buffer"
+  - "/grim log [1-999] &f- &7Debug logs for prediction flag"
   - "&7======================"

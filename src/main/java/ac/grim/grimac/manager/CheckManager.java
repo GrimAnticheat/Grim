@@ -109,6 +109,7 @@ public class CheckManager {
                 .put(Phase.class, new Phase(player))
                 .put(NoFallB.class, new NoFallB(player))
                 .put(OffsetHandler.class, new OffsetHandler(player))
+                .put(SuperDebug.class, new SuperDebug(player))
                 .put(DebugHandler.class, new DebugHandler(player))
                 .put(EntityControl.class, new EntityControl(player))
                 .put(NoSlow.class, new NoSlow(player))
@@ -116,7 +117,6 @@ public class CheckManager {
                 .put(CompensatedFireworks.class, player.compensatedFireworks)
                 .put(SneakingEstimator.class, new SneakingEstimator(player))
                 .put(LastInstanceManager.class, player.lastInstanceManager)
-                .put(SuperDebug.class, new SuperDebug(player))
                 .build();
 
         blockPlaceCheck = new ImmutableClassToInstanceMap.Builder<BlockPlaceCheck>()

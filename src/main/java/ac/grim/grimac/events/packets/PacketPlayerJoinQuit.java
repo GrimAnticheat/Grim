@@ -24,7 +24,7 @@ public class PacketPlayerJoinQuit extends PacketListenerAbstract {
             LogUtil.info("Pipeline: " + ChannelHelper.pipelineHandlerNamesAsString(event.getUser().getChannel()));
         }
         if (player.hasPermission("grim.alerts") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("alerts.enable-on-join", true)) {
-            GrimAPI.INSTANCE.getAlertManager().toggle(player);
+            GrimAPI.INSTANCE.getAlertManager().toggleAlerts(player);
         }
         if (player.hasPermission("grim.spectate") && GrimAPI.INSTANCE.getConfigManager().getConfig().getBooleanElse("spectators.hide-regardless", false)) {
             GrimAPI.INSTANCE.getSpectateManager().onLogin(player);

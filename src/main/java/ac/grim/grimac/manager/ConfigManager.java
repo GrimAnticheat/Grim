@@ -109,7 +109,7 @@ public class ConfigManager {
 
                     configVersion = Integer.parseInt(configStringVersion);
                     // TODO: Do we have to hardcode this?
-                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 5");
+                    configString = configString.replaceAll("config-version: " + configStringVersion, "config-version: 6");
                     Files.write(config.toPath(), configString.getBytes());
 
                     upgradeModernConfig(config, configString, configVersion);
@@ -138,6 +138,9 @@ public class ConfigManager {
         }
         if (configVersion < 5) {
             fixBadPacketsAndAdjustPingConfig(config, configString);
+        }
+        if (configVersion < 6) {
+            addSuperDebug(config, configString);
         }
     }
 
@@ -193,7 +196,8 @@ public class ConfigManager {
         try {
             configString = configString.replaceAll("max-ping: \\d+", "max-transaction-time: 60");
             Files.write(config.toPath(), configString.getBytes());
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+        }
 
         File punishConfig = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "punishments.yml");
         String punishConfigString;
@@ -240,6 +244,29 @@ public class ConfigManager {
                         "  - \"**Ping**: %ping%\"\n" +
                         "  - \"**TPS**: %tps%\"\n";
                 Files.write(discordFile.toPath(), discordString.getBytes());
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private void addSuperDebug(File config, String configString) throws IOException {
+        if (!configString.contains("experimental-checks")) {
+            configString += "\n\n# Enables experimental checks\n" +
+                    "experimental-checks: false\n\n";
+        }
+        configString += "verbose:\n" +
+                "  print-to-console: false\n";
+        Files.write(config.toPath(), configString.getBytes());
+
+        File messageFile = new File(GrimAPI.INSTANCE.getPlugin().getDataFolder(), "messages.yml");
+        if (messageFile.exists()) {
+            try {
+                String messagesString = new String(Files.readAllBytes(messageFile.toPath()));
+                messagesString += "upload-log: \"%prefix% &fUploaded debug to: %url%\"\n" +
+                        "upload-log-start: \"%prefix% &fUploading log... please wait\"\n" +
+                        "upload-log-not-found: \"%prefix% &cUnable to find that log\"\n" +
+                        "upload-log-upload-failure: \"%prefix% &cSomething went wrong while uploading this log, see console for more info\"\n";
+                Files.write(messageFile.toPath(), messagesString.getBytes());
             } catch (IOException ignored) {
             }
         }

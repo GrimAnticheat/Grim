@@ -1,13 +1,17 @@
 package ac.grim.grimac.utils.anticheat.update;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
-@AllArgsConstructor
 @Getter
 @Setter
 public class PredictionComplete {
     private double offset;
     private PositionUpdate data;
+    private int identifier;
+
+    public PredictionComplete(double offset, PositionUpdate update) {
+        this.offset = offset;
+        this.data = update;
+    }
 }

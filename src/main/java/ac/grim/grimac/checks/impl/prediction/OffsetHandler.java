@@ -7,6 +7,8 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import org.bukkit.Bukkit;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @CheckData(name = "Simulation", configName = "Simulation", decay = 0.02)
 public class OffsetHandler extends PostPredictionCheck {
     // Config
@@ -18,6 +20,8 @@ public class OffsetHandler extends PostPredictionCheck {
 
     // Current advantage gained
     double advantageGained = 0;
+
+    private static final AtomicInteger flags = new AtomicInteger(0);
 
     public OffsetHandler(GrimPlayer player) {
         super(player);
@@ -43,7 +47,12 @@ public class OffsetHandler extends PostPredictionCheck {
             }
 
             violations++;
-            alert("o: " + formatOffset(offset));
+
+            int flagId = (flags.getAndIncrement() % 999) + 1; // 1-999 as possible values
+            predictionComplete.setIdentifier(flagId);
+
+            String humanFormatted = String.format("%03d", flagId);
+            alert("/gl " + humanFormatted);
 
             advantageGained = Math.min(advantageGained, maxCeiling);
         } else {
