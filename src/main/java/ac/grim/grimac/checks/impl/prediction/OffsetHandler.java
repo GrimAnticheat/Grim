@@ -51,8 +51,19 @@ public class OffsetHandler extends PostPredictionCheck {
             synchronized (flags) {
                 int flagId = (flags.get() % 999) + 1; // 1-999 as possible values
 
-                String humanFormatted = String.format("%03d", flagId);
-                if(alert("/gl " + humanFormatted)) {
+                String humanFormattedOffset;
+                if (offset < 0.001) { // 1.129E-3
+                    humanFormattedOffset = String.format("%.4E", offset);
+                    // Squeeze out an extra digit here by E-03 to E-3
+                    humanFormattedOffset = humanFormattedOffset.replace("E-0", "E-");
+                } else {
+                    // 0.00112945678 -> .001129
+                    humanFormattedOffset = String.format("%6f", offset);
+                    // I like the leading zero, but removing it lets us add another digit to the end
+                    humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
+                }
+
+                if(alert("/gl " + flagId + " o: " + humanFormattedOffset)) {
                     flags.incrementAndGet(); // This debug was sent somewhere
                     predictionComplete.setIdentifier(flagId);
                 }
