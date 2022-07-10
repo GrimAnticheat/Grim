@@ -1,10 +1,10 @@
 # GrimAC
 
-**Stable enough for a small server. Please report any issues to the Github issue tracker. Currently supporting 1.14-1.19 with less tested 1.8-1.13 support.**
+**Stable enough for a small server. Please report any issues to the Github issue tracker. Currently supporting 1.8-1.19**
 
 **Test server with bufferless alerts: test.grim.ac**
 
-GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.14-1.19 with half working 1.8-1.13 support. It is free while in beta. It will be sold for $20 on SpigotMC and other various websites, without obfuscation, DRM, subscriptions, or other nonsense that plague other anticheats. Geyser players are fully exempt.
+GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.8-1.19. It is free while in beta. It will eventually become paid and/or will include offer additionally subscription based paid checks. Geyser players are fully exempt.
 
 **Discord:** https://discord.gg/FNRrcGAybJ
 
