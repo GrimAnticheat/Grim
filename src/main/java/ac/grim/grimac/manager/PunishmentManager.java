@@ -115,21 +115,23 @@ public class PunishmentManager {
                             Bukkit.getPluginManager().callEvent(executeEvent);
                             if (executeEvent.isCancelled()) continue;
 
-                            if (cmd.equals("[webhook]")) {
+                            if (command.command.equals("[webhook]")) {
                                 String vl = group.violations.values().stream().filter((e) -> e == check).count() + "";
                                 GrimAPI.INSTANCE.getDiscordManager().sendAlert(player, verbose, check.getCheckName(), vl);
                                 continue;
                             }
 
-                            if (cmd.contains("sendalert")) {
+                            if (command.command.equals("[alert]")) {
                                 sentDebug = true;
                                 if (testMode) { // secret test mode
                                     player.user.sendMessage(cmd);
                                     continue;
                                 }
+                                cmd = "grim sendalert " + cmd; // Not test mode, we can add the command prefix
                             }
 
-                            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), cmd));
+                            String finalCmd = cmd;
+                            Bukkit.getScheduler().runTask(GrimAPI.INSTANCE.getPlugin(), () -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), finalCmd));
                         }
 
                         command.setExecuteCount(command.getExecuteCount() + 1);
