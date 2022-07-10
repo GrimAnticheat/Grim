@@ -10,6 +10,7 @@ import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.math.GrimMath;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
+import lombok.AllArgsConstructor;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -21,7 +22,7 @@ public final class SuperDebug extends PostPredictionCheck {
 
     List<VectorData> predicted = new EvictingQueue<>(60);
     List<Vector> actually = new EvictingQueue<>(60);
-    List<Vector> positions = new EvictingQueue<>(60);
+    List<Location> locations = new EvictingQueue<>(60);
     List<Vector> startTickClientVel = new EvictingQueue<>(60);
     List<Vector> baseTickAddition = new EvictingQueue<>(60);
     List<Vector> baseTickWater = new EvictingQueue<>(60);
@@ -38,16 +39,18 @@ public final class SuperDebug extends PostPredictionCheck {
 
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
+        Location location = new Location(player.x, player.y, player.z, player.xRot, player.yRot, player.bukkitPlayer == null ? "null" : player.bukkitPlayer.getWorld().getName());
+
         for (Iterator<Map.Entry<StringBuilder, Integer>> it = continuedDebug.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<StringBuilder, Integer> debug = it.next();
-            appendDebug(debug.getKey(), player.predictedVelocity, player.actualMovement, new Vector(player.x, player.y, player.z), player.startTickClientVel, player.baseTickAddition, player.baseTickWaterPushing);
+            appendDebug(debug.getKey(), player.predictedVelocity, player.actualMovement, location, player.startTickClientVel, player.baseTickAddition, player.baseTickWaterPushing);
             debug.setValue(debug.getValue() - 1);
             if (debug.getValue() <= 0) it.remove();
         }
 
         predicted.add(player.predictedVelocity);
         actually.add(player.actualMovement);
-        positions.add(new Vector(player.x, player.y, player.z));
+        locations.add(location);
         startTickClientVel.add(player.startTickClientVel);
         baseTickAddition.add(player.baseTickAddition);
         baseTickWater.add(player.baseTickWaterPushing);
@@ -70,11 +73,11 @@ public final class SuperDebug extends PostPredictionCheck {
         for (int i = 0; i < predicted.size(); i++) {
             VectorData predict = predicted.get(i);
             Vector actual = actually.get(i);
-            Vector position = positions.get(i);
+            Location loc = locations.get(i);
             Vector startTickVel = startTickClientVel.get(i);
             Vector addition = baseTickAddition.get(i);
             Vector water = baseTickWater.get(i);
-            appendDebug(sb, predict, actual, position, startTickVel, addition, water);
+            appendDebug(sb, predict, actual, loc, startTickVel, addition, water);
         }
 
         UncertaintyHandler uncertaintyHandler = player.uncertaintyHandler;
@@ -178,7 +181,7 @@ public final class SuperDebug extends PostPredictionCheck {
         continuedDebug.put(sb, 40);
     }
 
-    private void appendDebug(StringBuilder sb, VectorData predict, Vector actual, Vector position, Vector startTick, Vector addition, Vector water) {
+    private void appendDebug(StringBuilder sb, VectorData predict, Vector actual, Location location, Vector startTick, Vector addition, Vector water) {
         if (predict.isZeroPointZeroThree()) {
             sb.append("Movement threshold/tick skipping\n");
         }
@@ -216,8 +219,8 @@ public final class SuperDebug extends PostPredictionCheck {
         new PredictionEngine().applyMovementThreshold(player, set);
         Vector trueStartVel = ((VectorData) set.toArray()[0]).vector;
 
-        Vector clientMovement = actual.clone().subtract(trueStartVel);
-        Vector simulatedMovement = predict.vector.clone().subtract(trueStartVel);
+        Vector clientMovement = getPlayerMathMovement(player, actual.clone().subtract(trueStartVel), location.xRot);
+        Vector simulatedMovement = getPlayerMathMovement(player, predict.vector.clone().subtract(trueStartVel), location.xRot);
         Vector offset = actual.clone().subtract(predict.vector);
         trueStartVel.add(addition);
         trueStartVel.add(water);
@@ -230,8 +233,8 @@ public final class SuperDebug extends PostPredictionCheck {
         sb.append(offset);
         sb.append("\nOffset: ");
         sb.append(offset.length());
-        sb.append("\nPosition:  ");
-        sb.append(position);
+        sb.append("\nLocation:  ");
+        sb.append(location);
         sb.append("\nInitial velocity: ");
         sb.append(startTick);
 
@@ -244,16 +247,38 @@ public final class SuperDebug extends PostPredictionCheck {
             sb.append(water);
         }
 
-        sb.append("\nClient movement:    ");
+        sb.append("\nClient input:    ");
         sb.append(clientMovement);
         sb.append(" length: ");
         sb.append(clientMovement.length());
-        sb.append("\nSimulated movement: ");
+        sb.append("\nSimulated input: ");
         sb.append(simulatedMovement);
         sb.append(" length: ");
         sb.append(simulatedMovement.length());
 
 
         sb.append("\n\n");
+    }
+
+    private Vector getPlayerMathMovement(GrimPlayer player, Vector wantedMovement, float f2) {
+        float f3 = player.trigHandler.sin(f2 * 0.017453292f);
+        float f4 = player.trigHandler.cos(f2 * 0.017453292f);
+
+        float bestTheoreticalX = (float) (f3 * wantedMovement.getZ() + f4 * wantedMovement.getX()) / (f3 * f3 + f4 * f4);
+        float bestTheoreticalZ = (float) (-f3 * wantedMovement.getX() + f4 * wantedMovement.getZ()) / (f3 * f3 + f4 * f4);
+
+        return new Vector(bestTheoreticalX, 0, bestTheoreticalZ);
+    }
+
+    @AllArgsConstructor
+    private static final class Location {
+        double x, y, z;
+        float xRot, yRot;
+        String world;
+
+        @Override
+        public String toString() {
+            return "x: " + x + " y: " + y + " z: " + z + " xRot: " + xRot + " yRot: " + yRot + " world: " + world;
+        }
     }
 }
