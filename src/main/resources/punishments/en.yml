@@ -20,7 +20,7 @@ Punishments:
     # - "100:0 kick %player% incorrect movement!"
     # 0 means execute exactly once
     # - "100:50 say %player% is cheating"
-    # Execute when the user hits flag 100, and after that, every 50'th flag after 100
+    # Execute when the user hits flag 100, and after that, every 50th flag after 100
     #
     commands:
       - "100:40 [alert]"
