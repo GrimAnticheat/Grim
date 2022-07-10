@@ -87,8 +87,6 @@ public class PacketPlayerRespawn extends PacketListenerAbstract {
                 player.isSneaking = false;
                 player.lastOnGround = false;
                 player.packetStateData.packetPlayerOnGround = false; // If somewhere else pulls last ground to fix other issues
-                player.packetStateData.lastClientXRot = 0;
-                player.packetStateData.lastClientYRot = 0;
                 player.packetStateData.lastClaimedPosition = new Vector3d();
                 player.filterMojangStupidityOnMojangStupidity = new Vector3d();
                 player.lastSprintingForSpeed = false; // This is reverted even on 1.18 clients

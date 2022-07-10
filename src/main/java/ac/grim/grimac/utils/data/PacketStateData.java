@@ -18,6 +18,4 @@ public class PacketStateData {
     public boolean didLastLastMovementIncludePosition = false;
     public boolean didLastMovementIncludePosition = false;
     public Vector3d lastClaimedPosition = new Vector3d(0, 0, 0);
-    public float lastClientXRot;
-    public float lastClientYRot;
 }

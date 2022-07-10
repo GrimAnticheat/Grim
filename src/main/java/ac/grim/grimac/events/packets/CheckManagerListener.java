@@ -362,11 +362,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
             player.packetStateData.lastPacketWasTeleport = teleportData.isTeleport();
             // Teleports can't be stupidity packets
             player.packetStateData.lastPacketWasOnePointSeventeenDuplicate = !player.packetStateData.lastPacketWasTeleport && isMojangStupid(player, flying);
-
-            if (!player.packetStateData.lastPacketWasTeleport && flying.hasRotationChanged()) {
-                player.packetStateData.lastClientXRot = flying.getLocation().getYaw();
-                player.packetStateData.lastClientYRot = flying.getLocation().getPitch();
-            }
         }
 
         player.checkManager.onPrePredictionReceivePacket(event);
@@ -644,10 +639,6 @@ public class CheckManagerListener extends PacketListenerAbstract {
 
             final RotationUpdate update = new RotationUpdate(new HeadRotation(player.lastXRot, player.lastYRot), new HeadRotation(player.xRot, player.yRot), deltaXRot, deltaYRot);
             player.checkManager.onRotationUpdate(update);
-
-        } else { // Fix teleports causing player look to desync
-            player.xRot = player.packetStateData.lastClientXRot;
-            player.yRot = player.packetStateData.lastClientYRot;
         }
 
         if (hasPosition) {
