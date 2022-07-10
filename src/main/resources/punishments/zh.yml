@@ -18,6 +18,9 @@ Punishments:
     # 这是个例子, 当到达100VL时为了以 "incorrect movement!" 为理由踢出玩家
     # commands:
     # - "100:0 kick %player% incorrect movement!"
+    # 0 means execute exactly once
+    # - "100:50 say %player% is cheating"
+    # Execute when the user hits flag 100, and after that, every 50'th flag after 100
     #
     commands:
       - "100:40 [alert]"

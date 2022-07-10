@@ -109,7 +109,9 @@ public class PunishmentManager {
                     }
 
                     if (violationCount >= command.getThreshold()) {
-                        boolean inInterval = command.getInterval() == 0 || violationCount % command.getInterval() == 0;
+                        // 0 means execute once
+                        // Any other number means execute every X interval
+                        boolean inInterval = command.getInterval() == 0 ? (command.executeCount == 0) : (violationCount % command.getInterval() == 0);
                         if (inInterval) {
                             CommandExecuteEvent executeEvent = new CommandExecuteEvent(player, check, cmd);
                             Bukkit.getPluginManager().callEvent(executeEvent);
