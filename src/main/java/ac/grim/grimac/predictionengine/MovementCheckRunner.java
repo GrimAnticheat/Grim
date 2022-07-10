@@ -36,7 +36,6 @@ import com.github.retrooper.packetevents.protocol.player.GameMode;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import com.github.retrooper.packetevents.protocol.world.states.defaulttags.BlockTags;
 import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
-import org.bukkit.Bukkit;
 import org.bukkit.util.Vector;
 
 public class MovementCheckRunner extends PositionCheck {
@@ -414,7 +413,7 @@ public class MovementCheckRunner extends PositionCheck {
             player.uncertaintyHandler.lastStuckSpeedMultiplier.reset();
         }
 
-        Vector oldClientVel = player.clientVelocity;
+        player.startTickClientVel = player.clientVelocity;
 
         boolean wasChecked = false;
 
@@ -593,7 +592,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.checkManager.getKnockbackHandler().handlePlayerKb(offset);
         player.checkManager.getExplosionHandler().handlePlayerExplosion(offset);
-        player.trigHandler.setOffset(oldClientVel, offset);
+        player.trigHandler.setOffset(offset);
         player.pointThreeEstimator.endOfTickTick();
     }
 

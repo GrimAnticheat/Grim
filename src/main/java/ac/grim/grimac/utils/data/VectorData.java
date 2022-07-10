@@ -11,7 +11,7 @@ public class VectorData {
     public Vector vector;
 
     @Getter
-    private boolean isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump = false;
+    private boolean isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow = false;
 
     // For handling replacing the type of vector it is while keeping data
     public VectorData(Vector vector, VectorData lastVector, VectorType vectorType) {
@@ -29,6 +29,7 @@ public class VectorData {
             isFlipItem = lastVector.isFlipItem;
             isJump = lastVector.isJump;
             preUncertainty = lastVector.preUncertainty;
+            isAttackSlow = lastVector.isAttackSlow;
         }
 
         addVectorType(vectorType);
@@ -46,7 +47,7 @@ public class VectorData {
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(vectorType, vector, isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump);
+        return Objects.hashCode(vectorType, vector, isKnockback, isExplosion, isTrident, isZeroPointZeroThree, isSwimHop, isFlipSneaking, isFlipItem, isJump, isAttackSlow);
     }
 
     @Override
@@ -54,7 +55,7 @@ public class VectorData {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VectorData that = (VectorData) o;
-        return isKnockback == that.isKnockback && isExplosion == that.isExplosion && isTrident == that.isTrident && isZeroPointZeroThree == that.isZeroPointZeroThree && isSwimHop == that.isSwimHop && isFlipSneaking == that.isFlipSneaking && isFlipItem == that.isFlipItem && isJump == that.isJump && Objects.equal(vector, that.vector);
+        return isKnockback == that.isKnockback && isExplosion == that.isExplosion && isTrident == that.isTrident && isZeroPointZeroThree == that.isZeroPointZeroThree && isSwimHop == that.isSwimHop && isFlipSneaking == that.isFlipSneaking && isFlipItem == that.isFlipItem && isJump == that.isJump && isAttackSlow == that.isAttackSlow && Objects.equal(vector, that.vector);
     }
 
     private void addVectorType(VectorType type) {
@@ -82,6 +83,9 @@ public class VectorData {
                 break;
             case Jump:
                 isJump = true;
+                break;
+            case AttackSlow:
+                isAttackSlow = true;
                 break;
         }
     }

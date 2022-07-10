@@ -172,6 +172,7 @@ public class GrimPlayer implements GrimUser {
     // Keep track of basetick stuff
     public Vector baseTickAddition = new Vector();
     public Vector baseTickWaterPushing = new Vector();
+    public Vector startTickClientVel = new Vector();
     // For syncing the player's full swing in 1.9+
     public int movementPackets = 0;
     public VelocityData firstBreadKB = null;

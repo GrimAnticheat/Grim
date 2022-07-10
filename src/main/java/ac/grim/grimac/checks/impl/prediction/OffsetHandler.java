@@ -49,7 +49,7 @@ public class OffsetHandler extends PostPredictionCheck {
             violations++;
 
             synchronized (flags) {
-                int flagId = (flags.get() % 999) + 1; // 1-999 as possible values
+                int flagId = (flags.get() & 255) + 1; // 1-256 as possible values
 
                 String humanFormattedOffset;
                 if (offset < 0.001) { // 1.129E-3
@@ -63,7 +63,7 @@ public class OffsetHandler extends PostPredictionCheck {
                     humanFormattedOffset = humanFormattedOffset.replace("0.", ".");
                 }
 
-                if(alert("/gl " + flagId + " o: " + humanFormattedOffset)) {
+                if(alert(humanFormattedOffset + " /gl " + flagId)) {
                     flags.incrementAndGet(); // This debug was sent somewhere
                     predictionComplete.setIdentifier(flagId);
                 }

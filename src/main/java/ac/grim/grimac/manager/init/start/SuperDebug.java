@@ -3,32 +3,36 @@ package ac.grim.grimac.manager.init.start;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.predictionengine.UncertaintyHandler;
+import ac.grim.grimac.predictionengine.predictions.PredictionEngine;
 import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.lists.EvictingQueue;
 import ac.grim.grimac.utils.math.GrimMath;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.protocol.world.states.WrappedBlockState;
 import org.bukkit.util.Vector;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class SuperDebug extends PostPredictionCheck {
-    private static final StringBuilder[] flags = new StringBuilder[1000];
+    private static final StringBuilder[] flags = new StringBuilder[256]; //  17 MB of logs in memory
 
     private static final HashMap<StringBuilder, Integer> continuedDebug = new HashMap<>();
 
     List<VectorData> predicted = new EvictingQueue<>(60);
     List<Vector> actually = new EvictingQueue<>(60);
     List<Vector> positions = new EvictingQueue<>(60);
+    List<Vector> startTickClientVel = new EvictingQueue<>(60);
+    List<Vector> baseTickAddition = new EvictingQueue<>(60);
+    List<Vector> baseTickWater = new EvictingQueue<>(60);
 
     public SuperDebug(GrimPlayer player) {
         super(player);
     }
 
     public static StringBuilder getFlag(int identifier) {
+        identifier--;
+        if (identifier >= flags.length) return null;
         return flags[identifier];
     }
 
@@ -36,7 +40,7 @@ public final class SuperDebug extends PostPredictionCheck {
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         for (Iterator<Map.Entry<StringBuilder, Integer>> it = continuedDebug.entrySet().iterator(); it.hasNext(); ) {
             Map.Entry<StringBuilder, Integer> debug = it.next();
-            appendDebug(debug.getKey(), player.predictedVelocity, player.actualMovement, new Vector(player.x, player.y, player.z));
+            appendDebug(debug.getKey(), player.predictedVelocity, player.actualMovement, new Vector(player.x, player.y, player.z), player.startTickClientVel, player.baseTickAddition, player.baseTickWaterPushing);
             debug.setValue(debug.getValue() - 1);
             if (debug.getValue() <= 0) it.remove();
         }
@@ -44,12 +48,21 @@ public final class SuperDebug extends PostPredictionCheck {
         predicted.add(player.predictedVelocity);
         actually.add(player.actualMovement);
         positions.add(new Vector(player.x, player.y, player.z));
+        startTickClientVel.add(player.startTickClientVel);
+        baseTickAddition.add(player.baseTickAddition);
+        baseTickWater.add(player.baseTickWaterPushing);
 
-        if (predictionComplete.getIdentifier() == 0) return; // 1 - 999 are valid possible values
+        if (predictionComplete.getIdentifier() == 0) return; // 1 - 256 are valid possible values
 
         StringBuilder sb = new StringBuilder();
         sb.append("Player Name: ");
         sb.append(player.user.getName());
+        sb.append("\nClient Version: ");
+        sb.append(player.getClientVersion().getReleaseName());
+        sb.append("\nClient Brand:");
+        sb.append(player.getBrand());
+        sb.append("\nServer Version: ");
+        sb.append(PacketEvents.getAPI().getServerManager().getVersion().getReleaseName());
         sb.append("\nPing: ");
         sb.append(player.getTransactionPing() * 0.000001);
         sb.append("ms\n\n");
@@ -58,7 +71,10 @@ public final class SuperDebug extends PostPredictionCheck {
             VectorData predict = predicted.get(i);
             Vector actual = actually.get(i);
             Vector position = positions.get(i);
-            appendDebug(sb, predict, actual, position);
+            Vector startTickVel = startTickClientVel.get(i);
+            Vector addition = baseTickAddition.get(i);
+            Vector water = baseTickWater.get(i);
+            appendDebug(sb, predict, actual, position, startTickVel, addition, water);
         }
 
         UncertaintyHandler uncertaintyHandler = player.uncertaintyHandler;
@@ -158,19 +174,32 @@ public final class SuperDebug extends PostPredictionCheck {
             sb.append("\n\n\n");
         }
 
-        flags[predictionComplete.getIdentifier()] = sb;
+        flags[predictionComplete.getIdentifier() - 1] = sb;
         continuedDebug.put(sb, 40);
     }
 
-    private void appendDebug(StringBuilder sb, VectorData predict, Vector actual, Vector position) {
+    private void appendDebug(StringBuilder sb, VectorData predict, Vector actual, Vector position, Vector startTick, Vector addition, Vector water) {
         if (predict.isZeroPointZeroThree()) {
             sb.append("Movement threshold/tick skipping\n");
         }
+        if (predict.isAttackSlow()) {
+            sb.append("* 0.6 horizontal attack slowdown\n");
+        }
         if (predict.isKnockback()) {
-            sb.append("Knockback\n");
+            if (player.firstBreadKB != null) {
+                sb.append("First bread knockback: ").append(player.firstBreadKB.vector).append("\n");
+            }
+            if (player.likelyKB != null) {
+                sb.append("Second bread knockback: ").append(player.likelyKB.vector).append("\n");
+            }
         }
         if (predict.isExplosion()) {
-            sb.append("Explosion\n");
+            if (player.firstBreadExplosion != null) {
+                sb.append("First bread explosion: ").append(player.firstBreadExplosion.vector).append("\n");
+            }
+            if (player.likelyExplosions != null) {
+                sb.append("Second bread explosion: ").append(player.likelyExplosions.vector).append("\n");
+            }
         }
         if (predict.isTrident()) {
             sb.append("Trident\n");
@@ -182,17 +211,48 @@ public final class SuperDebug extends PostPredictionCheck {
             sb.append("Jump\n");
         }
 
-        sb.append("Predicted: ");
-        sb.append(predict.vector.toString());
-        sb.append("\nActually: ");
-        sb.append(actual.toString());
-        sb.append("\nOffset Vector: ");
+        // Apply 0.003/0.005 to make numbers more accurate
+        Set<VectorData> set = new HashSet<>(Collections.singletonList(new VectorData(startTick.clone(), VectorData.VectorType.BestVelPicked)));
+        new PredictionEngine().applyMovementThreshold(player, set);
+        Vector trueStartVel = ((VectorData) set.toArray()[0]).vector;
+
+        Vector clientMovement = actual.clone().subtract(trueStartVel);
+        Vector simulatedMovement = predict.vector.clone().subtract(trueStartVel);
         Vector offset = actual.clone().subtract(predict.vector);
+        trueStartVel.add(addition);
+        trueStartVel.add(water);
+
+        sb.append("Simulated: ");
+        sb.append(predict.vector.toString());
+        sb.append("\nActually:  ");
+        sb.append(actual);
+        sb.append("\nOffset Vector: ");
         sb.append(offset);
         sb.append("\nOffset: ");
         sb.append(offset.length());
         sb.append("\nPosition:  ");
-        sb.append(position.toString());
+        sb.append(position);
+        sb.append("\nInitial velocity: ");
+        sb.append(startTick);
+
+        if (addition.lengthSquared() > 0) {
+            sb.append("\nInitial vel addition: ");
+            sb.append(addition);
+        }
+        if (water.lengthSquared() > 0) {
+            sb.append("\nWater vel addition: ");
+            sb.append(water);
+        }
+
+        sb.append("\nClient movement:    ");
+        sb.append(clientMovement);
+        sb.append(" length: ");
+        sb.append(clientMovement.length());
+        sb.append("\nSimulated movement: ");
+        sb.append(simulatedMovement);
+        sb.append(" length: ");
+        sb.append(simulatedMovement.length());
+
 
         sb.append("\n\n");
     }
