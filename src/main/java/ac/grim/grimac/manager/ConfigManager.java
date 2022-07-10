@@ -264,7 +264,7 @@ public class ConfigManager {
         if (messageFile.exists()) {
             try {
                 String messagesString = new String(Files.readAllBytes(messageFile.toPath()));
-                messagesString += "upload-log: \"%prefix% &fUploaded debug to: %url%\"\n" +
+                messagesString += "\n\nupload-log: \"%prefix% &fUploaded debug to: %url%\"\n" +
                         "upload-log-start: \"%prefix% &fUploading log... please wait\"\n" +
                         "upload-log-not-found: \"%prefix% &cUnable to find that log\"\n" +
                         "upload-log-upload-failure: \"%prefix% &cSomething went wrong while uploading this log, see console for more info\"\n";
