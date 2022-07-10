@@ -18,7 +18,7 @@ import java.util.*;
 public final class SuperDebug extends PostPredictionCheck {
     private static final StringBuilder[] flags = new StringBuilder[256]; //  17 MB of logs in memory
 
-    HashMap<StringBuilder, Integer> continuedDebug = new HashMap<>();
+    Map<StringBuilder, Integer> continuedDebug = new HashMap<>();
 
     List<VectorData> predicted = new EvictingQueue<>(60);
     List<Vector> actually = new EvictingQueue<>(60);
