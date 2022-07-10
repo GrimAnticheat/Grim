@@ -26,7 +26,7 @@ public class BlockBreakSpeed {
         if (blockHardness == -1) return 0; // Unbreakable block
 
         // A creative mode player cannot break things with a sword!
-        if (player.gamemode == GameMode.CREATIVE && tool.getType().toString().contains("SWORD")) {
+        if (player.gamemode == GameMode.CREATIVE && tool.getType().hasAttribute(ItemTypes.ItemAttribute.SWORD)) {
             return 0;
         }
 
