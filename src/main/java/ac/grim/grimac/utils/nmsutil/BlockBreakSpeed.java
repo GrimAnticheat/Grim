@@ -152,7 +152,7 @@ public class BlockBreakSpeed {
             }
         }
 
-        if (!player.onGround) {
+        if (!player.packetStateData.packetPlayerOnGround) {
             speedMultiplier /= 5;
         }
 
