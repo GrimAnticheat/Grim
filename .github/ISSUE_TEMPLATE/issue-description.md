@@ -11,7 +11,7 @@ assignees: ''
 A clear and concise description of what the bug is.
 
 **To Reproduce**
-Video is preferred.   If video is not possible, for bypasses, the hacked client name, version, module, module settings, and the check being bypassed is enough.  For false positives, steps to reproduce is fine also.
+Video is always useful. /grim log is required for reporting simulation falses.  Use /grim verbose and /grim log to get the debug information.  For non-simulation falses, a minimally reproducable description is best.
 
 **Server Version:**
 
