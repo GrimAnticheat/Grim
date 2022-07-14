@@ -42,6 +42,6 @@ help:
   - "/grim perf &f- &7Developer ms/prediction"
   - "/grim reload &f- &7Reloads the config"
   - "/grim spectate <player> &f- &7Spectate a player"
-  - "/grim verbose &f- &Show every flag to you, without buffer"
+  - "/grim verbose &f- &7Show every flag to you, without buffer"
   - "/grim log [0-255] &f- &7Upload a debug log for prediction flag"
   - "&7======================"
