@@ -57,7 +57,6 @@ public class MovementCheckRunner extends PositionCheck {
             if (player.compensatedEntities.getSelf().inVehicle()) return;
 
             player.lastOnGround = player.clientClaimsLastOnGround; // Stop a false on join
-            if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) return; // Not spawned yet
             if (!data.isTeleport()) {
                 // Teleport the player back to avoid players being able to simply ignore transactions
                 player.getSetbackTeleportUtil().executeForceResync();
