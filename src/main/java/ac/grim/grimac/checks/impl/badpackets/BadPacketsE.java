@@ -30,4 +30,8 @@ public class BadPacketsE extends PacketCheck {
             flagAndAlert(); // ban?  I don't know how this would false
         }
     }
+
+    public void handleRespawn() {
+        noReminderTicks = 0;
+    }
 }
