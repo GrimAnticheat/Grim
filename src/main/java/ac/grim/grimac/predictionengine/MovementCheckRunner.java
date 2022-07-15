@@ -572,6 +572,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = !player.compensatedEntities.getSelf().inVehicle() && player.skippedTickInActualMovement;
         player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.compensatedEntities.getSelf().inVehicle() && player.couldSkipTick && player.predictedVelocity.isKnockback();
+        player.couldSkipTick = false;
 
         if (player.skippedTickInActualMovement) {
             player.uncertaintyHandler.lastPointThree.reset();
