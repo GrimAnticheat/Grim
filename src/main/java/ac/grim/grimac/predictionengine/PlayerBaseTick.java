@@ -37,7 +37,9 @@ public class PlayerBaseTick {
         player.baseTickWaterPushing = new Vector();
 
         if (player.isFlying && player.isSneaking && !player.compensatedEntities.getSelf().inVehicle()) {
-            player.baseTickAddVector(new Vector(0, player.flySpeed * -3, 0));
+            Vector flyingShift = new Vector(0, player.flySpeed * -3, 0);
+            player.baseTickAddVector(flyingShift);
+            player.trackBaseTickAddition(flyingShift);
         }
 
         updateInWaterStateAndDoFluidPushing();
@@ -51,7 +53,9 @@ public class PlayerBaseTick {
         // You cannot crouch while flying, only shift - could be specific to 1.14?
         // pre-1.13 clients don't have this code
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13) && player.wasTouchingWater && player.isSneaking && !player.isFlying && !player.compensatedEntities.getSelf().inVehicle()) {
-            player.baseTickAddVector(new Vector(0, -0.04f, 0));
+            Vector waterPushVector = new Vector(0, -0.04f, 0);
+            player.baseTickAddVector(waterPushVector);
+            player.trackBaseTickAddition(waterPushVector);
         }
 
         if (player.getClientVersion().isOlderThanOrEquals(ClientVersion.V_1_13_2)) {
