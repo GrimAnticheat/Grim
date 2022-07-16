@@ -312,6 +312,11 @@ public class PredictionEngine {
 
     public void addFluidPushingToStartingVectors(GrimPlayer player, Set<VectorData> data) {
         for (VectorData vectorData : data) {
+            // Sneaking in water
+            if (vectorData.isKnockback() && player.baseTickAddition.lengthSquared() != 0) {
+                vectorData.vector = vectorData.vector.add(player.baseTickAddition);
+            }
+            // Water pushing movement is affected by initial velocity due to 0.003 eating pushing in the past
             if (vectorData.isKnockback() && player.baseTickWaterPushing.lengthSquared() != 0) {
                 if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_13)) {
                     Vector vec3 = player.baseTickWaterPushing.clone();

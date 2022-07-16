@@ -54,10 +54,15 @@ public class MovementCheckRunner extends PositionCheck {
         // This teleport wasn't valid as the player STILL hasn't loaded this damn chunk.
         // Keep re-teleporting until they load the chunk!
         if (player.getSetbackTeleportUtil().insideUnloadedChunk()) {
-            if (player.compensatedEntities.getSelf().inVehicle()) return;
-
             player.lastOnGround = player.clientClaimsLastOnGround; // Stop a false on join
-            if (player.getSetbackTeleportUtil().getRequiredSetBack() == null) return; // Not spawned yet
+
+            // The player doesn't control this vehicle, we don't care
+            if (player.compensatedEntities.getSelf().inVehicle() &&
+                    (PacketEvents.getAPI().getServerManager().getVersion().isOlderThan(ServerVersion.V_1_9) ||
+                    player.getClientVersion().isOlderThan(ClientVersion.V_1_9))) {
+                return;
+            }
+
             if (!data.isTeleport()) {
                 // Teleport the player back to avoid players being able to simply ignore transactions
                 player.getSetbackTeleportUtil().executeForceResync();
@@ -567,6 +572,7 @@ public class MovementCheckRunner extends PositionCheck {
 
         player.uncertaintyHandler.lastMovementWasZeroPointZeroThree = !player.compensatedEntities.getSelf().inVehicle() && player.skippedTickInActualMovement;
         player.uncertaintyHandler.lastMovementWasUnknown003VectorReset = !player.compensatedEntities.getSelf().inVehicle() && player.couldSkipTick && player.predictedVelocity.isKnockback();
+        player.couldSkipTick = false;
 
         if (player.skippedTickInActualMovement) {
             player.uncertaintyHandler.lastPointThree.reset();

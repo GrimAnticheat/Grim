@@ -334,6 +334,9 @@ public class GrimPlayer implements GrimUser {
 
     public void baseTickAddVector(Vector vector) {
         clientVelocity.add(vector);
+    }
+
+    public void trackBaseTickAddition(Vector vector) {
         baseTickAddition.add(vector);
     }
 
