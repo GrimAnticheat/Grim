@@ -287,8 +287,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
                 teleportData.setSetback(requiredSetBack);
                 requiredSetBack.setComplete(true);
-            } else {
-                Bukkit.broadcastMessage("Setback " + requiredSetBack.getTeleportData().getTransaction() + " != " + teleportPos.getTransaction());
             }
 
             teleportData.setTeleportData(teleportPos);
