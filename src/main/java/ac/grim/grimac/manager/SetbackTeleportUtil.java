@@ -382,13 +382,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     /**
-     * @param position A safe setback location
-     */
-    public void setSafeSetbackLocation(Vector3d position) {
-        this.safeTeleportPosition = new SetbackLocationVelocity(position);
-    }
-
-    /**
      * The netty thread is about to send a teleport to the player, should we allow it?
      * <p>
      * Bukkit, due to incompetence, doesn't call the teleport event for all teleports...
@@ -398,21 +391,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public void addSentTeleport(Location position, int transaction, RelativeFlag flags, boolean plugin) {
         TeleportData data = new TeleportData(new Location(null, position.getX(), position.getY(), position.getZ()), flags, transaction);
         requiredSetBack = new SetBackData(data, player.xRot, player.yRot, null, false, plugin);
-
         teleports.add(data);
 
-        Vector3d realPosition = new Vector3d(position.getX(), position.getY(), position.getZ());
-
-        if (data.isRelativeX()) {
-            realPosition = realPosition.add(player.x, 0, 0);
+        if (!requiredSetBack.getTeleportData().isRelativeX() && !requiredSetBack.getTeleportData().isRelativeY() && !requiredSetBack.getTeleportData().isRelativeZ()) {
+            this.safeTeleportPosition = new SetbackLocationVelocity(new Vector3d(position.getX(), position.getY(), position.getZ()));
         }
-        if (data.isRelativeY()) {
-            realPosition = realPosition.add(0, player.y, 0);
-        }
-        if (data.isRelativeZ()) {
-            realPosition = realPosition.add(0, 0, player.z);
-        }
-
-        setSafeSetbackLocation(realPosition);
     }
 }
