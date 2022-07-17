@@ -46,7 +46,7 @@ public class CheckManager {
     ClassToInstanceMap<PositionCheck> positionCheck;
     ClassToInstanceMap<RotationCheck> rotationCheck;
     ClassToInstanceMap<VehicleCheck> vehicleCheck;
-    ClassToInstanceMap<PacketCheck> timerCheck;
+    ClassToInstanceMap<PacketCheck> prePredictionChecks;
 
     ClassToInstanceMap<BlockPlaceCheck> blockPlaceCheck;
     ClassToInstanceMap<PostPredictionCheck> postPredictionCheck;
@@ -76,9 +76,6 @@ public class CheckManager {
                 .put(BadPacketsF.class, new BadPacketsF(player))
                 .put(BadPacketsG.class, new BadPacketsG(player))
                 .put(BadPacketsH.class, new BadPacketsH(player))
-                .put(CrashA.class, new CrashA(player))
-                .put(CrashB.class, new CrashB(player))
-                .put(CrashC.class, new CrashC(player))
                 .put(BadPacketsI.class, new BadPacketsI(player))
                 .put(BadPacketsJ.class, new BadPacketsJ(player))
                 .put(BadPacketsK.class, new BadPacketsK(player))
@@ -126,8 +123,11 @@ public class CheckManager {
                 .put(RotationPlace.class, new RotationPlace(player))
                 .build();
 
-        timerCheck = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
+        prePredictionChecks = new ImmutableClassToInstanceMap.Builder<PacketCheck>()
                 .put(TimerCheck.class, new TimerCheck(player))
+                .put(CrashA.class, new CrashA(player))
+                .put(CrashB.class, new CrashB(player))
+                .put(CrashC.class, new CrashC(player))
                 .put(VehicleTimer.class, new VehicleTimer(player))
                 .build();
 
@@ -138,7 +138,7 @@ public class CheckManager {
                 .putAll(vehicleCheck)
                 .putAll(postPredictionCheck)
                 .putAll(blockPlaceCheck)
-                .putAll(timerCheck)
+                .putAll(prePredictionChecks)
                 .build();
     }
 
@@ -158,7 +158,7 @@ public class CheckManager {
     }
 
     public void onPrePredictionReceivePacket(final PacketReceiveEvent packet) {
-        timerCheck.values().forEach(check -> check.onPacketReceive(packet));
+        prePredictionChecks.values().forEach(check -> check.onPacketReceive(packet));
     }
 
     public void onPacketReceive(final PacketReceiveEvent packet) {
@@ -166,7 +166,7 @@ public class CheckManager {
     }
 
     public void onPacketSend(final PacketSendEvent packet) {
-        timerCheck.values().forEach(check -> check.onPacketSend(packet));
+        prePredictionChecks.values().forEach(check -> check.onPacketSend(packet));
         packetChecks.values().forEach(packetCheck -> packetCheck.onPacketSend(packet));
     }
 

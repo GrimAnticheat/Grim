@@ -93,6 +93,13 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         blockMovementsUntilResync(lastKnownGoodPosition.position, false, true, true);
     }
 
+    public void blockMovementAndResyncToLastValidPositionAndVelocity() {
+        if (player.gamemode == GameMode.SPECTATOR || player.disableGrim)
+            return; // We don't care about spectators, they don't flag
+        if (lastKnownGoodPosition == null) return; // Player hasn't spawned yet
+        blockMovementsUntilResync(lastKnownGoodPosition.position, false, false, false);
+    }
+
     public boolean executeViolationSetback(boolean force) {
         if (isExempt()) return false;
         blockMovementsUntilResync(lastKnownGoodPosition.position, force, true, false);
@@ -164,13 +171,14 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             // Due to simulation, this will not allow a flight bypass by sending a billion invalid movements
             position.setY(position.getY() + collide.getY() + SimpleCollisionBox.COLLISION_EPSILON);
             position.setZ(position.getZ() + collide.getZ());
+        }
 
-            // TODO: Add support for elytra, water, lava, and end of ticks
-            if (player.wasTouchingWater) {
-                PredictionEngineWater.staticVectorEndOfTick(player, clientVel, 0.8F, player.gravity, true);
-            } else { // Gliding doesn't have friction, we handle it differently
-                PredictionEngineNormal.staticVectorEndOfTick(player, clientVel); // Lava and normal movement
-            }
+        // We must ALWAYS apply friction, else we simply double the player's movement
+        // TODO: Add support for elytra, water, lava, and end of ticks
+        if (player.wasTouchingWater) {
+            PredictionEngineWater.staticVectorEndOfTick(player, clientVel, 0.8F, player.gravity, true);
+        } else { // Gliding doesn't have friction, we handle it differently
+            PredictionEngineNormal.staticVectorEndOfTick(player, clientVel); // Lava and normal movement
         }
 
         player.boundingBox = oldBB; // reset back to the new bounding box

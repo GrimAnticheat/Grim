@@ -238,8 +238,6 @@ public class UncertaintyHandler {
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             pointThree = 0.15;
 
-        if (lastThirtyMillionHardBorder.hasOccurredSince(3))
-            pointThree = 0.15;
 
         return pointThree;
     }
@@ -249,8 +247,6 @@ public class UncertaintyHandler {
     }
 
     public double getVerticalOffset(VectorData data) {
-        if (lastThirtyMillionHardBorder.hasOccurredSince(3))
-            return 0.15;
 
         if (player.uncertaintyHandler.claimingLeftStuckSpeed)
             return 0.06;

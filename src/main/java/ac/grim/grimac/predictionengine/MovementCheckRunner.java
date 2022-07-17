@@ -425,7 +425,7 @@ public class MovementCheckRunner extends PositionCheck {
         // Exempt if the player is dead or is riding a dead entity
         if (player.compensatedEntities.getSelf().isDead || (player.compensatedEntities.getSelf().getRiding() != null && player.compensatedEntities.getSelf().getRiding().isDead)) {
             // Dead players can't cheat, if you find a way how they could, open an issue
-            player.predictedVelocity = new VectorData(player.actualMovement, VectorData.VectorType.Dead);
+            player.predictedVelocity = new VectorData(new Vector(), VectorData.VectorType.Dead);
             player.clientVelocity = new Vector();
         } else if (player.disableGrim || (PacketEvents.getAPI().getServerManager().getVersion().isNewerThanOrEquals(ServerVersion.V_1_8) && player.gamemode == GameMode.SPECTATOR) || player.isFlying) {
             // We could technically check spectator but what's the point...
