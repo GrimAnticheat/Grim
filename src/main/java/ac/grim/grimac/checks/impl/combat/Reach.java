@@ -76,6 +76,9 @@ public class Reach extends PacketCheck {
                 return;
             }
 
+            // TODO: Remove when in front of via
+            if (entity.type == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) return;
+
             if (player.gamemode == GameMode.CREATIVE) return;
             if (player.compensatedEntities.getSelf().inVehicle()) return;
             if (entity.riding != null) return;
