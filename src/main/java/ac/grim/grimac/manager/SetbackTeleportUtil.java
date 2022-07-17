@@ -51,6 +51,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean isSendingSetback = false;
     public int cheatVehicleInterpolationDelay = 0;
     long lastWorldResync = 0;
+    public int lastTeleportId = Integer.MIN_VALUE;
 
 
     public SetbackTeleportUtil(GrimPlayer player) {
@@ -189,7 +190,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         // Send a transaction now to make sure there's always at least one transaction between teleports
         player.sendTransaction();
 
-        SetBackData data = new SetBackData(new TeleportData(position, new RelativeFlag(0b11000), player.lastTransactionSent.get()), player.xRot, player.yRot, clientVel, player.compensatedEntities.getSelf().getRiding() != null, false);
+        SetBackData data = new SetBackData(new TeleportData(position, new RelativeFlag(0b11000), player.lastTransactionSent.get(), 0), player.xRot, player.yRot, clientVel, player.compensatedEntities.getSelf().getRiding() != null, false);
         sendSetback(data);
     }
 
@@ -228,12 +229,14 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             if (PacketEvents.getAPI().getServerManager().getVersion().isOlderThanOrEquals(ServerVersion.V_1_7_10)) {
                 y += 1.62; // 1.7 teleport offset if grim ever supports 1.7 again
             }
+            int teleportId = new Random().nextInt();
+            data.getTeleportData().setTeleportId(teleportId);
             // Use provided transaction ID to make sure it can never desync, although there's no reason to do this
-            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false);
+            addSentTeleport(new Location(null, position.getX(), y, position.getZ(), player.xRot % 360, player.yRot % 360), data.getTeleportData().getTransaction(), new RelativeFlag(0b11000), false, teleportId);
             // This must be done after setting the sent teleport, otherwise we lose velocity data
             requiredSetBack = data;
             // Send after tracking to fix race condition
-            PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, data.getTeleportData().getFlags().getMask(), new Random().nextInt(), false));
+            PacketEvents.getAPI().getProtocolManager().sendPacketSilently(player.user.getChannel(), new WrapperPlayServerPlayerPositionAndLook(position.getX(), position.getY(), position.getZ(), 0, 0, data.getTeleportData().getFlags().getMask(), teleportId, false));
             player.sendTransaction();
 
             if (data.getVelocity() != null) {
@@ -256,7 +259,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         int lastTransaction = player.lastTransactionReceived.get();
         TeleportAcceptData teleportData = new TeleportAcceptData();
 
-
         TeleportData teleportPos = pendingTeleports.peek();
         if (teleportPos == null) return teleportData;
 
@@ -265,6 +267,10 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         double trueTeleportZ = (teleportPos.isRelativeZ() ? player.z : 0) + teleportPos.getLocation().getZ();
 
         if (lastTransaction < teleportPos.getTransaction()) {
+            // The player has attempted to accept the teleport too early
+            if (lastTeleportId == teleportPos.getTeleportId()) {
+                player.timedOut();
+            }
             return teleportData; // No pending teleports
         }
 
@@ -291,7 +297,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
             teleportData.setTeleportData(teleportPos);
             teleportData.setTeleport(true);
-        } else if (lastTransaction > teleportPos.getTransaction()) {
+        } else if (lastTransaction > teleportPos.getTransaction() || lastTeleportId == teleportPos.getTeleportId()) {
             // The player ignored the teleport, kick them.
             player.timedOut();
         }
@@ -371,8 +377,8 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
         return requiredSetBack;
     }
 
-    public void addSentTeleport(Location position, int transaction, RelativeFlag flags, boolean plugin) {
-        TeleportData data = new TeleportData(new Location(null, position.getX(), position.getY(), position.getZ()), flags, transaction);
+    public void addSentTeleport(Location position, int transaction, RelativeFlag flags, boolean plugin, int teleportId) {
+        TeleportData data = new TeleportData(new Location(null, position.getX(), position.getY(), position.getZ()), flags, transaction, teleportId);
         requiredSetBack = new SetBackData(data, player.xRot, player.yRot, null, false, plugin);
         pendingTeleports.add(data);
 
