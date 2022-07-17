@@ -110,8 +110,7 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     }
 
     private void blockMovementsUntilResync(Location position, boolean force, boolean simulateNextTickPosition) {
-        if (requiredSetBack == null || player.bukkitPlayer == null)
-            return; // Player hasn't gotten a single teleport yet.
+        if (requiredSetBack == null) return; // Hasn't spawned
         requiredSetBack.setPlugin(false); // The player has illegal movement, block from vanilla ac override
         if (!force && isPendingSetback()) return; // Don't spam setbacks
 
@@ -346,10 +345,14 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
     public boolean shouldBlockMovement() {
         // We must block movements if we were the one to cause the teleport
         // Else the vanilla anticheat will override our teleports causing a funny fly exploit
-        return insideUnloadedChunk() || (requiredSetBack != null && !requiredSetBack.isComplete() && !requiredSetBack.isPlugin());
+        return insideUnloadedChunk() || blockOffsets || (requiredSetBack != null && !requiredSetBack.isComplete() && !requiredSetBack.isPlugin());
     }
 
     private boolean isPendingSetback() {
+        // Relative setbacks shouldn't count
+        if (requiredSetBack.getTeleportData().isRelativeX() ||
+                requiredSetBack.getTeleportData().isRelativeY() ||
+                requiredSetBack.getTeleportData().isRelativeZ()) return false;
         return requiredSetBack != null && !requiredSetBack.isComplete();
     }
 
