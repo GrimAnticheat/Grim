@@ -147,6 +147,7 @@ public class Reach extends PacketCheck {
                 }
             }
         }
+        playerAttackQueue.clear();
     }
 
     private String checkReach(PacketEntity reachEntity, Vector3d from, boolean isPrediction) {
