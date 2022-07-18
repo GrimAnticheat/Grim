@@ -49,9 +49,10 @@ public class SpectateManager implements Initable {
 
     public void onQuit(Player player) {
         hiddenPlayers.remove(player.getUniqueId());
-        disable(player);
+        handlePlayerStopSpectating(player.getUniqueId());
     }
 
+    //only call this synchronously
     public void disable(Player player) {
         PreviousState previousState = spectatingPlayers.get(player.getUniqueId());
         if (previousState != null) {
