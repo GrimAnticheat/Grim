@@ -33,17 +33,14 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientIn
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.*;
 
 // You may not copy the check unless you are licensed under GPL
 @CheckData(name = "Reach", configName = "Reach", setback = 10)
 public class Reach extends PacketCheck {
-    // Concurrent to support weird entity trackers
-    private final ConcurrentLinkedQueue<Integer> playerAttackQueue = new ConcurrentLinkedQueue<>();
+    // Only one flag per reach attack, per entity, per tick.
+    // We store position because lastX isn't reliable on teleports.
+    private final Map<Integer, Vector3d> playerAttackQueue = new LinkedHashMap<>();
     private static final List<EntityType> blacklisted = Arrays.asList(
             EntityTypes.BOAT,
             EntityTypes.CHEST_BOAT,
@@ -79,11 +76,14 @@ public class Reach extends PacketCheck {
                 return;
             }
 
+            // TODO: Remove when in front of via
+            if (entity.type == EntityTypes.ARMOR_STAND && player.getClientVersion().isOlderThan(ClientVersion.V_1_8)) return;
+
             if (player.gamemode == GameMode.CREATIVE) return;
             if (player.compensatedEntities.getSelf().inVehicle()) return;
             if (entity.riding != null) return;
 
-            playerAttackQueue.add(action.getEntityId()); // Queue for next tick for very precise check
+            playerAttackQueue.put(action.getEntityId(), new Vector3d(player.x, player.y, player.z)); // Queue for next tick for very precise check
 
             if (player.shouldModifyPackets() && cancelImpossibleHits && isKnownInvalid(entity)) {
                 event.setCancelled(true);
@@ -119,7 +119,7 @@ public class Reach extends PacketCheck {
         double lowest = 6;
         // Filter out what we assume to be cheats
         if (cancelBuffer != 0) {
-            return checkReach(reachEntity, true) != null; // If they flagged
+            return checkReach(reachEntity, new Vector3d(player.x, player.y, player.z), true) != null; // If they flagged
         } else {
             // Don't allow blatant cheats to get first hit
             for (double eyes : player.getPossibleEyeHeights()) {
@@ -137,22 +137,20 @@ public class Reach extends PacketCheck {
     }
 
     private void tickFlying() {
-        Integer attackQueue = playerAttackQueue.poll();
-        while (attackQueue != null) {
-            PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attackQueue);
+        for (Map.Entry<Integer, Vector3d> attack : playerAttackQueue.entrySet()) {
+            PacketEntity reachEntity = player.compensatedEntities.entityMap.get(attack.getKey());
 
             if (reachEntity != null) {
-                String result = checkReach(reachEntity, false);
+                String result = checkReach(reachEntity, attack.getValue(), false);
                 if (result != null) {
                     flagAndAlert(result);
                 }
             }
-
-            attackQueue = playerAttackQueue.poll();
         }
+        playerAttackQueue.clear();
     }
 
-    private String checkReach(PacketEntity reachEntity, boolean isPrediction) {
+    private String checkReach(PacketEntity reachEntity, Vector3d from, boolean isPrediction) {
         SimpleCollisionBox targetBox = reachEntity.getPossibleCollisionBoxes();
 
         if (reachEntity.type == EntityTypes.END_CRYSTAL) { // Hardcode end crystal box
@@ -173,8 +171,6 @@ public class Reach extends PacketCheck {
         // Just give the uncertainty on 1.9+ clients as we have no way of knowing whether they had 0.03 movement
         if (!player.packetStateData.didLastLastMovementIncludePosition || player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9))
             targetBox.expand(player.getMovementThreshold());
-
-        Vector3d from = new Vector3d(player.lastX, player.lastY, player.lastZ);
 
         double minDistance = Double.MAX_VALUE;
 

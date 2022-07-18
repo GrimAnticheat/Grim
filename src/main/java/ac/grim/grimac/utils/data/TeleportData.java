@@ -3,6 +3,7 @@ package ac.grim.grimac.utils.data;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import org.bukkit.Location;
 
 @AllArgsConstructor
@@ -11,6 +12,8 @@ public class TeleportData {
     Location location;
     RelativeFlag flags;
     int transaction;
+    @Setter
+    int teleportId;
 
     public boolean isRelativeX() {
         return flags.isSet(RelativeFlag.X.getMask());

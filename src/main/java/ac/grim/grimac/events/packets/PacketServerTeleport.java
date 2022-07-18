@@ -6,12 +6,14 @@ import ac.grim.grimac.utils.data.Pair;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.manager.server.ServerVersion;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.player.ClientVersion;
 import com.github.retrooper.packetevents.protocol.teleport.RelativeFlag;
 import com.github.retrooper.packetevents.util.Vector3d;
+import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientTeleportConfirm;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerPlayerPositionAndLook;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerVehicleMove;
 import org.bukkit.Location;
@@ -20,6 +22,18 @@ public class PacketServerTeleport extends PacketListenerAbstract {
 
     public PacketServerTeleport() {
         super(PacketListenerPriority.LOW);
+    }
+
+    @Override
+    public void onPacketReceive(PacketReceiveEvent event) {
+        if (event.getPacketType() == PacketType.Play.Client.TELEPORT_CONFIRM) {
+            WrapperPlayClientTeleportConfirm confirm = new WrapperPlayClientTeleportConfirm(event);
+
+            GrimPlayer player = GrimAPI.INSTANCE.getPlayerDataManager().getPlayer(event.getUser());
+            if (player == null) return;
+
+            player.getSetbackTeleportUtil().lastTeleportId = confirm.getTeleportId();
+        }
     }
 
     @Override
@@ -95,7 +109,7 @@ public class PacketServerTeleport extends PacketListenerAbstract {
                 pos = pos.withY(pos.getY() - 1.62);
 
             Location target = new Location(null, pos.getX(), pos.getY(), pos.getZ());
-            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, teleport.getRelativeFlags(), true);
+            player.getSetbackTeleportUtil().addSentTeleport(target, lastTransactionSent, teleport.getRelativeFlags(), true, teleport.getTeleportId());
         }
 
         if (event.getPacketType() == PacketType.Play.Server.VEHICLE_MOVE) {

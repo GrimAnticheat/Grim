@@ -399,6 +399,15 @@ public class GrimPlayer implements GrimUser {
         return pose.eyeHeight;
     }
 
+    public void timedOut() {
+        try {
+            user.sendPacket(new WrapperPlayServerDisconnect(Component.translatable("disconnect.timeout")));
+        } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
+            LogUtil.warn("Failed to send disconnect packet to time out " + user.getProfile().getName() + "! Disconnecting anyways.");
+        }
+        user.closeConnection();
+    }
+
     public boolean pollData() {
         // Send a transaction at least once a tick, for timer and post check purposes
         // Don't be the first to send the transaction, or we will stack overflow
@@ -409,12 +418,7 @@ public class GrimPlayer implements GrimUser {
             sendTransaction(true); // send on netty thread
         }
         if ((System.nanoTime() - getPlayerClockAtLeast()) > GrimAPI.INSTANCE.getConfigManager().getMaxPingTransaction() * 1e9) {
-            try {
-                user.sendPacket(new WrapperPlayServerDisconnect(Component.translatable("disconnect.timeout")));
-            } catch (Exception ignored) { // There may (?) be an exception if the player is in the wrong state...
-                LogUtil.warn("Failed to send disconnect packet to time out " + user.getProfile().getName() + "! Disconnecting anyways.");
-            }
-            user.closeConnection();
+            timedOut();
         }
         if (this.playerUUID == null) {
             this.playerUUID = user.getUUID();

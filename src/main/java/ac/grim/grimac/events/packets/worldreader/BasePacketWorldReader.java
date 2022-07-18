@@ -2,9 +2,7 @@ package ac.grim.grimac.events.packets.worldreader;
 
 import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.chunks.Column;
-import ac.grim.grimac.utils.data.Pair;
 import ac.grim.grimac.utils.data.TeleportData;
 import com.github.retrooper.packetevents.event.PacketListenerAbstract;
 import com.github.retrooper.packetevents.event.PacketListenerPriority;
@@ -13,7 +11,6 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.protocol.world.chunk.BaseChunk;
 import com.github.retrooper.packetevents.util.Vector3i;
 import com.github.retrooper.packetevents.wrapper.play.server.*;
-import org.bukkit.Location;
 
 public class BasePacketWorldReader extends PacketListenerAbstract {
 
@@ -96,8 +93,10 @@ public class BasePacketWorldReader extends PacketListenerAbstract {
         double chunkCenterZ = (chunkZ << 4) + 8;
         boolean shouldPostTrans = Math.abs(player.x - chunkCenterX) < 16 && Math.abs(player.z - chunkCenterZ) < 16;
 
-        for (TeleportData teleports : player.getSetbackTeleportUtil().teleports) {
-            if (teleports.getFlags().getMask() != 0) continue; // Worse that will happen is people will get an extra setback... relative teleports aren't good for long distance teleports anyways
+        for (TeleportData teleports : player.getSetbackTeleportUtil().pendingTeleports) {
+            if (teleports.getFlags().getMask() != 0) {
+                continue; // Worse that will happen is people will get an extra setback...
+            }
             shouldPostTrans = shouldPostTrans || (Math.abs(teleports.getLocation().getX() - chunkCenterX) < 16 && Math.abs(teleports.getLocation().getZ() - chunkCenterZ) < 16);
         }
 
