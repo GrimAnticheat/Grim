@@ -14,6 +14,9 @@ GrimAC is an open source Minecraft anticheat designed for 1.19 and supports 1.8-
 3. gradlew shadowJar
 4. The final jar is located in build/libs
 
+### API Information
+Grim's API allows you to integrate Grim into your own plugins. For more information, check out the API's github repository [here](https://github.com/MWHunter/GrimAPI).
+
 ## Grim supremacy
 
 Here are the main cores that make Grim stand out against other anticheats
