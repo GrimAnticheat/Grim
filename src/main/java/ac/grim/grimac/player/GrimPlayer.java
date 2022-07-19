@@ -241,7 +241,7 @@ public class GrimPlayer implements GrimUser {
 
         if (likelyKB != null) {
             // Allow water pushing to affect knockback
-            set.add(new VectorData(likelyKB.vector.clone(), VectorData.VectorType.Knockback));
+            set.add(new VectorData(likelyKB.vector.clone(), VectorData.VectorType.Knockback).returnNewModified(likelyKB.vector.clone(), VectorData.VectorType.FirstBreadExplosion));
         }
 
         set.addAll(getPossibleVelocitiesMinusKnockback());

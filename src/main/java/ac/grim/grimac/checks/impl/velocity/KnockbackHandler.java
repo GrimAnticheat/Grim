@@ -4,6 +4,7 @@ import ac.grim.grimac.GrimAPI;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -73,8 +74,6 @@ public class KnockbackHandler extends PacketCheck {
         if (player.likelyKB != null) {
             player.likelyKB.shouldResend = false;
         }
-
-
         // Chronologically in the future
         if (firstBreadMap.size() > 0) {
             return firstBreadMap.peek().vector;
@@ -218,6 +217,13 @@ public class KnockbackHandler extends PacketCheck {
                 }
             }
         }
+    }
+
+    public boolean shouldIgnoreForPrediction(VectorData data) {
+        if (data.isKnockback() && data.isFirstBreadKb()) {
+            return player.firstBreadKB.offset > offsetToFlag;
+        }
+        return false;
     }
 
     public boolean wouldFlag() {

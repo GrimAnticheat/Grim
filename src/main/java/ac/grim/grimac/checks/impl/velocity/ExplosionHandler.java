@@ -3,6 +3,7 @@ package ac.grim.grimac.checks.impl.velocity;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PacketCheck;
 import ac.grim.grimac.player.GrimPlayer;
+import ac.grim.grimac.utils.data.VectorData;
 import ac.grim.grimac.utils.data.VelocityData;
 import com.github.retrooper.packetevents.event.PacketSendEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
@@ -89,6 +90,13 @@ public class ExplosionHandler extends PacketCheck {
             return player.likelyExplosions.vector;
         }
         return null;
+    }
+
+    public boolean shouldIgnoreForPrediction(VectorData data) {
+        if (data.isExplosion() && data.isFirstBreadExplosion()) {
+            return player.firstBreadExplosion.offset > offsetToFlag;
+        }
+        return false;
     }
 
     public boolean wouldFlag() {
