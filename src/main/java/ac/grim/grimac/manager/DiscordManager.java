@@ -65,6 +65,7 @@ public class DiscordManager implements Initable {
             content = content.replace("%check%", checkName);
             content = content.replace("%violations%", violations);
             content = GrimAPI.INSTANCE.getExternalAPI().replaceVariables(player, content, false);
+            content = content.replace("_", "\\_");
 
             WebhookEmbedBuilder embed = new WebhookEmbedBuilder()
                     .setImageUrl("https://i.stack.imgur.com/Fzh0w.png") // Constant width
