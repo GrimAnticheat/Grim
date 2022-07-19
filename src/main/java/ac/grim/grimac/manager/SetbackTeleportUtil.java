@@ -167,11 +167,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
 
         if (!hasAcceptedSpawnTeleport) clientVel = null; // if the player hasn't spawned... don't force kb
 
-        // Don't let people get new velocities on demand
-        if (player.checkManager.getKnockbackHandler().isPendingKb() || player.checkManager.getExplosionHandler().isPendingExplosion()) {
-            clientVel = null;
-        }
-
         // Something weird has occurred in the player's movement, block offsets until we resync
         if (isResync) {
             blockOffsets = true;

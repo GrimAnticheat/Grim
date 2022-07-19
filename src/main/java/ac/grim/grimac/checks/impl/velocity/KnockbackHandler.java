@@ -31,10 +31,6 @@ public class KnockbackHandler extends PacketCheck {
         super(player);
     }
 
-    public boolean isPendingKb() {
-        return firstBreadMap.size() > 0;
-    }
-
     @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.ENTITY_VELOCITY) {
@@ -65,6 +61,20 @@ public class KnockbackHandler extends PacketCheck {
     }
 
     public Vector getFutureKnockback() {
+        for (VelocityData data : firstBreadMap) {
+            data.shouldResend = false;
+        }
+        for (VelocityData data : lastKnockbackKnownTaken) {
+            data.shouldResend = false;
+        }
+        if (player.firstBreadKB != null) {
+            player.firstBreadKB.shouldResend = false;
+        }
+        if (player.likelyKB != null) {
+            player.likelyKB.shouldResend = false;
+        }
+
+
         // Chronologically in the future
         if (firstBreadMap.size() > 0) {
             return firstBreadMap.peek().vector;
@@ -189,10 +199,10 @@ public class KnockbackHandler extends PacketCheck {
 
         if (player.likelyKB != null) {
             if (player.likelyKB.offset > offsetToFlag) {
-                if (player.likelyKB.isSetback) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
+                if (player.likelyKB.isSetback && player.likelyKB.shouldResend) { // Don't increase violations if this velocity was setback, just teleport and resend them velocity.
                     player.getSetbackTeleportUtil().executeViolationSetback();
                 } else if (flag()) { // This velocity was sent by the server.
-                    if (getViolations() > setbackVL) {
+                    if (getViolations() > setbackVL && player.likelyKB.shouldResend) {
                         player.getSetbackTeleportUtil().executeViolationSetback();
                     }
 

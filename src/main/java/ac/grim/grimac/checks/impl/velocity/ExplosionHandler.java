@@ -30,10 +30,6 @@ public class ExplosionHandler extends PacketCheck {
         super(player);
     }
 
-    public boolean isPendingExplosion() {
-        return firstBreadMap.size() > 0;
-    }
-
     @Override
     public void onPacketSend(final PacketSendEvent event) {
         if (event.getPacketType() == PacketType.Play.Server.EXPLOSION) {
@@ -61,6 +57,23 @@ public class ExplosionHandler extends PacketCheck {
     }
 
     public Vector getFutureExplosion() {
+        for (VelocityData data : firstBreadMap) {
+            data.shouldResend = false;
+        }
+        if (lastExplosionsKnownTaken != null) {
+            lastExplosionsKnownTaken.shouldResend = false;
+        }
+        if (firstBreadAddedExplosion != null) {
+            firstBreadAddedExplosion.shouldResend = false;
+        }
+        if (player.firstBreadExplosion != null) {
+            player.firstBreadExplosion.shouldResend = false;
+        }
+        if (player.likelyExplosions != null) {
+            player.likelyExplosions.shouldResend = false;
+        }
+
+
         // Chronologically in the future
         if (firstBreadMap.size() > 0) {
             return firstBreadMap.peek().vector;
@@ -100,26 +113,14 @@ public class ExplosionHandler extends PacketCheck {
         }
     }
 
-    public void onTeleport() {
-        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
-                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            forceExempt();
-        }
-    }
-
     public void forceExempt() {
-        // Don't exempt if the player used grim to get a teleport here.
-        // This will flag but it's required to stop abuse
-        if (player.getSetbackTeleportUtil().getRequiredSetBack() == null ||
-                player.getSetbackTeleportUtil().getRequiredSetBack().isPlugin()) {
-            // Unsure explosion was taken
-            if (player.firstBreadExplosion != null) {
-                player.firstBreadExplosion.offset = 0;
-            }
+        // Unsure explosion was taken
+        if (player.firstBreadExplosion != null) {
+            player.firstBreadExplosion.offset = 0;
+        }
 
-            if (player.likelyExplosions != null) {
-                player.likelyExplosions.offset = 0;
-            }
+        if (player.likelyExplosions != null) {
+            player.likelyExplosions.offset = 0;
         }
     }
 
@@ -167,7 +168,7 @@ public class ExplosionHandler extends PacketCheck {
         if (player.likelyExplosions != null) {
             if (player.likelyExplosions.offset > offsetToFlag) {
                 if (flag()) {
-                    if (getViolations() > setbackVL) {
+                    if (getViolations() > setbackVL && player.likelyKB.shouldResend) {
                         player.getSetbackTeleportUtil().executeViolationSetback();
                     }
                 }

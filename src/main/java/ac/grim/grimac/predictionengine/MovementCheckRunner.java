@@ -104,8 +104,8 @@ public class MovementCheckRunner extends PositionCheck {
         player.uncertaintyHandler.lastTeleportTicks.reset();
 
         // Teleports OVERRIDE explosions and knockback
-        player.checkManager.getExplosionHandler().onTeleport();
-        player.checkManager.getKnockbackHandler().onTeleport();
+        player.checkManager.getExplosionHandler().forceExempt();
+        player.checkManager.getKnockbackHandler().forceExempt();
 
         // Manually call prediction complete to handle teleport
         player.getSetbackTeleportUtil().onPredictionComplete(new PredictionComplete(0, update));
