@@ -259,7 +259,6 @@ public class SetbackTeleportUtil extends PostPredictionCheck {
             double threshold = teleportPos.isRelativeX() ? player.getMovementThreshold() : 0;
             boolean closeEnoughY = Math.abs(clamped.getY() - y) <= 1e-7 + threshold; // 1.7 rounding
 
-            Bukkit.broadcastMessage("Is X " + (Math.abs(clamped.getX() - x) <= threshold) + " " + closeEnoughY + " is Z " + (Math.abs(clamped.getZ() - z) <= threshold));
             if (Math.abs(clamped.getX() - x) <= threshold && closeEnoughY && Math.abs(clamped.getZ() - z) <= threshold) {
                 pendingTeleports.poll();
                 hasAcceptedSpawnTeleport = true;
