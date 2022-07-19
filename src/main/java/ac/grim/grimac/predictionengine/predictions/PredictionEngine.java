@@ -343,10 +343,10 @@ public class PredictionEngine {
             velocities.add(new VectorData(player.clientVelocity.clone().add(riptideAddition), VectorData.VectorType.Trident));
         }
 
-        // Inputs are done before player ticking
-        addAttackSlowToPossibilities(player, velocities);
         // Fluid pushing is done BEFORE 0.003
         addFluidPushingToStartingVectors(player, velocities);
+        // Inputs are done AFTER fluid pushing, https://github.com/MWHunter/Grim/issues/660
+        addAttackSlowToPossibilities(player, velocities);
         // Non-effective AI for vehicles is done AFTER fluid pushing but BEFORE 0.003
         addNonEffectiveAI(player, velocities);
         // Attack slowing is done BEFORE 0.003! Moving this before 0.003 will cause falses!
